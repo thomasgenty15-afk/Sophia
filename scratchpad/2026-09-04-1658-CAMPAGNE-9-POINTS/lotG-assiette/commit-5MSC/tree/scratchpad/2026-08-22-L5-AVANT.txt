@@ -1,0 +1,155 @@
+═══════════════════════════════════════════════════════════════════════════
+L5 — LE SEL, LES SUCRES ET LA VITAMINE K
+exécuté le 2026-08-22 16:49:18 CEST · base supabase_db_Sophia_2
+═══════════════════════════════════════════════════════════════════════════
+
+── LES TROIS COLONNES EXISTENT-ELLES ? (information_schema) ───────────────
+     sodium_mg        N'EXISTE PAS
+     sugars_g         N'EXISTE PAS
+     vitamin_k_ug     N'EXISTE PAS
+     micronutrient_so N'EXISTE PAS
+
+── CE QUI EST VÉRIFIABLE CONTRE SA SOURCE (lot `O9`) ─────────────────────
+     source=ciqual   total  881 · avec ciqual_code  192 · SANS  689
+     source=manual   total   42 · avec ciqual_code    0 · SANS   42
+
+── ① LES TROIS COLONNES, ET LE RÉFÉRENTIEL ENTIER ────────────────────────
+     sodium_mg      ⛔ LA COLONNE N'EXISTE PAS
+     sugars_g       ⛔ LA COLONNE N'EXISTE PAS
+     vitamin_k_ug   ⛔ LA COLONNE N'EXISTE PAS
+
+── ② LES DEUX DÉNOMINATEURS — §⑨ n° 50 ET SON AMENDEMENT ─────────────────
+     [A] corpus entier           193 plans ·  199 aliments ATTEINTS
+     [B] population vivante       13 plans ·   93 aliments ATTEINTS
+         millésimes vivants: meal.en.v18_one_box_per_group · meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+     ⛔ POPULATION EXCLUE de [B]: 180 plans, 25 millésimes morts — les voici, comptés:
+          43 × (aucun prompt_version)
+          28 × meal.en.v15_the_plan_never_names_it+household.v17_what_each_mouth_already_has
+          17 × meal.en.v3_preparations
+          12 × meal.en.v2_batch
+          11 × meal.en.v14_what_outranks_what+household.v17_what_each_mouth_already_has
+           8 × meal.en.v9_cooking_shape+household.v6_voices
+           8 × meal.en.v9_cooking_shape+household.v5_unmerge
+           6 × meal.en.v8_distinct_health_direction+household.v2_presence
+           6 × meal.en.v9_cooking_shape+household.v9_merge_dedicated_per_meal
+           5 × meal.en.v9_cooking_shape+household.v8_plan_gaps
+           4 × meal.en.v12_a_dish_has_a_name+household.v16_this_kitchen_and_a_meal_out
+           4 × meal.en.v9_cooking_shape
+           4 × meal.en.v1_doctrine
+           4 × meal.en.v9_cooking_shape+household.v3_merge
+           3 × meal.en.v13_what_they_can_actually_do+household.v17_what_each_mouth_already_has
+           3 × meal.en.v11_weighed_or_counted+household.v15_one_box_each_and_a_number
+           3 × meal.en.v13_what_they_can_actually_do
+           3 × meal.en.v9_cooking_shape+household.v4_merge_budget
+           2 × meal.en.v12_a_dish_has_a_name
+           1 × meal.en.v16_the_model_declares_the_group+household.v19_a_why_names_no_ones_rule
+           1 × meal.en.v9_cooking_shape+household.v11_dietary_regime_at_the_table
+           1 × meal.en.v11_weighed_or_counted+household.v14_weigh_once_into_boxes
+           1 × meal.en.v10_same_day+household.v12_whose_dish_is_it
+           1 × meal.en.v14_what_outranks_what
+           1 × meal.en.v9_cooking_shape+household.v7_merge_anchor
+
+── ③ LA COUVERTURE SUR LES ALIMENTS ATTEINTS ─────────────────────────────
+     seuil de la fiche: 90 %
+     [A] 199 aliments atteints
+         sodium_mg         0 /  199     0.0 %
+         sugars_g          0 /  199     0.0 %
+         vitamin_k_ug      0 /  199     0.0 %
+         LES TROIS À LA FOIS     0 /  199     0.0 %   ⇒ MANQUÉ
+     [B] 93 aliments atteints
+         sodium_mg         0 /   93     0.0 %
+         sugars_g          0 /   93     0.0 %
+         vitamin_k_ug      0 /   93     0.0 %
+         LES TROIS À LA FOIS     0 /   93     0.0 %   ⇒ MANQUÉ
+
+── ④ LES ALIMENTS ATTEINTS SANS LES TROIS VALEURS — 199, par fréquence ──
+     1442 × olive_oil                          Na=— sucres=— K=—
+      987 × salt                               Na=— sucres=— K=—
+      531 × lemon                              Na=— sucres=— K=—
+      528 × courgette                          Na=— sucres=— K=—
+      478 × black_pepper                       Na=— sucres=— K=—
+      474 × tomato                             Na=— sucres=— K=—
+      457 × bell_pepper                        Na=— sucres=— K=—
+      414 × paprika                            Na=— sucres=— K=—
+      379 × onion                              Na=— sucres=— K=—
+      372 × water                              Na=— sucres=— K=—
+      361 × garlic                             Na=— sucres=— K=—
+      355 × chicken_thigh                      Na=— sucres=— K=—
+      245 × red_onion                          Na=— sucres=— K=—
+      194 × cucumber                           Na=— sucres=— K=—
+      189 × oats                               Na=— sucres=— K=—
+      189 × cumin                              Na=— sucres=— K=—
+      179 × white_rice                         Na=— sucres=— K=—
+      178 × potato                             Na=— sucres=— K=—
+      177 × greek_yogurt                       Na=— sucres=— K=—
+      166 × tinned_tomatoes                    Na=— sucres=— K=—
+      165 × spinach                            Na=— sucres=— K=—
+      159 × wholemeal_bread                    Na=— sucres=— K=—
+      154 × lentils_dry                        Na=— sucres=— K=—
+      151 × herbs_parsley                      Na=— sucres=— K=—
+      144 × couscous                           Na=— sucres=— K=—
+      143 × whole_eggs                         Na=— sucres=— K=—
+      127 × dried_herbs                        Na=— sucres=— K=—
+      124 × chickpeas_tinned                   Na=— sucres=— K=—
+      122 × aubergine                          Na=— sucres=— K=—
+      113 × carrot                             Na=— sucres=— K=—
+      109 × lettuce                            Na=— sucres=— K=—
+      106 × green_beans                        Na=— sucres=— K=—
+      100 × herbs_thyme                        Na=— sucres=— K=—
+       99 × peach                              Na=— sucres=— K=—
+       78 × plain_yogurt                       Na=— sucres=— K=—
+       74 × tofu                               Na=— sucres=— K=—
+       73 × honey                              Na=— sucres=— K=—
+       69 × butter                             Na=— sucres=— K=—
+       66 × quinoa                             Na=— sucres=— K=—
+       64 × white_beans                        Na=— sucres=— K=—
+     … et 159 autres
+
+── ⑤ LA LISTE FERMÉE DES ALIMENTS À K ÉLEVÉE (≥ 100 µg/100 g) ──
+     (aucun — la colonne est vide ou n'existe pas)
+
+── ⑥ ⛔ LA PREUVE QUE RIEN NE PEUT FORMULER UN MANQUE DE SEL ─────────────
+     SODIUM_VERDICTS = [unknown, within, above]
+     sodiumVerdict(0)     = within    (jamais « below »)
+     sodiumVerdict(1999)  = within
+     sodiumVerdict(2001)  = above
+     sodiumVerdict(null)  = unknown
+     saltGramsOf(2000)    = 5.1 g de sel
+
+── ⑦ LA K SERVIE PAR PLAN — le compteur qui arme le lot ──────────────────
+     ⚠️ Une journée dont UNE ligne pesée n'a pas de K rend `null`, jamais
+        une somme partielle: c'est sur ce chiffre qu'une dose se règle.
+     [A]  193 plans · journées    0/ 602 calculables   0.0 % · K médiane par journée n/a
+     [B]   13 plans · journées    0/  77 calculables   0.0 % · K médiane par journée n/a
+
+     Les plans VIVANTS, journée par journée (µg de K servis):
+       09240cb5 foyer  pesées  29 dont sans K  29 · unknown    fri=— mon=— sun=— thu=— tue=— wed=—
+       3c781a71 foyer  pesées 276 dont sans K 276 · unknown    mon=— sat=— sun=— thu=— tue=— wed=—
+       3eae73ac foyer  pesées  99 dont sans K  99 · unknown    fri=— mon=— sun=— thu=— tue=— wed=—
+       4ef89334 foyer  pesées  37 dont sans K  37 · unknown    mon=— sun=—
+       5058be6a foyer  pesées 170 dont sans K 170 · unknown    fri=— mon=— sat=— sun=— thu=— tue=— wed=—
+       5f078b7e solo   pesées 153 dont sans K 153 · unknown    fri=— mon=— sat=— sun=— thu=— tue=— wed=—
+       612ac898 foyer  pesées 153 dont sans K 153 · unknown    fri=— mon=— sat=— sun=— thu=— tue=— wed=—
+       66de9046 foyer  pesées 136 dont sans K 136 · unknown    fri=— mon=— sat=— sun=— thu=— tue=— wed=—
+       8f498609 foyer  pesées 161 dont sans K 161 · unknown    fri=— mon=— sat=— sun=— thu=— tue=— wed=—
+       9ec54e51 foyer  pesées 100 dont sans K 100 · unknown    fri=— mon=— sun=— wed=—
+       9f02838a foyer  pesées 254 dont sans K 254 · unknown    fri=— mon=— sat=— sun=— thu=— tue=— wed=—
+       a5b2a817 foyer  pesées 134 dont sans K 134 · unknown    mon=— sun=— tue=— wed=—
+       d46c4dad foyer  pesées 163 dont sans K 163 · unknown    fri=— mon=— sat=— sun=— thu=— tue=— wed=—
+
+     abstention: 13184 ligne(s) servie(s) sans valeur de K ⇒ 602 journée(s) à `null`
+
+── ⑧ ⛔ CE QU'ON NE PEUT PAS VÉRIFIER CONTRE SA SOURCE (lot `O9`) ────────
+     Sur les 199 aliments atteints, 28 se déclarent `ciqual` SANS `ciqual_code`.
+     ⛔ Pour eux, relire la valeur contre la table ANSES est IMPOSSIBLE depuis ce
+        dépôt. Ce lot ne le contourne pas: il l'écrit, et `micronutrient_source`
+        dit pour chaque ligne d'où sa valeur vient RÉELLEMENT.
+
+⛔ ══ GARDES QUI ONT MORDU ══════════════════════════════════════════════
+   · GARDE ② — dénominateur [A]: couverture 0.0 % < 90 %.
+   · GARDE ② — dénominateur [B]: couverture 0.0 % < 90 %.
+   · GARDE ③ — 11 aliment(s) ATTEINT(S) dont le libellé annonce une feuille verte n'ont AUCUNE valeur de K: broccoli, herbs_basil, herbs_chives, herbs_coriander, herbs_parsley, kale, leek, lettuce, red_cabbage, rocket, spinach. La liste n'est pas fermée.
+
+═══════════════════════════════════════════════════════════════════════════
+FIN · rc=1
+═══════════════════════════════════════════════════════════════════════════

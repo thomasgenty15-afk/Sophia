@@ -264,6 +264,14 @@ export async function loadEveningStripContext(
           food_group: item?.food_group === null || item?.food_group === undefined
             ? null
             : String(item.food_group),
+          // ⟳ 2026-09-12 · FERMETURE LOT 2 — L'IDENTIFIANT, QUI PORTE LA
+          // CONSERVATION. Même histoire que le groupe juste au-dessus, cinq
+          // mois plus tard : la fenêtre se lit désormais sur le slug quand on
+          // SAIT que l'aliment se garde (`SHELF_STABLE_SLUGS`), et sans lui la
+          // bande du soir replacerait une conserve comme du frais.
+          ref: item?.ref === null || item?.ref === undefined
+            ? null
+            : String(item.ref),
         }))
         : [];
       const waves = planGroceryWaves({

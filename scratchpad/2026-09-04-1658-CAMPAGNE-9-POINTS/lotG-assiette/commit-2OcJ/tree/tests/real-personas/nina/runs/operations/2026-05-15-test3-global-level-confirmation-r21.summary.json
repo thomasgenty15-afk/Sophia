@@ -1,0 +1,23 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r21-t01-87faf602-6da0-4ba2-b5b2-ecb52adb13ec",
+    "status": 503,
+    "ok": null,
+    "user": "Je reviens sur le bloc grignotage. Ce n'est pas une action isolée qui coince, c'est plutôt le niveau en entier : le soir je me retrouve avec trop de petits choix à faire, et ça me donne envie de laisser tomber.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "tool_skill_run": null,
+    "pending_tool_skill_confirmation": null,
+    "turn_frame_tool_skill_intents": null,
+    "trace_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r21-t01-87faf602-6da0-4ba2-b5b2-ecb52adb13ec",
+    "trace_error": null
+  }
+]

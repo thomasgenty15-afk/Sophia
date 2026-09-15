@@ -1,0 +1,325 @@
+{
+  "scope": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2",
+  "user_id": "85c5cbc9-47f2-41a5-83e5-aa8c8073d7e4",
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "1e6f6f17-444a-4c0f-9c14-e4f08de49475",
+        "role": "user",
+        "content": "Franchement aujourd'hui j'ai plus envie. Le plan de grignotage, les placards, tout ca, j'ai l'impression que ca ne sert a rien et que je vais encore tenir deux jours puis laisser tomber.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:17:28.081644+00:00"
+      },
+      {
+        "id": "fe6498ec-b8dd-4bb7-95f6-0b640785ecb4",
+        "role": "assistant",
+        "content": "Est-ce que tu veux faire le point sur la motivation ou est-ce qu'on modifie le plan de grignotage ? 🙂",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 5,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-02T12:17:46.164483+00:00"
+      },
+      {
+        "id": "8194d4da-3178-4051-a9e7-e968c3f02563",
+        "role": "user",
+        "content": "Plutot motivation. Ne modifie pas le plan, ne lance pas de potion ni d'outil. J'ai juste besoin que tu m'aides a ne pas transformer ce ratage en preuve que je suis nulle.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:18:02.729015+00:00"
+      },
+      {
+        "id": "f0d84b43-13b8-4cea-bc62-3ab74e412a98",
+        "role": "assistant",
+        "content": "Je ne l'active pas depuis le chat. Reprends cette recommandation dans la section État / Potions.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 5,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "cancelled",
+              "handoff": null,
+              "constraints": [
+                {
+                  "kind": "no_potion",
+                  "evidence": [
+                    "Plutot motivation. Ne modifie pas le plan, ne lance pas de potion ni d'outil. J'ai juste besoin que tu m'aides a ne pas transformer ce ratage en preuve que je suis nulle."
+                  ]
+                }
+              ],
+              "reason_code": "select_state_potion_no_potion_constraint",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "cancelled",
+                "surface_id": "state_potions",
+                "reason_code": "select_state_potion_no_potion_constraint",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-02T12:18:10.995968+00:00"
+      },
+      {
+        "id": "4bd47247-96b3-44f3-9062-f553feeb915e",
+        "role": "user",
+        "content": "Non justement, pas de potion. Je te demande de rester avec moi deux minutes sur la demotivation. Je me sens juste fatiguee et decouragee, pas en train de demander une action dans l'app.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:18:21.537131+00:00"
+      },
+      {
+        "id": "31992ae5-3efb-47a2-a6fa-a795e4e13576",
+        "role": "assistant",
+        "content": "Phrase de réparation : \"Je reviens au prochain geste, pas a toute la montagne.\"\nMicro-action : ferme ce qui attire ton attention, rouvre seulement la tâche utile, et fais 90 secondes dessus. 🙂",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 5,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "cancelled",
+              "handoff": null,
+              "constraints": [
+                {
+                  "kind": "no_potion",
+                  "evidence": [
+                    "Non justement, pas de potion. Je te demande de rester avec moi deux minutes sur la demotivation. Je me sens juste fatiguee et decouragee, pas en train de demander une action dans l'app."
+                  ]
+                }
+              ],
+              "reason_code": "select_state_potion_no_potion_constraint",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "cancelled",
+                "surface_id": "state_potions",
+                "reason_code": "select_state_potion_no_potion_constraint",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-02T12:18:27.050649+00:00"
+      },
+      {
+        "id": "eb26b364-c8a8-4417-9a6f-d3081b80d8b9",
+        "role": "user",
+        "content": "Ok. La micro-action que je peux faire maintenant, c'est juste ouvrir le placard le plus visible et enlever un seul paquet, pas plus. Aide-moi a lancer ca sans me refaire un grand plan.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:18:38.918272+00:00"
+      },
+      {
+        "id": "dea444e5-d6c8-45c8-a5ef-333a21d2e32e",
+        "role": "assistant",
+        "content": "Tu veux découper cette action ou préparer ton démarrage ? 🙂",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 5,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-02T12:19:21.502389+00:00"
+      },
+      {
+        "id": "10d45720-e587-4c82-a747-dd461dcec328",
+        "role": "user",
+        "content": "Prepare juste mon demarrage. Pas besoin de decouper plus : un paquet, maintenant, puis je reviens.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:19:36.582065+00:00"
+      },
+      {
+        "id": "609777b0-0ab0-4876-b253-85f1f2cc2aff",
+        "role": "assistant",
+        "content": "Je n'ai pas pu préparer cette carte depuis le chat pour l'instant. 🙂",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 5,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "blocked_by_safety",
+              "missing_slots": [],
+              "allowed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "prepare_attack_card",
+                  "reason_code": "blocked_by_safety"
+                }
+              ],
+              "selected_handler": "prepare_attack_card",
+              "committed_effects": [],
+              "requested_effects": []
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-02T12:19:51.082046+00:00"
+      }
+    ]
+  },
+  "memory_items_recent": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column memory_items.content does not exist"
+    }
+  },
+  "scheduled_checkins_recent": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column scheduled_checkins.type does not exist"
+    }
+  },
+  "turn_summary_logs": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column turn_summary_logs.summary_type does not exist"
+    }
+  }
+}

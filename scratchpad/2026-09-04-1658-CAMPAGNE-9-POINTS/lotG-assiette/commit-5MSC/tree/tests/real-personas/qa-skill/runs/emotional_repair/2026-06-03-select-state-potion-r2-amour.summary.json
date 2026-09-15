@@ -1,0 +1,163 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-amour-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux une potion d amour. Je me sens en manque d amour par rapport a mon ecriture, je me parle durement et je trouve tout nul.",
+    "assistant": "Veux-tu choisir une potion pour changer ton état d'esprit ou cherches-tu un soutien émotionnel pour ton écriture ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "orientation_clarification",
+    "selected_handler": "orientation_clarification",
+    "route_reason": "clarification_required",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-amour-t01",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-amour-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je choisis la potion d amour. A mettre : par rapport a mon ecriture, et je me sens surtout tres dure avec moi.",
+    "assistant": "Tu te sens surtout dure avec toi, c'est bien ça ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "orientation_clarification_resolved_tool_skill",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-amour-t02",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_handoff_clarifying",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_handoff_clarifying",
+        "no_chat_mutation": true,
+        "draft": null
+      }
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-amour-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, dure avec moi.",
+    "assistant": "Ce que je comprends : mon écriture ; dur\n\nJe te conseille de choisir une potion d'amour envers soi. Le shift recommandé est de baisser la dureté envers toi-même.\n\nPourquoi cette potion : Tu te sens dure avec toi-même, en particulier concernant ton écriture, et tu as exprimé le besoin de plus de douceur et de chaleur humaine.\nPetit pas immédiat : Je vois que tu te sens dure avec toi en ce moment, surtout par rapport à ton écriture. Prends un instant pour respirer, je suis là pour t'apporter un peu de douceur.\n\nÀ mettre dans la plateforme :\nPotion : Potion d'amour\n- Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ? mon écriture\n- Tu te sens surtout comment ? Dur avec moi\nDans la plateforme, tu pourras aussi préciser si c'est lié à ton plan ou hors plan.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "active_handoff_turn_unclear",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-amour-t03",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_platform_handoff_delivered",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "handoff_delivered",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_platform_handoff_delivered",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "mon écriture ; dur",
+          "desired_shift_summary": "Le shift recommandé est de baisser la dureté envers toi-même.",
+          "recommendation": {
+            "potion_label": "une potion d'amour envers soi",
+            "why_this_potion": "Tu te sens dure avec toi-même, en particulier concernant ton écriture, et tu as exprimé le besoin de plus de douceur et de chaleur humaine.",
+            "immediate_step": "Je vois que tu te sens dure avec toi en ce moment, surtout par rapport à ton écriture. Prends un instant pour respirer, je suis là pour t'apporter un peu de douceur.",
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "dans la section État / Potions",
+            "platform_steps": [
+              "ouvre la section État / Potions",
+              "choisis la potion recommandée",
+              "active-la depuis la plateforme si elle te convient"
+            ],
+            "platform_inputs": {
+              "potion_type": "amour",
+              "potion_title": "Potion d'amour",
+              "answers": [
+                {
+                  "question_id": "love_lack_context",
+                  "question_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                  "value": "mon écriture",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "love_state",
+                  "question_label": "Tu te sens surtout comment ?",
+                  "value": "Dur avec moi",
+                  "option_value": "dur",
+                  "option_label": "Dur avec moi"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    }
+  }
+]

@@ -119,7 +119,7 @@ Deno.test("⛔ LOT E ① — UNE RÉPARATION QUI INTERVERTIT MIDI ET SOIR EST RE
       { dishIndex: 0, freshReworkable: true, reworkablePotIds: [] },
       { dishIndex: 1, freshReworkable: true, reworkablePotIds: [] },
     ],
-  });
+   index: null });
 
   // ⛔ LES DEUX CASES SONT REFUSÉES, ET LE MOTIF EST NOMMÉ.
   assertEquals(r.counts.uses_mismatch, 2);
@@ -160,7 +160,7 @@ Deno.test("LOT E ① bis — le MÊME ensemble de casseroles reste épissable", 
     base,
     retry,
     asks: [{ dishIndex: 0, freshReworkable: true, reworkablePotIds: [] }],
-  });
+   index: null });
   assertEquals(r.counts.uses_mismatch, 0);
   assertEquals(r.counts.fresh_spliced, 1);
   assertEquals(r.meal.dishes[0].title, "Lentilles et couscous, plus dense");
@@ -196,7 +196,7 @@ Deno.test("⛔ LOT E ② — UNE CASSEROLE RÉÉCRITE INVALIDE LE `density_check
     base,
     retry,
     asks: [{ dishIndex: 0, freshReworkable: false, reworkablePotIds: ["prep_couscous"] }],
-  });
+   index: null });
   assertEquals(r.counts.pots_spliced, 1);
   // Les deux plats qui tirent la casserole réécrite perdent leur déclaration.
   assertEquals(r.meal.dishes[0].densityCheck, null);
@@ -212,6 +212,15 @@ Deno.test("⛔ LOT E ② — UNE CASSEROLE RÉÉCRITE INVALIDE LE `density_check
 
 function defaut(over: Partial<RepairDefect> = {}): RepairDefect {
   return {
+    // ⟳ 2026-09-12 · FERMETURE LOT 1 — L'ADRESSE STRUCTURÉE. Requise et
+    // nullable: un défaut fabriqué à la main dit explicitement qu'il n'en porte
+    // pas, au lieu de laisser le champ absent parler à sa place.
+    cause: null,
+    date: null,
+    preparationId: null,
+    // ⟳ 2026-09-13 · LOT 2 — `sessionIndex` est REQUIS et nullable.
+    sessionIndex: null,
+    source: "gate",
     kind: "sizing",
     day: "mon",
     slot: "lunch",
@@ -220,6 +229,8 @@ function defaut(over: Partial<RepairDefect> = {}): RepairDefect {
     detail: "la densité est sous son plancher",
     repairable: true,
     magnitude: null,
+    // ⟳ 2026-09-12 · LOT 2 — `measure` est REQUIS et nullable, comme `magnitude`.
+    measure: null,
     ...over,
   };
 }

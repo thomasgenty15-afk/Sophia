@@ -1,0 +1,697 @@
+[
+  {
+    "id": "plan-overview",
+    "title": "Plan, actions et ajustement",
+    "targetFeatures": [
+      "dashboard.plan",
+      "plan.missions",
+      "plan.habits",
+      "plan.adjustment"
+    ],
+    "connectionName": "product_help_dashboard_dashhelp2_c1_plan-overview",
+    "evaluation": {
+      "productTurns": 6,
+      "observedFeatureIds": [],
+      "missing": [
+        "dashboard.plan",
+        "plan.missions",
+        "plan.habits",
+        "plan.adjustment"
+      ],
+      "bad": [],
+      "forbidden": [],
+      "verdict": "ROUGE"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "status": 200,
+        "user": "dans mon espace Sophia, le plan sert a quoi exactement quand j'ai deja une transformation ?",
+        "assistant": "Dans ton espace Sophia, quand tu as déjà une transformation, le Plan sert de “pilote de décollage” pour l’exécution concrète. 🚀\n\nConcrètement, le Plan te permet de :\n- Voir le niveau actif, la semaine en cours et ce qui est censé se passer maintenant\n- Retrouver les missions, habitudes, clarifications et ce qui arrive ensuite (sans mélanger avec tout le reste)\n- Suivre l’avancement, donc éviter de faire “au feeling” plutôt que d’agir avec une vue claire\n\nSi tu veux, dis-moi juste ce que tu essayes de faire là tout de suite (comprendre quoi faire, retrouver une étape, ou vérifier où tu en es) et je te guide vers le bon endroit à regarder dans l’onglet Plan. 😊",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 2,
+        "status": 200,
+        "user": "ok, et dans le tableau de bord action, je peux rentrer mes propres bilans ou actions ?",
+        "assistant": "Oui, tu peux les voir/les gérer côté tableau de bord, mais pas “n’importe où en mode journal libre”.\n\nDans ton espace, le Plan sert plutôt à consulter le niveau actif et ce qui est prévu (semaines, missions, habitudes), et il n’est pas fait pour saisir librement des bilans ou créer des actions depuis cette vue. 🧭\n\nSi tu me dis ce que tu veux faire exactement (bilan ponctuel ? suivi quotidien ? création d’une nouvelle action récurrente ?), je te guide sur la zone la plus adaptée. 🙂",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 3,
+        "status": 200,
+        "user": "si une mission du plan ne colle plus, je dois la supprimer ou passer par autre chose ?",
+        "assistant": "Si une mission du plan ne colle plus, le bon réflexe c’est de la reconfigurer plutôt que la “supprimer sèchement”. Comme ça tu restes aligné avec ton niveau actuel, sans casser le fil. 😊\n\nConcrètement, tu fais ça où ça se gère : dans la partie Plan / Missions du tableau de bord, puis tu choisis l’option qui correspond le mieux à ta situation (ajuster, remplacer, reporter, etc.). \n\nTu veux plutôt la rendre “plus facile à faire”, la changer complètement, ou tu sens juste que tu n’as plus du tout besoin de cette mission ?",
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 4,
+        "status": 200,
+        "user": "imagine que l'action est trop grosse cette semaine, tu m'orientes vers quelle partie precise ?",
+        "assistant": "Ok, si l’action du plan te paraît trop grosse cette semaine, tu vas exactement dans la zone Plan pour la reconfigurer au niveau “mission/élément de semaine” (pas dans Habitudes ni Soutien). 🎯\n\nDans le tableau de bord :\nDashboard > Plan > ouvre la transformation à gauche > onglet Plan > et va sur la section Missions (les missions / éléments de la semaine) pour ajuster la taille ou reporter.\n\nTu veux réduire la charge (en faire moins) ou tu veux plutôt décaler à une autre semaine (A/B) ? 😊",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 5,
+        "status": 200,
+        "user": "et une habitude, je la valide comment sans inventer un bilan libre ?",
+        "assistant": "Pour valider une habitude, c'est très simple : tu vas dans l'onglet Habitudes de ton Plan. 🎯\n\nTu y trouveras tes habitudes actives sous forme de cartes. Il te suffit de cliquer sur l'habitude pour valider ton occurrence du jour. Tu pourras aussi y voir ton score d'ancrage et ton planning de la semaine.\n\nC'est vraiment là que ça se passe, sans avoir besoin d'écrire un compte-rendu ou un bilan libre.",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 6,
+        "status": 200,
+        "user": "donne-moi la difference simple entre valider une mission et ajuster le plan.",
+        "assistant": "Ok, simple :\n\nValider une mission: tu confirmes que l’action ponctuelle prévue dans le Plan est faite (c’est un “check” sur l’exécution). 🎯\n\nAjuster le plan: tu changes ce qui est prévu, parce que ça ne colle plus (trop gros, pas la bonne cible, pas la bonne semaine, etc.). C’est un “update” du cadre.\n\nEn pratique: si tu l’as faite, tu valides. Si tu dois la rendre plus réaliste pour la semaine, tu ajustes.\n\nTu veux que je te donne un exemple concret avec ton cas à toi ? 🙂",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 7,
+        "status": 200,
+        "user": "si je suis perdu dans les semaines et niveaux, tu me dis de regarder quoi en premier ?",
+        "assistant": "Si tu es perdu dans les semaines et niveaux, fais ça dans l’ordre : 1) regarde le niveau actif affiché, 2) repère la semaine en cours, 3) ouvre la section Missions pour voir ce qui est censé se passer maintenant. 😅🚀\n\nEn vrai, ton cerveau a juste besoin de 2 repères (niveau + semaine), puis tu t’occupes du concret (missions). Tu veux que je te dise comment t’y retrouver en 30 secondes, selon ce que tu vois à l’écran ?",
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 8,
+        "status": 200,
+        "user": "recap en trois points sur ce que je dois faire dans le Plan.",
+        "assistant": "Ok, recap en 3 points sur ce que tu fais dans le Plan (le “pilote” de ton exécution) 🚀\n\n1) Repérer le niveau actif et la semaine en cours pour savoir ce qui est prévu maintenant.  \n2) Aller voir les Missions de la semaine (ce qui doit se passer concrètement).  \n3) Pour rester aligné : valider quand c’est fait, et ajuster/reporter si ça ne colle plus.\n\nTu veux plutôt un mini-cas “si c’est trop gros” ou “si j’ai oublié une mission” ? 😊",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      }
+    ]
+  },
+  {
+    "id": "resources-cards",
+    "title": "Ressources, cartes libres et cartes liees au plan",
+    "targetFeatures": [
+      "resources.overview",
+      "resources.attack_card",
+      "resources.defense_card",
+      "resources.plan_cards"
+    ],
+    "connectionName": "product_help_dashboard_dashhelp2_c2_resources-cards",
+    "evaluation": {
+      "productTurns": 3,
+      "observedFeatureIds": [],
+      "missing": [
+        "resources.overview",
+        "resources.attack_card",
+        "resources.defense_card",
+        "resources.plan_cards"
+      ],
+      "bad": [],
+      "forbidden": [],
+      "verdict": "ROUGE"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "status": 200,
+        "user": "dans l'espace Ressources, c'est quoi la difference entre carte d'attaque et carte de defense ?",
+        "assistant": "Bonne question 🙂 En gros, une carte d’attaque sert à “agir / pousser” (quand tu dois te mettre en mouvement), alors qu’une carte de defense sert à “tenir / sécuriser” (quand tu sens que tu risques de craquer).\n\nDans le concret (et pour être carré) :\n- Carte de défense : tu peux en générer une librement depuis Dashboard > Ressources, ou elle peut être liée à une mission/habitude depuis Dashboard > Plan. Ensuite tu la retrouves dans Ressources où tu peux la consulter, la modifier, ou l’exporter. Elle sert surtout de garde-fou, pas à modifier l’action du plan.\n- L’espace Ressources peut aussi contenir des cartes “plus offensives” (cartes d’attaque), mais la différence exacte de libellés/usage dépend du type de carte tel que tu le vois dans ton interface.\n\nSi tu me dis ce que tu vois exactement dans la liste (les titres/2-3 lignes de chaque carte, ou une capture), je te fais la comparaison précise mot pour mot. 🙂",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 2,
+        "status": 200,
+        "user": "une carte de defense je peux la creer librement ou seulement depuis une action du plan ?",
+        "assistant": "Tu peux la créer librement directement depuis Ressources. 🙂  \nEt si tu veux un truc plus “raccord” à ton quotidien, elle peut aussi être liée à une mission ou une habitude depuis Dashboard > Plan.\n\nTu la veux plutôt en mode “prête au cas où” (libre) ou ultra alignée à une routine précise (liée) ?",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 3,
+        "status": 200,
+        "user": "et si elle est liee a une mission, je la retrouve ou apres generation ?",
+        "assistant": "Bonne question 🙂 Si elle est liée à une mission, tu la retrouves dans la mission concernée (donc via Dashboard, section Plan côté missions).  \n\nAprès génération, elle apparaît là où elle a été “rattachée”, pas forcément uniquement dans Ressources. Tu veux que ce soit plutôt “retrouvable en 1 clic” (lié à mission) ou “toujours disponible au cas où” (libre) ?",
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 4,
+        "status": 200,
+        "user": "pour une carte d'attaque, je la vois aussi dans le Plan ou seulement dans Ressources ?",
+        "assistant": "Je te propose de creer une carte d'attaque courte pour une carte d'attaque, je la vois aussi dans le Plan ou seulement dans Ressources ?: Fais la version 4 minutes de \"une carte d'attaque, je la vois aussi dans le Plan ou seulement dans Ressources ?\", assez petite pour ne pas negocier. Tu veux que je la cree ?",
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 5,
+        "status": 200,
+        "user": "si je veux preparer une action avant de la faire, quelle carte tu m'expliques ?",
+        "assistant": "Si tu veux préparer une action avant de la faire, c’est la carte d’attaque qu’il te faut 🙂 Elle sert à te mettre en mouvement, clarifier le “quoi” et surtout le “prochain pas” concret.\n\nTu peux faire un truc hyper simple du style :\n- objectif en 1 phrase\n- étape 1 (2 à 5 minutes max)\n- déclencheur (quand je…)\n- mini-obstacle + plan B\n\nTu la veux pour une action plutôt “facile à lancer” ou “difficile / que tu repousses” ? 🙂",
+        "response_owner": "pending_confirmation",
+        "selected_handler": "wait_for_confirmation",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 6,
+        "status": 200,
+        "user": "si mon probleme c'est plutot un piege au moment ou je deraille, tu m'orientes vers quoi ?",
+        "assistant": "Ah ok, dans ce cas-là c’est typiquement une carte de défense. 😌🛡️\n\nLe but c’est pas de “forcer” l’action, c’est de te rattraper au moment où tu dérailles : quoi faire 60 secondes, comment te sécuriser, et quel plan B lancer direct.\n\nTu veux que ce soit plutôt défensif contre une pensée (“je suis nul/je peux pas”) ou contre un comportement (“je scroll / je procrastine”) ?",
+        "response_owner": "pending_confirmation",
+        "selected_handler": "wait_for_confirmation",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 7,
+        "status": 200,
+        "user": "est-ce que ces cartes modifient mon plan ou c'est juste un appui ?",
+        "assistant": "Ça dépend : une carte peut juste servir d’appui, mais si tu la rattaches à quelque chose (une mission / une habitude dans ton plan), elle influence ton plan indirectement parce que tu l’utilises dans le cadre de ce rattachement. 😌🛡️\n\nConcrètement :\n- carte en mode libre = surtout un appui “au cas où”\n- carte liée à une mission/habitude = tu l’intègres au fonctionnement de ton plan\n\nTu veux une carte plutôt “sécurité quand je dérègle” (défense) ou plutôt “prochain pas” (attaque) ?",
+        "response_owner": "pending_confirmation",
+        "selected_handler": "wait_for_confirmation",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 8,
+        "status": 200,
+        "user": "recap clair: ou creer, ou retrouver, et quoi utiliser selon le cas.",
+        "assistant": "OK, recap clair 😌🛡️\n\n1) Carte de défense\n- Où la créer : Dashboard > Ressources (libre).\n- Où la retrouver si elle est liée à une mission/habitude : Dashboard > Plan (dans la mission/habitude concernée).\n- Quoi utiliser selon le cas :\n  - Si tu veux “rattraper” au moment où tu dérailles: carte de défense.\n  - Si tu veux juste un plan B au cas où: version libre (Ressources).\n\n2) Carte d’attaque\n- Où la retrouver : en pratique, elle peut aussi être retrouvée via le rattachement côté Dashboard > Plan, mais l’idée générale c’est que c’est pour déclencher l’action.\n- Quoi utiliser selon le cas :\n  - Si ton objectif est de te mettre en mouvement / lancer la prochaine action: carte d’attaque.\n\nSi tu me dis juste ton cas (plutôt “je déraille” ou plutôt “je veux lancer”), je te dis en 1 ligne laquelle choisir.",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      }
+    ]
+  },
+  {
+    "id": "potions-initiatives",
+    "title": "Potions et initiative automatique",
+    "targetFeatures": [
+      "resources.potions",
+      "initiatives"
+    ],
+    "connectionName": "product_help_dashboard_dashhelp2_c3_potions-initiatives",
+    "evaluation": {
+      "productTurns": 2,
+      "observedFeatureIds": [],
+      "missing": [
+        "resources.potions",
+        "initiatives"
+      ],
+      "bad": [],
+      "forbidden": [],
+      "verdict": "ROUGE"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "status": 200,
+        "user": "a quoi sert une potion dans Sophia ?",
+        "assistant": "Une potion, c’est un petit “support” pour traverser un état intérieur quand il prend trop de place. Elle aide à te redescendre / te recentrer rapidement, sans devoir tout remettre à plat. 😊\n\nConcrètement :\n- ça peut créer une initiative de suivi automatique sur 7 jours pour soutenir cet état émotionnel\n- tu peux l’activer, la réactiver, ou consulter son usage\n\nOù trouver ça : Dashboard > Ressources (quand les définitions de potions sont disponibles). \n\nTu veux l’utiliser pour te calmer sur le moment, ou pour traverser quelque chose sur plusieurs jours ? 🌿",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 2,
+        "status": 200,
+        "user": "quand je l'active, est-ce qu'elle fait juste une reponse maintenant ou autre chose apres ?",
+        "assistant": "Bonne question 🙂 Une “potion” fait en général deux choses :\n\n1) un effet tout de suite, type une petite réponse/recadrage pour te redescendre et te remettre dans le bon axe\n2) potentiellement un soutien sur la suite (selon comment elle a été configurée/activée) : ça peut continuer avec des petits rappels ou une présence au fil de quelques jours, pas juste un message unique\n\nLe point clé : tu vois si elle a un suivi ou si c’est seulement “une réponse maintenant” dans son usage/activation affiché.\n\nTu l’as activée déjà, ou tu hésites encore à la lancer ? 😊",
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [
+          {
+            "effect_type": "track_progress_plan_item",
+            "explicitness": "explicit",
+            "payload_hint": {
+              "status_hint": "completed",
+              "target_title": null
+            },
+            "target_status": "missing",
+            "confidence_band": "high"
+          }
+        ],
+        "tools": []
+      },
+      {
+        "turn": 3,
+        "status": 200,
+        "user": "tu peux me dire clairement cette histoire de suivi 7 jours ?",
+        "assistant": "Oui, clairement 🙂 Voilà comment fonctionne le “suivi 7 jours” d’une potion :\n\n1) Dès que tu l’actives, tu reçois une réponse immédiate (un petit recentrage, un “reset” émotionnel ou mental).\n2) Ensuite, pendant environ 7 jours, ça peut rester actif en mode soutien léger: petites relances/rappels et présence pour t’aider à tenir l’élan au lieu de repartir “à zéro” après le premier effet.\n3) Le “format exact” du suivi dépend de la potion que tu as activée (et de ce que tu lui as demandé au départ), donc ce n’est pas forcément toujours identique.\n\nLe plus concret: l’idée du 7 jours, c’est passer de “je me sens mieux là, maintenant” à “je consolide sur plusieurs jours” sans que tu aies à tout gérer manuellement.\n\nTu l’as activée pour quoi, toi (stress, motivation, difficulté précise) ? 😊",
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 4,
+        "status": 200,
+        "user": "ce suivi c'est une modification du plan ou une initiative ?",
+        "assistant": "Plutôt une initiative de suivi, pas une “grosse modification” du plan. 😊\n\nEn gros, tu actives la potion et elle se met à fonctionner en mode soutien pendant ~7 jours (avec des petites relances), sans que ça remplace/recompose tout ton plan existant.\n\nTu veux que ce soit plutôt “un seul message maintenant” ou “un soutien qui continue sur 7 jours” ?",
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 5,
+        "status": 200,
+        "user": "je la retrouve ou ensuite si je veux comprendre ce qui est programme ?",
+        "assistant": "Tu la retrouves dans le tableau de bord, dans la zone “potion”/ressources (et souvent tu peux aussi voir le statut du suivi, du genre “actif / terminé”, selon la config). 😊\n\nSi tu veux comprendre “ce qui est programmé” précisément, le plus fiable c’est d’ouvrir le détail depuis la même section (là où tu l’actives) : tu verras si c’est juste un effet immédiat ou si ça continue sur plusieurs jours.\n\nTu veux que ce soit plutôt A) voir le détail pour comprendre le contenu, ou B) vérifier juste le statut (actif/terminé) ?",
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 6,
+        "status": 200,
+        "user": "si mon etat est vraiment lourd, est-ce que potion remplace la securite ou pas ?",
+        "assistant": "Oui et non. 🙃\n\nPotion, ça n’a pas vocation à remplacer la sécurité. La sécurité, c’est le cadre “si ça devient trop dangereux/insupportable, on fait tout de suite le nécessaire”. La potion, elle, sert plutôt quand ton état est lourd mais que tu es dans une zone où tu peux encore avancer avec du soutien.\n\nSi tu veux une règle simple :\n- “Lourd mais gérable” -> potion peut aider à te recentrer et tenir le cap.\n- “Trop, je ne me sens pas en sécurité / risque de passer un cap” -> tu actives la sécurité avant tout, et la potion vient ensuite si c’est approprié.\n\nDis-moi juste: là, c’est plutôt lourd “mais je suis ok en sécurité”, ou tu sens que ça pourrait déraper ? 😕",
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 7,
+        "status": 200,
+        "user": "et si je veux une initiative recurrente sans potion, je vais ou ?",
+        "assistant": "Si tu veux une initiative récurrente “sans potion”, tu vas dans la partie Habitudes (ou Missions selon le type d’action) pour créer une routine qui tourne régulièrement. 😊\n\nLe plus simple en règle générale :\n- Habitudes = pour les actions du quotidien qui reviennent\n- Missions = pour des objectifs récurrents/structurés\n\nTu veux que ça tourne plutôt chaque jour, chaque semaine, ou sur des jours précis ?",
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 8,
+        "status": 200,
+        "user": "recap sobre: potion maintenant, suivi apres, et limites.",
+        "assistant": "Ok, recap sobre 😌\n\nPotion maintenant:\n- C’est un support court pour traverser un état intérieur trop prenant.\n- Quand tu l’actives, tu as un effet tout de suite pour te redescendre / te recentrer.\n\nSuivi après:\n- Selon la potion, l’activation crée aussi un suivi sur 7 jours pour soutenir l’état sur la durée (pas juste un message unique).\n\nLimites:\n- Ça ne remplace pas la sécurité. Si c’est “trop dangereux / insupportable”, la priorité c’est le cadre de sécurité, pas la potion.\n\nSi tu veux, dis-moi ton cas en une phrase (lourd ou juste tendu ?) et je te dis laquelle des deux logiques (redescendre maintenant vs soutien 7 jours) est la plus adaptée.",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      }
+    ]
+  },
+  {
+    "id": "initiatives-preferences-base",
+    "title": "Initiatives, preferences et Base de vie",
+    "targetFeatures": [
+      "initiatives",
+      "coach_preferences",
+      "base_de_vie"
+    ],
+    "connectionName": "product_help_dashboard_dashhelp2_c4_initiatives-preferences-base",
+    "evaluation": {
+      "productTurns": 7,
+      "observedFeatureIds": [],
+      "missing": [
+        "initiatives",
+        "coach_preferences",
+        "base_de_vie"
+      ],
+      "bad": [],
+      "forbidden": [],
+      "verdict": "ROUGE"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "status": 200,
+        "user": "les initiatives dans le dashboard, c'est quoi exactement ?",
+        "assistant": "Les “Initiatives” dans le dashboard, c’est des messages récurrents planifiés que Sophia t’envoie. L’idée, c’est que tu gardes une présence utile dans le temps, sans avoir à revenir toi-même.\n\nConcrètement, une initiative contient :\n- une instruction (ce que Sophia doit te dire faire)\n- un contexte (pour cadrer pourquoi/à quoi ça sert)\n- une heure\n- des jours actifs\n- une destination : “Plan actuel” ou “Base de vie” 😊\n\nOù regarder : Dashboard > Initiatives (ou Base de vie > Initiatives).\n\nTu veux en créer une pour quel type de rappel/mission ?",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 2,
+        "status": 200,
+        "user": "je peux les mettre dans le plan actuel ou dans la base de vie ?",
+        "assistant": "Oui 🙂 tu peux les diriger vers soit le Plan actuel, soit la Base de vie.\n\n- Plan actuel : c’est pour que l’initiative se rattache au déroulé en cours.\n- Base de vie : c’est plutôt pour des éléments/initiatives “hors plan”, utiles même quand le focus du plan change.\n\nTu veux que ça serve à ton rythme du plan en ce moment, ou plutôt à quelque chose de plus “stable”/durable ?",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 3,
+        "status": 200,
+        "user": "quelles infos je dois remplir pour une initiative ?",
+        "assistant": "Pour créer/modifier une initiative, tu as besoin de renseigner l’essentiel suivant :\n\n1) Ce que Sophia doit faire exactement (le message/instruction)\n- Formule la consigne clairement, en mode “fais X”.\n\n2) Pourquoi c’est important / le contexte\n- 1–2 phrases pour cadrer le “à quoi ça sert” (ça aide Sophia à te pousser dans la bonne direction).\n\n3) L’heure\n- Quand l’initiative doit te tomber dessus.\n\n4) Les jours actifs\n- Quels jours de la semaine (ou fréquence équivalente) où ça doit tourner.\n\n5) La destination\n- Plan actuel ou Base de vie, selon si tu veux que ça suive le déroulé en cours ou si c’est plus “stable”.\n\nSi tu veux, je te propose une structure de texte à copier-coller pour ton instruction. Tu la veux plutôt courte ou détaillée ? 🙂",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 4,
+        "status": 200,
+        "user": "et les preferences coach, ca change quoi concretement ?",
+        "assistant": "Les preferences coach, ça change surtout la manière dont Sophia te parle, pas le contenu “concret” de tes initiatives. 😄\n\nConcrètement :\n- Ton global: plus direct, plus doux, plus cadrant…\n- Niveau de challenge: plutôt “soutien” ou plutôt “challenge + exigence”\n- Style de feedback: comment elle réagit quand tu avances (félicitations, puis ajustements, etc.)\n\nDonc au final, tu auras la même idée derrière, mais un accompagnement plus adapté à ton rythme.\n\nTu veux que Sophia soit plutôt plus douce ou plus cash ? 🙂",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 5,
+        "status": 200,
+        "user": "si je veux que Sophia pose moins de questions, c'est dans quelle partie ?",
+        "assistant": "Si tu veux que Sophia pose moins de questions, c’est dans la partie Preferences coach, pas dans une section “Soutien/Missions/Habitudes”. 😄\n\nOù aller concrètement : Dashboard > Preferences, puis ajuste l’option liée à la fréquence/tendance de questions, et sauvegarde.\n\nTu veux plutôt qu’elle soit moins “interrogatoire” (plus d’affirmations/plan), ou qu’elle pose la même quantité mais avec des questions plus courtes ? ️",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 6,
+        "status": 200,
+        "user": "la Base de vie sert a quoi quand une transformation est finie ?",
+        "assistant": "Bonne question 🙂 La Base de vie sert justement à ne pas perdre ce qui est encore utile une fois une transformation terminée.\n\nEn pratique :\n- Quand une transformation finit, certains éléments “liés au plan” peuvent ne plus être le focus.\n- La Base de vie garde accessibles les ressources et initiatives hors plan, et les transformations termines/lignes de déclics de clôture.\n- Résultat: tu peux retrouver ce qui t’a servi (ressources, acquis, choses à conserver) sans que tout “disparaisse” dès que le plan change.\n\nDonc c’est le côté bibliothèque/stock utile, en dehors de la transformation active. Tu veux plutôt y mettre des acquis à relire, ou des mini-actions qui restent valables même après ? 😊",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 7,
+        "status": 200,
+        "user": "est-ce que la Base de vie est un deuxieme plan actif ?",
+        "assistant": "Non, la Base de vie n’est pas un deuxième “plan actif” au sens où tu aurais un déroulé qui tourne en parallèle. 🙂  \n\nLa Base de vie, c’est plutôt un endroit de stockage et d’accès : tu y retrouves des éléments/initiatives “hors plan” et utiles même quand le focus du plan change. Le plan actif, lui, reste ton déroulé principal.\n\nTu veux que ça serve surtout à des rappels durables, ou plutôt à capitaliser des ressources pour plus tard ?",
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 8,
+        "status": 200,
+        "user": "recap: initiatives, preferences, base de vie, sans mélanger.",
+        "assistant": "Ok, recap clair et séparé 😄\n\nInitiatives\n- Des messages récurrents planifiés que Sophia t’envoie (instruction + contexte + heure + jours + destination).\n- But: te faire avancer dans la durée sans que tu reviennes tout le temps.\n\nPreferences (coach)\n- Ce que ça change: le style de Sophia (ton plus ou moins direct, niveau de challenge, et la façon de te répondre/te feedback).\n- But: adapter la “manière” de l’accompagnement, pas la nature des initiatives.\n\nBase de vie\n- Ce que c’est: un espace pour garder et retrouver ce qui reste utile quand une transformation/phase est terminée.\n- Tu y retrouves des transformations termines, des lignes/déclics de clôture, des ressources conservées et des initiatives hors plan.\n\nTu veux un mini exemple concret pour chaque (1 ligne chacun), ou c’est bon comme ça ? 😊",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      }
+    ]
+  },
+  {
+    "id": "inspirations-completion-transition",
+    "title": "Inspirations, fin de niveau, cloture et transition",
+    "targetFeatures": [
+      "inspirations",
+      "plan.level_completion",
+      "transformation.closure",
+      "transformation.transition"
+    ],
+    "connectionName": "product_help_dashboard_dashhelp2_c5_inspirations-completion-transition",
+    "evaluation": {
+      "productTurns": 5,
+      "observedFeatureIds": [],
+      "missing": [
+        "inspirations",
+        "plan.level_completion",
+        "transformation.closure",
+        "transformation.transition"
+      ],
+      "bad": [],
+      "forbidden": [],
+      "verdict": "ROUGE"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "status": 200,
+        "user": "l'onglet Inspirations sert a quoi dans le dashboard action ?",
+        "assistant": "L’onglet Inspirations, c’est ton espace “sens & histoire” dans le dashboard. 🙂  \nConcrètement, il sert à retrouver des repères narratifs et des principes liés à ton parcours, pour éviter que l’exécution devienne trop mécanique.\n\nTu peux t’en servir pour :\n- relire le récit de ton parcours (le contexte d’où tu pars)\n- travailler ton pourquoi profond (le sens derrière tes objectifs)\n- recoller tes actions au fil de l’histoire quand tu sens que tu “mécanises”\n\nTu y accèdes via Dashboard > Inspirations.  \n\nTu veux t’en servir plutôt pour retrouver du sens quand ça baisse, ou pour structurer ton histoire/why ?",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 2,
+        "status": 200,
+        "user": "ce n'est pas la partie pour modifier le plan, on est d'accord ?",
+        "assistant": "Oui, t’as raison. 🙂 L’onglet Inspirations sert plutôt à ton sens/histoire, pas à modifier le plan.\n\nPour ajuster ton plan, c’est dans le Dashboard > Plan, avec le panneau Ajuster le plan (et Sophia analyse/propose une modif).  \n\nTu veux modifier le plan pour quel point exactement : trop lourd, plus adapté, ou ça colle pas à ton moment ?",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 3,
+        "status": 200,
+        "user": "quand je finis un niveau, Sophia attend quoi de moi ?",
+        "assistant": "Quand tu finis un niveau, l’idée c’est que tu fasses 2 choses, simples mais obligatoires 🙂:\n\n1) Valider le “bouclé” : tu confirmes que le niveau est terminé (au moins en interne, avec tes repères du niveau).\n2) Passer au niveau suivant correctement : tu regardes ce qui change maintenant (nouveaux missions/ habitudes/ clarifications) et tu relances l’exécution sur la prochaine semaine.\n\nEt côté dashboard, pour savoir exactement ce qu’il te reste à faire “maintenant”, c’est l’onglet Plan qui te donne la vue claire: niveau actif, semaines, missions/habitudes et ce qui arrive. \n\nTu parles d’un niveau “transformation” (avec missions/habitudes), ou d’un niveau plus “exercice” ? 🙂",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 4,
+        "status": 200,
+        "user": "quelle difference entre finir un niveau et cloturer toute la transformation ?",
+        "assistant": "Bonne question 🙂 Il y a une vraie différence de “niveau de fin”.\n\nFinir un niveau, c’est la validation étape par étape: tu passes le cap de la partie actuelle (les missions/habitudes de ce niveau), tu constates que c’est bouclé, puis tu redémarres proprement sur le niveau suivant.\n\nClôturer toute la transformation, c’est le moment “grande ligne” : l’ensemble du parcours est considéré terminé (plusieurs niveaux), tu fais le point final et tu bascules sur la suite (maintien, rythme perso, éventuellement nouvel objectif).\n\nEn gros:\n- Niveau = fin d’une tranche, transition continue.\n- Transformation = fin du projet, décision finale.\n\nTu parles de “clôture” parce que tu es près du dernier niveau, ou plutôt parce que tu te sens prêt(e) à arrêter globalement ? 🙂",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 5,
+        "status": 200,
+        "user": "la cloture avec ligne rouge et declics, ca va ou apres ?",
+        "assistant": "Oui, carrément: la clôture avec la ligne rouge, c’est le “dernier acte” d’un niveau/étape, et les déclics servent à lancer la suite.\n\nEn pratique, ça va tout de suite après la clôture :\n1) tu prends 2-3 minutes pour enregistrer ce que tu retiens (les déclics : ce qui a vraiment changé)\n2) tu regardes ce qui est nouveau maintenant (prochaine étape / prochains points d’attention)\n3) tu relances l’exécution sur la nouvelle période, sans rester coincé dans la validation\n\nDonc la question clé, c’est: tu parles de la clôture de quel niveau là, précisément ? 😄",
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 6,
+        "status": 200,
+        "user": "et la transition vers une prochaine transformation, je la vois ou ?",
+        "assistant": "Tu la vois au moment où tu finis/“clôtures” la précédente étape, via la section Unlock preview (l’aperçu discret de ce qui se débloque ensuite) + les repères du prochain niveau dans le plan. 😄\n\nEnsuite, la transition se matérialise vraiment quand tu relances l’exécution sur le nouveau niveau (missions/habitudes qui changent), pas juste avec la clôture.\n\nTu veux la transition “à l’écran” (où cliquer pour voir la suite) ou plutôt “à exécuter” (quoi faire concrètement après la clôture) ?",
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 7,
+        "status": 200,
+        "user": "si la suite est verrouillee, qu'est-ce que Sophia doit m'expliquer ?",
+        "assistant": "Si la suite est verrouillée, Sophia doit surtout t’aider à comprendre 2 trucs : ce qui te reste à montrer/valider pour débloquer, et ce qui va concrètement changer une fois que tu y passes. 😄\n\nEn clair, elle t’explique :\n1) Le “critère de déblocage” de la prochaine étape (ce que tu dois avoir bouclé, sans blabla)\n2) L’idée et la mécanique de la prochaine étape (ce qui devient nouveau, ce qui reste, ce qu’il faut arrêter)\n\nDu coup, tu parles de quel verrouillage exactement : “niveau suivant” ou “clôture avec ligne rouge” ? 🙂",
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      },
+      {
+        "turn": 8,
+        "status": 200,
+        "user": "recap en separant Inspirations, fin de niveau, cloture, transition.",
+        "assistant": "Bien sûr 😄\n\nInspirations\n- C’est l’espace “sens et histoire” : tu reposes du contexte, tu relis ton parcours, tu recoles tes actions à ton pourquoi profond, pour que l’exécution reste vivante et pas juste mécanique.\n\nFin de niveau\n- Là tu valides que la partie actuelle est bouclée.\n- Puis tu relances proprement sur le niveau suivant (tu regardes ce qui change maintenant : nouvelles missions/habitudes/points à clarifier).\n\nClôture (la ligne rouge + déclics)\n- C’est l’acte final, le “dernier acte” de l’étape/transformation.\n- Juste après : tu fais un mini retour (2-3 minutes) sur les déclics, puis tu te prépares au nouveau cycle.\n\nTransition vers la prochaine transformation\n- Tu la vois au moment du passage : quand la prochaine étape se débloque et surtout quand tu relances l’exécution avec ce qui devient nouveau.\n- Donc : ce n’est pas seulement un visuel, c’est le “nouveau régime” que tu démarres.\n\nTu veux que je te fasse une version encore plus courte en 4 phrases, ou tu préfères garder ce niveau de détail ? 😊",
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "feature_id": null,
+        "intent": null,
+        "empty_response": false,
+        "aborted": false,
+        "direct_effects": [],
+        "tools": []
+      }
+    ]
+  }
+]

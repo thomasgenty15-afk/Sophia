@@ -66,6 +66,7 @@ function member(over: Partial<PortionMember> & { memberId: string }): PortionMem
     habits: [],
     habitNote: null,
     requiredDensity: null,
+    proteinBrief: null,
     ...over,
   };
 }
@@ -330,6 +331,7 @@ const DENSITE_GRAND: RequiredDensity = {
   counters: {
     slots: 4,
     above_floor: 3,
+    below_floor: 0,
     days_varied: 0,
     capped: 0,
     fixed_covered: 0,
@@ -354,6 +356,7 @@ const DENSITE_SOUS_PLANCHER: RequiredDensity = {
   counters: {
     slots: 3,
     above_floor: 1,
+    below_floor: 0,
     days_varied: 0,
     capped: 0,
     fixed_covered: 0,

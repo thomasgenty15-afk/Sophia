@@ -172,15 +172,27 @@ export function swapRetryInstruction(args: {
     `${free.length > 1 ? "are" : "is"} not bound by the ${args.strictest} line; ` +
     `only ${bound.join(", ")} ${bound.length > 1 ? "are" : "is"}.`,
     "The plan put the whole table on one person's line. That is the mistake to fix.",
-    `Keep every dish, day and slot. At most lunches and dinners -- at least ${floor} ` +
+    // ⟳ 2026-09-13 · LOT 1 — « Keep every dish, day and slot » A ÉTÉ RETIRÉ:
+    // c'est une interdiction GLOBALE, et ce texte part dans la même instruction
+    // que les autres défauts du plan, dont le périmètre ouvre d'autres repas et
+    // des unités à créer. Ce qui reste — « garde la base partagée » — est LOCAL,
+    // et c'est la dépendance vraie: les autres bouches en mangent.
+    `At most lunches and dinners -- at least ${floor} ` +
     `of the ${args.cellsChecked} -- keep the shared base exactly as it is, and ADD ` +
     `one more preparation carrying what that line refuses (${refused}: chicken, ` +
     "fish, beef, pork, eggs as that line allows), cooked apart, with its own id and",
     `its own full recipe. Cite it ONLY from the boxes of ${free.join(", ")}, in the ` +
     "SAME dish, as their own box entry with its own \"items\" naming that component;",
+    // ⟳ 2026-09-12 · FERMETURE LOT 1 — LA LIGNE DE COURSES A ÉTÉ RETIRÉE. La
+    // liste est reconstruite depuis les ingrédients finaux (lot 1 du
+    // 2026-09-12); un achat rendu par le modèle serait ignoré, donc le demander
+    // ferait écrire une sortie qu'on jette.
     `the box of ${bound.join(", ")} keeps the plant replacement and cites only its ` +
-    "own preparation. Add its lines to the cooking sessions and the shopping list.",
-    "Do NOT drop a dish, do NOT shorten the plan, and do NOT mention any of this in " +
+    "own preparation.",
+    // ⟳ 2026-09-13 · LOT 1 — « do NOT shorten the plan » A ÉTÉ RETIRÉ AUSSI: il
+    // suppose une réponse en forme de PLAN, et ce texte part dans une
+    // instruction qui demande un PATCH.
+    "Do NOT drop a dish, and do NOT mention any of this in " +
     "a \"why\" -- what somebody eats is nobody's business but theirs.",
   ].join("\n");
 }

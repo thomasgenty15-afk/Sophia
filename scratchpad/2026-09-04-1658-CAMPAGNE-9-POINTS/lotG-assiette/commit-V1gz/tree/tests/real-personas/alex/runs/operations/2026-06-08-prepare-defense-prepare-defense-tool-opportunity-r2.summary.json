@@ -1,0 +1,35 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-defense-tool-opportunity-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Ce soir, au moment de faire le sas de déchargement, je sens que je vais rester collé à mon téléphone et zapper le carnet.",
+    "assistant": "Ah, je vois le piège venir 😅 En gros tu sais déjà exactement à quel moment ça va dérailler.\n\nOn va te protéger “au SAS” (pas plus tard) avec un mini plan tout simple :\n1) Mets le téléphone hors de portée avant de commencer (même juste dans une autre pièce, ou face cachée + volume coupé).\n2) Ouvre le carnet en premier, stylé “1 page seulement” (zéro perfection, juste une trace).\n3) Lance une règle : 10 minutes d’écriture sans téléphone, puis tu reviens si tu veux (mais après).\n\nLà, dis-moi juste : tu utilises ton téléphone pour quoi exactement à ce moment-là (scroll, messages, musique, autre) ? 📵",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "tool_skill_intents": [],
+    "tool_skill_opportunity": {
+      "type": "none",
+      "operation_type": null,
+      "surface_id": null,
+      "confidence_band": "low",
+      "should_offer": false,
+      "prop_reason": null,
+      "source_span": null,
+      "target_hint": null,
+      "target_status": "none",
+      "suggested_question_intent": null,
+      "offer_timing": "never",
+      "must_not_execute": true
+    },
+    "operation_status": null,
+    "operation_reason": null,
+    "local_dispatcher": null,
+    "ai_call_count": null,
+    "executed_tools": [],
+    "tool_execution": "none",
+    "direct_effects": []
+  }
+]

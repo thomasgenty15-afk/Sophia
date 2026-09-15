@@ -1,0 +1,63 @@
+{
+  "id": "16_cross_topic_main_problem",
+  "description": "Broad main-problem lookup should use cross-topic retrieval and avoid promoting a single statement to objective truth.",
+  "scenario_version": 1,
+  "initial_state": {
+    "memory_items": [
+      {
+        "id": "seed_main_block",
+        "kind": "statement",
+        "content_text": "Le user dit que son probleme principal est de demarrer quand il a peur de mal faire.",
+        "status": "active",
+        "topic_slug": "blocage_demarrage",
+        "domain_keys": ["psychologie.peur_echec", "habitudes.procrastination"],
+      },
+      {
+        "id": "seed_minor_noise",
+        "kind": "fact",
+        "content_text": "Le user prefere les reponses courtes.",
+        "status": "active",
+        "topic_slug": "preferences_reponses",
+        "domain_keys": ["psychologie.identite"],
+      },
+    ],
+  },
+  "turns": [
+    {
+      "user": "Quel est mon probleme principal d'apres toi ?",
+      "expect": {
+        "retrieval_mode": "cross_topic_lookup",
+        "topic_decision": "stay",
+        "payload_contains": [
+          { "kind": "statement", "contains": "peur de mal faire" },
+        ],
+      },
+    },
+    {
+      "user": "Je ne veux pas que tu en fasses une verite absolue.",
+      "expect": {
+        "retrieval_mode": "cross_topic_lookup",
+        "created_items": [
+          {
+            "kind": "statement",
+            "contains": ["verite absolue"],
+            "domain_keys_any_of": ["psychologie.identite", "psychologie.peur_echec"],
+          },
+        ],
+        "forbidden_items": [
+          { "kind": "fact", "contains": ["probleme principal"] },
+        ],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

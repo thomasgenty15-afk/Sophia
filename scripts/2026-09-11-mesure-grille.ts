@@ -50,11 +50,13 @@
  *     deno run --allow-read scripts/2026-09-11-mesure-grille.ts \
  *       scratchpad/2026-09-11-FIABILITE-RECETTES/fixtures --json
  */
+import { slotContractSentence } from "../supabase/functions/_shared/keel/slot_contract_brief.ts";
 import {
   buildCompositionIndex,
   type CompositionIndex,
   type CompositionInput,
   type CompositionRef,
+  resolveCompositionLine,
   resolveIngredients,
 } from "../supabase/functions/_shared/keel/food_composition.ts";
 import { loadCompositionIndex } from "../supabase/functions/_shared/keel/food_composition_io.ts";
@@ -84,11 +86,29 @@ import {
   slotContractsFor,
 } from "../supabase/functions/_shared/keel/slot_nutrition_contract.ts";
 import { densityFragment } from "../supabase/functions/_shared/keel/household_portions.ts";
+// ⟳ 2026-09-11 · C0 — LES APPORTS FIXES PASSENT PAR LEUR CHAÎNE DE PRODUCTION.
+// ⛔ `parseFixedIntakes` PUIS `fixedIntakeSlotKcal`, exactement comme le
+// handler (`generate-household-meal-v1/index.ts:6417`). Un banc qui poserait
+// `fixedKcalBySlot: null` en dur mesurerait un tir qui n'a pas eu lieu : le
+// tir n° 5 déclarait 200 g de yaourt grec au petit-déjeuner et l'instrument
+// comparait sa portion à la cible d'un tir SANS apport fixe.
+import { parseFixedIntakes } from "../supabase/functions/_shared/keel/fixed_intakes.ts";
+import { fixedIntakeSlotKcal } from "../supabase/functions/_shared/keel/slot_fixed_kcal.ts";
 import {
   LIGHT_DISH_MIN_KCAL_PER_100G,
   NORMAL_DISH_MIN_KCAL_PER_100G,
 } from "../supabase/functions/_shared/keel/household_meal_generation.ts";
-import { envelopeFor } from "../supabase/functions/_shared/keel/meal_envelope.ts";
+import {
+  type Envelope,
+  envelopeFor,
+  type MouthBody,
+} from "../supabase/functions/_shared/keel/meal_envelope.ts";
+// ⟳ 2026-09-13 · § 2.3 — LA PORTE DE PRODUCTION DE L'ENVELOPPE D'UNE BOUCHE.
+// ⛔ Elle décide de l'ORDRE entre le compte et la fiche, et c'est elle qui fait
+// qu'une fiche n'achète qu'un entretien. L'instrument qui la contournait
+// servait à Lea le barème protéique de `fat_loss` que le produit ne lui a
+// jamais appliqué.
+import { mouthEnvelope } from "../supabase/functions/_shared/keel/household_composition.ts";
 import { envelopeDirectionFor } from "../supabase/functions/_shared/keel/weight_pace.ts";
 import { ageBandOf } from "../supabase/functions/_shared/keel/student_age.ts";
 import { readQuantityFromProse } from "../supabase/functions/_shared/keel/quantity_from_prose.ts";
@@ -97,7 +117,7 @@ import { readQuantityFromProse } from "../supabase/functions/_shared/keel/quanti
 // L'instrument applique donc `finalizeQuantityProse` à une COPIE du plan et
 // rejoue son propre contrôle ⑨ dessus — les fixtures ne bougent pas.
 import {
-  finalizeQuantityProse,
+  finalizePlanQuantities,
   planQuantityLines,
 } from "../supabase/functions/_shared/keel/quantity_render.ts";
 import {
@@ -484,6 +504,21 @@ export interface ContratCase {
 export interface BoucheFigee {
   memberId: string;
   prenom: string;
+  /**
+   * ⟳ 2026-09-13 · § 2.3 — CETTE BOUCHE A-T-ELLE UN COMPTE.
+   *
+   * ⛔ C'EST UNE ENTRÉE DU CALCUL, PLUS SEULEMENT UNE LECTURE D'OBJECTIF.
+   * `boucheDuContexte` la connaissait déjà (elle choisit la colonne d'objectif
+   * avec) et la jetait. Sans elle, l'instrument ne pouvait pas reproduire la
+   * condition de l'appelant de production, qui refuse une enveloppe de COMPTE
+   * à une bouche qui n'en a pas — et c'est cette condition qui fait qu'une
+   * fiche n'achète qu'un entretien.
+   *
+   * ⚠️ `restriction === "no_account"` NE LA REMPLACE PAS : ce jeton-là décrit
+   * la lisibilité du plancher TCA, et le confondre avec « pas de compte »
+   * ferait dépendre un barème protéique d'un champ de sécurité.
+   */
+  aUnCompte: boolean;
   weightKg: number;
   heightCm: number;
   ageYears: number;
@@ -503,6 +538,79 @@ export interface BoucheFigee {
   coachCounting: "no_position" | "no_counting";
   grille: Record<string, string[]>;
   jourVersDate: Record<string, string>;
+  /**
+   * ⟳ 2026-09-11 · C0 — LES APPORTS FIXES DE **CETTE** BOUCHE, BRUTS.
+   *
+   * ⛔ LA LIGNE DE TABLE TELLE QU'ELLE EST, jamais une somme déjà faite ici.
+   * `parseFixedIntakes` la lit, `fixedIntakeSlotKcal` la pèse contre le
+   * référentiel — les deux fonctions du produit. `[]` veut dire « rien de
+   * déclaré » ; ce n'est pas la même chose que `null`, qui voudrait dire
+   * « personne n'a regardé », et l'instrument ne doit jamais les confondre.
+   */
+  fixedIntakesRaw: unknown;
+  /**
+   * ⟳ 2026-09-11 · C0 — LES ALLERGIES DÉCLARÉES DE CETTE BOUCHE.
+   *
+   * ⛔ LE RENDU DISAIT « allergies déclarées 0 » EN DUR, et c'était vrai des
+   * deux fixtures du lot 0 et FAUX du tir n° 6, qui en portait une, écrite en
+   * base par la RPC du produit. Un contrôle qui imprime toujours le même zéro
+   * ne distingue pas « rien de déclaré » de « on n'a pas regardé » — la faute
+   * exacte que la ligne d'à côté dénonce.
+   *
+   * ⚠️ CE CHAMP NE PROUVE TOUJOURS RIEN DE LA CEINTURE. Il dit ce qui était
+   * déclaré ; « la ceinture tient » demande un compteur d'armement du run, que
+   * le tir n° 6 n'a pas émis (`exclusion_belt` absent, `regime_belt.mouths 0`).
+   */
+  allergies: string[];
+}
+
+/** `jeton de jour` → (`moment` → kcal déjà avalées). */
+export type FixedKcalParJour = ReadonlyMap<string, ReadonlyMap<string, number>>;
+
+/**
+ * LES APPORTS FIXES D'UNE BOUCHE, PESÉS JOUR PAR JOUR — chaîne du produit.
+ *
+ * ⛔ LE MÊME ORDRE QUE LE HANDLER, ET C'EST VÉRIFIABLE :
+ * `generate-household-meal-v1/index.ts:6417` fait `fixedIntakeSlotKcal({index,
+ * intakes, dayToken})` par jour de la grille, puis le passe à `ContractDay`.
+ * Un second calcul ici rendrait une deuxième cible pour la même case.
+ *
+ * ⚠️ CE QU'ON COMPTE EN PLUS : les apports ILLISIBLES et les apports SANS
+ * moment. Les premiers retranchent zéro, les seconds ne se retranchent jamais.
+ * Un banc qui les tairait rendrait « aucun apport » et « un apport perdu »
+ * identiques.
+ */
+export function apportsFixesParJour(args: {
+  index: CompositionIndex;
+  bouche: BoucheFigee;
+}): {
+  parJour: Map<string, ReadonlyMap<string, number>>;
+  declares: number;
+  illisibles: number;
+  sansMoment: number;
+  kcalSansMoment: number;
+} {
+  const parse = parseFixedIntakes(args.bouche.fixedIntakesRaw);
+  const parJour = new Map<string, ReadonlyMap<string, number>>();
+  let illisibles = 0, sansMoment = 0, kcalSansMoment = 0;
+  for (const jourToken of Object.keys(args.bouche.grille)) {
+    const out = fixedIntakeSlotKcal({
+      index: args.index,
+      intakes: parse.intakes,
+      dayToken: jourToken,
+    });
+    parJour.set(jourToken, out.bySlot);
+    illisibles += out.counts.unresolved;
+    sansMoment += out.counts.loose;
+    kcalSansMoment += out.looseKcal;
+  }
+  return {
+    parJour,
+    declares: parse.intakes.length,
+    illisibles,
+    sansMoment,
+    kcalSansMoment,
+  };
 }
 
 function bouchePour(b: BoucheFigee) {
@@ -527,28 +635,38 @@ function bouchePour(b: BoucheFigee) {
   };
 }
 
-/** Les journées de la grille, avec leur date locale. */
-function joursDe(b: BoucheFigee) {
+/**
+ * Les journées de la grille, avec leur date locale.
+ *
+ * ⟳ 2026-09-11 · C0 — `fixedKcalBySlot` N'EST PLUS `null` EN DUR.
+ * ⛔ `null` était vrai des deux fixtures du lot 0 (`fixed_intakes: []`) et FAUX
+ * du tir n° 5 de la campagne, qui déclarait 200 g de yaourt grec au
+ * petit-déjeuner. L'instrument comparait donc cette case à 613,50 kcal, la
+ * cible d'un tir sans apport fixe. `null` reste la réponse quand rien n'est
+ * déclaré — mais c'est l'appelant qui le dit, pas cette fonction.
+ * ⚠️ `lockedSlots: []` EST LA MÊME DÉCISION QUE LE HANDLER : les cases qu'un
+ * apport fixe couvre entièrement sont verrouillées par `slotContractsFor`
+ * lui-même, jamais d'office par l'appelant.
+ */
+function joursDe(b: BoucheFigee, fixe: FixedKcalParJour | null) {
   return Object.entries(b.grille).map(([jourToken, slots]) => ({
     dayToken: jourToken,
     date: b.jourVersDate[jourToken] ?? jourToken,
     coveredSlots: slots,
     lockedSlots: [] as readonly string[],
-    // ⚠️ AUCUN APPORT FIXE SUR CES DEUX FIXTURES (`fixed_intakes: []`). Ce n'est
-    // pas un raccourci : c'est une ligne de table, et le contexte figé la porte.
-    fixedKcalBySlot: null,
+    fixedKcalBySlot: fixe?.get(jourToken) ?? null,
   }));
 }
 
 /**
  * LE CONTRAT RÉPARÉ — celui du lot B : le RYTHME ALIMENTAIRE au dénominateur.
  */
-export function contratRepare(b: BoucheFigee) {
+export function contratRepare(b: BoucheFigee, fixe: FixedKcalParJour | null = null) {
   const set = slotContractsFor({
     mouth: bouchePour(b) as never,
     coachCounting: b.coachCounting,
     rhythmSlots: b.declaredSlots,
-    days: joursDe(b),
+    days: joursDe(b, fixe),
     lightSlots: b.lightSlots,
     ageYears: b.ageYears,
   });
@@ -569,9 +687,9 @@ export function contratRepare(b: BoucheFigee) {
  * `requiredDensityFor` faisait avant le lot B — le rythme lu dans la grille de
  * CHAQUE jour, puis tout replié par nom de moment.
  */
-export function contratTransmis(b: BoucheFigee) {
+export function contratTransmis(b: BoucheFigee, fixe: FixedKcalParJour | null = null) {
   const set = mergeSlotContractSets(
-    joursDe(b).map((d) =>
+    joursDe(b, fixe).map((d) =>
       slotContractsFor({
         mouth: bouchePour(b) as never,
         coachCounting: b.coachCounting,
@@ -586,10 +704,13 @@ export function contratTransmis(b: BoucheFigee) {
   return { set, densite: d, fragment: densityFragment(d.named) };
 }
 
-export function contratsParCase(b: BoucheFigee): ContratCase[] {
+export function contratsParCase(
+  b: BoucheFigee,
+  fixe: FixedKcalParJour | null = null,
+): ContratCase[] {
   const jour = dayTargetFor(bouchePour(b) as never, b.coachCounting);
-  const repare = contratRepare(b);
-  const archive = contratTransmis(b);
+  const repare = contratRepare(b, fixe);
+  const archive = contratTransmis(b, fixe);
   // ⛔ LA GRAPPE QUI CONTIENT CETTE DATE, pas « la première ligne du moment ».
   // C'est la moitié du lot B que le lecteur doit refléter : deux dîners de
   // dates différentes peuvent porter deux bandes.
@@ -703,6 +824,113 @@ export interface PortionMesuree {
   kcal: number | null;
   proteineG: number | null;
   gap: string | null;
+  /**
+   * ⟳ 2026-09-13 · LOT 2 §1 — COMBIEN DE NOMS SONT SUR LE COUVERCLE.
+   *
+   * `1` = une pesée nominative. `>1` = un bac de groupe : ses grammes et ses
+   * kcal décrivent le RÉCIPIENT, pas une assiette. Ce nombre doit voyager avec
+   * la mesure, sinon les deux se confondent — et c'est exactement ce qui est
+   * arrivé (voir `partDeLaBouche` juste en dessous).
+   */
+  partageAvec: number;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-13 · LOT 2 §1 — LE BAC DE GROUPE N'EST PAS UNE ASSIETTE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── LE DÉSACCORD, ET SA MESURE ────────────────────────────────────────────
+// Sur `perte-l3d04` (`fri/dinner`), l'instrument publiait pour Lea
+// « cible 639,10 · mesuré 2840,75 · +344,49 % », et le même écart, au même
+// facteur, sur 21 cases et trois bouches. Le moteur, dans sa consigne archivée
+// pour la MÊME case, écrit : « the dinner dish carries **947 kcal in one
+// serving** and it must carry 639 kcal ».
+//
+// Les deux sont exacts, sur deux bases différentes :
+//   · `boxNutrition` rend CE QUE LE RÉCIPIENT CONTIENT. Son propre commentaire
+//     le dit : « un nombre par contenant, quel que soit le nombre de noms sur
+//     son couvercle […] il ne se divise pas par le nombre de mangeurs ».
+//     2 840,75 kcal pour 1 123 g, c'est le bac de Lea + Nils + Iris.
+//   · 2 840,75 / 3 = **946,92** — le 947 du moteur, au dixième près.
+//
+// ── QUI A RAISON ──────────────────────────────────────────────────────────
+// Le moteur. La convention de production est écrite et elle a un seul lieu :
+// `final_plan_audit.ts::cellNutritionTable` (l. 851-860) fait
+// `share = box.kcal / eaters`, `grams / eaters`, `proteinG / eaters`, et garde
+// `sharedWith` à côté — « une case à `sharedWith > 1` porte une estimation, pas
+// une pesée nominative ». `cellStateOf` juge ensuite cette PART contre la cible
+// de la bouche, exactement comme une portion nominative.
+//
+// L'instrument, lui, indexait la sortie brute de `boxNutrition` sans diviser :
+// il comparait un bac de trois à la cible d'une. Ce n'est pas un moteur qui se
+// trompe de 344 %, c'est une division qui n'avait pas lieu DANS L'INSTRUMENT.
+//
+// ⛔ CE QUI N'EST **PAS** CORRIGÉ ICI, ET POURQUOI. `boxNutrition` reste ce
+// qu'elle est ; `mesurerPortions` continue de rendre le CONTENANT. La division
+// se fait à l'endroit — et au seul endroit — où l'on passe du récipient à la
+// personne : `croiser`, qui compare à une cible individuelle.
+//
+// ⚠️ LA DENSITÉ NE BOUGE PAS, ET C'EST LA CONTRE-ÉPREUVE. kcal/g est invariant
+// par division : si ce correctif déplaçait un couloir de densité, il ferait
+// autre chose que ce qu'il annonce.
+
+/**
+ * LA PART D'UNE BOUCHE SUR UN CONTENANT — la convention de production, et elle
+ * seule (`final_plan_audit.ts::cellNutritionTable`).
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function partDeLaBouche(p: PortionMesuree): PortionMesuree {
+  const mangeurs = Math.max(1, p.memberIds.length);
+  if (mangeurs === 1) return p;
+  return {
+    ...p,
+    grammes: p.grammes / mangeurs,
+    kcal: p.kcal === null ? null : p.kcal / mangeurs,
+    proteineG: p.proteineG === null ? null : p.proteineG / mangeurs,
+    partageAvec: mangeurs,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-13 — UNE PERSONNE PEUT AVOIR DEUX CONTENANTS SUR LA MÊME CASE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ LE DÉFAUT, MESURÉ. L'index était une `Map` par `jour/slot` : le DERNIER
+// contenant écrasait le précédent. Sur une case COMPLÉTÉE — une part du plat
+// commun PLUS un petit plat à son nom — l'instrument ne lisait que le
+// complément (9 g, 2 kcal) et déclarait la case non conforme, alors que le plan
+// écrit portait bien les deux boîtes et 563,6 kcal.
+//
+// ⚠️ MÊME DOCTRINE QUE `plan_energy.ts` SUR L'ABSTENTION : un seul contenant
+// non mesurable éteint la case. Additionner les mesurables et ignorer l'autre
+// rendrait une somme amputée qui a l'air d'un résultat.
+//
+// ⚠️ `partageAvec` GARDE LE MAXIMUM : si l'une des parts est un bac de groupe,
+// la case porte une ESTIMATION, et ça ne se dilue pas en additionnant une part
+// nominative à côté.
+export function fusionnerParts(
+  parts: readonly PortionMesuree[],
+): PortionMesuree | null {
+  if (parts.length === 0) return null;
+  if (parts.length === 1) return parts[0];
+  const nonMesurable = parts.find((p) => p.kcal === null) ?? null;
+  return {
+    boxId: parts.map((p) => p.boxId).join("+"),
+    memberIds: parts[0].memberIds,
+    jour: parts[0].jour,
+    slot: parts[0].slot,
+    titre: parts.map((p) => p.titre).join(" + "),
+    grammes: parts.reduce((n, p) => n + p.grammes, 0),
+    kcal: nonMesurable !== null
+      ? null
+      : parts.reduce((n, p) => n + (p.kcal ?? 0), 0),
+    proteineG: parts.some((p) => p.proteineG === null)
+      ? null
+      : parts.reduce((n, p) => n + (p.proteineG ?? 0), 0),
+    gap: nonMesurable?.gap ?? null,
+    partageAvec: Math.max(...parts.map((p) => p.partageAvec)),
+  };
 }
 
 export function mesurerPortions(args: {
@@ -730,6 +958,9 @@ export function mesurerPortions(args: {
     kcal: b.kcal,
     proteineG: b.proteinG,
     gap: b.gap,
+    // ⛔ `1` ICI, TOUJOURS : c'est le CONTENANT qui sort de cette fonction, pas
+    // une part. La division vit dans `partDeLaBouche`, appelée par `croiser`.
+    partageAvec: 1,
   }));
 }
 
@@ -791,6 +1022,34 @@ export interface Denominateurs {
   casesSansPortion: string[];
   portionsNonMesurables: { case_: string; motif: string }[];
   portionsNonConformes: { case_: string; ecartPct: number }[];
+  /**
+   * ⟳ 2026-09-11 · C0 — LES CONTENANTS DU PLAN QUI NE SONT PAS DE CETTE BOUCHE.
+   *
+   * ⛔ LE DÉFAUT QUE CE COMPTEUR FERME, MESURÉ AU TIR N° 6. Le plan portait
+   * **12 contenants pour 2 bouches** ; l'instrument indexait les portions par
+   * `jour/moment` seul, donc le second contenant écrasait le premier et
+   * « 12 parts présentes » se lisait « 6 conformes sur 6 ». Six parts n'étaient
+   * ni mesurées ni comptées. Ici chaque bouche ne voit QUE ses contenants, et
+   * ce nombre dit combien appartiennent à quelqu'un d'autre.
+   */
+  portionsAutresBouches: number;
+  /**
+   * ⟳ 2026-09-13 · LOT 2 §1 — LES CASES JUGÉES SUR UNE **PART**, PAS SUR UNE
+   * PESÉE. Un bac à plusieurs noms est divisé par le nombre de mangeurs
+   * (convention de `final_plan_audit.ts::cellNutritionTable`) ; ce compteur dit
+   * combien de cases de cette bouche sont dans ce cas. À 0, tout ce qui suit
+   * est nominatif.
+   */
+  portionsPartagees: number;
+  /**
+   * Les contenants que ce plan n'attribue à PERSONNE (`member_ids` vide).
+   *
+   * ⚠️ CE N'EST PAS « zéro autre bouche ». Les deux plans figés du lot 0 sont
+   * dans ce cas : une seule bouche, aucun contenant nominatif. L'instrument les
+   * rattache alors à la bouche mesurée — et le COMPTE, pour qu'un plan de foyer
+   * qui perdrait ses attributions ne ressemble jamais à un plan solo.
+   */
+  portionsSansBouche: number;
 }
 
 export interface CaseMesuree {
@@ -816,8 +1075,46 @@ export function croiser(args: {
   const plats = (args.plan.dishes ?? []) as Record<string, unknown>[];
   const platPar = new Map<string, Record<string, unknown>>();
   for (const d of plats) platPar.set(`${d.day}/${d.slot}`, d);
-  const portionPar = new Map<string, PortionMesuree>();
-  for (const p of args.portions) portionPar.set(`${p.jour}/${p.slot}`, p);
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-11 · C0 — UNE PORTION APPARTIENT À UNE BOUCHE, ET ON LA FILTRE
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ AVANT : `portionPar.set(jour/slot, p)` sur TOUS les contenants. Au tir
+  // n° 6 (deux bouches, 12 contenants) le second écrasait le premier : la
+  // mesure décrivait une bouche et se publiait comme « 6 / 6 conformes » pour
+  // un plan qui en servait douze. Le plan de clôture l'écrit : « ne pas
+  // assimiler douze portions présentes à douze portions conformes lorsque
+  // seules six ont été mesurées ».
+  //
+  // ⚠️ LE REPLI EST COMPTÉ, JAMAIS SILENCIEUX. Un contenant sans `member_ids`
+  // (les deux plans figés du lot 0 sont dans ce cas) est rattaché à la bouche
+  // mesurée — sinon un plan solo ancien deviendrait subitement vide — et
+  // `portionsSansBouche` dit combien de fois ce repli a servi.
+  const partsPar = new Map<string, PortionMesuree[]>();
+  const pousser = (cle: string, p: PortionMesuree): void => {
+    const deja = partsPar.get(cle) ?? [];
+    deja.push(p);
+    partsPar.set(cle, deja);
+  };
+  let portionsAutresBouches = 0, portionsSansBouche = 0;
+  for (const p of args.portions) {
+    if (p.memberIds.length === 0) {
+      portionsSansBouche++;
+      pousser(`${p.jour}/${p.slot}`, p);
+      continue;
+    }
+    if (!p.memberIds.includes(args.bouche.memberId)) {
+      portionsAutresBouches++;
+      continue;
+    }
+    // ⛔ ICI, ET SEULEMENT ICI, ON PASSE DU RÉCIPIENT À LA PERSONNE — voir le
+    // bloc §1 au-dessus de `partDeLaBouche`. Sans cette ligne, un bac de trois
+    // était comparé à la cible d'une : +344 % sur 21 cases, mesuré.
+    //
+    // ⟳ 2026-09-13 — ET ON ACCUMULE : `.set()` écrasait, donc une case
+    // complétée (part commune + petit plat) ne rendait que le petit plat.
+    pousser(`${p.jour}/${p.slot}`, partDeLaBouche(p));
+  }
 
   const cases: CaseMesuree[] = [];
   const casesSansPlat: string[] = [];
@@ -825,17 +1122,20 @@ export function croiser(args: {
   const portionsNonMesurables: { case_: string; motif: string }[] = [];
   const portionsNonConformes: { case_: string; ecartPct: number }[] = [];
   let platsPresents = 0, portionsCalculees = 0, portionsMesurables = 0, portionsConformes = 0;
+  let portionsPartagees = 0;
 
   for (const [jour, slots] of Object.entries(args.bouche.grille)) {
     for (const slot of slots) {
       const cle = `${jour}/${slot}`;
       const contrat = args.contrats.find((c) => c.jour === jour && c.slot === slot) ?? null;
       const plat = platPar.get(cle) ?? null;
-      const portion = portionPar.get(cle) ?? null;
+      // ⟳ 2026-09-13 — TOUS les contenants de cette bouche sur cette case.
+      const portion = fusionnerParts(partsPar.get(cle) ?? []);
       if (plat !== null) platsPresents++;
       else casesSansPlat.push(cle);
       if (portion !== null) portionsCalculees++;
       else casesSansPortion.push(cle);
+      if (portion !== null && portion.partageAvec > 1) portionsPartagees++;
 
       let ecart: number | null = null;
       let densite: number | null = null;
@@ -890,6 +1190,9 @@ export function croiser(args: {
       casesSansPortion,
       portionsNonMesurables,
       portionsNonConformes,
+      portionsAutresBouches,
+      portionsPartagees,
+      portionsSansBouche,
     },
   };
 }
@@ -1134,58 +1437,164 @@ export function alertesParLibelle(
 // CONTRÔLE sur ce chemin — une exigence non satisfaite, pas un sujet sans objet.
 // On rend donc le plancher ET la mesure, et on nomme l'absence de garde.
 
-export function plancherProteine(b: BoucheFigee, dateMesure: string): {
-  proteinFloorG: number;
-  proteinPerMealG: number | null;
-  source: string;
-} | null {
+/**
+ * PAR OÙ LA CIBLE EST VENUE — ou pourquoi il n'y en a pas. ⛔ VOCABULAIRE
+ * FERMÉ : une absence NOMMÉE se répare, une absence muette se confond avec un
+ * zéro. C'est la même doctrine que `PROTEIN_BRIEF_SILENCES` du produit.
+ */
+export type BrancheEnveloppe =
+  /** `envelopeFor` sur la série de pesées d'un COMPTE : l'objectif s'applique. */
+  | "compte"
+  /** `maintenanceEnvelopeFromBody` : la FICHE, qui n'achète qu'un entretien. */
+  | "fiche_entretien"
+  /** `childEnvelopeFromBody` : la fiche d'un mineur, maintenance pédiatrique. */
+  | "fiche_pediatrique"
+  /** Enveloppe `per_portion` : plancher TCA, ou corps illisible. Aucun chiffre. */
+  | "protegee"
+  /** `mouthEnvelope` rend `null` sur un âge inconnu : ni adulte ni enfant. */
+  | "age_inconnu"
+  /** Ni poids, ni bande d'âge : `maintenanceEnvelopeFromBody` rend `null`. */
+  | "corps_insuffisant";
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * L'ENVELOPPE DE CETTE BOUCHE — PAR LA PORTE DU PRODUIT, ET PAR ELLE SEULE
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ⟳ 2026-09-13 · § 2.3 — CE QUE CETTE FONCTION RÉPARE, AVEC SON CHIFFRE.
+ *
+ * L'instrument fabriquait `latestWeight: {value: poidsDeLaFiche}` et appelait
+ * `envelopeFor` avec l'objectif écrit sur la ligne. Le produit ne fait ça NULLE
+ * PART pour une bouche sans compte : `household_bodies.ts` (l. 350) pose
+ * délibérément `latestWeight: null` — « une fiche n'est pas une série » — et
+ * l'appelant de `generate-household-meal-v1` (l. 3999) ne construit AUCUNE
+ * enveloppe de compte quand `!m.userId`. La bouche retombe donc sur
+ * `mouthEnvelope` → `maintenanceEnvelopeFromBody`, qui écrit `maintenance`
+ * DANS SON CORPS et n'accepte pas de jeton d'objectif : la fiche n'achète
+ * aucun objectif.
+ *
+ * Mesuré sur Lea (58 kg, sans compte, `fat_loss` écrit sur sa fiche) :
+ * l'instrument annonçait **116 g/jour** (2,0 g/kg, le barème de `fat_loss`) ;
+ * le produit en dit **93** (1,6 g/kg, le barème de `maintenance`) — et le
+ * prompt archivé de `lot3b-reference` porte « 23 g … 37 g … 33 g », soit 93.
+ *
+ * ⛔ AUCUN BARÈME N'EST TOUCHÉ ICI, ET AUCUN SEUIL N'EST CHOISI. Ce sont les
+ * deux MÊMES fonctions que le moteur qui rendent le nombre ; ce qui change est
+ * la PORTE par laquelle on entre.
+ */
+export function enveloppeDeLaBouche(b: BoucheFigee, dateMesure: string): {
+  env: Envelope | null;
+  branche: BrancheEnveloppe;
+} {
   const bande = ageBandOf(b.ageYears);
   const flag = b.restriction === "raised" || b.restriction === "unreadable";
-  const corps = {
+  // Le corps de la FICHE, à la forme que `mouthEnvelope` attend. C'est le même
+  // objet que celui donné à `envelopeDirectionFor` : une seule lecture.
+  const corps: MouthBody = {
     heightCm: b.heightCm,
     weightKg: b.weightKg,
     gender: b.gender,
     ageYears: b.ageYears,
-    activityLevel: b.activityLevel,
-    activityAxes: b.activityAxes,
+    activityLevel: b.activityLevel as MouthBody["activityLevel"],
+    activityAxes: b.activityAxes as MouthBody["activityAxes"],
     appetite: b.appetite,
   };
-  // ⛔ `directed` PASSE PAR SA PROPRE FONCTION DE PRODUCTION, jamais par un
-  // objet fabriqué ici : `envelopeDirectionFor` porte le cran, l'écart exécuté
-  // et le plancher d'énergie du corps. En écrire un à la main ferait de ce banc
-  // le second endroit qui décide d'un déficit.
-  const directed = envelopeDirectionFor({
-    goal: b.goal as never,
-    subject: { body: corps as never, isMinor: b.ageState === "minor" },
-    paceKgPerWeek: b.paceKgPerWeek,
-    deficitCancelled: false,
+  // ══════════════════════════════════════════════════════════════════════
+  // ① L'ENVELOPPE DE COMPTE — LA MÊME CONDITION QUE L'APPELANT, RECOPIÉE
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // `generate-household-meal-v1/index.ts` l. 3999 :
+  //     gatedGoal === null || m.body === null ||
+  //         (!m.userId && m.body.restrictionFlag !== true)
+  //       ? null : envelopeFor(...)
+  //
+  // ⛔ LES TROIS CAUSES SONT GARDÉES, ET LA TROISIÈME EST CELLE DU LOT :
+  // une bouche SANS compte ne produit pas d'enveloppe de compte — sauf si sa
+  // fiche portait un plancher levé, qui repasserait par la branche dégradée.
+  //
+  // ⚠️ `b.goal === ""` EST LA PREMIÈRE CAUSE, ET ELLE NE S'ABSTIENT PLUS :
+  // sans objectif, on n'entre pas dans `envelopeFor` (c'est ce qui rendait
+  // `proteinFloorG: NaN` sur le tir n° 6), mais la bouche descend quand même
+  // vers la fiche — exactement comme le produit, qui sert alors un entretien.
+  const objectif = b.goal.trim();
+  const enveloppeDeCompte = objectif === "" || (!b.aUnCompte && flag !== true)
+    ? null
+    : envelopeFor(
+      objectif as never,
+      {
+        heightCm: b.heightCm,
+        ageBand: bande,
+        gender: b.gender,
+        latestWeight: { weekStart: dateMesure, value: b.weightKg },
+        declaredWeightKg: b.weightKg,
+        latestWaist: null,
+        restrictionFlag: flag,
+      } as never,
+      bande,
+      flag,
+      null,
+      b.activityLevel as never,
+      b.activityAxes as never,
+      b.appetite,
+      null,
+      // ⛔ `directed` PASSE PAR SA PROPRE FONCTION DE PRODUCTION, jamais par un
+      // objet fabriqué ici : `envelopeDirectionFor` porte le cran, l'écart
+      // exécuté et le plancher d'énergie du corps. En écrire un à la main ferait
+      // de ce banc le second endroit qui décide d'un déficit.
+      envelopeDirectionFor({
+        goal: objectif as never,
+        subject: { body: corps as never, isMinor: b.ageState === "minor" },
+        paceKgPerWeek: b.paceKgPerWeek,
+        deficitCancelled: false,
+      }),
+    );
+  // ══════════════════════════════════════════════════════════════════════
+  // ② LA PORTE UNIQUE — `mouthEnvelope`, jamais une seconde règle d'ordre
+  // ══════════════════════════════════════════════════════════════════════
+  const env = mouthEnvelope({
+    ageState: b.ageState,
+    accountEnvelope: enveloppeDeCompte,
+    lineBody: corps,
   });
-  const env = envelopeFor(
-    b.goal as never,
-    {
-      heightCm: b.heightCm,
-      ageBand: bande,
-      gender: b.gender,
-      latestWeight: { weekStart: dateMesure, value: b.weightKg },
-      declaredWeightKg: b.weightKg,
-      latestWaist: null,
-      restrictionFlag: flag,
-    } as never,
-    bande,
-    flag,
-    null,
-    b.activityLevel as never,
-    b.activityAxes as never,
-    b.appetite,
-    null,
-    directed,
-  );
+  const branche: BrancheEnveloppe = enveloppeDeCompte !== null
+    ? (enveloppeDeCompte.mode === "per_portion" ? "protegee" : "compte")
+    : env === null
+    ? (b.ageState === "unknown" ? "age_inconnu" : "corps_insuffisant")
+    : env.mode === "per_portion"
+    ? "protegee"
+    : b.ageState === "minor"
+    ? "fiche_pediatrique"
+    : "fiche_entretien";
+  return { env, branche };
+}
+
+export function plancherProteine(b: BoucheFigee, dateMesure: string): {
+  proteinFloorG: number;
+  proteinPerMealG: number | null;
+  /** Par où la cible est venue. Le rendu l'imprime : un nombre sans sa porte
+   * ne se relit pas. */
+  branche: BrancheEnveloppe;
+  source: string;
+} | null {
+  // ⛔ UNE SEULE CHAÎNE, APPELÉE — jamais recalculée. `enveloppeDeLaBouche` est
+  // pure et déterministe : l'appeler deux fois sur la même bouche ne peut pas
+  // diverger, et c'est la seule raison pour laquelle le rendu peut demander la
+  // branche de son côté.
+  const { env, branche } = enveloppeDeLaBouche(b, dateMesure);
+  if (env === null) return null;
   if (env.mode !== "per_kg") return null;
+  // ⚠️ LA CEINTURE DU NaN RESTE SOUS TOUT LE RESTE : une enveloppe dont les
+  // nombres ne sont pas finis s'abstient. Un plancher qu'on ne sait pas
+  // calculer reste INCONNU, jamais zéro — un « ❌ SOUS LE PLANCHER (−NaN %) »
+  // est un verdict d'échec fabriqué, c'est-à-dire une accusation.
+  if (!Number.isFinite(env.proteinFloorG)) return null;
   return {
     proteinFloorG: env.proteinFloorG,
     proteinPerMealG: env.proteinPerMealG,
-    source: "meal_envelope.ts::envelopeFor + weight_pace.ts::envelopeDirectionFor " +
-      "(fonctions de production, entrées figées)",
+    branche,
+    source: "household_composition.ts::mouthEnvelope → meal_envelope.ts::" +
+      "envelopeFor | maintenanceEnvelopeFromBody (fonctions de production, " +
+      "entrées figées)",
   };
 }
 
@@ -1197,11 +1606,33 @@ export function plancherProteine(b: BoucheFigee, dateMesure: string): {
 // pas déduire les préférences d'un prénom ou d'un titre de recette. » Le prénom
 // n'est rendu que pour l'affichage ; il n'entre dans aucun calcul.
 
-export function boucheDuContexte(ctx: Record<string, unknown>): BoucheFigee {
-  const profile = ctx.profile as Record<string, unknown>;
+export function boucheDuContexte(
+  ctx: Record<string, unknown>,
+  rang = 0,
+): BoucheFigee {
   const goal = ctx.goal as Record<string, unknown>;
-  const membre = (ctx.members as Record<string, unknown>[])[0];
-  const corps = (ctx.member_bodies as Record<string, unknown>[])[0];
+  const membre = (ctx.members as Record<string, unknown>[])[rang];
+  if (membre === undefined) {
+    throw new Error(
+      `⛔ aucune bouche au rang ${rang} : le contexte en porte ${
+        (ctx.members as unknown[]).length
+      }. Mesurer une bouche absente inventerait un corps.`,
+    );
+  }
+  // ⟳ 2026-09-11 · C0 — LE CORPS SE RETROUVE PAR SON IDENTIFIANT, PAS PAR SON
+  // RANG. ⛔ Sur un foyer, `members` et `member_bodies` peuvent ne pas être
+  // dans le même ordre ; croiser les deux par l'indice donnerait à Lea le corps
+  // de Paul, et l'erreur serait INVISIBLE — les deux mesures « marcheraient ».
+  const corpsTous = ctx.member_bodies as Record<string, unknown>[];
+  const corps = corpsTous.find((c) =>
+    String(c.member_id ?? "") === String(membre.member_id ?? "")
+  ) ?? corpsTous[rang];
+  if (corps === undefined) {
+    throw new Error(
+      `⛔ aucun corps pour la bouche ${String(membre.member_id)} : ` +
+        `une mesure sans corps s'abstient, elle ne devine pas.`,
+    );
+  }
   const grille = (ctx.grille as Record<string, unknown>);
   const contrat = (ctx.contrat_de_calcul as Record<string, unknown>);
   const instant = (ctx.instant as Record<string, unknown>);
@@ -1218,10 +1649,38 @@ export function boucheDuContexte(ctx: Record<string, unknown>): BoucheFigee {
   let age = ref.getUTCFullYear() - naissance.getUTCFullYear();
   const m = ref.getUTCMonth() - naissance.getUTCMonth();
   if (m < 0 || (m === 0 && ref.getUTCDate() < naissance.getUTCDate())) age--;
-  const objectif = String(goal.goal);
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-11 · C0 — CHAQUE BOUCHE PORTE SON OBJECTIF, OU N'EN PORTE AUCUN
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ « le foyer a un objectif » EST FAUX, et le tir n° 6 le montre : Paul
+  // perd du gras, Lea n'a déclaré aucun objectif. Le handler fait
+  // `m.goal === null ? null : scaleDirectionOf(m.goal)` ; copier l'objectif du
+  // titulaire sur la seconde bouche lui appliquerait un déficit que personne
+  // n'a demandé.
+  //
+  // ⛔ ET LA RÈGLE N'EST PAS INVENTÉE ICI : c'est celle de
+  // `keel_household_roster_for`, recopiée de son `prosrc` —
+  // « when hm.user_id is null then hm.goal else sg.goal », la même pour
+  // `target_pace_kg_per_week`. Une bouche AVEC compte lit l'objectif de son
+  // compte (la colonne `household_members.goal` y est nulle) ; une bouche SANS
+  // compte lit sa propre colonne, et `null` y veut dire « aucun objectif ».
+  const aUnCompte = membre.user_id !== null && membre.user_id !== undefined &&
+    String(membre.user_id) !== "";
+  const objectifBrut = aUnCompte ? goal.goal : membre.goal;
+  const objectif = objectifBrut === null || objectifBrut === undefined
+    ? ""
+    : String(objectifBrut);
+  const cranBrut = aUnCompte
+    ? goal.target_pace_kg_per_week
+    : membre.target_pace_kg_per_week;
   return {
     memberId: String(membre.member_id),
     prenom: String(membre.first_name ?? ""),
+    // ⟳ 2026-09-13 · § 2.3 — LA MÊME LECTURE QUI CHOISIT LA COLONNE D'OBJECTIF
+    // JUSTE AU-DESSUS, rendue au lieu d'être jetée. Une seconde règle « a-t-elle
+    // un compte ? » ailleurs dans ce fichier en ferait deux.
+    aUnCompte,
     weightKg: Number(corps.weight_kg),
     heightCm: Number(corps.height_cm),
     ageYears: age,
@@ -1229,7 +1688,10 @@ export function boucheDuContexte(ctx: Record<string, unknown>): BoucheFigee {
     gender: String(corps.gender) as "male" | "female" | "other",
     goal: objectif,
     direction: objectif === "fat_loss" ? "down" : objectif === "muscle_gain" ? "up" : null,
-    paceKgPerWeek: Number(goal.target_pace_kg_per_week),
+    // ⛔ `null` ET PAS ZÉRO. `Number(null)` vaut 0, et 0 kg/semaine est un CRAN
+    // DÉCLARÉ ; l'absence de cran est autre chose. Ce dépôt a déjà payé
+    // `Number(null) === 0` une fois cette campagne, sur `readIngredients`.
+    paceKgPerWeek: typeof cranBrut === "number" ? cranBrut : null,
     appetite: (corps.appetite ?? null) as "small" | "average" | "large" | null,
     activityLevel: (corps.activity_level ?? null) as string | null,
     activityAxes: {
@@ -1238,14 +1700,35 @@ export function boucheDuContexte(ctx: Record<string, unknown>): BoucheFigee {
       asked: corps.activity_axes_asked_at !== null,
     },
     declaredSlots: ((membre.eating_rhythm ?? []) as { slot: string }[]).map((o) => String(o.slot)),
-    lightSlots: (grille.light_slots ?? []) as string[],
-    restriction: String(contrat.restriction) as BoucheFigee["restriction"],
-    ageState: String(contrat.ageState) as BoucheFigee["ageState"],
-    conditionRefs: (contrat.conditionRefs ?? []) as string[],
+    // ⚠️ LE MOMENT LÉGER EST UNE PROPRIÉTÉ DE LA BOUCHE, pas de la maison : deux
+    // personnes à la même table n'ont pas le même déjeuner léger.
+    lightSlots: (membre.light_slots ?? grille.light_slots ?? []) as string[],
+    restriction: String(
+      membre.restriction ?? contrat.restriction,
+    ) as BoucheFigee["restriction"],
+    ageState: String(membre.age_state ?? contrat.ageState) as BoucheFigee["ageState"],
+    conditionRefs: (membre.condition_refs ?? contrat.conditionRefs ?? []) as string[],
     coachCounting: String(contrat.coachCounting) as "no_position" | "no_counting",
-    grille: grille.cases_par_jour as Record<string, string[]>,
+    grille: (membre.cases_par_jour ?? grille.cases_par_jour) as Record<string, string[]>,
     jourVersDate,
+    fixedIntakesRaw: membre.fixed_intakes ?? [],
+    allergies: ((membre.allergies ?? []) as unknown[]).map((a) => String(a)),
   };
+}
+
+/**
+ * TOUTES LES BOUCHES DU CONTEXTE — celle qui gouverne le menu et les autres.
+ *
+ * ⛔ LA RAISON D'ÊTRE DE C0, EN UNE FONCTION. Le banc du lot F reconstruisait
+ * **une** bouche quel que soit le foyer : le tir n° 6 servait 12 parts et le
+ * rapport en publiait 6, conformes. Mesurer « toutes les bouches, leurs propres
+ * bornes et objectifs » commence par savoir qu'il y en a plusieurs.
+ */
+export function bouchesDuContexte(ctx: Record<string, unknown>): BoucheFigee[] {
+  const n = (ctx.members as unknown[] ?? []).length;
+  const out: BoucheFigee[] = [];
+  for (let i = 0; i < n; i++) out.push(boucheDuContexte(ctx, i));
+  return out;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1268,6 +1751,15 @@ export interface MesureDUnPlan {
   /** ⟳ 2026-09-11 · LOT B — la consigne que le moteur RÉPARÉ enverrait. */
   fragmentRepare: string;
   fragmentArchive: string | null;
+  /**
+   * ⟳ 2026-09-12 · LOT 3 — LES LIGNES DE CONTRAT RETROUVÉES AU CARACTÈRE dans
+   * le prompt archivé, rendues par `slotContractSentence` (fonction de
+   * PRODUCTION, jamais un motif). `attendu` est le nombre de cases dont le
+   * couloir est calculé : « 0 trouvées » et « 0 attendues » ne disent pas la
+   * même chose, et les deux voyagent ensemble.
+   */
+  contratTrouve: number | null;
+  contratAttendu: number;
   fragmentIdentique: boolean | null;
   portions: PortionMesuree[];
   cases: CaseMesuree[];
@@ -1287,6 +1779,12 @@ export interface MesureDUnPlan {
   quantitesApresLotC: CensusQuantites;
   proteine: {
     plancher: ReturnType<typeof plancherProteine>;
+    /**
+     * ⟳ 2026-09-13 · § 2.3 — LA BRANCHE, RENSEIGNÉE MÊME QUAND IL N'Y A PAS DE
+     * CIBLE. C'est elle qui porte le motif de l'abstention : sans elle, le
+     * rendu redevinait « pourquoi » depuis l'objectif, et se trompait.
+     */
+    branche: BrancheEnveloppe;
     parJour: Record<string, { mesureG: number | null; plancherCouvertG: number | null; part: number | null }>;
   };
   contrefactuel: { ref: string; avant: PortionMesuree[]; apres: PortionMesuree[] };
@@ -1304,25 +1802,209 @@ export interface MesureDUnPlan {
   livraisonEtat: string;
   livraison: Record<string, unknown>;
   temoins: Record<string, unknown>;
+  /**
+   * ⟳ 2026-09-11 · C0 — CE QUI A ÉTÉ RETRANCHÉ, ET CE QUI NE L'A PAS ÉTÉ.
+   * `declares` à zéro veut dire « rien de déclaré », pas « on n'a pas lu ».
+   */
+  apportsFixes: {
+    declares: number;
+    illisibles: number;
+    sansMoment: number;
+    kcalSansMoment: number;
+    parJour: Record<string, Record<string, number>>;
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-11 · C0 — TROIS FAMILLES, ET ELLES NE SE FONDENT JAMAIS
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Le plan de clôture l'exige en toutes lettres : « Le rapport rectifié
+// distingue conformité calorique, conformité complète et contrôles
+// incomplets. »
+//
+// ⛔ CE QUE LEUR CONFUSION A COÛTÉ. Le rapport des six tirs publie
+// « 6 / 6 conformes » sur le tir n° 6 : c'est vrai de la conformité CALORIQUE
+// d'UNE bouche, et ça se lit comme la conformité complète d'un foyer de deux.
+// Trois nombres qui ne mesurent pas la même chose ne peuvent pas partager une
+// colonne.
+export interface TroisFamilles {
+  /** La case a une cible et sa portion tombe dedans à ±10 %. */
+  conformiteCalorique: { conformes: number; sur: number; horsTolerance: string[] };
+  /**
+   * La case a un plat, une portion mesurable, une masse dans ses bornes, une
+   * densité dans son couloir ET une conformité calorique. Un seul ⚪ suffit à
+   * la faire sortir : « complète » n'admet aucune abstention.
+   */
+  conformiteComplete: { conformes: number; sur: number; manquants: string[] };
+  /** Ce que l'instrument N'A PAS pu juger, nommé contrôle par contrôle. */
+  controlesIncomplets: string[];
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-13 — LA QUATRIÈME FAMILLE : CE QUI NE S'APPLIQUE PAS
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE DÉFAUT QU'ELLE FERME, MESURÉ. Une bouche dont le moteur s'abstient
+   * de calculer une cible — âge inconnu, corps absent, plancher de protection
+   * — reçoit désormais une PART DE RECETTE : elle a son contenant, ses
+   * ingrédients et ses grammes, et le foyer est nourri. L'instrument la
+   * comptait pourtant `complète 0/6` avec `22 contrôles incomplets`, à côté de
+   * `calorique 0/0` qui, lui, disait juste.
+   *
+   * Une case sans cible n'est ni un échec ni un succès numérique : le contrat
+   * ne s'applique pas. Les compter en échec fabrique un rouge, les compter en
+   * succès fabrique un vert — les deux mentent.
+   *
+   * ⚠️ CE QUI RESTE JUGÉ SUR CES CASES : la PRÉSENCE. Un plat manquant ou une
+   * portion absente reste un défaut, cible ou pas. On ne suspend que ce qui
+   * DÉRIVE de la cible : calories, bornes de masse, couloir de densité.
+   */
+  nonApplicables: { cases: number; raisons: string[] };
+}
+
+export function troisFamilles(m: MesureDUnPlan): TroisFamilles {
+  const horsTolerance: string[] = [];
+  const manquants: string[] = [];
+  const incomplets: string[] = [];
+  const nonApplicables: string[] = [];
+  let calorique = 0, caloriqueSur = 0, complet = 0, completSur = 0;
+  for (const c of m.cases) {
+    const cle = `${c.date} ${c.slot}`;
+    // ── ⟳ 2026-09-13 — LA CASE DONT LE CONTRAT NUMÉRIQUE NE S'APPLIQUE PAS ──
+    //
+    // ⛔ LA CONDITION EST LA CIBLE, PAS LA MESURE. « Je n'ai pas su mesurer »
+    // est un contrôle incomplet; « il n'y a rien à mesurer contre » est autre
+    // chose. Le moteur s'abstient de calculer une cible pour une raison NOMMÉE
+    // (`age_unknown`, `no_body`, `restriction_floor`…), et la personne reçoit
+    // alors une part de recette.
+    const cibleAbsente =
+      (c.contrat?.cibleCaseDimensionnementKcal ?? null) === null;
+    if (cibleAbsente) {
+      // ⚠️ LA PRÉSENCE RESTE JUGÉE. Sans cible, on ne suspend que ce qui en
+      // dérive — un plat manquant reste un plat manquant.
+      const absences: string[] = [];
+      if (c.plat === null) absences.push("aucun plat");
+      if (c.portion === null) absences.push("aucune portion");
+      if (absences.length > 0) {
+        completSur++;
+        manquants.push(`${cle} — ${absences.join(" · ")}`);
+      } else {
+        nonApplicables.push(
+          `${cle} : aucune cible pour cette bouche — part de recette servie`,
+        );
+      }
+      continue;
+    }
+    completSur++;
+    if (c.ecartKcalPct !== null) {
+      caloriqueSur++;
+      if (Math.abs(c.ecartKcalPct) <= TOLERANCE_REPAS) calorique++;
+      else horsTolerance.push(`${cle} (${(c.ecartKcalPct * 100).toFixed(2)} %)`);
+    }
+    const raisons: string[] = [];
+    if (c.plat === null) raisons.push("aucun plat");
+    if (c.portion === null) raisons.push("aucune portion");
+    else if (c.portion.kcal === null) raisons.push(`non mesurable (${c.portion.gap})`);
+    if (c.ecartKcalPct === null) {
+      raisons.push("aucune cible de case");
+      incomplets.push(`${cle} : énergie de la case non jugeable`);
+    } else if (Math.abs(c.ecartKcalPct) > TOLERANCE_REPAS) {
+      raisons.push("calories hors tolérance");
+    }
+    if (c.masseDansLesBornes === null) {
+      incomplets.push(`${cle} : masse non jugeable`);
+      raisons.push("masse non jugeable");
+    } else if (!c.masseDansLesBornes) raisons.push("masse hors bornes");
+    if (c.densiteDansLeCouloir === null) {
+      incomplets.push(
+        `${cle} : densité non jugeable` +
+          (c.contrat?.couloirTransmis?.incompatible
+            ? ` (couloir ${c.contrat.couloirTransmis.incompatible})`
+            : ""),
+      );
+      raisons.push("densité non jugeable");
+    } else if (!c.densiteDansLeCouloir) raisons.push("densité hors couloir");
+    if (raisons.length === 0) complet++;
+    else manquants.push(`${cle} — ${raisons.join(" · ")}`);
+  }
+  // ⟳ 2026-09-13 — AUCUNE CIBLE NULLE PART ⇒ LA JOURNÉE ET LA PROTÉINE NE
+  // S'APPLIQUENT PAS NON PLUS.
+  //
+  // ⛔ ET LA CONDITION EST « AUCUNE », PAS « CETTE CASE-CI ». Une bouche qui a
+  // des cibles caloriques et PAS de plancher protéique est un contrôle
+  // INCOMPLET, pas un cas sans objet — c'est exactement le défaut mesuré le
+  // 2026-09-13 sur une bouche sans compte, dont l'enveloppe était dégradée
+  // alors que son poids était lisible. Le ranger en « sans objet » l'aurait
+  // rendu invisible.
+  const aucuneCible = m.cases.length > 0 &&
+    m.cases.every((c) => (c.contrat?.cibleCaseDimensionnementKcal ?? null) === null);
+  for (const j of m.jours) {
+    if (j.etat !== "non_mesurable") continue;
+    if (aucuneCible) {
+      nonApplicables.push(`${j.date} : journée — aucune cible pour cette bouche`);
+    } else {
+      incomplets.push(`${j.date} : journée — ${j.raison}`);
+    }
+  }
+  for (const [j, p] of Object.entries(m.proteine.parJour)) {
+    if (p.mesureG === null || p.plancherCouvertG === null) {
+      const date = m.jours.find((x) => x.jour === j)?.date ?? j;
+      if (aucuneCible) {
+        nonApplicables.push(`${date} : protéines — aucune cible pour cette bouche`);
+      } else {
+        incomplets.push(`${date} : protéines non jugeables`);
+      }
+    }
+  }
+  if (m.references.parEtat.ingredient_non_mesurable > 0) {
+    incomplets.push(
+      `${m.references.parEtat.ingredient_non_mesurable} ligne(s) d'ingrédient non mesurable(s)`,
+    );
+  }
+  if (m.denominateurs.portionsSansBouche > 0) {
+    incomplets.push(
+      `${m.denominateurs.portionsSansBouche} contenant(s) sans bouche nommée — ` +
+        `rattaché(s) par repli à ${m.bouche.prenom || m.bouche.memberId}`,
+    );
+  }
+  return {
+    conformiteCalorique: { conformes: calorique, sur: caloriqueSur, horsTolerance },
+    // ⛔ LE DÉNOMINATEUR EXCLUT LES CASES SANS OBJET. Les y laisser rendrait
+    // « 0/6 » pour une bouche parfaitement servie.
+    conformiteComplete: { conformes: complet, sur: completSur, manquants },
+    controlesIncomplets: incomplets,
+    nonApplicables: { cases: nonApplicables.length, raisons: nonApplicables },
+  };
 }
 
 export async function mesurerUnPlan(
   fx: Fixtures,
   plan: Record<string, unknown>,
+  /**
+   * ⟳ 2026-09-11 · C0 — LE RANG DE LA BOUCHE MESURÉE. Défaut `0` : le
+   * comportement d'avant ce lot, mot pour mot, sur les contextes à une bouche.
+   */
+  opts: { rang?: number } = {},
 ): Promise<MesureDUnPlan> {
   const planId = String(plan.id);
   const ctx = fx.contextes.find((c) => String(c.plan_id) === planId);
   if (!ctx) throw new Error(`aucun contexte figé pour le plan ${planId}`);
   const requestId = String(ctx.request_id);
-  const bouche = boucheDuContexte(ctx);
+  const bouche = boucheDuContexte(ctx, opts.rang ?? 0);
   const index = await troisIndex(fx, plan);
-  const contrats = contratsParCase(bouche);
+  // ⟳ 2026-09-11 · C0 — LES APPORTS FIXES, PESÉS AVANT LE CONTRAT. `null` quand
+  // la bouche n'en déclare AUCUN : `slotContractsFor` distingue « pas d'apport »
+  // de « une carte vide », et lui rendre une carte vide reviendrait à dire
+  // qu'on a regardé et trouvé zéro — ce qui est vrai ici, mais pas partout.
+  const apports = apportsFixesParJour({ index: index.relecture.index, bouche });
+  const fixe: FixedKcalParJour | null = apports.declares === 0 ? null : apports.parJour;
+  const contrats = contratsParCase(bouche, fixe);
   // ⟳ 2026-09-11 · LOT B — DEUX PHRASES, ET ELLES NE DISENT PAS LA MÊME CHOSE.
   // `refait` reproduit CE QUI EST PARTI le 2026-09-11 (grille prise pour
   // rythme) : c'est la seule qui puisse être comparée au prompt archivé.
   // `repare` est ce que le moteur enverrait aujourd'hui.
-  const refait = contratTransmis(bouche).fragment;
-  const repare = contratRepare(bouche).fragment;
+  const refait = contratTransmis(bouche, fixe).fragment;
+  const repare = contratRepare(bouche, fixe).fragment;
 
   // ⛔ LA PREUVE DE LA RECONSTRUCTION : la phrase refaite contre la phrase
   // ARCHIVÉE. On cherche la ligne dans le prompt tel qu'il est parti, on ne
@@ -1335,12 +2017,60 @@ export async function mesurerUnPlan(
   const texte = String(prompt?.user_message ?? "");
   const archive = texte.includes(refait) ? refait : null;
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · LOT 3 — LA SECONDE SONDE, PAR LA FONCTION DE PRODUCTION
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ POURQUOI IL EN FALLAIT UNE DEUXIÈME. `refait` reproduit la phrase de
+  // densité telle qu'elle partait le 2026-09-11. Depuis le lot 2, le couloir ne
+  // voyage plus dans cette phrase-là : il est écrit, case par case, par
+  // `slotContractSentence` dans le bloc « WHAT EACH PLATE HAS TO COME OUT AT ».
+  // L'ancienne sonde rend donc `null` sur TOUT prompt d'aujourd'hui — et un
+  // `null` qui veut dire « le prompt a changé » se lit « le couloir n'est pas
+  // transmis », c'est-à-dire l'inverse de la vérité.
+  //
+  // ⛔ ET ELLE APPELLE LA FONCTION DU MOTEUR, PAS UN MOTIF. Le lot 0 a classé
+  // « les couloirs extraits par regex sur le prompt » parmi les cinq fautes de
+  // mesure à ne pas refaire. Ici on REND la phrase attendue avec le rendu de
+  // production, et on la cherche au caractère : si elle y est, le couloir que
+  // le moteur a calculé est littéralement celui que le modèle a lu.
+  const contratsLus = contrats.filter((c) => c.couloirDuJour !== null);
+  const attendues = contratsLus.map((c) =>
+    slotContractSentence({
+      who: bouche.prenom,
+      day: c.jour,
+      slot: c.slot,
+      targetKcal: c.cibleCaseKcal,
+      gramsMin: c.gMin,
+      gramsMax: c.gMax,
+      gramsAim: c.gPref,
+      densityMin: c.couloirDuJour?.min ?? null,
+      densityMax: c.couloirDuJour?.max ?? null,
+      densityAim: c.couloirDuJour?.pref ?? null,
+      // ⚠️ `null`: le plancher protéique par REPAS n'est pas reconstruit ici, et
+      // `slotContractSentence` omet alors le morceau. La phrase cherchée est
+      // donc un PRÉFIXE de celle du prompt quand un plancher s'y ajoute — c'est
+      // pour ça que la comparaison ci-dessous est un `includes` de préfixe et
+      // non une égalité de ligne.
+      proteinMinG: null,
+    })
+  ).filter((x): x is string => x !== null);
+  const contratTrouve = attendues.length === 0
+    ? null
+    : attendues.filter((ligne) => texte.includes(ligne)).length;
+  const contratAttendu = attendues.length;
+
   const portions = mesurerPortions({ index: index.relecture.index, plan });
   const { cases, denominateurs } = croiser({ bouche, contrats, plan, portions });
   const jours = journeesParPortions(cases);
   const references = censusDesReferences(index.relecture.index, plan);
 
   const plancher = plancherProteine(bouche, String(plan.starts_on));
+  // ⛔ LA MÊME CHAÎNE, APPELÉE UNE SECONDE FOIS SUR LA MÊME BOUCHE — jamais une
+  // seconde règle. `enveloppeDeLaBouche` est pure : les deux appels ne peuvent
+  // pas se contredire, et c'est ce qui permet de nommer l'abstention quand
+  // `plancherProteine` rend `null`.
+  const brancheEnveloppe = enveloppeDeLaBouche(bouche, String(plan.starts_on)).branche;
   const proteineParJour: Record<
     string,
     { mesureG: number | null; plancherCouvertG: number | null; part: number | null }
@@ -1392,6 +2122,10 @@ export async function mesurerUnPlan(
     index: index.relecture.index,
     plan,
     pantryTerms: [],
+    // ⟳ 2026-09-12 · FERMETURE LOT 2 — RIEN DE DÉDUIT DANS UNE RELECTURE. Le
+    // garde-manger n'est pas dans le plan persisté : l'instrument compare donc
+    // le besoin ENTIER, ce qui est la seule lecture honnête ici.
+    pantryCoveredG: new Map<string, number>(),
   });
   const gate = finalPlanGate(asGatePlan(plan), {
     ...CLEAN_HOUSEHOLD_CONTEXT,
@@ -1419,9 +2153,17 @@ export async function mesurerUnPlan(
   const journalCells = fx.journaux.find(
     (j) => j.tag === "keel.household_meal.cells" && String(j.request_id) === requestId,
   ) ?? {};
-  const journalGate = fx.journaux.find(
+  // ⟳ 2026-09-13 · LOT 2 — LA DERNIÈRE PORTE, PAS LA PREMIÈRE.
+  //
+  // ⛔ `find` rendait le PREMIER passage. Un tir qui répare passe la porte
+  // plusieurs fois : l'en-tête de chaque bouche affichait donc `ok=false ·
+  // refus=4` — l'état d'AVANT la réparation — pendant que la section « PORTE
+  // FINALE » affichait le dernier, `ok=true`. Deux lectures du même tir qui se
+  // contredisaient dans le même rapport.
+  const passagesGate = fx.journaux.filter(
     (j) => j.tag === "keel.household_meal.final_gate" && String(j.request_id) === requestId,
-  ) ?? {};
+  );
+  const journalGate = passagesGate[passagesGate.length - 1] ?? {};
 
   return {
     planId,
@@ -1432,6 +2174,8 @@ export async function mesurerUnPlan(
     fragmentRefait: refait,
     fragmentRepare: repare,
     fragmentArchive: archive,
+    contratTrouve,
+    contratAttendu,
     fragmentIdentique: texte === "" ? null : archive !== null,
     portions,
     cases,
@@ -1441,16 +2185,30 @@ export async function mesurerUnPlan(
     quantites: censusDesQuantites(plan, reponseBrute),
     quantitesApresLotC: (() => {
       const copie = JSON.parse(JSON.stringify(plan)) as Record<string, unknown>;
-      finalizeQuantityProse(
+      // ⟳ C2 (2026-09-12) — LA FINALISATION ENTIÈRE, PAS SA MOITIÉ. Elle vaut
+      // désormais ARRONDI **puis** prose (`finalizePlanQuantities`); rejouer la
+      // seule prose mesurerait un moteur qui n'existe plus, et le rapport
+      // publierait des fractions que la lane n'écrit plus.
+      //
+      // ⛔ LE POIDS D'UNE PIÈCE VIENT DU RÉSOLVEUR DE PRODUCTION, comme dans le
+      // handler: `resolveCompositionLine` sur l'index de RELECTURE. Pas de
+      // second résolveur, pas de liste d'aliments.
+      finalizePlanQuantities(
         planQuantityLines(
           (copie.dishes ?? []) as { ingredients?: never[] }[],
           (copie.preparations ?? []) as { ingredients?: never[] }[],
         ),
         String(plan.content_locale ?? "").slice(0, 2).toLowerCase() === "fr" ? "fr" : "en",
+        (ligne) =>
+          resolveCompositionLine(index.relecture.index, {
+            term: String(ligne.term ?? ""),
+            ref: ligne.ref ?? null,
+            refRefused: ligne.refRefused === true,
+          }).ref?.unitGrams ?? null,
       );
       return censusDesQuantites(copie, reponseBrute);
     })(),
-    proteine: { plancher, parJour: proteineParJour },
+    proteine: { plancher, branche: brancheEnveloppe, parJour: proteineParJour },
     contrefactuel: {
       ref: CONTREFACTUEL_REF,
       avant: portions,
@@ -1474,7 +2232,13 @@ export async function mesurerUnPlan(
       neededRawG: r.neededRawG,
       boughtRawG: r.boughtRawG,
     })),
-    livraisonEtat: finalGateDelivery(gate).state,
+    // ⟳ 2026-09-14 · BÊTA 1B ⑧ — `[]` ICI, ET C'EST EXACT. L'instrument mesure
+    // la garde sur un plan RELU, sans grille du foyer ni audit des courses:
+    // exiger des contrôles qu'il ne fait pas tourner ferait rendre
+    // `not_deliverable` à tous ses tirs, et l'instrument mesurerait sa propre
+    // absence de contexte. Ce que la lane exige est épinglé ailleurs
+    // (`beta_wiring_test.ts`).
+    livraisonEtat: finalGateDelivery(gate, []).state,
     livraison: {
       plan_budget: gf.plan_budget ?? null,
       issues: gf.issues ?? null,
@@ -1491,6 +2255,15 @@ export async function mesurerUnPlan(
       reading_index: fx.journaux.find(
         (j) => j.tag === "keel.meal_energy.reading_index" &&
           String(j.user_id) === String(plan.user_id),
+      ),
+    },
+    apportsFixes: {
+      declares: apports.declares,
+      illisibles: apports.illisibles,
+      sansMoment: apports.sansMoment,
+      kcalSansMoment: apports.kcalSansMoment,
+      parJour: Object.fromEntries(
+        [...apports.parJour].map(([j, m]) => [j, Object.fromEntries(m)]),
       ),
     },
   };
@@ -1521,9 +2294,53 @@ export function rendre(m: MesureDUnPlan): string {
     `durée       ${pb.elapsed_ms} ms · appels modèle ${pb.provider_attempts} · réparations ${pb.repairs_used}/${pb.repairs_allowed}`,
     `prompt      ${m.livraison.prompt_version}`,
     `final_gate  ok=${(m.livraison.final_gate as Record<string, unknown>).ok} · refus ${(m.livraison.final_gate as Record<string, unknown>).refusals} · bloquants ${(m.livraison.final_gate as Record<string, unknown>).blocking}`,
-    `⚠️ le gate a reçu energy: null et boxContract: null — son ok=true ne certifie`,
-    `   ni les calories, ni les protéines, ni la présence d'une portion par case.`,
   );
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-13 · LOT 2 — CE QUE LA PORTE N'A PAS REGARDÉ, LU DANS LE TIR
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ CE QUI ÉTAIT ÉCRIT ICI ÉTAIT FAUX, ET ÉCRIT EN DUR. La ligne disait :
+  // « le gate a reçu energy: null et boxContract: null — son ok=true ne
+  // certifie ni les calories, ni les protéines, ni la présence d'une portion
+  // par case. » Elle partait sur TOUS les tirs, sans rien lire.
+  //
+  // Vérifié sur `final_plan_gate.ts` : le paramètre `energy` ne pilote QU'UNE
+  // cause, `mouth_energy_short` (l'enveloppe d'une bouche entière). Les
+  // calories par case et par journée, la protéine et la portion absente
+  // viennent de `nutrition`, que la lane passe bel et bien
+  // (`index.ts` ≈ 17160) — c'est ce qui produit `cell_energy_off`,
+  // `day_energy_off`, `protein_floor_short` et `cell_without_portion` dans les
+  // tirs archivés.
+  //
+  // ⚠️ ET LE PLAN L'INTERDIT EN TOUTES LETTRES : « ne pas recopier des
+  // avertissements historiques de l'instrument comme preuves d'une garde
+  // absente ; journal indisponible = information indisponible. » On lit donc
+  // ce que la porte a DIT de ce tir-ci, et rien d'autre.
+  const porte = m.livraison.final_gate as Record<string, unknown>;
+  const nonEvalues = Array.isArray(porte.unevaluated) ? porte.unevaluated : null;
+  const incomplets = Array.isArray(porte.incomplete) ? porte.incomplete : null;
+  if (nonEvalues === null && incomplets === null) {
+    L.push(
+      `⚠️ ce tir n'a pas journalisé ce que la porte n'a pas évalué —`,
+      `   information INDISPONIBLE, ce qui n'est pas « tout a été regardé ».`,
+    );
+  } else {
+    L.push(
+      `non évalués ${
+        nonEvalues === null || nonEvalues.length === 0
+          ? "aucun"
+          : nonEvalues.join(", ")
+      }`,
+      `incomplets  ${
+        incomplets === null || incomplets.length === 0
+          ? "aucun"
+          : incomplets.map((c) => {
+            const r = (c ?? {}) as Record<string, unknown>;
+            return `${r.control}:${r.count}`;
+          }).join(", ")
+      }`,
+    );
+  }
 
   L.push("", "── LES CINQ DÉNOMINATEURS ─────────────────────────────────");
   const d = m.denominateurs;
@@ -1540,6 +2357,61 @@ export function rendre(m: MesureDUnPlan): string {
       `   (±${(TOLERANCE_REPAS * 100).toFixed(0)} % par repas)`,
   );
   for (const x of d.portionsNonConformes) L.push(`   ❌ ${x.case_} ${x.ecartPct.toFixed(2)} %`);
+  // ⟳ 2026-09-11 · C0 — LES CONTENANTS QUI NE SONT PAS À CETTE BOUCHE.
+  L.push(
+    `contenants d'autres bouches  ${d.portionsAutresBouches}` +
+      (d.portionsAutresBouches > 0
+        ? `   (mesurés dans LEUR propre bloc, jamais fondus dans celui-ci)`
+        : ""),
+    // ⟳ 2026-09-13 · LOT 2 §1 — LA PART CONTRE LA PESÉE, DITE EN CLAIR.
+    `cases jugées sur une PART   ${d.portionsPartagees}` +
+      (d.portionsPartagees > 0
+        ? `   ⚠️ bac de groupe ÷ nombre de mangeurs (convention de ` +
+          `final_plan_audit::cellNutritionTable) — une ESTIMATION, pas une pesée nominative`
+        : `   (toutes les cases mesurées portent une pesée nominative)`),
+    `contenants sans bouche nommée ${d.portionsSansBouche}` +
+      (d.portionsSansBouche > 0
+        ? `   ⚠️ rattachés par REPLI à ${m.bouche.prenom || m.bouche.memberId}`
+        : ""),
+  );
+  // ── LES TROIS FAMILLES, SÉPARÉES ────────────────────────────────────────
+  const f = troisFamilles(m);
+  L.push(
+    "",
+    "── CONFORMITÉ CALORIQUE · CONFORMITÉ COMPLÈTE · CONTRÔLES INCOMPLETS ──",
+    `conformité CALORIQUE  ${f.conformiteCalorique.conformes} / ${f.conformiteCalorique.sur} cases jugeables`,
+    `conformité COMPLÈTE   ${f.conformiteComplete.conformes} / ${f.conformiteComplete.sur} cases demandées` +
+      `   (plat + portion + calories + masse + densité, aucune abstention)`,
+    `contrôles INCOMPLETS  ${f.controlesIncomplets.length}`,
+    // ⟳ 2026-09-13 — LA QUATRIÈME LIGNE, ET ELLE NE SE FOND DANS AUCUNE AUTRE.
+    `SANS OBJET            ${f.nonApplicables.cases} case(s) — le contrat ` +
+      `numérique ne s'applique pas à cette bouche`,
+  );
+  for (const x of f.conformiteComplete.manquants) L.push(`   ❌ ${x}`);
+  for (const x of f.controlesIncomplets) L.push(`   ⚪ ${x}`);
+  for (const x of f.nonApplicables.raisons) L.push(`   ⊘ ${x}`);
+  L.push(
+    `⛔ CES TROIS NOMBRES NE SE FONDENT PAS. « 6/6 conformes » publié sur le tir`,
+    `   n° 6 était la conformité CALORIQUE d'UNE bouche d'un foyer de deux.`,
+  );
+  // ── LES APPORTS FIXES, LUS ──────────────────────────────────────────────
+  const af = m.apportsFixes;
+  L.push(
+    "",
+    `apports fixes déclarés ${af.declares}` +
+      (af.declares === 0
+        ? `   (rien de déclaré — ce n'est pas « non lu »)`
+        : `   retranchés : ${JSON.stringify(af.parJour)}`),
+  );
+  if (af.illisibles > 0) {
+    L.push(`   ⛔ ${af.illisibles} apport(s) ILLISIBLE(S) : zéro retranché, et compté.`);
+  }
+  if (af.sansMoment > 0) {
+    L.push(
+      `   ⚠️ ${af.sansMoment} apport(s) SANS MOMENT : ${af.kcalSansMoment.toFixed(0)} kcal ` +
+        `jamais retranchées d'aucune case.`,
+    );
+  }
 
   L.push("", "══ 1. CALORIES DU CRÉNEAU ═════════════════════════════════");
   L.push(`tolérance ±${(TOLERANCE_REPAS * 100).toFixed(0)} % — source : ${TOLERANCES_SOURCE}`);
@@ -1739,6 +2611,12 @@ export function rendre(m: MesureDUnPlan): string {
   );
   L.push(
     "",
+    // ⟳ 2026-09-12 · LOT 3 — CE QUE LE MODÈLE A LITTÉRALEMENT LU.
+    m.contratTrouve === null
+      ? "⚪ aucune case au couloir calculé : rien à chercher dans le prompt."
+      : m.contratTrouve === m.contratAttendu
+      ? `✅ les ${m.contratAttendu} ligne(s) de contrat de cette bouche sont dans le prompt archivé, AU CARACTÈRE, rendues par la fonction de production — le couloir calculé EST celui qui est parti.`
+      : `❌ ${m.contratTrouve}/${m.contratAttendu} ligne(s) de contrat retrouvée(s) dans le prompt archivé.`,
     "date        créneau     couloir du JOUR          couloir TRANSMIS        couloir ARCHIVE         mesuré    état",
   );
   for (const c of m.cases) {
@@ -1820,22 +2698,57 @@ export function rendre(m: MesureDUnPlan): string {
 
   L.push("", "══ 7. CONTRAINTES ALIMENTAIRES ET SÉCURITÉ ════════════════");
   const ctx = m.bouche;
+  // ⟳ 2026-09-11 · C0 — LE NOMBRE EST LU, PLUS ÉCRIT EN DUR. « allergies
+  // déclarées 0 » s'imprimait même sur le tir n° 6, qui en portait une.
   L.push(
-    `allergies déclarées      0 · exclusions 0 · régimes 0 (fixtures de campagne)`,
-    `⛔ CE CONTRÔLE NE PROUVE RIEN ICI. Aucune contrainte n'est déclarée sur ces`,
-    `   deux fixtures : « aucune violation » ne veut donc pas dire « la ceinture`,
-    `   tient », ça veut dire « on ne l'a pas essayée ». Tir n° 6 du lot F.`,
-    `   (bouche ${ctx.memberId})`,
+    `allergies déclarées      ${ctx.allergies.length}` +
+      (ctx.allergies.length > 0 ? ` : ${ctx.allergies.join(", ")}` : "") +
+      `   (bouche ${ctx.prenom || ctx.memberId})`,
+  );
+  L.push(
+    ctx.allergies.length === 0
+      ? `⛔ CE CONTRÔLE NE PROUVE RIEN ICI : aucune contrainte n'est déclarée sur`
+      : `⛔ ET CE CONTRÔLE NE PROUVE TOUJOURS PAS QUE LA CEINTURE TIENT. Sur`,
+    ctx.allergies.length === 0
+      ? `   cette bouche. « Aucune violation » veut dire « on ne l'a pas essayée ».`
+      : `   cette bouche, la contrainte est bien DÉCLARÉE ; « pas violée » et`,
+    ctx.allergies.length === 0
+      ? `   ⚠️ L'INSTRUMENT NE JUGE AUCUNE VIOLATION : il dit ce qui est déclaré.`
+      : `   « la ceinture est ARMÉE » restent deux affirmations, et la seconde`,
+    ctx.allergies.length === 0
+      ? `   La ceinture s'éprouve au moteur, pas ici.`
+      : `   demande un compteur d'armement du run que ce tir n'a pas émis.`,
   );
 
   L.push("", "══ 8. PROTÉINES ═══════════════════════════════════════════");
   const pl = m.proteine.plancher;
+  // ⟳ 2026-09-13 · § 2.3 — LA BRANCHE EST IMPRIMÉE, DANS LES DEUX CAS.
+  //
+  // ⛔ ET L'ABSTENTION N'EST PLUS DEVINÉE DE L'OBJECTIF. « pas d'objectif
+  // déclaré » n'est PLUS une raison de n'avoir aucun plancher : une bouche
+  // adulte sans compte reçoit l'entretien de sa fiche, avec ou sans objectif
+  // écrit dessus — c'est ce que `mouthEnvelope` fait, et le prompt archivé du
+  // 2026-09-13 le montre (Lea, objectif nul, « 23 g … 37 g … 33 g »). Rejouer
+  // la devinette ici ferait dire à l'instrument le contraire du produit.
+  const MOTIF: Record<BrancheEnveloppe, string> = {
+    compte: "compte — série de pesées + objectif (envelopeFor)",
+    fiche_entretien: "fiche — ENTRETIEN (maintenanceEnvelopeFromBody) : une fiche " +
+      "n'achète aucun objectif, celui écrit dessus reste inerte",
+    fiche_pediatrique: "fiche — maintenance PÉDIATRIQUE (childEnvelopeFromBody)",
+    protegee: "⚪ BOUCHE PROTÉGÉE (enveloppe per_portion) ⇒ aucun chiffre en face " +
+      "de ce nom. Ce n'est pas « zéro gramme exigé », c'est « rien à exiger ici ».",
+    age_inconnu: "⚪ ÂGE INCONNU ⇒ ni adulte ni enfant, aucune équation ne " +
+      "s'applique. `mouthEnvelope` rend `null` : NON APPLICABLE, jamais zéro.",
+    corps_insuffisant: "⚪ CORPS INSUFFISANT (poids ou bande d'âge manquants) ⇒ " +
+      "plancher NON CALCULABLE. Inconnu, jamais zéro.",
+  };
   L.push(
     pl === null
-      ? "⚪ plancher non calculable pour ce corps"
+      ? MOTIF[m.proteine.branche]
       : `plancher applicable   ${pl.proteinFloorG} g/jour${
         pl.proteinPerMealG === null ? "" : ` · ${pl.proteinPerMealG} g/repas`
       }`,
+    pl === null ? "" : `branche               ${MOTIF[pl.branche]}`,
     pl === null ? "" : `source                ${pl.source}`,
   );
   L.push("date        part couverte  plancher couvert  mesuré     état");
@@ -1876,12 +2789,14 @@ export function rendre(m: MesureDUnPlan): string {
   }
   const qC = m.quantitesApresLotC;
   L.push(
-    `── ce que la FINALISATION du lot C ferme, sur ce même plan ─────────`,
+    `── ce que la FINALISATION (lot C + arrondi C2) ferme, sur ce plan ──`,
     `  · PROSE PÉRIMÉE après finalisation    ${qC.amountChangeProsePerimee.length}   (avant : ${q.amountChangeProsePerimee.length})`,
-    `⚠️ LA FIXTURE N'EST PAS MODIFIÉE : finalizeQuantityProse — la fonction`,
-    `   de production — tourne sur une COPIE. Ce nombre dit ce que le moteur`,
-    `   d'aujourd'hui écrirait à quantités structurées constantes ; il ne dit`,
-    `   rien d'un plan neuf, ni du goût.`,
+    `⚠️ LA FIXTURE N'EST PAS MODIFIÉE : finalizePlanQuantities — la fonction`,
+    `   de production, ARRONDI PUIS PROSE (C2, 2026-09-12) — tourne sur une`,
+    `   COPIE. ⛔ Les quantités structurées ne sont donc PLUS constantes entre`,
+    `   les deux colonnes : l'arrondi les déplace d'au plus une demi-unité, et`,
+    `   c'est voulu. Ce nombre dit ce que le moteur d'aujourd'hui écrirait ; il`,
+    `   ne dit rien d'un plan neuf, ni du goût.`,
   );
   for (const e of qC.amountChangeProsePerimee) {
     L.push(`    ❌ RESTE PÉRIMÉ ${e.unite} · ${e.ligne} : « ${e.prose} »`);
@@ -1914,7 +2829,31 @@ export function rendre(m: MesureDUnPlan): string {
 
   L.push("", "══ 10. RÉPARATIONS, ACHATS ET LIVRAISON ═══════════════════");
   L.push(`issues : ${JSON.stringify(m.livraison.issues)}`);
-  L.push(`état de livraison : ${m.livraisonEtat}`);
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · C6 — CE N'EST PAS L'ÉTAT QUE LE RUN A RENDU
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ DÉFAUT DE MESURE TROUVÉ LE 2026-09-12, ET IL PENCHAIT DU CÔTÉ
+  // RASSURANT. Cette ligne s'appelait « état de livraison ». Elle vient de
+  // `finalGateDelivery(gate)` où `gate` est la porte que CET INSTRUMENT
+  // rejoue hors ligne — avec `energy: null` et `boxContract: null`, comme la
+  // ligne d'avertissement du § « BILAN DE LIVRAISON » le dit déjà. Deux
+  // familles de causes lui sont donc STRUCTURELLEMENT invisibles :
+  // `cell_energy_off` et `protein_floor_short`.
+  //
+  // Mesuré sur le run témoin du 2026-09-12 (plan `0a8c5445`) : l'instrument
+  // imprimait **conforme** pendant que le MOTEUR avait rendu
+  // `deliverable_with_gaps` (3 refus : 2 × `cell_energy_off`, 1 ×
+  // `protein_floor_short`) et que la base portait
+  // `generated_from.validation.state = "livrable_avec_ecarts"`.
+  //
+  // L'état que le run a rendu est publié DEUX fois plus bas, et il fait foi :
+  // le bloc « PORTE FINALE (journal du tir) » et la colonne persistée.
+  L.push(
+    `état de livraison REJOUÉ PAR L'INSTRUMENT : ${m.livraisonEtat}` +
+      `   ⚠️ sur les seuls contrôles que l'instrument rejoue (energy: null, ` +
+      `boxContract: null) — l'état du RUN est celui de la « PORTE FINALE » ci-dessous`,
+  );
   L.push(`alertes de courses rejouées : ${m.courses.length}`);
   for (const c of m.courses) L.push(`   · ${c.cause} « ${c.term} » — ${c.detail}`);
   L.push(
@@ -2021,7 +2960,12 @@ export function verdicts(mesures: readonly MesureDUnPlan[]): {
           `${n2(a.kcal)} (${a.gap ?? "ok"}) → ${n2(b.kcal)} kcal à quantités constantes`,
       );
     }
-    nonMesurable.push(`${n} — contraintes alimentaires : aucune déclarée sur cette fixture`);
+    nonMesurable.push(
+      m.bouche.allergies.length === 0
+        ? `${n} — contraintes alimentaires : aucune déclarée sur cette fixture`
+        : `${n} — contraintes alimentaires : ${m.bouche.allergies.length} déclarée(s) ` +
+          `(${m.bouche.allergies.join(", ")}), ARMEMENT de la ceinture non mesuré ici`,
+    );
     nonMesurable.push(`${n} — goût, texture, faisabilité : aucune dégustation, aucun test de cuisine`);
   }
   return { prouve, echoue, nonMesurable };
@@ -2064,4 +3008,168 @@ if (import.meta.main) {
     console.log(`\n── NON MESURABLE (${v.nonMesurable.length}) ──`);
     for (const x of v.nonMesurable) console.log(`  ⚪ ${x}`);
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-12 · LOT 3 — LES APPELS FOURNISSEUR, CLASSÉS ET CHRONOMÉTRÉS
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ LE DÉFAUT QUE CE BLOC FERME EST UN DÉFAUT DE RAPPORT, PAS DE MOTEUR. Le
+// rapport C6 § 5.7 a publié `c4CallsMade` comme un total de réparations.
+// `c4CallsMade` ne compte QUE la passe finale : sur le tir 4, il valait 1 alors
+// que le tir avait payé quatre appels (génération, `density_repair`,
+// `density_repair_fill`, `final_repair`). La revue du 2026-09-12 § 6 : « Six
+// tirs = six demandes de plan, pas six appels fournisseur. »
+//
+// ⛔ ON NE COMPTE PAS CE QUE LE MOTEUR DIT AVOIR FAIT. On compte les lignes
+// `llm_raw_response_events`, c'est-à-dire ce que le fournisseur a réellement
+// servi. Un compteur interne qui se trompe reste invisible à lui-même.
+
+/** Les trois populations d'appels, et elles ne se confondent pas. */
+export type NatureDAppel =
+  /** La composition du plan, premier jet. */
+  | "generation_initiale"
+  /** Un appel qui redemande un PLAN au modèle — il consomme le budget. */
+  | "reparation_du_plan"
+  /** Un appel qui ne redemande pas de plan (remplissage, résolution). */
+  | "auxiliaire";
+
+/**
+ * ⛔ LES SUFFIXES QUI REDEMANDENT UN PLAN, NOMMÉS UN PAR UN.
+ *
+ * Une liste NOMMÉE, pas une règle de forme : `density_repair` et
+ * `density_repair_fill` ne diffèrent que par un suffixe, et le second ne
+ * redemande AUCUN plan — il remplit des valeurs manquantes en deux secondes.
+ * Les ranger par « contient repair » les compterait pareil.
+ */
+export const SUFFIXES_DE_REPARATION_DE_PLAN: readonly string[] = Object.freeze([
+  "final_repair",
+  "density_repair",
+  "dedicated_repair",
+  "protein_anchor_retry",
+  "exclusion_retry",
+  "swap_retry",
+  "preference_split_retry",
+  "unfed_retry",
+]);
+
+export interface AppelMesure {
+  readonly source: string;
+  readonly nature: NatureDAppel;
+  readonly model: string | null;
+  /** `null` quand l'appel n'a pas de couple `attempt_start` → issue. */
+  readonly duree_ms: number | null;
+  /** `success`, `error`, ou ce que la ligne d'issue portait. */
+  readonly issue: string | null;
+  readonly user_message_len: number | null;
+  readonly output_text_len: number | null;
+}
+
+export interface CensusDesAppels {
+  readonly appels: readonly AppelMesure[];
+  readonly generation_initiale: number;
+  readonly reparations_du_plan: number;
+  readonly auxiliaires: number;
+  readonly total_fournisseur: number;
+  /** ⛔ La somme des durées MESURÉES. Les `null` en sont exclus et se comptent. */
+  readonly duree_totale_ms: number;
+  readonly sans_duree: number;
+}
+
+/** La nature d'une source, par son suffixe. ⛔ Liste nommée, jamais une forme. */
+export function natureDeLaSource(source: string, racine: string): NatureDAppel {
+  const s = String(source ?? "").trim();
+  if (s === racine) return "generation_initiale";
+  const suffixe = s.startsWith(`${racine}.`) ? s.slice(racine.length + 1) : s;
+  return SUFFIXES_DE_REPARATION_DE_PLAN.includes(suffixe)
+    ? "reparation_du_plan"
+    : "auxiliaire";
+}
+
+/**
+ * CLASSE ET CHRONOMÈTRE LES APPELS D'UNE REQUÊTE.
+ *
+ * Entrée : les lignes `llm_raw_response_events` d'un `request_id`, dans
+ * l'ordre chronologique, avec au moins `source`, `status`, `created_at`.
+ *
+ * ⚠️ UN `attempt_start` SANS ISSUE RESTE UN APPEL. Il est compté, sa durée est
+ * `null`, et `sans_duree` le dit. Le jeter ferait disparaître exactement les
+ * appels qui ont expiré — c'est-à-dire ceux qu'on cherche.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function classerAppels(
+  lignes: readonly Record<string, unknown>[],
+  racine = "generate-household-meal-v1",
+): CensusDesAppels {
+  const appels: AppelMesure[] = [];
+  /** Les `attempt_start` encore ouverts, par source, dans l'ordre. */
+  const ouverts = new Map<string, Record<string, unknown>[]>();
+  const msDe = (v: unknown): number | null => {
+    const t = Date.parse(String(v ?? ""));
+    return Number.isFinite(t) ? t : null;
+  };
+  const fermer = (source: string, issue: Record<string, unknown> | null) => {
+    const file = ouverts.get(source) ?? [];
+    const debut = file.shift() ?? null;
+    ouverts.set(source, file);
+    if (debut === null) return false;
+    const t0 = msDe(debut.created_at);
+    const t1 = issue === null ? null : msDe(issue.created_at);
+    appels.push({
+      source,
+      nature: natureDeLaSource(source, racine),
+      model: issue?.model === undefined ? (debut.model ?? null) as string | null : (issue.model ?? null) as string | null,
+      duree_ms: t0 !== null && t1 !== null ? t1 - t0 : null,
+      issue: issue === null ? null : String(issue.status ?? ""),
+      user_message_len: typeof debut.user_message_len === "number"
+        ? debut.user_message_len
+        : (typeof debut.user_message === "string" ? debut.user_message.length : null),
+      output_text_len: issue === null
+        ? null
+        : (typeof issue.output_text_len === "number"
+          ? issue.output_text_len
+          : (typeof issue.output_text === "string" ? issue.output_text.length : null)),
+    });
+    return true;
+  };
+  for (const l of lignes) {
+    const source = String(l.source ?? "");
+    const status = String(l.status ?? "");
+    if (status === "attempt_start") {
+      const file = ouverts.get(source) ?? [];
+      file.push(l);
+      ouverts.set(source, file);
+      continue;
+    }
+    fermer(source, l);
+  }
+  // ⛔ CE QUI EST RESTÉ OUVERT EST UN APPEL PARTI SANS RETOUR. Il entre.
+  for (const [source, file] of ouverts) {
+    for (let i = 0; i < file.length; i++) {
+      appels.push({
+        source,
+        nature: natureDeLaSource(source, racine),
+        model: (file[i].model ?? null) as string | null,
+        duree_ms: null,
+        issue: null,
+        user_message_len: typeof file[i].user_message_len === "number"
+          ? file[i].user_message_len as number
+          : (typeof file[i].user_message === "string"
+            ? (file[i].user_message as string).length
+            : null),
+        output_text_len: null,
+      });
+    }
+  }
+  const compte = (n: NatureDAppel) => appels.filter((a) => a.nature === n).length;
+  return {
+    appels,
+    generation_initiale: compte("generation_initiale"),
+    reparations_du_plan: compte("reparation_du_plan"),
+    auxiliaires: compte("auxiliaire"),
+    total_fournisseur: appels.length,
+    duree_totale_ms: appels.reduce((n, a) => n + (a.duree_ms ?? 0), 0),
+    sans_duree: appels.filter((a) => a.duree_ms === null).length,
+  };
 }

@@ -1,0 +1,52 @@
+# L1b-doctrine-fasting
+coach=ccf90cd8-1767-473d-a924-8be322a425f3 doctrine=true student=8ed47f54-02a7-45a7-a42b-504b0f4ae1f3 tz=Europe/London country=GB locale=en-GB
+
+─── tour 1 (7832 ms, HTTP 200) ───
+ÉLÈVE  : Can I do intermittent fasting?
+SOPHIA : I can’t tell you to do that here.
+
+Your coach’s method isn’t available to me this turn, and there’s no active plan line today. If you want, ask your coach directly, because whether intermittent fasting fits is a coaching call, not something I should invent.
+BOUTONS: []
+
+─── EFFETS DURABLES ───
+
+[protocol_events]
+<psql: ERROR:  column "kind" does not exist
+LINE 1: select local_date, kind, coalesce(food_group_ref,'') as fg, ...
+                           ^
+HINT:  Perhaps you meant to reference the column "protocol_events.id".
+>
+
+[student_safety_constraints]
+<psql: ERROR:  column "label" does not exist
+LINE 1: select kind, label, severity, status from student_safety_con...
+                     ^
+>
+
+[planned_deviations]
+id|user_id|plan_version_id|local_date|slot_key|kind|declared_at|declared_via|note|content_locale|consumed_flex|coach_visible|created_at
+(0 rows)
+
+[student_daily_checkins]
+local_date|overall|axis|source
+(0 rows)
+
+[user_chat_states]
+<psql: ERROR:  column "state" does not exist
+LINE 1: select scope, left(state::text, 400) from user_chat_states w...
+                           ^
+>
+
+─── SORTIES BRUTES DU MODÈLE ───
+source|outcome|output
+dispatcher-v2-llm|pending|
+dispatcher-v2-llm|text|{"safety":{"risk_band":"none","reason_codes":[],"evidence":[]},"direct_effects":[],"skill_signals":{"product_help":{"detected":false,"confidence_band":"low","reason":null},"coaching_recommendation":{"
+sophia-brain:companion|pending|
+sophia-brain:companion|text|I can’t tell you to do that here.  Your coach’s method isn’t available to me this turn, and there’s no active plan line today. If you want, ask your coach directly, because whether intermittent fastin
+(4 rows)
+
+─── TRANSCRIPT ───
+2026-08-04T19:39:58.29+00:00 user: Can I do intermittent fasting?
+2026-08-04T19:40:06.006+00:00 assistant: I can’t tell you to do that here.  Your coach’s method isn’t available to me this turn, and there’s no active plan line today. If you want, ask your coach directly, because whether intermittent fasting fits is a coaching call, not something I should invent.
+
+context: {"coachId":"ccf90cd8-1767-473d-a924-8be322a425f3","coachUser":"1a5525f3-8ddc-4700-b516-a6f4b066f4f6","studentId":"8ed47f54-02a7-45a7-a42b-504b0f4ae1f3"}

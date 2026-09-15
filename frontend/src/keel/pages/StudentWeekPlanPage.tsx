@@ -35,6 +35,8 @@ import {
   editCells,
   type PlanDraft,
   readNote,
+  recoverLatestDraft,
+  waitForDraft,
   writeFromDraft,
 } from "../api/planDraft";
 import { loadMealPlans } from "../api/mealGeneration";
@@ -1797,6 +1799,34 @@ export default function StudentWeekPlanPage() {
     return key ? t(key) : raw;
   }, []);
 
+  const recoveredDraftFor = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!userId || recoveredDraftFor.current === userId) return;
+    recoveredDraftFor.current = userId;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const recoverable = await recoverLatestDraft();
+        if (cancelled || recoverable === null) return;
+        setDraftBusy(true);
+        const recovered = recoverable.state === "done"
+          ? recoverable.draft
+          : await waitForDraft(recoverable.draftId);
+        if (cancelled) return;
+        setDraft(recovered);
+        setDraftOpen(true);
+        setDraftFailure(null);
+      } catch (error) {
+        if (!cancelled) setDraftFailure(draftRefusal(error));
+      } finally {
+        if (!cancelled) setDraftBusy(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, draftRefusal]);
+
   /**
    * COMPOSER UN APERÇU, ET OUVRIR LA FENÊTRE SUR CE QU'IL A RENDU.
    *
@@ -2804,11 +2834,8 @@ export default function StudentWeekPlanPage() {
           }}
           edit={draft?.envelope.edit ?? null}
           onAdopt={async () => {
-            // ⚠️ CECI RECOMPOSE, ET C'EST DIT DANS LA FENÊTRE AVANT LE CLIC.
-            // Aucun chemin ne permet d'écrire l'aperçu tel quel:
-            // `write_student_meal_plan` est révoquée à `authenticated`, et
-            // aucune fonction edge n'accepte un plan déjà composé. Voir
-            // `writeFromDraft`.
+            // Le serveur relit et revalide le brouillon par son identifiant;
+            // aucun plan n'est recomposé au moment de l'adoption.
             //
             // `prepare_next` et `replaces: null`: la fenêtre visée est LIBRE
             // par construction, donc il n'y a rien à remplacer.
@@ -2817,8 +2844,11 @@ export default function StudentWeekPlanPage() {
             // et la relire ici l'appliquerait une seconde fois.
             let written: { ok: boolean; mealId: string | null };
             try {
+              const reviewedDraftId = draft?.envelope.draftId ?? null;
+              if (reviewedDraftId === null) throw new Error("draft_not_ready");
               written = await writeFromDraft(
                 draftInput(),
+                reviewedDraftId,
                 "prepare_next",
                 null,
               );

@@ -1,0 +1,180 @@
+{
+  "created": [
+    "63061d46-9a97-447e-ac12-58d5a9cd2f84",
+    "135bd4e7-57f9-47a2-9365-f4687d1af313",
+    "1974fa50-bf6f-46e2-b6ec-82635b2eee1b",
+    "080b1e07-36e8-428d-86d9-4fcd40159e00",
+    "cc86f430-be6b-49c0-9401-67b101c07842",
+    "ba815cc8-1c8e-4469-bb00-d4b13754b7ad",
+    "0d6f68a3-0b18-4bb5-9c3f-d8676c472a35",
+    "8de586ab-9268-4348-a2c6-2c81396b04aa"
+  ],
+  "results": [
+    {
+      "id": "A1 rapid_weight_loss",
+      "verdict": "GREEN",
+      "detail": "flag=true codes=[rapid_weight_loss]",
+      "proof": {
+        "window_start_week": "2026-07-20",
+        "window_end_week": "2026-08-03",
+        "window_days": 14,
+        "weekly_loss_pct": 2.5,
+        "threshold_weekly_loss_pct": 1.2
+      }
+    },
+    {
+      "id": "A1-bis seuil gele (1,1 %/sem)",
+      "verdict": "GREEN",
+      "detail": "flag=false codes=[]",
+      "proof": null
+    },
+    {
+      "id": "A1-ter repli outcomes.weight_7d_avg",
+      "verdict": "GREEN",
+      "detail": "flag=true codes=[rapid_weight_loss]",
+      "proof": null
+    },
+    {
+      "id": "A2 energy_deficit_streak",
+      "verdict": "GREEN",
+      "detail": "flag=true codes=[energy_deficit_streak]",
+      "proof": {
+        "streak_start_date": "2026-08-05",
+        "streak_end_date": "2026-08-07",
+        "consecutive_days": 3,
+        "required_consecutive_days": 3,
+        "deficit_threshold_pct": 25,
+        "observed_ratios_pct": [
+          "60",
+          "55",
+          "50"
+        ]
+      }
+    },
+    {
+      "id": "A2-bis un jour inconnu ne ponte pas la serie",
+      "verdict": "GREEN",
+      "detail": "codes=[]",
+      "proof": null
+    },
+    {
+      "id": "A3-EN tour: skipped dinner / make up for lunch",
+      "verdict": "GREEN",
+      "detail": "codes=[compensatory_language]",
+      "proof": {
+        "matched_tokens": [
+          "skip_meal",
+          "make_up_for_eating"
+        ],
+        "sources": [
+          "turn_message"
+        ]
+      }
+    },
+    {
+      "id": "A3-FR tour: saute le diner / compenser le repas",
+      "verdict": "GREEN",
+      "detail": "codes=[compensatory_language]",
+      "proof": {
+        "matched_tokens": [
+          "skip_meal",
+          "make_up_for_eating"
+        ],
+        "sources": [
+          "turn_message"
+        ]
+      }
+    },
+    {
+      "id": "A3-homonyme innocent ne mord pas",
+      "verdict": "GREEN",
+      "detail": "flag=false codes=[]",
+      "proof": null
+    },
+    {
+      "id": "A3-note en base (source protocol_event_student_note)",
+      "verdict": "GREEN",
+      "detail": "codes=[compensatory_language] sources=[\"protocol_event_student_note\"]",
+      "proof": {
+        "matched_tokens": [
+          "skip_meal"
+        ],
+        "sources": [
+          "protocol_event_student_note"
+        ]
+      }
+    },
+    {
+      "id": "A3-bis la phrase citee par l'en-tete du runtime, 3 jours de suite",
+      "verdict": "RED",
+      "detail": "flag=false codes=[] — 3 notes « je n'ai rien mangé aujourd'hui non plus » en base",
+      "proof": {
+        "as_of_local_date": "2026-08-08",
+        "weekly_outcomes": [],
+        "energy_days": [],
+        "texts": [
+          {
+            "source": "protocol_event_student_note",
+            "text": "je n'ai rien mangé aujourd'hui non plus",
+            "content_locale": "fr-FR"
+          },
+          {
+            "source": "protocol_event_student_note",
+            "text": "je n'ai rien mangé aujourd'hui non plus",
+            "content_locale": "fr-FR"
+          },
+          {
+            "source": "protocol_event_student_note",
+            "text": "je n'ai rien mangé aujourd'hui non plus",
+            "content_locale": "fr-FR"
+          }
+        ]
+      }
+    },
+    {
+      "id": "A4 overclaimed_adherence_with_hidden_logging",
+      "verdict": "GREEN",
+      "detail": "flag=true codes=[rapid_weight_loss,overclaimed_adherence_with_hidden_logging]",
+      "proof": {
+        "week": "2026-08-03",
+        "self_rated_adherence": 9,
+        "logged_days": 2,
+        "required_logged_days_below": 3,
+        "previous_weekly_loss_pct": 1.25,
+        "latest_weekly_loss_pct": 1.52,
+        "acceleration_floor_pct": 1
+      }
+    },
+    {
+      "id": "A4-forme du snapshot (T-15: la sonde parle la prod)",
+      "verdict": "INFO",
+      "detail": "weeks=3 logged_days=2,2,2 weights=80,79,77.8",
+      "proof": [
+        {
+          "week_start_date": "2026-07-20",
+          "weight_7d_avg_kg": 80,
+          "self_rated_adherence": 9,
+          "logging_coverage_days": 2
+        },
+        {
+          "week_start_date": "2026-07-27",
+          "weight_7d_avg_kg": 79,
+          "self_rated_adherence": 9,
+          "logging_coverage_days": 2
+        },
+        {
+          "week_start_date": "2026-08-03",
+          "weight_7d_avg_kg": 77.8,
+          "self_rated_adherence": 9,
+          "logging_coverage_days": 2
+        }
+      ]
+    },
+    {
+      "id": "A5 eleve neuf: aucun declencheur (silence != symptome)",
+      "verdict": "GREEN",
+      "detail": "flag=false codes=[]",
+      "proof": null
+    }
+  ]
+}

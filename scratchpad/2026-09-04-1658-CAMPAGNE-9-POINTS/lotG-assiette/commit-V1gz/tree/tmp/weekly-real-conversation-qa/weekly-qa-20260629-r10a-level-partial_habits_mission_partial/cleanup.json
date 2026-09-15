@@ -1,0 +1,193 @@
+{
+  "run_id": "weekly-qa-20260629-r10a-level-partial_habits_mission_partial",
+  "user_id": "f77121de-85e9-41f1-8d71-ca3d4738bbcf",
+  "email": "qa-weekly-deep-weekly-qa-20260629-r10a-level-partial_habits_mission_partial@example.com",
+  "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-20260629-r10a-level",
+  "before": {
+    "user_plan_item_entries": {
+      "status": 200,
+      "ok": true,
+      "count": 6
+    },
+    "user_habit_week_occurrences": {
+      "status": 200,
+      "ok": true,
+      "count": 6
+    },
+    "user_habit_week_plans": {
+      "status": 200,
+      "ok": true,
+      "count": 3
+    },
+    "scheduled_checkins": {
+      "status": 200,
+      "ok": true,
+      "count": 1
+    },
+    "chat_messages": {
+      "status": 200,
+      "ok": true,
+      "count": 10
+    },
+    "user_chat_states": {
+      "status": 400,
+      "ok": false,
+      "count": null
+    },
+    "user_plan_items": {
+      "status": 200,
+      "ok": true,
+      "count": 4
+    },
+    "user_plans_v2": {
+      "status": 200,
+      "ok": true,
+      "count": 1
+    },
+    "profiles": {
+      "status": 200,
+      "ok": true,
+      "count": 1
+    },
+    "user_cycles": {
+      "status": 200,
+      "ok": true,
+      "count": 1
+    },
+    "user_transformations": {
+      "status": 200,
+      "ok": true,
+      "count": 1
+    }
+  },
+  "deleted": [
+    {
+      "table": "user_plan_item_entries",
+      "status": 200,
+      "ok": true,
+      "count": 6
+    },
+    {
+      "table": "user_habit_week_occurrences",
+      "status": 200,
+      "ok": true,
+      "count": 6
+    },
+    {
+      "table": "user_habit_week_plans",
+      "status": 200,
+      "ok": true,
+      "count": 3
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 200,
+      "ok": true,
+      "count": 1
+    },
+    {
+      "table": "chat_messages",
+      "status": 200,
+      "ok": true,
+      "count": 10
+    },
+    {
+      "table": "user_chat_states",
+      "status": 200,
+      "ok": true,
+      "count": 2
+    },
+    {
+      "table": "user_plan_items",
+      "status": 200,
+      "ok": true,
+      "count": 4
+    },
+    {
+      "table": "user_plans_v2",
+      "status": 200,
+      "ok": true,
+      "count": 1
+    },
+    {
+      "table": "profiles",
+      "status": 200,
+      "ok": true,
+      "count": 1
+    },
+    {
+      "table": "user_cycles",
+      "status": 200,
+      "ok": true,
+      "count": 1
+    },
+    {
+      "table": "user_transformations",
+      "status": 200,
+      "ok": true,
+      "count": 0
+    }
+  ],
+  "after": {
+    "user_plan_item_entries": {
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    "user_habit_week_occurrences": {
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    "user_habit_week_plans": {
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    "scheduled_checkins": {
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    "chat_messages": {
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    "user_chat_states": {
+      "status": 400,
+      "ok": false,
+      "count": null
+    },
+    "user_plan_items": {
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    "user_plans_v2": {
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    "profiles": {
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    "user_cycles": {
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    "user_transformations": {
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    "auth_user_delete": {
+      "status": 200,
+      "ok": true
+    }
+  },
+  "errors": []
+}

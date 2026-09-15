@@ -1,0 +1,210 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-only-r5-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux ajuster uniquement le niveau actuel Reprendre le controle sur le grignotage. Ne modifie pas une action isolée. Ne modifie rien autour non plus. Ce niveau me demande trop en même temps cette semaine : nettoyer l'environnement, choisir du brut 6 jours sur 7, et gérer les envies après le travail. Je veux juste baisser la charge de ce niveau pour qu'il soit tenable.",
+    "assistant": "J'ai bien noté que le niveau actuel \"Reprendre le contrôle sur le grignotage\" te semble trop lourd à gérer cette semaine avec toutes ces tâches simultanées. Est-ce que tu es d'accord pour que j'en réduise l'intensité globale afin de le rendre plus accessible, tout en gardant ton objectif principal intact ? Cela ne modifiera pas le reste de ton programme.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "Reprendre le controle sur le grignotage",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "current_level",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write"
+            ],
+            "reason_type": "too_heavy",
+            "change_target": "intensity",
+            "reason_change": "time_or_capacity_changed",
+            "load_adjustment": "lighter",
+            "level_adjustment": "reduce_load"
+          },
+          "title": "Ajustement - niveau actuel",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "niveau actuel: charge ajustée vers \"lighter\"",
+              "cible de changement: intensity"
+            ],
+            "unchanged": [
+              "le cœur du niveau reste préservé",
+              "chaque action n'est pas réécrite automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+            "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+          },
+          "scope_label": "niveau actuel",
+          "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+          "decision_basis": {
+            "evidence": [
+              "Je veux ajuster uniquement le niveau actuel Reprendre le controle sur le grignotage. Ne modifie pas une action isolée. Ne modifie rien autour non plus. Ce niveau me demande trop en même temps cette semaine : nettoyer l'environnement, choisir du brut 6 jours sur 7, et gérer les envies après le travail. Je veux juste baisser la charge de ce niveau pour qu'il soit tenable.",
+              "operation_input.scope",
+              "message.reduce_load",
+              "adjustment_type.reduce_load_default",
+              "message.time_or_capacity_changed",
+              "message.load_or_intensity"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "actions exactes du niveau a choisir pour une modification fine"
+            ],
+            "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+            "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+            "must_preserve": [
+              "intention du plan",
+              "coeur du niveau"
+            ]
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "alleger la charge du niveau actuel sans supprimer l'intention",
+          "change_rationale": {
+            "why_this_change": "Alléger intensity répond au problème \"time_or_capacity_changed\" tout en gardant le cœur du niveau.",
+            "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+            "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+          },
+          "adjust_plan_result": {
+            "scope": "level",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [
+                "Actions spécifiques du niveau à simplifier en priorité si l'allègement global ne suffit pas"
+              ],
+              "user_problem": "Le niveau demande trop d'efforts simultanés (nettoyage, alimentation brute, gestion des envies) dans un contexte de capacité réduite.",
+              "expected_effect": "Réduction de la friction et maintien de la motivation malgré un emploi du temps chargé.",
+              "why_this_change": "Baisser l'intensité globale permet de maintenir l'élan et l'intention du niveau sans risquer l'abandon face à une surcharge."
+            },
+            "boundaries": {
+              "explanation": "Seule l'intensité du niveau en cours est modifiée pour s'adapter à ton contexte actuel sans toucher à la stratégie globale.",
+              "affected_scope": "Niveau actuel uniquement",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "Objectif global",
+                "Structure complète du plan",
+                "Autres niveaux"
+              ]
+            },
+            "applied_change": {
+              "summary": "Réduction de l'intensité du niveau actuel pour le rendre plus accessible.",
+              "changed_items": [
+                {
+                  "id": null,
+                  "kind": "level_setting",
+                  "after": "Intensité allégée",
+                  "title": "Reprendre le controle sur le grignotage",
+                  "before": "Intensité normale",
+                  "reason": "La charge actuelle est trop élevée par rapport au temps et à l'énergie disponibles cette semaine."
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Structure globale du plan",
+                  "reason": "L'ajustement est strictement limité au niveau en cours pour ne pas perturber la progression à long terme."
+                }
+              ]
+            },
+            "user_message_brief": "J'ai réduit l'intensité de ton niveau actuel pour le rendre plus tenable cette semaine.",
+            "user_message_detailed": "Pour t'aider à gérer la surcharge, j'ai passé le niveau 'Reprendre le contrôle sur le grignotage' en mode allégé. L'intention reste la même, mais l'effort global est diminué pour que tu puisses progresser sans pression excessive."
+          },
+          "execution_strategy": "level_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "level_adjustment",
+            "load_adjustment",
+            "focus_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait. J'ai allégé la charge de ton niveau actuel pour qu'il soit plus réaliste face à tes contraintes du moment. L'objectif de fond reste le même, mais l'effort demandé est maintenant moins intense, ce qui devrait t'aider à tenir sans te sentir submergé. Le reste de ton programme n'a pas été touché. Je suis assez confiante sur le fait que cet ajustement va t'aider à retrouver du souffle, même s'il faudra peut-être que nous affinions certaines actions spécifiques ensemble par la suite.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "J'ai bien noté que le niveau actuel \"Reprendre le contrôle sur le grignotage\" te semble trop lourd à gérer cette semaine avec toutes ces tâches simultanées. Est-ce que tu es d'accord pour que j'en réduise l'intensité globale afin de le rendre plus accessible, tout en gardant ton objectif principal intact ? Cela ne modifiera pas le reste de ton programme."
+      },
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "83a0001d-b749-4192-abf9-d85d8601905d",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-only-r5-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-only-r5-t02",
+    "status": 500,
+    "ok": null,
+    "user": "Oui, applique uniquement cet allègement du niveau actuel, sans toucher au reste du plan.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "safety_pregate": null,
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": null,
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-only-r5-t02",
+    "trace_error": null
+  }
+]

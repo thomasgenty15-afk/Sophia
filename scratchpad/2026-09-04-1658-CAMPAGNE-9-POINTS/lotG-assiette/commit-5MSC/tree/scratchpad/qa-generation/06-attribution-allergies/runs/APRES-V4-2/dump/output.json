@@ -1,0 +1,1041 @@
+{
+  "request_id": "a4000002-0000-4000-8000-000000000002",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000012",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T01:11:24.177Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "def6915f-ca55-4b87-a6a3-54c5432da101",
+      "status": "breaker_skip",
+      "created_at": "2026-08-19T01:09:01.638434+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16134,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16134,
+    "user_message_chars": 17196,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17196,
+    "independent_counters": {
+      "system_prompt_chars": 16134,
+      "prompt_chars": 17196
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "004fda24-a5e4-492b-8d9f-86e1996dfbe9",
+    "created_at": "2026-08-19T01:11:23.593194+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Sunrise Spinach and Eggs\",\n      \"title\": \"Pan-fried eggs with sautéed garlic spinach and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"10 g\",\n          \"amount\": 10,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Fry the eggs in a little butter until the whites are set. Toast the bread and serve alongside a portion of the pre-prepared spinach.\",\n      \"why\": \"A warm, protein-rich start to support muscle gain, featuring a loud vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_garlic_spinach\",\n          \"servings\": 1,\n          \"box_id\": \"box_spinach_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Seed Butter Toast\",\n      \"title\": \"Sunflower seed butter on toast with lemon zest\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon zest\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Toast the bread until golden. Spread generously with sunflower seed butter and top with fresh lemon zest.\",\n      \"why\": \"I have substituted sunflower seed butter for the requested nut butter to keep the kitchen safe for the medical tree nut constraint.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Sunrise Spinach and Eggs\",\n      \"title\": \"Pan-fried eggs with sautéed garlic spinach and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"10 g\",\n          \"amount\": 10,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Fry the eggs in butter. Toast the bread and serve with the pre-prepared garlic spinach, ensuring the vegetables are placed on the plate first.\",\n      \"why\": \"A high-protein breakfast that respects the house rule to avoid fennel and nuts.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_garlic_spinach\",\n          \"servings\": 1,\n          \"box_id\": \"box_spinach_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Ginger Beef and Broccoli Bowl\",\n      \"title\": \"Beef and broccoli stir-fry with steamed rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh ginger\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the beef stir-fry and rice in a pan with a splash of water until piping hot. Serve mixed together.\",\n      \"why\": \"A large, starch-heavy lunch to support muscle gain with a loud, crunchy vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Ginger Beef and Broccoli Bowl\",\n      \"title\": \"Beef and broccoli stir-fry with steamed rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the beef and rice in a pan. Plate the beef and rice first, then top with the broccoli.\",\n      \"why\": \"High-protein lunch served in the specific order requested for Bertille.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Ginger Beef and Broccoli Bowl\",\n      \"title\": \"Beef and broccoli stir-fry with steamed rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the beef and rice. Plate the broccoli first, followed by the beef and then the rice.\",\n      \"why\": \"A nut-free stir-fry using fresh ginger for flavour instead of any restricted spices.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Golden Pan-Seared Salmon\",\n      \"title\": \"Salmon fillets with smashed potatoes and green beans\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"a squeeze\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the salmon, potatoes, and beans in a pan over medium heat. Serve with a squeeze of fresh lemon.\",\n      \"why\": \"A warm, balanced dinner that avoids the broken oven by using the stovetop exclusively.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_seared_salmon\",\n          \"servings\": 1,\n          \"box_id\": \"box_salmon_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_smashed_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Golden Pan-Seared Salmon\",\n      \"title\": \"Salmon fillets with smashed potatoes and green beans\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Reheat all components in a pan. Plate the salmon and potatoes first, then add the green beans.\",\n      \"why\": \"Stovetop dinner that respects Bertille's serving order and avoids celeriac.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_seared_salmon\",\n          \"servings\": 1,\n          \"box_id\": \"box_salmon_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_smashed_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Golden Pan-Seared Salmon\",\n      \"title\": \"Salmon fillets with smashed potatoes and green beans\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Reheat all components. Plate the green beans first, then the salmon, and finally the potatoes.\",\n      \"why\": \"A safe, nut-free dinner featuring a loud vegetable and warm starch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_seared_salmon\",\n          \"servings\": 1,\n          \"box_id\": \"box_salmon_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_smashed_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_garlic_spinach\",\n      \"title\": \"Sautéed Garlic Spinach\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"2 cloves\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Sauté sliced garlic in oil until fragrant. Add spinach and cook until just wilted. Season with salt and pepper.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_spinach_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 60\n        },\n        {\n          \"id\": \"box_spinach_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 60\n        },\n        {\n          \"id\": \"box_spinach_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 60\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_broccoli\",\n      \"title\": \"Ginger Beef and Broccoli Stir-fry\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"beef strips\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"broccoli florets\",\n          \"quantity\": \"2 heads\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"soy sauce\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"fresh ginger\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat oil in a large pan. Sear beef strips until browned. Add broccoli and grated ginger with soy sauce. Stir-fry until broccoli is tender-crisp.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_beef_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_beef_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 220\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_steamed_rice\",\n      \"title\": \"Steamed Basmati Rice\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"225 g\",\n          \"amount\": 225,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse rice and boil in plenty of water until tender. Drain and fluff.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_seared_salmon\",\n      \"title\": \"Pan-Seared Salmon Fillets\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"salmon fillets\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Season salmon. Heat oil in a pan and sear salmon skin-side down for 4 minutes, then flip and cook for 3-4 minutes until opaque.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_salmon_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 120\n        },\n        {\n          \"id\": \"box_salmon_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 120\n        },\n        {\n          \"id\": \"box_salmon_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 120\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_smashed_potatoes\",\n      \"title\": \"Pan-Crisped Smashed Potatoes\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"baby potatoes\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Boil potatoes until soft. Drain, smash lightly with a fork, and pan-fry in oil until the edges are crispy.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_potatoes_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_potatoes_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_potatoes_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_steamed_beans\",\n      \"title\": \"Steamed Green Beans\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Steam or boil green beans for 4-5 minutes until bright green and snappy.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 80\n        },\n        {\n          \"id\": \"box_beans_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 80\n        },\n        {\n          \"id\": \"box_beans_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 80\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_steamed_rice\",\n        \"prep_smashed_potatoes\",\n        \"prep_beef_broccoli\",\n        \"prep_seared_salmon\",\n        \"prep_garlic_spinach\",\n        \"prep_steamed_beans\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice and potatoes boiling first. While they cook, chop the beef, broccoli, and ginger. Stir-fry the beef and broccoli in a large pan. Drain the potatoes, smash them, and crisp them in a pan with oil. Sear the salmon fillets. Finally, quickly sauté the spinach and steam the beans. Weigh and box everything immediately.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"225 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"beef strips\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"salmon fillets\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"broccoli\",\n      \"quantity\": \"2 heads\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"baby potatoes\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh ginger\",\n      \"quantity\": \"20 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"wholemeal bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"soy sauce\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"butter\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"dairy\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"Protein and starch first on the plate, then the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"note\": \"A portion of rice served before the beef.\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"note\": \"Beef strips served before the broccoli.\"\n        },\n        {\n          \"preparation_id\": \"prep_seared_salmon\",\n          \"note\": \"Salmon served first.\"\n        },\n        {\n          \"preparation_id\": \"prep_smashed_potatoes\",\n          \"note\": \"Potatoes served before the beans.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"All the components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"note\": \"Beef and broccoli mixed with rice.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Vegetables first on the plate, then the protein, then the starch.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"note\": \"Broccoli served first, then beef.\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"note\": \"Rice served last.\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_beans\",\n          \"note\": \"Green beans served first.\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Sunrise Spinach and Eggs",
+          "title": "Pan-fried eggs with sautéed garlic spinach and toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "10 g",
+              "amount": 10,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Fry the eggs in a little butter until the whites are set. Toast the bread and serve alongside a portion of the pre-prepared spinach.",
+          "why": "A warm, protein-rich start to support muscle gain, featuring a loud vegetable.",
+          "uses": [
+            {
+              "preparation_id": "prep_garlic_spinach",
+              "servings": 1,
+              "box_id": "box_spinach_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Zesty Seed Butter Toast",
+          "title": "Sunflower seed butter on toast with lemon zest",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "sunflower seed butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "lemon zest",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Toast the bread until golden. Spread generously with sunflower seed butter and top with fresh lemon zest.",
+          "why": "I have substituted sunflower seed butter for the requested nut butter to keep the kitchen safe for the medical tree nut constraint.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Sunrise Spinach and Eggs",
+          "title": "Pan-fried eggs with sautéed garlic spinach and toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "10 g",
+              "amount": 10,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Fry the eggs in butter. Toast the bread and serve with the pre-prepared garlic spinach, ensuring the vegetables are placed on the plate first.",
+          "why": "A high-protein breakfast that respects the house rule to avoid fennel and nuts.",
+          "uses": [
+            {
+              "preparation_id": "prep_garlic_spinach",
+              "servings": 1,
+              "box_id": "box_spinach_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Ginger Beef and Broccoli Bowl",
+          "title": "Beef and broccoli stir-fry with steamed rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "fresh ginger",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the beef stir-fry and rice in a pan with a splash of water until piping hot. Serve mixed together.",
+          "why": "A large, starch-heavy lunch to support muscle gain with a loud, crunchy vegetable.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_broccoli",
+              "servings": 1,
+              "box_id": "box_beef_marceau"
+            },
+            {
+              "preparation_id": "prep_steamed_rice",
+              "servings": 1,
+              "box_id": "box_rice_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Ginger Beef and Broccoli Bowl",
+          "title": "Beef and broccoli stir-fry with steamed rice",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [],
+          "method": "Reheat the beef and rice in a pan. Plate the beef and rice first, then top with the broccoli.",
+          "why": "High-protein lunch served in the specific order requested for Bertille.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_broccoli",
+              "servings": 1,
+              "box_id": "box_beef_bertille"
+            },
+            {
+              "preparation_id": "prep_steamed_rice",
+              "servings": 1,
+              "box_id": "box_rice_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Ginger Beef and Broccoli Bowl",
+          "title": "Beef and broccoli stir-fry with steamed rice",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [],
+          "method": "Reheat the beef and rice. Plate the broccoli first, followed by the beef and then the rice.",
+          "why": "A nut-free stir-fry using fresh ginger for flavour instead of any restricted spices.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_broccoli",
+              "servings": 1,
+              "box_id": "box_beef_ysoline"
+            },
+            {
+              "preparation_id": "prep_steamed_rice",
+              "servings": 1,
+              "box_id": "box_rice_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Golden Pan-Seared Salmon",
+          "title": "Salmon fillets with smashed potatoes and green beans",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "a squeeze",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the salmon, potatoes, and beans in a pan over medium heat. Serve with a squeeze of fresh lemon.",
+          "why": "A warm, balanced dinner that avoids the broken oven by using the stovetop exclusively.",
+          "uses": [
+            {
+              "preparation_id": "prep_seared_salmon",
+              "servings": 1,
+              "box_id": "box_salmon_marceau"
+            },
+            {
+              "preparation_id": "prep_smashed_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_marceau"
+            },
+            {
+              "preparation_id": "prep_steamed_beans",
+              "servings": 1,
+              "box_id": "box_beans_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Golden Pan-Seared Salmon",
+          "title": "Salmon fillets with smashed potatoes and green beans",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [],
+          "method": "Reheat all components in a pan. Plate the salmon and potatoes first, then add the green beans.",
+          "why": "Stovetop dinner that respects Bertille's serving order and avoids celeriac.",
+          "uses": [
+            {
+              "preparation_id": "prep_seared_salmon",
+              "servings": 1,
+              "box_id": "box_salmon_bertille"
+            },
+            {
+              "preparation_id": "prep_smashed_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_bertille"
+            },
+            {
+              "preparation_id": "prep_steamed_beans",
+              "servings": 1,
+              "box_id": "box_beans_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Golden Pan-Seared Salmon",
+          "title": "Salmon fillets with smashed potatoes and green beans",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [],
+          "method": "Reheat all components. Plate the green beans first, then the salmon, and finally the potatoes.",
+          "why": "A safe, nut-free dinner featuring a loud vegetable and warm starch.",
+          "uses": [
+            {
+              "preparation_id": "prep_seared_salmon",
+              "servings": 1,
+              "box_id": "box_salmon_ysoline"
+            },
+            {
+              "preparation_id": "prep_smashed_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_ysoline"
+            },
+            {
+              "preparation_id": "prep_steamed_beans",
+              "servings": 1,
+              "box_id": "box_beans_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_garlic_spinach",
+          "title": "Sautéed Garlic Spinach",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "spinach",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "2 cloves",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Sauté sliced garlic in oil until fragrant. Add spinach and cook until just wilted. Season with salt and pepper.",
+          "active_minutes": 5,
+          "total_minutes": 10,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_spinach_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 60
+            },
+            {
+              "id": "box_spinach_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 60
+            },
+            {
+              "id": "box_spinach_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 60
+            }
+          ]
+        },
+        {
+          "id": "prep_beef_broccoli",
+          "title": "Ginger Beef and Broccoli Stir-fry",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "beef strips",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "broccoli florets",
+              "quantity": "2 heads",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "soy sauce",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "fresh ginger",
+              "quantity": "20 g",
+              "amount": 20,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Heat oil in a large pan. Sear beef strips until browned. Add broccoli and grated ginger with soy sauce. Stir-fry until broccoli is tender-crisp.",
+          "active_minutes": 15,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beef_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_beef_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_beef_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 220
+            }
+          ]
+        },
+        {
+          "id": "prep_steamed_rice",
+          "title": "Steamed Basmati Rice",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "225 g",
+              "amount": 225,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse rice and boil in plenty of water until tender. Drain and fluff.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 180
+            }
+          ]
+        },
+        {
+          "id": "prep_seared_salmon",
+          "title": "Pan-Seared Salmon Fillets",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "salmon fillets",
+              "quantity": "3 units",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Season salmon. Heat oil in a pan and sear salmon skin-side down for 4 minutes, then flip and cook for 3-4 minutes until opaque.",
+          "active_minutes": 10,
+          "total_minutes": 10,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_salmon_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_salmon_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_salmon_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 120
+            }
+          ]
+        },
+        {
+          "id": "prep_smashed_potatoes",
+          "title": "Pan-Crisped Smashed Potatoes",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "baby potatoes",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Boil potatoes until soft. Drain, smash lightly with a fork, and pan-fry in oil until the edges are crispy.",
+          "active_minutes": 10,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_potatoes_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_potatoes_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_potatoes_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_steamed_beans",
+          "title": "Steamed Green Beans",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "green beans",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Steam or boil green beans for 4-5 minutes until bright green and snappy.",
+          "active_minutes": 5,
+          "total_minutes": 10,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beans_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 80
+            },
+            {
+              "id": "box_beans_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 80
+            },
+            {
+              "id": "box_beans_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 80
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_steamed_rice",
+            "prep_smashed_potatoes",
+            "prep_beef_broccoli",
+            "prep_seared_salmon",
+            "prep_garlic_spinach",
+            "prep_steamed_beans"
+          ],
+          "total_minutes": 50,
+          "run_through": "Start the rice and potatoes boiling first. While they cook, chop the beef, broccoli, and ginger. Stir-fry the beef and broccoli in a large pan. Drain the potatoes, smash them, and crisp them in a pan with oil. Sear the salmon fillets. Finally, quickly sauté the spinach and steam the beans. Weigh and box everything immediately."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "basmati rice",
+          "quantity": "225 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "beef strips",
+          "quantity": "450 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "salmon fillets",
+          "quantity": "3 units",
+          "aisle": "protein"
+        },
+        {
+          "term": "eggs",
+          "quantity": "4 units",
+          "aisle": "protein"
+        },
+        {
+          "term": "broccoli",
+          "quantity": "2 heads",
+          "aisle": "produce"
+        },
+        {
+          "term": "baby potatoes",
+          "quantity": "600 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "spinach",
+          "quantity": "250 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "green beans",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh ginger",
+          "quantity": "20 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemon",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "wholemeal bread",
+          "quantity": "1 loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "sunflower seed butter",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "soy sauce",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "butter",
+          "quantity": "250 g",
+          "aisle": "dairy"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "portion_note": "Protein and starch first on the plate, then the vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_steamed_rice",
+              "note": "A portion of rice served before the beef."
+            },
+            {
+              "preparation_id": "prep_beef_broccoli",
+              "note": "Beef strips served before the broccoli."
+            },
+            {
+              "preparation_id": "prep_seared_salmon",
+              "note": "Salmon served first."
+            },
+            {
+              "preparation_id": "prep_smashed_potatoes",
+              "note": "Potatoes served before the beans."
+            }
+          ]
+        },
+        {
+          "member_id": "2a937736-693a-45f1-97a6-110f535ae004",
+          "portion_note": "All the components together on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beef_broccoli",
+              "note": "Beef and broccoli mixed with rice."
+            }
+          ]
+        },
+        {
+          "member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "portion_note": "Vegetables first on the plate, then the protein, then the starch.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beef_broccoli",
+              "note": "Broccoli served first, then beef."
+            },
+            {
+              "preparation_id": "prep_steamed_rice",
+              "note": "Rice served last."
+            },
+            {
+              "preparation_id": "prep_steamed_beans",
+              "note": "Green beans served first."
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Sunrise Spinach and Eggs\",\n      \"title\": \"Pan-fried eggs with sautéed garlic spinach and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"10 g\",\n          \"amount\": 10,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Fry the eggs in a little butter until the whites are set. Toast the bread and serve alongside a portion of the pre-prepared spinach.\",\n      \"why\": \"A warm, protein-rich start to support muscle gain, featuring a loud vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_garlic_spinach\",\n          \"servings\": 1,\n          \"box_id\": \"box_spinach_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Seed Butter Toast\",\n      \"title\": \"Sunflower seed butter on toast with lemon zest\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon zest\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Toast the bread until golden. Spread generously with sunflower seed butter and top with fresh lemon zest.\",\n      \"why\": \"I have substituted sunflower seed butter for the requested nut butter to keep the kitchen safe for the medical tree nut constraint.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Sunrise Spinach and Eggs\",\n      \"title\": \"Pan-fried eggs with sautéed garlic spinach and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"10 g\",\n          \"amount\": 10,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Fry the eggs in butter. Toast the bread and serve with the pre-prepared garlic spinach, ensuring the vegetables are placed on the plate first.\",\n      \"why\": \"A high-protein breakfast that respects the house rule to avoid fennel and nuts.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_garlic_spinach\",\n          \"servings\": 1,\n          \"box_id\": \"box_spinach_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Ginger Beef and Broccoli Bowl\",\n      \"title\": \"Beef and broccoli stir-fry with steamed rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh ginger\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the beef stir-fry and rice in a pan with a splash of water until piping hot. Serve mixed together.\",\n      \"why\": \"A large, starch-heavy lunch to support muscle gain with a loud, crunchy vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Ginger Beef and Broccoli Bowl\",\n      \"title\": \"Beef and broccoli stir-fry with steamed rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the beef and rice in a pan. Plate the beef and rice first, then top with the broccoli.\",\n      \"why\": \"High-protein lunch served in the specific order requested for Bertille.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Ginger Beef and Broccoli Bowl\",\n      \"title\": \"Beef and broccoli stir-fry with steamed rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the beef and rice. Plate the broccoli first, followed by the beef and then the rice.\",\n      \"why\": \"A nut-free stir-fry using fresh ginger for flavour instead of any restricted spices.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Golden Pan-Seared Salmon\",\n      \"title\": \"Salmon fillets with smashed potatoes and green beans\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"a squeeze\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the salmon, potatoes, and beans in a pan over medium heat. Serve with a squeeze of fresh lemon.\",\n      \"why\": \"A warm, balanced dinner that avoids the broken oven by using the stovetop exclusively.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_seared_salmon\",\n          \"servings\": 1,\n          \"box_id\": \"box_salmon_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_smashed_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Golden Pan-Seared Salmon\",\n      \"title\": \"Salmon fillets with smashed potatoes and green beans\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Reheat all components in a pan. Plate the salmon and potatoes first, then add the green beans.\",\n      \"why\": \"Stovetop dinner that respects Bertille's serving order and avoids celeriac.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_seared_salmon\",\n          \"servings\": 1,\n          \"box_id\": \"box_salmon_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_smashed_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Golden Pan-Seared Salmon\",\n      \"title\": \"Salmon fillets with smashed potatoes and green beans\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Reheat all components. Plate the green beans first, then the salmon, and finally the potatoes.\",\n      \"why\": \"A safe, nut-free dinner featuring a loud vegetable and warm starch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_seared_salmon\",\n          \"servings\": 1,\n          \"box_id\": \"box_salmon_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_smashed_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_garlic_spinach\",\n      \"title\": \"Sautéed Garlic Spinach\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"2 cloves\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Sauté sliced garlic in oil until fragrant. Add spinach and cook until just wilted. Season with salt and pepper.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_spinach_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 60\n        },\n        {\n          \"id\": \"box_spinach_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 60\n        },\n        {\n          \"id\": \"box_spinach_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 60\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_broccoli\",\n      \"title\": \"Ginger Beef and Broccoli Stir-fry\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"beef strips\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"broccoli florets\",\n          \"quantity\": \"2 heads\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"soy sauce\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"fresh ginger\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat oil in a large pan. Sear beef strips until browned. Add broccoli and grated ginger with soy sauce. Stir-fry until broccoli is tender-crisp.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_beef_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_beef_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 220\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_steamed_rice\",\n      \"title\": \"Steamed Basmati Rice\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"225 g\",\n          \"amount\": 225,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse rice and boil in plenty of water until tender. Drain and fluff.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_seared_salmon\",\n      \"title\": \"Pan-Seared Salmon Fillets\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"salmon fillets\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Season salmon. Heat oil in a pan and sear salmon skin-side down for 4 minutes, then flip and cook for 3-4 minutes until opaque.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_salmon_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 120\n        },\n        {\n          \"id\": \"box_salmon_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 120\n        },\n        {\n          \"id\": \"box_salmon_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 120\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_smashed_potatoes\",\n      \"title\": \"Pan-Crisped Smashed Potatoes\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"baby potatoes\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Boil potatoes until soft. Drain, smash lightly with a fork, and pan-fry in oil until the edges are crispy.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_potatoes_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_potatoes_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_potatoes_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_steamed_beans\",\n      \"title\": \"Steamed Green Beans\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Steam or boil green beans for 4-5 minutes until bright green and snappy.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 80\n        },\n        {\n          \"id\": \"box_beans_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 80\n        },\n        {\n          \"id\": \"box_beans_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 80\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_steamed_rice\",\n        \"prep_smashed_potatoes\",\n        \"prep_beef_broccoli\",\n        \"prep_seared_salmon\",\n        \"prep_garlic_spinach\",\n        \"prep_steamed_beans\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice and potatoes boiling first. While they cook, chop the beef, broccoli, and ginger. Stir-fry the beef and broccoli in a large pan. Drain the potatoes, smash them, and crisp them in a pan with oil. Sear the salmon fillets. Finally, quickly sauté the spinach and steam the beans. Weigh and box everything immediately.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"225 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"beef strips\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"salmon fillets\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"broccoli\",\n      \"quantity\": \"2 heads\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"baby potatoes\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh ginger\",\n      \"quantity\": \"20 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"wholemeal bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"soy sauce\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"butter\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"dairy\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"Protein and starch first on the plate, then the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"note\": \"A portion of rice served before the beef.\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"note\": \"Beef strips served before the broccoli.\"\n        },\n        {\n          \"preparation_id\": \"prep_seared_salmon\",\n          \"note\": \"Salmon served first.\"\n        },\n        {\n          \"preparation_id\": \"prep_smashed_potatoes\",\n          \"note\": \"Potatoes served before the beans.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"All the components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"note\": \"Beef and broccoli mixed with rice.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Vegetables first on the plate, then the protein, then the starch.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"note\": \"Broccoli served first, then beef.\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"note\": \"Rice served last.\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_beans\",\n          \"note\": \"Green beans served first.\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "gQKFaobJN5fYkdUP-bmpoAw",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 21878,
+        "promptTokenCount": 8635,
+        "thoughtsTokenCount": 5932,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8635
+          }
+        ],
+        "candidatesTokenCount": 7311
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T01:09:01.638434+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:09:01.64727+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:09:01.659819+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:09:01.683031+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:09:35.289666+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:09:35.298093+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:09:35.300781+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:09:35.303919+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:10:25.732985+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:10:25.740738+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:10:25.742809+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:10:25.745497+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:11:23.593194+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

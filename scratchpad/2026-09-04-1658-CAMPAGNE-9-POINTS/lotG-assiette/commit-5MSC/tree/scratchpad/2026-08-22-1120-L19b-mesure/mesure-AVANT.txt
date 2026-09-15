@@ -1,0 +1,76 @@
+════════════════════════════════════════════════════════════════════════
+ L19b — MESURE AVANT, rejouée intégralement le 2026-08-22 11:44:32 CEST
+════════════════════════════════════════════════════════════════════════
+ État reconstruit à l'identique: module SANS le volet ① (les 4 mots
+ remis) + table d'alias d'AVANT la migration (19 morts remis, 9
+ dépointés, 86 retirés) = 2 601 alias · 923 refs · 182 plans.
+
+── ① L'ÉPREUVE DU NOM NU, 150 paires ──────────────────────────────────
+═══ ÉPREUVE DU NOM NU — même aliment, même règle, deux langues ═══
+aliments : 150   (formes anglaises réellement observées dans le corpus : 136/150)
+
+langue | bon aliment | AUTRE aliment | RIEN
+EN     | 150 100.0 % |   0   0.0 % |   0   0.0 %
+FR     | 124  82.7 % |   9   6.0 % |  17  11.3 %
+
+ÉCART sur « bon aliment » : 26 aliments, soit 17.3 points
+
+── ② LES RÉDUCTIONS QUI CHANGENT L'ALIMENT (liste FERMÉE éprouvée) ────
+  (07-modificateurs.ts, exécuté à 11:22:30 CEST sur l'arbre AVANT le volet ①)
+
+  modificateurs lus dans le module : 127
+  noms connus éprouvés             : 3312
+  réductions qui changent l'aliment: 38
+
+  dont les CINQ que ce lot vise, toutes `whole_grain → refined_grain`:
+    [complet]   « pain complet »          : wholemeal_bread (whole_grain, 262) → white_bread (refined_grain, 278)   [GROUPE]
+    [complet]   « pain de mie complet »   : sandwich_loaf_wholemeal (whole_grain, 262) → white_bread (refined_grain, 278)  [GROUPE]
+    [complet]   « riz complet »           : brown_rice (whole_grain, 350) → white_rice (refined_grain, 352)          [GROUPE]
+    [complet]   « muffin anglais complet …» : english_muffin_wholewheat_flour (whole_grain, 217) → english_muffin (refined_grain, 228)  [GROUPE]
+    [completes] « pates completes »       : wholewheat_pasta (whole_grain, 353) → white_pasta (refined_grain, 336)   [GROUPE]
+
+── ③ LES TERMES QUE LA FICHE NOMME ────────────────────────────────────
+pain complet grille                → white_bread              | White bread | refined_grain | 278 kcal | unit_grams=35
+pain complet                       → wholemeal_bread          | Wholemeal bread | whole_grain | 262 kcal | unit_grams=40
+wrap                               → white_bread              | White bread | refined_grain | 278 kcal | unit_grams=35
+wraps                              → white_bread              | White bread | refined_grain | 278 kcal | unit_grams=35
+tortilla complete                  → white_bread              | White bread | refined_grain | 278 kcal | unit_grams=35
+pain pita complet                  → pita_bread               | Pita bread | refined_grain | 275 kcal | unit_grams=60
+riz complet                        → brown_rice               | Brown rice | whole_grain | 350 kcal | unit_grams=—
+pates completes                    → wholewheat_pasta         | Wholewheat pasta | whole_grain | 353 kcal | unit_grams=—
+semoule complete                   → couscous                 | Couscous | refined_grain | 352 kcal | unit_grams=—
+
+── ④ LES ALIAS MORTS ──────────────────────────────────────────────────
+alias en base                         : 2601
+MORTS (forme = un slug)               : 210
+  ① morts INOFFENSIFS (même ligne)    : 191
+  ② ⛔ morts CONTRADICTOIRES          : 19
+
+── ② LES CONTRADICTOIRES, un par un ──
+  beef chuck	→ déclaré beef_braising (Braising beef, red_meat, 144)	CAPTURÉ par bySlug beef_chuck (Beef, chuck, raw, red_meat, 144)
+  blueberry	→ déclaré blueberries (Blueberries, berries, 57.7)	CAPTURÉ par bySlug blueberry (Blueberry, raw, berries, 57.7)
+  bread	→ déclaré white_bread (White bread, refined_grain, 278)	CAPTURÉ par bySlug bread (Bread (average), refined_grain, 276)
+  egg	→ déclaré whole_eggs (Eggs, eggs, 140)	CAPTURÉ par bySlug egg (Egg, raw, eggs, 140)
+  garden peas	→ déclaré green_peas (Peas, legumes, 61.4)	CAPTURÉ par bySlug garden_peas (Garden peas, canned, drained, non_starchy_veg, 81.5)
+  lamb chop	→ déclaré lamb (Lamb, red_meat, 128)	CAPTURÉ par bySlug lamb_chop (Lamb, chop, raw (average), red_meat, 273)
+  lamb leg	→ déclaré lamb (Lamb, red_meat, 128)	CAPTURÉ par bySlug lamb_leg (Lamb, leg, raw, red_meat, 128)
+  mixed leaves	→ déclaré lettuce (Lettuce, leafy_greens, 14.7)	CAPTURÉ par bySlug mixed_leaves (Mixed salad leaves, leafy_greens, 17)
+  mixed vegetables	→ déclaré peas_frozen (Frozen mixed vegetables, non_starchy_veg, 65.1)	CAPTURÉ par bySlug mixed_vegetables (Mixed vegetables, frozen, raw, non_starchy_veg, 65.1)
+  pancetta	→ déclaré bacon (Bacon, red_meat, 275)	CAPTURÉ par bySlug pancetta (Pancetta, dried, red_meat, 342)
+  pita bread	→ déclaré white_bread (White bread, refined_grain, 278)	CAPTURÉ par bySlug pita_bread (Pita bread, refined_grain, 275)
+  pumpkin	→ déclaré butternut_squash (Butternut squash, starchy_veg, 19.9)	CAPTURÉ par bySlug pumpkin (Pumpkin, roasted/baked, non_starchy_veg, 30.2)
+  raspberry	→ déclaré raspberries (Raspberries, berries, 49.2)	CAPTURÉ par bySlug raspberry (Raspberry, raw, berries, 49.2)
+  red onion	→ déclaré onion (Onion, non_starchy_veg, 38.4)	CAPTURÉ par bySlug red_onion (Red onion, raw, non_starchy_veg, 36.3)
+  strawberry	→ déclaré strawberries (Strawberries, berries, 38.6)	CAPTURÉ par bySlug strawberry (Strawberry, raw, berries, 38.6)
+  turkey escalope	→ déclaré turkey_breast (Turkey breast, lean_protein, 109)	CAPTURÉ par bySlug turkey_escalope (Turkey, escalope, raw, poultry, 109)
+  vegetable stock	→ déclaré stock_cube (Stock, sauce_dressing, 240)	CAPTURÉ par bySlug vegetable_stock (Vegetable stock (low salt), sauce_dressing, 4)
+  white cabbage	→ déclaré cabbage (Cabbage, cruciferous_veg, 27.6)	CAPTURÉ par bySlug white_cabbage (White cabbage, raw, cruciferous_veg, 36.5)
+  yoghurt	→ déclaré plain_yogurt (Plain yogurt, dairy_yogurt, 59)	CAPTURÉ par bySlug yoghurt (Yoghurt, plain (average), dairy_yogurt, 56.8)
+
+── ⑤ LES OCCURRENCES RÉELLES, dans les 182 plans ──────────────────────
+  7  pain complet grille   → white_bread      (refined_grain, unit_grams 35 g)
+  2  tortilla complete     → white_bread
+  2  pain pita complet     → pita_bread       (raffiné)
+ 19  wraps  +  1  wrap     → white_bread      ⇒ « 2 wraps » = 70 g au lieu de 120
+  1  couscous complet sec  → couscous         (raffiné)
+  1  semoule complete cuite→ couscous         (raffiné)

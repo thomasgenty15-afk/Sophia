@@ -1,0 +1,109 @@
+{
+  "runId": "2026-06-08-emotional-repair-local-real-r1",
+  "scope": "qa-emotional-repair-local-2026-06-08-emotional-repair-local-real-r1",
+  "summary": [
+    {
+      "turn": 1,
+      "request_id": "2026-06-08-emotional-repair-local-real-r1-t01",
+      "user": "J'ai honte de mon craquage d'hier. Je me parle comme si j'etais nul, mais la j'aimerais juste arreter de me punir.",
+      "http_status": 200,
+      "ok": true,
+      "sophia": "Je comprends ce sentiment de honte, c'est une réaction humaine mais très douloureuse. Tu as raison de vouloir arrêter de te punir, car la bienveillance est souvent plus efficace que la culpabilité pour avancer. Est-ce que tu aimerais qu'on prenne un moment ensemble pour apaiser cette tension et transformer ce dialogue intérieur ? 🙂",
+      "response_owner": "tool_skill",
+      "selected_handler": "flow_opportunity_verification",
+      "route_reason": "skill_entry_signal",
+      "tool_status": "waiting_confirmation",
+      "tool_selected_handler": "flow_opportunity_verification",
+      "executed_tools": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "safety": {
+        "risk_band": "low",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "active_flow": null
+    },
+    {
+      "turn": 2,
+      "request_id": "2026-06-08-emotional-repair-local-real-r1-t02",
+      "user": "Oui, mais sans protocole ni technique. Je veux juste que tu m'aides a separer mon erreur de qui je suis, parce que la je me traite vraiment durement.",
+      "http_status": 200,
+      "ok": true,
+      "sophia": "Je garde l'idée, mais je n'arrive pas à lancer le flow cible correctement sur ce tour. 🙂",
+      "response_owner": "tool_skill",
+      "selected_handler": "flow_opportunity_verification",
+      "route_reason": "active_flow_opportunity_verification_local_dispatcher",
+      "tool_status": "blocked",
+      "tool_selected_handler": "flow_opportunity_verification",
+      "executed_tools": [],
+      "committed_effects": [],
+      "blocked_effects": [
+        {
+          "type": "target_flow",
+          "reason_code": "target_flow_launch_failed"
+        }
+      ],
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "active_flow": null
+    },
+    {
+      "turn": 3,
+      "request_id": "2026-06-08-emotional-repair-local-real-r1-t03",
+      "user": "Ok, laisse tomber le flow. Reste juste avec moi sur cette honte: j'ai fait une erreur, mais je ne veux plus me traiter comme si j'etais mauvais.",
+      "http_status": 200,
+      "ok": true,
+      "sophia": "Je t'entends parfaitement, on laisse de côté les protocoles. C'est une distinction essentielle : ce que tu as fait hier est un comportement, pas ton identité. Faire une erreur ne te rend pas « mauvais », cela te rend simplement humain. Je reste là avec toi, dans cet espace où tu peux simplement souffler sans te juger. 🙂",
+      "response_owner": "tool_skill",
+      "selected_handler": "flow_opportunity_verification",
+      "route_reason": "skill_entry_signal",
+      "tool_status": "waiting_confirmation",
+      "tool_selected_handler": "flow_opportunity_verification",
+      "executed_tools": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "safety": {
+        "risk_band": "low",
+        "reason_codes": [
+          "self_attack"
+        ],
+        "evidence": [
+          "ne veux plus me traiter comme si j'etais mauvais",
+          "me traite vraiment durement"
+        ]
+      },
+      "active_flow": null
+    },
+    {
+      "turn": 4,
+      "request_id": "2026-06-08-emotional-repair-local-real-r1-t04",
+      "user": "Oui. Et si une suite douce existe apres ca, je veux bien, mais seulement si ca ne me force pas a raconter tout l'episode encore une fois.",
+      "http_status": 200,
+      "ok": true,
+      "sophia": "Je garde l'idée, mais je n'arrive pas à lancer le flow cible correctement sur ce tour. 🙂",
+      "response_owner": "tool_skill",
+      "selected_handler": "flow_opportunity_verification",
+      "route_reason": "active_flow_opportunity_verification_local_dispatcher",
+      "tool_status": "blocked",
+      "tool_selected_handler": "flow_opportunity_verification",
+      "executed_tools": [],
+      "committed_effects": [],
+      "blocked_effects": [
+        {
+          "type": "target_flow",
+          "reason_code": "target_flow_launch_failed"
+        }
+      ],
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "active_flow": null
+    }
+  ]
+}

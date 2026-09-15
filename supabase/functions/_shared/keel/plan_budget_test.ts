@@ -35,6 +35,12 @@ const FOYER_ORDER = [
   "unfed_retry",
   "density_repair",
   "dedicated_repair",
+  // ⟳ 2026-09-12 · ÉTAPE C4 — LE HUITIÈME SITE, ET LE DERNIER: il s'exécute
+  // APRÈS la garde finale, sur le payload exact qui partirait en base. Il ne
+  // change aucun verdict ci-dessous — les deux slots sont déjà dépensés quand
+  // il demande — et c'est précisément ce que ces tests doivent montrer: un
+  // huitième demandeur n'ouvre pas un troisième rappel.
+  "final_repair",
 ] as const;
 
 /** L'ordre RÉEL des appels de la lane solo. */
@@ -396,4 +402,35 @@ Deno.test("SANS PESÉE, le comportement d'avant est RENDU À L'IDENTIQUE", () =>
   const r = run(SOLO_ORDER);
   assertEquals(r.granted, ["exclusion_retry", "composition_retry"]);
   assertEquals(r.refused.protein_anchor_retry, "repair_reserved");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-12 · LOT 2 — LA SÉCURITÉ NE FAIT JAMAIS LA QUEUE
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("LOT 2 — une exclusion passe MÊME quand un rattrapage l'a précédée", () => {
+  // ⛔ LA MORSURE. La table donnait `exclusion_retry: 1` (« la densité le
+  // suit »), donc `used=1` la faisait refuser. Ça ne se voyait pas parce que,
+  // dans l'ordre ACTUEL du fichier, l'exclusion s'exécute AVANT la densité: la
+  // garde était correcte par accident d'ordre. Le lot 2 demande l'inverse —
+  // « une exclusion détectée tôt doit pouvoir partir tout de suite ».
+  const r = run(["density_repair", "exclusion_retry"]);
+  assertEquals(r.granted, ["density_repair", "exclusion_retry"]);
+  assertEquals(Object.keys(r.refused), []);
+  // ⛔ ET CE N'EST PAS UN SLOT SUPPLÉMENTAIRE: le budget reste à deux.
+  assertEquals(r.snapshot.repairs_used, 2);
+  const plein = run(["density_repair", "dedicated_repair", "exclusion_retry"]);
+  assertEquals(plein.refused.exclusion_retry, "repair_budget_exhausted");
+});
+
+Deno.test("LOT 2 — la réserve reste ZÉRO pour la sécurité, avec OU sans pesée", () => {
+  // Les deux chemins de `planRepairReservedAfter`: la table (sans ensemble) et
+  // la mesure (avec). Aucun des deux ne met la sécurité en file.
+  assertEquals(planRepairReservedAfter("exclusion_retry"), 0);
+  assertEquals(
+    planRepairReservedAfter("exclusion_retry", new Set(["missing_meal", "sizing"])),
+    0,
+  );
+  // ⚠️ LE CAS QUI PASSE DE L'AUTRE CÔTÉ: une nature plus faible réserve encore.
+  assertEquals(planRepairReservedAfter("swap_retry", new Set(["safety", "sizing"])), 2);
 });

@@ -1,0 +1,767 @@
+{
+  "runId": "global15_20260520_r6",
+  "slug": "2026-05-20-global-normal-conversation-15t-r6",
+  "scope": "qa-global-normal-conversation-15t-20260520-r6",
+  "user": {
+    "id": "e3abed07-c2c4-4459-a69a-f42d95bd1ab9",
+    "email": "qa-global15-r6-1779300422153@example.com"
+  },
+  "turns": [
+    {
+      "turn": "1",
+      "request_id": "global15_20260520_r6-t01",
+      "created_at": "2026-05-20T18:07:15.790Z",
+      "user": "Salut Sophia, j'ai un mini compte rendu client à reprendre aujourd'hui. Je sais quoi faire, mais je sens que je vais attendre d'avoir une vision parfaite avant d'écrire. Je veux juste démarrer.",
+      "sophia": "Ok, je te laisse pas “attendre la perfection” ce soir 😄😄\n\nFais un démarrage ultra simple pour ton mini compte rendu client :\n1) Ouvre le doc et écris juste 3 lignes brutes : “Qui / Quoi / Résultat”\n2) Tu remplis ensuite le reste en mode brouillon (tu corriges après)\n3) Règle: 10 minutes chrono, pas plus\n\nTu veux que ta Carte d’attaque “mini compte rendu client” soit créée pour que tu démarres encore plus vite ?",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "route_reason": "skill_entry_signal",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "perfectionnisme et démarrage",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "psychologie.peur_echec",
+              "type": "domain_key",
+              "priority": "low",
+              "query_hint": "vision parfaite avant d'écrire",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "2",
+      "request_id": "global15_20260520_r6-t02",
+      "created_at": "2026-05-20T18:07:33.168Z",
+      "user": "Oui, prépare une carte d'attaque. Cible: relire la note et sortir trois puces imparfaites. Mon piège: vouloir comprendre toute la logique avant de poser un brouillon. Choisis la technique adaptée, pas un outil d'impulsion.",
+      "sophia": "C'est noté pour ton objectif : sortir trois puces imparfaites de ta note. Pour contrer ton besoin de tout comprendre avant de démarrer, je te propose trois approches :\n\n1. **Le texte magique** : un court texte à relire pour calmer ton perfectionnisme au moment de rédiger.\n2. **Ancre visuelle** : un signal physique pour marquer le début de cette session 'imparfaite'.\n3. **Preparer le terrain** : un micro-setup pour faciliter le premier geste sans réfléchir.\n\nLaquelle te semble la plus efficace pour toi ? 🙂",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "mini_compte_rendu_client",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "compte rendu client perfectionnisme",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "perfectionnisme blocage demarrage",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "3",
+      "request_id": "global15_20260520_r6-t03",
+      "created_at": "2026-05-20T18:08:07.275Z",
+      "user": "Prends Le texte magique. Je veux une version très courte qui m'aide à ouvrir le doc et écrire les trois puces sans chercher la version propre.",
+      "sophia": "Voici ton brouillon pour \"Action Imparfaite\" via Le texte magique :\n\"Ouvre le doc. Écris trois puces, même moches. Le propre viendra après, l'action c'est maintenant.\"\nLis ce texte dès que la résistance monte pour faire le premier geste.\nEst-ce que je crée ta carte ? 🙂",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "active_tool_skill_continue",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": {
+          "draft": {
+            "draft": {
+              "title": "Action Imparfaite",
+              "technique": "texte_recadrage",
+              "instruction": "Lis ce texte dès que tu sens l'envie de peaufiner.",
+              "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+              "target_label": "relire la note et sortir trois puces imparfaites",
+              "why_it_helps": "Pour recadrer le besoin de tout comprendre avant de produire.",
+              "generated_asset": "Ouvre le doc. Écris trois puces, même moches. Le propre viendra après, l'action c'est maintenant.",
+              "technique_title": "Le texte magique",
+              "supporting_points": [
+                "Baisse la pression",
+                "Action brute",
+                "Zéro perfection"
+              ],
+              "activation_keyword": null
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ton brouillon pour \"Action Imparfaite\" via Le texte magique :\n\"Ouvre le doc. Écris trois puces, même moches. Le propre viendra après, l'action c'est maintenant.\"\nLis ce texte dès que la résistance monte pour faire le premier geste.\nEst-ce que je crée ta carte ?"
+          },
+          "status": "pending_confirmation",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "01465da8-4759-4d5f-8146-e00ba6d9210a",
+          "selected_handler": "prepare_attack_card"
+        },
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "relire la note et sortir trois puces imparfaites",
+              "type": "action",
+              "priority": "medium",
+              "query_hint": "perfectionnisme redaction",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "4",
+      "request_id": "global15_20260520_r6-t04",
+      "created_at": "2026-05-20T18:08:45.973Z",
+      "user": "Oui, crée cette carte. Et garde en tête ce piège: chercher à tout comprendre d'abord me bloque avant le brouillon.",
+      "sophia": "C'est fait. J'ai créé cette carte d'attaque :\n\nAction Imparfaite\nTechnique : Le texte magique\nOuvre le doc. Écris trois puces, même moches. Le propre viendra après, l'action c'est maintenant.\n\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque pour la relire et l'utiliser. Pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation. 🙂",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "prepare_attack_card"
+          }
+        ],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "perfectionnisme et blocage",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            },
+            {
+              "key": "psychologie.peur_echec",
+              "type": "domain_key",
+              "priority": "low",
+              "query_hint": "besoin de tout comprendre avant d'agir",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [
+          "prepare_attack_card"
+        ],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "5",
+      "request_id": "global15_20260520_r6-t05",
+      "created_at": "2026-05-20T18:09:27.998Z",
+      "user": "Je l'applique maintenant. Donne-moi une phrase courte qui me garde sur le brouillon, pas sur la version parfaite.",
+      "sophia": "Parfait, vas-y: “Brouillon d’abord, logique ensuite. Trois puces moches maintenant, version propre après.” 📝🙂",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "route_reason": "active_conversation_skill_continue",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "mini_compte_rendu_client",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "perfectionnisme et blocage rédaction",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "6",
+      "request_id": "global15_20260520_r6-t06",
+      "created_at": "2026-05-20T18:09:43.197Z",
+      "user": "J'ai écrit deux puces. La troisième est moche, et j'ai honte de la laisser comme ça.",
+      "sophia": "Oh non… je vois le piège : tu ne “corriges” pas la troisième puce, tu te juges toi. 😕  \nRespire 10 secondes, et on fait juste une micro-réparation sans chercher le parfait.\n\nPhrase à appliquer maintenant :\n“Cette troisième puce est un brouillon. Je la rends présentable, pas parfaite.”\n\nMicro-action (30 secondes max) : relis la troisième puce et ne change qu’une seule chose (au choix) : verbe, ordre des idées, ou un mot trop flou. ✅\n\nTu veux que je te propose une façon de la “rendre présentable” selon ce que tu as écrit (copie/colle la troisième puce) ?",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "conversation_handler",
+        "selected_handler": "emotional_repair",
+        "route_reason": "skill_handoff_requested",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "psychologie.emotions",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "honte et perfectionnisme",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            },
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "low",
+              "query_hint": "blocage perfectionniste",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "7",
+      "request_id": "global15_20260520_r6-t07",
+      "created_at": "2026-05-20T18:10:03.856Z",
+      "user": "Pas besoin de copier-coller. Je la garde en info à vérifier. Propose-moi juste le prochain micro-geste, sans liste longue.",
+      "sophia": "Ok, tu gardes l’info à vérifier : parfait. 🙌\n\nTon prochain micro-geste : relis ta note 2 minutes, puis écris juste une seule phrase “brouillon” qui commence par “Résultat : …”, sans corriger.",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "conversation_handler",
+        "selected_handler": "emotional_repair",
+        "route_reason": "active_conversation_skill_continue",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habit:travail.focus",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "perfectionnisme et blocage brouillon",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "psychologie.peur_echec",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "honte brouillon moche",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "8",
+      "request_id": "global15_20260520_r6-t08",
+      "created_at": "2026-05-20T18:10:21.126Z",
+      "user": "Fait. Programme-moi un rappel demain à 8h30: relire une fois, garder le brouillon, sortir trois puces telles quelles.",
+      "sophia": "C’est programmé pour jeudi 21 mai à 08:30 : ce que tu as prévu. 🙂",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "active_skill_exit_requested",
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "create_one_shot_reminder"
+          }
+        ],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "perfectionnisme_brouillon",
+              "type": "topic",
+              "priority": "medium",
+              "query_hint": "piege perfectionnisme brouillon",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "9",
+      "request_id": "global15_20260520_r6-t09",
+      "created_at": "2026-05-20T18:10:36.378Z",
+      "user": "Ce rappel ponctuel que tu viens de programmer, je le retrouve où si je veux juste vérifier ou l'annuler plus tard ?",
+      "sophia": "Pour ce rappel ponctuel, je le garde comme un rappel programmé depuis le chat.\n\nTu n'as rien à remettre dans le Plan. Pour le modifier, le plus fiable est de me le demander ici clairement, par exemple: \"change le rappel de demain à 9h\" ou \"annule le rappel de demain\".\n\nLes rappels récurrents, eux, se gèrent côté Initiatives/Rappels quand l'interface est disponible. 🙂",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason": "skill_entry_signal",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "10",
+      "request_id": "global15_20260520_r6-t10",
+      "created_at": "2026-05-20T18:10:53.425Z",
+      "user": "Ok, laisse l'interface de côté. Tu te souviens du piège de travail que je viens de te demander de garder en tête ?",
+      "sophia": "Oui 🙂 Ton piège, c’est chercher à tout comprendre d’abord, et ça te bloque avant même d’écrire le brouillon.\n\nTu veux que je te le reformule en une phrase ultra-courte “à relire” ? 📝",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "normal_reply_default",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "piege_travail_honte_puces",
+              "type": "topic",
+              "priority": "high",
+              "query_hint": "piège de travail puces honte",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "recent_interaction",
+              "type": "event",
+              "priority": "medium",
+              "query_hint": "dernière demande de garder en tête un piège",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "11",
+      "request_id": "global15_20260520_r6-t11",
+      "created_at": "2026-05-20T18:11:06.970Z",
+      "user": "Oui, formule-le en une version ultra courte que tu pourrais réutiliser quand je reparle d'un document à écrire.",
+      "sophia": "Yes 🙂 Voici la version ultra courte à recoller mentalement :\n\n“Brouillon d’abord. Info à vérifier ensuite. Le parfait attend.” 📝\n\nTu veux que je te la rende encore plus sèche (encore 2-3 mots) ou ça te va ?",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "route_reason": "skill_entry_signal",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "piege_travail_ecriture",
+              "type": "topic",
+              "priority": "high",
+              "query_hint": "piège de travail document brouillon",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "12",
+      "request_id": "global15_20260520_r6-t12",
+      "created_at": "2026-05-20T18:11:25.123Z",
+      "user": "Ça me va. Pour la suite, pose-moi une seule question courte à la fois; les listes longues me font décrocher quand je bloque.",
+      "sophia": "Bien reçu. Pour la suite, je te poserai moins de questions, plus courtes, surtout quand tu es bloqué. Si c'est bien ça, je le garde comme préférence. 🙂",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "update_coach_preferences",
+        "route_reason": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "coach.question_tendency": "low"
+              },
+              "reason": "Ça me va. Pour la suite, pose-moi une seule question courte à la fois; les listes longues me font décrocher quand je bloque.",
+              "summary": "je te poserai moins de questions, plus courtes, surtout quand tu es bloqué."
+            },
+            "output_schema": "coach_preferences_patch_draft_v1",
+            "operation_type": "update_coach_preferences",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Bien reçu. Pour la suite, je te poserai moins de questions, plus courtes, surtout quand tu es bloqué. Si c'est bien ça, je le garde comme préférence."
+          },
+          "status": "pending_confirmation",
+          "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+          "operation_id": "aff8ca7d-9010-45ab-9f72-d5a3406ca471",
+          "selected_handler": "update_coach_preferences"
+        },
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "blocage et listes longues",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "13",
+      "request_id": "global15_20260520_r6-t13",
+      "created_at": "2026-05-20T18:11:52.807Z",
+      "user": "Oui, garde cette préférence. Et donne-moi juste le mini récap de la phrase ultra courte.",
+      "sophia": "C'est fait. J'ai appliqué cette préférence : je te poserai moins de questions, plus courtes, surtout quand tu es bloqué. 🙂",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "execution_breakdown",
+        "route_reason": "active_conversation_skill_continue",
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "update_coach_preferences"
+          }
+        ],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "coach_preferences",
+              "type": "topic",
+              "priority": "high",
+              "query_hint": "style de communication et questions courtes",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "perfectionnisme et blocage ecriture",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [
+          "update_coach_preferences"
+        ],
+        "durable_effect": "coach.question_tendency"
+      }
+    },
+    {
+      "turn": "14",
+      "request_id": "global15_20260520_r6-t14",
+      "created_at": "2026-05-20T18:12:09.993Z",
+      "user": "Ok. Ne crée rien de nouveau. Fais juste un récap sobre: ce que j'ai fait, ce qui est prévu demain, et le piège à surveiller.",
+      "sophia": "Ok 🙂 Récap sobre :\n\n- Ce que t’as fait : tu as réutilisé la phrase “brouillon d’abord…”, puis tu as programmé un rappel pour demain matin.\n- Ce qui est prévu demain : relire une fois, garder le brouillon, puis sortir trois puces telles quelles à 8h30.\n- Le piège à surveiller : vouloir corriger/changer tout de suite pour que ce soit parfait, et te juger avant d’avoir juste rendu “présentable”. 📝",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "active_skill_exit_requested",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "today_execution",
+              "type": "event",
+              "priority": "high",
+              "query_hint": "actions faites aujourd'hui",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "piege_travail",
+              "type": "topic",
+              "priority": "medium",
+              "query_hint": "piège de travail brouillon d'abord",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "15",
+      "request_id": "global15_20260520_r6-t15",
+      "created_at": "2026-05-20T18:12:23.803Z",
+      "user": "Et tu as bien gardé la préférence une seule question courte quand je bloque ?",
+      "sophia": "Bien reçu. Pour la suite, je te poserai moins de questions, plus courtes, surtout quand tu es bloqué. Si c'est bien ça, je le garde comme préférence. 🙂",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "update_coach_preferences",
+        "route_reason": "tool_skill_intent_start",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "coach.question_tendency": "low"
+              },
+              "reason": "Et tu as bien gardé la préférence une seule question courte quand je bloque ?",
+              "summary": "je te poserai moins de questions, plus courtes, surtout quand tu es bloqué."
+            },
+            "output_schema": "coach_preferences_patch_draft_v1",
+            "operation_type": "update_coach_preferences",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Bien reçu. Pour la suite, je te poserai moins de questions, plus courtes, surtout quand tu es bloqué. Si c'est bien ça, je le garde comme préférence."
+          },
+          "status": "pending_confirmation",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "183c5f22-802f-4f07-9685-79cdd37e9d74",
+          "selected_handler": "update_coach_preferences"
+        },
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "coach_preferences",
+              "type": "topic",
+              "priority": "high",
+              "query_hint": "préférence une seule question courte quand je bloque",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    }
+  ],
+  "incidents": []
+}

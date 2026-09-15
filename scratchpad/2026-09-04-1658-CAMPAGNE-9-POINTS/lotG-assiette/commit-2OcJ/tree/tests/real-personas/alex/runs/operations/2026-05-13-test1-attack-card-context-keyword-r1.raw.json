@@ -1,0 +1,645 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux une carte d'attaque pour le sas du soir. Quand je sens que je vais craquer, il me faut un signal de secours tres rapide, sans lire un long texte.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "J'hésite entre \"Faire le sas de déchargement\" / \"Bilan et ajustement du sas\". Dis-moi laquelle viser.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1-t01",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "6918b816-8e1a-4086-a9dc-0ce79e880e39",
+        "ts": "2026-05-13T13:27:24.417+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3373,
+          "latency_ms": 9179,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 365,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sas du soir",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "difficultés et structure du sas de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "procrastination ou craquage soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1-t01",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sas du soir",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "difficultés et structure du sas de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "procrastination ou craquage soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "user_anticipates_friction_and_needs_rapid_signal",
+                "detected": true,
+                "confidence_band": "medium"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [],
+          "source_message_id": "6918b816-8e1a-4086-a9dc-0ce79e880e39",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "ask_question",
+          "slot_state": {
+            "slot": "target",
+            "needed": true,
+            "reason": "target_ambiguous",
+            "status": "ambiguous",
+            "candidates": [
+              {
+                "kind": "plan_item",
+                "title": "Faire le sas de déchargement",
+                "reason": "close_partial_plan_item_matches",
+                "confidence": 0.5,
+                "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+                "matched_tokens": [
+                  "sas"
+                ]
+              },
+              {
+                "kind": "plan_item",
+                "title": "Bilan et ajustement du sas",
+                "reason": "close_partial_plan_item_matches",
+                "confidence": 0.33,
+                "plan_item_id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+                "matched_tokens": [
+                  "sas"
+                ]
+              }
+            ],
+            "known_slots": {
+              "technique": "pre_engagement",
+              "technique_options": [
+                {
+                  "title": "Mot de bascule",
+                  "reason": "utile quand il faut un signal de bascule rapide",
+                  "example": "Exemple pour \"cette action\": un mot-cle a envoyer quand le moment devient fragile.",
+                  "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                  "recommended": true,
+                  "technique_key": "pre_engagement"
+                },
+                {
+                  "title": "Preparer le terrain",
+                  "reason": "option simple pour faciliter le demarrage",
+                  "example": "Exemple pour \"cette action\": preparer l'environnement avant le moment critique.",
+                  "description": "Retirer de la friction avant que le moment d'action arrive.",
+                  "recommended": false,
+                  "technique_key": "preparer_terrain"
+                },
+                {
+                  "title": "Le texte magique",
+                  "reason": "option utile si la resistance est surtout mentale",
+                  "example": "Exemple pour \"cette action\": un texte court a relire quand tu negocies avec toi-meme.",
+                  "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                  "recommended": false,
+                  "technique_key": "texte_recadrage"
+                }
+              ],
+              "technique_signal_text": "Je veux une carte d'attaque pour le sas du soir. Quand je sens que je vais craquer, il me faut un signal de secours tres rapide, sans lire un long texte.",
+              "activation_keyword_options": [
+                "SAS",
+                "VIDE",
+                "NUIT"
+              ],
+              "occupied_activation_keywords": [
+                {
+                  "activation_keyword": "PAUSE",
+                  "activation_keyword_normalized": "pause"
+                },
+                {
+                  "activation_keyword": "BASCULE",
+                  "activation_keyword_normalized": "bascule"
+                }
+              ]
+            }
+          },
+          "reason_code": "skill_entry_signal",
+          "missing_slots": [
+            "target"
+          ],
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 9256,
+        "created_at": "2026-05-13T13:27:24.418858+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Le sas de dechargement, pas le bilan. Le moment ou je vide ma tete le soir.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1-t02",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Pour Mot de bascule, il me faut ton mot declencheur avant de creer la carte. Choisis un mot court lie a ton probleme avec l'action. Je peux te proposer SAS, VIDE, NUIT, ou tu peux en donner un autre.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1-t02",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "ec8dcb22-3556-4351-ad3b-175da45e44e5",
+        "ts": "2026-05-13T13:27:43.166+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4323,
+          "latency_ms": 9933,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 331,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "sas de dechargement soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1-t02",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "sas de dechargement soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+              "user_intent": "clarify",
+              "explicitness": "explicit",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "ec8dcb22-3556-4351-ad3b-175da45e44e5",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "ask_question",
+          "slot_state": {
+            "slot": "activation_keyword",
+            "needed": true,
+            "reason": "pre_engagement_keyword_missing",
+            "status": "missing",
+            "known_slots": {
+              "target": {
+                "kind": "plan_item",
+                "title": "Faire le sas de déchargement",
+                "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+              },
+              "technique": "pre_engagement",
+              "technique_options": [
+                {
+                  "title": "Mot de bascule",
+                  "reason": "utile quand il faut un signal de bascule rapide",
+                  "example": "Exemple pour \"cette action\": un mot-cle a envoyer quand le moment devient fragile.",
+                  "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                  "recommended": true,
+                  "technique_key": "pre_engagement"
+                },
+                {
+                  "title": "Preparer le terrain",
+                  "reason": "option simple pour faciliter le demarrage",
+                  "example": "Exemple pour \"cette action\": preparer l'environnement avant le moment critique.",
+                  "description": "Retirer de la friction avant que le moment d'action arrive.",
+                  "recommended": false,
+                  "technique_key": "preparer_terrain"
+                },
+                {
+                  "title": "Le texte magique",
+                  "reason": "option utile si la resistance est surtout mentale",
+                  "example": "Exemple pour \"cette action\": un texte court a relire quand tu negocies avec toi-meme.",
+                  "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                  "recommended": false,
+                  "technique_key": "texte_recadrage"
+                }
+              ],
+              "technique_signal_text": "Je veux une carte d'attaque pour le sas du soir. Quand je sens que je vais craquer, il me faut un signal de secours tres rapide, sans lire un long texte.\nLe sas de dechargement, pas le bilan. Le moment ou je vide ma tete le soir.",
+              "activation_keyword_options": [
+                "SAS",
+                "VIDE",
+                "NUIT"
+              ],
+              "occupied_activation_keywords": [
+                {
+                  "activation_keyword": "PAUSE",
+                  "activation_keyword_normalized": "pause"
+                },
+                {
+                  "activation_keyword": "BASCULE",
+                  "activation_keyword_normalized": "bascule"
+                }
+              ]
+            },
+            "technique_options": [
+              {
+                "title": "Mot de bascule",
+                "reason": "utile quand il faut un signal de bascule rapide",
+                "example": "Exemple pour \"cette action\": un mot-cle a envoyer quand le moment devient fragile.",
+                "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                "recommended": true,
+                "technique_key": "pre_engagement"
+              },
+              {
+                "title": "Preparer le terrain",
+                "reason": "option simple pour faciliter le demarrage",
+                "example": "Exemple pour \"cette action\": preparer l'environnement avant le moment critique.",
+                "description": "Retirer de la friction avant que le moment d'action arrive.",
+                "recommended": false,
+                "technique_key": "preparer_terrain"
+              },
+              {
+                "title": "Le texte magique",
+                "reason": "option utile si la resistance est surtout mentale",
+                "example": "Exemple pour \"cette action\": un texte court a relire quand tu negocies avec toi-meme.",
+                "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                "recommended": false,
+                "technique_key": "texte_recadrage"
+              }
+            ],
+            "activation_keyword_options": [
+              "SAS",
+              "VIDE",
+              "NUIT"
+            ]
+          },
+          "reason_code": "active_tool_skill_continue",
+          "missing_slots": [
+            "activation_keyword"
+          ],
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 10021,
+        "created_at": "2026-05-13T13:27:43.169434+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux PAUSE comme mot.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1-t03",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Tu veux ajuster une action precise, le niveau actuel, ou le plan dans son ensemble ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1-t03",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "ba49eb99-a070-4869-941f-2c528b337a8a",
+        "ts": "2026-05-13T13:27:54.843+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4660,
+          "latency_ms": 2562,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 279,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r1-t03",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Faire le sas de déchargement",
+              "user_intent": "clarify",
+              "explicitness": "explicit",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "ba49eb99-a070-4869-941f-2c528b337a8a",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "ask_question",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+          "target_title": "Bilan et ajustement du sas",
+          "missing_slots": [
+            "scope"
+          ],
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 2633,
+        "created_at": "2026-05-13T13:27:54.843922+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

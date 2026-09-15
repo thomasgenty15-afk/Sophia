@@ -139,14 +139,18 @@ Deno.test("aucun apport ⇒ rien, et tous les compteurs sont là", () => {
   const r = fixedIntakeSlotKcal({ index: INDEX, intakes: [], dayToken: "mon" });
   assertEquals(r.bySlot.size, 0);
   assertEquals(r.looseKcal, 0);
-  // ⛔ Les cinq clés existent même à zéro: « rien déclaré » et « comptage non
+  // ⛔ Les SIX clés existent même à zéro: « rien déclaré » et « comptage non
   // branché » doivent se distinguer dans un journal.
+  // ⟳ 2026-09-12 · C1 — `protein_unknown` est la sixième, et la carte des
+  // protéines est vide comme celle des kcal.
+  assertEquals(r.proteinBySlot.size, 0);
   assertEquals(r.counts, {
     declared: 0,
     referential: 0,
     unresolved: 0,
     loose: 0,
     off_day: 0,
+    protein_unknown: 0,
   });
 });
 
@@ -158,4 +162,74 @@ Deno.test("le module est PUR: même entrée, même sortie, entrée intacte", () 
   assertEquals([...a.bySlot.entries()], [...b.bySlot.entries()]);
   assertEquals(a.counts, b.counts);
   assertEquals(JSON.stringify(intakes), avant);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-12 · ÉTAPE C1 — LES PROTÉINES, DEPUIS LA MÊME RÉFÉRENCE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Le plan de clôture l'exige: « mesurer calories ET protéines des apports fixes
+// depuis leurs références ». Elles n'étaient mesurées nulle part, et
+// `proteinFloorAllocation` recevait `fixedProteinG: null` en dur — une porte
+// construite et désarmée.
+
+Deno.test("⛔ C1 · le shaker déclaré rend AUSSI ses protéines, au même moment", () => {
+  const { intakes } = parseFixedIntakes([SHAKER]);
+  const r = fixedIntakeSlotKcal({ index: INDEX, intakes, dayToken: "mon" });
+  // ⛔ LES 24 g DU POT, PAS UNE MOYENNE DE GROUPE. Le référentiel ne connaît
+  // aucune poudre de protéine (911 références, zéro whey): le nombre imprimé
+  // sur le pot est la seule mesure disponible, et c'est celle qu'on lit.
+  assertEquals(Math.round(r.proteinBySlot.get("snack_pm") ?? -1), 24);
+  assertEquals(r.proteinBySlot.size, 1);
+  assertEquals(r.counts.protein_unknown, 0);
+});
+
+Deno.test("⛔ C1 · un apport `loose` ne retranche NI kcal NI protéine", () => {
+  // La symétrie EST la règle: retrancher la protéine d'un apport dont l'énergie
+  // n'est retranchée nulle part abaisserait un plancher sur une énergie
+  // inchangée.
+  const { intakes } = parseFixedIntakes([{ ...SHAKER, slot: undefined }]);
+  const r = fixedIntakeSlotKcal({ index: INDEX, intakes, dayToken: "mon" });
+  assertEquals(r.bySlot.size, 0);
+  assertEquals(r.proteinBySlot.size, 0);
+  assertEquals(r.counts.loose, 1);
+  assert(r.looseKcal > 0, "son énergie est RENDUE, pour être journalisée");
+});
+
+Deno.test("⛔ C1 · une protéine ILLISIBLE n'est pas zéro — elle se compte", () => {
+  // ⛔ LE CAS QUI MORD: l'énergie est lisible, la protéine ne l'est pas. Poser
+  // `0` dirait « ce yaourt n'apporte aucune protéine », ce qui est une
+  // affirmation; l'absence de clé dit « on ne sait pas », et le plancher n'est
+  // alors pas abaissé.
+  const sansProteine = buildCompositionIndex(
+    [ref({ slug: "yoghurt", proteinG: null })],
+    [{ alias: "yaourt", slug: "yoghurt" }],
+  );
+  const { intakes } = parseFixedIntakes([{
+    food_ref: "yaourt",
+    label: "yaourt",
+    amount: 200,
+    unit: "g",
+    days: [],
+    slot: "breakfast",
+    replaces_meal: false,
+  }]);
+  const r = fixedIntakeSlotKcal({ index: sansProteine, intakes, dayToken: "mon" });
+  assert((r.bySlot.get("breakfast") ?? 0) > 0, "l'énergie, elle, est lue");
+  assertEquals(r.proteinBySlot.has("breakfast"), false);
+  assertEquals(r.counts.protein_unknown, 1);
+
+  // LE CAS QUI PASSE: la même ligne avec sa colonne protéine.
+  const { intakes: memes } = parseFixedIntakes([{
+    food_ref: "yaourt",
+    label: "yaourt",
+    amount: 200,
+    unit: "g",
+    days: [],
+    slot: "breakfast",
+    replaces_meal: false,
+  }]);
+  const ok = fixedIntakeSlotKcal({ index: INDEX, intakes: memes, dayToken: "mon" });
+  assertEquals(Math.round(ok.proteinBySlot.get("breakfast") ?? -1), 8);
+  assertEquals(ok.counts.protein_unknown, 0);
 });

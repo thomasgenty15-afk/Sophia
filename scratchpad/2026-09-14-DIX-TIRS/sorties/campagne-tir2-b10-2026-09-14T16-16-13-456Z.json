@@ -1,0 +1,105 @@
+{
+  "cas": "gain",
+  "tir": 2,
+  "titre": "GAIN · même fenêtre et même rythme · petit-suisse et pita au catalogue",
+  "reel": true,
+  "lance_le": "2026-09-14T16:16:13.456Z",
+  "jour_local": "2026-09-14",
+  "heure_locale": "18:16",
+  "cases_annoncees": 6,
+  "bouches": 1,
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel (horloge réelle du lancement)",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'heure du lancement — JAMAIS de la liste des plats",
+      "slots": "rythme déclaré du tir, sinon les trois repas de la maison",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-14T16:16:13.456Z",
+      "jour_local": "2026-09-14",
+      "heure_locale": "18:16",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": null,
+      "decalage_ms": 0
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 6,
+      "bouches_annoncees": 1,
+      "premier_jour_partiel": [],
+      "attendue": {
+        "starts_on": "2026-09-15",
+        "duration_days": 2,
+        "dropped": "mon",
+        "cause": "shopping_cutoff"
+      },
+      "moments_passes": [
+        "breakfast",
+        "lunch"
+      ],
+      "moments_retenus_pour_les_courses": [
+        "dinner"
+      ]
+    },
+    "jours": [
+      "tue",
+      "wed"
+    ],
+    "jour_vers_date": {
+      "tue": "2026-09-15",
+      "wed": "2026-09-16"
+    },
+    "cases_par_bouche": {
+      "8da310d2-6862-44bf-a6e2-c90cf9f65239": {
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "wed": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "8da310d2-6862-44bf-a6e2-c90cf9f65239": 6
+    },
+    "cases_attendues_total": 6,
+    "appetit_pose": "average",
+    "repas_legers_poses": []
+  },
+  "duree_ms": 171858,
+  "plafond_heberge_ms": 150000,
+  "statut": 502,
+  "erreur_reseau": null,
+  "reponse": {
+    "message": "An invalid response was received from the upstream server"
+  },
+  "reponse_brute": "",
+  "etapes": {},
+  "ligne_ecrite": null,
+  "meta_bouche": {
+    "member_id": "8da310d2-6862-44bf-a6e2-c90cf9f65239",
+    "second_member": null,
+    "user_id": "16c576c2-2023-4b79-ab0c-ca3b768cf6a8",
+    "email": "lotf.camp2.b10@keeltest.dev",
+    "first_name": "Max",
+    "birth_date": "1998-07-02",
+    "goal": "muscle_gain",
+    "pace": 0.25,
+    "weight_kg": 62,
+    "height_cm": 178,
+    "appetite": "average",
+    "rhythm": null,
+    "light_slots": [],
+    "fixed_intakes": null,
+    "allergie": null
+  }
+}

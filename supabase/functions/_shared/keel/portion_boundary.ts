@@ -1,0 +1,467 @@
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * KEEL · LOT 1 (2026-09-12) — LA FRONTIÈRE DE L'ARRONDI : L'ENTIER LE PLUS
+ * PROCHE **À L'INTÉRIEUR** DES BORNES.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── ⛔ LE DÉFAUT, MESURÉ SUR 45 PORTIONS RÉELLES ────────────────────────
+ * Campagne des six tirs, 2026-09-12, tir 4 (petit appétit) :
+ *
+ *     {"day":"sun","slot":"breakfast","grams":631,"limit":630,"bound":"max"}
+ *
+ * **1 gramme au-dessus du plafond.** C'est la forme exacte du
+ * `sun/lunch 701 g / 700` que C4 avait nommée. Le rapport de clôture l'écrit :
+ * « l'arrondi au plus proche peut franchir une borne d'une demi-unité, et rien
+ * ne la rabote après ». Chaque item d'un contenant est arrondi séparément
+ * (`Math.round` dans `applySizing`) ; la somme de N entiers arrondis n'est pas
+ * l'arrondi de la somme, et elle peut sortir du couloir que la somme
+ * respectait.
+ *
+ * ── ⛔ CE QUE CE MODULE N'EST PAS ───────────────────────────────────────
+ * Ce n'est **pas** une recomposition, et ce n'est **pas** un retour aux
+ * fractions. La revue est explicite : « conserver le principe choisi… définir
+ * le traitement déterministe de frontière ». On ne rouvre aucune optimisation,
+ * on ne change aucune proportion de recette, on ne coupe aucune pièce entière :
+ * on déplace des GRAMMES DE PORTION, c'est-à-dire ce que `applySizing` avait
+ * déjà décidé d'écrire, d'un entier vers l'entier voisin.
+ *
+ * ── ⛔ ET IL NE RÉPARE QUE COMPLÈTEMENT ─────────────────────────────────
+ * Une portion qu'on ne peut pas ramener ENTIÈREMENT dans ses bornes n'est pas
+ * touchée du tout, et elle se COMPTE (`still_over_max` / `still_under_min`).
+ * Un rabotage partiel rendrait une portion que plus personne n'a mesurée :
+ * ni celle du dimensionnement, ni une portion conforme.
+ *
+ * ── ⛔ ET IL NE PUISE JAMAIS PLUS QUE LE LOT ────────────────────────────
+ * « Répartir les prélèvements des préparations sans dépasser le lot
+ * disponible. » Raboter ne peut rien dépasser (on prélève MOINS). Remonter,
+ * si : la marge est bornée par ce que la casserole produit réellement
+ * (`potReadyGrams`), marge d'identité comprise. Un lot dont la masse est
+ * INCONNUE n'offre aucune marge — « je ne sais pas » n'est pas « ça va ».
+ *
+ * ⚠️ LE FRAIS NE SE REMONTE PAS. Un item sans `preparationId` vient des
+ * ingrédients du plat : lui ajouter des grammes ferait servir un aliment que
+ * la recette ne contient pas. On rabote le frais (la recette en contient
+ * assez), on ne l'augmente pas.
+ *
+ * PURE: no I/O, no clock, no randomness. Mute les items qu'on lui DONNE, comme
+ * `roundQuantityLines`.
+ */
+
+// ⟳ 2026-09-14 · BÊTA 1C ⑦ — LE PLANCHER D'IDENTITÉ VIENT DE `box_densify.ts`,
+// pas d'une seconde écriture ici: les deux modules déplacent des grammes dans
+// les mêmes contenants.
+import { itemFloorGrams } from "./box_densify.ts";
+import type { FoodGroupRef } from "./tokens.ts";
+
+/** Un item de contenant, réduit à ce dont ce module a besoin. */
+export interface BoundedBoxItem {
+  /** L'identifiant de la casserole où cet item PUISE. `null` = frais du plat. */
+  preparationId: string | null;
+  grams: number;
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-14 · BÊTA 1C ⑦ — LE GROUPE ALIMENTAIRE, POUR SON PLANCHER
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ CE QUE SON ABSENCE COÛTAIT, MESURÉ. `planShave` prend au PLUS GROS item
+   * d'abord, jusqu'à `MIN_ITEM_GRAMS = 1`. Sur un gros rabotage, le plus gros
+   * item est le féculent — et la clôture du 2026-09-14 a lu **1 g de couscous**
+   * dans un plat qui s'appelle « poulet rôti, couscous complet et courgette ».
+   * Le repas rentrait dans ses bornes, et ce n'était plus le plat.
+   *
+   * `null` = groupe inconnu ⇒ plancher générique (50 % de sa masse d'origine),
+   * comme `box_densify.ts` le fait déjà pour la même population.
+   *
+   * ⛔ REQUIS ET NULLABLE, jamais `?`. Un `?` oublié ferait retomber tous les
+   * items sur le plancher de 1 g, c'est-à-dire sur l'état d'avant ce lot —
+   * une garde construite et désarmée en silence.
+   */
+  group: FoodGroupRef | null;
+}
+
+/** Un contenant, réduit à ce dont ce module a besoin. */
+export interface BoundedBox {
+  boxId: string;
+  day: string | null;
+  slot: string | null;
+  /** Une seule bouche = une ASSIETTE jugeable ; plusieurs = un bac. */
+  memberIds: readonly string[];
+  items: BoundedBoxItem[];
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-13 · LOT 2 § 2.4 — L'UNITÉ JUGÉE EST LE **REPAS**, PAS LE CONTENANT
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── ⛔ LE DÉFAUT, MESURÉ (tir `perte-iso10`, plan `d1b0036e`) ─────────────
+// `splitPlateWithComplement` avait partagé l'assiette de Lea : **216 g** du plat
+// commun + **9 g** de complément = **225 g**, exactement son plancher, pour la
+// cible de son moment. Deux plats, donc DEUX contenants à son nom, au même jour
+// et au même moment. Ce module les a jugés SÉPARÉMENT : 216 g < 225, il a relevé
+// la part commune à 225 (`raised: 2, grams_raised: 14`), et l'assiette écrite
+// pèse **225 + 9 = 234 g** — 563,6 kcal pour une cible de 542,85, **+3,8 %**.
+//
+// ── LA RÈGLE, ET ELLE EST DANS LE NOM DES BORNES ────────────────────────
+// `plateBoundsFor` rend ce que pèse **une assiette** à une bouche, un jour, un
+// moment. Ce n'est pas une propriété d'un plat : deux plats du même moment pour
+// la même bouche se partagent ces bornes-là. Le minimum concerne donc LEUR
+// SOMME, et le réappliquer à chaque composant le compte autant de fois qu'il y a
+// de plats.
+//
+// ⛔ CE QUI NE DISPARAÎT PAS POUR AUTANT — les limites d'un COMPOSANT restent,
+// parce qu'elles sont justifiées par son propre contrat :
+//   · `MIN_ITEM_GRAMS` : un item ne descend pas sous 1 g (le retirer serait une
+//     recomposition) ;
+//   · la marge de la casserole : on ne puise jamais plus que ce que le lot
+//     produit, et elle se compte sur TOUS les contenants à la fois ;
+//   · le frais d'un plat ne se remonte jamais.
+//
+// ⚠️ ET UN BAC RESTE HORS JUGEMENT. Les grammes d'un contenant à plusieurs noms
+// sont une quantité de RÉCIPIENT, pas la portion de quelqu'un.
+
+/**
+ * LE REPAS D'UNE BOUCHE À UN MOMENT — la clé qui regroupe ses contenants.
+ *
+ * ⛔ C'EST LA MÊME CLÉ QUE CELLE DES BORNES (`(memberId, day, slot)` chez
+ * l'appelant). Les faire diverger rendrait un groupe jugé contre les bornes d'un
+ * autre — et la divergence serait muette.
+ */
+export interface BoundedMeal {
+  memberId: string;
+  day: string | null;
+  slot: string | null;
+}
+
+/** Les bornes de masse d'une assiette, en grammes servis. */
+export interface PortionBounds {
+  min: number;
+  max: number;
+}
+
+/**
+ * ⛔ LES COMPTEURS SONT LE LOT. Un réglage de frontière débranché rend
+ * exactement le même plan qu'un réglage qui marche, à ceci près que ses
+ * compteurs sont nuls.
+ */
+export interface PortionBoundaryCounts {
+  /** Le dénominateur: tous les contenants vus. */
+  boxes: number;
+  /**
+   * ⟳ 2026-09-13 · LOT 2 — LES REPAS: les contenants d'UNE bouche, regroupés par
+   * jour et moment. C'est l'unité que tous les compteurs ci-dessous emploient.
+   */
+  meals: number;
+  /**
+   * ⟳ 2026-09-13 · LOT 2 — CEUX QUI PORTENT PLUS D'UN CONTENANT (un complément).
+   *
+   * ⛔ SANS CE NOMBRE, LE LOT EST INVISIBLE. À zéro, le regroupement rend
+   * exactement le même plan que le jugement contenant par contenant: on ne
+   * saurait pas si la règle ne mord pas, ou si elle n'est pas branchée.
+   */
+  multi_box_meals: number;
+  /** Les contenants à PLUSIEURS noms, jamais jugés: un bac n'est pas une assiette. */
+  tubs_not_judged: number;
+  /** Les repas dont on connaît les bornes — les autres ne sont pas jugés. */
+  judged: number;
+  /** Déjà dans le couloir: rien à faire. */
+  already_in_bounds: number;
+  /** Ramenés SOUS le plafond. */
+  shaved: number;
+  /** Ramenés AU-DESSUS du plancher. */
+  raised: number;
+  /** Grammes réellement retirés. L'amplitude, pas seulement le nombre de cas. */
+  grams_shaved: number;
+  /** Grammes réellement ajoutés, tous puisés dans une casserole. */
+  grams_raised: number;
+  /** Au-dessus du plafond et INTOUCHÉS: le rabotage ne tenait pas. */
+  still_over_max: number;
+  /** Sous le plancher et INTOUCHÉS. */
+  still_under_min: number;
+  /**
+   * ⛔ SOUS LE PLANCHER, ET C'EST LA CASSEROLE QUI DIT NON. Non nul, il dit que
+   * la remontée a été REFUSÉE par la disponibilité du lot — pas qu'elle a
+   * échoué, pas qu'elle n'était pas nécessaire.
+   */
+  pot_headroom_blocked: number;
+}
+
+export function emptyPortionBoundaryCounts(): PortionBoundaryCounts {
+  return {
+    boxes: 0,
+    meals: 0,
+    multi_box_meals: 0,
+    tubs_not_judged: 0,
+    judged: 0,
+    already_in_bounds: 0,
+    shaved: 0,
+    raised: 0,
+    grams_shaved: 0,
+    grams_raised: 0,
+    still_over_max: 0,
+    still_under_min: 0,
+    pot_headroom_blocked: 0,
+  };
+}
+
+/**
+ * LE PLANCHER D'UN ITEM, EN GRAMMES.
+ *
+ * ⚠️ 1 g ET PAS 0. Un item ramené à zéro est un aliment RETIRÉ de l'assiette,
+ * et retirer un aliment est une recomposition — exactement ce que ce module
+ * n'a pas le droit de faire. Le jour où un gramme manque et qu'aucun item ne
+ * peut le donner, la portion n'est pas touchée et elle se compte.
+ */
+const MIN_ITEM_GRAMS = 1;
+
+/**
+ * RAMÈNE CHAQUE **REPAS** DANS SES BORNES, SUR PLACE — ET SEULEMENT QUAND IL
+ * PEUT Y RENTRER ENTIÈREMENT.
+ *
+ * ⛔ UN REPAS = TOUS LES CONTENANTS D'UNE BOUCHE À UN JOUR ET UN MOMENT. Quand
+ * une assiette a été partagée entre un plat commun et un complément, les deux
+ * comptent pour UNE portion: ce sont leurs grammes ADDITIONNÉS qu'on compare aux
+ * bornes, et les deux composants offrent leurs items au rabotage comme à la
+ * remontée. Voir le pavé § 2.4 ci-dessus.
+ *
+ * ⚠️ À APPELER APRÈS l'arrondi des quantités et `regramMeal`, et AVANT
+ * `finalPortionCheck` : c'est le dernier geste qui touche un gramme servi, et
+ * le contrôle qui suit doit lire ce qu'on vient d'écrire.
+ */
+export function fitPortionsToBounds(args: {
+  boxes: readonly BoundedBox[];
+  /**
+   * LES BORNES D'UN REPAS. `null` = on ne sait pas ce qu'il devrait peser ⇒ pas
+   * jugé.
+   *
+   * ⛔ ELLE PREND LE REPAS, PLUS LE CONTENANT — et ce n'est pas cosmétique. Un
+   * rappel par contenant laisserait croire qu'un plat peut avoir ses propres
+   * bornes d'assiette; c'est très exactement la confusion qui a servi 234 g pour
+   * un plancher de 225.
+   */
+  boundsFor: (meal: BoundedMeal) => PortionBounds | null;
+  /**
+   * LA MASSE PRÊTE DE CHAQUE CASSEROLE, par `measurePreparation`. `null` =
+   * immesurable, donc AUCUNE marge (voir le pavé de tête).
+   *
+   * ⛔ REQUISE, PAS OPTIONNELLE. Sans elle une remontée puiserait dans un lot
+   * dont personne ne connaît la taille — « un paramètre de garde optionnel est
+   * une garde désarmée ».
+   */
+  potReadyGrams: ReadonlyMap<string, number | null>;
+  /** La marge d'identité du lot, en %. La MÊME que `POT_IDENTITY_MARGIN`. */
+  potMarginPercent: number;
+}): PortionBoundaryCounts {
+  const counts = emptyPortionBoundaryCounts();
+
+  // ── CE QUE LES CONTENANTS TIRENT DÉJÀ DE CHAQUE CASSEROLE ───────────────
+  // Relevé sur TOUS les contenants avant de bouger quoi que ce soit: la marge
+  // d'une casserole ne se calcule pas contenant par contenant, sinon deux
+  // assiettes puiseraient la même marge.
+  const drawn = new Map<string, number>();
+  for (const box of args.boxes) {
+    for (const item of box.items) {
+      if (item.preparationId === null) continue;
+      const g = Number(item.grams);
+      if (!Number.isFinite(g) || g <= 0) continue;
+      drawn.set(item.preparationId, (drawn.get(item.preparationId) ?? 0) + g);
+    }
+  }
+  const headroomOf = (preparationId: string): number => {
+    const ready = args.potReadyGrams.get(preparationId) ?? null;
+    if (ready === null || !Number.isFinite(ready) || ready <= 0) return 0;
+    const ceiling = ready * (1 + args.potMarginPercent / 100);
+    return Math.max(0, Math.floor(ceiling - (drawn.get(preparationId) ?? 0)));
+  };
+
+  // ── LES REPAS: LES CONTENANTS D'UNE BOUCHE, REGROUPÉS PAR JOUR ET MOMENT ──
+  // ⛔ L'ORDRE DE RENCONTRE FAIT L'ORDRE DES GROUPES, et à l'intérieur d'un
+  // groupe l'ordre des contenants: ce module est déterministe, et le rabotage
+  // départage les égalités « le plus à gauche gagne ».
+  const meals = new Map<string, { meal: BoundedMeal; boxes: BoundedBox[] }>();
+  for (const box of args.boxes) {
+    counts.boxes += 1;
+    // ⚠️ UN BAC N'EST PAS UNE ASSIETTE, et il se compte à part. Ses grammes sont
+    // une quantité de RÉCIPIENT: les comparer à un plafond d'assiette ferait
+    // rougir un bac correct.
+    if (box.memberIds.length !== 1) {
+      counts.tubs_not_judged += 1;
+      continue;
+    }
+    const meal: BoundedMeal = {
+      memberId: box.memberIds[0],
+      day: box.day,
+      slot: box.slot,
+    };
+    const key = `${meal.memberId}|${meal.day ?? ""}|${meal.slot ?? ""}`;
+    const deja = meals.get(key);
+    if (deja) deja.boxes.push(box);
+    else meals.set(key, { meal, boxes: [box] });
+  }
+
+  for (const { meal, boxes } of meals.values()) {
+    counts.meals += 1;
+    if (boxes.length > 1) counts.multi_box_meals += 1;
+    const bounds = args.boundsFor(meal);
+    if (bounds === null) continue;
+    counts.judged += 1;
+    // ⛔ LES ITEMS DES DEUX COMPOSANTS, DANS UNE SEULE LISTE — et ce sont les
+    // MÊMES objets, pas des copies: `applyDeltas` écrit les grammes en place,
+    // donc dans les contenants du plan.
+    const items: BoundedBoxItem[] = boxes.flatMap((b) => b.items);
+    let total = 0;
+    for (const item of items) {
+      const g = Number(item.grams);
+      if (Number.isFinite(g) && g > 0) total += g;
+    }
+    if (total <= 0) continue;
+    if (total >= bounds.min && total <= bounds.max) {
+      counts.already_in_bounds += 1;
+      continue;
+    }
+
+    if (total > bounds.max) {
+      // ⛔ L'ENTIER LE PLUS PROCHE **SOUS** LE PLAFOND. `ceil` et pas `round`:
+      // retirer 0,5 g d'un dépassement de 0,5 g laisserait la portion PILE sur
+      // la borne en flottant, donc parfois au-dessus au centième près.
+      const excess = Math.ceil(total - bounds.max);
+      const plan = planShave(items, excess);
+      if (plan === null) {
+        counts.still_over_max += 1;
+        continue;
+      }
+      applyDeltas(items, plan, drawn);
+      counts.shaved += 1;
+      counts.grams_shaved += excess;
+      continue;
+    }
+
+    // ── SOUS LE PLANCHER ────────────────────────────────────────────────
+    const missing = Math.ceil(bounds.min - total);
+    const plan = planRaise(items, missing, headroomOf);
+    if (plan === null) {
+      counts.still_under_min += 1;
+      // ⛔ NOMMER LA CAUSE. Un repas qui n'a AUCUN item de casserole ne pouvait
+      // pas être remonté par principe; un repas qui en a et que la
+      // disponibilité refuse est un autre fait, et c'est celui-là qui dit que
+      // le lot est trop petit pour l'assiette qu'on promet.
+      if (items.some((it) => it.preparationId !== null)) {
+        counts.pot_headroom_blocked += 1;
+      }
+      continue;
+    }
+    applyDeltas(items, plan, drawn);
+    counts.raised += 1;
+    counts.grams_raised += missing;
+  }
+  return counts;
+}
+
+/**
+ * QUELS GRAMMES RETIRER, ET À QUI — `null` quand le compte n'y est pas.
+ *
+ * ⛔ LE PLUS GROS ITEM D'ABORD, ET C'EST LA SEULE RÈGLE. Un gramme retiré du
+ * plus gros composant est celui qui déplace le moins la recette en
+ * proportion ; répartir un gramme sur cinq items demanderait des fractions,
+ * c'est-à-dire très exactement ce que l'arrondi vient de supprimer.
+ *
+ * ⚠️ DÉTERMINISTE À ÉGALITÉ: à masse égale, l'item le plus À GAUCHE gagne.
+ */
+function planShave(
+  items: readonly BoundedBoxItem[],
+  grams: number,
+): Map<number, number> | null {
+  const order = rankedByGramsDesc(items);
+  const deltas = new Map<number, number>();
+  let left = grams;
+  for (const i of order) {
+    if (left <= 0) break;
+    const g = Number(items[i].grams);
+    if (!Number.isFinite(g) || g <= MIN_ITEM_GRAMS) continue;
+    // ⟳ 2026-09-14 · BÊTA 1C ⑦ — LE PLANCHER EST CELUI DE L'IDENTITÉ, PAS 1 g.
+    // ⛔ `itemFloorGrams` EST LA FONCTION DE `box_densify.ts`, IMPORTÉE. Les
+    // deux modules déplacent des grammes dans les mêmes contenants; deux
+    // barèmes auraient laissé l'un défaire ce que l'autre protège.
+    // ⚠️ ET LE PLANCHER DE 1 g RESTE EN DESSOUS: un item minuscule (une pincée
+    // de sel) ne se fait pas remonter par ce calcul.
+    const plancher = Math.max(
+      MIN_ITEM_GRAMS,
+      itemFloorGrams(Math.floor(g), items[i].group),
+    );
+    const take = Math.min(left, Math.floor(g) - plancher);
+    if (take <= 0) continue;
+    deltas.set(i, -take);
+    left -= take;
+  }
+  // ⛔ `null` ⇒ LE REPAS N'EST PAS TOUCHÉ, ET IL SE COMPTE (`still_over_max`).
+  // C'est la sortie que le plan de bêta réclame: « si la recette ne tient pas
+  // les contraintes sans perdre son identité, elle doit être recomposée, pas
+  // déclarée correcte parce que les calories passent ».
+  return left <= 0 ? deltas : null;
+}
+
+/**
+ * QUELS GRAMMES AJOUTER, ET À QUI — `null` quand la casserole ne suit pas.
+ *
+ * ⛔ SEULS LES ITEMS QUI PUISENT DANS UNE CASSEROLE SE REMONTENT. Le frais d'un
+ * plat est une ligne d'ingrédient : lui ajouter des grammes servirait un
+ * aliment que la recette ne contient pas.
+ */
+function planRaise(
+  items: readonly BoundedBoxItem[],
+  grams: number,
+  headroomOf: (preparationId: string) => number,
+): Map<number, number> | null {
+  const order = rankedByGramsDesc(items);
+  const deltas = new Map<number, number>();
+  /** La marge déjà consommée par CE contenant, casserole par casserole. */
+  const used = new Map<string, number>();
+  let left = grams;
+  for (const i of order) {
+    if (left <= 0) break;
+    const prep = items[i].preparationId;
+    if (prep === null) continue;
+    const free = headroomOf(prep) - (used.get(prep) ?? 0);
+    if (free <= 0) continue;
+    const give = Math.min(left, free);
+    deltas.set(i, give);
+    used.set(prep, (used.get(prep) ?? 0) + give);
+    left -= give;
+  }
+  return left <= 0 ? deltas : null;
+}
+
+/** Les index des items, du plus lourd au plus léger, à égalité par l'ordre. */
+function rankedByGramsDesc(items: readonly BoundedBoxItem[]): number[] {
+  return items
+    .map((item, index) => ({ index, grams: Number(item.grams) }))
+    .filter((row) => Number.isFinite(row.grams) && row.grams > 0)
+    .sort((a, b) => (b.grams - a.grams) || (a.index - b.index))
+    .map((row) => row.index);
+}
+
+/**
+ * ÉCRIT LES GRAMMES, ET MET À JOUR CE QUE LES CASSEROLES DOIVENT.
+ *
+ * ⚠️ `Math.round` SUR LA VALEUR D'ORIGINE: un contenant écrit par le MODÈLE
+ * peut porter un flottant. Une fois qu'on touche cet item, il devient entier —
+ * c'est le barème du produit, et laisser `630,4 − 1` derrière écrirait
+ * « 629,4 g » sur une ligne qu'on vient de corriger.
+ */
+function applyDeltas(
+  items: BoundedBoxItem[],
+  deltas: ReadonlyMap<number, number>,
+  drawn: Map<string, number>,
+): void {
+  for (const [index, delta] of deltas) {
+    const item = items[index];
+    const before = Number(item.grams);
+    const after = Math.round(before) + delta;
+    item.grams = after;
+    if (item.preparationId !== null) {
+      drawn.set(
+        item.preparationId,
+        (drawn.get(item.preparationId) ?? 0) - before + after,
+      );
+    }
+  }
+}

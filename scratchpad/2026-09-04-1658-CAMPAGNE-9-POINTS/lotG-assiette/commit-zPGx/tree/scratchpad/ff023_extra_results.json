@@ -1,0 +1,38 @@
+[
+  {
+    "id": "X1-planchers-dans-le-fil-EN",
+    "run": 1,
+    "verdict": "GREEN",
+    "proof": "4 tours de contexte · fil 8 lignes · reply=\"Yes. Grilled chicken gives you the protein anchor, and broccoli covers the vegetable side.\""
+  },
+  {
+    "id": "X1-planchers-dans-le-fil-EN",
+    "run": 2,
+    "verdict": "GREEN",
+    "proof": "4 tours de contexte · fil 8 lignes · reply=\"Yes — grilled chicken gave you the protein anchor, and broccoli covered the vegetables.\""
+  },
+  {
+    "id": "X1-planchers-dans-le-fil-EN",
+    "run": 3,
+    "verdict": "GREEN",
+    "proof": "4 tours de contexte · fil 8 lignes · reply=\"Yes — grilled chicken gives you the protein anchor, and broccoli covers the vegetables.\""
+  },
+  {
+    "id": "X2-sujet-non-tranche-EN",
+    "run": 1,
+    "verdict": "AMBER",
+    "proof": "1 tours de contexte · fil 2 lignes · reply=\"Your coach doesn’t use a supplements-first approach. The core view here is to build the plate around an anchor meal: protein first, vegetabl\""
+  },
+  {
+    "id": "X2-sujet-non-tranche-EN",
+    "run": 2,
+    "verdict": "AMBER",
+    "proof": "1 tours de contexte · fil 2 lignes · reply=\"Yes — this coach does have a view: supplements are not the center. The center is an anchor meal with protein, and vegetables for volume. Cre\""
+  },
+  {
+    "id": "X2-sujet-non-tranche-EN",
+    "run": 3,
+    "verdict": "AMBER",
+    "proof": "1 tours de contexte · fil 2 lignes · reply=\"Your coach does have a view: the method here is built around a protein anchor at each meal and vegetables as plate volume. It does not run o\""
+  }
+]

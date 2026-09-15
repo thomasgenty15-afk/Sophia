@@ -1,0 +1,105 @@
+═══════════════════════════════════════════════════════════════════════════
+L-C — JOURNAL DE MUTATION
+2026-08-22 13:27:06 CEST · copie HORS DÉPÔT :
+/private/tmp/claude-502/-Users-ahmedamara-Dev-Sophia-2/2e823a24-8d2e-4cab-ab4e-731f242b0770/scratchpad/L-C-mut
+⛔ AUCUN node_modules n'a été copié.
+═══════════════════════════════════════════════════════════════════════════
+
+⛔ LA COPIE NON MUTÉE EST VÉRIFIÉE EN PREMIER, ET RE-VÉRIFIÉE À LA FIN.
+   · script     rc=0, sortie STRICTEMENT identique à celle du dépôt, hors la
+                seule ligne d'horodatage — vérifié à chaque re-synchronisation
+                (quatre fois : version initiale, après la garde ⓓ, après la
+                correction de type, après la garde ⓔ)
+   · migration  dry-run (`commit` → `rollback`) AVANT application :
+                UPDATE 11 + UPDATE 46, les quatre gardes de sortie silencieuses
+
+⚠️ QUATRE TIRS SUR LA MIGRATION SONT JOUÉS **AVANT** SON APPLICATION — c'est
+   le seul moment où ils sont jouables, et c'est écrit ici plutôt que
+   découvert. Les tirs sur le script sont rejoués sur la version FINALE.
+
+───────────────────────────────────────────────────────────────────────────
+① · MIGRATION · le slug 'bread' RETIRÉ de la liste C
+    attendu : la garde de SORTIE ① refuse une ligne décidée restée non neutre
+    OBTENU  : rc=3 · UPDATE 11 / UPDATE 45
+              ERROR: L-C: encore non neutre apres migration: bread
+
+② · MIGRATION · 'white_rice' AJOUTÉ à la liste B (« par symétrie »)
+    attendu : la CONTRE-ÉPREUVE refuse qu'une céréale sèche parte
+    OBTENU  : rc=3 · UPDATE 12 / UPDATE 46
+              ERROR: L-C: une cereale ou legumineuse SECHE a ete emportee:
+                     white_rice (base=neutral)
+    ⚠️ le message portait une faute de frappe ('ceremale') au moment du tir;
+       elle est corrigée dans le fichier commité, la garde est la même.
+
+③ · MIGRATION · re-jouée sur la base DÉJÀ MIGRÉE
+    (pas une mutation du fichier : la garde d'ENTRÉE mise à l'épreuve par
+     l'état réel de la base — elle existe parce que TROIS lots ont touché
+     cette table aujourd'hui)
+    attendu : elle refuse d'écraser un yield_class déjà déplacé
+    OBTENU  : rc=3
+              ERROR: L-C: yield_class deja deplace par un autre lot:
+                     black_white_pudding_sauteed (base=neutral,
+                     attendu=meat_shrinks), ... (les 57)
+
+───────────────────────────────────────────────────────────────────────────
+④ · SCRIPT · la décision 'beef' RETIRÉE de la liste
+    attendu : ⓐ « une ligne entre dans la liste sans décision » ⇒ rc=1
+    OBTENU  : rc=1
+              ⓐ ligne à libellé cuit SANS décision : 1
+                   ⛔ beef · Beef, braised
+
+⑤ · SCRIPT · le PRÉDICAT élargi (« smoked » ajouté)
+    attendu : le filet attrape des lignes NEUVES, aucune n'a de décision ⇒ rc=1
+    OBTENU  : rc=1
+              ⓐ ligne à libellé cuit SANS décision : 8
+                   (bayonne_cured_ham_smoked, cured_ham_smoked,
+                    duck_breast_fillet_smoked, ...)
+
+⑥ · SCRIPT · `indexAvecDecisions` rendu NO-OP
+    attendu : un patch désarmé doit rougir
+    ⛔ PREMIER TIR (base non migrée, avant la garde ⓓ) : **rc=0**, et la sortie
+       entièrement à ×1,00 — **un patch DÉSARMÉ ressemblait à un patch vert.**
+       C'est la mutation qui a trouvé une garde manquante, pas une relecture.
+    ⇒ garde ⓓ ajoutée. SECOND TIR (base non migrée) : rc=1,
+       « ⓓ le patch en mémoire déplace 0 ligne(s), 57 attendue(s) »
+    ⛔ TROISIÈME TIR (base MIGRÉE) : **rc=0 de nouveau** — ⓓ s'ÉTEINT une fois
+       la migration appliquée, parce qu'un patch no-op y est légitime.
+       **Une garde qui s'éteint le jour où elle a fini de servir laisse le
+       fichier suivant sans filet.**
+    ⇒ garde ⓔ ajoutée : le même patch appliqué à une base SYNTHÉTIQUE forcée
+       à l'état « avant » de chaque décision, qui doit déplacer exactement 57
+       lignes. Elle ne dépend d'AUCUN état.
+       QUATRIÈME TIR (base migrée, version finale) : rc=1,
+       « ⓔ sur une base forcée à « avant », le patch déplace 0 ligne(s),
+         57 attendue(s) — la liste des décisions ne fait pas ce qu'elle annonce »
+
+⑦ · SCRIPT · la décision 'noodles' déclare un « avant » FAUX
+    attendu : ⓒ « la base n'est ni avant ni après » ⇒ rc=1
+    OBTENU  : rc=1 sur la base NON MIGRÉE
+              ⓒ décision PÉRIMÉE : 1
+                   ⛔ noodles · base=grain_absorbs · avant=meat_shrinks ·
+                      après=neutral
+    ⚠️ ET rc=0 UNE FOIS LA BASE MIGRÉE, et c'est structurel, pas un défaut de
+       la garde : une affirmation sur un état PASSÉ ne se vérifie plus contre
+       le présent. ⓒ est une garde de PRÉ-MIGRATION, et elle a mordu au seul
+       moment où elle pouvait servir. C'est écrit ici pour que personne ne
+       croie qu'elle protège encore.
+
+⑧ · SCRIPT · la section ⑤ ÉVAPORÉE
+    attendu : la cardinalité refuse une sortie amputée ⇒ rc=1
+    OBTENU  : rc=1 · « sections imprimées 5 / 6 » · « ⛔ CARDINALITÉ: 5/6 »
+
+───────────────────────────────────────────────────────────────────────────
+RE-VÉRIFICATION FINALE DE LA COPIE NON MUTÉE — rc=0 (attendu 0)
+    ⓐ ligne à libellé cuit SANS décision : 0
+    ⓑ décision portant sur un slug ABSENT du référentiel : 0
+    ⓒ décision PÉRIMÉE (la base n'est ni « avant » ni « après ») : 0
+    ⓓ le patch en mémoire déplace 0 ligne(s), 0 attendue(s)
+    ⓔ sur une base forcée à « avant », le patch déplace 57 ligne(s), 57 attendue(s)
+    sections imprimées 6 / 6
+
+⛔ HUIT TIRS, HUIT ROUGES — dont DEUX qui ne sont rouges qu'AVANT la migration
+   (⑦ et le second tir de ⑥), et c'est dit plutôt que masqué.
+⚠️ DEUX GARDES ONT ÉTÉ AJOUTÉES PARCE QU'UNE MUTATION LES A RÉCLAMÉES, ⓓ puis
+   ⓔ. Aucune des deux n'a été trouvée par relecture.
+═══════════════════════════════════════════════════════════════════════════

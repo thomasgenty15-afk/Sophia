@@ -1,0 +1,2618 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t01",
+    "user": "Je crois que j ai besoin d une potion, mais je ne sais pas laquelle. Là je suis mélangé : un peu tendu, un peu découragé, et je n arrive pas à savoir si je dois me calmer ou retrouver de l élan.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t01",
+      "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+      "channel": "web",
+      "scope": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Entre apaisement et rappel, laquelle te parle le plus en ce moment ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t01",
+            "source_message_id": "68006fd6-bc1e-49cd-b1a6-3633c8e5cac9",
+            "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "select_state_potion",
+                "explicitness": "explicit",
+                "target_hint": "potion de calme ou d'élan",
+                "operation_input": {
+                  "potion_type": "ambiguous",
+                  "evidence": [
+                    "Je crois que j ai besoin d une potion",
+                    "je ne sais pas si je dois me calmer ou retrouver de l élan"
+                  ]
+                },
+                "confidence_band": "high",
+                "ambiguity": "target_ambiguous",
+                "user_intent": "create"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "état émotionnel récent",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [
+              {
+                "path": "tool_skills",
+                "reason_code": "target_ambiguous"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "select_state_potion"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "dispatcher"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "clarification:dispatcher",
+                "kind": "clarification",
+                "owner": "dispatcher",
+                "operation_type": null,
+                "intent": "clarify",
+                "source": "dispatcher",
+                "status": "requested",
+                "reason_code": "clarification_required"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion",
+            "reason_code": "state_potion_handoff_collecting",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "collecting",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "handoff": null,
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "state_potion_handoff_collecting",
+              "no_chat_mutation": true,
+              "draft": null
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t01",
+            "counts": {
+              "requested": 1,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t01:agenda:requested:clarification:dispatcher",
+                "kind": "clarification",
+                "effect_type": "clarification.target",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "dispatcher",
+                "status": "requested",
+                "reason_code": "clarification_required",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "clarification:dispatcher",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "select_state_potion"
+                  ]
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": "dispatcher",
+                "ambiguity_kind": "target",
+                "candidate_ids": [
+                  "select_state_potion"
+                ],
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t01:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion",
+                "status": "delivered",
+                "reason_code": "state_potion_handoff_collecting",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "collecting",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t01",
+          "source_message_id": "68006fd6-bc1e-49cd-b1a6-3633c8e5cac9",
+          "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": null
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [
+            {
+              "operation_type": "select_state_potion",
+              "explicitness": "explicit",
+              "target_hint": "potion de calme ou d'élan",
+              "operation_input": {
+                "potion_type": "ambiguous",
+                "evidence": [
+                  "Je crois que j ai besoin d une potion",
+                  "je ne sais pas si je dois me calmer ou retrouver de l élan"
+                ]
+              },
+              "confidence_band": "high",
+              "ambiguity": "target_ambiguous",
+              "user_intent": "create"
+            }
+          ],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.emotions",
+                "query_hint": "état émotionnel récent",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [
+            {
+              "path": "tool_skills",
+              "reason_code": "target_ambiguous"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "select_state_potion"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "dispatcher"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "clarification:dispatcher",
+              "kind": "clarification",
+              "owner": "dispatcher",
+              "operation_type": null,
+              "intent": "clarify",
+              "source": "dispatcher",
+              "status": "requested",
+              "reason_code": "clarification_required"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion",
+          "reason_code": "state_potion_handoff_collecting",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "collecting",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "handoff": null,
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "state_potion_handoff_collecting",
+            "no_chat_mutation": true,
+            "draft": null
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t01",
+          "counts": {
+            "requested": 1,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t01:agenda:requested:clarification:dispatcher",
+              "kind": "clarification",
+              "effect_type": "clarification.target",
+              "operation_type": null,
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "dispatcher",
+              "status": "requested",
+              "reason_code": "clarification_required",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "clarification:dispatcher",
+                "source": "dispatcher",
+                "evidence": [
+                  "select_state_potion"
+                ]
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": "dispatcher",
+              "ambiguity_kind": "target",
+              "candidate_ids": [
+                "select_state_potion"
+              ],
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t01:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion",
+              "status": "delivered",
+              "reason_code": "state_potion_handoff_collecting",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "collecting",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t02",
+    "user": "Plutôt apaisement je pense. Ce que je veux d abord, c est redescendre la pression avant de repartir.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t02",
+      "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+      "channel": "web",
+      "scope": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Qu'est-ce qui te met le plus sous pression là ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t02",
+            "source_message_id": "18e47cb4-be78-409d-a912-b750663863c6",
+            "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 1,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": true,
+                  "weight": 1,
+                  "contribution": 1,
+                  "evidence": "active_skill_or_operation_state"
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {
+                "select_state_potion": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_resolving_potion_type_selection"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "besoin d'apaisement et pression",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": {
+              "type": "field_confirmation",
+              "confidence": "high",
+              "evidence": [
+                "Plutôt apaisement je pense",
+                "redescendre la pression"
+              ],
+              "target_skill_id": "select_state_potion"
+            },
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [
+              {
+                "path": "active_handoff",
+                "reason_code": "active_handoff_field_confirmation"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_handoff_field_confirmation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_handoff",
+              "active_owner": "tool_skill",
+              "selected_owner": "select_state_potion",
+              "resume_policy": "active_handoff_continue",
+              "reason_code": "active_handoff_field_confirmation",
+              "continuation_intent": "field_confirmation"
+            },
+            "selected_handler": "select_state_potion"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "state_potion_handoff"
+            ],
+            "operation_types": [
+              "select_state_potion"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "active_flow:select_state_potion",
+                "kind": "platform_handoff",
+                "owner": "state_potion_handoff",
+                "operation_type": "select_state_potion",
+                "intent": "create",
+                "source": "active_flow",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion",
+            "reason_code": "state_potion_handoff_clarifying",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "clarifying",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "handoff": null,
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "state_potion_handoff_clarifying",
+              "no_chat_mutation": true,
+              "draft": null
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t02:agenda:proposed:active_flow:select_state_potion",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "state_potion_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "router",
+                "payload_summary": {
+                  "task_id": "active_flow:select_state_potion",
+                  "source": "active_flow",
+                  "evidence": [],
+                  "user_goal_summary": null,
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t02:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion",
+                "status": "delivered",
+                "reason_code": "state_potion_handoff_clarifying",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "clarifying",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t02",
+          "source_message_id": "18e47cb4-be78-409d-a912-b750663863c6",
+          "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 1,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": true,
+                "weight": 1,
+                "contribution": 1,
+                "evidence": "active_skill_or_operation_state"
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": "0;decay=0.55;recovery=0"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {
+              "select_state_potion": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_resolving_potion_type_selection"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.emotions",
+                "query_hint": "besoin d'apaisement et pression",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": {
+            "type": "field_confirmation",
+            "confidence": "high",
+            "evidence": [
+              "Plutôt apaisement je pense",
+              "redescendre la pression"
+            ],
+            "target_skill_id": "select_state_potion"
+          },
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [
+            {
+              "path": "active_handoff",
+              "reason_code": "active_handoff_field_confirmation"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_handoff_field_confirmation",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "continue_handoff",
+            "active_owner": "tool_skill",
+            "selected_owner": "select_state_potion",
+            "resume_policy": "active_handoff_continue",
+            "reason_code": "active_handoff_field_confirmation",
+            "continuation_intent": "field_confirmation"
+          },
+          "selected_handler": "select_state_potion"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "state_potion_handoff"
+          ],
+          "operation_types": [
+            "select_state_potion"
+          ],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "active_flow:select_state_potion",
+              "kind": "platform_handoff",
+              "owner": "state_potion_handoff",
+              "operation_type": "select_state_potion",
+              "intent": "create",
+              "source": "active_flow",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion",
+          "reason_code": "state_potion_handoff_clarifying",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "clarifying",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "handoff": null,
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "state_potion_handoff_clarifying",
+            "no_chat_mutation": true,
+            "draft": null
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 1,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t02:agenda:proposed:active_flow:select_state_potion",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "state_potion_handoff",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform",
+              "source": "router",
+              "payload_summary": {
+                "task_id": "active_flow:select_state_potion",
+                "source": "active_flow",
+                "evidence": [],
+                "user_goal_summary": null,
+                "recommended_next_step": "open_platform_surface"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t02:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion",
+              "status": "delivered",
+              "reason_code": "state_potion_handoff_clarifying",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "clarifying",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t03",
+    "user": "C est surtout l accumulation de messages et de décisions à prendre aujourd hui.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t03",
+      "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+      "channel": "web",
+      "scope": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Et du coup, tu te sens plutôt comment avec tout ça ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t03",
+            "source_message_id": "8619ee80-5a49-4787-af81-3d66ccc5db92",
+            "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "previous_scores": [
+                0,
+                1
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": true,
+                  "weight": 1,
+                  "contribution": 1,
+                  "evidence": "active_skill_or_operation_state"
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": true,
+                  "weight": 10,
+                  "contribution": 0.6,
+                  "evidence": "0,1;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {
+                "select_state_potion": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_answering_intake_question_about_pressure_source"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [
+              {
+                "path": "active_handoff",
+                "reason_code": "active_handoff_turn_unclear"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_handoff_turn_unclear",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "ask_clarification",
+              "active_owner": "tool_skill",
+              "selected_owner": "select_state_potion",
+              "resume_policy": "clear_or_interrupt",
+              "reason_code": "active_handoff_turn_unclear",
+              "continuation_intent": "unclear"
+            },
+            "selected_handler": "select_state_potion"
+          },
+          "turn_agenda_summary": {
+            "task_count": 2,
+            "owners": [
+              "orientation_clarification",
+              "state_potion_handoff"
+            ],
+            "operation_types": [
+              "select_state_potion"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "clarification:dispatcher",
+                "kind": "clarification",
+                "owner": "orientation_clarification",
+                "operation_type": null,
+                "intent": "clarify",
+                "source": "dispatcher",
+                "status": "asked",
+                "reason_code": "active_handoff_turn_unclear"
+              },
+              {
+                "task_id": "active_flow:select_state_potion",
+                "kind": "platform_handoff",
+                "owner": "state_potion_handoff",
+                "operation_type": "select_state_potion",
+                "intent": "create",
+                "source": "active_flow",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion",
+            "reason_code": "state_potion_handoff_clarifying",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "clarifying",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "handoff": null,
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "state_potion_handoff_clarifying",
+              "no_chat_mutation": true,
+              "draft": null
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 1,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t03:agenda:asked:clarification:dispatcher",
+                "kind": "clarification",
+                "effect_type": "clarification.intent",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "orientation_clarification",
+                "status": "asked",
+                "reason_code": "active_handoff_turn_unclear",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "clarification:dispatcher",
+                  "source": "dispatcher",
+                  "evidence": []
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": "orientation_clarification",
+                "ambiguity_kind": "intent",
+                "candidate_ids": [],
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t03:agenda:proposed:active_flow:select_state_potion",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "state_potion_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "router",
+                "payload_summary": {
+                  "task_id": "active_flow:select_state_potion",
+                  "source": "active_flow",
+                  "evidence": [],
+                  "user_goal_summary": null,
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t03:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion",
+                "status": "delivered",
+                "reason_code": "state_potion_handoff_clarifying",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "clarifying",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t03",
+          "source_message_id": "8619ee80-5a49-4787-af81-3d66ccc5db92",
+          "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 1.6,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "previous_scores": [
+              0,
+              1
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": true,
+                "weight": 1,
+                "contribution": 1,
+                "evidence": "active_skill_or_operation_state"
+              },
+              {
+                "signal": "previous_risk",
+                "detected": true,
+                "weight": 10,
+                "contribution": 0.6,
+                "evidence": "0,1;decay=0.55;recovery=0"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {
+              "select_state_potion": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_answering_intake_question_about_pressure_source"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [
+            {
+              "path": "active_handoff",
+              "reason_code": "active_handoff_turn_unclear"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_handoff_turn_unclear",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "ask_clarification",
+            "active_owner": "tool_skill",
+            "selected_owner": "select_state_potion",
+            "resume_policy": "clear_or_interrupt",
+            "reason_code": "active_handoff_turn_unclear",
+            "continuation_intent": "unclear"
+          },
+          "selected_handler": "select_state_potion"
+        },
+        "turn_agenda_summary": {
+          "task_count": 2,
+          "owners": [
+            "orientation_clarification",
+            "state_potion_handoff"
+          ],
+          "operation_types": [
+            "select_state_potion"
+          ],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "clarification:dispatcher",
+              "kind": "clarification",
+              "owner": "orientation_clarification",
+              "operation_type": null,
+              "intent": "clarify",
+              "source": "dispatcher",
+              "status": "asked",
+              "reason_code": "active_handoff_turn_unclear"
+            },
+            {
+              "task_id": "active_flow:select_state_potion",
+              "kind": "platform_handoff",
+              "owner": "state_potion_handoff",
+              "operation_type": "select_state_potion",
+              "intent": "create",
+              "source": "active_flow",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion",
+          "reason_code": "state_potion_handoff_clarifying",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "clarifying",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "handoff": null,
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "state_potion_handoff_clarifying",
+            "no_chat_mutation": true,
+            "draft": null
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 1,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 1,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t03:agenda:asked:clarification:dispatcher",
+              "kind": "clarification",
+              "effect_type": "clarification.intent",
+              "operation_type": null,
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "orientation_clarification",
+              "status": "asked",
+              "reason_code": "active_handoff_turn_unclear",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "clarification:dispatcher",
+                "source": "dispatcher",
+                "evidence": []
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": "orientation_clarification",
+              "ambiguity_kind": "intent",
+              "candidate_ids": [],
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t03:agenda:proposed:active_flow:select_state_potion",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "state_potion_handoff",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform",
+              "source": "router",
+              "payload_summary": {
+                "task_id": "active_flow:select_state_potion",
+                "source": "active_flow",
+                "evidence": [],
+                "user_goal_summary": null,
+                "recommended_next_step": "open_platform_surface"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t03:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion",
+              "status": "delivered",
+              "reason_code": "state_potion_handoff_clarifying",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "clarifying",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t04",
+    "user": "Je suis à cran, pas complètement submergé, mais clairement à cran.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t04",
+      "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+      "channel": "web",
+      "scope": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ce que je comprends : l'accumulation de messages et de décisions à prendre aujourd'hui ; a_cran\n\nJe te conseille de choisir une potion d'apaisement court. Le shift recommandé est de redescendre la pression avant de reprendre.\n\nPourquoi cette potion : Tu te sens à cran à cause de l'accumulation de messages et de décisions à prendre aujourd'hui, et cette potion est là pour t'aider à desserrer cette pression.\nPetit pas immédiat : Prends une grande inspiration. Je comprends que tu te sentes à cran avec tout ce qui s'accumule. Cette potion est là pour t'offrir un premier espace de calme, tout de suite.\n\nÀ mettre dans la plateforme :\nPotion : Potion d'apaisement\n- Qu'est-ce qui te met le plus sous pression la ? l'accumulation de messages et de décisions à prendre aujourd'hui\n- Tu te sens plutot comment ? A cran\nDans la plateforme, tu pourras aussi préciser si c'est lié à ton plan ou hors plan.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t04",
+            "source_message_id": "1f871e19-737b-4142-a59e-6b09c168a02f",
+            "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 1.9,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "previous_scores": [
+                0,
+                1,
+                1.6
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": true,
+                  "weight": 1,
+                  "contribution": 1,
+                  "evidence": "active_skill_or_operation_state"
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": true,
+                  "weight": 10,
+                  "contribution": 0.9,
+                  "evidence": "0,1,1.6;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {
+                "select_state_potion": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_answering_intake_question_about_emotional_state"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "état de tension et pression actuelle",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": {
+              "type": "field_confirmation",
+              "confidence": "high",
+              "evidence": [
+                "réponse directe à la question sur le ressenti émotionnel : 'je suis à cran'"
+              ],
+              "target_skill_id": "select_state_potion"
+            },
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [
+              {
+                "path": "active_handoff",
+                "reason_code": "active_handoff_field_confirmation"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_handoff_field_confirmation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_handoff",
+              "active_owner": "tool_skill",
+              "selected_owner": "select_state_potion",
+              "resume_policy": "active_handoff_continue",
+              "reason_code": "active_handoff_field_confirmation",
+              "continuation_intent": "field_confirmation"
+            },
+            "selected_handler": "select_state_potion"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "state_potion_handoff"
+            ],
+            "operation_types": [
+              "select_state_potion"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "active_flow:select_state_potion",
+                "kind": "platform_handoff",
+                "owner": "state_potion_handoff",
+                "operation_type": "select_state_potion",
+                "intent": "create",
+                "source": "active_flow",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion",
+            "reason_code": "state_potion_platform_handoff_delivered",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "handoff_delivered",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "handoff": null,
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "no_chat_mutation": true,
+              "draft": {
+                "operation_type": "select_state_potion",
+                "mode": "platform_handoff",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "user_state_summary": "l'accumulation de messages et de décisions à prendre aujourd'hui ; a_cran",
+                "desired_shift_summary": "Le shift recommandé est de redescendre la pression avant de reprendre.",
+                "recommendation": {
+                  "potion_label": "une potion d'apaisement court",
+                  "why_this_potion": "Tu te sens à cran à cause de l'accumulation de messages et de décisions à prendre aujourd'hui, et cette potion est là pour t'aider à desserrer cette pression.",
+                  "immediate_step": "Prends une grande inspiration. Je comprends que tu te sentes à cran avec tout ce qui s'accumule. Cette potion est là pour t'offrir un premier espace de calme, tout de suite.",
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "dans la section État / Potions",
+                  "platform_steps": [
+                    "ouvre la section État / Potions",
+                    "choisis la potion recommandée",
+                    "active-la depuis la plateforme si elle te convient"
+                  ],
+                  "platform_inputs": {
+                    "potion_type": "apaisement",
+                    "potion_title": "Potion d'apaisement",
+                    "answers": [
+                      {
+                        "question_id": "pressure_source",
+                        "question_label": "Qu'est-ce qui te met le plus sous pression la ?",
+                        "value": "l'accumulation de messages et de décisions à prendre aujourd'hui",
+                        "option_value": null,
+                        "option_label": null
+                      },
+                      {
+                        "question_id": "pressure_state",
+                        "question_label": "Tu te sens plutot comment ?",
+                        "value": "A cran",
+                        "option_value": "a_cran",
+                        "option_label": "A cran"
+                      }
+                    ],
+                    "optional_free_text": null
+                  }
+                },
+                "missing_decisions": []
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t04:agenda:proposed:active_flow:select_state_potion",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "state_potion_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "router",
+                "payload_summary": {
+                  "task_id": "active_flow:select_state_potion",
+                  "source": "active_flow",
+                  "evidence": [],
+                  "user_goal_summary": null,
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t04:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion",
+                "status": "delivered",
+                "reason_code": "state_potion_platform_handoff_delivered",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "handoff_delivered",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t04",
+          "source_message_id": "1f871e19-737b-4142-a59e-6b09c168a02f",
+          "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 1.9,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "previous_scores": [
+              0,
+              1,
+              1.6
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": true,
+                "weight": 1,
+                "contribution": 1,
+                "evidence": "active_skill_or_operation_state"
+              },
+              {
+                "signal": "previous_risk",
+                "detected": true,
+                "weight": 10,
+                "contribution": 0.9,
+                "evidence": "0,1,1.6;decay=0.55;recovery=0"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {
+              "select_state_potion": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_answering_intake_question_about_emotional_state"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.emotions",
+                "query_hint": "état de tension et pression actuelle",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": {
+            "type": "field_confirmation",
+            "confidence": "high",
+            "evidence": [
+              "réponse directe à la question sur le ressenti émotionnel : 'je suis à cran'"
+            ],
+            "target_skill_id": "select_state_potion"
+          },
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [
+            {
+              "path": "active_handoff",
+              "reason_code": "active_handoff_field_confirmation"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_handoff_field_confirmation",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "continue_handoff",
+            "active_owner": "tool_skill",
+            "selected_owner": "select_state_potion",
+            "resume_policy": "active_handoff_continue",
+            "reason_code": "active_handoff_field_confirmation",
+            "continuation_intent": "field_confirmation"
+          },
+          "selected_handler": "select_state_potion"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "state_potion_handoff"
+          ],
+          "operation_types": [
+            "select_state_potion"
+          ],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "active_flow:select_state_potion",
+              "kind": "platform_handoff",
+              "owner": "state_potion_handoff",
+              "operation_type": "select_state_potion",
+              "intent": "create",
+              "source": "active_flow",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion",
+          "reason_code": "state_potion_platform_handoff_delivered",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "handoff_delivered",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "handoff": null,
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "state_potion_platform_handoff_delivered",
+            "no_chat_mutation": true,
+            "draft": {
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_state_summary": "l'accumulation de messages et de décisions à prendre aujourd'hui ; a_cran",
+              "desired_shift_summary": "Le shift recommandé est de redescendre la pression avant de reprendre.",
+              "recommendation": {
+                "potion_label": "une potion d'apaisement court",
+                "why_this_potion": "Tu te sens à cran à cause de l'accumulation de messages et de décisions à prendre aujourd'hui, et cette potion est là pour t'aider à desserrer cette pression.",
+                "immediate_step": "Prends une grande inspiration. Je comprends que tu te sentes à cran avec tout ce qui s'accumule. Cette potion est là pour t'offrir un premier espace de calme, tout de suite.",
+                "preserve": [],
+                "avoid": [],
+                "platform_destination": "dans la section État / Potions",
+                "platform_steps": [
+                  "ouvre la section État / Potions",
+                  "choisis la potion recommandée",
+                  "active-la depuis la plateforme si elle te convient"
+                ],
+                "platform_inputs": {
+                  "potion_type": "apaisement",
+                  "potion_title": "Potion d'apaisement",
+                  "answers": [
+                    {
+                      "question_id": "pressure_source",
+                      "question_label": "Qu'est-ce qui te met le plus sous pression la ?",
+                      "value": "l'accumulation de messages et de décisions à prendre aujourd'hui",
+                      "option_value": null,
+                      "option_label": null
+                    },
+                    {
+                      "question_id": "pressure_state",
+                      "question_label": "Tu te sens plutot comment ?",
+                      "value": "A cran",
+                      "option_value": "a_cran",
+                      "option_label": "A cran"
+                    }
+                  ],
+                  "optional_free_text": null
+                }
+              },
+              "missing_decisions": []
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t04",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 1,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t04:agenda:proposed:active_flow:select_state_potion",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "state_potion_handoff",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform",
+              "source": "router",
+              "payload_summary": {
+                "task_id": "active_flow:select_state_potion",
+                "source": "active_flow",
+                "evidence": [],
+                "user_goal_summary": null,
+                "recommended_next_step": "open_platform_surface"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-state-potion-state_potion_postfix_20260603_r3-unknown_routing-t04:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion",
+              "status": "delivered",
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "handoff_delivered",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  }
+]

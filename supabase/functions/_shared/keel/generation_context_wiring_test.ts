@@ -304,7 +304,7 @@ Deno.test("LOT 6 — LA GARDE FINALE TOURNE SUR LA GÉNÉRATION", async () => {
   // toutes les transformations » — un contrôle sur l'objet d'avant le
   // regrammage jugerait un plan que personne ne reçoit.
   const gate = src.indexOf("finalPlanGate(asGatePlan(writePayload)");
-  const write = src.indexOf('"write_student_meal_plan"');
+  const write = src.indexOf('"keel_household_publish_generation"');
   assert(write >= 0 && gate < write, "la garde tourne APRÈS l'écriture");
   const payload = src.indexOf("const writePayload = {");
   assert(
@@ -326,46 +326,53 @@ Deno.test("LOT 6 — `asGatePlan` est PUBLIC, pour que la génération l'atteign
   );
 });
 
-Deno.test("LOT 6 — LA PESÉE EST REMONTÉE AU-DESSUS DES RATTRAPAGES", async () => {
-  // ⛔ LE DÉFAUT QUE CE TEST FERME. Jusqu'au 2026-09-11, `shadowSizing` — la
+Deno.test("LOT 6 — LA PESÉE DU PREMIER JET TOURNE, ET ELLE NE RÉSERVE PLUS RIEN", async () => {
+  // ⛔ LE DÉFAUT QUE CE TEST FERMAIT. Jusqu'au 2026-09-11, `shadowSizing` — la
   // fonction qui pèse les plats — vivait ~1 700 lignes SOUS cinq des sept
   // rattrapages. Quand `protein_anchor_retry` demandait un des deux appels
   // modèle, personne n'avait pesé un seul plat: le budget gardait des slots à
-  // l'aveugle, par une table de nombres accordés à la main sur l'ORDRE
-  // D'EXÉCUTION du fichier.
+  // l'aveugle.
+  //
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — LE DÉFAUT EST FERMÉ PAR SA CAUSE. Il n'y a
+  // plus de rattrapage à arbitrer: les sept sites ne rappellent plus le modèle,
+  // une seule décision part APRÈS la garde finale, quand tout est pesé. La
+  // pesée reste, pour ce qu'elle MESURE — l'état du premier jet avant toute
+  // finalisation, que le plan de clôture exige dans les archives.
   const src = await source(FOYER);
-  const pesee = src.indexOf("const shadowSizing =");
-  const premierRattrapage = src.indexOf(
-    'planRepairGranted("protein_anchor_retry")',
-  );
   assert(
-    pesee >= 0 && premierRattrapage >= 0,
-    "repères introuvables — test à réviser",
+    src.indexOf("const shadowSizing =") >= 0,
+    "la pesée a disparu",
   );
-  assert(
-    pesee < premierRattrapage,
-    "la pesée est redescendue sous le premier rattrapage: le budget réserve de " +
-      "nouveau à l'aveugle.",
-  );
-  // ⛔ ET ELLE EST APPELÉE, pas seulement définie. Une fermeture hissée qui
-  // n'est pas consultée ne mesure rien.
   const appel = src.indexOf('tag: "keel.household_meal.pre_repair_sizing"');
-  assert(appel >= 0, "la pesée d'avant-rattrapage n'est plus appelée");
+  assert(appel >= 0, "la pesée du premier jet n'est plus appelée");
   assert(
-    appel < premierRattrapage,
-    "elle est appelée APRÈS le premier rattrapage",
+    src.includes("first_jet_defect_kinds: [...kinds]"),
+    "l'état du premier jet ne sort plus: on ne saurait plus dire si un plan " +
+      "est arrivé bon ou a été réparé",
+  );
+  // ⛔ ET AUCUN SITE NE DEMANDE PLUS DE SLOT POUR LUI-MÊME.
+  assert(
+    !src.includes("planRepairGranted("),
+    "la décision PAR SITE est revenue: sept demandeurs pour deux tentatives",
+  );
+  assert(
+    !src.includes("pendingDefectKinds"),
+    "la table de réserve est revenue sans la concurrence qui la justifiait",
   );
 });
 
-Deno.test("LOT 6 — LES TROIS DÉTECTEURS TOURNENT AVANT LE PREMIER RATTRAPAGE", async () => {
+Deno.test("LOT 6 — LES TROIS DÉTECTEURS TOURNENT AVANT LA DÉCISION COMMUNE", async () => {
   // ⛔ LA PESÉE SEULE NE SUFFIT PAS, ET C'EST MESURÉ: avec le grammage seul
   // connu, la protéine volait le slot d'une allergie servie. Les trois natures
-  // qui peuvent RÉSERVER — sécurité, livraison, grammage — doivent être
-  // détectées avant que le premier rattrapage ne dépense un appel.
+  // doivent être détectées avant que le moindre appel ne parte.
+  //
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — LE REPÈRE A CHANGÉ, PAS LA PROPRIÉTÉ. Le
+  // « premier rattrapage » n'existe plus ; le repère est la DÉCISION COMMUNE,
+  // et les détecteurs doivent être en place avant elle — sans quoi le
+  // producteur de constats (`c4UpstreamDefects`) ne pourrait pas les relire.
   const src = await source(FOYER);
-  const premierRattrapage = src.indexOf(
-    'planRepairGranted("protein_anchor_retry")',
-  );
+  const decision = src.indexOf("const c4Decision = planRepairDecision({");
+  assert(decision >= 0, "la décision commune est introuvable — test à réviser");
   for (
     const [quoi, marque] of [
       ["la sécurité", "const bitesOf ="],
@@ -377,29 +384,27 @@ Deno.test("LOT 6 — LES TROIS DÉTECTEURS TOURNENT AVANT LE PREMIER RATTRAPAGE"
     const at = src.indexOf(marque);
     assert(at >= 0, `${marque} introuvable — test à réviser`);
     assert(
-      at < premierRattrapage,
-      `${quoi} se détecte APRÈS le premier rattrapage: le budget ne peut pas ` +
-        `lui garder de slot, et un défaut moins grave prendra sa place.`,
+      at < decision,
+      `${quoi} se détecte APRÈS la décision commune: le constat ne peut pas ` +
+        `l'atteindre, et le défaut partirait sans être nommé.`,
     );
   }
-  // ⛔ ET L'ENSEMBLE EST BIEN CONSTRUIT, pas laissé à `null`. `null` veut dire
-  // « pas pesé » et fait retomber le budget sur sa table.
+  // ⛔ ET LES TROIS NATURES SONT RELUES SUR LE PLAN COURANT, pas sur le premier
+  // jet: un défaut déjà réparé ne doit pas repartir, un défaut créé par une
+  // réparation ne doit pas passer inaperçu.
+  const producteur = src.indexOf("const c4UpstreamDefects = ()");
+  assert(producteur >= 0, "le producteur de constats d'amont a disparu");
+  const bloc = src.slice(producteur, producteur + 14000);
+  assert(bloc.includes("bitesOf(meal)"), "la sécurité n'est plus relue");
   assert(
-    src.includes("pendingDefectKinds = kinds;"),
-    "l'ensemble n'est plus posé",
+    bloc.includes("mealsDelivered(deliveredViewOf(meal), mouthCells)"),
+    "la livraison n'est plus relue",
   );
   assert(
-    src.includes('kinds.add("safety")') &&
-      src.includes('kinds.add("missing_meal")') &&
-      src.includes('kinds.add("sizing")'),
-    "une des trois natures n'entre plus dans l'ensemble mesuré",
+    bloc.includes("meal.protein_anchor_missing"),
+    "l'ancre protéique n'est plus relue",
   );
-  // ⛔ ET UNE NATURE SERVIE EN SORT. Sans ça, elle réserve pour elle-même après
-  // avoir été traitée: sur trois défauts et deux slots, un seul partait.
-  assert(
-    src.includes("pendingDefectKinds.delete(repairKindOf(label))"),
-    "une nature réparée reste dans l'ensemble et bloque la suivante",
-  );
+  assert(bloc.includes("c4DensityAsk"), "la densité n'est plus relue");
 });
 
 Deno.test("LOT 5 — LE PLAN EST REMESURÉ APRÈS LE REGRAMMAGE DES CASSEROLES", async () => {
@@ -487,4 +492,42 @@ Deno.test("LOT 5 — LA MESURE FINALE PÈSE LES GRAMMES ÉCRITS, SANS EXCEPTION 
   // ⛔ ET LES LIGNES NE SORTENT PAS: `check.rows` porte les `memberIds`.
   // Précédent `residualGaps`, retiré du journal pour en avoir porté un.
   assert(!bloc.includes("check.rows"), "les lignes nominatives partent au journal");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-13 · LOT 2 § 2.3 ④ — L'ORDRE DU REFUS, PAS SEULEMENT SON EXISTENCE
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("§ 2.3 ④ — le refus précède le PROMPT, l'appel, le quota et les DEUX écritures", async () => {
+  // ⛔ « UN REFUS TARDIF QUI A DÉJÀ PAYÉ UN APPEL N'EST PAS LE MÊME FAIT. »
+  // Le cas d'au-dessus n'épingle qu'un repère — l'appel modèle. Un refus posé
+  // après la construction du prompt aurait déjà coûté la lecture du roster, des
+  // contraintes et de la doctrine; posé après le quota de fusion, il coûterait
+  // une fusion de la semaine pour un plan jamais rendu.
+  const src = await source(FOYER);
+  const admission = src.indexOf("resolveGenerationAdmission(");
+  const refus = src.indexOf("if (!admission.ok) {", admission);
+  assert(admission > 0 && refus > admission, "la porte d'admission a disparu");
+  const reperes: readonly (readonly [string, number])[] = [
+    ["la construction du prompt", src.indexOf("buildHouseholdPromptBlocks(")],
+    ["l'appel modèle", src.indexOf("generateWithGemini(")],
+    ["la réclamation du quota de fusion", src.indexOf("keel_household_claim_merge_quota")],
+    ["le magasin d'aperçu", src.indexOf('"keel_household_complete_draft_generation"')],
+    ["l'écriture du plan", src.indexOf('"keel_household_publish_generation"')],
+  ];
+  for (const [nom, at] of reperes) {
+    assert(at > 0, `repère introuvable (${nom}) — test à réviser`);
+    assert(refus < at, `le refus d'admission est APRÈS ${nom}`);
+  }
+  // ⛔ ET IL REND LA MAIN TOUT DE SUITE. Une `issue` poussée et la suite qui
+  // coule est un refus qui a déjà tout payé.
+  const fin = src.indexOf("const householdId = admission.actor.householdId;", refus);
+  assert(fin > refus, "la borne du bloc de refus a disparu");
+  const bloc = src.slice(refus, fin);
+  assert(bloc.includes("return jsonResponse("), bloc);
+  // ⛔ LE STATUT VIENT DU MODULE, jamais d'un 403 recopié: deux tables de
+  // statuts divergeraient au premier refus ajouté.
+  assert(bloc.includes("status: admission.status"), bloc);
+  assert(bloc.includes("error: admission.refusal"), bloc);
+  assert(!bloc.includes("generateWithGemini("), "le bloc de refus appelle le modèle");
 });

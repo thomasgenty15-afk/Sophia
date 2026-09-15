@@ -1,0 +1,34 @@
+{
+  "run_id": "flow-opportunity-verification-prompt-r5-20260612",
+  "persona": "qa-skill",
+  "connection_name": "flow-opportunity-verification_flow-opportunity-verification-prompt-r5-20260612",
+  "user_id": "4a410043-9d17-4b0b-bced-7a3c6070abb2",
+  "email": "qa-qa-skill-flow-opportunity-verification-flow-opportunity-verification-prompt-r5-20260612@example.com",
+  "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+  "updated_at": "2026-06-12T13:35:48.336Z",
+  "raw_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/flow_opportunity_verification/flow-opportunity-verification-prompt-r5-20260612.raw.json",
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-flow-opportunity-verification-prompt-r5-20260612-t01",
+      "user_message": "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?",
+      "http_status": 200,
+      "assistant_message": "J'ai vérifié l'état de ton dossier pour ce soir.\n\nFait : Tes préférences sont paramétrées sur un ton bienveillant avec un focus sur la discipline.\nPrévu : Aucun rappel, aucune carte ni aucune session n'est programmé pour ce soir.\nFragile : Ton dossier ne contient actuellement aucun élément actif.",
+      "short_trace": {
+        "response_owner": "tool_skill",
+        "selected_handler": "status_recap",
+        "selected_action": "answer_status",
+        "target_flow": null,
+        "reason_code": "status_recap_local_answer_status",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 2
+    }
+  ]
+}

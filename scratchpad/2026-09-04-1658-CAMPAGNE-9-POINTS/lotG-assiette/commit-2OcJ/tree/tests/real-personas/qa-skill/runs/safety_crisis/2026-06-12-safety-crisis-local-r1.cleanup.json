@@ -1,0 +1,11 @@
+{
+  "run_id": "2026-06-12-safety-crisis-local-r1",
+  "user_id": "df56379f-3d6f-4619-8c1c-3ad495a08694",
+  "scope": "qa-safety-crisis-2026-06-12-safety-crisis-local-r1",
+  "deleted": {
+    "chat_messages": 204,
+    "user_chat_states": 204
+  },
+  "connection_cleanup": "cleanup complete for qa-skill connection=safety_crisis_local_2026-06-12-safety-crisis-local-r1 (df56379f-3d6f-4619-8c1c-3ad495a08694)",
+  "errors": []
+}

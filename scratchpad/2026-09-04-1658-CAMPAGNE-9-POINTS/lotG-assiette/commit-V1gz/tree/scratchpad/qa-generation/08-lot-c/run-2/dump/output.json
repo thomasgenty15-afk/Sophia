@@ -1,0 +1,788 @@
+{
+  "request_id": "c0000002-0000-4000-8000-000000000002",
+  "resolved_by": "--request-id",
+  "user_id": "5a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T10:18:30.435Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "cae4a0ee-1f35-4dae-993c-019e432a837f",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T10:17:43.755106+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16669,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16669,
+    "user_message_chars": 21390,
+    "user_message_truncated": false,
+    "user_message_written_chars": 21390,
+    "independent_counters": {
+      "system_prompt_chars": 16669,
+      "prompt_chars": 21390
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "89f0b730-50e6-490d-899a-ec4b2ec15896",
+    "created_at": "2026-08-19T10:18:29.808649+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\"dishes\":[{\"name\":\"Courgette chickpea pot\",\"title\":\"Chickpeas, courgettes, peppers and tomatoes\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lemon juice\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null,\"group\":\"citrus\"},{\"term\":\"fresh parsley\",\"quantity\":\"10 leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":\"raw\",\"group\":\"other_added_fat\"}],\"method\":\"Take one lunch box of the chickpea pot, reheat it gently in a pan, then stir through the lemon juice and finish with the parsley.\",\"why\":\"This trades separate fresh plates for one warm pot that reheats well at work.\",\"uses\":[{\"preparation_id\":\"prep_lunch_chickpea_pot\",\"servings\":1,\"box_id\":\"box_prep_lunch_chickpea_pot_roxane\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Herbed chickpea bowl\",\"title\":\"Chickpeas, courgettes, peppers, tomatoes, spinach and lemon\",\"slot\":\"lunch\",\"day\":\"wed\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"baby spinach\",\"quantity\":\"60 g baby spinach\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\",\"group\":\"leafy_greens\"},{\"term\":\"lemon juice\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null,\"group\":\"citrus\"}],\"method\":\"Reheat the named lunch box in a pan, fold in the spinach until just wilted, and finish with the lemon juice.\",\"why\":\"This gives the same warm, comforting pot a fresh green finish.\",\"uses\":[{\"preparation_id\":\"prep_lunch_chickpea_pot\",\"servings\":1,\"box_id\":\"box_prep_lunch_chickpea_pot_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Smoky bean rice bowl\",\"title\":\"Black beans, brown rice, peppers, tomatoes and spinach\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lime juice\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null,\"state\":null,\"group\":\"citrus\"},{\"term\":\"fresh coriander\",\"quantity\":\"10 leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":\"raw\",\"group\":null}],\"method\":\"Take one dinner box, reheat it in a pan with the lime juice, and scatter over the coriander before serving.\",\"why\":\"This is a warm, filling dinner that keeps the cooking to one evening session.\",\"uses\":[{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"servings\":1,\"box_id\":\"box_prep_dinner_black_bean_rice_zoe\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Avocado bean supper\",\"title\":\"Black beans, brown rice, peppers, tomatoes, spinach and avocado\",\"slot\":\"dinner\",\"day\":\"wed\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"avocado\",\"quantity\":\"half an avocado\",\"amount\":null,\"unit\":null,\"state\":\"raw\",\"group\":\"other_fruit\"},{\"term\":\"lime juice\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null,\"state\":null,\"group\":\"citrus\"}],\"method\":\"Reheat the named dinner box in a pan, then add the avocado and lime juice at the table.\",\"why\":\"This turns the reheatable chilli and rice into a cooler, fresh-tasting supper.\",\"uses\":[{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"servings\":1,\"box_id\":\"box_prep_dinner_black_bean_rice_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Smoky training bowl\",\"title\":\"Black beans, brown rice, peppers, tomatoes and spinach with coriander\",\"slot\":\"dinner\",\"day\":\"wed\",\"for_member_id\":\"12362957-32c9-43a5-82ef-66b8d5732171\",\"ingredients\":[{\"term\":\"fresh coriander\",\"quantity\":\"15 leaves\",\"amount\":15,\"unit\":\"unit\",\"state\":\"raw\",\"group\":null},{\"term\":\"lime juice\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null,\"state\":null,\"group\":\"citrus\"}],\"method\":\"Reheat the named dinner box in a pan, keeping the rice and beans together, then finish with lime juice and coriander.\",\"why\":\"The warm bean-and-rice bowl puts the starch directly into the evening meal after a long day.\",\"uses\":[{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"servings\":1,\"box_id\":\"box_prep_dinner_black_bean_rice_ivar\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"starch_follows_the_session\",\"one_loud_vegetable\"]}],\"preparations\":[{\"id\":\"prep_lunch_chickpea_pot\",\"title\":\"Chickpea courgette pot\",\"servings_made\":3,\"ingredients\":[{\"term\":\"cooked chickpeas\",\"quantity\":\"720 g cooked chickpeas\",\"amount\":720,\"unit\":\"g\",\"state\":\"cooked\",\"group\":\"legumes\"},{\"term\":\"courgettes\",\"quantity\":\"300 g courgettes\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"red peppers\",\"quantity\":\"2 red peppers\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"chopped tomatoes\",\"quantity\":\"400 g chopped tomatoes\",\"amount\":400,\"unit\":\"g\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"onion\",\"quantity\":\"1 onion\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp olive oil\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"group\":\"olive_oil\"},{\"term\":\"water\",\"quantity\":\"150 ml water\",\"amount\":150,\"unit\":\"ml\",\"state\":\"raw\",\"group\":\"water\"},{\"term\":\"ground cumin\",\"quantity\":\"1 tsp ground cumin\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\",\"group\":\"sauce_dressing\"}],\"method\":\"Dice the onion, courgettes and peppers. Warm the oil in a large pot, soften the onion for 3 minutes, add the peppers and courgettes, then stir in the tomatoes, chickpeas, water and cumin. Simmer uncovered for 25 minutes until thick and tender, then weigh the ready pot into the three named lunch boxes.\",\"active_minutes\":15,\"total_minutes\":35,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_lunch_chickpea_pot_roxane\",\"member_ids\":[\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"],\"grams\":500},{\"id\":\"box_prep_lunch_chickpea_pot_zoe\",\"member_ids\":[\"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"],\"grams\":500},{\"id\":\"box_prep_lunch_chickpea_pot_lubna\",\"member_ids\":[\"86129e3c-2f50-480f-a359-077165b6232b\"],\"grams\":500}]},{\"id\":\"prep_dinner_black_bean_rice\",\"title\":\"Black bean chilli with brown rice\",\"servings_made\":4,\"ingredients\":[{\"term\":\"dried brown rice\",\"quantity\":\"240 g dried brown rice\",\"amount\":240,\"unit\":\"g\",\"state\":\"raw\",\"group\":\"whole_grain\"},{\"term\":\"cooked black beans\",\"quantity\":\"960 g cooked black beans\",\"amount\":960,\"unit\":\"g\",\"state\":\"cooked\",\"group\":\"legumes\"},{\"term\":\"red peppers\",\"quantity\":\"3 red peppers\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"chopped tomatoes\",\"quantity\":\"800 g chopped tomatoes\",\"amount\":800,\"unit\":\"g\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"onion\",\"quantity\":\"2 onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"baby spinach\",\"quantity\":\"240 g baby spinach\",\"amount\":240,\"unit\":\"g\",\"state\":\"raw\",\"group\":\"leafy_greens\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp olive oil\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"group\":\"olive_oil\"},{\"term\":\"water\",\"quantity\":\"500 ml water\",\"amount\":500,\"unit\":\"ml\",\"state\":\"raw\",\"group\":\"water\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp smoked paprika\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\",\"group\":\"sauce_dressing\"}],\"method\":\"Start the rice in a covered saucepan with 400 ml water. While it cooks, dice the onions and peppers, soften them in the oil in a second pot, then add the tomatoes, beans, paprika and remaining water. Simmer for 20 minutes, fold in the spinach to wilt, fluff the rice, combine the ready food and weigh it into four named dinner boxes.\",\"active_minutes\":20,\"total_minutes\":45,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_dinner_black_bean_rice_roxane\",\"member_ids\":[\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"],\"grams\":750},{\"id\":\"box_prep_dinner_black_bean_rice_zoe\",\"member_ids\":[\"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"],\"grams\":750},{\"id\":\"box_prep_dinner_black_bean_rice_lubna\",\"member_ids\":[\"86129e3c-2f50-480f-a359-077165b6232b\"],\"grams\":750},{\"id\":\"box_prep_dinner_black_bean_rice_ivar\",\"member_ids\":[\"12362957-32c9-43a5-82ef-66b8d5732171\"],\"grams\":750}]}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_lunch_chickpea_pot\",\"prep_dinner_black_bean_rice\"],\"total_minutes\":50,\"run_through\":\"Put the rice on first, then chop both sets of onions and peppers. Start the dinner chilli in the second pot, soften the lunch-pot vegetables in the first, and add their tomatoes and chickpeas. Let both pots simmer while the rice finishes, wilt the dinner spinach, combine the rice with the chilli, then weigh the lunch and dinner boxes straight away.\"}],\"shopping_list\":[{\"term\":\"cooked chickpeas\",\"quantity\":\"3 x 240 g tins\",\"aisle\":\"pantry\"},{\"term\":\"cooked black beans\",\"quantity\":\"4 x 240 g tins\",\"aisle\":\"pantry\"},{\"term\":\"dried brown rice\",\"quantity\":\"240 g\",\"aisle\":\"grains\"},{\"term\":\"courgettes\",\"quantity\":\"300 g\",\"aisle\":\"produce\"},{\"term\":\"red peppers\",\"quantity\":\"5\",\"aisle\":\"produce\"},{\"term\":\"chopped tomatoes\",\"quantity\":\"3 x 400 g tins\",\"aisle\":\"pantry\"},{\"term\":\"onions\",\"quantity\":\"3\",\"aisle\":\"produce\"},{\"term\":\"baby spinach\",\"quantity\":\"300 g\",\"aisle\":\"produce\"},{\"term\":\"lemons\",\"quantity\":\"1\",\"aisle\":\"produce\"},{\"term\":\"limes\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"avocado\",\"quantity\":\"1\",\"aisle\":\"produce\"},{\"term\":\"fresh parsley\",\"quantity\":\"1 small bunch\",\"aisle\":\"produce\"},{\"term\":\"fresh coriander\",\"quantity\":\"1 small bunch\",\"aisle\":\"produce\"},{\"term\":\"olive oil\",\"quantity\":\"1 small bottle\",\"aisle\":\"pantry\"},{\"term\":\"ground cumin\",\"quantity\":\"1 small jar\",\"aisle\":\"pantry\"},{\"term\":\"smoked paprika\",\"quantity\":\"1 small jar\",\"aisle\":\"pantry\"}],\"member_portions\":[{\"member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"portion_note\":\"At lunch and dinner, place the vegetables first, then the chickpeas or beans, then the rice; add the listed fresh side last.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lunch_chickpea_pot\",\"note\":\"Use the Roxane lunch box.\"},{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"note\":\"Use the Roxane dinner box.\"}]},{\"member_id\":\"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\",\"portion_note\":\"At lunch and dinner, place all listed components together and serve the fresh finish over the top.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lunch_chickpea_pot\",\"note\":\"Use the Zoe lunch box.\"},{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"note\":\"Use the Zoe dinner box.\"}]},{\"member_id\":\"86129e3c-2f50-480f-a359-077165b6232b\",\"portion_note\":\"At lunch and dinner, place all listed components together and serve the fresh finish over the top.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lunch_chickpea_pot\",\"note\":\"Use the Lubna lunch box.\"},{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"note\":\"Use the Lubna dinner box.\"}]},{\"member_id\":\"12362957-32c9-43a5-82ef-66b8d5732171\",\"portion_note\":\"At dinner, place the beans and rice first, then add the vegetables and finish with the fresh herbs and lime.\",\"preparation_shares\":[{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"note\":\"Use the Ivar dinner box.\"}]}]}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Courgette chickpea pot",
+          "title": "Chickpeas, courgettes, peppers and tomatoes",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null,
+              "group": "citrus"
+            },
+            {
+              "term": "fresh parsley",
+              "quantity": "10 leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": "raw",
+              "group": "other_added_fat"
+            }
+          ],
+          "method": "Take one lunch box of the chickpea pot, reheat it gently in a pan, then stir through the lemon juice and finish with the parsley.",
+          "why": "This trades separate fresh plates for one warm pot that reheats well at work.",
+          "uses": [
+            {
+              "preparation_id": "prep_lunch_chickpea_pot",
+              "servings": 1,
+              "box_id": "box_prep_lunch_chickpea_pot_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Herbed chickpea bowl",
+          "title": "Chickpeas, courgettes, peppers, tomatoes, spinach and lemon",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "baby spinach",
+              "quantity": "60 g baby spinach",
+              "amount": 60,
+              "unit": "g",
+              "state": "raw",
+              "group": "leafy_greens"
+            },
+            {
+              "term": "lemon juice",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null,
+              "group": "citrus"
+            }
+          ],
+          "method": "Reheat the named lunch box in a pan, fold in the spinach until just wilted, and finish with the lemon juice.",
+          "why": "This gives the same warm, comforting pot a fresh green finish.",
+          "uses": [
+            {
+              "preparation_id": "prep_lunch_chickpea_pot",
+              "servings": 1,
+              "box_id": "box_prep_lunch_chickpea_pot_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Smoky bean rice bowl",
+          "title": "Black beans, brown rice, peppers, tomatoes and spinach",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lime juice",
+              "quantity": "half a lime",
+              "amount": null,
+              "unit": null,
+              "state": null,
+              "group": "citrus"
+            },
+            {
+              "term": "fresh coriander",
+              "quantity": "10 leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": "raw",
+              "group": null
+            }
+          ],
+          "method": "Take one dinner box, reheat it in a pan with the lime juice, and scatter over the coriander before serving.",
+          "why": "This is a warm, filling dinner that keeps the cooking to one evening session.",
+          "uses": [
+            {
+              "preparation_id": "prep_dinner_black_bean_rice",
+              "servings": 1,
+              "box_id": "box_prep_dinner_black_bean_rice_zoe"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Avocado bean supper",
+          "title": "Black beans, brown rice, peppers, tomatoes, spinach and avocado",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "avocado",
+              "quantity": "half an avocado",
+              "amount": null,
+              "unit": null,
+              "state": "raw",
+              "group": "other_fruit"
+            },
+            {
+              "term": "lime juice",
+              "quantity": "half a lime",
+              "amount": null,
+              "unit": null,
+              "state": null,
+              "group": "citrus"
+            }
+          ],
+          "method": "Reheat the named dinner box in a pan, then add the avocado and lime juice at the table.",
+          "why": "This turns the reheatable chilli and rice into a cooler, fresh-tasting supper.",
+          "uses": [
+            {
+              "preparation_id": "prep_dinner_black_bean_rice",
+              "servings": 1,
+              "box_id": "box_prep_dinner_black_bean_rice_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Smoky training bowl",
+          "title": "Black beans, brown rice, peppers, tomatoes and spinach with coriander",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "ingredients": [
+            {
+              "term": "fresh coriander",
+              "quantity": "15 leaves",
+              "amount": 15,
+              "unit": "unit",
+              "state": "raw",
+              "group": null
+            },
+            {
+              "term": "lime juice",
+              "quantity": "half a lime",
+              "amount": null,
+              "unit": null,
+              "state": null,
+              "group": "citrus"
+            }
+          ],
+          "method": "Reheat the named dinner box in a pan, keeping the rice and beans together, then finish with lime juice and coriander.",
+          "why": "The warm bean-and-rice bowl puts the starch directly into the evening meal after a long day.",
+          "uses": [
+            {
+              "preparation_id": "prep_dinner_black_bean_rice",
+              "servings": 1,
+              "box_id": "box_prep_dinner_black_bean_rice_ivar"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_lunch_chickpea_pot",
+          "title": "Chickpea courgette pot",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "cooked chickpeas",
+              "quantity": "720 g cooked chickpeas",
+              "amount": 720,
+              "unit": "g",
+              "state": "cooked",
+              "group": "legumes"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "300 g courgettes",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw",
+              "group": "non_starchy_veg"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "2 red peppers",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw",
+              "group": "non_starchy_veg"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "400 g chopped tomatoes",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw",
+              "group": "non_starchy_veg"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw",
+              "group": "non_starchy_veg"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp olive oil",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw",
+              "group": "olive_oil"
+            },
+            {
+              "term": "water",
+              "quantity": "150 ml water",
+              "amount": 150,
+              "unit": "ml",
+              "state": "raw",
+              "group": "water"
+            },
+            {
+              "term": "ground cumin",
+              "quantity": "1 tsp ground cumin",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw",
+              "group": "sauce_dressing"
+            }
+          ],
+          "method": "Dice the onion, courgettes and peppers. Warm the oil in a large pot, soften the onion for 3 minutes, add the peppers and courgettes, then stir in the tomatoes, chickpeas, water and cumin. Simmer uncovered for 25 minutes until thick and tender, then weigh the ready pot into the three named lunch boxes.",
+          "active_minutes": 15,
+          "total_minutes": 35,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_lunch_chickpea_pot_roxane",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_prep_lunch_chickpea_pot_zoe",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_prep_lunch_chickpea_pot_lubna",
+              "member_ids": [
+                "86129e3c-2f50-480f-a359-077165b6232b"
+              ],
+              "grams": 500
+            }
+          ]
+        },
+        {
+          "id": "prep_dinner_black_bean_rice",
+          "title": "Black bean chilli with brown rice",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "dried brown rice",
+              "quantity": "240 g dried brown rice",
+              "amount": 240,
+              "unit": "g",
+              "state": "raw",
+              "group": "whole_grain"
+            },
+            {
+              "term": "cooked black beans",
+              "quantity": "960 g cooked black beans",
+              "amount": 960,
+              "unit": "g",
+              "state": "cooked",
+              "group": "legumes"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "3 red peppers",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw",
+              "group": "non_starchy_veg"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "800 g chopped tomatoes",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw",
+              "group": "non_starchy_veg"
+            },
+            {
+              "term": "onion",
+              "quantity": "2 onions",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw",
+              "group": "non_starchy_veg"
+            },
+            {
+              "term": "baby spinach",
+              "quantity": "240 g baby spinach",
+              "amount": 240,
+              "unit": "g",
+              "state": "raw",
+              "group": "leafy_greens"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp olive oil",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw",
+              "group": "olive_oil"
+            },
+            {
+              "term": "water",
+              "quantity": "500 ml water",
+              "amount": 500,
+              "unit": "ml",
+              "state": "raw",
+              "group": "water"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "2 tsp smoked paprika",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw",
+              "group": "sauce_dressing"
+            }
+          ],
+          "method": "Start the rice in a covered saucepan with 400 ml water. While it cooks, dice the onions and peppers, soften them in the oil in a second pot, then add the tomatoes, beans, paprika and remaining water. Simmer for 20 minutes, fold in the spinach to wilt, fluff the rice, combine the ready food and weigh it into four named dinner boxes.",
+          "active_minutes": 20,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_dinner_black_bean_rice_roxane",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 750
+            },
+            {
+              "id": "box_prep_dinner_black_bean_rice_zoe",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 750
+            },
+            {
+              "id": "box_prep_dinner_black_bean_rice_lubna",
+              "member_ids": [
+                "86129e3c-2f50-480f-a359-077165b6232b"
+              ],
+              "grams": 750
+            },
+            {
+              "id": "box_prep_dinner_black_bean_rice_ivar",
+              "member_ids": [
+                "12362957-32c9-43a5-82ef-66b8d5732171"
+              ],
+              "grams": 750
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_lunch_chickpea_pot",
+            "prep_dinner_black_bean_rice"
+          ],
+          "total_minutes": 50,
+          "run_through": "Put the rice on first, then chop both sets of onions and peppers. Start the dinner chilli in the second pot, soften the lunch-pot vegetables in the first, and add their tomatoes and chickpeas. Let both pots simmer while the rice finishes, wilt the dinner spinach, combine the rice with the chilli, then weigh the lunch and dinner boxes straight away."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "cooked chickpeas",
+          "quantity": "3 x 240 g tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "cooked black beans",
+          "quantity": "4 x 240 g tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "dried brown rice",
+          "quantity": "240 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "red peppers",
+          "quantity": "5",
+          "aisle": "produce"
+        },
+        {
+          "term": "chopped tomatoes",
+          "quantity": "3 x 400 g tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "onions",
+          "quantity": "3",
+          "aisle": "produce"
+        },
+        {
+          "term": "baby spinach",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemons",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "limes",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "avocado",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh parsley",
+          "quantity": "1 small bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh coriander",
+          "quantity": "1 small bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "1 small bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "ground cumin",
+          "quantity": "1 small jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 small jar",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "portion_note": "At lunch and dinner, place the vegetables first, then the chickpeas or beans, then the rice; add the listed fresh side last.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_lunch_chickpea_pot",
+              "note": "Use the Roxane lunch box."
+            },
+            {
+              "preparation_id": "prep_dinner_black_bean_rice",
+              "note": "Use the Roxane dinner box."
+            }
+          ]
+        },
+        {
+          "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+          "portion_note": "At lunch and dinner, place all listed components together and serve the fresh finish over the top.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_lunch_chickpea_pot",
+              "note": "Use the Zoe lunch box."
+            },
+            {
+              "preparation_id": "prep_dinner_black_bean_rice",
+              "note": "Use the Zoe dinner box."
+            }
+          ]
+        },
+        {
+          "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+          "portion_note": "At lunch and dinner, place all listed components together and serve the fresh finish over the top.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_lunch_chickpea_pot",
+              "note": "Use the Lubna lunch box."
+            },
+            {
+              "preparation_id": "prep_dinner_black_bean_rice",
+              "note": "Use the Lubna dinner box."
+            }
+          ]
+        },
+        {
+          "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "portion_note": "At dinner, place the beans and rice first, then add the vegetables and finish with the fresh herbs and lime.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_dinner_black_bean_rice",
+              "note": "Use the Ivar dinner box."
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_0c2aee715677dbf1006a8582c80bac819ca3eac2a0e1195628",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-luna",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 9493,
+        "total_tokens": 15664,
+        "output_tokens": 6171,
+        "input_tokens_details": {
+          "cached_tokens": 9490,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 3106
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_0c2aee715677dbf1006a8582c87ffc819ca6a6c72dc31b4ca4",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhYL1wfY7pOfzAQYijFI42bEg1DjPd1Vg303bs02gVCJIxa6HFy4mSJw2N9Rj6H0lFWeVNRc6AFVjpuiZ5aAzwuXc6BEYEKKFin7N-_Gc-KUTkk7ibPp5j-1zOspcaSsnzC7_WirfcG5DKvyMhwYhYHN7kpWKUd5Th2RSfgNfIoMnqTl9EtXNPFKt2v1-5KL7psolvOZnPOEaC3dglUH_WSe779kltsGX2PUJc6gA2eWkuLbEhsFoEU1S-Qk_ndoI0zktPF6IosMsoKaIkdkmOG792OyHip4ohFuAvQ3xMovxc7BNAAzeStSVjmnXHemvefKqgVzTtEOuoBebvspPeuNfgOi8NENdGds7cnEHQi5FATRy61cbqB1BRD-XNlLcfQoGmLjgtSblbPZgz3u3W1YvL9TAV9MeOK-gn2ELaA4m0sj4_mQFQftesa2u0UTDqMBsrZhav2V555KY1CbjDT8RuPHsKMlfrU_Ci_GDXE842PmlyUBblKwlQ3KHSCFgvEY_R6uyIB1DFf6H_MFRy1RBYnlXV72H7LcNhwzkA8mI8VnheKqK6laFyWx5NmSvnu2wHqg4AeVDbYk6VWn2-Hbh8OnnJvBsnZaFIUBeVnC7CJMYP9TDHTaXqpCr_bZBzoYE6f6a8XZeH_BlxoC52zun07rS9Xwrn0xxuH7ZUI_jIOxh4337y7JQ8RvNk_gCJZNCdD4bO_Isxs6GykHIjz9MiNOBsPhn-56Bu3aRHsTja-_Y8becsJsleGtn4Gn3bdxEC37tM0448Qfe2K02FkkSONmstRrtpBDIL-t48vyRBDMG_5b407EEaN3LhyxmXkXvd8lLdy6ku5NJkdk4m4dSV5YYOzl8mf1S5dOjRUxguFk5BArYTbX9-wTs-NV8BdzZr1qrIevxRYzEhA5qTJOXfrSYP1VMZ_sixhAlQmkOZHGIDGOarTKrPkQ0egKJcv9r5oPu2QzSdyaP1Ucssapz1M1lZpHpqRzORML7NBhfPTGw9lVo2WLyJ4xT-lZ9RcCpT4Zs99KlFbS1UJwLDGuB4as4KtINHy_TCob412m0oLgAemdsbF_8UEG4d1VJW6ZQ-l46a0aC50QTBNyPIrZ_AFzTmhkl2Kn1T52bZqCccxzMiK6-3E2Q6j1bO8UNv-29rITkCoOOlfBgomlGi5S3UbSIeyMcriPxlA9u1Zc9L3kdfAQgJctAVGpetBvuZGAyROjFrQgg2dfTFWXirocr2uyIYtwZ0jqkX77UgrAlcpv7BP-pyvy_n8MuAzi2MYNLYQxEQehqrR2ibGIlBFp11CTo_za6neCQULCiaAiEtcmkX7hwc2wGbUXweA2M_ACSc4TrpPfOT76su3nCdyz87j_UOyq8FliajTgZ_IGJD8wK0UtkCmdCsBEweWBpcadvnIKlc3BpB_G7IMLM_OBHX2dOsPecpo4FOB4Zde92S1CJFnUZ1S69W6PzO4xkOiqDqS5bOs9v47y8aLUwldFoUNjOG3jjrZMVCqX7J6d0ddE_Gc7-YoqkXZFotcGEiE_1KNVyryoOPhdqmaLc_5Iso6EKppHs2Ulla_5Vt_OhJPUUBO3SyQojK757cofBPt6ZTtS3Hltn6WwpTYxgU25NQuDISLHDjA3HyrExXCA2mhLFN7Qzume3zdDuWzFmBv1P2WTTiXHbt5AY8ct2Jv6_kP782KdzVChEK5LBtw8d40aYqtJW-UwWiQe5kslbEyGpO42AdZf6OY58jDo169S3-ZMoH10FqsQCNcQHL05JlJSneFyMv9b7Zpk643O-XT5mt_vrfaARd3JXpPbXUY5_Qm3xK5w5WvklAK-DM4zYbNCbySQEV5IdX6l7ObrIgG2mC9mSG1Oua-X-RpMoHqUC61_RuS6zzq4DS3Fqn6mq2YefZUzakqqYzYDw-tMpLXyadNDmZaVzEuLLoBJtTMI0PR22HpMz-GnFG-pHZPGTkcx4-RFQllrS1SVUrzOsZ6eQwNkoSL5JJ_ZsYuZ7IKs2cBrgrmpP5EzcZVFhVG9zJ4_KQyt2ckfMgqINYe4UPAM5YRqaAv7QjEva4_FnPLJMsTjGKSrN1rsNYHJ4801pSuS5cceYnjXztaaPv2uRBdOtCxRtsgl-RfApMDdJ1wxJTBcAdxVBqbrKZMzbWglK6Uhrh2QssMjXW3tQ8VbPM6gRvtqntIErfMQVKFpfE_zet6LAEXDr0UxGrgoX2Dg7cFYK28eJ_I7wA22D1nZTKGiy5nwM87AZgRp3WSbxEJQ2MFkdWanuTU7TmC3dAJG7yfxex_uQba50sUBSWRb5wleyFVyR9WJrEJt--4euKH8-9zgtFPXObElqfoQ8An-c0u0fW6nngdWoCLo5Z4ErhQ31xzHqlUNY86yESo-O_Uwm8tc3ZR0jlKhrgK2YvnAZLEUrB22tTf0ecuDwVEdZUUvGesZcoaT9PqFvcgc_HSHEvgCg5UPXLS8sEl-u6vlx41T_8AtrLP83IsRednSoki3VuOZK7Ac2Ek5PzqWMTOvDeZWSFZSIYtzFi79oT4-Qug_2Vw-DUfOz4CePL_xndxouNm2qbdTlftXjaoqhYoV2Incktc3K6XatVWGYv5QV4NpokApAQmNtRyCs468umtxhJk9SS9AvCDR5_igCLmaovinXuVddZ_fdT4lqpdr6wEUWS2Aa7yfTfEgZB6rPL8gshD6CHPLx7imRtAG1RqQTxRgGra6NqRdB4evfgFq5paRPrK8uRuGlMgpV_Vkt4FtbYCFjgdahTC2HrSvlVazAQQaqDNUbaXkmxqTaRpXIOMbUaw-DypFxs6e67Wb2_BRquwjmNWdpPgZUUYECQwwe8hBzpUuEmze73DkTrndHCloMd9OSuHFuaKIdYnIWVfplUbUkaNh1jGHsDXRuX6n2gy2I25GNocwVhvynqyCreAy8fXvXqSHCA6bp8IHh1qeGUZrXddXQI5u6uvuulYeUw9YJFNhAo98SS-L_Cyw88y3SFulDaGK4Bm0Hw7nFhB8PlvviKuGm7VYkkYNijHKqgHSdCkl8ZlTmiQsGdlA0-nXmncQz-q6jrxX4RBYGzAZMQdhpDfIlplORpcVUtSKjeae8fliWzXfIgazE1rOuswGqTdfyBB9SalGQNJ25gFnIvj_4AfG9RJzFblXE7ipPShP69j_tHjF6F5FR_95rnmw6uYVBYkfUbhM3MsevIV3F7Js0LGIRyXs7UKJKjoMxNxslld-wBCsD-wicKC4Y8v62GUc4YeSj4HwmFB9yolU9JEcBXeUTyMn2V4vGUg1spxm_IIdHFrZ-USWBxZv8EnojDymdML84BiUU_knBC5Rc2X3Z5M3N1PLreexhQowcJBUVx2foCh_q3s2xPo4VXiIC5L1ubJOAiqDO8bGb4KM3CG77_xFOTpNz3NCeiQqUCtslG42n4-YhDlMkQo0nexjAJApWTjXdyIEMsHsOJfmtJL9oDnnXripXVvJ3Auc0epHTUA-f4QVGckI5EedoHegkz9f56zuHnrYdvGlf_S66Jlx2yZv-AIOg98g-X-TcOiF_bkogxtjp4zIX0lL9CkXIJBF7WTrqGYOJMtIvitqYy8VB0-uxnhVpnRsxL7QrAmwQGpMBy8GDxrlGJkovZfxFeDEQztu27WvPAKoOJ80rfzMKW8o-eikEqIc2iAq-438r8pyJPXrQbHQh0YM0QGs3NzxFxcYIvKj79ZD3K0mcEN5G_KfHJnnJa7TgMtGv2_poed_FsapQ8lUQ6M3KBN9YV0zc4ii4YTL1-FsmVfvDQq68G6MYUl-rzBZC3XbwQMNrx5xD3Pe97U4Rib5gXIxi6NZZDuxtewQ37vYmlCu7JPxKUuB3po6-sV4bur4vt1QoEMt0EeCu1WFbLmr6FhEN0m2J_qTFfeaH-TX27UmE2Cf6To7V5ZuvrWFTIGov9pQuykkx279k0M7tYrfYOqG7YD3XTvOs8g236frXhRV-SIz0rwi7fK5cKSt3Cb3Fg3V7gbDRoaH6l9Lf6s59ef8ZCTB5Dk09v_ijGwWXRM61iR4lA5p4qKxBLcgeT4jw_aAn6uj-EpdhqggGjeLPoenJmVlvuvC5Lax7JtHKPzeIHv8WPAMIAuHmDDgw0Q9K9o2B4ng92ytm3ovReg0ePdH7x-8vZCaqqZHeqdCC4WGDZMIxCx4U6FjVsg_LBAWPGM9B9LatteQQtlIkqxMD-Tp2ajrXBhWQfn6397ncgXCviUY-ZvyqYTlSDkzr-Hs0t7e1weB52t2cghIgYYz8v17Bvqtcq7KvhAq0Ta-CpRKPPTW5u2V8-yiJEF73ohjpp8Jiff7lHTDRCrOzy-3o-W0="
+        },
+        {
+          "id": "rs_0c2aee715677dbf1006a8582cdd75c819cb9085ebcd2a08550",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhYL1zNfppJTvbBxCrqYWPl4XofGt6ETRa6tkYsT6qFBz_VmPd8jO_HGhDMhcbSEsQXpT1Ri6A5TqUwbWrl48Fvh9pfvAMV4k0vsj9C0GsXE8wR_4150gp-97ViBIaxBWg2FTRoVMyGwoH2kOOU7WfRWdoA_sFEnIfsfKoJLoJ7b1jguQUxqHTDsVF_RKrdTtfklomeoYQwbccCYNU2D9sVCr35_MFLgdfXObZkSX52fKWR_GHYmHihU-ABnWNU6yqA8V31M4v2-DW7oFQA8XH4vlDE2pO42aJW90T4NifPaDj6GEUXDpceV0uhKQJU-sDhzlOfsheSzGfva_juYYcR7kW5jLj6KIFo-6Tacshfg2Xd5McEPIMc5nuRaP7k4hBmIPuECqjVMcKGdGPXirnQa8kCHQArbl0TTC7PmZyltQd5AhEKXiDOUfrf3ewS64w4-YVx7hTwB5qJyVXhGL2-HmUmiW4ls7rgr0rppZLjKvdlNdcnzrNsQTi860KKSVukb1mDeFheaPrBTgPS-NKE9EmhkHCnoLryT6lAwAuGCrH2L_3h7iF3-UCcSIaWj1hjLa_Yf_mOuarxF7-1hWhnWl_JFFThKDxQ063ASwuH8iTztE3GDUHV5I2_hpJVRttkZ3nRtfZ5ftHxaY91r17BkFWtu1pFv1O__y6mjXMVS4HnCfLGL76CcyF9ORsetXphQ_JkOANFvvtUDEshKlQ54tXgqt2Hs7owPmtBxQsoU3uco-ChRRG9REfbLH18n22Zqtx6mapZY5aTKMNCN6atIHhJ8xuAsYqAG4KTLs6eByQZ31xnVK_ecjP5Q7vQ_Mdx1SLZ4WX9gsjd-Q9vYe3DIy9TydebjtRKCSKdbZFcmStF-SVwPPL60U7vE9iPPUgOpFWOFxUrTxDFjbOvMyNooRpYjV1z123w8BpkYA2Np_f88bbEUeFWNL0RKEbsGsQpIvUVSOR954EqUfeU8y2rhDiKE_BHhwjrrOtPYGKOC_XspG-GTebaL_mazltI5FWBBTidtoKSpA4K1IQ8bnXjePIrlhJLQhjf4PkthW_Jp0T9wz0ExWWLB2wfPd1rS59GPkGfQi1qReiUyfpMtNExma1hdTMKtt_ZN7SzNhQ4m0k3IDNcFJP5SRXlqXmEiWvwaYXLlyE6iIU3oEfNp3451ynmOiW_zTXbHvIcsz32jldLXd1Wi265PlV31XXt159dTlXz8Y_Lz2gcdrvEySFgC_rV-UaXwhMRvTQsZRDiRvv2gURJCMc9-7e-_-BF5gWa0gTxywo4zvVOb38d0qB6tT3g_qImJwuJcBqvXiwwdArqNGXclz5QFyQrO68PPteKvB9oxGbGVmbsStMK1fEdFnoxGsnbASECPicxJXKokjbhnLtRb7JnsAx2WY--1vPYIYPO-oK4VWfPKq1ZQgdVWih8rJ993Yk86wf2uPXYNpk6EndY1sJMEr-6z9Vw-GXNwP-UcSPyEGM1Pc7zRxBO31-lFrbeA_3A8GlPGdaTrNKXP_KJVOR_L6Cd-Hrh2zWtqmtMyOhiLMLtFX4wP9S9huj6TV7Wz_miA5AjbexJ7IsShTJLnzRzSuD6zPExhQLPg55DCTMdfSa78wRrVehf_FP5qHOu7Ri44IZlmUkgPejbw7gPpQWZnRbaIqEveMNXp1TjB85y8uBiIER9lrMRqplmtrJRmMq8t9NsoSA8n_agZcb8O5__KZXxjUd9Fekx4ovE0mr-RL8aIP1ubiKxWJzPrOUKqsnIlXeoU1cHI0G2oDBDEV99LTeLyc0Yx_UXtHhH_VMyq1OkrLGu9SGdeTJ2nbmVK2BajQnsPe8rxWm-SQfdeSk8fWfD4YVgzAENubIAKc-w7sGv9aPjJaFNfda7XNpjuNMrsrYGiCCodGdVLWLgfXbLbyjtE8UWiR4yXIj-uQkgBhGZs2jfIZxmbmzUR8sAKzjR_MXAwBre8Q5fen6zj6DPtWNaOWxvXqcni2GsHoVNJOe9owLJVjSnhKZ9rytjlOECmjrRp63BH0lcvNXLMqSTDGSZQNxVS-qAxWWWUsZdRUcE6sIKcNqPgu38aVHEWR1pAiDgYTli3nWgADRchN313bmumVb9exj-2T7VvCrf9JyCEqGkYsbw4cP1VXxNmy6IhibsJgXZWfYy_DMRgvYL-5NQEcsodkEoTBP6IiiA6FMdDeOVzd9-usGfI5Zm3C5M6GDbmGL3oAfaNNswPsuHaN1w9R1sOzBy5P1oaPok_63A4Eg4E9hA8URcuzO9fHr70i5WmQJXK4HpZWZOKuNIS84QsoYDCpa7AQ9UJzikWZouasqnwYx89Tu2pe__ILkGoDXEq0snIF72B0y2YvG0afZ-nVznuUy_M99gjbA8nZWdNb0Sho9MDw6-HKvifyMjkvXT4IegXXYeO5gSwXWRfQp4tz9YNfv3vE7uof4psL-KP1dazfJFPQCGpoLH4QCeJ4PQcqZPZ9LWQMTFHKOj1QHW-nhXuOXM-WVM5GHyUyS7i4kfv7dTKHYgyJ3dUfJKM8s8mQ016bSWQ6CAYdLOq6MwjNbLXgL10IxWtFwlg4LigBJwkUOl-tBkSKoQ3CoPH024U1Iq--NdcLnDVR-G2ahs_kOarh4IzUpmw1wf8JztLXXZY-X6Nln2mxeOeUWYA9Fvsn9TSl_TL4C_ZMhJjT1l5wJ5T5iBMmq-Yaoy-oCodFsvYzcUDjrUgac9WW_UcbyzE1HsFtnuzAaFcA103xufgT6qtv7jeSm5YPJULBgiySxWi76_Gyb4u95oylVF-ORlIfojBT8fW9nxhOcuSL_BIruB-5zmkKUZfoYvt5Bkxf5HYFDRQA0xu-HFVnVafLEWUY9rjq3Eyy6I6lzn0JBytC3cMb9zKcTvZxrZ7sUeQBDYXHFCyob4wR_6KLXGMBAJic7-iLKyGgq5Y-fTVCKoLEYKiFbzpN1OA9RY2w6JTyBHI2jlrU4xYij-s6yh6A4qKOViyiB5jRZedH05gpLupmPZ_I_uOC8IuFGc8_6Es_XKkUBYaGzknSBhB16mtULzBVp7hqEacf2vE7yUmVKUVK_oMEpgdCHItVL_joxTSVEmUmEoHBfz7fXieXg-vNlMGHy-uJb4kq1PVtXVnu3fuGVgGbLxbhwQqtIr2YWbQ0s2p5uom6zxZBmlcC7M3dbf_G8IehKNp1JFxbYM9CRfKUwP_anKTSJMjrnhoT_XLWBlTU8rX3lNAjHEchnwxf6BMFXTUp8SWQfmHFCWuPtvreZXGnAZU7P7xEeTBFqO9w-QRgKvVqWOkfnkm3Dd5qOFsSrfjeWCYS0yqsINP86Col4O9pdERgQSaOX7-IofCNSRzD-LHJDVYlQh-rTlYDlki1CZO5t4nJlh0tDIQwM7j0cacU5SykgL2TkU6AmRw_bLPU6pkLItzBreeIgcailuKKtlaEf_0U1NoiyWWWVOjZFi-ZTp4K0zrZ-rdcJSuKKhztnsZmFZsi0deWqrF5XEGKx98Rp96m4KER343SRwCEIvwg1P1ID4JIqXlBGRaS8kAOWk6iku1rtxteoC6NiujrrrS-CRF6XlxkIK6P0CcGjf08B_c5YidJFdYbTNXA8nyOjIvCHNZWlt4mKyLbxSkUtPLWoO4iv-m1yCGiOoegiNYPKkdFCVrFMZJClLyT06UuMuZDSvuxLm_wG_mE9f8Fu5M38lval_VISOhehltu0MOesDjuwOJ55SY4yPH2gwg-9_dLiGA56CSGQG4B_gJdByKmKbDBGHktfAJHoA7Qaa-PTaYGr4uwykK9vk2XvKhNE45_JUV9Ms9uUuMACJBgyCiwmd97hGn6z79-WgL8g_VcUzpcxFVVKRsuTwIvndeZvjIpknLXuWi1Iy-uHXh68YwLgKwpDI3ID_8TKqlqLfga7BXhXjl1en96EHtsN4lwf_u5nnfJ9439E2sNQEbowy7SWVG4fyQSE9qZB2LF5YD9R6Ax1wzep-_klfCNQWBGL_Z8tFaYhD5zOp8OME-8uUbDYOWEbKg4wvK_Rr1BzYDtACgYBjAjGUyXJOKAgLj0ijPgKyHOcfAi4D7lRRAwUD7rBpfrJRuEv65bnXjNqlQvmFJ5e5osOm0U4DzRxxX4PyJXbFfqlqTnaRuqs-k86FPD4EdkSZFuDeZ8ljVVQaw0-6C-qpSmNRfxEjLtPCCyRpgIpmywUyGvvcdRAUNo-f-g5g2Yx5u1M6DFqZDHGOo8chUTdRZkxCIt2O8y0LaTNdfsWWM94oAwwqVjm7Kreky3cqg2nSkrF79qUwpaIcHagqPm"
+        },
+        {
+          "id": "rs_0c2aee715677dbf1006a8582d2ba54819cb3d5239953f233e1",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhYL1QEcqjt8RbkTzxHR4lg96i9_IQIHD-B1YK1cKRte6V7tmjjiI6Ee4HHaLqU0LA2qAkYLMVy6d5DrVElSIpU7DHSamnkLMN802A-oYAiPg00QlCWRi3yHncllSAvzBfddhT-8zuyQi8Oy0HVZ7SziahMFzRAzavteZRz6r8-gR4CIuZBA35FNpctiURd50DAcw6Qo0PyBWeZ9fhlIGs90ZKcNZYQcQ6JGMHWOraxxRJ_DX08_ct07fkldBynzRJq2KmfejhkBWEk0VgzvQXhGVnGxZKoBHr3Or1a1aVH69ziGPZEdBsyn8lQ8-7Nm4NuCLcgsm-0MFN97mfc59bTDDZ04K_GNgRIJfrn4FsP8b1Wq42dYMD9yU3g35wr4jsislnAPpdgwgZAWFg6TmnVDCXv1nxB5K18fd5aHsAtVGEP0UqvKonB6zHp3oiU0wrRCrVoHDNFiOah30uy_f__I1hDyKiMQ8oKBHHv2IXBlK9ApLH1iYr4-Q9JzKWKbf_JHmzMOlYt8r1eh_X2l_Rt6_71Qh9cwkNwxpIAVnqRGgSLvESRN_YazXpgftMnMFZTvt8OWNSiCJgJ_LpWBPtunjmE8wMuGaeMWTSeFqLzIwI25neIKO7AE9MThmXtEurmoFFlbNMSDTeDCwhQrZ2wPFXCnl4DLs-4QHQyLe-97uzPUI-heeaxwPEeT-cgLxE-S0Q57k4mBfxt00uK-Rn3v435jcosBtdEpJpcq963QuXTZWl5eltfOERdmEGmVWAr9Z8uH5mHgG8gUYGNAi3NpWlNOv4qKt-XNkGZd9TXeN0Vj0aEXFp22aH9dm1OKltbVXbaZzG65tdHBkTgFKU3x_5xJkVQv2nMw4HCHvoERxGUPx8o-p-XfmqqRYxtlxZaYlmAA4-e7XtsLZ4w1sIMY3YWPPtRaF2LhDVVL-NxWlBDwpx6YiAqAHO3je_ahnuFl4ZbNb1Z8xvSLgijygiOS5JAmrQfgceahLf77HQZC4QlhbRjuqAERG9nwYImJ7FRUKA3YxGSzyWCCAXip3-PdBnArBF8R8ns4HEDD068mobiUgzo2ufVj17vzqZdB2g1_5fXbS3ld-lb-ousXRWEfN7VutnXCTkiBXFfSpx3X_njj6RzyW75bqUAXZrh4leyZVHKIxeau9-BnlUiLzKuuXVLX9yTfIRnsYSxDmWRZ7fWTTIPaI0oUatWUWUrCkIZGfhBkRCYNEwSurr5Dqz1naTrcC-QaCAxQFoG1bZtcWjOXUEXsMgybgRlbAWyfjzanddJjPtUzn9_RFtRpGgLGQU6pkuddICXNLPk6qFNztE_ouzyjzC2awOehgy0y9bYAm4RLIOCnGedDDo1bK8vhXeKq_KxN-qSHcRqC18b4Zl_cXDoL9pPWs5diei03xo9nUi5P5tBLGzJvmEQ3iw4IU8CwquWT1JlwdJXvbK8aXK1aBSU-f5-Vmf3jzDx0xPbWyMKbK3pVVL8klzot-2is_2KSkKh5Y7vA0GjkhP0odt2ihKyGruPHnA5cXQial_0Ax4qB9_C9QPq9BwDcFwHz2AgOMOkudLIoiql6oC88Flu9G4MFlDXPX1KA8JX0bNo9UIpxFLPLyYY3jmren_zDCH9ebPClmeEfHB5X8sWmj7ZQIUPuLRnsRnt7kfurHWIoxKbRyCV0iBGuT_IrEne7wELMfGIXqLJteDEDY925KNY5_433eaTnKyd2Yk4FfH_s15zT8DbLnLO1xyibBalI2Wy1anTWiXm55oXnG3fCqNc7pN8Xemsi8QwVTGnZ7qbaAA7oqLFV2sTrBNUdNeJb6sgroPG8dtUUnV7WyJkxm8Fsf2XgHWzsnGVpTPO30Q2xbkWWmBBceGkqR4hcBs0IiVCMkY4yQTR04enX79NK4FlP6p4M9dT0gF4bGM9YTcDFoaWgMFsxNtjTaoawY6JgKspw_Ca1PirnT1lYabL4s1kfVXKKmJ857Gv6g2BlR0Oj3PpIZBT-5Edn7qCnKrnpG4JfV9ItCUGTdBqUsxu_zO_QoH3JxP4eS8VBGHY9fGOAVDWlZgRQYThLWA7Uu2RznviZHzCJ6H3KhbDvpdXP7JBDsV8-alsYjuWNgAMT3WuScXtgMJAE4itl_LXB6mH-Gs4B7VK851yJdLfXZzyRvnDWmj21LFmya35AuMEbB2wxGJtmZcXTEIY24QdO1MuxF1Fc5UTAtz684CeMSThEwFzppmS43cxYtLL015BRmTAqqF9GG0ID_nmQNsMtu-ExlNp3YEqb1oN4UbBwbsTnB3F_9UdAqKqEyQ5PvnPYfrRGQ2VOdYyJV3N53t31Y4I566LITUFFaERHT4ZCmzkoTDLVuymkYS2Mus8hm0OZrRunmyuAL0VvSnoPKTIuKbZDOFoTcEN92RWO3xrKy3OxQrUVHYZFQXQHEauVBVSdQElU9pGgEA_aT_UQUL-WjNxUptQMDH7F_p3rjRrh0O43yslkMA4l5y-X6FndCfh64aMsFRwUjiTFKhiks23N5vvjfU6C1RQeK8yepXGlM2_OI4u9kMHGymwlHtJCf8-XPBOuC6fV8lW80XnuEHmKwzVPFgMn6dcwPX7BAhBwPXRi99MNv7h11Ev27Ld4zXfXO6CAnq_9Ly-Y4_qh9Cp1oyemUIXimDXEYRXQWtDuvOh-TSN-lDifol2b9Y9quEu1x_qImegIskvHO_trq8QRb0Rg7ba2BD7LXgdE_SOJM5OtiVS2mXIBO70ZBIwldbcrgSCpNcfzU9NumsBfO43yxph785DTkiIIsOMXNLSCbOhI5Blpwg1F5lMgTKcgE-iFA5WlYuG4gakzxMl8QmnKJr9zMLdEMCDYkmbBuc4-ZJnEVxyV7EN2YnZ5bOFwVOOovkE5Xe_oHXcK42ZQQNCn7kEmU3BJCeW-L9uI97VoAcDiyVoek77pRMviVzJeyk-UCbA8ONkFWRN2wXiS1gTEHX_qrZ-_lVcqgnXvA1gUhyApLj5WQ6O8x4V2gowzORb8etoFqM37eFs6FQQvBwKH7jog9O39O0I-WlRMddU0fwNq0aNmNpjRQnvP8A2v0EP1dvj20_Cishv2ihhTUcEHJ2b1CrA8yoiTz04fHlkw7s2rLXGducabFcxSjo2vo3XV9nxnJ05-bHdE6k2rJXTJQ4BVoVnvNpqQASJfSmQYWU4bEshKV3egdiktzlI6NUrjtMdA6BczIUnA1uKHO0G9Y6jjfqyoTsbjlpkR56RVl4n6sQwaLdQC-4WltEHL3pzf_5EvYU0e2eNwflQyX6TC6YQE64flROKgbnQX3QJf3FaeNuBh3j5MeYI3Wib_lmoVK95NnXhDwAVquuqx6YZnX9W6KqvMyNy71xuA1T95umqz9Z4DJTWrnUWC3kbfoUsHFkKQMHtlpk3AO5bru1ROTnAEPunLUVd2vTHKmEQPufBNXOmm8x9cilQrB_ECZQ7if2KQNozDw2FF6Y3dJ9PukW2jVMqQt9lcu8XB9ZATf7hR8MxdWTIO7hrzxzweOnD5uRURexbo0F80GMMNXKacSsp_vfDpgr7PS-UBvgrmJJ2VWVLjf7_1_WcxAv4AMm1TyPUJfyIHIvRreFVeWNy-RXETmSYRPb1EYlmapLzJrhedT5jLJ2-i5mwFPfxE-qE5lLiNTym1ubKKlJ9MJ-A30t0BMPK1X3HkpwF5DpTrQ1US8PXNSWGahulPgUFoyAx8VWAi4kim0IpiUa5oCh5m72rNSLb8IDac6blWyHrQfRJBj2nqKT2puIqUswqcXiGRvVZIs8rOlzD_AtYWtrKRwVg22lxXdiyGaCJwuusGbWqndtaRAB0iPvtKXg94kYQXbPmX6Nnwcah4GxqZ-KoU1pe4vBxMsY9v9J2D2Gt-sknc1YcQBjLVGqdaFDG9aAmMSK6-TegUzoKbf14dx2Qs60kLkKiu53SzyMOoQNScFt8PMAiMUOLbJZSrGOY8dC0f9cdUgmyuPjtIs6aMR-pIqP26GQWMHuRHDdHCYthGKnWdwI_xWCN1VTFsi-M_eyT6dLQq7j7fuvgnDdan3FHapnDLHaPEzGFeKDVIjwD6V1Z0aLYakrA1cvm4XHxbu5pYNH3_vwVKswnX9rRy6czD99xoSLCVQ9DK23nfom09v2iwcCdCg5LtvWGAW5dBOa46yM_KXPvs7ifoaedRAQOKgcJf8hqWliGlDrxiLm_RPiKC8Zu5hXZlqyfhFgF_n6G2A6LSRl158sewUPew-pjuwfac3HZOb-D8FjuydjXwC6JtypSz3_mzkC7mdgNYpeUS_Wl7Aq5siJThr1SLOPsg64r933bTAfqPfVtSmnpqFEjVKr5M="
+        },
+        {
+          "id": "rs_0c2aee715677dbf1006a8582d7ba64819c82e61e9702b4ac24",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhYL1bNyYgT8VyytTK4nY2Kpn3P8awFoWI1tAytV-wkpnNMUEkNFPy0qWcatZ2pSAwTtOB4Q9GV0-KBwaho12skVNEBCACWf8Qb0E1Cj2eT5NYNIEZl6tInS06oENBvuFkSNISv_SHZ7Pln15QoQefZv9Pmiuer2DAJ_YCbDeTvxIE82wpL-2KepO_C59RGW2dfEkT76-IYa8mUaoeQU8AbiFSj5GZGFptcaGc3zxHVduEyVktksAsxHIYzLWeX8sgPh-1twEbvQvzWBiZtma76KDvly7LPDBtqpRm2vB_MQVr2Ba5YdXq0XOZ7v3uIwW-sFviylVdd3URi7w8ofPJKwBUUz7m46CTh0lxeg2iSfmgnj0MzG8q6xdtozBw7QURL8UrJhlc-xJ190X6CHCvHb8hfPsDRY3nzE3lx8Hf2QERgtYHJROUJ4oT0Zpbx_3p1DtmObqDdMRaoblfQ4fLSn3scEHiRS7cXsit_o5EYGvw3BJIM3gl07jrtqg5orlZOGbqQSKbRwQhQGFzawaB-fRijsef1s2i32IlDTkoJBnILak-es4E02Rdm-Sg2yaFzdKP1d0sjlHmpCzh2HyqU2mR5dO5IswDpgiSATANa3YCf6Mhx3KLQH2bH8lT_mQfRX9ZQpHv6Csol7lKvq0eaYX8cu8GN45b1j3kbo4_2c2IAsmppNg1xtNyqRtrj27BOtoKJmgkX1L6EZ4RWv4Z4XED5OPWA_b74yBj8WIE8tGADr6QLfaKZvO6IIWLQKZ67JM1QCJvgSrQmmwi39S41LL3G7mHmiA57rHpKjoQN70nSLWO7ayMydfjvOwviXzFHwBhWL9d695sLKNMiRMkFw5IzYeI_AwMOhWfHt9CsLYpND_HZpmnGWsyZzgdFC6PSlVNmsGpxThdu62awGeewQdymcH_YPkn4dENbbHGjCSVvNdABTCuqUOu1j4JbJJQt7kcdZ-zUuaIKYIE0JefWzVE2j4Z76Rl1YzQDGTcch8TfCZ9RL67UhpTSylaqawXwHYCef6E_hyoT2CvHC50lL4aihnMTlBEbIbKOZOv9De5vFuTlI6SGCzQxLUFdy-z4hqBy443PR16HxNdYW81Qcw0qLi__hNVJ05bvAe6X_DH4m9Q--5tPzuBmfAFvBDcZVb4UyU00UO72PWS8x1Z-woqUBmQVNU2K1HgSGrP_10I-LZjEieRLzB1fbp5E3wBClO_4aDWOiiXJ5GxvSWteXR_wChUttC7XaOW1zpNzaTqxshreWeXv5KmmVGgKFMRfNe6gS9tCXDTSyJA-EoSGUgtLnkr6BjBR-IIYDkx9iGFLAVWoZnbclCisZvLY19MpPrQBF6z8SAIn7fDnOyNSHJ61gaifnD7Z1vwirBzg0wDoTmqJY5n6kDEd4ISiaE_X3oAO52Oq0GxrYFpkEYbG0LHvuajfxFLfVUM4hpNAY63WfiWD9y3b1tfzZW1JYjL94bXgCReYe7EvE0eCtytKlMgxMqmNOIsGICnha4vtyxdx1zlBp5wcs3uWIdpDZDI8-bocSPETAfUxgrH3IENYkM7f6uMIBl0FBfQ_n81g8N6cwhhai9cBK0KyL983pPhc3tvMS96XgPHetZULZOPOiQ-s-oR_mM0OmcbjRFylGXrZIJnWndskflTsaZp9Q0SnA56GZnjnnAcOXRn7LvZqCkM03BBJKayxgos2ld6Tu6VZIMJey7L8ZJJse_jUt6hPdRjcs-OzrQ3r2RXxN2C7I04iBcEXuZGD99go3w8LEHpUrR_8D0nVwOVTMobAWb7GISiFLQozVvdpyPYZDusc2Fom6BD0H1TTh_qTahuyzA4S9zpjj4kGQdKe11o22epTiLbXWApl0NgQJGbDZ0TIxb1norBn01CGx_A3iDIggB20HtXSceIPMwvENwARRfWucHX5FFhQ2J9Ms-eHDralOiG4UGopooEm2CC-enhUKulZ_D3m56ARbZd58iBREpS05dudL8R_14A0-WORmoSmkuOrjP8hrvG0jTFa8cT_5a5QVB3h2OGwx23qJDnpMNN-yxX3huCFOHOQVj2tEyei1yVU1iYQyr0hRJ9DO6EBUWHtvyzbYS3epZYWUID4JXJhAQz9HlO26UL6Nd9Fp4B5J1D6MhV-buz_73pHvN9dMh3fGUE1seDCkn6f-yiHDQpgmZJy25FXtfIeEhGXmMxeuckrZVRwoGPpp8Zp3Y-2p8mNzD76uiFjCaw7uAUUY9OcZqAI3WIX7irvYfH2zapS8Uvyq5ljg5sjJp3O1a39UOSIE89MnofPpBsun4z6JPgSKiKaCSLxIk2QCZoDAjoLXAVZ63LRgtQMwH5pD89dA6XLPmoILnwV82QT3slCmaU0tIL9PvuQTqU8RUnSCzv_BYon4UZZO9esZN6MZIso9Hf84hIT7_CQC-_SycVhdDvzZBauP_vSeV-5JYI-ULwirZ-YlgSrcg1zHAdH6n1eIm99U1I75o-TZYim9TWRplfLyiw-4q1zWX-7F7fLDSk-DlTslw1wzJ_iZfXRIBO2c0Gfbw7nnAWc_lCNCOx6Q2mTB_sv35KitzHDyBu-vsdGHtQfW_q9naiRsaK54RceqeHjve9cjCB9gkJJSjOSMnIo-LoZCVgR04f5qna27L9W-ZhY7BjJi8OgLTbw4bRbPuziwEBPYno3Bpuikvtg5yvAkx_iwB-a1X41VpLmAIr2AGZZ2kqn57tg5aNaBUlOj0qsFugOc8WftwS7NbmjP4HS39HI4HL38oV0AI6yDooBOIWx0Q1a18t1PqeDqxbzaruFTnnTXKv4SWCDck2552uoCMveXYfNmlodQrYKep2vRdc91h-PVsj51uq8glHe2op5Gqrc0iNQUnxfy4fxXFL0MxseAtcqhtdANQ_eOIXjs4K6V5cc5DCdePrpnFEV27iSKsg20HPQERlslI2ukfc6WUrLgcvFpqWNZtU7TnjXuPAK-OyDvpLRxiPmO7_KU98lSbM0ORT-J0R4q30DdfizJaaLjPNKawIAjTuHlFPfzh9M7iVoj6fJaZKbvfHGI3KxuMx1AXfT0t0wA9ONInFxQUf8pq__ryf6eiDlfaKviaGddXpnvPA2j9yVbg7VNRDgUt1GEEggp-hcGg5_nEhDwS80Df9P8zFO2vyMDLpgwn21WW2akAJuIm2q4MwN9RsdHCCW0bM-oqrAsflFKd4Rk1C2NmCiUAXjz6cO0X3kDBX2GKuwN7nKPbVz1JfXk7hPTPWjTbjupmBebDKvwl-gqnn0VHDNclkS-QFFEOAxPAoz3fdyWuCxM9DIl7g_zaSL7WFXN0oY7H5XgYqiPTX2wZ4bEDzVDu1J8nhuPQdpfSJozLa7IT0wCYAZmeTOWvULcqq-TWTNZ0bPpBKn6O_tm0bVk6RqalwGOoBFM01kfWvCCgnisuuXCqLwVTPss0Zbt4wsamqYwsJaiqv-V0ODtyBhe53zeHjAUGPhsSFl_1yXNk_DpcZemIPhsbyFS32FwT_75qXCRQkAJR2VCu5z2E3ZG8_LbtOp6KQlZ7KvKDQfgYEH_i0GUCRmkOnFUmz37OTbwus7nop6EJTsMcbB2IlLdKd7UOcYCS-nWOtLeYVF3pjsW2EQtDeMJTBH-CAbezFDvcX8Jaagat54UjALYaUxWHF8Ed2e1SKO0zxVh_YPhScUJ0ZB8mVJg16IPbQ-AIte4cuXheSQQOC7tyQd68kBtPBn0SS1ERywUUIGxeT3LdzmmYTTdbldiuufS6uztP223Vpc4W_x32srzVdqFZNCBQaY4j9OTrcyeyvM8A2Fk2Ch3K5PjZf3RFnloF-GiNJJaa8C8gdKsE1uh5vFLMyXdep5uPikCI9m9CM-QQDHwvqml5G3Z1ClZD1w8-pBdiMQ3q29DQeJpm0T9f0FcqMayAY2rAAaWs3PagW5YsgQAgZTqw4uEVj9nBZqNUxEbmJRZXixdkH6krqNal4Aie8lCnvItaFjvKDKNHbGosYc0tmvbBOE3TvM20pHpbmKt4aXGGU-Q45Es56BB6CPjhOtXEmwiUkjqlcZY1lWs7wgIf222EHm5rYdW7EjvDwLE80XezDJQyg4BMQaDt_QmV6DWj0EteBwc6m11Uj5PFw1aC6gPY4N7c1-0DlqkvdZlmZ1GJLetHweStTB5dV2Nv2gwyY_r9B_f7t8XxIy9BGGnhz38Ax26h_oZYbxtoumir9DbVP_FQgS18_lm9PJLz"
+        },
+        {
+          "id": "rs_0c2aee715677dbf1006a8582dcdea4819c8c6db9ab3deb3220",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhYL16p-ywsou-atqYSr8bpoq1Guq2qCQB2C8Cg5Rk6_b8sSZ11Hp26xv0U52AZRxQzPA_ESimDfwtESq3T2F9OdRJJr-mq7UmBoQA37Ge8svpz9Qe3XqJF1NjqSsjzlSvKl1KsCvjFiCsBzdBKmBnxXiQtcvMrqKAE4rkj63W1cNG0PhOGXwMjy77-8TM0iSezjQu6Td_yYX67LEzGxCdbc5oESlTKVjUUzDuBe_Ms-Sh1ZOCuuLcLt_i4ppuReUit-RY7VmEtYLWwDhee7rWjbJkfflv-kq02xacEMD5DiLsJV990pHFjCP3uGuAUfIrQH6Tj5OkycE4Z62LXidB79_VkvLrwNx1Z7xPeoq5_jxjH40ZVzaj2NnAC3bJNbBCC4QBbyYez6k7RSs_6e34QayL-3T8Tz-eqSUI2VsJXjRZB_yXHQwSPrgtL1iHCLeOXg9NA_7JL-nD03XU-wYfuihkHSzr5oAFrM1s5keoCL2nMxE7dUwkQAUy66-vFwcBJccA3gaFRrUm-QI_m6n9VXP-f3BhaKD4CtAkJQ0xtK_DnkF3mGwn_V-vD7rLbOBRsQkO_jjUeSH9votnPXrGPBSzmzuRxYvruFXusom-j-akqwbLWf1OKviprg95OtYv-bWtRUq-e9LDnzPq_MZFIY13lWwf7Kwb7sBZb5kf7TmKOZXTzzhPxnnVMvJk6Sx1p7hQemDgfO8YdPXL2rjq0CxsdEWshz997AQIbEn8ttCurHIcAJsFWCXoEkxqFIkxsbSwejiULqRglL36w9xP9KwBdyWBwvOlHURxx3BV3x66qF4iIZRBYG5b3sccq4t6dfk77j5I1VdCUnnq9S-nLG88LvO__5eVxFX9dHl5NEZlYM4q659B-LdveFV_5raaC_BtvvtvmyHThI0ALrUgw9bqBbC5KEz0J8bdsbjhEBzhv7VukAo3y_iPEIGb1Cg7OV5zevIMprYaARc-X1KtQ9vn98ORqWFUX6Q0sSp7gaRmwPBl5fAQnpZFF9b2h9UZsjeRuKUIhtCRo-yRurAA1cePgXyGLNtHJyRpBl_P6ZVTXGgn2ziBnvqZCtRWWeG4-bp9NAvqLtEL2-bmxutiqjMviTNMV-olOBJ603CnvXMqVASmLD1p8BKuPDR55eeWwH7M1xEYhrorgayqrdtO5qwHXEo5tnTeIfQN3QIgTLB7ohX4h_mfl5o7-mJ5yw_mH75F1ltqCrPDpqBV4YSF5a0aokFWBSgWCKOAERBVokLUQPhDadQzKoY-rhxxihnk77SUSstU1VqOIfiBn0EA04FZUK2FyUEpcvN_JWPuloyu3axDsoioVzNnblMmul24Q-YXKngCAyTXzBIgylXjI752ACNM6HIo3OIZApHnaHyMwtgnm3pZ2T9opDsrccocgJxKTMR4CkOOpsDJz82JXsO-PhmIEWiKgTAnHjlQUxd-_aU-WjIrsO4plbKui58wcgFT70fMR5AHjCmQIPCubd7OMheurq7pGNEjM_v77Bqa4fFn8XTB94xrIYggHwWjNBc5HS6G6oYwcsqPfauympfDwwU2vQUTvc3Co6DSC0PMdF8OAosfW25rs9ucXLq1iP6mupII_YoYGiZgDEQEM-BYfPv46m6TMtLXgxweFHofAEizDGaDcISNsN2B09AoLAdZZEsLkl5ctPug7kXL6iDkNjWTp-VPZFvanZwbMNT-hCWbzS7T00Gjb19Bghkhgi2Yorkf8-KAWrNU8WYewIVk2PiHkx2XyDhB9IWcfWHTLTbWECz6Aw8WJRuACGgQnUW60m_80O7ERq0WDHwW7N0xj3v64evDErEZJYavsTDNNppeNJDr8_vUCDGV8zFTVMkaNcEDVJJsn3A2ykzP93wT6ok_F0nkziks7UoW3tWahXhVwbD3kN4UspaT_TniJDnD6fGtBs74KcaH7XR1GYZ6q2mCBVR9roDIgmukLceIOfveFt60ZXPSSB420gXUZiXexb1q7D_loV-f7xIRnm9_ISMr-xR9La0Di8W_dQzWq-YEYBYj1AoauL2l-_5QDUYl7iQmoYUrnOYCVvyCTHOnu-1oJFig7ZW63uHZ4pAhJfPzM8TpPAxEGdOPpWX6NHRE3TQaYpXmeF2Su7Eq6PF7Nn64q-g9EfGnjXe4qPHY0jOaEPlSEFycYBz1RbdKgrpxFJfERe45wBbkL5uhUX-6NVNnSzihFi1mM0VdL6KYFZ2s3tJkcFlAqui_G0kajUcvZl8_EAzY8i1jAjHjTuQqKJSckmCndZmbhtrkKXjiA3ViQA2lAOA1QHr0TJH4kls7Y077cbIL-3NpQN0Q5rMY8ILWv2UstcYIjhVNFv4h2UhRO21ITFkb4K-pf62-Hof9jFHk61M1sVYGPnLKbtj1kfesahDEXtaT92mq7PGMoSC0Gq5SUCPXd69pj7Ksar6mtnuh3S9KYKK7xhsLQnCq0KQuwOOBI9y7_GMOnY3RmTZXIFesAd7Vfy0ZsjdxylC9iWg3lw9MP7eHD7g76qV9iuRqKCZuzWrKl02iBBtkkmd3J3xD9SfXB0PRfEMLrHxM56N_lH259LQ9LOmDINi-p7mYkfDfjt9eAO2NVdnrGG84O19F28qqVhX-6SPVOha1NyUTix4qbhIT-EA7sIHKb0W9FUf3-dsMNQF8K77LTERgv4CE37m09czJjrouOk5QfCYxBi83L-Ss3pG1-UPlJea9v4d9G7t72wNZ0yHPsBTDRVySn-0PMZQybnb0CsvqA_bts4EdT-oQoVA6JP_NRY0feK4B1XOYCdrNMsNn2z2ggI4em4BRCXhZys035pHSyHZB695yKTNzRTz6vXJW3fZFBN8--PI7Zs6pAAWgniZFrSJhc_8E7UnwikaDJtwKPu8Yw1lEUjm1T1diGqHJi7Lnbiog_X5pZdQwpn4VvEfYc6rNrY0bQK_qntWj6c0fM1ZUACRWeqaraBQukVgn2ETOL7tuzBx2SN7SNvt2jco3Bev7boNtqcido4J3Sfs3y9flkaSgm3NiB9FT2G5zKc1LH9f9EVMNcIMJOR43Asu0iJJUt4QxGFcn_jLRHDx8w1_gH87CPU30PT5SxlfgPo-D69bPPL4XZXMBe0zgZcoAensygxdsv8G5_TI0-aRs5vP8ftL7IYuTzUmjviUz1ybImXrQLnhPfXpTZyw5EL676mjlEUqvF3jdofY-AKUku1lRmWkW19VjMp6IBODbZlaKPT8ZIm_73I-aD04OKOJ0g8I6LpxE02O8oXSrV67yL881hJla3Jgd1S29SPmhUDLJOclbzakvu7ze1cZuKEHglj5U5T8SatqNkJdxKLfCLgoHwufLmWjPr7Hq6xYKMrc1lhnoE7wz773k6Tlwa-O5kvua_e4cbBy236ayx3OnJCNek-vL8tGP_8ADlD6Xim1A_z29QilRbFaFUoWAEbbGeLF1O-oYTkd0Nl8hX519sLjyAD4edsj9bjcAGNYJ2P4tyyLWPp_ZIvZPbH5LikV6hCgFQ2ultc7tTAJFrOskLbBSQZxYhPDJZrSTnUarR42H8wo2fMspKb71tUFpKGRbNzj9sosyeJGVgPdqAAM7sB2klf3qC60YgcrlhT5VKx6fGanwZUO6CYuBCkwuR7XNGwOarhTTdP8UFfUxEbBaL2AfyL4LvYOdHE5Kh4lIokx_6JzPy7ogccZQOagSxM_Sn8gou_latAkEPoYUUDFIfjGTQbnHlAXXUJeI78nDWkEyZ_yZaiotMUbcLrYS25SMIkrWAhoebOSmlrCtSmo7PL3iS8zO_vWlry5BGFBMs7W9dVenZBqSiIrEMFmftiKQgo1DRwrVlqt5cMOtXElf_NuLkJ_bbzz7CjAK0oQseWxxD8524b-yXindJ4Cxu1znNqa4nM6WmIGh7V19tJm0_dtUGlAYYCdoU3ySmAbpVMoatl00TW2SGF6tLRZKLw-RYHAIcybNSKTGQ24Dcgze2kwKnIK6nbUf06UI8ZO_BlyUR9tdjAdCKjRhclZYx5O29zHcf3WhHCUc-4sQgm2ZWoISlRRT2djMBGfzhgNW26syOTRiF938tOP-7n9bnkIOwP5ezGbMSqW9cyKxtrZmLFqN7F-iKBQiyo39_3oRmwwTYeCHqZqHaa9vneFgrJY0QMNACSpvBZXCgq1fOKeoTnt6MYg3mIOw58mWBQq_xS8zyUlsrwlLhaT6nNPHLw="
+        },
+        {
+          "id": "rs_0c2aee715677dbf1006a8582e22c68819c804bbdc536d6085f",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhYL1IqOcUVJw5WaR0iGNowqQMSzlAbshSlWH8JHoj4_grXYUWpENVNWnnl1xteGu_NmkOvGCXi8_kJYErecfyNuhyXYhkxMAE9FDy7kQSGiuTVpkhjqc4TkX0S0ov8QNH4kP8T23hhYM_pACtev6pkXxzvB7sMNLPUyMb_6oOFtc-jy6Ic53EITELphRxTIq7H6M4JUjPLZ_zqOhKIGdAbvsHsl_XfnF3eb15L779_ao1bjhpHdmd83jGjP3OS5G139NoY-3ejKsvhHgk8W8FLstZ8vyIMz-Ppcn14CGCx3SRMP17oDw1vxZs5g4QcUSeyMSnogzbMFiWDZ_IoYNcSOEvoF5kBA7r1Js2GQ_n38gL7PjOyKdkhJsRLiBLs4HaptNHrGC91_VP6ESHF98tuPzJSkfSZp47JfVHTZEV4niV1CqnWD6JOrEb4LyAiXMLd47dZg9FI6RrOJ9phsWVR48ljbYLXOZc_cDCKsbAiAV7DsJqRlFc1EcKH35qe3bqfncz7YGU8rzv1kjpHqPXdRIK5gXl4eDIyXyK31TomsVNazTGHFiRiISsOSD4zRDttaZbjEyIizaTAZqvIjUyv5s1FVnYTMk4lsmEoaux5uJ9i1c0JGO9PM0tJlwZhKuYGpLLyPY0o6CkfiY_Mbu9d4NHlhgCMKbbCnjL6xYfces_UQEhw3jK9Y0TUBxssJDhZhb2XEk1g1va-kNgyZcLGA0K68GNuT8zXiU3AD4lo5Rz9qTdt2bNcYOq6SiGelVsgp3d7u9w6tkFblEu_4cnBf3TbWS1cjLgS5Qc83SIGSKVeVxCqnORF3dLaIJlGm4KPGoZX_KN2VZWInjIW9qyjKPiL64RFO4OFWEMddFRTmu1pQv-rW58_s_XVercvPGYM0Vf8xi2Hg0XA-Rff1iwUdMAMJKo7jDmCxLaN5E9W2sa--tK-CovdBJFWe2eEzwd6B05_P4mn6s_LH8iy5PEup2SZvlq77IrowpXWAduZU-49uPiFOVyuy1nJrT5oKjNlWpN9-fHFdO2xZtKbmrWyK7RcQY8GY_gx100ri07QOb9RU2weBR3qFeCqDsM86mF6pYVgs8Hf03WDpr7qQtzo-Gw5SzZF0HMqLxskkxgtFmwezcC-wxsyI58BO9f6wUB5ZvtTrbly0YP0_3BVCa7aY6V80cJ9hn1rfJvNSVxvw8KjCRez22zLeWfWo8yMg3FNQB_8fifhqxZxJyDR3N9oRLUZsBKBJEXUV6wg2OH3a1KuetQBIKkv6f2oTFabvPsMjNVlfTkN0ah1zcJ82TmiETXxLjBbAo_yr-0AfG4aHZxLvI_WPgs6RkcJ7G4D48FoIUmAOfE7MctEfKzWGUtafHR62RD9JtPviooHHOcmYFyLFbiqmsDmqTZ7sWtl1YiGpjMfJhEYd7TV3EExBcBYZKakhKV-SkUB9qh710O1JF4iU5G_dNV3C80_U_T2tV7WVJpKFr1o6C86ZlsBLnZjVrucKNnwci1-1Ucitr4elgF_2JFMVwDdgD4v5_SwIdcok1m_UuqgA8rE3B8aHVbcfzPYP0dSZMHty4I8MffXaFS1nmHTQufxvOFPC2onpBiM0_RTyO5_zQslStmROJaj2Lv6Q5LMhBYY8hIQ3dXLr9UOcESv7cl6bITR3hE1CDtv0yvOU5R1lsg2_yoHuRz9nBdyfuhhaSKTzv7OV-JjgE0gqKMYPsaJYVeLeY6q_Byv-HIyhmnG9igm6lxUrG2PCXBBD4_oXmPLRpfT4Tzl1YR5aH2sRiGyIzPfZK8d6niST2RRHrW7cns2nLtpnZHDKRL1sAQq6jLmN2hKU_ldiMfvrIO_ejUelWRTMDU-sXikah8CNgccQqlPhqk4YIwSCEOfeHiggDOeb7TRTqTE9x8S3YpnzrHHqjFDfLwz0LdGr4Q_A9ZoCWAP9l_W034VAB7stSdmuVCeBRIRhT8FOYvBzZnLCoNgVrxcJ3h8OmFQL-Pif0E5vev_PDJJp4ZUzBHtH44af2zEfkT0KxxXSS98AsjKZc6B95x6hA28bXlbEqMaewG7mS-lAR8NOXK9dEAEpGjEnHW3Vt23DAVfHNmXom9RhSR8XW4sewNu1J-rEpqNORW9gSg2LMyR3Xtg7SO3eLGg7fVg5PCQ8IMnp1qpPWXZe9VAeVtEwpsoVQA3_fS-RclrCkRqB7qzyoBTNF6FHxGMrzhdsWq4pu7-wX1jGbB_1xNsluju9GfjkQUEZA5oDc5GTpxewJGlt3-JuhMgj0OtfEVSpuxddVYG4Vggs2MJ30wTNS_6SzB5cqFLMwG0vyE3ZIHqP0evIVJOZlw648B_xys164ZoCy-4mx8umKvatZQLsMv_NNtiQY053rqYdE61pMzAcvBBIDVEUULNPPWdnwP5kCbqf-AaTEysmko9GjxOjwwJ7s5XrnyM9CS3in2_NSkcvDwPLQnNJrKU0LrdlgVlop1216FL5kalAlx9glrjVpFUndqQq0cXBmYXb0T06GS0mkGx6b07yZutJN-IP-2HWAAvg4lirWqzBby9ftJld_mJTRGZU6yOo9t-aZz4za4A7-pYGK-m-GdnmzOKuEwTxlahlMvFmH9GIWJZzEza9IVTLS6LvkBm4qwW_b5go9ukZL00Ez16dsFsCBa8iGIfgC_PhWdj2edNSAbz_Ge3zUnI4E38-rHoaX9rNo6g6C0K31NNc9Y62RZMmJqSb0fiQffiusmgkXCB5s55p-qYV7aZYv2ajIEaLwbLvWDFLYgpcfjWVkziN41r2kA20POHgd9EfLMNmskfG23-jU57tcAg8jMBtbK98tQiygGJswLUjnN26abA7IMEX6FnlAczNtKEvvlTg06Ly0WjGMjsegFYf3DFN7_hrbRqMsLch9-dzqZ5OHor0OCSbo3xFDvM9avTdWD9JJmm6YT0Ph5BtXmHARmVJf73Qj7QhMKQCflRkA6dxhB2n7jCJS6gBLJrCmEazcA434zUQ3STcgSLDvX_6RJeeLu0DLmEn6peD_UKrd86Xmjbkuv7OwK7LgISyOdLxF27HlYbbT-pCXS2d0JpnPvJCwT05pd22rqsXk_TMCB8lon3tHGVEf5vK2THrRh9fLiZ1AEkHwGMNpqMs9rCLx543MlGewMl7FFxHKv9Czmm0etpBEottRpRUVjX55eU-SVPxLsNwvd3q4Z3Dk0dAh7Syw01ymdXkFCOlqDROccQCOH3witpV7u4C3qImj_MAwZiDvs93k49oJ-8B-dLWBsTSR3MCRIYSs-vwg8wk1w8dReNhgnjXDzwqjbvtbCcnh16KxBpqSn7f4FlTqMUylZtwwIs1PXBL2sEPn5WfBqPmDHGlH1_X_3F43yvCRZd5aAyp4lyrjsLtawA6M_LyqAu5U9-Kz1A8h0Pz32jUCi8YRA3mRh-TjQ9fV9ZkKZD9jFyv7AXsslZYHcivwyxpsu01skmV7spUnAOasyakeyoRLlaES7K0ewSj578JM457fVKTpnn1IrEylXIkmGfFps69HNWdNE2iSkcylzmFoDZ7hOnpQ8FsIGz11pfrvPoAv2UJXFHXl6zOmah1ZwL3QZk1V4-DgV319HEXTfU75Y79SuC2lZ1pAd0Tb-xx4-NMczEp4wQ67AvK62A64xWVB9n91M0gREUIsR3bvlugdw25Geo9LwqXg1yGoK7D1yYTXo2A43cvIRf72BN3JAUs6nH92vKFREpgGFfrCvVii2vaHMzgcoufwCHhoiCFZ11QPUhvrQMl0nbJMZ1JtDCPm4qPDin-7d9gONSflG8avubF-TaGMZAknflvxKATz10l1_4NRqXM7hC6rxPvgLCd-f5ni1VRc7S9F6aiBPFOPfdMxAUx12TQA5Zi_1PrueAbDdR0RoXrrgBcw5-fRDoLR_xH_1X4r8n3A3yT4Ia0BD9WS5X1bYSpm7cdh8pKT_PUb8z_PVdjA9pI2Z7zlCyJeZMjSBa2zhU1nZ9B2KuBYIcU3sSvkmFGaDZBssKnHjrRsPABMPmdoz9yB3ySo21BLaO_viMZbDxn7NcOfI1PkZ8yL9wqLppUwT3dF8EBrCzbHxUME5x8-hOXJzYI9qJAzw3OyQ1BmC9jC_VZDMCpgxisKHLv3Zm5ApzU0se7jpLMW6rQ-X90Rt8Dn1863ihIiGE_0_gCSXsD9mg84f90JC6AreWzyHQ=="
+        },
+        {
+          "id": "msg_0c2aee715677dbf1006a8582e70c98819c82ade24aa9116189",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\"dishes\":[{\"name\":\"Courgette chickpea pot\",\"title\":\"Chickpeas, courgettes, peppers and tomatoes\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lemon juice\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null,\"group\":\"citrus\"},{\"term\":\"fresh parsley\",\"quantity\":\"10 leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":\"raw\",\"group\":\"other_added_fat\"}],\"method\":\"Take one lunch box of the chickpea pot, reheat it gently in a pan, then stir through the lemon juice and finish with the parsley.\",\"why\":\"This trades separate fresh plates for one warm pot that reheats well at work.\",\"uses\":[{\"preparation_id\":\"prep_lunch_chickpea_pot\",\"servings\":1,\"box_id\":\"box_prep_lunch_chickpea_pot_roxane\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Herbed chickpea bowl\",\"title\":\"Chickpeas, courgettes, peppers, tomatoes, spinach and lemon\",\"slot\":\"lunch\",\"day\":\"wed\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"baby spinach\",\"quantity\":\"60 g baby spinach\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\",\"group\":\"leafy_greens\"},{\"term\":\"lemon juice\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null,\"group\":\"citrus\"}],\"method\":\"Reheat the named lunch box in a pan, fold in the spinach until just wilted, and finish with the lemon juice.\",\"why\":\"This gives the same warm, comforting pot a fresh green finish.\",\"uses\":[{\"preparation_id\":\"prep_lunch_chickpea_pot\",\"servings\":1,\"box_id\":\"box_prep_lunch_chickpea_pot_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Smoky bean rice bowl\",\"title\":\"Black beans, brown rice, peppers, tomatoes and spinach\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lime juice\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null,\"state\":null,\"group\":\"citrus\"},{\"term\":\"fresh coriander\",\"quantity\":\"10 leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":\"raw\",\"group\":null}],\"method\":\"Take one dinner box, reheat it in a pan with the lime juice, and scatter over the coriander before serving.\",\"why\":\"This is a warm, filling dinner that keeps the cooking to one evening session.\",\"uses\":[{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"servings\":1,\"box_id\":\"box_prep_dinner_black_bean_rice_zoe\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Avocado bean supper\",\"title\":\"Black beans, brown rice, peppers, tomatoes, spinach and avocado\",\"slot\":\"dinner\",\"day\":\"wed\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"avocado\",\"quantity\":\"half an avocado\",\"amount\":null,\"unit\":null,\"state\":\"raw\",\"group\":\"other_fruit\"},{\"term\":\"lime juice\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null,\"state\":null,\"group\":\"citrus\"}],\"method\":\"Reheat the named dinner box in a pan, then add the avocado and lime juice at the table.\",\"why\":\"This turns the reheatable chilli and rice into a cooler, fresh-tasting supper.\",\"uses\":[{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"servings\":1,\"box_id\":\"box_prep_dinner_black_bean_rice_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Smoky training bowl\",\"title\":\"Black beans, brown rice, peppers, tomatoes and spinach with coriander\",\"slot\":\"dinner\",\"day\":\"wed\",\"for_member_id\":\"12362957-32c9-43a5-82ef-66b8d5732171\",\"ingredients\":[{\"term\":\"fresh coriander\",\"quantity\":\"15 leaves\",\"amount\":15,\"unit\":\"unit\",\"state\":\"raw\",\"group\":null},{\"term\":\"lime juice\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null,\"state\":null,\"group\":\"citrus\"}],\"method\":\"Reheat the named dinner box in a pan, keeping the rice and beans together, then finish with lime juice and coriander.\",\"why\":\"The warm bean-and-rice bowl puts the starch directly into the evening meal after a long day.\",\"uses\":[{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"servings\":1,\"box_id\":\"box_prep_dinner_black_bean_rice_ivar\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"starch_follows_the_session\",\"one_loud_vegetable\"]}],\"preparations\":[{\"id\":\"prep_lunch_chickpea_pot\",\"title\":\"Chickpea courgette pot\",\"servings_made\":3,\"ingredients\":[{\"term\":\"cooked chickpeas\",\"quantity\":\"720 g cooked chickpeas\",\"amount\":720,\"unit\":\"g\",\"state\":\"cooked\",\"group\":\"legumes\"},{\"term\":\"courgettes\",\"quantity\":\"300 g courgettes\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"red peppers\",\"quantity\":\"2 red peppers\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"chopped tomatoes\",\"quantity\":\"400 g chopped tomatoes\",\"amount\":400,\"unit\":\"g\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"onion\",\"quantity\":\"1 onion\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp olive oil\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"group\":\"olive_oil\"},{\"term\":\"water\",\"quantity\":\"150 ml water\",\"amount\":150,\"unit\":\"ml\",\"state\":\"raw\",\"group\":\"water\"},{\"term\":\"ground cumin\",\"quantity\":\"1 tsp ground cumin\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\",\"group\":\"sauce_dressing\"}],\"method\":\"Dice the onion, courgettes and peppers. Warm the oil in a large pot, soften the onion for 3 minutes, add the peppers and courgettes, then stir in the tomatoes, chickpeas, water and cumin. Simmer uncovered for 25 minutes until thick and tender, then weigh the ready pot into the three named lunch boxes.\",\"active_minutes\":15,\"total_minutes\":35,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_lunch_chickpea_pot_roxane\",\"member_ids\":[\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"],\"grams\":500},{\"id\":\"box_prep_lunch_chickpea_pot_zoe\",\"member_ids\":[\"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"],\"grams\":500},{\"id\":\"box_prep_lunch_chickpea_pot_lubna\",\"member_ids\":[\"86129e3c-2f50-480f-a359-077165b6232b\"],\"grams\":500}]},{\"id\":\"prep_dinner_black_bean_rice\",\"title\":\"Black bean chilli with brown rice\",\"servings_made\":4,\"ingredients\":[{\"term\":\"dried brown rice\",\"quantity\":\"240 g dried brown rice\",\"amount\":240,\"unit\":\"g\",\"state\":\"raw\",\"group\":\"whole_grain\"},{\"term\":\"cooked black beans\",\"quantity\":\"960 g cooked black beans\",\"amount\":960,\"unit\":\"g\",\"state\":\"cooked\",\"group\":\"legumes\"},{\"term\":\"red peppers\",\"quantity\":\"3 red peppers\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"chopped tomatoes\",\"quantity\":\"800 g chopped tomatoes\",\"amount\":800,\"unit\":\"g\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"onion\",\"quantity\":\"2 onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\",\"group\":\"non_starchy_veg\"},{\"term\":\"baby spinach\",\"quantity\":\"240 g baby spinach\",\"amount\":240,\"unit\":\"g\",\"state\":\"raw\",\"group\":\"leafy_greens\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp olive oil\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"group\":\"olive_oil\"},{\"term\":\"water\",\"quantity\":\"500 ml water\",\"amount\":500,\"unit\":\"ml\",\"state\":\"raw\",\"group\":\"water\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp smoked paprika\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\",\"group\":\"sauce_dressing\"}],\"method\":\"Start the rice in a covered saucepan with 400 ml water. While it cooks, dice the onions and peppers, soften them in the oil in a second pot, then add the tomatoes, beans, paprika and remaining water. Simmer for 20 minutes, fold in the spinach to wilt, fluff the rice, combine the ready food and weigh it into four named dinner boxes.\",\"active_minutes\":20,\"total_minutes\":45,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_dinner_black_bean_rice_roxane\",\"member_ids\":[\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"],\"grams\":750},{\"id\":\"box_prep_dinner_black_bean_rice_zoe\",\"member_ids\":[\"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"],\"grams\":750},{\"id\":\"box_prep_dinner_black_bean_rice_lubna\",\"member_ids\":[\"86129e3c-2f50-480f-a359-077165b6232b\"],\"grams\":750},{\"id\":\"box_prep_dinner_black_bean_rice_ivar\",\"member_ids\":[\"12362957-32c9-43a5-82ef-66b8d5732171\"],\"grams\":750}]}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_lunch_chickpea_pot\",\"prep_dinner_black_bean_rice\"],\"total_minutes\":50,\"run_through\":\"Put the rice on first, then chop both sets of onions and peppers. Start the dinner chilli in the second pot, soften the lunch-pot vegetables in the first, and add their tomatoes and chickpeas. Let both pots simmer while the rice finishes, wilt the dinner spinach, combine the rice with the chilli, then weigh the lunch and dinner boxes straight away.\"}],\"shopping_list\":[{\"term\":\"cooked chickpeas\",\"quantity\":\"3 x 240 g tins\",\"aisle\":\"pantry\"},{\"term\":\"cooked black beans\",\"quantity\":\"4 x 240 g tins\",\"aisle\":\"pantry\"},{\"term\":\"dried brown rice\",\"quantity\":\"240 g\",\"aisle\":\"grains\"},{\"term\":\"courgettes\",\"quantity\":\"300 g\",\"aisle\":\"produce\"},{\"term\":\"red peppers\",\"quantity\":\"5\",\"aisle\":\"produce\"},{\"term\":\"chopped tomatoes\",\"quantity\":\"3 x 400 g tins\",\"aisle\":\"pantry\"},{\"term\":\"onions\",\"quantity\":\"3\",\"aisle\":\"produce\"},{\"term\":\"baby spinach\",\"quantity\":\"300 g\",\"aisle\":\"produce\"},{\"term\":\"lemons\",\"quantity\":\"1\",\"aisle\":\"produce\"},{\"term\":\"limes\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"avocado\",\"quantity\":\"1\",\"aisle\":\"produce\"},{\"term\":\"fresh parsley\",\"quantity\":\"1 small bunch\",\"aisle\":\"produce\"},{\"term\":\"fresh coriander\",\"quantity\":\"1 small bunch\",\"aisle\":\"produce\"},{\"term\":\"olive oil\",\"quantity\":\"1 small bottle\",\"aisle\":\"pantry\"},{\"term\":\"ground cumin\",\"quantity\":\"1 small jar\",\"aisle\":\"pantry\"},{\"term\":\"smoked paprika\",\"quantity\":\"1 small jar\",\"aisle\":\"pantry\"}],\"member_portions\":[{\"member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"portion_note\":\"At lunch and dinner, place the vegetables first, then the chickpeas or beans, then the rice; add the listed fresh side last.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lunch_chickpea_pot\",\"note\":\"Use the Roxane lunch box.\"},{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"note\":\"Use the Roxane dinner box.\"}]},{\"member_id\":\"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\",\"portion_note\":\"At lunch and dinner, place all listed components together and serve the fresh finish over the top.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lunch_chickpea_pot\",\"note\":\"Use the Zoe lunch box.\"},{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"note\":\"Use the Zoe dinner box.\"}]},{\"member_id\":\"86129e3c-2f50-480f-a359-077165b6232b\",\"portion_note\":\"At lunch and dinner, place all listed components together and serve the fresh finish over the top.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lunch_chickpea_pot\",\"note\":\"Use the Lubna lunch box.\"},{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"note\":\"Use the Lubna dinner box.\"}]},{\"member_id\":\"12362957-32c9-43a5-82ef-66b8d5732171\",\"portion_note\":\"At dinner, place the beans and rice first, then add the vegetables and finish with the fresh herbs and lime.\",\"preparation_shares\":[{\"preparation_id\":\"prep_dinner_black_bean_rice\",\"note\":\"Use the Ivar dinner box.\"}]}]}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-household-meal-v1",
+        "user_id": "5a000000-0000-4000-8000-000000000001",
+        "request_id": "c0000002-0000-4000-8000-000000000002"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787134664,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787134709,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.\n\n== ADDITIONAL OUTPUT FIELD (household) ==\nAdd ONE more top-level key to the JSON you return:\n  \"member_portions\": [\n    { \"member_id\": \"<exact id given above>\",\n      \"portion_note\": \"how much of what goes on this plate\",\n      \"preparation_shares\": [{ \"preparation_id\": \"prep_x\", \"note\": \"...\" }] }\n  ]\nOne entry per person listed, using their EXACT member_id. Serving\ninstructions only — never a reason, a goal, a calorie count, or anything\nabout a person's body.\n\n== BOXES, ON EVERY PREPARATION (household) ==\nEach preparation carries one more key: \"boxes\".\n  \"boxes\": [{ \"id\": \"box_<preparation>_<name>\",\n              \"member_ids\": [\"<exact ids from the list above>\"],\n              \"grams\": <whole grams of READY food in that box> }]\nIds are lowercase ASCII, invented by you, and each one is used once in the\nwhole plan. The grams are what goes IN the box once cooked, not the raw\nweight of the shopping.\nA dish that eats from a box says so: each entry of its \"uses\" then carries\n\"box_id\", set to that exact box id. A box can only be cited by a meal on or\nafter the day its preparation is cooked.\n\n== WHOSE DISH IS IT (household) ==\nA dish can carry one more key: \"for_member_id\".\nThe serving plan names the people who cannot be served from the shared pot\nand orders a dish of their own. EVERY one of those dishes MUST carry\n\"for_member_id\", set to that person's EXACT member_id. It is not optional:\ntheir dish without that key is served to the whole household by mistake,\nand the person it was cooked for never sees it.\nLeave it out of every dish the table shares — a dish with\nno for_member_id is the table's dish, and that is the normal case.\n  Roxane = 5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\n  Ivar = 12362957-32c9-43a5-82ef-66b8d5732171\n\n== WHOSE RULE IS IN A \"why\" (household) ==\nA dish can carry one more key: \"why_rule_of\".\nSet it ONLY when the dish's \"why\" still names somebody's diet, allergy,\nmedical list or house rule. Its value is the EXACT member_id of the person\nthat rule belongs to -- the one who would be harmed, never the person the\ndish happens to be for.\nLeave it out when the \"why\" names nobody's rule. That is the normal case,\nand it is the case this plan asks for.\n  Zoe = 5fd38cfd-3895-4152-92a2-e62f9b7fc74e\n  Lubna = 86129e3c-2f50-480f-a359-077165b6232b",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T10:17:43.755106+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T10:18:29.808649+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

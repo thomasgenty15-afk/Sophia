@@ -1,0 +1,3923 @@
+{
+  "run_id": "attack-card-platform-fields-20260602-r1",
+  "scope": "attack_card_platform_fields_20260602_r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-attack-card-platform-fields-20260602-r1-1780411340025@example.com",
+  "user_id": "ccc39633-67a8-4294-8533-2cd2401f9498",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJjY2MzOTYzMy02N2E4LTQyOTQtODUzMy0yY2QyNDAxZjk0OTgiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgwNDE0OTQwLCJpYXQiOjE3ODA0MTEzNDAsImVtYWlsIjoicWEtbm9ybWFsLWF0dGFjay1jYXJkLXBsYXRmb3JtLWZpZWxkcy0yMDI2MDYwMi1yMS0xNzgwNDExMzQwMDI1QGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InFhLW5vcm1hbC1hdHRhY2stY2FyZC1wbGF0Zm9ybS1maWVsZHMtMjAyNjA2MDItcjEtMTc4MDQxMTM0MDAyNUBleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicWFfcnVuX2lkIjoiYXR0YWNrLWNhcmQtcGxhdGZvcm0tZmllbGRzLTIwMjYwNjAyLXIxIiwic3ViIjoiY2NjMzk2MzMtNjdhOC00Mjk0LTg1MzMtMmNkMjQwMWY5NDk4In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODA0MTEzNDB9XSwic2Vzc2lvbl9pZCI6ImI3OTk2YjNjLTZmMzgtNDNmOC1iNDRkLTI5NGNhMTdjYzk1NiIsImlzX2Fub255bW91cyI6ZmFsc2V9.1UPeng7ULSLe_EDCIJLWRuMrqrUfviHkjNHwNUs0Hzo",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-02T14:42:20.374Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-02T14:42:45.745Z",
+      "user": "Prépare-moi une carte d’attaque pour ouvrir mon carnet avant le café. Le piège, c’est que je me dis que je regarderai plus tard. Ne la crée pas depuis le chat : je veux seulement savoir quoi remplir dans la plateforme.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je ne l'ai pas modifié. 🙂",
+      "trace_short": {
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason": "skill_entry_signal",
+        "safety": "low",
+        "skill_entry_ids": [
+          "product_help"
+        ],
+        "tool_skill_intents": [],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "product_help",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "medium",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-06-02T14:42:45.694Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-06-02T14:42:45.694Z",
+                      "pending_transition": {
+                        "reason": "default_gray_zone_state",
+                        "source": "router",
+                        "last_seen_at": "2026-06-02T14:42:45.694Z",
+                        "target_state": "evitement",
+                        "confirmations": 1,
+                        "first_seen_at": "2026-06-02T14:42:45.694Z"
+                      }
+                    },
+                    "signal_log": {
+                      "consent_events": [
+                        {
+                          "at": "2026-06-02T14:42:45.694Z",
+                          "kind": "soft_decline"
+                        }
+                      ],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-06-02T14:42:45.694Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-06-02T14:42:45.694Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": "consent",
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "fragile",
+                      "reason": "soft_decline_or_topic_shift"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-06-02T14:42:45.694Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "initial_state",
+                  "current_state": "friction_legere"
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-06-02T14:42:45.694Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "fb0ab988-7b27-4462-b88a-3af65d6cec45",
+                  "active_topic_id": null
+                },
+                "__conversation_risk_history": [
+                  0
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-06-02T14:42:45.697165+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "attack-card-platform-fields-20260602-r1-t01",
+        "user_id": "ccc39633-67a8-4294-8533-2cd2401f9498",
+        "channel": "web",
+        "scope": "attack_card_platform_fields_20260602_r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je ne l'ai pas modifié. 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "attack-card-platform-fields-20260602-r1-t01",
+              "source_message_id": "fb0ab988-7b27-4462-b88a-3af65d6cec45",
+              "user_id": "ccc39633-67a8-4294-8533-2cd2401f9498",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "detected": false,
+                    "weight": 3.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "detected": false,
+                    "weight": 2.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "detected": false,
+                    "weight": 2,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "detected": false,
+                    "weight": 1.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "detected": false,
+                    "weight": 0.7,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "detected": false,
+                    "weight": 1,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "detected": false,
+                    "weight": 10,
+                    "contribution": 0,
+                    "evidence": null
+                  }
+                ],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "confidence_band": "low",
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {
+                  "product_help": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "user_asks_for_platform_fields_and_how_to_fill_them_without_creation"
+                  }
+                },
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "action",
+                    "key": "carnet",
+                    "query_hint": "ouvrir carnet avant café",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first",
+                    "priority": "medium",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "skill_entry_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "selected_handler": "product_help"
+            },
+            "turn_agenda_summary": {
+              "task_count": 1,
+              "owners": [
+                "product_help"
+              ],
+              "operation_types": [],
+              "constraints": {},
+              "tasks": [
+                {
+                  "task_id": "reply:fallback",
+                  "kind": "reply",
+                  "owner": "product_help",
+                  "operation_type": null,
+                  "intent": "reply",
+                  "source": "route_decision",
+                  "status": "pending",
+                  "reason_code": "skill_entry_signal"
+                }
+              ]
+            },
+            "skill_run": {
+              "selected_skill_id": "product_help",
+              "reason_code": "skill_entry_signal",
+              "output": {
+                "skill_id": "product_help",
+                "status": "complete",
+                "response_intent": "unclear",
+                "memory_trace": {
+                  "memory_used_for_response": false,
+                  "memory_item_ids_used": [],
+                  "correction_detected": false,
+                  "correction_target_item_ids": []
+                },
+                "reply": "Carte d'attaque: Une carte d'attaque sert a preparer l'action en amont. Elle rend le bon geste plus simple, plus naturel et moins couteux au moment de passer a l'action. Elle peut s'appuyer sur 6 techniques: Le texte magique, Mantra de force, Ancre visuelle, Meditation de 5 minutes, Preparer le terrain, Mot de bascule.\n\nComment l'utiliser: Depuis une mission ou une habitude, tu peux generer des cartes liees au plan si l'option est disponible. La carte d'attaque se retrouve ensuite dans Ressources, rangee par niveau. Processus: choisir la technique adaptee, repondre a son mini-questionnaire, generer l'objet concret, puis l'utiliser selon son mode d'emploi.\n\nCe que ca apporte:\n- Reduit la friction avant l'action.\n- Clarifie le premier geste et le mode d'emploi.\n\nImportant: une carte d'attaque generee ne se modifie pas librement; seul le mot peut etre remplace sur une carte Mot de bascule depuis Ressources. Pour changer le contexte, la technique ou le contenu, il faut preparer une nouvelle carte apres confirmation.",
+                "diagnosis": {
+                  "feature_id": "resources.attack_card",
+                  "feature_label": "Carte d'attaque",
+                  "intent": "unclear",
+                  "target": {
+                    "kind": "feature_catalog",
+                    "feature_id": "resources.attack_card",
+                    "confidence_band": "high"
+                  },
+                  "grounding": {
+                    "catalog_feature_ids": [
+                      "resources.attack_card",
+                      "resources.defense_card"
+                    ],
+                    "db_sources_required": false,
+                    "db_sources_used": [
+                      {
+                        "source_type": "catalog",
+                        "id": "resources.attack_card",
+                        "label": "Carte d'attaque"
+                      }
+                    ]
+                  },
+                  "bridge": null,
+                  "operation_bridge": {
+                    "skill_or_operation": "prepare_attack_card",
+                    "trigger_phrases": [
+                      "prepare une carte d'attaque",
+                      "aide-moi a preparer cette action",
+                      "rends cette mission plus facile a lancer"
+                    ],
+                    "requires_confirmation": true
+                  },
+                  "constraints": [
+                    "non_mutating",
+                    "do_not_execute_tool",
+                    "do_not_claim_object_exists_without_source",
+                    "do_not_render_status_block",
+                    "short_reply"
+                  ],
+                  "locations": [
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources"
+                  ],
+                  "intake_status": "structured",
+                  "intake_errors": []
+                },
+                "recommendation_need": {
+                  "needed": false,
+                  "type": "none",
+                  "urgency": "none",
+                  "constraints": [
+                    "product_help_does_not_execute_operations",
+                    "operation_bridge_requires_confirmation_when_present",
+                    "non_mutating",
+                    "do_not_execute_tool",
+                    "do_not_claim_object_exists_without_source",
+                    "do_not_render_status_block",
+                    "short_reply"
+                  ]
+                },
+                "operation_suggestions": [],
+                "memory_write_candidates": [],
+                "effects": {
+                  "requested": [],
+                  "allowed": [],
+                  "blocked": [],
+                  "committed": []
+                },
+                "state_patch": {
+                  "summary": "Product help structured intake: unclear / resources.attack_card",
+                  "product_help_intake_errors": [],
+                  "product_help_decision": {
+                    "intent": "unclear",
+                    "target": {
+                      "kind": "feature_catalog",
+                      "feature_id": "resources.attack_card",
+                      "confidence_band": "high"
+                    },
+                    "bridge": null,
+                    "operation_suggestions": []
+                  }
+                }
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "attack-card-platform-fields-20260602-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 1,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "attack-card-platform-fields-20260602-r1-t01:guard:uncommitted_plan_adjust_claim",
+                  "kind": "durable_effect",
+                  "effect_type": "final_reply.claim",
+                  "operation_type": null,
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": null,
+                  "status": "blocked",
+                  "reason_code": "uncommitted_plan_adjust_claim",
+                  "source": "guard",
+                  "payload_summary": {
+                    "reason_codes": [
+                      "uncommitted_plan_adjust_claim"
+                    ]
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": null,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "product_help"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "attack-card-platform-fields-20260602-r1-t01",
+            "source_message_id": "fb0ab988-7b27-4462-b88a-3af65d6cec45",
+            "user_id": "ccc39633-67a8-4294-8533-2cd2401f9498",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_asks_for_platform_fields_and_how_to_fill_them_without_creation"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "carnet",
+                  "query_hint": "ouvrir carnet avant café",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "product_help"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "product_help"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "product_help",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "skill_entry_signal"
+              }
+            ]
+          },
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "product_help",
+              "status": "complete",
+              "response_intent": "unclear",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "Carte d'attaque: Une carte d'attaque sert a preparer l'action en amont. Elle rend le bon geste plus simple, plus naturel et moins couteux au moment de passer a l'action. Elle peut s'appuyer sur 6 techniques: Le texte magique, Mantra de force, Ancre visuelle, Meditation de 5 minutes, Preparer le terrain, Mot de bascule.\n\nComment l'utiliser: Depuis une mission ou une habitude, tu peux generer des cartes liees au plan si l'option est disponible. La carte d'attaque se retrouve ensuite dans Ressources, rangee par niveau. Processus: choisir la technique adaptee, repondre a son mini-questionnaire, generer l'objet concret, puis l'utiliser selon son mode d'emploi.\n\nCe que ca apporte:\n- Reduit la friction avant l'action.\n- Clarifie le premier geste et le mode d'emploi.\n\nImportant: une carte d'attaque generee ne se modifie pas librement; seul le mot peut etre remplace sur une carte Mot de bascule depuis Ressources. Pour changer le contexte, la technique ou le contenu, il faut preparer une nouvelle carte apres confirmation.",
+              "diagnosis": {
+                "feature_id": "resources.attack_card",
+                "feature_label": "Carte d'attaque",
+                "intent": "unclear",
+                "target": {
+                  "kind": "feature_catalog",
+                  "feature_id": "resources.attack_card",
+                  "confidence_band": "high"
+                },
+                "grounding": {
+                  "catalog_feature_ids": [
+                    "resources.attack_card",
+                    "resources.defense_card"
+                  ],
+                  "db_sources_required": false,
+                  "db_sources_used": [
+                    {
+                      "source_type": "catalog",
+                      "id": "resources.attack_card",
+                      "label": "Carte d'attaque"
+                    }
+                  ]
+                },
+                "bridge": null,
+                "operation_bridge": {
+                  "skill_or_operation": "prepare_attack_card",
+                  "trigger_phrases": [
+                    "prepare une carte d'attaque",
+                    "aide-moi a preparer cette action",
+                    "rends cette mission plus facile a lancer"
+                  ],
+                  "requires_confirmation": true
+                },
+                "constraints": [
+                  "non_mutating",
+                  "do_not_execute_tool",
+                  "do_not_claim_object_exists_without_source",
+                  "do_not_render_status_block",
+                  "short_reply"
+                ],
+                "locations": [
+                  "Dashboard > Plan",
+                  "Dashboard > Ressources"
+                ],
+                "intake_status": "structured",
+                "intake_errors": []
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "product_help_does_not_execute_operations",
+                  "operation_bridge_requires_confirmation_when_present",
+                  "non_mutating",
+                  "do_not_execute_tool",
+                  "do_not_claim_object_exists_without_source",
+                  "do_not_render_status_block",
+                  "short_reply"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "summary": "Product help structured intake: unclear / resources.attack_card",
+                "product_help_intake_errors": [],
+                "product_help_decision": {
+                  "intent": "unclear",
+                  "target": {
+                    "kind": "feature_catalog",
+                    "feature_id": "resources.attack_card",
+                    "confidence_band": "high"
+                  },
+                  "bridge": null,
+                  "operation_suggestions": []
+                }
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "attack-card-platform-fields-20260602-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 1,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "attack-card-platform-fields-20260602-r1-t01:guard:uncommitted_plan_adjust_claim",
+                "kind": "durable_effect",
+                "effect_type": "final_reply.claim",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": null,
+                "status": "blocked",
+                "reason_code": "uncommitted_plan_adjust_claim",
+                "source": "guard",
+                "payload_summary": {
+                  "reason_codes": [
+                    "uncommitted_plan_adjust_claim"
+                  ]
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "product_help"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-02T14:43:09.814Z",
+      "user": "Non, je veux vraiment préparer la carte d’attaque elle-même pour cette action, sans que tu la crées. Donne-moi les champs à remplir dans la plateforme.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Pour préparer une carte d'attaque dans la plateforme (accessible via l'onglet Ressources ou directement sur une action du Plan), voici les champs à remplir : \n\n1. **L'action cible** : Ce que tu veux faire (ex: Ouvrir ton carnet).\n2. **La friction ou le piège** : L'obstacle mental ou l'excuse (ex: \"Je regarderai plus tard\").\n3. **La technique** : La méthode choisie pour briser la friction.\n4. **L'attaque (version minimale)** : L'action minuscule et immédiate pour démarrer.\n\nNote qu'une fois générée, une carte n'est pas modifiable librement pour garantir l'impact de la technique choisie. 🙂",
+      "trace_short": {
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason": "skill_entry_signal",
+        "safety": "low",
+        "skill_entry_ids": [
+          "product_help"
+        ],
+        "tool_skill_intents": [],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "product_help",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-06-02T14:43:09.762Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-06-02T14:42:45.694Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [
+                        {
+                          "at": "2026-06-02T14:42:45.694Z",
+                          "kind": "soft_decline"
+                        }
+                      ],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-06-02T14:42:45.694Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-06-02T14:43:09.762Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-06-02T14:43:09.762Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-06-02T14:43:09.762Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-06-02T14:43:09.762Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "e3fcb96d-3bc8-434e-b98b-43e77bf68a12",
+                  "active_topic_id": null
+                },
+                "__conversation_risk_history": [
+                  0,
+                  0
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-06-02T14:43:09.763996+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "attack-card-platform-fields-20260602-r1-t02",
+        "user_id": "ccc39633-67a8-4294-8533-2cd2401f9498",
+        "channel": "web",
+        "scope": "attack_card_platform_fields_20260602_r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Pour préparer une carte d'attaque dans la plateforme (accessible via l'onglet Ressources ou directement sur une action du Plan), voici les champs à remplir : \n\n1. **L'action cible** : Ce que tu veux faire (ex: Ouvrir ton carnet).\n2. **La friction ou le piège** : L'obstacle mental ou l'excuse (ex: \"Je regarderai plus tard\").\n3. **La technique** : La méthode choisie pour briser la friction.\n4. **L'attaque (version minimale)** : L'action minuscule et immédiate pour démarrer.\n\nNote qu'une fois générée, une carte n'est pas modifiable librement pour garantir l'impact de la technique choisie. 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "attack-card-platform-fields-20260602-r1-t02",
+              "source_message_id": "e3fcb96d-3bc8-434e-b98b-43e77bf68a12",
+              "user_id": "ccc39633-67a8-4294-8533-2cd2401f9498",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "detected": false,
+                    "weight": 3.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "detected": false,
+                    "weight": 2.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "detected": false,
+                    "weight": 2,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "detected": false,
+                    "weight": 1.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "detected": false,
+                    "weight": 0.7,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "detected": false,
+                    "weight": 1,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "detected": false,
+                    "weight": 10,
+                    "contribution": 0,
+                    "evidence": "0;decay=0.55;recovery=0"
+                  }
+                ],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "confidence_band": "low",
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {
+                  "product_help": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "user_asks_for_platform_fields_and_interface_details_instead_of_creation"
+                  }
+                },
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "action",
+                    "key": "ouvrir mon carnet avant le café",
+                    "query_hint": "carnet café",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first",
+                    "priority": "medium",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "skill_entry_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "selected_handler": "product_help"
+            },
+            "turn_agenda_summary": {
+              "task_count": 1,
+              "owners": [
+                "product_help"
+              ],
+              "operation_types": [],
+              "constraints": {},
+              "tasks": [
+                {
+                  "task_id": "reply:fallback",
+                  "kind": "reply",
+                  "owner": "product_help",
+                  "operation_type": null,
+                  "intent": "reply",
+                  "source": "route_decision",
+                  "status": "pending",
+                  "reason_code": "skill_entry_signal"
+                }
+              ]
+            },
+            "skill_run": {
+              "selected_skill_id": "product_help",
+              "reason_code": "skill_entry_signal",
+              "output": {
+                "skill_id": "product_help",
+                "status": "complete",
+                "response_intent": "how_to",
+                "memory_trace": {
+                  "memory_used_for_response": false,
+                  "memory_item_ids_used": [],
+                  "correction_detected": false,
+                  "correction_target_item_ids": []
+                },
+                "reply": "Pour préparer une carte d'attaque dans la plateforme (accessible via l'onglet Ressources ou directement sur une action du Plan), voici les champs à remplir : \n\n1. **L'action cible** : Ce que tu veux faire (ex: Ouvrir ton carnet).\n2. **La friction ou le piège** : L'obstacle mental ou l'excuse (ex: \"Je regarderai plus tard\").\n3. **La technique** : La méthode choisie pour briser la friction.\n4. **L'attaque (version minimale)** : L'action minuscule et immédiate pour démarrer.\n\nNote qu'une fois générée, une carte n'est pas modifiable librement pour garantir l'impact de la technique choisie.",
+                "diagnosis": {
+                  "feature_id": "resources.attack_card",
+                  "feature_label": "Carte d'attaque",
+                  "intent": "how_to",
+                  "target": {
+                    "kind": "feature_catalog",
+                    "feature_id": "resources.attack_card",
+                    "object_type": "attack_card",
+                    "confidence_band": "high"
+                  },
+                  "grounding": {
+                    "catalog_feature_ids": [
+                      "resources.attack_card"
+                    ],
+                    "db_sources_required": false,
+                    "db_sources_used": [
+                      {
+                        "source_type": "catalog",
+                        "id": "resources.attack_card",
+                        "label": "Carte d'attaque"
+                      }
+                    ]
+                  },
+                  "bridge": {
+                    "operation_type": "prepare_attack_card",
+                    "bridge_kind": "explain_only",
+                    "requires_confirmation": true
+                  },
+                  "operation_bridge": {
+                    "skill_or_operation": "prepare_attack_card",
+                    "requires_confirmation": true
+                  },
+                  "constraints": [
+                    "non_mutating",
+                    "do_not_execute_tool",
+                    "short_reply",
+                    "exact_location_requested",
+                    "do_not_claim_object_exists_without_source",
+                    "do_not_render_status_block"
+                  ],
+                  "locations": [
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources"
+                  ],
+                  "intake_status": "structured",
+                  "intake_errors": []
+                },
+                "recommendation_need": {
+                  "needed": false,
+                  "type": "none",
+                  "urgency": "none",
+                  "constraints": [
+                    "product_help_does_not_execute_operations",
+                    "operation_bridge_requires_confirmation_when_present",
+                    "non_mutating",
+                    "do_not_execute_tool",
+                    "short_reply",
+                    "exact_location_requested",
+                    "do_not_claim_object_exists_without_source",
+                    "do_not_render_status_block"
+                  ]
+                },
+                "operation_suggestions": [],
+                "memory_write_candidates": [],
+                "effects": {
+                  "requested": [],
+                  "allowed": [],
+                  "blocked": [],
+                  "committed": []
+                },
+                "state_patch": {
+                  "summary": "Product help answered for resources.attack_card.",
+                  "product_help_intake_errors": [],
+                  "product_help_decision": {
+                    "intent": "how_to",
+                    "target": {
+                      "kind": "feature_catalog",
+                      "feature_id": "resources.attack_card",
+                      "object_type": "attack_card",
+                      "confidence_band": "high"
+                    },
+                    "bridge": {
+                      "operation_type": "prepare_attack_card",
+                      "bridge_kind": "explain_only",
+                      "requires_confirmation": true
+                    },
+                    "operation_suggestions": []
+                  }
+                }
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "attack-card-platform-fields-20260602-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "product_help"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "attack-card-platform-fields-20260602-r1-t02",
+            "source_message_id": "e3fcb96d-3bc8-434e-b98b-43e77bf68a12",
+            "user_id": "ccc39633-67a8-4294-8533-2cd2401f9498",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_asks_for_platform_fields_and_interface_details_instead_of_creation"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "ouvrir mon carnet avant le café",
+                  "query_hint": "carnet café",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "product_help"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "product_help"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "product_help",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "skill_entry_signal"
+              }
+            ]
+          },
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "product_help",
+              "status": "complete",
+              "response_intent": "how_to",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "Pour préparer une carte d'attaque dans la plateforme (accessible via l'onglet Ressources ou directement sur une action du Plan), voici les champs à remplir : \n\n1. **L'action cible** : Ce que tu veux faire (ex: Ouvrir ton carnet).\n2. **La friction ou le piège** : L'obstacle mental ou l'excuse (ex: \"Je regarderai plus tard\").\n3. **La technique** : La méthode choisie pour briser la friction.\n4. **L'attaque (version minimale)** : L'action minuscule et immédiate pour démarrer.\n\nNote qu'une fois générée, une carte n'est pas modifiable librement pour garantir l'impact de la technique choisie.",
+              "diagnosis": {
+                "feature_id": "resources.attack_card",
+                "feature_label": "Carte d'attaque",
+                "intent": "how_to",
+                "target": {
+                  "kind": "feature_catalog",
+                  "feature_id": "resources.attack_card",
+                  "object_type": "attack_card",
+                  "confidence_band": "high"
+                },
+                "grounding": {
+                  "catalog_feature_ids": [
+                    "resources.attack_card"
+                  ],
+                  "db_sources_required": false,
+                  "db_sources_used": [
+                    {
+                      "source_type": "catalog",
+                      "id": "resources.attack_card",
+                      "label": "Carte d'attaque"
+                    }
+                  ]
+                },
+                "bridge": {
+                  "operation_type": "prepare_attack_card",
+                  "bridge_kind": "explain_only",
+                  "requires_confirmation": true
+                },
+                "operation_bridge": {
+                  "skill_or_operation": "prepare_attack_card",
+                  "requires_confirmation": true
+                },
+                "constraints": [
+                  "non_mutating",
+                  "do_not_execute_tool",
+                  "short_reply",
+                  "exact_location_requested",
+                  "do_not_claim_object_exists_without_source",
+                  "do_not_render_status_block"
+                ],
+                "locations": [
+                  "Dashboard > Plan",
+                  "Dashboard > Ressources"
+                ],
+                "intake_status": "structured",
+                "intake_errors": []
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "product_help_does_not_execute_operations",
+                  "operation_bridge_requires_confirmation_when_present",
+                  "non_mutating",
+                  "do_not_execute_tool",
+                  "short_reply",
+                  "exact_location_requested",
+                  "do_not_claim_object_exists_without_source",
+                  "do_not_render_status_block"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "summary": "Product help answered for resources.attack_card.",
+                "product_help_intake_errors": [],
+                "product_help_decision": {
+                  "intent": "how_to",
+                  "target": {
+                    "kind": "feature_catalog",
+                    "feature_id": "resources.attack_card",
+                    "object_type": "attack_card",
+                    "confidence_band": "high"
+                  },
+                  "bridge": {
+                    "operation_type": "prepare_attack_card",
+                    "bridge_kind": "explain_only",
+                    "requires_confirmation": true
+                  },
+                  "operation_suggestions": []
+                }
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "attack-card-platform-fields-20260602-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "sent_at": "2026-06-02T14:44:15.907Z",
+      "user": "Prépare maintenant la carte d’attaque pour ouvrir mon carnet avant le café. Technique si tu dois choisir : Le texte magique. Ne crée rien depuis le chat.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Cible/action comprise : ouvrir mon carnet avant le café\n\nObstacle ou piège identifié : je me dis que je regarderai plus tard\n\nTechnique recommandée : Le texte magique\nPourquoi : Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale.\n\nDestination plateforme : Ressources > Attaque > Cartes d'attaque libres\nSurface UI : Ressources > Attaque\n1. Ouvre Ressources.\n2. Ouvre Attaque.\n3. Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.\n4. Sélectionne Le texte magique.\n5. Renseigne les réponses préparées ci-dessous, puis clique Générer la carte.\n\nChamps à renseigner dans la plateforme :\n1. Question plateforme : Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?\nRéponse proposée : ouvrir mon carnet avant le café\n2. Question plateforme : Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?\nRéponse proposée : je me dis que je regarderai plus tard\n3. Question plateforme : Dans quel etat tu veux te remettre en ecrivant ce texte ?\nRéponse proposée : Un état plus simple et direct : revenir au premier geste sans négocier.\n\nBrouillon de carte :\nLe carnet avant le café\nJe n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\n\nAperçu du résultat attendu :\nTitre proposé : Le carnet avant le café\nJe n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\nPoints d'appui :\n- Casser la négociation mentale\n- Prioriser l'intention sur le confort immédiat\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\n\nÀ préserver :\n- Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\n- Casser la négociation mentale\n- Prioriser l'intention sur le confort immédiat\n\nÀ éviter :\n- Transformer ce brouillon en promesse trop longue.\n- Ajouter plusieurs techniques concurrentes dans la même carte.\n\nJe ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes d’attaque. 🙂",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "tool_skill_intent_start",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [
+          "prepare_attack_card"
+        ],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "platform_handoff"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-06-02T14:43:09.762Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-06-02T14:42:45.694Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [
+                        {
+                          "at": "2026-06-02T14:42:45.694Z",
+                          "kind": "soft_decline"
+                        }
+                      ],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-06-02T14:42:45.694Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-06-02T14:43:09.762Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-06-02T14:43:09.762Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-06-02T14:43:09.762Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-06-02T14:43:34.346Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "e3fcb96d-3bc8-434e-b98b-43e77bf68a12",
+                  "active_topic_id": null
+                },
+                "__conversation_risk_history": [
+                  0,
+                  0,
+                  0
+                ],
+                "__active_attack_card_handoff": {
+                  "mode": "platform_handoff",
+                  "draft": {
+                    "mode": "platform_handoff",
+                    "operation_type": "prepare_attack_card",
+                    "recommendation": {
+                      "avoid": [
+                        "Transformer ce brouillon en promesse trop longue.",
+                        "Ajouter plusieurs techniques concurrentes dans la même carte."
+                      ],
+                      "preserve": [
+                        "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                        "Casser la négociation mentale",
+                        "Prioriser l'intention sur le confort immédiat"
+                      ],
+                      "platform_steps": [
+                        "Ouvre Ressources.",
+                        "Ouvre Attaque.",
+                        "Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.",
+                        "Sélectionne Le texte magique.",
+                        "Renseigne les réponses préparées ci-dessous, puis clique Générer la carte."
+                      ],
+                      "technique_label": "Le texte magique",
+                      "card_draft_summary": "Le carnet avant le café\nJe n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                      "why_this_technique": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale.",
+                      "platform_destination": "Ressources > Attaque > Cartes d'attaque libres"
+                    },
+                    "target_summary": "ouvrir mon carnet avant le café",
+                    "blocker_summary": "je me dis que je regarderai plus tard",
+                    "no_chat_mutation": true,
+                    "platform_handoff": {
+                      "steps": [
+                        "Ouvre Ressources.",
+                        "Ouvre Attaque.",
+                        "Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.",
+                        "Sélectionne Le texte magique.",
+                        "Renseigne les réponses préparées ci-dessous, puis clique Générer la carte."
+                      ],
+                      "inputs": [
+                        {
+                          "question": "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+                          "suggested_answer": "ouvrir mon carnet avant le café"
+                        },
+                        {
+                          "question": "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+                          "suggested_answer": "je me dis que je regarderai plus tard"
+                        },
+                        {
+                          "question": "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+                          "suggested_answer": "Un état plus simple et direct : revenir au premier geste sans négocier."
+                        }
+                      ],
+                      "flow_kind": "free_attack_card",
+                      "destination": "Ressources > Attaque > Cartes d'attaque libres",
+                      "surface_label": "Ressources > Attaque",
+                      "technique_key": "texte_recadrage",
+                      "expected_result": {
+                        "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                        "output_title": "Le carnet avant le café",
+                        "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                        "keyword_trigger": null,
+                        "supporting_points": [
+                          "Casser la négociation mentale",
+                          "Prioriser l'intention sur le confort immédiat"
+                        ]
+                      },
+                      "technique_label": "Le texte magique",
+                      "plan_action_note": null
+                    },
+                    "missing_decisions": [],
+                    "executable_from_chat": false
+                  },
+                  "status": "handoff_delivered",
+                  "target": {
+                    "kind": "personal_action",
+                    "title": "ouvrir mon carnet avant le café",
+                    "plan_item_id": null
+                  },
+                  "skill_id": "prepare_attack_card",
+                  "max_turns": 8,
+                  "created_at": "2026-06-02T14:44:15.874Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-02T14:44:15.874Z",
+                  "source_draft": {
+                    "draft": {
+                      "title": "Le carnet avant le café",
+                      "technique": "texte_recadrage",
+                      "instruction": "Lis ce texte dès que tu sens l'envie de repousser l'ouverture de ton carnet.",
+                      "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                      "target_label": "ouvrir mon carnet avant le café",
+                      "why_it_helps": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale.",
+                      "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                      "technique_title": "Le texte magique",
+                      "supporting_points": [
+                        "Casser la négociation mentale",
+                        "Prioriser l'intention sur le confort immédiat"
+                      ],
+                      "activation_keyword": null
+                    },
+                    "output_schema": "attack_card_draft_v1",
+                    "operation_type": "prepare_attack_card",
+                    "confirmation_actions": [
+                      "yes",
+                      "no"
+                    ],
+                    "confirmation_message": "Voici le brouillon à reprendre dans Cartes / Attaque : « Le carnet avant le café » (Le texte magique) : Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.. Je ne crée pas la carte depuis le chat."
+                  },
+                  "no_chat_mutation": true
+                },
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-06-02T14:44:15.876251+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "attack-card-platform-fields-20260602-r1-t03",
+        "user_id": "ccc39633-67a8-4294-8533-2cd2401f9498",
+        "channel": "web",
+        "scope": "attack_card_platform_fields_20260602_r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Cible/action comprise : ouvrir mon carnet avant le café\n\nObstacle ou piège identifié : je me dis que je regarderai plus tard\n\nTechnique recommandée : Le texte magique\nPourquoi : Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale.\n\nDestination plateforme : Ressources > Attaque > Cartes d'attaque libres\nSurface UI : Ressources > Attaque\n1. Ouvre Ressources.\n2. Ouvre Attaque.\n3. Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.\n4. Sélectionne Le texte magique.\n5. Renseigne les réponses préparées ci-dessous, puis clique Générer la carte.\n\nChamps à renseigner dans la plateforme :\n1. Question plateforme : Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?\nRéponse proposée : ouvrir mon carnet avant le café\n2. Question plateforme : Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?\nRéponse proposée : je me dis que je regarderai plus tard\n3. Question plateforme : Dans quel etat tu veux te remettre en ecrivant ce texte ?\nRéponse proposée : Un état plus simple et direct : revenir au premier geste sans négocier.\n\nBrouillon de carte :\nLe carnet avant le café\nJe n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\n\nAperçu du résultat attendu :\nTitre proposé : Le carnet avant le café\nJe n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\nPoints d'appui :\n- Casser la négociation mentale\n- Prioriser l'intention sur le confort immédiat\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\n\nÀ préserver :\n- Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\n- Casser la négociation mentale\n- Prioriser l'intention sur le confort immédiat\n\nÀ éviter :\n- Transformer ce brouillon en promesse trop longue.\n- Ajouter plusieurs techniques concurrentes dans la même carte.\n\nJe ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes d’attaque. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "platform_handoff",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "attack-card-platform-fields-20260602-r1-t03",
+              "source_message_id": "eb72f74f-d3d0-4fd7-864d-5faa31caa2ac",
+              "user_id": "ccc39633-67a8-4294-8533-2cd2401f9498",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0,
+                  0
+                ],
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "detected": false,
+                    "weight": 3.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "detected": false,
+                    "weight": 2.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "detected": false,
+                    "weight": 2,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "detected": false,
+                    "weight": 1.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "detected": false,
+                    "weight": 0.7,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "detected": false,
+                    "weight": 1,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "detected": false,
+                    "weight": 10,
+                    "contribution": 0,
+                    "evidence": "0,0;decay=0.55;recovery=0"
+                  }
+                ],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [
+                {
+                  "operation_type": "prepare_attack_card",
+                  "explicitness": "explicit",
+                  "target_hint": "ouvrir mon carnet avant le café",
+                  "operation_input": {
+                    "action_target": "ouvrir mon carnet avant le café",
+                    "technique": "Le texte magique",
+                    "friction": "je me dis que je regarderai plus tard"
+                  },
+                  "confidence_band": "high",
+                  "ambiguity": "none",
+                  "user_intent": "create"
+                }
+              ],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "confidence_band": "low",
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "action",
+                    "key": "carnet",
+                    "query_hint": "habitudes liées au carnet ou café",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first",
+                    "priority": "medium",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "tool_skill_intent_start",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "selected_handler": "prepare_attack_card"
+            },
+            "turn_agenda_summary": {
+              "task_count": 1,
+              "owners": [
+                "attack_card_handoff"
+              ],
+              "operation_types": [
+                "prepare_attack_card"
+              ],
+              "constraints": {},
+              "tasks": [
+                {
+                  "task_id": "dispatcher:prepare_attack_card:0",
+                  "kind": "platform_handoff",
+                  "owner": "attack_card_handoff",
+                  "operation_type": "prepare_attack_card",
+                  "intent": "create",
+                  "source": "dispatcher",
+                  "status": "proposed",
+                  "reason_code": "complex_operation_redirect_to_platform"
+                }
+              ]
+            },
+            "tool_skill_run": {
+              "selected_handler": "prepare_attack_card",
+              "reason_code": "tool_skill_intent_start",
+              "status": "handoff_delivered",
+              "user_intent": "draft_only",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "pending_confirmation": null,
+              "debug": {
+                "reason_code": "draft_only_no_create",
+                "evidence": [
+                  "Ne crée rien depuis le chat"
+                ]
+              },
+              "operation_id": "8c9206e3-c94c-4fa1-983a-b7a23f4238df",
+              "draft": {
+                "operation_type": "prepare_attack_card",
+                "output_schema": "attack_card_draft_v1",
+                "draft": {
+                  "title": "Le carnet avant le café",
+                  "target_label": "ouvrir mon carnet avant le café",
+                  "technique": "texte_recadrage",
+                  "technique_title": "Le texte magique",
+                  "instruction": "Lis ce texte dès que tu sens l'envie de repousser l'ouverture de ton carnet.",
+                  "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                  "activation_keyword": null,
+                  "supporting_points": [
+                    "Casser la négociation mentale",
+                    "Prioriser l'intention sur le confort immédiat"
+                  ],
+                  "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                  "why_it_helps": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale."
+                },
+                "confirmation_message": "Voici le brouillon à reprendre dans Cartes / Attaque : « Le carnet avant le café » (Le texte magique) : Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.. Je ne crée pas la carte depuis le chat.",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ]
+              },
+              "source": "direct_user_request",
+              "handoff_state": {
+                "skill_id": "prepare_attack_card",
+                "mode": "platform_handoff",
+                "status": "handoff_delivered",
+                "draft": {
+                  "operation_type": "prepare_attack_card",
+                  "mode": "platform_handoff",
+                  "no_chat_mutation": true,
+                  "executable_from_chat": false,
+                  "target_summary": "ouvrir mon carnet avant le café",
+                  "blocker_summary": "je me dis que je regarderai plus tard",
+                  "recommendation": {
+                    "technique_label": "Le texte magique",
+                    "why_this_technique": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale.",
+                    "card_draft_summary": "Le carnet avant le café\nJe n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                    "preserve": [
+                      "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                      "Casser la négociation mentale",
+                      "Prioriser l'intention sur le confort immédiat"
+                    ],
+                    "avoid": [
+                      "Transformer ce brouillon en promesse trop longue.",
+                      "Ajouter plusieurs techniques concurrentes dans la même carte."
+                    ],
+                    "platform_destination": "Ressources > Attaque > Cartes d'attaque libres",
+                    "platform_steps": [
+                      "Ouvre Ressources.",
+                      "Ouvre Attaque.",
+                      "Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.",
+                      "Sélectionne Le texte magique.",
+                      "Renseigne les réponses préparées ci-dessous, puis clique Générer la carte."
+                    ]
+                  },
+                  "platform_handoff": {
+                    "flow_kind": "free_attack_card",
+                    "surface_label": "Ressources > Attaque",
+                    "destination": "Ressources > Attaque > Cartes d'attaque libres",
+                    "steps": [
+                      "Ouvre Ressources.",
+                      "Ouvre Attaque.",
+                      "Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.",
+                      "Sélectionne Le texte magique.",
+                      "Renseigne les réponses préparées ci-dessous, puis clique Générer la carte."
+                    ],
+                    "technique_key": "texte_recadrage",
+                    "technique_label": "Le texte magique",
+                    "inputs": [
+                      {
+                        "question": "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+                        "suggested_answer": "ouvrir mon carnet avant le café"
+                      },
+                      {
+                        "question": "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+                        "suggested_answer": "je me dis que je regarderai plus tard"
+                      },
+                      {
+                        "question": "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+                        "suggested_answer": "Un état plus simple et direct : revenir au premier geste sans négocier."
+                      }
+                    ],
+                    "expected_result": {
+                      "output_title": "Le carnet avant le café",
+                      "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                      "supporting_points": [
+                        "Casser la négociation mentale",
+                        "Prioriser l'intention sur le confort immédiat"
+                      ],
+                      "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                      "keyword_trigger": null
+                    },
+                    "plan_action_note": null
+                  },
+                  "missing_decisions": []
+                },
+                "source_draft": {
+                  "operation_type": "prepare_attack_card",
+                  "output_schema": "attack_card_draft_v1",
+                  "draft": {
+                    "title": "Le carnet avant le café",
+                    "target_label": "ouvrir mon carnet avant le café",
+                    "technique": "texte_recadrage",
+                    "technique_title": "Le texte magique",
+                    "instruction": "Lis ce texte dès que tu sens l'envie de repousser l'ouverture de ton carnet.",
+                    "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                    "activation_keyword": null,
+                    "supporting_points": [
+                      "Casser la négociation mentale",
+                      "Prioriser l'intention sur le confort immédiat"
+                    ],
+                    "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                    "why_it_helps": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale."
+                  },
+                  "confirmation_message": "Voici le brouillon à reprendre dans Cartes / Attaque : « Le carnet avant le café » (Le texte magique) : Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.. Je ne crée pas la carte depuis le chat.",
+                  "confirmation_actions": [
+                    "yes",
+                    "no"
+                  ]
+                },
+                "target": {
+                  "kind": "personal_action",
+                  "title": "ouvrir mon carnet avant le café",
+                  "plan_item_id": null
+                },
+                "turn_count": 1,
+                "max_turns": 8,
+                "created_at": "2026-06-02T14:44:15.874Z",
+                "updated_at": "2026-06-02T14:44:15.874Z",
+                "no_chat_mutation": true
+              },
+              "platform_handoff": {
+                "operation_type": "prepare_attack_card",
+                "status": "delivered",
+                "surface_id": "attack_cards",
+                "reason_code": "attack_card_platform_handoff",
+                "no_chat_mutation": true
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "attack-card-platform-fields-20260602-r1-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 1,
+                "delivered": 1,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "attack-card-platform-fields-20260602-r1-t03:agenda:proposed:dispatcher:prepare_attack_card:0",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.prepare_attack_card",
+                  "operation_type": "prepare_attack_card",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "attack_card_handoff",
+                  "status": "proposed",
+                  "reason_code": "complex_operation_redirect_to_platform",
+                  "source": "dispatcher",
+                  "payload_summary": {
+                    "task_id": "dispatcher:prepare_attack_card:0",
+                    "source": "dispatcher",
+                    "evidence": [
+                      "explicit",
+                      "high",
+                      "ouvrir mon carnet avant le café"
+                    ],
+                    "user_goal_summary": "ouvrir mon carnet avant le café",
+                    "recommended_next_step": "open_platform_surface"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "attack_cards",
+                  "no_chat_mutation": true,
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                },
+                {
+                  "effect_id": "attack-card-platform-fields-20260602-r1-t03:platform_handoff:delivered:prepare_attack_card:8c9206e3-c94c-4fa1-983a-b7a23f4238df",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.prepare_attack_card",
+                  "operation_type": "prepare_attack_card",
+                  "operation_id": "8c9206e3-c94c-4fa1-983a-b7a23f4238df",
+                  "committed_id": null,
+                  "tool_id": "prepare_attack_card",
+                  "status": "delivered",
+                  "reason_code": "attack_card_platform_handoff",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "no_chat_mutation": true,
+                    "status": "handoff_delivered",
+                    "surface_id": "attack_cards"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "attack_cards",
+                  "no_chat_mutation": true,
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "attack-card-platform-fields-20260602-r1-t03",
+            "source_message_id": "eb72f74f-d3d0-4fd7-864d-5faa31caa2ac",
+            "user_id": "ccc39633-67a8-4294-8533-2cd2401f9498",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0,
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0,0;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "prepare_attack_card",
+                "explicitness": "explicit",
+                "target_hint": "ouvrir mon carnet avant le café",
+                "operation_input": {
+                  "action_target": "ouvrir mon carnet avant le café",
+                  "technique": "Le texte magique",
+                  "friction": "je me dis que je regarderai plus tard"
+                },
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "create"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "carnet",
+                  "query_hint": "habitudes liées au carnet ou café",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "tool_skill_intent_start",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "prepare_attack_card"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "attack_card_handoff"
+            ],
+            "operation_types": [
+              "prepare_attack_card"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "dispatcher:prepare_attack_card:0",
+                "kind": "platform_handoff",
+                "owner": "attack_card_handoff",
+                "operation_type": "prepare_attack_card",
+                "intent": "create",
+                "source": "dispatcher",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "tool_skill_intent_start",
+            "status": "handoff_delivered",
+            "user_intent": "draft_only",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "pending_confirmation": null,
+            "debug": {
+              "reason_code": "draft_only_no_create",
+              "evidence": [
+                "Ne crée rien depuis le chat"
+              ]
+            },
+            "operation_id": "8c9206e3-c94c-4fa1-983a-b7a23f4238df",
+            "draft": {
+              "operation_type": "prepare_attack_card",
+              "output_schema": "attack_card_draft_v1",
+              "draft": {
+                "title": "Le carnet avant le café",
+                "target_label": "ouvrir mon carnet avant le café",
+                "technique": "texte_recadrage",
+                "technique_title": "Le texte magique",
+                "instruction": "Lis ce texte dès que tu sens l'envie de repousser l'ouverture de ton carnet.",
+                "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                "activation_keyword": null,
+                "supporting_points": [
+                  "Casser la négociation mentale",
+                  "Prioriser l'intention sur le confort immédiat"
+                ],
+                "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                "why_it_helps": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale."
+              },
+              "confirmation_message": "Voici le brouillon à reprendre dans Cartes / Attaque : « Le carnet avant le café » (Le texte magique) : Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.. Je ne crée pas la carte depuis le chat.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ]
+            },
+            "source": "direct_user_request",
+            "handoff_state": {
+              "skill_id": "prepare_attack_card",
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "draft": {
+                "operation_type": "prepare_attack_card",
+                "mode": "platform_handoff",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "target_summary": "ouvrir mon carnet avant le café",
+                "blocker_summary": "je me dis que je regarderai plus tard",
+                "recommendation": {
+                  "technique_label": "Le texte magique",
+                  "why_this_technique": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale.",
+                  "card_draft_summary": "Le carnet avant le café\nJe n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                  "preserve": [
+                    "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                    "Casser la négociation mentale",
+                    "Prioriser l'intention sur le confort immédiat"
+                  ],
+                  "avoid": [
+                    "Transformer ce brouillon en promesse trop longue.",
+                    "Ajouter plusieurs techniques concurrentes dans la même carte."
+                  ],
+                  "platform_destination": "Ressources > Attaque > Cartes d'attaque libres",
+                  "platform_steps": [
+                    "Ouvre Ressources.",
+                    "Ouvre Attaque.",
+                    "Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.",
+                    "Sélectionne Le texte magique.",
+                    "Renseigne les réponses préparées ci-dessous, puis clique Générer la carte."
+                  ]
+                },
+                "platform_handoff": {
+                  "flow_kind": "free_attack_card",
+                  "surface_label": "Ressources > Attaque",
+                  "destination": "Ressources > Attaque > Cartes d'attaque libres",
+                  "steps": [
+                    "Ouvre Ressources.",
+                    "Ouvre Attaque.",
+                    "Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.",
+                    "Sélectionne Le texte magique.",
+                    "Renseigne les réponses préparées ci-dessous, puis clique Générer la carte."
+                  ],
+                  "technique_key": "texte_recadrage",
+                  "technique_label": "Le texte magique",
+                  "inputs": [
+                    {
+                      "question": "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+                      "suggested_answer": "ouvrir mon carnet avant le café"
+                    },
+                    {
+                      "question": "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+                      "suggested_answer": "je me dis que je regarderai plus tard"
+                    },
+                    {
+                      "question": "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+                      "suggested_answer": "Un état plus simple et direct : revenir au premier geste sans négocier."
+                    }
+                  ],
+                  "expected_result": {
+                    "output_title": "Le carnet avant le café",
+                    "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                    "supporting_points": [
+                      "Casser la négociation mentale",
+                      "Prioriser l'intention sur le confort immédiat"
+                    ],
+                    "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                    "keyword_trigger": null
+                  },
+                  "plan_action_note": null
+                },
+                "missing_decisions": []
+              },
+              "source_draft": {
+                "operation_type": "prepare_attack_card",
+                "output_schema": "attack_card_draft_v1",
+                "draft": {
+                  "title": "Le carnet avant le café",
+                  "target_label": "ouvrir mon carnet avant le café",
+                  "technique": "texte_recadrage",
+                  "technique_title": "Le texte magique",
+                  "instruction": "Lis ce texte dès que tu sens l'envie de repousser l'ouverture de ton carnet.",
+                  "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                  "activation_keyword": null,
+                  "supporting_points": [
+                    "Casser la négociation mentale",
+                    "Prioriser l'intention sur le confort immédiat"
+                  ],
+                  "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                  "why_it_helps": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale."
+                },
+                "confirmation_message": "Voici le brouillon à reprendre dans Cartes / Attaque : « Le carnet avant le café » (Le texte magique) : Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.. Je ne crée pas la carte depuis le chat.",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ]
+              },
+              "target": {
+                "kind": "personal_action",
+                "title": "ouvrir mon carnet avant le café",
+                "plan_item_id": null
+              },
+              "turn_count": 1,
+              "max_turns": 8,
+              "created_at": "2026-06-02T14:44:15.874Z",
+              "updated_at": "2026-06-02T14:44:15.874Z",
+              "no_chat_mutation": true
+            },
+            "platform_handoff": {
+              "operation_type": "prepare_attack_card",
+              "status": "delivered",
+              "surface_id": "attack_cards",
+              "reason_code": "attack_card_platform_handoff",
+              "no_chat_mutation": true
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "attack-card-platform-fields-20260602-r1-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "attack-card-platform-fields-20260602-r1-t03:agenda:proposed:dispatcher:prepare_attack_card:0",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.prepare_attack_card",
+                "operation_type": "prepare_attack_card",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "attack_card_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "dispatcher:prepare_attack_card:0",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "explicit",
+                    "high",
+                    "ouvrir mon carnet avant le café"
+                  ],
+                  "user_goal_summary": "ouvrir mon carnet avant le café",
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "attack_cards",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "attack-card-platform-fields-20260602-r1-t03:platform_handoff:delivered:prepare_attack_card:8c9206e3-c94c-4fa1-983a-b7a23f4238df",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.prepare_attack_card",
+                "operation_type": "prepare_attack_card",
+                "operation_id": "8c9206e3-c94c-4fa1-983a-b7a23f4238df",
+                "committed_id": null,
+                "tool_id": "prepare_attack_card",
+                "status": "delivered",
+                "reason_code": "attack_card_platform_handoff",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "handoff_delivered",
+                  "surface_id": "attack_cards"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "attack_cards",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "sent_at": "2026-06-02T14:45:41.180Z",
+      "user": "Ok crée-la.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes d’attaque.\n\nVersion à reprendre dans la plateforme :\nLe carnet avant le café\nJe n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\n\nDestination plateforme : Ressources > Attaque > Cartes d'attaque libres\nParcours plateforme :\n1. Ouvre Ressources.\n2. Ouvre Attaque.\n3. Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.\n4. Sélectionne Le texte magique.\n5. Renseigne les réponses préparées ci-dessous, puis clique Générer la carte.\nChamps à renseigner :\n1. Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?\nRéponse : ouvrir mon carnet avant le café\n2. Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?\nRéponse : je me dis que je regarderai plus tard\n3. Dans quel etat tu veux te remettre en ecrivant ce texte ?\nRéponse : Un état plus simple et direct : revenir au premier geste sans négocier. 🙂",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "confirmation_yes_is_handoff_apply_attempt",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": "yes",
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "platform_handoff"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-06-02T14:43:09.762Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-06-02T14:42:45.694Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [
+                        {
+                          "at": "2026-06-02T14:42:45.694Z",
+                          "kind": "soft_decline"
+                        }
+                      ],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-06-02T14:42:45.694Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-06-02T14:43:09.762Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-06-02T14:43:09.762Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-06-02T14:43:09.762Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-06-02T14:45:28.396Z",
+                  "score": 1,
+                  "threshold": 8,
+                  "reason_codes": [
+                    "active_flow_pressure"
+                  ],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "e3fcb96d-3bc8-434e-b98b-43e77bf68a12",
+                  "active_topic_id": null
+                },
+                "__conversation_risk_history": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "__active_attack_card_handoff": {
+                  "mode": "platform_handoff",
+                  "draft": {
+                    "mode": "platform_handoff",
+                    "operation_type": "prepare_attack_card",
+                    "recommendation": {
+                      "avoid": [
+                        "Transformer ce brouillon en promesse trop longue.",
+                        "Ajouter plusieurs techniques concurrentes dans la même carte."
+                      ],
+                      "preserve": [
+                        "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                        "Casser la négociation mentale",
+                        "Prioriser l'intention sur le confort immédiat"
+                      ],
+                      "platform_steps": [
+                        "Ouvre Ressources.",
+                        "Ouvre Attaque.",
+                        "Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.",
+                        "Sélectionne Le texte magique.",
+                        "Renseigne les réponses préparées ci-dessous, puis clique Générer la carte."
+                      ],
+                      "technique_label": "Le texte magique",
+                      "card_draft_summary": "Le carnet avant le café\nJe n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                      "why_this_technique": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale.",
+                      "platform_destination": "Ressources > Attaque > Cartes d'attaque libres"
+                    },
+                    "target_summary": "ouvrir mon carnet avant le café",
+                    "blocker_summary": "je me dis que je regarderai plus tard",
+                    "no_chat_mutation": true,
+                    "platform_handoff": {
+                      "steps": [
+                        "Ouvre Ressources.",
+                        "Ouvre Attaque.",
+                        "Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.",
+                        "Sélectionne Le texte magique.",
+                        "Renseigne les réponses préparées ci-dessous, puis clique Générer la carte."
+                      ],
+                      "inputs": [
+                        {
+                          "question": "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+                          "suggested_answer": "ouvrir mon carnet avant le café"
+                        },
+                        {
+                          "question": "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+                          "suggested_answer": "je me dis que je regarderai plus tard"
+                        },
+                        {
+                          "question": "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+                          "suggested_answer": "Un état plus simple et direct : revenir au premier geste sans négocier."
+                        }
+                      ],
+                      "flow_kind": "free_attack_card",
+                      "destination": "Ressources > Attaque > Cartes d'attaque libres",
+                      "surface_label": "Ressources > Attaque",
+                      "technique_key": "texte_recadrage",
+                      "expected_result": {
+                        "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                        "output_title": "Le carnet avant le café",
+                        "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                        "keyword_trigger": null,
+                        "supporting_points": [
+                          "Casser la négociation mentale",
+                          "Prioriser l'intention sur le confort immédiat"
+                        ]
+                      },
+                      "technique_label": "Le texte magique",
+                      "plan_action_note": null
+                    },
+                    "missing_decisions": [],
+                    "executable_from_chat": false
+                  },
+                  "status": "apply_attempt",
+                  "target": {
+                    "kind": "personal_action",
+                    "title": "ouvrir mon carnet avant le café",
+                    "plan_item_id": null
+                  },
+                  "skill_id": "prepare_attack_card",
+                  "max_turns": 8,
+                  "created_at": "2026-06-02T14:44:15.874Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-02T14:45:41.150Z",
+                  "source_draft": {
+                    "draft": {
+                      "title": "Le carnet avant le café",
+                      "technique": "texte_recadrage",
+                      "instruction": "Lis ce texte dès que tu sens l'envie de repousser l'ouverture de ton carnet.",
+                      "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                      "target_label": "ouvrir mon carnet avant le café",
+                      "why_it_helps": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale.",
+                      "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                      "technique_title": "Le texte magique",
+                      "supporting_points": [
+                        "Casser la négociation mentale",
+                        "Prioriser l'intention sur le confort immédiat"
+                      ],
+                      "activation_keyword": null
+                    },
+                    "output_schema": "attack_card_draft_v1",
+                    "operation_type": "prepare_attack_card",
+                    "confirmation_actions": [
+                      "yes",
+                      "no"
+                    ],
+                    "confirmation_message": "Voici le brouillon à reprendre dans Cartes / Attaque : « Le carnet avant le café » (Le texte magique) : Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.. Je ne crée pas la carte depuis le chat."
+                  },
+                  "no_chat_mutation": true
+                },
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-06-02T14:45:41.152033+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "attack-card-platform-fields-20260602-r1-t04",
+        "user_id": "ccc39633-67a8-4294-8533-2cd2401f9498",
+        "channel": "web",
+        "scope": "attack_card_platform_fields_20260602_r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes d’attaque.\n\nVersion à reprendre dans la plateforme :\nLe carnet avant le café\nJe n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\n\nDestination plateforme : Ressources > Attaque > Cartes d'attaque libres\nParcours plateforme :\n1. Ouvre Ressources.\n2. Ouvre Attaque.\n3. Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.\n4. Sélectionne Le texte magique.\n5. Renseigne les réponses préparées ci-dessous, puis clique Générer la carte.\nChamps à renseigner :\n1. Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?\nRéponse : ouvrir mon carnet avant le café\n2. Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?\nRéponse : je me dis que je regarderai plus tard\n3. Dans quel etat tu veux te remettre en ecrivant ce texte ?\nRéponse : Un état plus simple et direct : revenir au premier geste sans négocier. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "platform_handoff",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "attack-card-platform-fields-20260602-r1-t04",
+              "source_message_id": "97f15336-073f-4d63-a11f-4deb94c55a0d",
+              "user_id": "ccc39633-67a8-4294-8533-2cd2401f9498",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 1,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [
+                  "active_flow_pressure"
+                ],
+                "previous_scores": [
+                  0,
+                  0,
+                  0
+                ],
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "detected": false,
+                    "weight": 3.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "detected": false,
+                    "weight": 2.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "detected": false,
+                    "weight": 2,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "detected": false,
+                    "weight": 1.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "detected": false,
+                    "weight": 0.7,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "detected": true,
+                    "weight": 1,
+                    "contribution": 1,
+                    "evidence": "active_skill_or_operation_state"
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "detected": false,
+                    "weight": 10,
+                    "contribution": 0,
+                    "evidence": "0,0,0;decay=0.55;recovery=1.5"
+                  }
+                ],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "confidence_band": "low",
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "confirmation_response": {
+                "kind": "yes",
+                "confidence_band": "high"
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "active_handoff",
+                  "reason_code": "confirmation_yes_is_handoff_apply_attempt"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "confirmation_yes_is_handoff_apply_attempt",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "selected_handler": "prepare_attack_card"
+            },
+            "turn_agenda_summary": {
+              "task_count": 1,
+              "owners": [
+                "attack_card_handoff"
+              ],
+              "operation_types": [
+                "prepare_attack_card"
+              ],
+              "constraints": {},
+              "tasks": [
+                {
+                  "task_id": "active_flow:prepare_attack_card",
+                  "kind": "platform_handoff",
+                  "owner": "attack_card_handoff",
+                  "operation_type": "prepare_attack_card",
+                  "intent": "create",
+                  "source": "active_flow",
+                  "status": "proposed",
+                  "reason_code": "complex_operation_redirect_to_platform"
+                }
+              ]
+            },
+            "tool_skill_run": {
+              "selected_handler": "prepare_attack_card",
+              "reason_code": "confirmation_yes_is_handoff_apply_attempt",
+              "status": "apply_attempt",
+              "draft_review_decision": {
+                "decision": "approve",
+                "confidence": "high",
+                "evidence": [
+                  "Ok crée-la.",
+                  "active_handoff_control_message"
+                ]
+              },
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "create_attack_card",
+                  "reason_code": "chat_creation_disabled_platform_handoff"
+                }
+              ],
+              "handoff_state": {
+                "skill_id": "prepare_attack_card",
+                "mode": "platform_handoff",
+                "status": "apply_attempt",
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "prepare_attack_card",
+                  "recommendation": {
+                    "avoid": [
+                      "Transformer ce brouillon en promesse trop longue.",
+                      "Ajouter plusieurs techniques concurrentes dans la même carte."
+                    ],
+                    "preserve": [
+                      "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                      "Casser la négociation mentale",
+                      "Prioriser l'intention sur le confort immédiat"
+                    ],
+                    "platform_steps": [
+                      "Ouvre Ressources.",
+                      "Ouvre Attaque.",
+                      "Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.",
+                      "Sélectionne Le texte magique.",
+                      "Renseigne les réponses préparées ci-dessous, puis clique Générer la carte."
+                    ],
+                    "technique_label": "Le texte magique",
+                    "card_draft_summary": "Le carnet avant le café\nJe n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                    "why_this_technique": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale.",
+                    "platform_destination": "Ressources > Attaque > Cartes d'attaque libres"
+                  },
+                  "target_summary": "ouvrir mon carnet avant le café",
+                  "blocker_summary": "je me dis que je regarderai plus tard",
+                  "no_chat_mutation": true,
+                  "platform_handoff": {
+                    "steps": [
+                      "Ouvre Ressources.",
+                      "Ouvre Attaque.",
+                      "Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.",
+                      "Sélectionne Le texte magique.",
+                      "Renseigne les réponses préparées ci-dessous, puis clique Générer la carte."
+                    ],
+                    "inputs": [
+                      {
+                        "question": "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+                        "suggested_answer": "ouvrir mon carnet avant le café"
+                      },
+                      {
+                        "question": "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+                        "suggested_answer": "je me dis que je regarderai plus tard"
+                      },
+                      {
+                        "question": "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+                        "suggested_answer": "Un état plus simple et direct : revenir au premier geste sans négocier."
+                      }
+                    ],
+                    "flow_kind": "free_attack_card",
+                    "destination": "Ressources > Attaque > Cartes d'attaque libres",
+                    "surface_label": "Ressources > Attaque",
+                    "technique_key": "texte_recadrage",
+                    "expected_result": {
+                      "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                      "output_title": "Le carnet avant le café",
+                      "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                      "keyword_trigger": null,
+                      "supporting_points": [
+                        "Casser la négociation mentale",
+                        "Prioriser l'intention sur le confort immédiat"
+                      ]
+                    },
+                    "technique_label": "Le texte magique",
+                    "plan_action_note": null
+                  },
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "source_draft": {
+                  "draft": {
+                    "title": "Le carnet avant le café",
+                    "technique": "texte_recadrage",
+                    "instruction": "Lis ce texte dès que tu sens l'envie de repousser l'ouverture de ton carnet.",
+                    "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                    "target_label": "ouvrir mon carnet avant le café",
+                    "why_it_helps": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale.",
+                    "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                    "technique_title": "Le texte magique",
+                    "supporting_points": [
+                      "Casser la négociation mentale",
+                      "Prioriser l'intention sur le confort immédiat"
+                    ],
+                    "activation_keyword": null
+                  },
+                  "output_schema": "attack_card_draft_v1",
+                  "operation_type": "prepare_attack_card",
+                  "confirmation_actions": [
+                    "yes",
+                    "no"
+                  ],
+                  "confirmation_message": "Voici le brouillon à reprendre dans Cartes / Attaque : « Le carnet avant le café » (Le texte magique) : Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.. Je ne crée pas la carte depuis le chat."
+                },
+                "target": {
+                  "kind": "personal_action",
+                  "title": "ouvrir mon carnet avant le café",
+                  "plan_item_id": null
+                },
+                "turn_count": 2,
+                "max_turns": 8,
+                "created_at": "2026-06-02T14:44:15.874Z",
+                "updated_at": "2026-06-02T14:45:41.150Z",
+                "no_chat_mutation": true
+              },
+              "platform_handoff": {
+                "operation_type": "prepare_attack_card",
+                "status": "delivered",
+                "surface_id": "attack_cards",
+                "reason_code": "apply_attempt_no_chat_mutation",
+                "no_chat_mutation": true
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "attack-card-platform-fields-20260602-r1-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 1,
+                "delivered": 1,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "attack-card-platform-fields-20260602-r1-t04:agenda:proposed:active_flow:prepare_attack_card",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.prepare_attack_card",
+                  "operation_type": "prepare_attack_card",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "attack_card_handoff",
+                  "status": "proposed",
+                  "reason_code": "complex_operation_redirect_to_platform",
+                  "source": "router",
+                  "payload_summary": {
+                    "task_id": "active_flow:prepare_attack_card",
+                    "source": "active_flow",
+                    "evidence": [],
+                    "user_goal_summary": null,
+                    "recommended_next_step": "open_platform_surface"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "attack_cards",
+                  "no_chat_mutation": true,
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                },
+                {
+                  "effect_id": "attack-card-platform-fields-20260602-r1-t04:platform_handoff:delivered:prepare_attack_card:runtime",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.prepare_attack_card",
+                  "operation_type": "prepare_attack_card",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "prepare_attack_card",
+                  "status": "delivered",
+                  "reason_code": "apply_attempt_no_chat_mutation",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "no_chat_mutation": true,
+                    "status": "apply_attempt",
+                    "surface_id": "attack_cards"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "attack_cards",
+                  "no_chat_mutation": true,
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "attack-card-platform-fields-20260602-r1-t04",
+            "source_message_id": "97f15336-073f-4d63-a11f-4deb94c55a0d",
+            "user_id": "ccc39633-67a8-4294-8533-2cd2401f9498",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 1,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "previous_scores": [
+                0,
+                0,
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": true,
+                  "weight": 1,
+                  "contribution": 1,
+                  "evidence": "active_skill_or_operation_state"
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0,0,0;decay=0.55;recovery=1.5"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "confirmation_response": {
+              "kind": "yes",
+              "confidence_band": "high"
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [
+              {
+                "path": "active_handoff",
+                "reason_code": "confirmation_yes_is_handoff_apply_attempt"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "confirmation_yes_is_handoff_apply_attempt",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "prepare_attack_card"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "attack_card_handoff"
+            ],
+            "operation_types": [
+              "prepare_attack_card"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "active_flow:prepare_attack_card",
+                "kind": "platform_handoff",
+                "owner": "attack_card_handoff",
+                "operation_type": "prepare_attack_card",
+                "intent": "create",
+                "source": "active_flow",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "confirmation_yes_is_handoff_apply_attempt",
+            "status": "apply_attempt",
+            "draft_review_decision": {
+              "decision": "approve",
+              "confidence": "high",
+              "evidence": [
+                "Ok crée-la.",
+                "active_handoff_control_message"
+              ]
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [
+              {
+                "type": "create_attack_card",
+                "reason_code": "chat_creation_disabled_platform_handoff"
+              }
+            ],
+            "handoff_state": {
+              "skill_id": "prepare_attack_card",
+              "mode": "platform_handoff",
+              "status": "apply_attempt",
+              "draft": {
+                "mode": "platform_handoff",
+                "operation_type": "prepare_attack_card",
+                "recommendation": {
+                  "avoid": [
+                    "Transformer ce brouillon en promesse trop longue.",
+                    "Ajouter plusieurs techniques concurrentes dans la même carte."
+                  ],
+                  "preserve": [
+                    "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                    "Casser la négociation mentale",
+                    "Prioriser l'intention sur le confort immédiat"
+                  ],
+                  "platform_steps": [
+                    "Ouvre Ressources.",
+                    "Ouvre Attaque.",
+                    "Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.",
+                    "Sélectionne Le texte magique.",
+                    "Renseigne les réponses préparées ci-dessous, puis clique Générer la carte."
+                  ],
+                  "technique_label": "Le texte magique",
+                  "card_draft_summary": "Le carnet avant le café\nJe n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                  "why_this_technique": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale.",
+                  "platform_destination": "Ressources > Attaque > Cartes d'attaque libres"
+                },
+                "target_summary": "ouvrir mon carnet avant le café",
+                "blocker_summary": "je me dis que je regarderai plus tard",
+                "no_chat_mutation": true,
+                "platform_handoff": {
+                  "steps": [
+                    "Ouvre Ressources.",
+                    "Ouvre Attaque.",
+                    "Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.",
+                    "Sélectionne Le texte magique.",
+                    "Renseigne les réponses préparées ci-dessous, puis clique Générer la carte."
+                  ],
+                  "inputs": [
+                    {
+                      "question": "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+                      "suggested_answer": "ouvrir mon carnet avant le café"
+                    },
+                    {
+                      "question": "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+                      "suggested_answer": "je me dis que je regarderai plus tard"
+                    },
+                    {
+                      "question": "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+                      "suggested_answer": "Un état plus simple et direct : revenir au premier geste sans négocier."
+                    }
+                  ],
+                  "flow_kind": "free_attack_card",
+                  "destination": "Ressources > Attaque > Cartes d'attaque libres",
+                  "surface_label": "Ressources > Attaque",
+                  "technique_key": "texte_recadrage",
+                  "expected_result": {
+                    "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                    "output_title": "Le carnet avant le café",
+                    "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                    "keyword_trigger": null,
+                    "supporting_points": [
+                      "Casser la négociation mentale",
+                      "Prioriser l'intention sur le confort immédiat"
+                    ]
+                  },
+                  "technique_label": "Le texte magique",
+                  "plan_action_note": null
+                },
+                "missing_decisions": [],
+                "executable_from_chat": false
+              },
+              "source_draft": {
+                "draft": {
+                  "title": "Le carnet avant le café",
+                  "technique": "texte_recadrage",
+                  "instruction": "Lis ce texte dès que tu sens l'envie de repousser l'ouverture de ton carnet.",
+                  "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                  "target_label": "ouvrir mon carnet avant le café",
+                  "why_it_helps": "Cela recadre ton besoin de confort avant de produire pour éviter la procrastination matinale.",
+                  "generated_asset": "Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.",
+                  "technique_title": "Le texte magique",
+                  "supporting_points": [
+                    "Casser la négociation mentale",
+                    "Prioriser l'intention sur le confort immédiat"
+                  ],
+                  "activation_keyword": null
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici le brouillon à reprendre dans Cartes / Attaque : « Le carnet avant le café » (Le texte magique) : Je n'ai pas besoin d'être prêt, j'ai juste besoin d'ouvrir la page. Le café sera meilleur une fois le premier mot écrit.. Je ne crée pas la carte depuis le chat."
+              },
+              "target": {
+                "kind": "personal_action",
+                "title": "ouvrir mon carnet avant le café",
+                "plan_item_id": null
+              },
+              "turn_count": 2,
+              "max_turns": 8,
+              "created_at": "2026-06-02T14:44:15.874Z",
+              "updated_at": "2026-06-02T14:45:41.150Z",
+              "no_chat_mutation": true
+            },
+            "platform_handoff": {
+              "operation_type": "prepare_attack_card",
+              "status": "delivered",
+              "surface_id": "attack_cards",
+              "reason_code": "apply_attempt_no_chat_mutation",
+              "no_chat_mutation": true
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "attack-card-platform-fields-20260602-r1-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "attack-card-platform-fields-20260602-r1-t04:agenda:proposed:active_flow:prepare_attack_card",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.prepare_attack_card",
+                "operation_type": "prepare_attack_card",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "attack_card_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "router",
+                "payload_summary": {
+                  "task_id": "active_flow:prepare_attack_card",
+                  "source": "active_flow",
+                  "evidence": [],
+                  "user_goal_summary": null,
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "attack_cards",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "attack-card-platform-fields-20260602-r1-t04:platform_handoff:delivered:prepare_attack_card:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.prepare_attack_card",
+                "operation_type": "prepare_attack_card",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "prepare_attack_card",
+                "status": "delivered",
+                "reason_code": "apply_attempt_no_chat_mutation",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "apply_attempt",
+                  "surface_id": "attack_cards"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "attack_cards",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-02T14:45:41.181Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-02T14:46:09.019Z"
+}

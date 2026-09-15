@@ -1,0 +1,2850 @@
+{
+  "run_id": "potion-explicit-manual-amour-r1",
+  "date": "2026-06-15",
+  "potion": "amour",
+  "persona": "qa-skill",
+  "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+  "connection_name": "manual_state_potion_potion-explicit-manual-amour-r1_amour",
+  "connection_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/connections/manual_state_potion_potion-explicit-manual-amour-r1_amour.json",
+  "auth": {
+    "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+    "email": "qa-potion-explicit-manual-amour-r1-amour-287f7c08@example.com",
+    "password": "Qa1!898c72eb-232b-4501-b599-d971fb8d333e",
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIzOWY3OTQ2ZC04ZGE0LTQzZGYtOTY5MC1jZTMxOGIwZGRmZDYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxNTQxNTQwLCJpYXQiOjE3ODE1Mzc5NDAsImVtYWlsIjoicWEtcG90aW9uLWV4cGxpY2l0LW1hbnVhbC1hbW91ci1yMS1hbW91ci0yODdmN2MwOEBleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7ImNyZWF0ZWRfYnkiOiJtYW51YWxfc3RhdGVfcG90aW9uX3FhIiwiaXNfdGVzdF9wZXJzb25hIjp0cnVlLCJwZXJzb25hIjoicWEtc2tpbGwiLCJwb3Rpb25fdHlwZSI6ImFtb3VyIiwicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdLCJydW5faWQiOiJwb3Rpb24tZXhwbGljaXQtbWFudWFsLWFtb3VyLXIxIiwidGVtcG9yYXJ5X3FhX2Nvbm5lY3Rpb24iOnRydWV9LCJ1c2VyX21ldGFkYXRhIjp7ImNyZWF0ZWRfYnkiOiJtYW51YWxfc3RhdGVfcG90aW9uX3FhIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZSwicGVyc29uYSI6InFhLXNraWxsIiwicG90aW9uX3R5cGUiOiJhbW91ciIsInJ1bl9pZCI6InBvdGlvbi1leHBsaWNpdC1tYW51YWwtYW1vdXItcjEiLCJ0ZW1wb3JhcnlfcWFfY29ubmVjdGlvbiI6dHJ1ZX0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODE1Mzc5NDB9XSwic2Vzc2lvbl9pZCI6Ijk4MDRiOGViLTBmYWItNGU4Zi04ZGMzLWRiMGY2OWQ3NjU5YSIsImlzX2Fub255bW91cyI6ZmFsc2V9.cRbRUveIrMm2YzNCvfopUZnc2PTNbGIzKB344Vwiw4I",
+    "refresh_token": "cchd7gotvo4b"
+  },
+  "fixture": {
+    "cycle": {
+      "id": "acb1bcf8-0b0f-4214-becd-68774e4f9363",
+      "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+      "status": "active",
+      "raw_intake_text": "QA manuelle potion: contexte local temporaire pour tester le flow complet.",
+      "intake_language": "fr",
+      "duration_months": 1,
+      "birth_date_snapshot": null,
+      "gender_snapshot": null,
+      "active_transformation_id": null,
+      "version": 1,
+      "created_at": "2026-06-15T15:39:00.80306+00:00",
+      "updated_at": "2026-06-15T15:39:00.80306+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "validated_structure": null,
+      "requested_pace": null
+    },
+    "transformation": {
+      "id": "f3a94731-a662-42f4-87f7-8c78a111c678",
+      "cycle_id": "acb1bcf8-0b0f-4214-becd-68774e4f9363",
+      "priority_order": 1,
+      "status": "active",
+      "title": "Changer le ton interieur",
+      "internal_summary": "Fixture QA manuelle pour tester la potion amour.",
+      "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+      "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+      "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+      "questionnaire_schema": null,
+      "questionnaire_answers": {
+        "potion_qa": "amour",
+        "ton_prefere": "doux et direct",
+        "rythme_prefere": "matin"
+      },
+      "completion_summary": null,
+      "handoff_payload": {
+        "phase_1": {
+          "deep_why": {
+            "answers": [
+              {
+                "answer": "Je veux proteger mon energie et ma confiance.",
+                "question_id": "why_1"
+              },
+              {
+                "answer": "Je veux rester present au geste juste au lieu de me crisper.",
+                "question_id": "why_2"
+              }
+            ]
+          }
+        }
+      },
+      "created_at": "2026-06-15T15:39:00.807095+00:00",
+      "updated_at": "2026-06-15T15:39:00.807095+00:00",
+      "activated_at": "2026-06-15T15:39:00.796+00:00",
+      "completed_at": null,
+      "ordering_rationale": null,
+      "unlocked_principles": {
+        "kaizen": true
+      },
+      "base_de_vie_payload": null
+    },
+    "plan": {
+      "id": "ad297736-b6d3-4d26-8767-2e9c32db9cf9",
+      "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+      "cycle_id": "acb1bcf8-0b0f-4214-becd-68774e4f9363",
+      "transformation_id": "f3a94731-a662-42f4-87f7-8c78a111c678",
+      "status": "active",
+      "version": 1,
+      "title": "Plan QA manuel amour",
+      "content": {
+        "source": "manual_state_potion_qa",
+        "strategy": {
+          "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+          "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+          "main_constraint": "La surcharge transforme les petits pas en montagne.",
+          "success_definition": "Revenir a un geste simple au bon moment."
+        }
+      },
+      "generation_attempts": 0,
+      "last_generation_reason": null,
+      "activated_at": "2026-06-15T15:39:00.796+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "created_at": "2026-06-15T15:39:00.814233+00:00",
+      "updated_at": "2026-06-15T15:39:00.814233+00:00",
+      "generation_feedback": null,
+      "generation_input_snapshot": null
+    },
+    "item": {
+      "id": "66abf646-922d-4d1a-a4a9-771a6b60cb43",
+      "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+      "cycle_id": "acb1bcf8-0b0f-4214-becd-68774e4f9363",
+      "transformation_id": "f3a94731-a662-42f4-87f7-8c78a111c678",
+      "plan_id": "ad297736-b6d3-4d26-8767-2e9c32db9cf9",
+      "dimension": "habits",
+      "kind": "habit",
+      "status": "active",
+      "title": "Me parler avec plus de douceur",
+      "description": "Action QA active visible par le skill potion.",
+      "tracking_type": "boolean",
+      "activation_order": 1,
+      "activation_condition": null,
+      "current_habit_state": "active_building",
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": 1,
+      "current_reps": 0,
+      "cadence_label": "quotidien",
+      "scheduled_days": [
+        "mon"
+      ],
+      "time_of_day": "09:00",
+      "start_after_item_id": null,
+      "payload": {
+        "run_id": "potion-explicit-manual-amour-r1",
+        "source": "manual_state_potion_qa",
+        "potion_type": "amour"
+      },
+      "created_at": "2026-06-15T15:39:00.818088+00:00",
+      "updated_at": "2026-06-15T15:39:00.818088+00:00",
+      "activated_at": "2026-06-15T15:39:00.796+00:00",
+      "completed_at": null,
+      "phase_id": null,
+      "phase_order": null,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_required",
+      "cards_generated_at": null
+    }
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "attempt": 1,
+      "request_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t01-a1",
+      "user": "Je veux une potion d'amour, meme si le mot me gene un peu. La phrase qui tourne c'est: tu rates toujours au meme endroit.",
+      "assistant": "C'est une pensée difficile à porter... Est-ce qu'il s'est passé quelque chose de particulier ou un moment précis où cette phrase est revenue récemment ?",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "request_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t01-a1",
+        "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+        "channel": "web",
+        "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est une pensée difficile à porter... Est-ce qu'il s'est passé quelque chose de particulier ou un moment précis où cette phrase est revenue récemment ?",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "platform_handoff",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t01-a1",
+              "source_message_id": "3e4fd458-3a80-4093-bd16-6e73eb5f2eff",
+              "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [
+                {
+                  "operation_type": "select_state_potion",
+                  "explicitness": "explicit",
+                  "target_hint": "potion d'amour",
+                  "operation_input": {
+                    "potion_type": "amour",
+                    "user_theme": "tu rates toujours au meme endroit",
+                    "evidence": [
+                      "Je veux une potion d'amour",
+                      "La phrase qui tourne c'est: tu rates toujours au meme endroit"
+                    ]
+                  },
+                  "confidence_band": "high",
+                  "score": 0.95,
+                  "ambiguity": "none",
+                  "user_intent": "create"
+                }
+              ],
+              "flow_opportunity": null,
+              "note_information": {
+                "source_flow_id": "global_dispatcher",
+                "handoff_reason": "explicit_user_request",
+                "target_dispatcher": "select_state_potion",
+                "handoff_context_for_next_dispatcher": "User explicitly requests a 'potion d'amour' and provides the recurring negative thought to address. The potion_type is identified as 'amour'.",
+                "user_words": [
+                  "Je veux une potion d'amour",
+                  "tu rates toujours au meme endroit",
+                  "Je veux une potion d'amour, meme si le mot me gene un peu. La phrase qui tourne c'est: tu rates toujours au meme endroit."
+                ],
+                "structured_context": {
+                  "primary_signal_path": "tool_skill_intents[0]",
+                  "target_kind": "tool_skill",
+                  "target_flow": "select_state_potion",
+                  "potion_type": "amour",
+                  "confidence_band": "high",
+                  "recommended_next_focus": "Run the potion selection/creation flow for 'amour' using the provided theme."
+                },
+                "confidence": "high"
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "action",
+                    "key": "66abf646-922d-4d1a-a4a9-771a6b60cb43",
+                    "query_hint": "self-talk and self-compassion patterns",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first",
+                    "priority": "high",
+                    "entity_type": null
+                  },
+                  {
+                    "type": "domain_key",
+                    "key": "psychologie.estime_de_soi",
+                    "query_hint": "feeling of failure and self-criticism",
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first",
+                    "priority": "medium",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "normal_reply_fit_score": 0.1,
+              "normal_reply_fit_evidence": [
+                "Demande explicite de potion avec un type identifié et un contenu thématique précis."
+              ],
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "tool_skill_intent_start",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "selected_handler": "select_state_potion.amour",
+              "active_flow_debug": {
+                "version": "active_flow_debug_v1",
+                "snapshots": [
+                  {
+                    "phase": "user_state_loaded",
+                    "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 0,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_onboarding_and_reconcile",
+                    "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "read_active_flow_state",
+                    "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_pending_confirmation_reload",
+                    "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "before_run_conversation_routers",
+                    "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_run_conversation_routers",
+                    "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": "tool_skill_intent_start",
+                    "route_active_flow_reason_code": "no_active_flow"
+                  }
+                ]
+              }
+            },
+            "tool_skill_run": {
+              "selected_handler": "select_state_potion.amour",
+              "reason_code": "amour_field_needs_more_detail",
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "executable_from_chat": false,
+              "status": "clarifying",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "constraints": [],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "runtime_trace": [
+                {
+                  "component": "select_state_potion.amour",
+                  "event": "active_amour_turn_start",
+                  "global_dispatcher_available": false,
+                  "previous_status": null
+                },
+                {
+                  "component": "local_dispatcher",
+                  "event": "note_information_created",
+                  "source_flow": "select_state_potion",
+                  "target_dispatcher": "other_local",
+                  "target_subdispatcher": "select_state_potion.amour",
+                  "handoff_reason": "clarification_resolved"
+                },
+                {
+                  "component": "local_dispatcher",
+                  "event": "decision",
+                  "flow": "select_state_potion.amour",
+                  "flow_action": "answer_current_field",
+                  "confidence": "high",
+                  "selected_potion": "amour",
+                  "current_field_id": "love_lack_context",
+                  "visible_task": "ask_deeper",
+                  "risk_assessment": {
+                    "risk_score": 0,
+                    "risk_band": "none",
+                    "safety_preempt": false,
+                    "reason_codes": []
+                  },
+                  "exit_reason": null
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "reduced",
+                  "flow": "select_state_potion.amour",
+                  "status": "clarifying",
+                  "reason_code": "amour_field_needs_more_detail",
+                  "visible_task": "ask_deeper",
+                  "current_field_id": "love_lack_context",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "conversation_context_built",
+                  "flow": "select_state_potion.amour",
+                  "visible_task": "ask_deeper",
+                  "field_or_stage": "love_lack_context"
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "ask_deeper",
+                  "handoff_status": "clarifying",
+                  "conversation_context_provided": true
+                },
+                {
+                  "component": "visible_agent",
+                  "stage": "potion_subskill_task",
+                  "attempt": 1,
+                  "accepted": true,
+                  "issues": []
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "complete",
+                  "stage": "potion_subskill_task"
+                }
+              ],
+              "note_information": {
+                "source_flow_id": "select_state_potion",
+                "handoff_reason": "clarification_resolved",
+                "target_dispatcher": "other_local",
+                "handoff_context_for_next_dispatcher": "Potion d'amour | tache visible=ask_deeper | aucun champ verrouillé",
+                "user_words": [
+                  "Je veux une potion d'amour, meme si le mot me gene un peu. La phrase qui tourne c'est: tu rates toujours au meme endroit."
+                ],
+                "structured_context": {
+                  "source_flow": "select_state_potion",
+                  "user_message_summary": "Je veux une potion d'amour, meme si le mot me gene un peu. La phrase qui tourne c'est: tu rates toujours au meme endroit.",
+                  "active_flow_summary": "Potion d'amour | tache visible=ask_deeper | aucun champ verrouillé",
+                  "selected_potion": {
+                    "potion_type": "amour",
+                    "potion_name": "Potion d'amour"
+                  },
+                  "collected_fields": {},
+                  "unresolved_questions": [
+                    {
+                      "field_id": "love_lack_context",
+                      "field_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                      "reason": "champ plateforme pas encore verrouillé",
+                      "followup_question": null
+                    },
+                    {
+                      "field_id": "love_state",
+                      "field_label": "Tu te sens surtout comment ?",
+                      "reason": "champ plateforme pas encore verrouillé",
+                      "followup_question": null
+                    }
+                  ],
+                  "handoff_data": {
+                    "potion_name": "Potion d'amour",
+                    "platform_destination": "section État / Potions",
+                    "fields": [
+                      {
+                        "field_id": "love_lack_context",
+                        "field_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                        "status": "missing",
+                        "value": null,
+                        "candidate_value": null,
+                        "locked_value": null,
+                        "option_value": null,
+                        "option_label": null,
+                        "needs_user_confirmation": false,
+                        "detail_sufficiency": {
+                          "status": "unknown",
+                          "reason": null,
+                          "followup_question": null,
+                          "followup_asked": false,
+                          "followup_answered": false,
+                          "evidence": []
+                        }
+                      },
+                      {
+                        "field_id": "love_state",
+                        "field_label": "Tu te sens surtout comment ?",
+                        "status": "missing",
+                        "value": null,
+                        "candidate_value": null,
+                        "locked_value": null,
+                        "option_value": null,
+                        "option_label": null,
+                        "needs_user_confirmation": false,
+                        "detail_sufficiency": {
+                          "status": "sufficient",
+                          "reason": null,
+                          "followup_question": null,
+                          "followup_asked": false,
+                          "followup_answered": true,
+                          "evidence": []
+                        }
+                      }
+                    ]
+                  },
+                  "evidence_used": [
+                    "local_dispatcher_activation"
+                  ],
+                  "recommended_next_focus": "select_state_potion.amour"
+                }
+              },
+              "handoff": {
+                "target": "state_potions"
+              },
+              "platform_handoff": {
+                "operation_type": "select_state_potion",
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "amour_field_needs_more_detail",
+                "executable_from_chat": false,
+                "draft": null
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t01-a1",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 1,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t01-a1:platform_handoff:delivered:select_state_potion:runtime",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.select_state_potion",
+                  "operation_type": "select_state_potion",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "select_state_potion.amour",
+                  "status": "delivered",
+                  "reason_code": "amour_field_needs_more_detail",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "status": "clarifying",
+                    "surface_id": "state_potions"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "state_potions",
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t01-a1",
+            "source_message_id": "3e4fd458-3a80-4093-bd16-6e73eb5f2eff",
+            "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "select_state_potion",
+                "explicitness": "explicit",
+                "target_hint": "potion d'amour",
+                "operation_input": {
+                  "potion_type": "amour",
+                  "user_theme": "tu rates toujours au meme endroit",
+                  "evidence": [
+                    "Je veux une potion d'amour",
+                    "La phrase qui tourne c'est: tu rates toujours au meme endroit"
+                  ]
+                },
+                "confidence_band": "high",
+                "score": 0.95,
+                "ambiguity": "none",
+                "user_intent": "create"
+              }
+            ],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "select_state_potion",
+              "handoff_context_for_next_dispatcher": "User explicitly requests a 'potion d'amour' and provides the recurring negative thought to address. The potion_type is identified as 'amour'.",
+              "user_words": [
+                "Je veux une potion d'amour",
+                "tu rates toujours au meme endroit",
+                "Je veux une potion d'amour, meme si le mot me gene un peu. La phrase qui tourne c'est: tu rates toujours au meme endroit."
+              ],
+              "structured_context": {
+                "primary_signal_path": "tool_skill_intents[0]",
+                "target_kind": "tool_skill",
+                "target_flow": "select_state_potion",
+                "potion_type": "amour",
+                "confidence_band": "high",
+                "recommended_next_focus": "Run the potion selection/creation flow for 'amour' using the provided theme."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "66abf646-922d-4d1a-a4a9-771a6b60cb43",
+                  "query_hint": "self-talk and self-compassion patterns",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.estime_de_soi",
+                  "query_hint": "feeling of failure and self-criticism",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.1,
+            "normal_reply_fit_evidence": [
+              "Demande explicite de potion avec un type identifié et un contenu thématique précis."
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "tool_skill_intent_start",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "select_state_potion.amour",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "tool_skill_intent_start",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.amour",
+            "reason_code": "amour_field_needs_more_detail",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "executable_from_chat": false,
+            "status": "clarifying",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.amour",
+                "event": "active_amour_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": null
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "note_information_created",
+                "source_flow": "select_state_potion",
+                "target_dispatcher": "other_local",
+                "target_subdispatcher": "select_state_potion.amour",
+                "handoff_reason": "clarification_resolved"
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.amour",
+                "flow_action": "answer_current_field",
+                "confidence": "high",
+                "selected_potion": "amour",
+                "current_field_id": "love_lack_context",
+                "visible_task": "ask_deeper",
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.amour",
+                "status": "clarifying",
+                "reason_code": "amour_field_needs_more_detail",
+                "visible_task": "ask_deeper",
+                "current_field_id": "love_lack_context",
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "local_reducer",
+                "event": "conversation_context_built",
+                "flow": "select_state_potion.amour",
+                "visible_task": "ask_deeper",
+                "field_or_stage": "love_lack_context"
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "potion_subskill_task",
+                "clarte_visible_task": null,
+                "potion_subskill_visible_task": "ask_deeper",
+                "handoff_status": "clarifying",
+                "conversation_context_provided": true
+              },
+              {
+                "component": "visible_agent",
+                "stage": "potion_subskill_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "potion_subskill_task"
+              }
+            ],
+            "note_information": {
+              "source_flow_id": "select_state_potion",
+              "handoff_reason": "clarification_resolved",
+              "target_dispatcher": "other_local",
+              "handoff_context_for_next_dispatcher": "Potion d'amour | tache visible=ask_deeper | aucun champ verrouillé",
+              "user_words": [
+                "Je veux une potion d'amour, meme si le mot me gene un peu. La phrase qui tourne c'est: tu rates toujours au meme endroit."
+              ],
+              "structured_context": {
+                "source_flow": "select_state_potion",
+                "user_message_summary": "Je veux une potion d'amour, meme si le mot me gene un peu. La phrase qui tourne c'est: tu rates toujours au meme endroit.",
+                "active_flow_summary": "Potion d'amour | tache visible=ask_deeper | aucun champ verrouillé",
+                "selected_potion": {
+                  "potion_type": "amour",
+                  "potion_name": "Potion d'amour"
+                },
+                "collected_fields": {},
+                "unresolved_questions": [
+                  {
+                    "field_id": "love_lack_context",
+                    "field_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                    "reason": "champ plateforme pas encore verrouillé",
+                    "followup_question": null
+                  },
+                  {
+                    "field_id": "love_state",
+                    "field_label": "Tu te sens surtout comment ?",
+                    "reason": "champ plateforme pas encore verrouillé",
+                    "followup_question": null
+                  }
+                ],
+                "handoff_data": {
+                  "potion_name": "Potion d'amour",
+                  "platform_destination": "section État / Potions",
+                  "fields": [
+                    {
+                      "field_id": "love_lack_context",
+                      "field_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                      "status": "missing",
+                      "value": null,
+                      "candidate_value": null,
+                      "locked_value": null,
+                      "option_value": null,
+                      "option_label": null,
+                      "needs_user_confirmation": false,
+                      "detail_sufficiency": {
+                        "status": "unknown",
+                        "reason": null,
+                        "followup_question": null,
+                        "followup_asked": false,
+                        "followup_answered": false,
+                        "evidence": []
+                      }
+                    },
+                    {
+                      "field_id": "love_state",
+                      "field_label": "Tu te sens surtout comment ?",
+                      "status": "missing",
+                      "value": null,
+                      "candidate_value": null,
+                      "locked_value": null,
+                      "option_value": null,
+                      "option_label": null,
+                      "needs_user_confirmation": false,
+                      "detail_sufficiency": {
+                        "status": "sufficient",
+                        "reason": null,
+                        "followup_question": null,
+                        "followup_asked": false,
+                        "followup_answered": true,
+                        "evidence": []
+                      }
+                    }
+                  ]
+                },
+                "evidence_used": [
+                  "local_dispatcher_activation"
+                ],
+                "recommended_next_focus": "select_state_potion.amour"
+              }
+            },
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "amour_field_needs_more_detail",
+              "executable_from_chat": false,
+              "draft": null
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t01-a1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t01-a1:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.amour",
+                "status": "delivered",
+                "reason_code": "amour_field_needs_more_detail",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "status": "clarifying",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null,
+        "__http_status": 200
+      },
+      "trace": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "select_state_potion.amour",
+        "route_reason": "tool_skill_intent_start",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "executed_tools": [],
+        "tool_execution": "platform_handoff",
+        "trace_id": null
+      },
+      "durable_after": {
+        "sessions": [],
+        "reminders": [],
+        "checkins": []
+      }
+    },
+    {
+      "turn": 2,
+      "attempt": 1,
+      "request_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t02-a1",
+      "user": "Elle est revenue ce matin en ouvrant mon planning. J'ai vu le meme retard qu'hier et je me suis parle tres durement.",
+      "assistant": "Je suis désolée que tu sois si dure avec toi-même ce matin. Pour t'aider à transformer ce regard, la Potion d'amour est tout à fait adaptée.\n\nTu peux la retrouver dans la section État / Potions. Voici ce que nous avons préparé :\n\nPar rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ? : La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier.\nTu te sens surtout comment ? : Dur avec moi",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "request_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t02-a1",
+        "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+        "channel": "web",
+        "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je suis désolée que tu sois si dure avec toi-même ce matin. Pour t'aider à transformer ce regard, la Potion d'amour est tout à fait adaptée.\n\nTu peux la retrouver dans la section État / Potions. Voici ce que nous avons préparé :\n\nPar rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ? : La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier.\nTu te sens surtout comment ? : Dur avec moi",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "platform_handoff",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t02-a1",
+              "source_message_id": "27f54254-d465-4ab3-b36c-6d41ada5831d",
+              "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {},
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "select_state_potion.amour",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_amour_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_amour_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "select_state_potion.amour",
+              "reason_code": "amour_handoff_delivered",
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "executable_from_chat": false,
+              "status": "handoff_delivered",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "constraints": [],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "runtime_trace": [
+                {
+                  "component": "select_state_potion.amour",
+                  "event": "active_amour_turn_start",
+                  "global_dispatcher_available": false,
+                  "previous_status": "clarifying"
+                },
+                {
+                  "component": "local_dispatcher",
+                  "event": "decision",
+                  "flow": "select_state_potion.amour",
+                  "flow_action": "answer_current_field",
+                  "confidence": "high",
+                  "selected_potion": "amour",
+                  "current_field_id": null,
+                  "visible_task": "handoff_ready",
+                  "risk_assessment": {
+                    "risk_score": 0,
+                    "risk_band": "none",
+                    "safety_preempt": false,
+                    "reason_codes": []
+                  },
+                  "exit_reason": null
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "reduced",
+                  "flow": "select_state_potion.amour",
+                  "status": "handoff_delivered",
+                  "reason_code": "amour_handoff_delivered",
+                  "visible_task": "handoff_ready",
+                  "current_field_id": null,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "conversation_context_built",
+                  "flow": "select_state_potion.amour",
+                  "visible_task": "handoff_ready",
+                  "field_or_stage": "handoff_ready"
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "handoff_ready",
+                  "handoff_status": "handoff_delivered",
+                  "conversation_context_provided": true
+                },
+                {
+                  "component": "visible_agent",
+                  "stage": "potion_subskill_task",
+                  "attempt": 1,
+                  "accepted": true,
+                  "issues": []
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "complete",
+                  "stage": "potion_subskill_task"
+                }
+              ],
+              "note_information": null,
+              "handoff": {
+                "target": "state_potions"
+              },
+              "platform_handoff": {
+                "operation_type": "select_state_potion",
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "amour_handoff_delivered",
+                "executable_from_chat": false,
+                "draft": {
+                  "operation_type": "select_state_potion",
+                  "mode": "platform_handoff",
+                  "executable_from_chat": false,
+                  "user_state_summary": "La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier. ; Dur avec moi",
+                  "desired_shift_summary": "ramener de la douceur, adoucir le dialogue interieur, te traiter plus humainement",
+                  "recommendation": {
+                    "potion_label": "Potion d'amour",
+                    "why_this_potion": "Quand tu es dur avec toi, froid envers toi ou en manque de douceur, elle remet de la chaleur humaine.",
+                    "immediate_step": null,
+                    "preserve": [],
+                    "avoid": [],
+                    "platform_destination": "section État / Potions",
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion d'amour"
+                    ],
+                    "platform_inputs": {
+                      "potion_type": "amour",
+                      "potion_title": "Potion d'amour",
+                      "answers": [
+                        {
+                          "question_id": "love_lack_context",
+                          "question_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                          "value": "La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier.",
+                          "option_value": null,
+                          "option_label": null
+                        },
+                        {
+                          "question_id": "love_state",
+                          "question_label": "Tu te sens surtout comment ?",
+                          "value": "Dur avec moi",
+                          "option_value": "dur",
+                          "option_label": "Dur avec moi"
+                        }
+                      ],
+                      "optional_free_text": null
+                    }
+                  },
+                  "missing_decisions": []
+                }
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t02-a1",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 1,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t02-a1:platform_handoff:delivered:select_state_potion:runtime",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.select_state_potion",
+                  "operation_type": "select_state_potion",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "select_state_potion.amour",
+                  "status": "delivered",
+                  "reason_code": "amour_handoff_delivered",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "status": "handoff_delivered",
+                    "surface_id": "state_potions"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "state_potions",
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t02-a1",
+            "source_message_id": "27f54254-d465-4ab3-b36c-6d41ada5831d",
+            "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "select_state_potion.amour",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_amour_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_amour_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.amour",
+            "reason_code": "amour_handoff_delivered",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "executable_from_chat": false,
+            "status": "handoff_delivered",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.amour",
+                "event": "active_amour_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": "clarifying"
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.amour",
+                "flow_action": "answer_current_field",
+                "confidence": "high",
+                "selected_potion": "amour",
+                "current_field_id": null,
+                "visible_task": "handoff_ready",
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.amour",
+                "status": "handoff_delivered",
+                "reason_code": "amour_handoff_delivered",
+                "visible_task": "handoff_ready",
+                "current_field_id": null,
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "local_reducer",
+                "event": "conversation_context_built",
+                "flow": "select_state_potion.amour",
+                "visible_task": "handoff_ready",
+                "field_or_stage": "handoff_ready"
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "potion_subskill_task",
+                "clarte_visible_task": null,
+                "potion_subskill_visible_task": "handoff_ready",
+                "handoff_status": "handoff_delivered",
+                "conversation_context_provided": true
+              },
+              {
+                "component": "visible_agent",
+                "stage": "potion_subskill_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "potion_subskill_task"
+              }
+            ],
+            "note_information": null,
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "amour_handoff_delivered",
+              "executable_from_chat": false,
+              "draft": {
+                "operation_type": "select_state_potion",
+                "mode": "platform_handoff",
+                "executable_from_chat": false,
+                "user_state_summary": "La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier. ; Dur avec moi",
+                "desired_shift_summary": "ramener de la douceur, adoucir le dialogue interieur, te traiter plus humainement",
+                "recommendation": {
+                  "potion_label": "Potion d'amour",
+                  "why_this_potion": "Quand tu es dur avec toi, froid envers toi ou en manque de douceur, elle remet de la chaleur humaine.",
+                  "immediate_step": null,
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "section État / Potions",
+                  "platform_steps": [
+                    "va dans État / Potions",
+                    "choisis Potion d'amour"
+                  ],
+                  "platform_inputs": {
+                    "potion_type": "amour",
+                    "potion_title": "Potion d'amour",
+                    "answers": [
+                      {
+                        "question_id": "love_lack_context",
+                        "question_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                        "value": "La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier.",
+                        "option_value": null,
+                        "option_label": null
+                      },
+                      {
+                        "question_id": "love_state",
+                        "question_label": "Tu te sens surtout comment ?",
+                        "value": "Dur avec moi",
+                        "option_value": "dur",
+                        "option_label": "Dur avec moi"
+                      }
+                    ],
+                    "optional_free_text": null
+                  }
+                },
+                "missing_decisions": []
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t02-a1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t02-a1:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.amour",
+                "status": "delivered",
+                "reason_code": "amour_handoff_delivered",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "status": "handoff_delivered",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null,
+        "__http_status": 200
+      },
+      "trace": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "select_state_potion.amour",
+        "route_reason": "active_amour_local_dispatcher",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "executed_tools": [],
+        "tool_execution": "platform_handoff",
+        "trace_id": null
+      },
+      "durable_after": {
+        "sessions": [],
+        "reminders": [],
+        "checkins": []
+      }
+    },
+    {
+      "turn": 3,
+      "attempt": 1,
+      "request_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t03-a1",
+      "user": "Oui, c'est le bon ton. Active cette potion d'amour maintenant.",
+      "assistant": "Je suis désolée, je ne peux pas lancer la Potion d'amour directement depuis notre discussion. Pour l'activer, rends-toi dans la section État / Potions de ta plateforme et saisis ces informations :\n\nPar rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ? : La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier.\nTu te sens surtout comment ? : Dur avec moi",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "request_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t03-a1",
+        "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+        "channel": "web",
+        "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je suis désolée, je ne peux pas lancer la Potion d'amour directement depuis notre discussion. Pour l'activer, rends-toi dans la section État / Potions de ta plateforme et saisis ces informations :\n\nPar rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ? : La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier.\nTu te sens surtout comment ? : Dur avec moi",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "platform_handoff",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t03-a1",
+              "source_message_id": "c2db3414-d5e6-4b7a-a681-71932b826399",
+              "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {},
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "select_state_potion.amour",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_amour_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_amour_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "select_state_potion.amour",
+              "reason_code": "amour_apply_attempt_no_chat_execution",
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "executable_from_chat": false,
+              "status": "apply_attempt",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "constraints": [],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "runtime_trace": [
+                {
+                  "component": "select_state_potion.amour",
+                  "event": "active_amour_turn_start",
+                  "global_dispatcher_available": false,
+                  "previous_status": "handoff_delivered"
+                },
+                {
+                  "component": "local_dispatcher",
+                  "event": "decision",
+                  "flow": "select_state_potion.amour",
+                  "flow_action": "apply_attempt",
+                  "confidence": "high",
+                  "selected_potion": "amour",
+                  "current_field_id": null,
+                  "visible_task": "apply_attempt",
+                  "risk_assessment": {
+                    "risk_score": 0,
+                    "risk_band": "none",
+                    "safety_preempt": false,
+                    "reason_codes": []
+                  },
+                  "exit_reason": null
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "reduced",
+                  "flow": "select_state_potion.amour",
+                  "status": "apply_attempt",
+                  "reason_code": "amour_apply_attempt_no_chat_execution",
+                  "visible_task": "apply_attempt",
+                  "current_field_id": null,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "conversation_context_built",
+                  "flow": "select_state_potion.amour",
+                  "visible_task": "apply_attempt",
+                  "field_or_stage": "apply_attempt"
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "apply_attempt",
+                  "handoff_status": "apply_attempt",
+                  "conversation_context_provided": true
+                },
+                {
+                  "component": "visible_agent",
+                  "stage": "potion_subskill_task",
+                  "attempt": 1,
+                  "accepted": true,
+                  "issues": []
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "complete",
+                  "stage": "potion_subskill_task"
+                }
+              ],
+              "note_information": null,
+              "handoff": {
+                "target": "state_potions"
+              },
+              "platform_handoff": {
+                "operation_type": "select_state_potion",
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "amour_apply_attempt_no_chat_execution",
+                "executable_from_chat": false,
+                "draft": {
+                  "operation_type": "select_state_potion",
+                  "mode": "platform_handoff",
+                  "executable_from_chat": false,
+                  "user_state_summary": "La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier. ; Dur avec moi",
+                  "desired_shift_summary": "ramener de la douceur, adoucir le dialogue interieur, te traiter plus humainement",
+                  "recommendation": {
+                    "potion_label": "Potion d'amour",
+                    "why_this_potion": "Quand tu es dur avec toi, froid envers toi ou en manque de douceur, elle remet de la chaleur humaine.",
+                    "immediate_step": null,
+                    "preserve": [],
+                    "avoid": [],
+                    "platform_destination": "section État / Potions",
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion d'amour"
+                    ],
+                    "platform_inputs": {
+                      "potion_type": "amour",
+                      "potion_title": "Potion d'amour",
+                      "answers": [
+                        {
+                          "question_id": "love_lack_context",
+                          "question_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                          "value": "La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier.",
+                          "option_value": null,
+                          "option_label": null
+                        },
+                        {
+                          "question_id": "love_state",
+                          "question_label": "Tu te sens surtout comment ?",
+                          "value": "Dur avec moi",
+                          "option_value": "dur",
+                          "option_label": "Dur avec moi"
+                        }
+                      ],
+                      "optional_free_text": null
+                    }
+                  },
+                  "missing_decisions": []
+                }
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t03-a1",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 1,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t03-a1:platform_handoff:delivered:select_state_potion:runtime",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.select_state_potion",
+                  "operation_type": "select_state_potion",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "select_state_potion.amour",
+                  "status": "delivered",
+                  "reason_code": "amour_apply_attempt_no_chat_execution",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "status": "apply_attempt",
+                    "surface_id": "state_potions"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "state_potions",
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t03-a1",
+            "source_message_id": "c2db3414-d5e6-4b7a-a681-71932b826399",
+            "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "select_state_potion.amour",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_amour_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_amour_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.amour",
+            "reason_code": "amour_apply_attempt_no_chat_execution",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "executable_from_chat": false,
+            "status": "apply_attempt",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.amour",
+                "event": "active_amour_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": "handoff_delivered"
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.amour",
+                "flow_action": "apply_attempt",
+                "confidence": "high",
+                "selected_potion": "amour",
+                "current_field_id": null,
+                "visible_task": "apply_attempt",
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.amour",
+                "status": "apply_attempt",
+                "reason_code": "amour_apply_attempt_no_chat_execution",
+                "visible_task": "apply_attempt",
+                "current_field_id": null,
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "local_reducer",
+                "event": "conversation_context_built",
+                "flow": "select_state_potion.amour",
+                "visible_task": "apply_attempt",
+                "field_or_stage": "apply_attempt"
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "potion_subskill_task",
+                "clarte_visible_task": null,
+                "potion_subskill_visible_task": "apply_attempt",
+                "handoff_status": "apply_attempt",
+                "conversation_context_provided": true
+              },
+              {
+                "component": "visible_agent",
+                "stage": "potion_subskill_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "potion_subskill_task"
+              }
+            ],
+            "note_information": null,
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "amour_apply_attempt_no_chat_execution",
+              "executable_from_chat": false,
+              "draft": {
+                "operation_type": "select_state_potion",
+                "mode": "platform_handoff",
+                "executable_from_chat": false,
+                "user_state_summary": "La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier. ; Dur avec moi",
+                "desired_shift_summary": "ramener de la douceur, adoucir le dialogue interieur, te traiter plus humainement",
+                "recommendation": {
+                  "potion_label": "Potion d'amour",
+                  "why_this_potion": "Quand tu es dur avec toi, froid envers toi ou en manque de douceur, elle remet de la chaleur humaine.",
+                  "immediate_step": null,
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "section État / Potions",
+                  "platform_steps": [
+                    "va dans État / Potions",
+                    "choisis Potion d'amour"
+                  ],
+                  "platform_inputs": {
+                    "potion_type": "amour",
+                    "potion_title": "Potion d'amour",
+                    "answers": [
+                      {
+                        "question_id": "love_lack_context",
+                        "question_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                        "value": "La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier.",
+                        "option_value": null,
+                        "option_label": null
+                      },
+                      {
+                        "question_id": "love_state",
+                        "question_label": "Tu te sens surtout comment ?",
+                        "value": "Dur avec moi",
+                        "option_value": "dur",
+                        "option_label": "Dur avec moi"
+                      }
+                    ],
+                    "optional_free_text": null
+                  }
+                },
+                "missing_decisions": []
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t03-a1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t03-a1:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.amour",
+                "status": "delivered",
+                "reason_code": "amour_apply_attempt_no_chat_execution",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "status": "apply_attempt",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null,
+        "__http_status": 200
+      },
+      "trace": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "select_state_potion.amour",
+        "route_reason": "active_amour_local_dispatcher",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "executed_tools": [],
+        "tool_execution": "platform_handoff",
+        "trace_id": null
+      },
+      "durable_after": {
+        "sessions": [],
+        "reminders": [],
+        "checkins": []
+      }
+    },
+    {
+      "turn": 4,
+      "attempt": 1,
+      "request_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t04-a1",
+      "user": "D'accord, alors redis-moi seulement les champs a copier dans la plateforme, avec un ton sobre.",
+      "assistant": "Voici les éléments pour ta Potion d'amour à renseigner dans la section État / Potions :\n\nPar rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ? : La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier.\n\nTu te sens surtout comment ? : Dur avec moi",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "request_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t04-a1",
+        "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+        "channel": "web",
+        "scope": "manual-state-potion-potion-explicit-manual-amour-r1-amour",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Voici les éléments pour ta Potion d'amour à renseigner dans la section État / Potions :\n\nPar rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ? : La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier.\n\nTu te sens surtout comment ? : Dur avec moi",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "platform_handoff",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t04-a1",
+              "source_message_id": "b161d58a-6b30-4a26-95c0-69946ed3aba2",
+              "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {},
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "select_state_potion.amour",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_amour_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_amour_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "select_state_potion.amour",
+              "reason_code": "amour_repeat_handoff",
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "executable_from_chat": false,
+              "status": "repeat_handoff",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "constraints": [],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "runtime_trace": [
+                {
+                  "component": "select_state_potion.amour",
+                  "event": "active_amour_turn_start",
+                  "global_dispatcher_available": false,
+                  "previous_status": "apply_attempt"
+                },
+                {
+                  "component": "local_dispatcher",
+                  "event": "decision",
+                  "flow": "select_state_potion.amour",
+                  "flow_action": "repeat_handoff",
+                  "confidence": "high",
+                  "selected_potion": "amour",
+                  "current_field_id": null,
+                  "visible_task": "repeat_handoff",
+                  "risk_assessment": {
+                    "risk_score": 0,
+                    "risk_band": "none",
+                    "safety_preempt": false,
+                    "reason_codes": []
+                  },
+                  "exit_reason": null
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "reduced",
+                  "flow": "select_state_potion.amour",
+                  "status": "repeat_handoff",
+                  "reason_code": "amour_repeat_handoff",
+                  "visible_task": "repeat_handoff",
+                  "current_field_id": null,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "conversation_context_built",
+                  "flow": "select_state_potion.amour",
+                  "visible_task": "repeat_handoff",
+                  "field_or_stage": "repeat_handoff"
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "repeat_handoff",
+                  "handoff_status": "repeat_handoff",
+                  "conversation_context_provided": true
+                },
+                {
+                  "component": "visible_agent",
+                  "stage": "potion_subskill_task",
+                  "attempt": 1,
+                  "accepted": true,
+                  "issues": []
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "complete",
+                  "stage": "potion_subskill_task"
+                }
+              ],
+              "note_information": null,
+              "handoff": {
+                "target": "state_potions"
+              },
+              "platform_handoff": {
+                "operation_type": "select_state_potion",
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "amour_repeat_handoff",
+                "executable_from_chat": false,
+                "draft": {
+                  "operation_type": "select_state_potion",
+                  "mode": "platform_handoff",
+                  "executable_from_chat": false,
+                  "user_state_summary": "La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier. ; Dur avec moi",
+                  "desired_shift_summary": "ramener de la douceur, adoucir le dialogue interieur, te traiter plus humainement",
+                  "recommendation": {
+                    "potion_label": "Potion d'amour",
+                    "why_this_potion": "Quand tu es dur avec toi, froid envers toi ou en manque de douceur, elle remet de la chaleur humaine.",
+                    "immediate_step": null,
+                    "preserve": [],
+                    "avoid": [],
+                    "platform_destination": "section État / Potions",
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion d'amour"
+                    ],
+                    "platform_inputs": {
+                      "potion_type": "amour",
+                      "potion_title": "Potion d'amour",
+                      "answers": [
+                        {
+                          "question_id": "love_lack_context",
+                          "question_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                          "value": "La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier.",
+                          "option_value": null,
+                          "option_label": null
+                        },
+                        {
+                          "question_id": "love_state",
+                          "question_label": "Tu te sens surtout comment ?",
+                          "value": "Dur avec moi",
+                          "option_value": "dur",
+                          "option_label": "Dur avec moi"
+                        }
+                      ],
+                      "optional_free_text": null
+                    }
+                  },
+                  "missing_decisions": []
+                }
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t04-a1",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 1,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t04-a1:platform_handoff:delivered:select_state_potion:runtime",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.select_state_potion",
+                  "operation_type": "select_state_potion",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "select_state_potion.amour",
+                  "status": "delivered",
+                  "reason_code": "amour_repeat_handoff",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "status": "repeat_handoff",
+                    "surface_id": "state_potions"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "state_potions",
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t04-a1",
+            "source_message_id": "b161d58a-6b30-4a26-95c0-69946ed3aba2",
+            "user_id": "39f7946d-8da4-43df-9690-ce318b0ddfd6",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "select_state_potion.amour",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_amour_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_amour_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.amour",
+            "reason_code": "amour_repeat_handoff",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "executable_from_chat": false,
+            "status": "repeat_handoff",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.amour",
+                "event": "active_amour_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": "apply_attempt"
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.amour",
+                "flow_action": "repeat_handoff",
+                "confidence": "high",
+                "selected_potion": "amour",
+                "current_field_id": null,
+                "visible_task": "repeat_handoff",
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.amour",
+                "status": "repeat_handoff",
+                "reason_code": "amour_repeat_handoff",
+                "visible_task": "repeat_handoff",
+                "current_field_id": null,
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "local_reducer",
+                "event": "conversation_context_built",
+                "flow": "select_state_potion.amour",
+                "visible_task": "repeat_handoff",
+                "field_or_stage": "repeat_handoff"
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "potion_subskill_task",
+                "clarte_visible_task": null,
+                "potion_subskill_visible_task": "repeat_handoff",
+                "handoff_status": "repeat_handoff",
+                "conversation_context_provided": true
+              },
+              {
+                "component": "visible_agent",
+                "stage": "potion_subskill_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "potion_subskill_task"
+              }
+            ],
+            "note_information": null,
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "amour_repeat_handoff",
+              "executable_from_chat": false,
+              "draft": {
+                "operation_type": "select_state_potion",
+                "mode": "platform_handoff",
+                "executable_from_chat": false,
+                "user_state_summary": "La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier. ; Dur avec moi",
+                "desired_shift_summary": "ramener de la douceur, adoucir le dialogue interieur, te traiter plus humainement",
+                "recommendation": {
+                  "potion_label": "Potion d'amour",
+                  "why_this_potion": "Quand tu es dur avec toi, froid envers toi ou en manque de douceur, elle remet de la chaleur humaine.",
+                  "immediate_step": null,
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "section État / Potions",
+                  "platform_steps": [
+                    "va dans État / Potions",
+                    "choisis Potion d'amour"
+                  ],
+                  "platform_inputs": {
+                    "potion_type": "amour",
+                    "potion_title": "Potion d'amour",
+                    "answers": [
+                      {
+                        "question_id": "love_lack_context",
+                        "question_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                        "value": "La phrase 'tu rates toujours au même endroit' est revenue ce matin en ouvrant mon planning face au même retard qu'hier.",
+                        "option_value": null,
+                        "option_label": null
+                      },
+                      {
+                        "question_id": "love_state",
+                        "question_label": "Tu te sens surtout comment ?",
+                        "value": "Dur avec moi",
+                        "option_value": "dur",
+                        "option_label": "Dur avec moi"
+                      }
+                    ],
+                    "optional_free_text": null
+                  }
+                },
+                "missing_decisions": []
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t04-a1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-manual-potion-potion-explicit-manual-amour-r1-amour-t04-a1:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.amour",
+                "status": "delivered",
+                "reason_code": "amour_repeat_handoff",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "status": "repeat_handoff",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null,
+        "__http_status": 200
+      },
+      "trace": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "select_state_potion.amour",
+        "route_reason": "active_amour_local_dispatcher",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "executed_tools": [],
+        "tool_execution": "platform_handoff",
+        "trace_id": null
+      },
+      "durable_after": {
+        "sessions": [],
+        "reminders": [],
+        "checkins": []
+      }
+    }
+  ],
+  "created_at": "2026-06-15T15:39:00.821Z",
+  "cleanup": {
+    "completed": true,
+    "deleted": [
+      {
+        "table": "scheduled_checkins",
+        "count": 0
+      },
+      {
+        "table": "user_recurring_reminders",
+        "count": 0
+      },
+      {
+        "table": "user_potion_sessions",
+        "count": 0
+      },
+      {
+        "table": "chat_messages",
+        "count": 8
+      },
+      {
+        "table": "conversation_turn_traces",
+        "count": 0
+      },
+      {
+        "table": "user_chat_states",
+        "count": 1
+      },
+      {
+        "table": "user_plan_items",
+        "count": 1
+      },
+      {
+        "table": "user_plans_v2",
+        "count": 1
+      },
+      {
+        "table": "user_transformations",
+        "error": "DELETE /user_transformations?cycle_id=eq.acb1bcf8-0b0f-4214-becd-68774e4f9363 failed: 409 {\"code\":\"23503\",\"details\":\"Key (cycle_id, id)=(acb1bcf8-0b0f-4214-becd-68774e4f9363, f3a94731-a662-42f4-87f7-8c78a111c678) is still referenced from table \\\"user_cycles\\\".\",\"hint\":null,\"message\":\"update or delete on table \\\"user_transformations\\\" violates foreign key constraint \\\"user_cycles_active_transformation_fk\\\" on table \\\"user_cycles\\\"\"}"
+      },
+      {
+        "table": "user_cycles",
+        "count": 1
+      },
+      {
+        "table": "profiles",
+        "count": 1
+      },
+      {
+        "table": "auth.users",
+        "count": 1
+      }
+    ],
+    "cleanup_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/operations/2026-06-15-select-state-potion-manual-potion-explicit-manual-amour-r1-amour.cleanup.json",
+    "at": "2026-06-15T15:45:37.407Z"
+  },
+  "updated_at": "2026-06-15T15:44:13.464Z"
+}

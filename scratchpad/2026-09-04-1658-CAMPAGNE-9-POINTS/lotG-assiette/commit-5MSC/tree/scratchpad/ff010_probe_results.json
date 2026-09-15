@@ -1,0 +1,568 @@
+{
+  "ana": {
+    "ctx": {
+      "householdId": "e2c9d750-5920-4d44-acfe-5b78e5083130",
+      "kind": "family",
+      "roster": [
+        {
+          "userId": "dc940ab0-6143-43df-8457-ccad061f2242",
+          "firstName": "Ana",
+          "isMinor": false,
+          "role": "owner",
+          "visibility": "full"
+        },
+        {
+          "userId": "9024f414-6867-4f49-9b25-e2d40ddc1b77",
+          "firstName": "Leo",
+          "isMinor": true,
+          "role": "member",
+          "visibility": "full"
+        },
+        {
+          "userId": "dcaf53d6-3b06-429e-a5bc-d5a332e6f948",
+          "firstName": "Marc",
+          "isMinor": false,
+          "role": "member",
+          "visibility": "full"
+        }
+      ],
+      "hasPlanToday": true,
+      "todayDishes": [
+        {
+          "title": "Roast chicken, brown rice and green beans",
+          "slot": "dinner",
+          "day": "sat"
+        },
+        {
+          "title": "Tomato and white bean salad",
+          "slot": "lunch",
+          "day": "sat"
+        }
+      ],
+      "preparations": [
+        {
+          "title": "Roast the chicken thighs",
+          "cookOn": "sat",
+          "cookDate": "2026-08-08",
+          "isToday": true
+        },
+        {
+          "title": "Cook the lentils",
+          "cookOn": "sun",
+          "cookDate": "2026-08-09",
+          "isToday": false
+        },
+        {
+          "title": "Marinate the cod",
+          "cookOn": "mon",
+          "cookDate": "2026-08-10",
+          "isToday": false
+        }
+      ],
+      "portions": [
+        {
+          "firstName": "Ana",
+          "note": "full protein share, smaller starch share",
+          "isMe": true
+        },
+        {
+          "firstName": "Marc",
+          "note": "larger protein and starch share",
+          "isMe": false
+        },
+        {
+          "firstName": "Leo",
+          "note": "child-size share of the same dish",
+          "isMe": false
+        }
+      ],
+      "myRestrictions": [],
+      "shopping": [
+        {
+          "term": "chicken thighs",
+          "quantity": "1.2 kg"
+        },
+        {
+          "term": "brown rice",
+          "quantity": "500 g"
+        },
+        {
+          "term": "green beans",
+          "quantity": "800 g"
+        }
+      ],
+      "shoppingTruncated": false
+    },
+    "blockChars": 2078,
+    "block": "== WHAT THIS HOUSEHOLD IS EATING (read-only) ==\n\nThis is NOT the coach's plan. It is what this household composed for itself. Never merge the two, and never present one as the other.\n\nHousehold of 3 (family): Ana, Leo (child), Marc.\n\nTODAY'S DISHES, exactly as composed:\n- Roast chicken, brown rice and green beans (dinner)\n- Tomato and white bean salad (lunch)\n\nPREPARATIONS AHEAD (today's first; a line dated another day is NOT for today):\n- Roast the chicken thighs — TODAY\n- Cook the lentils — cook on 2026-08-09 (sun), NOT today\n- Marinate the cod — cook on 2026-08-10 (mon), NOT today\n\nSERVING NOTES:\n- Ana (this student): full protein share, smaller starch share\n- Marc: larger protein and starch share\n- Leo: child-size share of the same dish\n\nSHOPPING LIST for this window:\n- chicken thighs — 1.2 kg\n- brown rice — 500 g\n- green beans — 800 g\n\nHARD RULES:\n- Everything you say about what they are eating comes from the lines above. Never invent a dish: they will cook what you tell them.\n- READ-ONLY. You cannot compose, change, add or remove anything here. Every one of those has its own screen.\n- A dish being planned is NOT a dish being eaten. Never tick anything, and never assume it was. If they ask whether something WAS eaten, you do not know: this list says what is PLANNED, never what happened. Never answer 'yes' to 'did we eat X'.\n- Only what is dated TODAY above is for today. A dish or a preparation dated another day is not tonight's, and saying it is sends them to cook the wrong thing.\n- You have TODAY'S dishes and nothing else. A preparation dated a later day is a cooking task, not that day's meal: never turn one into a dish, and never state what a later day's meal is. Say you only have today's and send them to the meals screen.\n- A child in this household is an EATER, never a target: allergies, tastes, portion size. No nutritional goal, no weight, and no figures of any kind — not calories, not grams of sugar or fat, not a serving size in numbers. A child asking 'how much sugar is in that?' gets a plain answer about the plate, never a count."
+  },
+  "marc": {
+    "ctx": {
+      "householdId": "e2c9d750-5920-4d44-acfe-5b78e5083130",
+      "kind": "family",
+      "roster": [
+        {
+          "userId": "dc940ab0-6143-43df-8457-ccad061f2242",
+          "firstName": "Ana",
+          "isMinor": false,
+          "role": "owner",
+          "visibility": "full"
+        },
+        {
+          "userId": "9024f414-6867-4f49-9b25-e2d40ddc1b77",
+          "firstName": "Leo",
+          "isMinor": true,
+          "role": "member",
+          "visibility": "full"
+        },
+        {
+          "userId": "dcaf53d6-3b06-429e-a5bc-d5a332e6f948",
+          "firstName": "Marc",
+          "isMinor": false,
+          "role": "member",
+          "visibility": "full"
+        }
+      ],
+      "hasPlanToday": true,
+      "todayDishes": [
+        {
+          "title": "Roast chicken, brown rice and green beans",
+          "slot": "dinner",
+          "day": "sat"
+        },
+        {
+          "title": "Tomato and white bean salad",
+          "slot": "lunch",
+          "day": "sat"
+        }
+      ],
+      "preparations": [
+        {
+          "title": "Roast the chicken thighs",
+          "cookOn": "sat",
+          "cookDate": "2026-08-08",
+          "isToday": true
+        },
+        {
+          "title": "Cook the lentils",
+          "cookOn": "sun",
+          "cookDate": "2026-08-09",
+          "isToday": false
+        },
+        {
+          "title": "Marinate the cod",
+          "cookOn": "mon",
+          "cookDate": "2026-08-10",
+          "isToday": false
+        }
+      ],
+      "portions": [
+        {
+          "firstName": "Ana",
+          "note": "full protein share, smaller starch share",
+          "isMe": false
+        },
+        {
+          "firstName": "Marc",
+          "note": "larger protein and starch share",
+          "isMe": true
+        },
+        {
+          "firstName": "Leo",
+          "note": "child-size share of the same dish",
+          "isMe": false
+        }
+      ],
+      "myRestrictions": [],
+      "shopping": [
+        {
+          "term": "chicken thighs",
+          "quantity": "1.2 kg"
+        },
+        {
+          "term": "brown rice",
+          "quantity": "500 g"
+        },
+        {
+          "term": "green beans",
+          "quantity": "800 g"
+        }
+      ],
+      "shoppingTruncated": false
+    },
+    "blockChars": 2078,
+    "block": "== WHAT THIS HOUSEHOLD IS EATING (read-only) ==\n\nThis is NOT the coach's plan. It is what this household composed for itself. Never merge the two, and never present one as the other.\n\nHousehold of 3 (family): Ana, Leo (child), Marc.\n\nTODAY'S DISHES, exactly as composed:\n- Roast chicken, brown rice and green beans (dinner)\n- Tomato and white bean salad (lunch)\n\nPREPARATIONS AHEAD (today's first; a line dated another day is NOT for today):\n- Roast the chicken thighs — TODAY\n- Cook the lentils — cook on 2026-08-09 (sun), NOT today\n- Marinate the cod — cook on 2026-08-10 (mon), NOT today\n\nSERVING NOTES:\n- Ana: full protein share, smaller starch share\n- Marc (this student): larger protein and starch share\n- Leo: child-size share of the same dish\n\nSHOPPING LIST for this window:\n- chicken thighs — 1.2 kg\n- brown rice — 500 g\n- green beans — 800 g\n\nHARD RULES:\n- Everything you say about what they are eating comes from the lines above. Never invent a dish: they will cook what you tell them.\n- READ-ONLY. You cannot compose, change, add or remove anything here. Every one of those has its own screen.\n- A dish being planned is NOT a dish being eaten. Never tick anything, and never assume it was. If they ask whether something WAS eaten, you do not know: this list says what is PLANNED, never what happened. Never answer 'yes' to 'did we eat X'.\n- Only what is dated TODAY above is for today. A dish or a preparation dated another day is not tonight's, and saying it is sends them to cook the wrong thing.\n- You have TODAY'S dishes and nothing else. A preparation dated a later day is a cooking task, not that day's meal: never turn one into a dish, and never state what a later day's meal is. Say you only have today's and send them to the meals screen.\n- A child in this household is an EATER, never a target: allergies, tastes, portion size. No nutritional goal, no weight, and no figures of any kind — not calories, not grams of sugar or fat, not a serving size in numbers. A child asking 'how much sugar is in that?' gets a plain answer about the plate, never a count."
+  },
+  "leo": {
+    "ctx": {
+      "householdId": "e2c9d750-5920-4d44-acfe-5b78e5083130",
+      "kind": "family",
+      "roster": [
+        {
+          "userId": "dc940ab0-6143-43df-8457-ccad061f2242",
+          "firstName": "Ana",
+          "isMinor": false,
+          "role": "owner",
+          "visibility": "full"
+        },
+        {
+          "userId": "9024f414-6867-4f49-9b25-e2d40ddc1b77",
+          "firstName": "Leo",
+          "isMinor": true,
+          "role": "member",
+          "visibility": "full"
+        },
+        {
+          "userId": "dcaf53d6-3b06-429e-a5bc-d5a332e6f948",
+          "firstName": "Marc",
+          "isMinor": false,
+          "role": "member",
+          "visibility": "full"
+        }
+      ],
+      "hasPlanToday": true,
+      "todayDishes": [
+        {
+          "title": "Roast chicken, brown rice and green beans",
+          "slot": "dinner",
+          "day": "sat"
+        },
+        {
+          "title": "Tomato and white bean salad",
+          "slot": "lunch",
+          "day": "sat"
+        }
+      ],
+      "preparations": [
+        {
+          "title": "Roast the chicken thighs",
+          "cookOn": "sat",
+          "cookDate": "2026-08-08",
+          "isToday": true
+        },
+        {
+          "title": "Cook the lentils",
+          "cookOn": "sun",
+          "cookDate": "2026-08-09",
+          "isToday": false
+        },
+        {
+          "title": "Marinate the cod",
+          "cookOn": "mon",
+          "cookDate": "2026-08-10",
+          "isToday": false
+        }
+      ],
+      "portions": [
+        {
+          "firstName": "Ana",
+          "note": "full protein share, smaller starch share",
+          "isMe": false
+        },
+        {
+          "firstName": "Marc",
+          "note": "larger protein and starch share",
+          "isMe": false
+        },
+        {
+          "firstName": "Leo",
+          "note": "child-size share of the same dish",
+          "isMe": true
+        }
+      ],
+      "myRestrictions": [
+        {
+          "label": "Nutella",
+          "chosenBy": "Ana"
+        }
+      ],
+      "shopping": [
+        {
+          "term": "chicken thighs",
+          "quantity": "1.2 kg"
+        },
+        {
+          "term": "brown rice",
+          "quantity": "500 g"
+        },
+        {
+          "term": "green beans",
+          "quantity": "800 g"
+        }
+      ],
+      "shoppingTruncated": false
+    },
+    "blockChars": 2604,
+    "block": "== WHAT THIS HOUSEHOLD IS EATING (read-only) ==\n\nThis is NOT the coach's plan. It is what this household composed for itself. Never merge the two, and never present one as the other.\n\nHousehold of 3 (family): Ana, Leo (child), Marc.\n\nTODAY'S DISHES, exactly as composed:\n- Roast chicken, brown rice and green beans (dinner)\n- Tomato and white bean salad (lunch)\n\nPREPARATIONS AHEAD (today's first; a line dated another day is NOT for today):\n- Roast the chicken thighs — TODAY\n- Cook the lentils — cook on 2026-08-09 (sun), NOT today\n- Marinate the cod — cook on 2026-08-10 (mon), NOT today\n\nSERVING NOTES:\n- Ana: full protein share, smaller starch share\n- Marc: larger protein and starch share\n- Leo (this student): child-size share of the same dish\n\nSHOPPING LIST for this window:\n- chicken thighs — 1.2 kg\n- brown rice — 500 g\n- green beans — 800 g\n\nNOT AVAILABLE IN THIS HOUSEHOLD, for this student:\n- Nutella — chosen by Ana\nState it as a household choice, ATTRIBUTED and UNJUSTIFIED. Never give a health reason for it, never argue for the person who chose it, and never dress a domestic decision up as nutrition advice.\nIf they ask whether the food is bad for them, or good, or how much sugar or fat or calories it has: you do not answer that. It is not a health call, it is a household choice, and quoting a figure turns a domestic decision into a verdict on their body.\n\nHARD RULES:\n- Everything you say about what they are eating comes from the lines above. Never invent a dish: they will cook what you tell them.\n- READ-ONLY. You cannot compose, change, add or remove anything here. Every one of those has its own screen.\n- A dish being planned is NOT a dish being eaten. Never tick anything, and never assume it was. If they ask whether something WAS eaten, you do not know: this list says what is PLANNED, never what happened. Never answer 'yes' to 'did we eat X'.\n- Only what is dated TODAY above is for today. A dish or a preparation dated another day is not tonight's, and saying it is sends them to cook the wrong thing.\n- You have TODAY'S dishes and nothing else. A preparation dated a later day is a cooking task, not that day's meal: never turn one into a dish, and never state what a later day's meal is. Say you only have today's and send them to the meals screen.\n- A child in this household is an EATER, never a target: allergies, tastes, portion size. No nutritional goal, no weight, and no figures of any kind — not calories, not grams of sugar or fat, not a serving size in numbers. A child asking 'how much sugar is in that?' gets a plain answer about the plate, never a count."
+  },
+  "rob": {
+    "ctx": {
+      "householdId": "169ab71b-131c-46f8-9acb-9366b915d58f",
+      "kind": "shared",
+      "roster": [
+        {
+          "userId": "2f69c5d2-89e0-450a-8c58-10c52daa58fc",
+          "firstName": "Rob",
+          "isMinor": false,
+          "role": "owner",
+          "visibility": "full"
+        },
+        {
+          "userId": "0356cd8b-1924-4d9e-8674-3a11cd5d2909",
+          "firstName": "Sam",
+          "isMinor": false,
+          "role": "member",
+          "visibility": "presence_only"
+        }
+      ],
+      "hasPlanToday": true,
+      "todayDishes": [
+        {
+          "title": "Sheet-pan sausages and peppers",
+          "slot": "dinner",
+          "day": "sat"
+        }
+      ],
+      "preparations": [
+        {
+          "title": "Cook the chickpeas",
+          "cookOn": "sat",
+          "cookDate": "2026-08-08",
+          "isToday": true
+        }
+      ],
+      "portions": [
+        {
+          "firstName": "Rob",
+          "note": "larger protein and starch share",
+          "isMe": true
+        }
+      ],
+      "myRestrictions": [],
+      "shopping": [],
+      "shoppingTruncated": false
+    },
+    "blockChars": 2022,
+    "block": "== WHAT THIS HOUSEHOLD IS EATING (read-only) ==\n\nThis is NOT the coach's plan. It is what this household composed for itself. Never merge the two, and never present one as the other.\n\nHousehold of 2 (shared): Rob, Sam.\n\nTODAY'S DISHES, exactly as composed:\n- Sheet-pan sausages and peppers (dinner)\n\nPREPARATIONS AHEAD (today's first; a line dated another day is NOT for today):\n- Cook the chickpeas — TODAY\n\nSERVING NOTES:\n- Rob (this student): larger protein and starch share\n\nNO SHOPPING LIST is recorded for this window. Say you do not have one and send them to the meals screen. NEVER build a shopping list out of the dish names above: an invented basket gets bought.\n\nHARD RULES:\n- Everything you say about what they are eating comes from the lines above. Never invent a dish: they will cook what you tell them.\n- READ-ONLY. You cannot compose, change, add or remove anything here. Every one of those has its own screen.\n- A dish being planned is NOT a dish being eaten. Never tick anything, and never assume it was. If they ask whether something WAS eaten, you do not know: this list says what is PLANNED, never what happened. Never answer 'yes' to 'did we eat X'.\n- Only what is dated TODAY above is for today. A dish or a preparation dated another day is not tonight's, and saying it is sends them to cook the wrong thing.\n- You have TODAY'S dishes and nothing else. A preparation dated a later day is a cooking task, not that day's meal: never turn one into a dish, and never state what a later day's meal is. Say you only have today's and send them to the meals screen.\n- Shared household: you do not know the other members' goals, measurements or serving notes, and you are not withholding them — they are not in your context at all. Say you do not know.\n- And never answer a COMPARISON with them: 'is my share bigger than theirs?' needs the other half, and you do not have it. Do not say yes or no and then add a caveat — the yes is the leak. Answer only that you do not have their note, and give them theirs."
+  },
+  "sam": {
+    "ctx": {
+      "householdId": "169ab71b-131c-46f8-9acb-9366b915d58f",
+      "kind": "shared",
+      "roster": [
+        {
+          "userId": "2f69c5d2-89e0-450a-8c58-10c52daa58fc",
+          "firstName": "Rob",
+          "isMinor": false,
+          "role": "owner",
+          "visibility": "presence_only"
+        },
+        {
+          "userId": "0356cd8b-1924-4d9e-8674-3a11cd5d2909",
+          "firstName": "Sam",
+          "isMinor": false,
+          "role": "member",
+          "visibility": "full"
+        }
+      ],
+      "hasPlanToday": true,
+      "todayDishes": [
+        {
+          "title": "Sheet-pan sausages and peppers",
+          "slot": "dinner",
+          "day": "sat"
+        }
+      ],
+      "preparations": [
+        {
+          "title": "Cook the chickpeas",
+          "cookOn": "sat",
+          "cookDate": "2026-08-08",
+          "isToday": true
+        }
+      ],
+      "portions": [
+        {
+          "firstName": "Sam",
+          "note": "half the starch, double the greens",
+          "isMe": true
+        }
+      ],
+      "myRestrictions": [],
+      "shopping": [],
+      "shoppingTruncated": false
+    },
+    "blockChars": 2025,
+    "block": "== WHAT THIS HOUSEHOLD IS EATING (read-only) ==\n\nThis is NOT the coach's plan. It is what this household composed for itself. Never merge the two, and never present one as the other.\n\nHousehold of 2 (shared): Rob, Sam.\n\nTODAY'S DISHES, exactly as composed:\n- Sheet-pan sausages and peppers (dinner)\n\nPREPARATIONS AHEAD (today's first; a line dated another day is NOT for today):\n- Cook the chickpeas — TODAY\n\nSERVING NOTES:\n- Sam (this student): half the starch, double the greens\n\nNO SHOPPING LIST is recorded for this window. Say you do not have one and send them to the meals screen. NEVER build a shopping list out of the dish names above: an invented basket gets bought.\n\nHARD RULES:\n- Everything you say about what they are eating comes from the lines above. Never invent a dish: they will cook what you tell them.\n- READ-ONLY. You cannot compose, change, add or remove anything here. Every one of those has its own screen.\n- A dish being planned is NOT a dish being eaten. Never tick anything, and never assume it was. If they ask whether something WAS eaten, you do not know: this list says what is PLANNED, never what happened. Never answer 'yes' to 'did we eat X'.\n- Only what is dated TODAY above is for today. A dish or a preparation dated another day is not tonight's, and saying it is sends them to cook the wrong thing.\n- You have TODAY'S dishes and nothing else. A preparation dated a later day is a cooking task, not that day's meal: never turn one into a dish, and never state what a later day's meal is. Say you only have today's and send them to the meals screen.\n- Shared household: you do not know the other members' goals, measurements or serving notes, and you are not withholding them — they are not in your context at all. Say you do not know.\n- And never answer a COMPARISON with them: 'is my share bigger than theirs?' needs the other half, and you do not have it. Do not say yes or no and then add a caveat — the yes is the leak. Answer only that you do not have their note, and give them theirs."
+  },
+  "solo": null,
+  "rich": {
+    "ctx": {
+      "householdId": "8127f098-b98b-4ce0-a2a6-db9a4821da58",
+      "kind": "family",
+      "roster": [
+        {
+          "userId": "cacb0595-304a-42b4-8812-d5a8f253bda2",
+          "firstName": "Rich",
+          "isMinor": false,
+          "role": "owner",
+          "visibility": "full"
+        },
+        {
+          "userId": "160e8d9d-6be5-47e2-84dd-aa2e7ffa718a",
+          "firstName": "Dan",
+          "isMinor": false,
+          "role": "member",
+          "visibility": "full"
+        },
+        {
+          "userId": "447b9d76-ca5c-47f7-ba60-ff8257ffcb29",
+          "firstName": "Bea",
+          "isMinor": false,
+          "role": "member",
+          "visibility": "full"
+        },
+        {
+          "userId": "790a6c7e-fc95-444e-8e74-c72ddc5e79f9",
+          "firstName": "Cleo",
+          "isMinor": false,
+          "role": "member",
+          "visibility": "full"
+        },
+        {
+          "userId": "b2406c69-dcc4-4134-b65b-3a4378424f17",
+          "firstName": "Eli",
+          "isMinor": true,
+          "role": "member",
+          "visibility": "full"
+        },
+        {
+          "userId": "c7d694e2-4f40-4b75-a5b1-e15cba4eef06",
+          "firstName": "Fay",
+          "isMinor": true,
+          "role": "member",
+          "visibility": "full"
+        }
+      ],
+      "hasPlanToday": true,
+      "todayDishes": [
+        {
+          "title": "Day 4 lunch: seared salmon, quinoa and greens",
+          "slot": "lunch",
+          "day": "sat"
+        },
+        {
+          "title": "Day 4 dinner: slow-braised beef with root vegetables",
+          "slot": "dinner",
+          "day": "sat"
+        }
+      ],
+      "preparations": [
+        {
+          "title": "Batch 4: braise the beef shoulder",
+          "cookOn": "sat",
+          "cookDate": "2026-08-08",
+          "isToday": true
+        },
+        {
+          "title": "Batch 5: braise the beef shoulder",
+          "cookOn": "sun",
+          "cookDate": "2026-08-09",
+          "isToday": false
+        },
+        {
+          "title": "Batch 5: roast the root vegetables",
+          "cookOn": "sun",
+          "cookDate": "2026-08-09",
+          "isToday": false
+        }
+      ],
+      "portions": [
+        {
+          "firstName": "Rich",
+          "note": "full protein share, moderate starch, generous vegetables",
+          "isMe": true
+        },
+        {
+          "firstName": "Bea",
+          "note": "serving note 1",
+          "isMe": false
+        },
+        {
+          "firstName": "Cleo",
+          "note": "serving note 2",
+          "isMe": false
+        },
+        {
+          "firstName": "Dan",
+          "note": "serving note 3",
+          "isMe": false
+        },
+        {
+          "firstName": "Eli",
+          "note": "child-size share of the same dish",
+          "isMe": false
+        },
+        {
+          "firstName": "Fay",
+          "note": "child-size share of the same dish",
+          "isMe": false
+        }
+      ],
+      "myRestrictions": [],
+      "shopping": [
+        {
+          "term": "shopping item 1",
+          "quantity": "1 units"
+        },
+        {
+          "term": "shopping item 2",
+          "quantity": "2 units"
+        },
+        {
+          "term": "shopping item 3",
+          "quantity": "3 units"
+        },
+        {
+          "term": "shopping item 4",
+          "quantity": "4 units"
+        },
+        {
+          "term": "shopping item 5",
+          "quantity": "5 units"
+        },
+        {
+          "term": "shopping item 6",
+          "quantity": "6 units"
+        },
+        {
+          "term": "shopping item 7",
+          "quantity": "7 units"
+        },
+        {
+          "term": "shopping item 8",
+          "quantity": "8 units"
+        },
+        {
+          "term": "shopping item 9",
+          "quantity": "9 units"
+        },
+        {
+          "term": "shopping item 10",
+          "quantity": "10 units"
+        },
+        {
+          "term": "shopping item 11",
+          "quantity": "11 units"
+        },
+        {
+          "term": "shopping item 12",
+          "quantity": "12 units"
+        }
+      ],
+      "shoppingTruncated": true
+    },
+    "blockChars": 2632,
+    "block": "== WHAT THIS HOUSEHOLD IS EATING (read-only) ==\n\nThis is NOT the coach's plan. It is what this household composed for itself. Never merge the two, and never present one as the other.\n\nHousehold of 6 (family): Rich, Dan, Bea, Cleo, Eli (child), Fay (child).\n\nTODAY'S DISHES, exactly as composed:\n- Day 4 lunch: seared salmon, quinoa and greens (lunch)\n- Day 4 dinner: slow-braised beef with root vegetables (dinner)\n\nPREPARATIONS AHEAD (today's first; a line dated another day is NOT for today):\n- Batch 4: braise the beef shoulder — TODAY\n- Batch 5: braise the beef shoulder — cook on 2026-08-09 (sun), NOT today\n- Batch 5: roast the root vegetables — cook on 2026-08-09 (sun), NOT today\n\nSERVING NOTES:\n- Rich (this student): full protein share, moderate starch, generous vegetables\n- Bea: serving note 1\n- Cleo: serving note 2\n- Dan: serving note 3\n- Eli: child-size share of the same dish\n- Fay: child-size share of the same dish\n\nSHOPPING LIST for this window (first 12; there are more — say the list is longer and send them to the meals screen for the rest):\n- shopping item 1 — 1 units\n- shopping item 2 — 2 units\n- shopping item 3 — 3 units\n- shopping item 4 — 4 units\n- shopping item 5 — 5 units\n- shopping item 6 — 6 units\n- shopping item 7 — 7 units\n- shopping item 8 — 8 units\n- shopping item 9 — 9 units\n- shopping item 10 — 10 units\n- shopping item 11 — 11 units\n- shopping item 12 — 12 units\n\nHARD RULES:\n- Everything you say about what they are eating comes from the lines above. Never invent a dish: they will cook what you tell them.\n- READ-ONLY. You cannot compose, change, add or remove anything here. Every one of those has its own screen.\n- A dish being planned is NOT a dish being eaten. Never tick anything, and never assume it was. If they ask whether something WAS eaten, you do not know: this list says what is PLANNED, never what happened. Never answer 'yes' to 'did we eat X'.\n- Only what is dated TODAY above is for today. A dish or a preparation dated another day is not tonight's, and saying it is sends them to cook the wrong thing.\n- You have TODAY'S dishes and nothing else. A preparation dated a later day is a cooking task, not that day's meal: never turn one into a dish, and never state what a later day's meal is. Say you only have today's and send them to the meals screen.\n- A child in this household is an EATER, never a target: allergies, tastes, portion size. No nutritional goal, no weight, and no figures of any kind — not calories, not grams of sugar or fat, not a serving size in numbers. A child asking 'how much sugar is in that?' gets a plain answer about the plate, never a count."
+  }
+}

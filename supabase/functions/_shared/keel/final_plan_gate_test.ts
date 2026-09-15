@@ -26,8 +26,12 @@ import {
   FINAL_GATE_POLICY_LOT_1,
   FINAL_GATE_POLICY_LOT_2,
   FINAL_GATE_POLICY_LOT_3,
+  FINAL_GATE_POLICY_LOT_4,
+  ESSENTIAL_CONTROLS,
+  HOUSEHOLD_BETA_ESSENTIALS,
   type FinalGateCause,
   type FinalGateOutcome,
+  finalGateDelivery,
   finalPlanGate,
   type GateContext,
   type GatePlan,
@@ -97,7 +101,7 @@ function assertCauses(
 // ① LE CAS QUI PASSE — d'abord, toujours
 // ---------------------------------------------------------------------------
 
-Deno.test("le plan propre du foyer ne déclenche AUCUNE des 22 causes", () => {
+Deno.test("le plan propre du foyer ne déclenche AUCUNE des 25 causes", () => {
   const outcome = finalPlanGate(CLEAN_HOUSEHOLD_PLAN, CLEAN_HOUSEHOLD_CONTEXT);
   assertCauses(outcome, {});
   assertEquals(outcome.refusals.length, 0);
@@ -122,8 +126,26 @@ Deno.test("le cas propre a fait TOURNER les douze dénominateurs (aucun à zéro
   const TEMOINS = new Set([
     "energy_unmeasured",
     "shopping_unverified",
+    // ⟳ 2026-09-12 · C3 — l'eau du robinet est un témoin, pas un dénominateur :
+    // un plan propre qui ne cuit rien à l'eau vaut zéro ici, et c'est juste.
+    "shopping_not_purchasable",
     "protein_protected",
     "protein_unmeasured",
+    // ⟳ 2026-09-12 · FERMETURE LOT 2 — TÉMOIN, PAS DÉNOMINATEUR. Il compte les
+    // lignes dont la conservation n'a pas pu être lue ; sur un cas propre il
+    // vaut zéro, et c'est ce zéro qui lui donne son sens.
+    "keeping_unknown_lines",
+    // ⟳ 2026-09-13 · LOT 1 — TÉMOIN, PAS DÉNOMINATEUR, ET POUR LA MÊME RAISON
+    // QUE `protein_protected`: il compte les cases dont le contrat d'énergie
+    // s'est abstenu (âge inconnu, corps absent, ceinture illisible). Sur quatre
+    // adultes mesurables il vaut zéro, et c'est ce zéro qui lui donne son sens.
+    "cell_energy_no_target",
+    // ⟳ 2026-09-14 · BÊTA 1A — TÉMOIN, PAS DÉNOMINATEUR. Il compte les plats à
+    // part que la GRILLE réclame; ce foyer-ci n'en réclame aucun (les quatre
+    // bouches mangent la base végétarienne), et son zéro est « rien à devoir ».
+    // Le dénominateur est `dedicated_cells_checked`, qui vaut `mouth_cells`
+    // dès que la grille a tourné — et il est vérifié juste en dessous.
+    "dedicated_obligations",
   ]);
   for (const [name, value] of Object.entries(checked)) {
     if (TEMOINS.has(name)) continue;
@@ -135,6 +157,10 @@ Deno.test("le cas propre a fait TOURNER les douze dénominateurs (aucun à zéro
   assertEquals(checked.session_ids, 2);
   assertEquals(checked.cooked_pairs, 2);
   assertEquals(checked.cells, 3);
+  // ⟳ 2026-09-14 · BÊTA 1A — LA QUESTION A ÉTÉ POSÉE À CHAQUE COUPLE, et c'est
+  // ce qui sépare « ce foyer ne doit rien » de « la grille n'a pas tourné ».
+  assertEquals(checked.dedicated_cells_checked, checked.mouth_cells);
+  assertEquals(checked.dedicated_obligations, 0);
   assertEquals(checked.mouth_cells, 12);
   assertEquals(checked.shopping_lines, 9);
   assertEquals(checked.perishable_lines, 5);
@@ -814,4 +840,443 @@ Deno.test("`ok` : les courses ne mordent qu'au LOT_3", () => {
   const outcome = finalPlanGate(plan as GatePlan, three as GateContext);
   assertEquals(outcome.ok, false);
   assertEquals(outcome.refusals[0].cause, "perishable_bought_too_early");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-13 · LOT 1 — LA CASE SANS CIBLE, DANS LA GARDE ELLE-MÊME
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ POURQUOI CE CAS EXISTE, ET IL A ÉTÉ MESURÉ. Les épreuves de
+// `plan_validation_test.ts` posent `checked` à la main: retirer la branche
+// `no_target` de la BOUCLE de la garde les laissait toutes VERTES. Une garde
+// qu'aucun test ne fait tourner sur son entrée réelle est une garde désarmée.
+//
+// LA MUTATION QUE CETTE ÉPREUVE DOIT FAIRE ROUGIR
+//   R6 — la branche `no_target` quitte la boucle: la case retombe dans
+//        `measured_cells`, donc dans le dénominateur de `cell_energy_off`,
+//        et un contrôle que personne n'a pu rendre se lit « réussi ». ROUGE.
+
+Deno.test("LOT 1 — une case sans cible quitte le dénominateur de l'énergie", () => {
+  const propre = finalPlanGate(CLEAN_HOUSEHOLD_PLAN, CLEAN_HOUSEHOLD_CONTEXT);
+  assertEquals(propre.counters.checked.cell_energy_no_target, 0);
+  const mesureesAvant = propre.counters.checked.measured_cells;
+  assert(mesureesAvant > 0, "le cas propre doit mesurer des cases");
+
+  // Une seule bouche perd sa cible — le contrat s'est abstenu (âge inconnu,
+  // corps absent…). Sa portion existe et son énergie est lisible: c'est très
+  // exactement l'état `no_target` de `final_plan_audit.ts`.
+  const nutrition = CLEAN_HOUSEHOLD_CONTEXT.nutrition!;
+  const touchee = nutrition.cells.find((c) =>
+    c.portionExpected && c.state === "conforme"
+  )!;
+  const sansCible = {
+    ...CLEAN_HOUSEHOLD_CONTEXT,
+    nutrition: {
+      ...nutrition,
+      cells: nutrition.cells.map((c) =>
+        c === touchee
+          ? { ...c, targetKcal: null, deltaPct: null, state: "no_target" as const }
+          : c
+      ),
+    },
+  };
+  const out = finalPlanGate(CLEAN_HOUSEHOLD_PLAN, sansCible);
+  const { checked } = out.counters;
+
+  // ⛔ ELLE EST NOMMÉE…
+  assertEquals(checked.cell_energy_no_target, 1);
+  // ⛔ …ELLE A QUITTÉ LE DÉNOMINATEUR…
+  assertEquals(checked.measured_cells, mesureesAvant - 1);
+  // ⛔ …ET LA SURFACE DU CONTRÔLE DE PORTION N'A PAS BOUGÉ: la case reste une
+  // case attendue, elle a bien un plat et une portion.
+  assertEquals(checked.portion_cells, propre.counters.checked.portion_cells);
+  // ⛔ ET AUCUNE CAUSE N'EST LEVÉE: ni un refus, ni un écart.
+  assertEquals(out.refusals.length, 0);
+
+  // ⛔ ENFIN, ELLE NE TOMBE PAS DANS `incomplete`: 3 − 2 − 1 = 0.
+  const livraison = finalGateDelivery(out, []);
+  assertEquals(
+    livraison.incomplete.find((i) => i.control === "cell_energy"),
+    undefined,
+  );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-14 · BÊTA 1A — CE QUE LA GRILLE DOIT, ET LA CARDINALITÉ D'UNE CASE
+//
+// ⛔ POURQUOI CES TROIS ÉPREUVES EXISTENT. La clôture du 2026-09-14 nomme deux
+// défauts que RIEN ne refusait: ⑥ « un plat dédié réclamé et adressé à la
+// mauvaise bouche n'est plus servi à personne — et rien ne refuse cet écart »,
+// ⑧ « une bouche déclarée impossible à nourrir depuis la casserole commune
+// peut n'avoir aucun plat à elle, et le plan sort `conforme` ». Les deux
+// tombent du même trou: la garde finale ne posait jamais la question.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** La case du dahl partagé — un plat de table, sans boîte. */
+const CASE_DAHL = { day: "sun", slot: "dinner" } as const;
+
+/** Un plat à part, réduit au strict nécessaire pour ne toucher aucune autre cause. */
+function platAPart(memberId: string) {
+  return {
+    name: "Dahl sans crème",
+    title: "Dahl de lentilles, version à part",
+    day: CASE_DAHL.day,
+    slot: CASE_DAHL.slot,
+    method: "Prélevez avant d'ajouter la crème.",
+    why: "Sa ligne ne passe pas par la casserole commune.",
+    member_id: memberId,
+    // ⚠️ AUCUN INGRÉDIENT, AUCUNE CITATION, AUCUNE BOÎTE: le but est de
+    // prouver UNE cause. Un plat plus riche ferait bouger les dénominateurs
+    // d'achat et de conservation, et l'épreuve ne dirait plus laquelle a parlé.
+    ingredients: [],
+    uses: [],
+    boxes: [],
+  };
+}
+
+Deno.test("BÊTA 1A — la grille doit un plat pour un RÉGIME, et il est servi: rien ne mord", () => {
+  // ⛔ LE CAS QUI PASSE, ET IL VIENT EN PREMIER. Sans lui, l'épreuve suivante
+  // serait vraie d'une garde qui refuse tout ce qu'on lui montre.
+  const outcome = gateWith((plan, ctx) => {
+    ctx.dedicated = [{ ...CASE_DAHL, memberId: NORA, reason: "regime", baseEdible: false }];
+    plan.dishes.push(platAPart(NORA) as MutablePlan["dishes"][number]);
+  });
+  assertCauses(outcome, {});
+  assertEquals(outcome.counters.checked.dedicated_obligations, 1);
+  assert(outcome.counters.checked.dedicated_cells_checked > 0);
+});
+
+Deno.test("BÊTA 1A — la même obligation NON servie refuse le plan, et elle seule", () => {
+  const outcome = gateWith((_plan, ctx) => {
+    ctx.dedicated = [{ ...CASE_DAHL, memberId: NORA, reason: "regime", baseEdible: false }];
+  });
+  assertCauses(outcome, { dedicated_dish_missing: 1 });
+  const refus = outcome.refusals.find((r) => r.cause === "dedicated_dish_missing");
+  assertEquals(refus?.day, CASE_DAHL.day);
+  assertEquals(refus?.slot, CASE_DAHL.slot);
+  assertEquals(refus?.member_id, NORA);
+  assertEquals(
+    finalPlanGate(planCopy() as GatePlan, {
+      ...contextCopy(),
+      dedicated: [{ ...CASE_DAHL, memberId: NORA, reason: "regime", baseEdible: false }],
+      policy: FINAL_GATE_POLICY_LOT_4,
+    } as GateContext).ok,
+    false,
+  );
+});
+
+Deno.test("BÊTA 1A — un plat adressé à une AUTRE bouche ne remplit pas l'obligation", () => {
+  // ⛔ LE POINT ⑥, ÉCRIT EN UNE ÉPREUVE. « asked: 12 · attributed: 0 »: la
+  // consigne promettait un plat à Nils et Iris, le modèle l'adressait à Lea.
+  // Un plat existe, il porte bien un `member_id` — et l'obligation reste
+  // entière. Ce que ce test interdit, c'est de compter les plats au lieu de
+  // les lire.
+  const outcome = gateWith((plan, ctx) => {
+    ctx.dedicated = [{ ...CASE_DAHL, memberId: NORA, reason: "regime", baseEdible: false }];
+    plan.dishes.push(platAPart(LEO) as MutablePlan["dishes"][number]);
+  });
+  assertCauses(outcome, { dedicated_dish_missing: 1 });
+});
+
+Deno.test("BÊTA 1A — un plat sur une AUTRE case ne remplit pas l'obligation non plus", () => {
+  const outcome = gateWith((plan, ctx) => {
+    ctx.dedicated = [{ ...CASE_DAHL, memberId: NORA, reason: "regime", baseEdible: false }];
+    const ailleurs = { ...platAPart(NORA), day: "mon" };
+    plan.dishes.push(ailleurs as MutablePlan["dishes"][number]);
+  });
+  assertCauses(outcome, { dedicated_dish_missing: 1 });
+});
+
+Deno.test("BÊTA 1A — « mon repas à moi » non servi COMPTE et ne refuse JAMAIS", () => {
+  // ⛔ LA MOITIÉ QUI REND L'AUTRE LISIBLE. Une habitude déclarée n'est pas une
+  // impossibilité: la fondre dans la cause bloquante ferait refuser un plan
+  // pour un petit-déjeuner préféré.
+  const ctx = {
+    ...contextCopy(),
+    dedicated: [{ ...CASE_DAHL, memberId: NORA, reason: "own_meal" as const, baseEdible: true }],
+    policy: FINAL_GATE_POLICY_LOT_4,
+  } as GateContext;
+  const outcome = finalPlanGate(planCopy() as GatePlan, ctx);
+  assertCauses(outcome, { own_meal_dish_missing: 1 });
+  assertEquals(outcome.ok, true);
+  assertEquals(finalGateDelivery(outcome, []).state, "deliverable_with_gaps");
+});
+
+Deno.test("BÊTA 1A — deux plats de table sur une case refusent le plan", () => {
+  // ⛔ POINT ⑦ DE LA CLÔTURE, ET CE DÉCOR MONTRE LE PIRE CAS. Sur une case en
+  // BOÎTES, ces deux plats tombaient déjà — mais par `mouth_unfed / double`,
+  // c'est-à-dire sous la conséquence et pas la cause. ⚠️ ICI, AUCUN DES DEUX
+  // PLATS N'A DE BOÎTE: aucun couvercle n'est donc compté en double, et le
+  // plan passait. `assertCauses` le prouve — `mouth_unfed` reste à zéro, et
+  // seule la cause neuve parle.
+  const outcome = gateWith((plan) => {
+    const jumeau = platAPart(NORA);
+    jumeau.member_id = null as unknown as string;
+    plan.dishes.push(jumeau as MutablePlan["dishes"][number]);
+  });
+  assertCauses(outcome, { cell_two_table_dishes: 1 });
+  const refus = outcome.refusals.find((r) => r.cause === "cell_two_table_dishes");
+  assertEquals(refus?.day, CASE_DAHL.day);
+  assertEquals(refus?.slot, CASE_DAHL.slot);
+});
+
+Deno.test("BÊTA 1A — un plat DÉDIÉ à côté du plat de table n'est PAS un doublon", () => {
+  // ⚠️ LA GARDE DE CARDINALITÉ A UN CAS QUI PASSE, ET C'EST LE CAS ORDINAIRE:
+  // deux CONTENANTS sur une case sont normaux, deux REPAS concurrents ne le
+  // sont pas. Sans cette épreuve, la précédente serait vraie d'une garde qui
+  // interdit tout second plat.
+  const outcome = gateWith((plan, ctx) => {
+    ctx.dedicated = [{ ...CASE_DAHL, memberId: NORA, reason: "regime", baseEdible: false }];
+    plan.dishes.push(platAPart(NORA) as MutablePlan["dishes"][number]);
+  });
+  assertCauses(outcome, {});
+});
+
+Deno.test("BÊTA 1A — `dedicated: null` ⇒ la question n'est PAS posée, et ça se lit", () => {
+  // ⛔ « NON ÉVALUÉ » N'EST PAS « PROPRE ». C'est le chemin d'adoption et la
+  // lane solo: la grille n'existe pas, et le dénominateur reste à zéro pour
+  // que `unevaluated` nomme les deux causes.
+  const outcome = finalPlanGate(planCopy() as GatePlan, {
+    ...contextCopy(),
+    dedicated: null,
+  } as GateContext);
+  assertCauses(outcome, {});
+  assertEquals(outcome.counters.checked.dedicated_cells_checked, 0);
+  const nonEvaluees = finalGateDelivery(outcome, []).unevaluated;
+  assert(nonEvaluees.includes("dedicated_dish_missing"));
+  assert(nonEvaluees.includes("own_meal_dish_missing"));
+});
+
+Deno.test("BÊTA 1A — un COMPLÉMENT ne remplit pas une obligation de régime", () => {
+  // ⛔ UN COMPLÉMENT COMPLÈTE LA TABLE, IL NE LA REMPLACE PAS: son porteur
+  // reste mangeur du plat partagé, et c'est précisément ce plat-là que sa
+  // ligne lui interdit. Sans cette lecture, une réparation d'énergie qui crée
+  // un complément ferait disparaître une obligation de sécurité — un plat
+  // apparaît, l'obligation s'éteint, la personne mange quand même la casserole.
+  const outcome = gateWith((plan, ctx) => {
+    ctx.dedicated = [{ ...CASE_DAHL, memberId: NORA, reason: "regime", baseEdible: false }];
+    const complement = { ...platAPart(NORA), complements_shared: true };
+    plan.dishes.push(complement as MutablePlan["dishes"][number]);
+  });
+  assertCauses(outcome, { dedicated_dish_missing: 1 });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-14 · BÊTA 1B ⑦⑧ — « RIEN N'A MORDU » N'EST PAS « TOUT A ÉTÉ LU »
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("BÊTA 1B ⑧ — LE CAS QUI PASSE: le foyer propre satisfait les sept contrôles", () => {
+  // ⛔ D'ABORD, TOUJOURS. Une exigence qui refuse même le cas propre est une
+  // exigence qu'on débranchera la semaine suivante.
+  const outcome = finalPlanGate(CLEAN_HOUSEHOLD_PLAN, CLEAN_HOUSEHOLD_CONTEXT);
+  const livraison = finalGateDelivery(outcome, HOUSEHOLD_BETA_ESSENTIALS);
+  assertEquals(livraison.missingEssential, []);
+  assertEquals(livraison.state, "conforme");
+});
+
+Deno.test("BÊTA 1B ⑧ — sans mesure de nutrition, le plan n'est PAS livrable", () => {
+  // ⛔ C'EST LA LIGNE DE L'ÉTAT DE DÉPART: « la garde construit `incomplete`
+  // mais choisit `state` seulement selon `blocking` et `gaps` ». Un plan sans
+  // aucun refus dont AUCUNE portion n'a été mesurée sortait `conforme`.
+  const outcome = gateWith((_plan, ctx) => {
+    ctx.nutrition = null;
+  });
+  const sans = finalGateDelivery(outcome, HOUSEHOLD_BETA_ESSENTIALS);
+  assertEquals(sans.blocking.length, 0, "aucun refus: c'est bien un contrôle, pas une cause");
+  assertEquals(sans.state, "not_deliverable");
+  assert(sans.missingEssential.includes("portions_measured"));
+  // ⚠️ ET LE MÊME PLAN RESTE `conforme` LÀ OÙ RIEN N'EST EXIGÉ — le chemin
+  // d'adoption, qui n'a ni référentiel ni grille.
+  assertEquals(finalGateDelivery(outcome, []).state, "conforme");
+});
+
+Deno.test("BÊTA 1B ⑧ — sans audit des courses non plus", () => {
+  const outcome = gateWith((_plan, ctx) => {
+    ctx.shopping = null;
+  });
+  const livraison = finalGateDelivery(outcome, HOUSEHOLD_BETA_ESSENTIALS);
+  assertEquals(livraison.state, "not_deliverable");
+  assert(livraison.missingEssential.includes("shopping_audited"));
+});
+
+Deno.test("BÊTA 1B ⑧ — sans grille des plats à part non plus", () => {
+  const outcome = gateWith((_plan, ctx) => {
+    ctx.dedicated = null;
+  });
+  const livraison = finalGateDelivery(outcome, HOUSEHOLD_BETA_ESSENTIALS);
+  assertEquals(livraison.state, "not_deliverable");
+  assert(livraison.missingEssential.includes("dedicated_checked"));
+});
+
+Deno.test("BÊTA 1B ⑦ — une LIGNE illisible est un écart nommé, pas un contrôle absent", () => {
+  // ⛔ LA DISTINCTION QUE CE LOT A DÛ APPRENDRE, ET ELLE A FAILLI ÊTRE MANQUÉE.
+  // Le foyer propre du banc porte un DIMANCHE délibérément `unmeasurable` et
+  // quatre journées-bouche de protéine en `coverage_unknown`. Une exigence
+  // « zéro ligne incomplète » l'aurait refusé — c'est-à-dire refusé le cas que
+  // ce dépôt a écrit comme étant propre.
+  const propre = finalPlanGate(CLEAN_HOUSEHOLD_PLAN, CLEAN_HOUSEHOLD_CONTEXT);
+  assert(propre.counters.checked.protein_unmeasured > 0, "le décor a changé");
+  const livraison = finalGateDelivery(propre, HOUSEHOLD_BETA_ESSENTIALS);
+  // ⚠️ IL EST LIVRABLE, ET SON TROU EST ÉCRIT: `incomplete` le porte, il ne
+  // disparaît pas.
+  assertEquals(livraison.missingEssential, []);
+  assert(
+    livraison.incomplete.some((i) => i.control === "protein_floor"),
+    "le trou a disparu du relevé au lieu d'y rester nommé",
+  );
+});
+
+Deno.test("BÊTA 1B ⑦ — mais un plancher protéique qui n'a JAMAIS conclu bloque", () => {
+  // ⛔ L'AUTRE MOITIÉ: dénominateur à zéro, rien de protégé, et des journées
+  // illisibles. Ce n'est plus « une journée à trou », c'est « l'instrument n'a
+  // rien rendu » — et ça se répare ailleurs que dans le plan.
+  const base = contextCopy();
+  const outcome = finalPlanGate(planCopy() as GatePlan, {
+    ...base,
+    nutrition: base.nutrition === null ? null : {
+      cells: base.nutrition.cells,
+      days: base.nutrition.days.map((d) => ({
+        ...d,
+        proteinG: null,
+        protein: { coveredFloorG: null, reason: "coverage_unknown" },
+      })),
+    },
+  } as GateContext);
+  const livraison = finalGateDelivery(outcome, HOUSEHOLD_BETA_ESSENTIALS);
+  assertEquals(livraison.state, "not_deliverable");
+  assert(livraison.missingEssential.includes("protein_floor_concluded"));
+});
+
+Deno.test("BÊTA 1B ⑧ — chaque contrôle essentiel sait dire quand il manque", () => {
+  // ⛔ SANS CETTE ÉPREUVE, UN CONTRÔLE DE LA LISTE POURRAIT N'AVOIR AUCUN
+  // PRÉDICAT QUI MORDE, et l'exiger ne changerait rien. C'est la forme
+  // « ceinture armée sur un coffre vide », et ce dépôt l'a déjà payée.
+  const sansNutrition = (
+    f: (n: NonNullable<MutableContext["nutrition"]>) => MutableContext["nutrition"],
+  ): FinalGateOutcome => {
+    const base = contextCopy();
+    return finalPlanGate(planCopy() as GatePlan, {
+      ...base,
+      nutrition: base.nutrition === null ? null : f(base.nutrition),
+    } as GateContext);
+  };
+  // ⛔ LA TABLE EST COMPLÈTE, ET LE TYPE L'EXIGE (`Record`, pas `Partial`): un
+  // contrôle ajouté demain sans décor de rupture serait un contrôle qu'on
+  // exige sans savoir le faire mordre.
+  const casse: Record<typeof ESSENTIAL_CONTROLS[number], () => FinalGateOutcome> = {
+    cells_expected: () => gateWith((_p, ctx) => { ctx.mouths = []; }),
+    mouth_cells: () => gateWith((_p, ctx) => { ctx.mouths = []; }),
+    portions_measured: () => gateWith((_p, ctx) => { ctx.nutrition = null; }),
+    shopping_audited: () => gateWith((_p, ctx) => { ctx.shopping = null; }),
+    dedicated_checked: () => gateWith((_p, ctx) => { ctx.dedicated = null; }),
+    // AUCUNE case jugeable: une portion existe, aucune cible, aucun servi — et
+    // aucune n'est « sans objet », donc le contrôle s'appliquait.
+    cell_energy_concluded: () =>
+      sansNutrition((n) => ({
+        days: n.days,
+        cells: n.cells.map((c) => ({
+          ...c,
+          targetKcal: null,
+          servedKcal: null,
+          deltaPct: null,
+          state: "unmeasurable" as const,
+          gap: null,
+        })),
+      })),
+    protein_floor_concluded: () =>
+      sansNutrition((n) => ({
+        cells: n.cells,
+        days: n.days.map((d) => ({
+          ...d,
+          proteinG: null,
+          protein: { coveredFloorG: null, reason: "coverage_unknown" },
+        })),
+      })),
+  };
+  for (const control of ESSENTIAL_CONTROLS) {
+    assert(
+      finalGateDelivery(casse[control](), HOUSEHOLD_BETA_ESSENTIALS)
+        .missingEssential.includes(control),
+      `« ${control} » ne sait pas dire qu'il manque`,
+    );
+  }
+});
+
+Deno.test("BÊTA 1A — une VARIANTE réclamée mais non servie COMPTE, elle ne refuse pas", () => {
+  // ⛔ LA CORRECTION MESURÉE DU 2026-09-14, ÉPINGLÉE. Cette cause a d'abord lu
+  // `dietDiverges` tout entier, et rejouée sur la référence N=2 (végane +
+  // omnivore) elle a rendu SIX refus bloquants sur un plan dont le plancher
+  // protéique est tenu. L'omnivore mange la casserole végane: sa ligne ne lui
+  // interdit rien. Ce qui manque est ce qu'il PRÉFÉRAIT, pas de quoi manger.
+  const ctx = {
+    ...contextCopy(),
+    dedicated: [{ ...CASE_DAHL, memberId: NORA, reason: "regime" as const, baseEdible: true }],
+    policy: FINAL_GATE_POLICY_LOT_4,
+  } as GateContext;
+  const outcome = finalPlanGate(planCopy() as GatePlan, ctx);
+  assertCauses(outcome, { own_meal_dish_missing: 1 });
+  assertEquals(outcome.ok, true);
+  // ⚠️ ET LA PHRASE DIT LAQUELLE DES DEUX POPULATIONS C'EST.
+  const gap = outcome.refusals.find((r) => r.cause === "own_meal_dish_missing");
+  assert(String(gap?.detail ?? "").includes("variante"), gap?.detail ?? "");
+});
+
+Deno.test("BÊTA 1A — la MÊME case, base non mangeable: là, le plan ne part pas", () => {
+  // La contre-épreuve, et c'est la seule différence entre les deux décors.
+  const ctx = {
+    ...contextCopy(),
+    dedicated: [{ ...CASE_DAHL, memberId: NORA, reason: "regime" as const, baseEdible: false }],
+    policy: FINAL_GATE_POLICY_LOT_4,
+  } as GateContext;
+  const outcome = finalPlanGate(planCopy() as GatePlan, ctx);
+  assertCauses(outcome, { dedicated_dish_missing: 1 });
+  assertEquals(outcome.ok, false);
+});
+
+Deno.test("BÊTA 1A — un composant servi PAR BOÎTE remplit l'obligation", () => {
+  // ⛔ LES DEUX CANAUX EXISTENT DANS LE PRODUIT. Le bloc de régime commande
+  // « one box for the people that line binds … one box for everyone else with
+  // the original »: une bouche qui reçoit, dans SON contenant, un composant
+  // qu'aucun autre contenant de la case ne porte EST servie à part.
+  const outcome = gateWith((plan, ctx) => {
+    ctx.dedicated = [{
+      day: "sun",
+      slot: "breakfast",
+      memberId: PAUL,
+      reason: "regime",
+      baseEdible: false,
+    }];
+    // ⚠️ LE DÉCOR EST POSÉ, PAS SUPPOSÉ. Les trois boîtes du petit-déjeuner de
+    // la fixture puisent TOUTES `prep_oats_sun`: aucune ne porte de composant
+    // propre. On en ajoute un à la boîte de PAUL — c'est exactement ce que le
+    // bloc de régime commande, « one box for everyone else with the original ».
+    const dish = plan.dishes.find((d) => d.slot === "breakfast");
+    const box = dish?.boxes.find((b) =>
+      b.member_ids.length === 1 && b.member_ids[0] === PAUL
+    );
+    box?.items.push({ preparation_id: null, term: "jambon", grams: 60 });
+  });
+  assertCauses(outcome, {});
+});
+
+Deno.test("BÊTA 1A — une boîte IDENTIQUE à celle des autres ne remplit rien", () => {
+  // ⚠️ LA MOITIÉ QUI EMPÊCHE LA GARDE DE SE SATISFAIRE D'UN PARTAGE. Deux
+  // contenants qui puisent la même casserole sont un partage, pas une variante.
+  const outcome = gateWith((plan, ctx) => {
+    ctx.dedicated = [{
+      day: "sun",
+      slot: "breakfast",
+      memberId: PAUL,
+      reason: "regime",
+      baseEdible: false,
+    }];
+    const dish = plan.dishes.find((d) => d.slot === "breakfast");
+    if (dish === undefined) return;
+    // Toutes les boîtes ne citent plus que la même casserole, sous le même
+    // terme: plus aucun composant n'est propre à quelqu'un.
+    for (const box of dish.boxes) {
+      box.items = [{ preparation_id: "prep_oats_sun", term: "avoine", grams: 300 }];
+    }
+  });
+  assertCauses(outcome, { dedicated_dish_missing: 1 });
 });

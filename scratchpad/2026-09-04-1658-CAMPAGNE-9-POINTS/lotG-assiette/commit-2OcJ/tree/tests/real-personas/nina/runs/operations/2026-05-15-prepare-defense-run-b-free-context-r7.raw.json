@@ -1,0 +1,1001 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux te partager un détail hors plan officiel : quand je rentre le soir, le téléphone finit souvent sur le canapé avec moi. Je scrolle, et après quelques minutes l’envie de snack arrive. Je pense que le charger dans l’entrée m’aiderait.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est super bien repéré ça. Charger ton téléphone dans l'entrée crée une vraie coupure physique, c'est l'idéal pour casser cet enchaînement automatique avec le grignotage 🛋️.\n\nVu que tu as clairement identifié ce déclencheur du soir, on peut se préparer une Carte de défense sur mesure pour ce moment précis. Tu veux qu'on la prépare ensemble ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t01",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "6e5040f9-dc7a-42e0-8e66-adeab30eb99c",
+        "ts": "2026-05-15T18:12:42.734+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 51183,
+          "latency_ms": 5084,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 707,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.environnement",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "organisation entree telephone",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "scrolling soir grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t01",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.environnement",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "organisation entree telephone",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "scrolling soir grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "6e5040f9-dc7a-42e0-8e66-adeab30eb99c",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "defense_card",
+            "surface_id": "defense_card",
+            "prop_reason": "user_identifies_sabotage_pattern_and_trigger",
+            "source_span": "quand je rentre le soir, le téléphone finit souvent sur le canapé avec moi. Je scrolle, et après quelques minutes l’envie de snack arrive.",
+            "target_hint": "Moment du retour le soir (scrolling et snacks)",
+            "offer_timing": "now",
+            "should_offer": true,
+            "target_status": "identified",
+            "operation_type": "prepare_defense_card",
+            "confidence_band": "high",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_defense_card"
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Base de vie: Dans la sidebar du dashboard, choisis Base de vie. Tu peux consulter les transformations terminees et les elements de cloture. Les lignes verte et rouge sont remplies a la fin de chaque plan via le questionnaire de cloture. Les ressources restent dans l'historique de la transformation; elles ne sont pas rangees directement dans la Base de vie.\n\nOu ca se trouve:\n- Dashboard sidebar > Base de vie: Quand le dashboard est accessible. Tu peux y consulter les transformations terminees, ouvrir les details, gerer certaines informations de cloture.\n- Base de vie > Initiatives: Quand des initiatives hors plan existent ou peuvent etre creees. Tu peux y gerer les initiatives libres si l'acces le permet.\n\nLimites importantes:\n- Ce n'est pas un deuxieme plan actif.\n- Ce n'est pas l'endroit pour executer les missions du plan courant.",
+            "status": "complete",
+            "skill_id": "product_help",
+            "diagnosis": {
+              "locations": [
+                "Dashboard sidebar > Base de vie",
+                "Base de vie > Initiatives"
+              ],
+              "feature_id": "base_de_vie",
+              "feature_label": "Base de vie",
+              "operation_bridge": null
+            },
+            "state_patch": {
+              "summary": "Product help answered for base_de_vie."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "how_to",
+            "recommendation_need": {
+              "type": "none",
+              "needed": false,
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_bridge_requires_confirmation_when_present"
+              ]
+            },
+            "operation_suggestions": []
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "product_help"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "user_identifies_sabotage_pattern_and_trigger",
+            "timing": "now",
+            "decision": "recommend_operation",
+            "cta_style": "soft",
+            "confidence": 0.86,
+            "surface_id": "defense_card",
+            "alternatives": [],
+            "operation_type": "prepare_defense_card",
+            "operation_input": {
+              "attachment": {
+                "kind": "personal_action",
+                "title": "Moment du retour le soir (scrolling et snacks)"
+              },
+              "risk_situation": {
+                "label": "quand je rentre le soir, le téléphone finit souvent sur le canapé avec moi. Je scrolle, et après quelques minutes l’envie de snack arrive."
+              }
+            },
+            "do_not_recommend": [],
+            "executor_tool_id": "prepare_defense_card",
+            "requires_consent": true,
+            "recommendation_id": "dispatcher_opportunity:defense_card:qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t01",
+            "user_facing_offer": "Je vois un risque récurrent pour \"Moment du retour le soir (scrolling et snacks)\". Si tu veux, on peut préparer une Carte de defense pour ce moment précis.",
+            "presentation_level": 2
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 18752,
+        "created_at": "2026-05-15T18:12:42.737882+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Oui, faisons une carte de défense pour ce moment-là. Je veux qu’elle reste libre, hors action officielle du plan : elle protège juste le retour du soir avec téléphone, canapé et snack.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, c'est noté pour le retour du soir avec téléphone, canapé et snack, et que ce soit une carte libre. Qu'est-ce qui se passe exactement au moment où ça craque, et pourquoi ça t'embarque ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t02",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "ab71e986-b700-48f4-a92d-41548ffe29cd",
+        "ts": "2026-05-15T18:13:03.801+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 51331,
+          "latency_ms": 4159,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 686,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": null
+              },
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": null
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t02",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": null
+              },
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": null
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "ab71e986-b700-48f4-a92d-41548ffe29cd",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "retour du soir avec téléphone, canapé et snack",
+              "user_intent": "create",
+              "explicitness": "explicit",
+              "operation_type": "prepare_defense_card",
+              "confidence_band": "high",
+              "operation_input": {
+                "trigger": "retour du soir, téléphone sur le canapé",
+                "free_context": true,
+                "risk_behavior": "scrolling et grignotage"
+              }
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_defense_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "source": "recommendation_tool",
+          "status": "ask_question",
+          "slot_state": {
+            "slot": "risk_situation",
+            "needed": true,
+            "reason": "structured_ai_missing_trigger",
+            "status": "missing",
+            "question": "Ok, c'est noté pour le retour du soir avec téléphone, canapé et snack, et que ce soit une carte libre. Qu'est-ce qui se passe exactement au moment où ça craque, et pourquoi ça t'embarque ?",
+            "known_slots": {
+              "attachment": {
+                "kind": "free_risk_context",
+                "title": "Retour du soir avec téléphone, canapé et snack",
+                "plan_item_id": null
+              },
+              "intake_state": {
+                "trigger": {
+                  "type": null,
+                  "status": "missing",
+                  "evidence": [],
+                  "confidence": 0.5
+                },
+                "skill_id": "prepare_defense_card",
+                "tool_fit": {
+                  "reason": null,
+                  "status": "defense",
+                  "evidence": [
+                    "current_user_message"
+                  ],
+                  "confidence": "high"
+                },
+                "attachment": {
+                  "kind": "free_risk_context",
+                  "title": "Retour du soir avec téléphone, canapé et snack",
+                  "status": "identified",
+                  "evidence": [
+                    "current_user_message"
+                  ],
+                  "confidence": "high",
+                  "plan_item_id": null
+                },
+                "confidence": "high",
+                "constraints": [],
+                "current_step": "risk_intake",
+                "defense_goal": {
+                  "value": null,
+                  "status": "missing",
+                  "evidence": [],
+                  "confidence": "low"
+                },
+                "missing_slots": [
+                  "trigger",
+                  "defense_goal"
+                ],
+                "risk_situation": {
+                  "label": "Retour du soir avec téléphone, canapé et snack",
+                  "status": "identified",
+                  "evidence": [
+                    "current_user_message",
+                    "operation_input.risk_situation"
+                  ],
+                  "confidence": "high",
+                  "description": "quand je rentre le soir, le téléphone finit souvent sur le canapé avec moi. Je scrolle, et après quelques minutes l’envie de snack arrive.",
+                  "timing_hint": "le retour du soir",
+                  "context_hint": "avec téléphone, canapé et snack"
+                },
+                "defense_response_hint": {
+                  "value": null,
+                  "status": "missing",
+                  "evidence": [],
+                  "confidence": "low",
+                  "strategy_hint": null
+                },
+                "generated_user_message": "Ok, c'est noté pour le retour du soir avec téléphone, canapé et snack, et que ce soit une carte libre. Qu'est-ce qui se passe exactement au moment où ça craque, et pourquoi ça t'embarque ?"
+              },
+              "risk_situation": {
+                "label": "Retour du soir avec téléphone, canapé et snack",
+                "description": "quand je rentre le soir, le téléphone finit souvent sur le canapé avec moi. Je scrolle, et après quelques minutes l’envie de snack arrive.",
+                "timing_hint": "le retour du soir",
+                "context_hint": "avec téléphone, canapé et snack"
+              }
+            }
+          },
+          "reason_code": "tool_skill_intent_start",
+          "missing_slots": [
+            "trigger",
+            "defense_goal"
+          ],
+          "selected_handler": "prepare_defense_card",
+          "recommendation_id": "dispatcher_opportunity:defense_card:qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t01"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 12407,
+        "created_at": "2026-05-15T18:13:03.80509+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Le moment exact, c’est juste après avoir enlevé mes chaussures : je m’assois deux minutes sur le canapé, téléphone en main. Le piège, c’est “je mérite une pause”, puis le scroll rend le snack automatique.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t03",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est le piège classique du mérite : on s'assoit \"juste deux minutes\" et le cerveau passe en mode automatique. Le téléphone devient le pont direct vers le placard à snacks 🛋️.\n\nPour ta Carte de défense, on a le déclencheur (les chaussures enlevées) et le piège (le scroll du mérite). Maintenant, il nous faut ton geste de défense : une micro-action de moins de 30 secondes que tu peux faire dès que tu sens ce piège arriver pour poser ce téléphone dans l'entrée.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t03",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "9da98eb2-a38b-4f9e-b92c-5e92eb070a31",
+        "ts": "2026-05-15T18:13:21.415+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 51445,
+          "latency_ms": 4852,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 674,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "scroll téléphone canapé soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "grignotage automatique soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t03",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "scroll téléphone canapé soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "grignotage automatique soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "prepare_defense_card": {
+                "reason": "user_providing_details_for_defense_card_intake",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "9da98eb2-a38b-4f9e-b92c-5e92eb070a31",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Carte de defense: Une carte de defense sert quand quelque chose risque de faire derailler l'action: impulsion, piege, pression, evitement ou reaction automatique.\n\nComment l'utiliser: Une carte de defense peut etre generee librement depuis Ressources, ou etre liee au plan depuis une mission ou une habitude. Elle se retrouve ensuite dans Ressources, ou elle peut etre consultee et utilisee. Processus: identifier un moment concret, reperer le piege observable, definir mon geste faisable en moins de 30 secondes, puis prevoir un plan B simple.\n\nCe que ca apporte:\n- Donne une reponse simple pour les moments de risque.\n- Anticipe les pieges concrets.\n\nImportant: une carte de defense peut etre ajustee depuis la plateforme/Ressources quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, on peut aussi en preparer une nouvelle version apres confirmation.\n\nSi tu veux vraiment le faire, ce n'est pas product_help qui execute: il faut passer par le flow prepare_defense_card, avec confirmation.",
+            "status": "complete",
+            "skill_id": "product_help",
+            "diagnosis": {
+              "locations": [
+                "Dashboard > Plan",
+                "Dashboard > Ressources"
+              ],
+              "feature_id": "resources.defense_card",
+              "feature_label": "Carte de defense",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "prepare une carte de defense",
+                  "j'ai besoin d'un plan b",
+                  "aide-moi pour le moment ou je risque de craquer"
+                ],
+                "skill_or_operation": "prepare_defense_card",
+                "requires_confirmation": true
+              }
+            },
+            "state_patch": {
+              "summary": "Product help answered for resources.defense_card."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "explain",
+            "recommendation_need": {
+              "type": "none",
+              "needed": false,
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_bridge_requires_confirmation_when_present"
+              ]
+            },
+            "operation_suggestions": [
+              {
+                "reason": "product_help_operation_bridge_available",
+                "urgency": "medium",
+                "operation_type": "prepare_defense_card",
+                "confidence_band": "medium",
+                "source_skill_id": "product_help",
+                "operation_input_hint": {},
+                "requires_user_consent": true
+              }
+            ]
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "product_help"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 7144,
+        "created_at": "2026-05-15T18:13:21.419766+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

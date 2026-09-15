@@ -159,13 +159,43 @@ describe("l'aperçu du plan reste le rendu unique, et il n'écrit rien", () => {
   it("`composeDraft` demande bien `draft`, et `writeFromDraft` ne le fait pas", () => {
     const api = code("frontend/src/keel/api/planDraft.ts");
     expect(api).toContain('callGenerator(input, "draft")');
-    expect(api).toContain("callGenerator(input, intent, replaces)");
+    expect(api).toContain("const payload = await callGenerator(");
+    expect(api).toContain("draft_id: draftId");
+    expect(api).toContain("adopting_draft: true");
   });
 
   it("l’adoption est bornée et ne relance pas le modèle avant son écriture", () => {
     const api = code("frontend/src/keel/api/planDraft.ts");
-    expect(api).toContain('if (intent !== "draft") body.adopting_draft = true');
-    expect(api).toContain('{ timeout: 120_000 }');
+    expect(api).toContain("draft_id: draftId");
+    expect(api).toContain("adopting_draft: true");
+    expect(api).toContain('headers: { "x-request-id": requestId }');
+    // ⟳ 2026-09-14 · BÊTA 2B — LA BORNE A CHANGÉ DE FORME, ET DE PORTÉE. Elle
+    // était un littéral posé sur la SEULE adoption
+    // (`...(intent === "draft" ? {} : { timeout: 120_000 })`): l'aperçu — le
+    // geste qui termine l'entonnoir — n'en avait aucune et attendait
+    // indéfiniment. Les deux intentions partagent maintenant la même
+    // constante, écrite une fois dans `mealGeneration.ts`.
+    // ⟳ 2026-09-14 (même jour, plus tard) — ET ELLE A ENCORE CHANGÉ DE FORME:
+    // notre propre `AbortController` au lieu de l'option de la bibliothèque.
+    // Même seconde, mais l'option rendait un `FunctionsFetchError` impossible
+    // à distinguer d'un réseau coupé, et l'écran affichait sa chaîne anglaise.
+    expect(api).toContain(
+      "setTimeout(() => deadline.abort(), PLAN_CLIENT_TIMEOUT_MS)",
+    );
+    expect(api).toContain("signal: deadline.signal,");
+    expect(api).toContain("await settleInterruptedGeneration(requestId)");
+    expect(api).toContain('if (recovered.kind === "in_flight")');
+    // ⛔ ET ELLE RESTE SOUS LA PASSERELLE. Kong coupe à 150 s (`read_timeout`,
+    // « to match hosted project »): une borne au-dessus rendrait une erreur de
+    // passerelle au lieu d'une phrase du produit, et une borne trop basse
+    // abandonnerait des générations qui reviennent (116 à 144 s mesurées).
+    const api2 = code("frontend/src/keel/api/mealGeneration.ts");
+    expect(api2).toContain("export const PLAN_CLIENT_TIMEOUT_MS = 145_000;");
+    expect(api2).toContain("export const PLAN_RECOVERY_WAIT_MS = 235_000;");
+    expect(api2).toContain("export const GATEWAY_READ_TIMEOUT_MS = 150_000;");
+    // ⛔ ET L'ANCIENNE FORME NE DOIT PAS REVENIR: c'est elle qui laissait une
+    // des deux intentions sans borne.
+    expect(api).not.toContain('intent === "draft" ? {} : { timeout');
 
     for (const rel of [
       "supabase/functions/generate-household-meal-v1/index.ts",
@@ -182,9 +212,26 @@ describe("l'aperçu du plan reste le rendu unique, et il n'écrit rien", () => {
       if (rel.includes("household")) {
         expect(server, rel).toContain("const improvementRetries = !adoptingDraft && !editing;");
       }
-      expect(server, rel).toContain(`anchorMissingBefore > 0 && ${gate}`);
-      expect(server, rel).toContain(`instruction && ${gate}`);
+      // ⟳ 2026-09-12 · FERMETURE LOT 1 — LES SITES QUI PORTAIENT CETTE
+      // COUPURE N'APPELLENT PLUS LE MODÈLE. Les sept rattrapages d'amont
+      // déposent leur constat, et UNE SEULE décision part après la garde
+      // finale. La propriété épinglée ici est la même, sur le site qui reste :
+      // aucune relance sur une adoption ni sur une reprise locale.
+      expect(server, rel).toContain(
+        `if (!c4Stop && ${gate} && c4Decision.call) {`,
+      );
+      // ⛔ ET IL N'Y A QU'UN SEUL APPEL DE RÉPARATION DANS TOUTE LA LANE.
+      expect(
+        (server.match(/kind: "repair",/g) ?? []).length,
+        rel,
+      ).toBe(1);
     }
+  });
+
+  it("un aperçu en vol se retrouve au rechargement de `/app/plan`", () => {
+    const plan = code("frontend/src/keel/pages/StudentWeekPlanPage.tsx");
+    expect(plan).toContain("recoverLatestDraft()");
+    expect(plan).toContain("waitForDraft(recoverable.draftId)");
   });
 
   it("un plan écrit malgré une réponse perdue sort du tunnel au rechargement", () => {

@@ -1,0 +1,1253 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1-t01",
+    "user": "J'ai relu la suite du plan et je trouve qu'il manque une marche. On passe trop vite vers comprendre les tensions, alors que j'aimerais d'abord apprendre à se retrouver après une dispute.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui, je vois mieux la marche à ajouter. Je ne la formulerais pas comme un bloc abstrait.\n\nJe formulerais l'ajustement comme une courte étape de réparation: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.\n\nL'objectif global reste stable, et les actions de soutien ne changent pas sauf si la régénération montre qu'il faut les reformuler.\n\nSi tu valides, je régénère une nouvelle version du plan avec ce feedback. Rien n'est encore appliqué. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "8e6ae57e-321a-4fab-a911-73441e201c1f",
+        "ts": "2026-05-22T09:49:56.743+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 12727,
+          "latency_ms": 3970,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 778,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_and_next_levels",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et etapes de resolution de conflit",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "se retrouver apres une dispute",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_and_next_levels",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et etapes de resolution de conflit",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "se retrouver apres une dispute",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "8e6ae57e-321a-4fab-a911-73441e201c1f",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "suite du plan / comprendre les tensions",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "relu la suite du plan",
+                    "manque une marche",
+                    "passe trop vite vers comprendre les tensions"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "le user parle de la suite du plan et d'une marche manquante dans la trajectoire"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "insert_intermediate_step:reconnexion_apres_dispute_avant_analyse_des_tensions",
+                  "preserve_current_direction:ne_pas_accelerer_vers_la_comprehension_des_tensions_trop_tot",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "whole_plan_directional_draft_ready",
+                  "preserve_plan_intent",
+                  "insert_phase_kind:repair_reconnection_after_tension",
+                  "coach_observation:La demande ne remet pas en cause la direction du plan, mais la vitesse et la transition entre deux niveaux de travail : avant d'aller vers l'analyse des tensions, il manque une étape humaine de réparation/reconnexion après dispute. Le besoin sous-jacent est de restaurer un minimum de lien et de sécurité relationnelle avant d'introduire une lecture plus réflexive des conflits.",
+                  "coach_recommendation:Orienter la prochaine réponse vers l'insertion d'une phase intermédiaire de reconnexion après dispute, en gardant intacte la progression globale vers la compréhension des tensions. Le cadrage coaching doit reconnaître que la réparation est un prérequis relationnel, pas un simple détail de rythme.",
+                  "coach_warning:Éviter de reformuler cela comme un simple ralentissement général : le point central est l'ajout d'un pont, pas seulement une baisse de cadence.",
+                  "coach_warning:Éviter de proposer directement l'analyse des tensions comme étape suivante sans filet de réparation.",
+                  "coach_warning:Éviter d'effacer la logique actuelle du plan : la compréhension des tensions reste pertinente, mais seulement après stabilisation du lien.",
+                  "coach_warning:Éviter de transformer la demande en changement de méthode purement technique ; il s'agit d'un besoin relationnel de réassurance et de reconnexion.",
+                  "coach_preserve:La trajectoire globale du plan vers une meilleure compréhension des tensions.",
+                  "coach_preserve:L'intention de sécurité et de désescalade déjà présente dans les premières phases.",
+                  "coach_preserve:La logique de progression par étapes plutôt que l'exposition directe au conflit.",
+                  "coach_preserve:Le besoin de préserver un cadre concret et praticable, sans surcharger la suite du plan.",
+                  "coach_avoid:Ne pas proposer une suppression pure et simple de la phase 'Comprendre les tensions'.",
+                  "coach_avoid:Ne pas faire comme si la reconnexion après dispute était déjà couverte par les étapes actuelles.",
+                  "coach_avoid:Ne pas changer la nature du plan vers de la médiation complète ou de la thérapie de couple structurée sans demande explicite.",
+                  "coach_avoid:Ne pas répondre avec un ajustement local isolé ; ici la modification concerne la trajectoire globale.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:Traiter la demande comme un besoin de pont relationnel, pas comme une simple préférence de timing.",
+                  "coach_guideline:Préserver l'objectif final du plan tout en ajoutant une étape de transition qui restaure le lien.",
+                  "coach_guideline:Formuler la nouvelle phase en termes de fonction humaine : réparation, reconnexion, sécurité retrouvée.",
+                  "coach_guideline:Vérifier que la phase intermédiaire prépare réellement l'entrée dans l'analyse, sans la remplacer.",
+                  "coach_guideline:Garder une progression lisible : apaisement d'abord, compréhension ensuite.",
+                  "coach_guideline:Ne pas augmenter la sophistication du plan si le besoin exprimé est d'abord de retrouver une base relationnelle stable.",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "coach_trajectory_hypothesis:Le plan va actuellement trop vite de la désescalade vers l'analyse ; la trajectoire probable est d'insérer une phase intermédiaire de reconnexion après dispute avant d'aborder la compréhension des tensions.",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "affected_item:Comprendre les tensions",
+                  "affected_item:la suite du plan après la phase actuelle"
+                ],
+                "reason_type": "bad_fit",
+                "change_target": "global_load",
+                "reason_change": "context_changed"
+              },
+              "title": "Ajuster la trajectoire du plan",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact."
+                ],
+                "unchanged": [
+                  "Objectif global du plan",
+                  "Actions de soutien existantes sauf changement explicitement validé"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire.",
+                "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire.",
+              "decision_basis": {
+                "evidence": [
+                  "J'ai relu la suite du plan et je trouve qu'il manque une marche. On passe trop vite vers comprendre les tensions, alors que j'aimerais d'abord apprendre à se retrouver après une dispute.",
+                  "J'ai relu la suite du plan et je trouve qu'il manque une marche",
+                  "on passe trop vite vers comprendre les tensions",
+                  "j'aimerais d'abord apprendre à se retrouver après une dispute",
+                  "deterministic whole-plan structural/family signal",
+                  "deterministic whole-plan fit/complexity signal",
+                  "manque une marche",
+                  "passe trop vite vers comprendre les tensions",
+                  "j'aimerais d'abord apprendre à se retrouver après une dispute",
+                  "d'abord apprendre à se retrouver après une dispute"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "j'insère une étape courte de réparation après tension: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+              "change_rationale": {
+                "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                "success_condition": "Le plan ajoute un passage court après dispute: reconnaître ce qui s'est passé, puis revenir au contact avant d'analyser le fond.",
+                "expected_mechanism": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "La suite du plan pouvait passer trop vite de la tension à l'analyse, sans sécuriser le retour au lien.",
+                  "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+                  "why_this_change": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire."
+                },
+                "boundaries": {
+                  "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                  "affected_scope": "trajectoire globale du plan",
+                  "global_plan_impact": "requires_review",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "identité du plan",
+                    "demande de ne pas transformer cela en simple ajustement d'action"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "j'insère une étape courte de réparation après tension: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                      "reason": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "title": "Partager un point positif",
+                      "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                    }
+                  ],
+                  "trajectory_change": {
+                    "after": "Le plan ajoute un passage court après dispute: reconnaître ce qui s'est passé, puis revenir au contact avant d'analyser le fond.",
+                    "before": "La suite du plan pouvait passer trop vite de la tension à l'analyse, sans sécuriser le retour au lien.",
+                    "inserted_step": "Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+                    "coaching_reason": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire.",
+                    "reordered_steps": [
+                      "Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+                      "Reprendre ensuite la progression quand le contact est restauré"
+                    ],
+                    "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+                  }
+                },
+                "user_message_brief": "j'insère une étape courte de réparation après tension: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+                "user_message_detailed": "j'insère une étape courte de réparation après tension: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan ajoute un passage court après dispute: reconnaître ce qui s'est passé, puis revenir au contact avant d'analyser le fond.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Oui, je vois mieux la marche à ajouter. Je ne la formulerais pas comme un bloc abstrait.\n\nJe formulerais l'ajustement comme une courte étape de réparation: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.\n\nL'objectif global reste stable, et les actions de soutien ne changent pas sauf si la régénération montre qu'il faut les reformuler.\n\nSi tu valides, je régénère une nouvelle version du plan avec ce feedback. Rien n'est encore appliqué."
+          },
+          "status": "draft_review",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "47ec5580-c100-4e2e-bd57-ae4ccd3490c8",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas proposer une suppression pure et simple de la phase 'Comprendre les tensions'.",
+              "Ne pas faire comme si la reconnexion après dispute était déjà couverte par les étapes actuelles.",
+              "Ne pas changer la nature du plan vers de la médiation complète ou de la thérapie de couple structurée sans demande explicite.",
+              "Ne pas répondre avec un ajustement local isolé ; ici la modification concerne la trajectoire globale."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "La trajectoire globale du plan vers une meilleure compréhension des tensions.",
+              "L'intention de sécurité et de désescalade déjà présente dans les premières phases.",
+              "La logique de progression par étapes plutôt que l'exposition directe au conflit.",
+              "Le besoin de préserver un cadre concret et praticable, sans surcharger la suite du plan."
+            ],
+            "warnings": [
+              "Éviter de reformuler cela comme un simple ralentissement général : le point central est l'ajout d'un pont, pas seulement une baisse de cadence.",
+              "Éviter de proposer directement l'analyse des tensions comme étape suivante sans filet de réparation.",
+              "Éviter d'effacer la logique actuelle du plan : la compréhension des tensions reste pertinente, mais seulement après stabilisation du lien.",
+              "Éviter de transformer la demande en changement de méthode purement technique ; il s'agit d'un besoin relationnel de réassurance et de reconnexion."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter la demande comme un besoin de pont relationnel, pas comme une simple préférence de timing.",
+              "Préserver l'objectif final du plan tout en ajoutant une étape de transition qui restaure le lien.",
+              "Formuler la nouvelle phase en termes de fonction humaine : réparation, reconnexion, sécurité retrouvée.",
+              "Vérifier que la phase intermédiaire prépare réellement l'entrée dans l'analyse, sans la remplacer.",
+              "Garder une progression lisible : apaisement d'abord, compréhension ensuite.",
+              "Ne pas augmenter la sophistication du plan si le besoin exprimé est d'abord de retrouver une base relationnelle stable."
+            ],
+            "observation": "La demande ne remet pas en cause la direction du plan, mais la vitesse et la transition entre deux niveaux de travail : avant d'aller vers l'analyse des tensions, il manque une étape humaine de réparation/reconnexion après dispute. Le besoin sous-jacent est de restaurer un minimum de lien et de sécurité relationnelle avant d'introduire une lecture plus réflexive des conflits.",
+            "change_family": "missing_bridge_or_level",
+            "recommendation": "Orienter la prochaine réponse vers l'insertion d'une phase intermédiaire de reconnexion après dispute, en gardant intacte la progression globale vers la compréhension des tensions. Le cadrage coaching doit reconnaître que la réparation est un prérequis relationnel, pas un simple détail de rythme.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Ajouter une mini-phase dédiée à 'se retrouver après une dispute' avant la phase d'analyse des tensions.",
+              "Insérer un rituel de réparation très court après conflit : reprise du contact, apaisement, puis seulement retour au sujet.",
+              "Faire de la reconnexion une condition de passage vers la suite du plan plutôt qu'une sous-partie implicite.",
+              "Créer une transition explicite : dispute -> apaisement -> reconnexion -> compréhension des tensions.",
+              "Si la charge émotionnelle est forte, prévoir une phase plus longue de stabilisation avant toute lecture des déclencheurs."
+            ],
+            "candidate_operation": "insert_phase",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "Le plan va actuellement trop vite de la désescalade vers l'analyse ; la trajectoire probable est d'insérer une phase intermédiaire de reconnexion après dispute avant d'aborder la compréhension des tensions.",
+            "must_not_execute_reason": null
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 23720,
+        "created_at": "2026-05-22T09:49:56.747173+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1-t02",
+    "user": "Avant de valider, confirme-moi que ça ne rajoute pas trois nouvelles actions : c'est juste une petite étape dans le plan, avec reconnaître la tension puis revenir au contact ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui. Le brouillon change surtout l'axe du plan, sans ajouter plus d'actions.\n\nJe n'applique rien tant que tu ne me le confirmes pas clairement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "65cda8af-e14e-4e39-b348-30e8208614cc",
+        "ts": "2026-05-22T09:50:17.555+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13189,
+          "latency_ms": 2540,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 586,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et trajectoire",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et trajectoire",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "65cda8af-e14e-4e39-b348-30e8208614cc",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "draft_review_details",
+          "reason_code": "normal_reply_default",
+          "operation_id": "47ec5580-c100-4e2e-bd57-ae4ccd3490c8",
+          "selected_handler": "adjust_plan_item",
+          "draft_review_decision": {
+            "decision": "explain",
+            "evidence": [
+              "pre_validation_detail_request_deterministic_answer"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 2628,
+        "created_at": "2026-05-22T09:50:17.556904+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1-t03",
+    "user": "Ok, ajoute juste au brouillon que cette étape doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion. Ne valide pas encore.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est corrigé dans le brouillon: Nuance intégrée: Ok, ajoute juste au brouillon que cette étape doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion.  encore. Je n'applique rien tant que tu ne me le confirmes pas clairement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "35444f7f-d3d2-454b-a571-5beadab4b653",
+        "ts": "2026-05-22T09:50:38.326+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13280,
+          "latency_ms": 7748,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 747,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "ajustement du plan et étape de réparation",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r132-repair-step-postfix-a1-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "ajustement du plan et étape de réparation",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "35444f7f-d3d2-454b-a571-5beadab4b653",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified"
+                },
+                "constraints": "étape légère, une phrase de reconnaissance suffit, pas une longue discussion",
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "le user parle du brouillon en cours sur la trajectoire",
+                    "contexte de modification de la suite du plan"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "insert_intermediate_step:reconnexion_apres_dispute_avant_analyse_des_tensions",
+                  "preserve_current_direction:ne_pas_accelerer_vers_la_comprehension_des_tensions_trop_tot",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "whole_plan_directional_draft_ready",
+                  "preserve_plan_intent",
+                  "insert_phase_kind:repair_reconnection_after_tension",
+                  "coach_observation:La demande ne remet pas en cause la direction du plan, mais la vitesse et la transition entre deux niveaux de travail : avant d'aller vers l'analyse des tensions, il manque une étape humaine de réparation/reconnexion après dispute. Le besoin sous-jacent est de restaurer un minimum de lien et de sécurité relationnelle avant d'introduire une lecture plus réflexive des conflits.",
+                  "coach_recommendation:Orienter la prochaine réponse vers l'insertion d'une phase intermédiaire de reconnexion après dispute, en gardant intacte la progression globale vers la compréhension des tensions. Le cadrage coaching doit reconnaître que la réparation est un prérequis relationnel, pas un simple détail de rythme.",
+                  "coach_warning:Éviter de reformuler cela comme un simple ralentissement général : le point central est l'ajout d'un pont, pas seulement une baisse de cadence.",
+                  "coach_warning:Éviter de proposer directement l'analyse des tensions comme étape suivante sans filet de réparation.",
+                  "coach_warning:Éviter d'effacer la logique actuelle du plan : la compréhension des tensions reste pertinente, mais seulement après stabilisation du lien.",
+                  "coach_warning:Éviter de transformer la demande en changement de méthode purement technique ; il s'agit d'un besoin relationnel de réassurance et de reconnexion.",
+                  "coach_preserve:La trajectoire globale du plan vers une meilleure compréhension des tensions.",
+                  "coach_preserve:L'intention de sécurité et de désescalade déjà présente dans les premières phases.",
+                  "coach_preserve:La logique de progression par étapes plutôt que l'exposition directe au conflit.",
+                  "coach_preserve:Le besoin de préserver un cadre concret et praticable, sans surcharger la suite du plan.",
+                  "coach_avoid:Ne pas proposer une suppression pure et simple de la phase 'Comprendre les tensions'.",
+                  "coach_avoid:Ne pas faire comme si la reconnexion après dispute était déjà couverte par les étapes actuelles.",
+                  "coach_avoid:Ne pas changer la nature du plan vers de la médiation complète ou de la thérapie de couple structurée sans demande explicite.",
+                  "coach_avoid:Ne pas répondre avec un ajustement local isolé ; ici la modification concerne la trajectoire globale.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:Traiter la demande comme un besoin de pont relationnel, pas comme une simple préférence de timing.",
+                  "coach_guideline:Préserver l'objectif final du plan tout en ajoutant une étape de transition qui restaure le lien.",
+                  "coach_guideline:Formuler la nouvelle phase en termes de fonction humaine : réparation, reconnexion, sécurité retrouvée.",
+                  "coach_guideline:Vérifier que la phase intermédiaire prépare réellement l'entrée dans l'analyse, sans la remplacer.",
+                  "coach_guideline:Garder une progression lisible : apaisement d'abord, compréhension ensuite.",
+                  "coach_guideline:Ne pas augmenter la sophistication du plan si le besoin exprimé est d'abord de retrouver une base relationnelle stable.",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "coach_trajectory_hypothesis:Le plan va actuellement trop vite de la désescalade vers l'analyse ; la trajectoire probable est d'insérer une phase intermédiaire de reconnexion après dispute avant d'aborder la compréhension des tensions.",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "affected_item:Comprendre les tensions",
+                  "affected_item:la suite du plan après la phase actuelle"
+                ],
+                "reason_type": "bad_fit",
+                "change_target": "global_load",
+                "reason_change": "context_changed"
+              },
+              "title": "Ajuster la trajectoire du plan",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact."
+                ],
+                "unchanged": [
+                  "Objectif global du plan",
+                  "Actions de soutien existantes sauf changement explicitement validé"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire.",
+                "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire.",
+              "decision_basis": {
+                "evidence": [
+                  "J'ai relu la suite du plan et je trouve qu'il manque une marche. On passe trop vite vers comprendre les tensions, alors que j'aimerais d'abord apprendre à se retrouver après une dispute.",
+                  "J'ai relu la suite du plan et je trouve qu'il manque une marche",
+                  "on passe trop vite vers comprendre les tensions",
+                  "j'aimerais d'abord apprendre à se retrouver après une dispute",
+                  "deterministic whole-plan structural/family signal",
+                  "deterministic whole-plan fit/complexity signal",
+                  "manque une marche",
+                  "passe trop vite vers comprendre les tensions",
+                  "j'aimerais d'abord apprendre à se retrouver après une dispute",
+                  "d'abord apprendre à se retrouver après une dispute"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "j'insère une étape courte de réparation après tension: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.\n\nNuance intégrée: Ok, ajoute juste au brouillon que cette étape doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion.  encore.",
+              "change_rationale": {
+                "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                "success_condition": "Le plan ajoute un passage court après dispute: reconnaître ce qui s'est passé, puis revenir au contact avant d'analyser le fond.",
+                "expected_mechanism": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "La suite du plan pouvait passer trop vite de la tension à l'analyse, sans sécuriser le retour au lien.",
+                  "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.\n\nNuance intégrée: Ok, ajoute juste au brouillon que cette étape doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion.  encore.",
+                  "why_this_change": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire."
+                },
+                "boundaries": {
+                  "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                  "affected_scope": "trajectoire globale du plan",
+                  "global_plan_impact": "requires_review",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "identité du plan",
+                    "demande de ne pas transformer cela en simple ajustement d'action"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "j'insère une étape courte de réparation après tension: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                      "reason": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "title": "Partager un point positif",
+                      "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                    }
+                  ],
+                  "trajectory_change": {
+                    "after": "Le plan ajoute un passage court après dispute: reconnaître ce qui s'est passé, puis revenir au contact avant d'analyser le fond.\n\nNuance intégrée: Ok, ajoute juste au brouillon que cette étape doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion.  encore.",
+                    "before": "La suite du plan pouvait passer trop vite de la tension à l'analyse, sans sécuriser le retour au lien.",
+                    "inserted_step": "Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+                    "coaching_reason": "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire.\n\nNuance intégrée: Ok, ajoute juste au brouillon que cette étape doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion.  encore.",
+                    "reordered_steps": [
+                      "Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+                      "Reprendre ensuite la progression quand le contact est restauré"
+                    ],
+                    "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+                  }
+                },
+                "user_message_brief": "j'insère une étape courte de réparation après tension: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+                "user_message_detailed": "j'insère une étape courte de réparation après tension: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan ajoute un passage court après dispute: reconnaître ce qui s'est passé, puis revenir au contact avant d'analyser le fond.\n\nNuance intégrée: Ok, ajoute juste au brouillon que cette étape doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion.  encore.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Oui, je vois mieux la marche à ajouter. Je ne la formulerais pas comme un bloc abstrait.\n\nJe formulerais l'ajustement comme une courte étape de réparation: Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.\n\nL'objectif global reste stable, et les actions de soutien ne changent pas sauf si la régénération montre qu'il faut les reformuler.\n\nSi tu valides, je régénère une nouvelle version du plan avec ce feedback. Rien n'est encore appliqué.\n\nNuance intégrée: Ok, ajoute juste au brouillon que cette étape doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion.  encore."
+          },
+          "status": "draft_review_updated",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "47ec5580-c100-4e2e-bd57-ae4ccd3490c8",
+          "selected_handler": "adjust_plan_item",
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "deterministic_simple_revision"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 7835,
+        "created_at": "2026-05-22T09:50:38.328094+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

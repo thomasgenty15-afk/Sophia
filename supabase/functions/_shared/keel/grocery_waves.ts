@@ -69,6 +69,7 @@
  */
 
 import { type RawWindowCounts, rawWindowDaysFor } from "./fridge_window.ts";
+import { keepingOf } from "./food_keeping.ts";
 import { MAX_FRIDGE_DAYS, type ShoppingAisle } from "./meal_generation.ts";
 import { addDays, windowDates } from "./meal_plan_window.ts";
 
@@ -146,6 +147,25 @@ export interface WaveItem {
    * `term` et `aisle`: l'écran passe la ligne de base telle quelle.
    */
   food_group: string | null;
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-12 · FERMETURE LOT 2 — L'IDENTIFIANT DU RÉFÉRENTIEL
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ POURQUOI IL EST LÀ, ET C'EST UN DÉFAUT MESURÉ. `tuna_fresh` et
+   * `tuna_tinned` portent le MÊME `food_group`, `white_fish` : le groupe seul
+   * ne peut pas distinguer une boîte de conserve d'un filet. Sans cet
+   * identifiant, la seule chose qu'on SAIT de la conservation d'un aliment
+   * (`SHELF_STABLE_SLUGS`) est illisible ici, et la datation retombe sur la
+   * fenêtre du poisson frais pour une boîte qui se garde des années.
+   *
+   * ⛔ REQUIS ET NULLABLE, JAMAIS `T?` — et la raison est écrite juste
+   * au-dessus, sur `food_group` : ce type est satisfait STRUCTURELLEMENT, et
+   * un `?` a déjà laissé DEUX appelants oublier la clé en silence, dans les
+   * deux sens du produit. `null` dit « cette ligne n'a pas d'identité » et se
+   * relit ; l'absence ne se relit pas.
+   */
+  ref: string | null;
 }
 
 /** Une préparation, réduite à ce dont ce module a besoin. */
@@ -385,7 +405,35 @@ export function planGroceryWaves<T extends WaveItem>(args: {
 
   for (const item of shoppingList) {
     const cookDate = earliestCook.get(normalize(item.term)) ?? null;
-    const perishable = PERISHABLE_AISLES.has(String(item.aisle));
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-12 · FERMETURE LOT 2 — LA CONSERVATION, PAS LE RAYON
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE RAYON DÉCIDAIT DE LA DATE. `PERISHABLE_AISLES` est une liste de
+    // trois allées de magasin : c'est un rangement d'affichage, et il servait
+    // de seconde autorité de conservation. La garde finale, elle, lisait le
+    // GROUPE — deux lectures d'un même fait, qui ont divergé (le thon en
+    // conserve, tir 3 du 2026-09-12).
+    //
+    // `keepingOf` est désormais la SEULE lecture, et les deux sites l'appellent.
+    // Une fenêtre `null` veut dire « rien à faire attendre » : conserve, geste
+    // du congélateur, ou aliment non identifié — et `kind` sépare les trois.
+    const keeping = keepingOf({ ref: item.ref, group: item.food_group });
+    // ⛔ LE REPLI HISTORIQUE EST GARDÉ, ET IL EST NOMMÉ. Une ligne dont on ne
+    // SAIT PAS la conservation (pas de groupe: les plans d'avant `L0-a`) garde
+    // le comportement d'avant — `MAX_FRIDGE_DAYS` quand son rayon dit du frais.
+    // Le retirer avancerait toutes ces courses au premier jour, c'est-à-dire
+    // ferait acheter du poulet le lundi pour le samedi, sous prétexte qu'on ne
+    // sait pas ce que c'est. « Inconnu » ne vaut pas « stable ».
+    //
+    // ⚠️ ET C'EST LE SEUL ENDROIT OÙ LE RAYON PARLE ENCORE: il ne décide plus
+    // de la fenêtre, il choisit le repli quand il n'y a pas de fenêtre du tout.
+    const window = keeping.rawWindowDays !== null
+      ? keeping.rawWindowDays
+      : keeping.kind === "unknown" && PERISHABLE_AISLES.has(String(item.aisle))
+      ? MAX_FRIDGE_DAYS
+      : null;
+    const perishable = window !== null;
 
     let buyOn = startsOn;
     let serves: string | null = null;
@@ -401,7 +449,6 @@ export function planGroceryWaves<T extends WaveItem>(args: {
       // qui n'a pas été mesuré. La fenêtre CUITE, elle, est fail-closed: c'est
       // celle qui rend malade. Celle-ci ne décide qu'une date de magasin, et
       // son abstention se COMPTE (`rawWindowCounts`).
-      const window = rawWindowDaysFor(item.food_group) ?? MAX_FRIDGE_DAYS;
       const earliest = addDays(cookDate, -window);
       // ⛔ LA BORNE `startsOn` RESTE, ET ELLE EST JUSTE AVEC LA VEILLE: depuis
       // le 2026-09-03 (A1), la veille EST `startsOn` — rang 0 de la fenêtre —

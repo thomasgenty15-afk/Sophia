@@ -1,0 +1,35 @@
+[
+  {
+    "turn": 2,
+    "requestId": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-attack-tool-opportunity-r2-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, on fait ça.",
+    "assistant": "Je garde l'idée, mais je n'arrive pas à lancer le flow cible correctement sur ce tour. 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": "flow_opportunity_verification",
+    "route_reason_code": "active_flow_opportunity_verification_local_dispatcher",
+    "tool_skill_intents": [],
+    "tool_skill_opportunity": {
+      "type": "none",
+      "operation_type": null,
+      "surface_id": null,
+      "confidence_band": "low",
+      "should_offer": false,
+      "prop_reason": null,
+      "source_span": null,
+      "target_hint": null,
+      "target_status": "none",
+      "suggested_question_intent": null,
+      "offer_timing": "never",
+      "must_not_execute": true
+    },
+    "operation_status": null,
+    "operation_reason": null,
+    "local_dispatcher": null,
+    "ai_call_count": null,
+    "executed_tools": [],
+    "tool_execution": "blocked",
+    "direct_effects": []
+  }
+]

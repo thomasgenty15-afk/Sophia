@@ -1,0 +1,904 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je crois que le programme ne colle plus trop à ma semaine. Avec le boulot j'ai vite l'impression d'être en retard.",
+    "assistant": "Ah merde, ça c’est le genre de sensation qui te bouffe l’énergie: tu veux juste suivre, mais t’as l’impression que ta semaine court plus vite que toi. 😕\n\nDu coup, on va le recaler pour que ce soit “réaliste en mode boulot” plutôt que “parfait sur le papier”. Pas besoin de tout refaire: on ajuste la cadence et on protège 2-3 trucs non négociables.\n\n1) C’est quoi le plus “bloquant” en ce moment: les matins, les soirées, ou les journées complètes au boulot ?  \n2) Et quand tu dis “en retard”, c’est plutôt tu rates des actions, ou tu les fais mais beaucoup plus tard ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+        "status": "continue",
+        "skill_id": "execution_breakdown",
+        "diagnosis": {
+          "stage": "diagnosis",
+          "blocker_candidates": [
+            "flou",
+            "energie",
+            "friction_demarrage"
+          ]
+        },
+        "state_patch": {
+          "summary": "Execution blocker diagnosis in progress."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "diagnose_blocker",
+        "recommendation_need": {
+          "type": "execution_repair",
+          "needed": true,
+          "urgency": "medium",
+          "constraints": [
+            "understand_before_solution"
+          ]
+        },
+        "operation_suggestions": [
+          {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "urgency": "medium",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "medium",
+            "source_skill_id": "execution_breakdown",
+            "operation_input_hint": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "requires_user_consent": true
+          }
+        ],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "scope_hint": "session",
+            "content_text": "Je crois que le programme ne colle plus trop à ma semaine. Avec le boulot j'ai vite l'impression d'être en retard.",
+            "confidence_band": "medium",
+            "sensitivity_level": 1,
+            "evidence_source_ids": [
+              "ed038d91-0aee-4d95-9d8a-d36d38440c22"
+            ],
+            "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true
+          }
+        ]
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "execution_breakdown"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": {
+      "stats": null,
+      "recommendation": {
+        "reason": "cooldown_or_contraindications_exhausted_surfaces",
+        "timing": "later",
+        "decision": "defer",
+        "cta_style": "none",
+        "confidence": 0.7,
+        "alternatives": [],
+        "do_not_recommend": [],
+        "requires_consent": false,
+        "recommendation_id": "rec_qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t01_1778678204885",
+        "presentation_level": 0
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Journées complètes au boulot. Je rate surtout des actions, puis la suite continue comme si j'avais suivi.",
+    "assistant": "Ah ouais, je vois très bien le pattern : tu rates “l’action du jour”, et ton cerveau dit “ok donc on continue”, sauf que toi tu te retrouves avec un décalage qui s’accumule. 😕\n\nDu coup on va viser un truc anti-culpabilité et anti-retard : transformer tes actions en version “rattrapage léger” quand le boulot mange la journée.\nChoisis une seule règle simple :\nA) Quand tu rates, tu fais la version 5 minutes (même si c’est moins).  \nB) Quand tu rates, tu fais juste “la première brique” (10 trucs pas, 1 seul truc oui).\n\nTu préfères A ou B ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "active_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+        "status": "continue",
+        "skill_id": "execution_breakdown",
+        "diagnosis": {
+          "stage": "diagnosis",
+          "blocker_candidates": [
+            "flou",
+            "energie",
+            "friction_demarrage"
+          ]
+        },
+        "state_patch": {
+          "summary": "Execution blocker diagnosis in progress."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "diagnose_blocker",
+        "recommendation_need": {
+          "type": "execution_repair",
+          "needed": true,
+          "urgency": "medium",
+          "constraints": [
+            "understand_before_solution"
+          ]
+        },
+        "operation_suggestions": [
+          {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "urgency": "medium",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "medium",
+            "source_skill_id": "execution_breakdown",
+            "operation_input_hint": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "requires_user_consent": true
+          }
+        ],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "scope_hint": "session",
+            "content_text": "Journées complètes au boulot. Je rate surtout des actions, puis la suite continue comme si j'avais suivi.",
+            "confidence_band": "medium",
+            "sensitivity_level": 1,
+            "evidence_source_ids": [
+              "8c7be684-6601-46f1-8161-08b6372c14bf"
+            ],
+            "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true
+          }
+        ]
+      },
+      "reason_code": "active_skill_continue",
+      "selected_skill_id": "execution_breakdown"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": {
+      "stats": null,
+      "recommendation": {
+        "reason": "clear_execution_block_can_use_attack_card",
+        "timing": "now",
+        "decision": "recommend_operation",
+        "cta_style": "soft",
+        "confidence": 0.72,
+        "surface_id": "attack_card",
+        "alternatives": [],
+        "operation_type": "prepare_attack_card",
+        "operation_input": {
+          "scope": {
+            "kind": "plan_item",
+            "title": "Nettoyer ton environnement direct",
+            "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+          },
+          "target": {
+            "kind": "plan_item",
+            "title": "Nettoyer ton environnement direct",
+            "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+          },
+          "blocker": {
+            "type": "execution_block"
+          }
+        },
+        "do_not_recommend": [],
+        "executor_tool_id": "prepare_attack_card",
+        "requires_consent": true,
+        "recommendation_id": "skill:execution_breakdown:prepare_attack_card:qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t02",
+        "user_facing_offer": "Je peux te proposer Carte d'attaque si tu veux passer par le flow propre.",
+        "presentation_level": 2
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t03",
+    "status": 200,
+    "ok": true,
+    "user": "A. Mais je ne veux pas juste un rattrapage action par action : si la semaine est chargée, le programme entier doit ralentir un peu.",
+    "assistant": "Ouiii, là on change de stratégie : pas “je rattrape”, mais “j’adapte la cadence”. 😄\n\nJe te propose un règle simple pour ralentir le programme quand le boulot mange la journée :\n- quand tu vois que tu vas manquer l’action du jour, tu passes le programme en mode “semaine chargée”\n- mode “chargée” = tu fais seulement le minimum vital (missions mini / environnement direct) et tu ne t’acharnes pas sur la suite complète\n- et dès que tu reviens à un créneau plus calme, tu repasses en mode normal\n\nConcrètement, tu veux qu’on ralentisse jusqu’à quand : juste cette semaine, ou plutôt 1-2 semaines (le temps que le rythme se stabilise) ? 🔧",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "active_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+        "status": "continue",
+        "skill_id": "execution_breakdown",
+        "diagnosis": {
+          "stage": "diagnosis",
+          "blocker_candidates": [
+            "flou",
+            "energie",
+            "friction_demarrage"
+          ]
+        },
+        "state_patch": {
+          "summary": "Execution blocker diagnosis in progress."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "diagnose_blocker",
+        "recommendation_need": {
+          "type": "execution_repair",
+          "needed": true,
+          "urgency": "medium",
+          "constraints": [
+            "understand_before_solution"
+          ]
+        },
+        "operation_suggestions": [
+          {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "urgency": "medium",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "medium",
+            "source_skill_id": "execution_breakdown",
+            "operation_input_hint": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "requires_user_consent": true
+          }
+        ],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "scope_hint": "session",
+            "content_text": "A. Mais je ne veux pas juste un rattrapage action par action : si la semaine est chargée, le programme entier doit ralentir un peu.",
+            "confidence_band": "medium",
+            "sensitivity_level": 1,
+            "evidence_source_ids": [
+              "2e8e7cad-78af-433a-b5ca-d18cff2abfb0"
+            ],
+            "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true
+          }
+        ]
+      },
+      "reason_code": "active_skill_continue",
+      "selected_skill_id": "execution_breakdown"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": {
+      "stats": null,
+      "recommendation": {
+        "reason": "clear_execution_block_can_use_attack_card",
+        "timing": "now",
+        "decision": "recommend_operation",
+        "cta_style": "soft",
+        "confidence": 0.72,
+        "surface_id": "attack_card",
+        "alternatives": [],
+        "operation_type": "prepare_attack_card",
+        "operation_input": {
+          "scope": {
+            "kind": "plan_item",
+            "title": "Nettoyer ton environnement direct",
+            "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+          },
+          "target": {
+            "kind": "plan_item",
+            "title": "Nettoyer ton environnement direct",
+            "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+          },
+          "blocker": {
+            "type": "execution_block"
+          }
+        },
+        "do_not_recommend": [],
+        "executor_tool_id": "prepare_attack_card",
+        "requires_consent": true,
+        "recommendation_id": "skill:execution_breakdown:prepare_attack_card:qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t03",
+        "user_facing_offer": "Je peux te proposer Carte d'attaque si tu veux passer par le flow propre.",
+        "presentation_level": 2
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Juste cette semaine pour commencer. Applique ça au programme entier : cadence globale plus lente et volume total plus bas, sans changer l'objectif de fond.",
+    "assistant": "Ok, cette semaine on baisse le volume, et on ralentit la cadence globale. ✅😄\nOn garde l’objectif de fond, mais on passe en mode “semaine chargée” par défaut quand le boulot mange la journée.\n\nConcrètement, sur ton programme entier, on fait :\n1) Moins d’actions par jour (volume total plus bas)\n2) Quand tu rates une action, on ne “rattrape pas”, on continue en version mini (cadence plus lente)\n3) On priorise seulement les missions non-négociables, le reste devient optionnel/mini\n\nJe te propose qu’on fixe dès maintenant 2 limites simples pour cette semaine :\nA) Volume : tu préfères quel repère de nombre d’actions par jour (1-2 ou 3) ?\nB) Seuil “semaine chargée” : si tu rates 1 action dans la journée, tu bascules en mode mini pour le reste ? (oui/non)",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "active_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+        "status": "continue",
+        "skill_id": "execution_breakdown",
+        "diagnosis": {
+          "stage": "diagnosis",
+          "blocker_candidates": [
+            "flou",
+            "energie",
+            "friction_demarrage"
+          ]
+        },
+        "state_patch": {
+          "summary": "Execution blocker diagnosis in progress."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "diagnose_blocker",
+        "recommendation_need": {
+          "type": "execution_repair",
+          "needed": true,
+          "urgency": "medium",
+          "constraints": [
+            "understand_before_solution"
+          ]
+        },
+        "operation_suggestions": [
+          {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "urgency": "medium",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "medium",
+            "source_skill_id": "execution_breakdown",
+            "operation_input_hint": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "requires_user_consent": true
+          }
+        ],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "scope_hint": "session",
+            "content_text": "Juste cette semaine pour commencer. Applique ça au programme entier : cadence globale plus lente et volume total plus bas, sans changer l'objectif de fond.",
+            "confidence_band": "medium",
+            "sensitivity_level": 1,
+            "evidence_source_ids": [
+              "92f3f219-43be-4765-8ffe-31f29a1d8d89"
+            ],
+            "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true
+          }
+        ]
+      },
+      "reason_code": "active_skill_continue",
+      "selected_skill_id": "execution_breakdown"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": {
+      "stats": null,
+      "recommendation": {
+        "reason": "clear_execution_block_can_use_attack_card",
+        "timing": "now",
+        "decision": "recommend_operation",
+        "cta_style": "soft",
+        "confidence": 0.72,
+        "surface_id": "attack_card",
+        "alternatives": [],
+        "operation_type": "prepare_attack_card",
+        "operation_input": {
+          "scope": {
+            "kind": "plan_item",
+            "title": "Nettoyer ton environnement direct",
+            "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+          },
+          "target": {
+            "kind": "plan_item",
+            "title": "Nettoyer ton environnement direct",
+            "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+          },
+          "blocker": {
+            "type": "execution_block"
+          }
+        },
+        "do_not_recommend": [],
+        "executor_tool_id": "prepare_attack_card",
+        "requires_consent": true,
+        "recommendation_id": "skill:execution_breakdown:prepare_attack_card:qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t04",
+        "user_facing_offer": "Je peux te proposer Carte d'attaque si tu veux passer par le flow propre.",
+        "presentation_level": 2
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t05",
+    "status": 200,
+    "ok": true,
+    "user": "1-2 actions par jour, oui dès qu'une action saute on passe en mini. Applique vraiment ce recalage au programme entier.",
+    "assistant": "Avant de toucher au plan global, quel est le vrai reason_change et quelle cible faut-il modifier: nombre de missions, intensite/frequence, ordre, ou charge globale ? Qu'est-ce qu'il faut absolument preserver ? Je vois notamment dans le plan: Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "programme entier",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "operation_intent_start",
+      "plan_item_id": null,
+      "target_title": "plan global",
+      "missing_slots": [
+        "whole_plan.adjustment_type",
+        "whole_plan.reason",
+        "whole_plan.reason_change"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t05",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Reason change : ma capacité a changé cette semaine à cause du boulot. Cible : charge globale et fréquence, moins de missions par jour. À préserver : l'objectif de fond et la direction du plan.",
+    "assistant": "Je propose d'alléger l'ensemble de ton programme pour qu'il soit plus réaliste face à tes contraintes professionnelles actuelles. L'idée est de réduire le nombre d'activités prévues chaque jour tout en gardant le même cap. Est-ce que cela te convient ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "whole_plan",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write"
+            ],
+            "reason_type": "context_changed",
+            "change_target": "number_of_actions",
+            "reason_change": "time_or_capacity_changed",
+            "load_adjustment": "lighter",
+            "plan_adjustment": "reduce_global_load"
+          },
+          "title": "Ajustement - plan global",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "plan global: reduce_global_load",
+              "cible de changement: number_of_actions"
+            ],
+            "unchanged": [
+              "l'objectif/direction reste préservé sauf demande contraire explicite",
+              "le plan canonique n'est pas reconstruit automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel.",
+            "follow_up_needed": "identifier ensuite les semaines ou blocs les plus lourds pour affiner"
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+          "decision_basis": {
+            "evidence": [
+              "Reason change : ma capacité a changé cette semaine à cause du boulot. Cible : charge globale et fréquence, moins de missions par jour. À préserver : l'objectif de fond et la direction du plan.",
+              "operation_input.scope",
+              "message.reduce_global_load",
+              "message.context_changed",
+              "message.time_or_capacity_changed",
+              "message.number_of_actions"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "reduire la charge globale du plan",
+          "change_rationale": {
+            "why_this_change": "Réduire number_of_actions répond au problème \"time_or_capacity_changed\" sans changer la direction du plan.",
+            "success_condition": "Le plan paraît tenable sans reconstruction complète ni changement d'objectif implicite.",
+            "expected_mechanism": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [
+                "Les moments précis de la journée qui restent disponibles"
+              ],
+              "user_problem": "Capacité réduite à cause d'une surcharge de travail.",
+              "expected_effect": "Une meilleure adhésion au plan et une progression constante, bien que plus lente.",
+              "why_this_change": "Réduire le nombre d'actions permet de maintenir l'engagement sans risquer l'abandon par épuisement."
+            },
+            "boundaries": {
+              "explanation": "Le plan est allégé pour devenir réaliste, mais sa trajectoire finale reste la même.",
+              "affected_scope": "L'ensemble de la structure et du rythme du plan.",
+              "global_plan_impact": "indirect",
+              "explicitly_not_affected": [
+                "L'objectif principal",
+                "La thématique de fond"
+              ]
+            },
+            "applied_change": {
+              "summary": "Réduction de la charge globale du plan pour s'adapter à une baisse de disponibilité liée au travail.",
+              "changed_items": [
+                {
+                  "id": null,
+                  "kind": "plan_setting",
+                  "after": "3 fois par semaine",
+                  "title": "Fréquence des activités hebdomadaires",
+                  "before": "Quotidien",
+                  "reason": "Alléger l'emploi du temps pour libérer de l'espace mental et du temps."
+                },
+                {
+                  "id": null,
+                  "kind": "plan_setting",
+                  "after": "2 à 3 actions par jour",
+                  "title": "Volume d'actions quotidiennes",
+                  "before": "5 actions par jour",
+                  "reason": "Réduire la pression quotidienne et assurer une meilleure régularité."
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Objectif final du plan",
+                  "reason": "L'intention et la direction de ton projet restent inchangées malgré l'ajustement du rythme."
+                }
+              ]
+            },
+            "user_message_brief": "Ton plan a été allégé pour mieux s'insérer dans ton emploi du temps actuel.",
+            "user_message_detailed": "J'ai réduit la densité de tes journées en diminuant le nombre d'actions prévues. Cela te permet de continuer à avancer vers ton objectif sans que ton travail ne devienne un obstacle insurmontable."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait, j'ai revu la densité de ton programme pour qu'elle soit plus digeste. Par exemple, tes sessions de pratique passent de cinq à trois par semaine, et le nombre d'exercices quotidiens est désormais limité pour éviter la surcharge. Ce changement permet de garder le rythme sans t'épuiser, tout en conservant ton objectif final intact. Je suis plutôt confiant sur le fait que ce nouveau rythme sera bien plus tenable pour toi avec ton emploi du temps actuel.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je propose d'alléger l'ensemble de ton programme pour qu'il soit plus réaliste face à tes contraintes professionnelles actuelles. L'idée est de réduire le nombre d'activités prévues chaque jour tout en gardant le même cap. Est-ce que cela te convient ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "7ef11b00-9d90-427f-95d7-1dc1b1da4cbd",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t06",
+    "trace_error": null
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t07",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, applique.",
+    "assistant": "C'est fait, j'ai revu la densité de ton programme pour qu'elle soit plus digeste. Par exemple, tes sessions de pratique passent de cinq à trois par semaine, et le nombre d'exercices quotidiens est désormais limité pour éviter la surcharge. Ce changement permet de garder le rythme sans t'épuiser, tout en conservant ton objectif final intact. Je suis plutôt confiant sur le fait que ce nouveau rythme sera bien plus tenable pour toi avec ton emploi du temps actuel.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "7ef11b00-9d90-427f-95d7-1dc1b1da4cbd",
+      "plan_patch_id": "f763a65e-bd1a-4a68-9c52-c4cc2763a1dc",
+      "selected_handler": "adjust_plan_item",
+      "bridge_plan_item_id": null
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t07",
+    "trace_error": null
+  },
+  {
+    "turn": 8,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t08",
+    "status": 200,
+    "ok": true,
+    "user": "Ok, détaille-moi précisément deux changements concrets dans le plan, et confirme-moi que l'objectif de fond n'a pas changé.",
+    "assistant": "Oui. Les deux changements concrets sont:\n\n1. Fréquence des activités hebdomadaires: avant, Quotidien; maintenant, 3 fois par semaine. Pourquoi: Alléger l'emploi du temps pour libérer de l'espace mental et du temps.\n2. Volume d'actions quotidiennes: avant, 5 actions par jour; maintenant, 2 à 3 actions par jour. Pourquoi: Réduire la pression quotidienne et assurer une meilleure régularité. Ce qui ne change pas: Objectif final du plan.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_handoff_requested",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "answered_last_adjustment_details",
+      "reason_code": "skill_handoff_requested",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r7-t08",
+    "trace_error": null
+  }
+]

@@ -1,0 +1,8 @@
+bread_flour_bread_preparation: base D mais yield_class=grain_absorbs (le runtime rebase DEJA)
+country_style_bread: base D mais yield_class=grain_absorbs (le runtime rebase DEJA)
+toasted_bread: base D mais yield_class=grain_absorbs (le runtime rebase DEJA)
+potato_puree_flakes_reconstituted: base D mais yield_class=veg_shrinks (le runtime rebase DEJA)
+carrots_puree: base D mais yield_class=veg_shrinks (le runtime rebase DEJA)
+carrots_puree_cream: base D mais yield_class=veg_shrinks (le runtime rebase DEJA)
+vegetables_mashed: base D mais yield_class=veg_shrinks (le runtime rebase DEJA)
+black_white_pudding_sauteed: base D mais yield_class=meat_shrinks (le runtime rebase DEJA)

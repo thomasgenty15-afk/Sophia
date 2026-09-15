@@ -1,0 +1,52 @@
+{
+  "today": "2026-08-08",
+  "timezone": "Europe/London",
+  "coach": {
+    "coachId": "83c00304-f594-4e42-bfba-8e1bd343e8d7",
+    "userId": "45e3b1c7-ec17-473e-a571-13bdca299ac2",
+    "protocolId": "4ec6cb06-efbb-4865-a1a9-44440d4fdd9f"
+  },
+  "student": {
+    "userId": "b030051c-aab1-4b8c-a708-3c42f268f1a7",
+    "email": "qa-student-1786191957356579ca6@test.dev",
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJiMDMwMDUxYy1hYWIxLTRiOGMtYTcwOC0zYzQyZjI2OGYxYTciLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzg2MTk1NTU3LCJpYXQiOjE3ODYxOTE5NTcsImVtYWlsIjoicWEtc3R1ZGVudC0xNzg2MTkxOTU3MzU2NTc5Y2E2QHRlc3QuZGV2IiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InFhLXN0dWRlbnQtMTc4NjE5MTk1NzM1NjU3OWNhNkB0ZXN0LmRldiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInN1YiI6ImIwMzAwNTFjLWFhYjEtNGI4Yy1hNzA4LTNjNDJmMjY4ZjFhNyJ9LCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImFhbCI6ImFhbDEiLCJhbXIiOlt7Im1ldGhvZCI6InBhc3N3b3JkIiwidGltZXN0YW1wIjoxNzg2MTkxOTU3fV0sInNlc3Npb25faWQiOiI4MjlmMDM1MS1lYTEzLTRiZGUtOTNjMS1jNjZhMzFlMzk0YzUiLCJpc19hbm9ueW1vdXMiOmZhbHNlfQ.OAiY--nrbmjwW6iuBFnZZHFO3dEt22aWs6bgzks6Jt8",
+    "refreshToken": "v3gn6r4vcapd"
+  },
+  "household": {
+    "id": "2d37fd8a-49ef-4ced-bf9a-5fab11bd5b3c",
+    "mealId": "6a72a6ab-2710-4c1b-b514-c8c10c916383",
+    "fillers": [
+      {
+        "userId": "aac9b1f6-67b9-4a9d-abf2-03e2a24b5774",
+        "name": "Bea",
+        "minor": false
+      },
+      {
+        "userId": "d73f3322-4130-43db-b10c-35aa8836c398",
+        "name": "Cleo",
+        "minor": false
+      },
+      {
+        "userId": "ad39daad-9036-417c-88f7-b8bf579a5dd5",
+        "name": "Dan",
+        "minor": false
+      },
+      {
+        "userId": "6ee69d94-c80c-4fcb-8dd1-bb0b9ea9d395",
+        "name": "Eli",
+        "minor": true
+      },
+      {
+        "userId": "f9f3f358-ef9d-438b-99ba-b33a669cad43",
+        "name": "Fay",
+        "minor": true
+      }
+    ]
+  },
+  "planVersionId": "89cd71be-8199-4e86-b65b-ebd19d019893",
+  "weekReview": {
+    "weekStart": "2026-07-27",
+    "weekEnd": "2026-08-02",
+    "outcome": "computed"
+  }
+}

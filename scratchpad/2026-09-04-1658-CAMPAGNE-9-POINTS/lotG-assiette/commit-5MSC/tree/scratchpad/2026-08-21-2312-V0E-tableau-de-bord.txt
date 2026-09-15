@@ -1,0 +1,145 @@
+═══════════════════════════════════════════════════════════════════════════
+V0-E′ — LE TABLEAU DE BORD, AVANT LE RUN
+exécuté le 2026-08-21 23:11:21 CEST · base supabase_db_Sophia_2
+═══════════════════════════════════════════════════════════════════════════
+
+  #1   plans portant dishes[].boxes (tableau NON VIDE) 0 / 180
+  #2   journées calculables PAR LANE ET PAR LANGUE   ⛔ N'EXISTE PAS (ce n'est pas 0) — lot L2-lang, vague 2
+  #3   lignes résolues ET pesées, APRÈS pliage     foyer 93.6 % (9399/10039) · solo 36.4 % (1880/5161)
+  #4   motifs d'abstention (plats pliés)             missing_quantity 533 · unknown_ingredient 444 · no_ingredients 144 sur 1821 plats
+  #5   inconnus par plan (médiane)                   ⛔ NON MESURÉ — 0 / 180 plans portent une valeur ; composition_fill_weekly rend 0 ligne(s)
+  #6   facteur d'activité crossed / legacy / assumed 5 / 24 / 18 sur 47 corps
+  #7   plans dont la ceinture a vu > 1 bouche         0 / 13 (refused: 0)
+  #8   portion_note portant un grammage               181 / 340
+  #9   contraintes actives non couvertes / couvertes  6 non couvertes · 35 couvertes sur 58 actives (35 medical · 14 strict · 9 preference)
+  #10  bouches sans birth_date · profils sans birth_date 25 / 92 · 1193 / 1313
+
+  source: sql = requête de lecture · deno = résolveur DE PRODUCTION importé
+          (food_composition.ts, meal_verdict.ts, plan_energy.ts — jamais une copie)
+CORPUS  180 plans (102 foyer · 78 solo) · 1821 plats · 642 préparations · référentiel 923 lignes / 2601 alias
+
+── #1 · CLÉ PRÉSENTE vs TABLEAU NON VIDE ───────────────────────────────────
+     dishes[].boxes         clé présente 0 · tableau non vide 0 (sur 180 plans)
+     preparations[].boxes   clé présente 56 · tableau non vide 50
+     ⚠️ l'écart 56 vs 50 sur les préparations est la raison pour laquelle
+        « clé présente » n'est PAS la définition retenue.
+
+── #2 · L'OBSTACLE, CHIFFRÉ ────────────────────────────────────────────────
+     plans en locale fr* : 2 / 180 — dont foyer : 1
+     ⇒ mesurer « par langue » sur ce corpus mesurerait UNE génération,
+       pas une langue. C'est pourquoi L2-lang exige dix générations.
+     ventilation des locales :
+     en       household  32
+     en       personal   32
+     en-GB    household  66
+     en-GB    personal   43
+     en-US    household  3
+     en-US    personal   2
+     fr-FR    personal   1
+     fr-US    household  1
+
+── #5 · POURQUOI « NON MESURÉ » ET PAS « 0 » ───────────────────────────────
+     plans 180 · portant une valeur 0 · médiane ∅ · max ∅
+     composition_fill_weekly : 0 ligne(s)
+     ⟳ V0-B a retiré le défaut de colonne le 2026-08-21. Le « 0 » annoncé
+       par le plan était ce défaut, jamais une mesure.
+
+── #8 · LES DEUX DÉFINITIONS COÏNCIDENT ────────────────────────────────────
+     entrées member_portions 340 · note avec un chiffre 181 · note avec un nombre + unité de masse 181
+     ⇒ toute note qui porte un chiffre porte un grammage. La définition
+       retenue est la seconde (nombre + unité), la plus stricte.
+
+── #9 · LA DÉFINITION, ET LES QUATRE POPULATIONS ───────────────────────────
+     COUVERTES      35  (active · medical · porte un jeton)
+     NON COUVERTES  6  (active · strict  · porte un jeton) ← la population de S2
+     HORS DE PORTÉE 8  (aucun jeton : safetyConstraintTokens ne rend pas dietRef)
+     PREFERENCE     9  (dont 9 portent un jeton) — hors sécurité, par décision
+     ventilation :
+     medical     allergy      jeton=t     31
+     medical     medical      jeton=t     4
+     preference  dislike      jeton=t     8
+     preference  intolerance  jeton=t     1
+     strict      allergy      jeton=t     1
+     strict      diet         jeton=f     8
+     strict      intolerance  jeton=t     5
+
+── #3 · LE DÉTAIL — trois grandeurs distinctes, jamais confondues ──────────
+   RÉSOLU = coverage (connus/total) · PESÉ = resolved.length/total (le compteur)
+
+   APRÈS PLIAGE — le compteur #3 (foldPreparationsIntoDishes, production)
+     foyer  lignes  10039 · RÉSOLU  96.9 % · RÉSOLU+PESÉ  93.6 % · dont pesés par convention 779
+     solo   lignes   5161 · RÉSOLU  94.1 % · RÉSOLU+PESÉ  36.4 % · dont pesés par convention 885
+     TOTAL  lignes  15200 · RÉSOLU+PESÉ 74.2 %
+
+   AVANT PLIAGE — ⛔ NE PAS CITER COMME LE COMPTEUR. Il raccorde le
+   dénominateur 9 810 du plan (6 661 lignes de plat + 3 149 de préparation).
+     foyer  plats  3724 (RÉSOLU 96.8 % · +PESÉ 90.9 %) · préparations  2364 (RÉSOLU 96.0 % · +PESÉ 93.5 %)
+            ensemble RÉSOLU 96.5 % · RÉSOLU+PESÉ 91.9 %
+     solo   plats  2922 (RÉSOLU 93.0 % · +PESÉ 21.0 %) · préparations   785 (RÉSOLU 95.0 % · +PESÉ 55.9 %)
+            ensemble RÉSOLU 93.4 % · RÉSOLU+PESÉ 28.4 %
+     TOTAL  9795 lignes NOMMÉES = 6646 (plats) + 3149 (préparations)
+     ⚠️ le SQL compte 9810 entrées JSON : 15 ne portent aucun "term" et readIngredient les JETTE.
+        Les deux dénominateurs ne sont pas le même — 9 810 est celui du SQL.
+
+── #4 · LE DÉTAIL ──────────────────────────────────────────────────────────
+     plats calculables 700 / 1821 (38.4 %)
+     unknown_ingredient     444
+     missing_quantity       533
+     no_ingredients         144
+
+   ⛔ LA PREUVE QUE CE SCRIPT PLIE — le même compteur sans pliage :
+     plats calculables SANS pliage 787 / 1821 (43.2 %)  ⇐ FAUX, et faux dans le sens flatteur
+     plats calculables APRÈS pliage 700 / 1821 (38.4 %)  ⇐ le chiffre retenu
+     ⚠️ SUR LES LIGNES, le pliage fait MONTER le taux (les lignes de
+        préparation sont mieux pesées et se dupliquent). La baisse annoncée
+        par la fiche porte sur le PLAT, pas sur la ligne. Les deux sont ici.
+
+── #2 · LA MOITIÉ QUI EXISTE (par lane), ⛔ ET QUI N'EST PAS LE COMPTEUR ────
+   Le compteur #2 est « par lane ET PAR LANGUE ». Voici la coupe par lane
+   seule, celle du lot 18 — la coupe par langue reste inexistante (L2-lang).
+     foyer  journées calculables 89 / 319 (27.9 %)
+     solo   journées calculables 42 / 318 (13.2 %)
+
+═══════════════════════════════════════════════════════════════════════════
+FIN — dix lignes rendues, dont #2 explicitement marqué inexistant.
+═══════════════════════════════════════════════════════════════════════════
+
+───────────────────────────────────────────────────────────────────────────
+NOTE DE L'OPÉRATEUR — hors sortie du script, ajoutée à la main le 2026-08-21
+───────────────────────────────────────────────────────────────────────────
+
+⛔ LA BASE A BOUGÉ PENDANT LA MESURE, ET ELLE A DÉTRUIT DEUX COMPTEURS.
+
+À 2026-08-21 21:03:48 UTC (23:03:48 CEST), une session parallèle a créé le
+foyer `b1959752-92c8-4038-8c17-992a77d68d21` — quatre bouches (Camille, Malo,
+Anouk, Yanis), quatre lignes de corps portant LES DEUX axes d'activité, et un
+compte de plus. C'est la fixture de `V0-C`.
+
+Conséquence, mesurée des deux côtés de l'horodatage :
+
+    compteur        avant 21:00 UTC              après (cette sortie)
+    #6              1 / 24 / 18 sur 43 corps      5 / 24 / 18 sur 47 corps
+    #10 bouches     25 / 88                       25 / 92
+    #10 profils     1 193 / 1 312                 1 193 / 1 313
+
+Les valeurs « avant » sont celles annoncées par le plan, et elles se
+reproduisent exactement :
+
+    select count(*), count(*) filter (where day_activity is not null
+      and sport_frequency is not null)
+    from household_member_bodies where recorded_at < '2026-08-21 21:00:00+00';
+    -> 43 · 1
+
+    select count(*), count(*) filter (where birth_date is null)
+    from household_members where joined_at < '2026-08-21 21:00:00+00';
+    -> 88 · 25
+
+⇒ LA FICHE `V0-E′` DIT QUE QUATRE COMPTEURS (#1, #3, #5, #7) SONT DÉTRUITS PAR
+  `V0-D`. ELLE N'AVAIT PAS VU QUE `V0-C` EN DÉTRUIT DEUX AUTRES (#6, #10).
+  L'ordre « `V0-E′` avant le run » ne suffit pas : il fallait aussi `V0-E′`
+  avant la FIXTURE. Cette sortie est donc le « avant » du RUN, pas le « avant »
+  de la vague 0 ; les valeurs pré-fixture ci-dessus sont, elles, le vrai zéro.
+
+⚠️ Rejouabilité vérifiée : deux exécutions consécutives (23:10:52 et 23:10:54)
+   rendent une sortie IDENTIQUE, à la seule ligne d'horodatage près (`diff`
+   ne rapporte que la ligne 3).

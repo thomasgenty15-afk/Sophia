@@ -12,6 +12,8 @@ import Modal from "./ui/Modal";
 import { formatDateLong, formatWeekday } from "../i18n/format";
 import { plural } from "../i18n/plural";
 import { t } from "../i18n/t";
+// ⟳ 2026-09-12 · C3 — la MÊME dérivation que les lignes de recette.
+import { ingredientQuantityText } from "../lib/ingredientQuantity";
 
 // LA LISTE DE COURSES — celle qu'on emporte au magasin.
 //
@@ -118,8 +120,29 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
   /** L'URL signée du dernier export, gardée pour que le lien reste cliquable. */
   const [pdfUrl, setPdfUrl] = React.useState<string | null>(null);
 
-  const groups = React.useMemo(() => groupByAisle(props.items), [props.items]);
-  const left = props.items.length - ticked.size;
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · ÉTAPE C3 — CE QU'ON NE MET DANS AUCUN PANIER N'EST PAS UNE
+  //                LIGNE DE COURSES.
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ MESURÉ SUR LA CAMPAGNE DU 2026-09-11: 2 tirs sur 6 réclamaient **219 g**
+  // et **287 g d'EAU**. L'eau du robinet est mesurée dans la préparation — elle
+  // reste dans la recette et dans la casserole — mais elle ne s'achète pas.
+  // Le serveur la marque `purchasable: false`; l'écran la retire d'ici.
+  //
+  // ⚠️ UN SEUL SLUG EST CONCERNÉ (`NON_PURCHASABLE_SLUGS`), pas un groupe ni un
+  // rayon: le café, les sodas et une eau conditionnée restent des achats.
+  //
+  // ⚠️ LES INDEX SONT CEUX DE CETTE LISTE, ET DE BOUT EN BOUT. Les ratures, les
+  // vagues, le bloc congélateur et le rendu lisent tous `items`; mélanger deux
+  // indexations rayerait la mauvaise ligne (`groupByAisle` garde l'index, et
+  // c'est pour ça qu'il le rend).
+  const items = React.useMemo(
+    () => props.items.filter((i) => i.purchasable !== false),
+    [props.items],
+  );
+  const groups = React.useMemo(() => groupByAisle(items), [items]);
+  const left = items.length - ticked.size;
 
   // LES VAGUES. Calculées ici et pas au chargement: elles ne dépendent que de
   // ce que le panneau reçoit déjà, et les recalculer ailleurs ferait deux
@@ -129,10 +152,10 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
     return waveAssignments({
       startsOn: props.startsOn,
       durationDays: props.durationDays ?? 7,
-      shoppingList: props.items,
+      shoppingList: items,
       preparations: props.preparations,
     });
-  }, [props.startsOn, props.durationDays, props.items, props.preparations]);
+  }, [props.startsOn, props.durationDays, items, props.preparations]);
 
   // UNE SEULE VAGUE NE SE MONTRE PAS: c'est la liste plate d'avant, et un
   // en-tête posé sur la totalité n'ajoute qu'un mot à lire.
@@ -247,8 +270,16 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
                           portée par le `line-through` du parent, dont elle
                           hérite. Deux gris de plus pour redire ce qu'une barre
                           dit déjà, dont un `gray-300` à 1,7:1. */}
-                      {item.quantity && (
-                        <span className="text-ink-soft">{item.quantity}</span>
+                      {/* ⟳ 2026-09-12 · C3 — LE TEXTE EST DÉRIVÉ DE LA DONNÉE.
+                          ⛔ `item.quantity` seul, c'était la phrase du modèle:
+                          après une réparation ou un arrondi elle pouvait décrire
+                          une quantité que le plan n'a plus. La même fonction que
+                          les lignes de recette (`renderQuantity`, module commun)
+                          rend la donnée structurée quand elle existe et RETOMBE
+                          sur le texte persisté quand elle manque — les plans
+                          écrits avant ce lot sont donc inchangés, au caractère. */}
+                      {ingredientQuantityText(item) && (
+                        <span className="text-ink-soft">{ingredientQuantityText(item)}</span>
                       )}
                       {/* ⟳ LOT C — LE GESTE, SUR LA LIGNE QUI LE PORTE.
                           ⛔ `caution` ET PAS `info`: le bleu de `info` est déjà
@@ -291,11 +322,13 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
         </p>
         <ul className="mt-1 flex flex-col gap-0.5">
           {frozen.map((index) => {
-            const item = props.items[index];
+            const item = items[index];
             return (
               <li key={`freeze-${index}`} className="flex flex-wrap items-baseline gap-2 text-sm text-ink">
                 <span className="break-words">{item.term}</span>
-                {item.quantity && <span className="tabular-nums text-ink-soft">{item.quantity}</span>}
+                {ingredientQuantityText(item) && (
+                  <span className="tabular-nums text-ink-soft">{ingredientQuantityText(item)}</span>
+                )}
               </li>
             );
           })}
@@ -304,7 +337,7 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
     );
   }
 
-  if (props.items.length === 0) return null;
+  if (items.length === 0) return null;
 
   return (
     <Modal open={props.open} onClose={props.onClose} title={t("meals.shopping.title")}>
@@ -386,7 +419,7 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
                 )}
                 {/* ⚠️ MÊME À UNE SEULE COURSE — c'est le cas où il y a le plus
                     à congeler. */}
-                {renderFreezeBlock(props.items.map((_, i) => i))}
+                {renderFreezeBlock(items.map((_, i) => i))}
                 {groups.map((group) => renderGroup(group))}
               </>
             )}

@@ -1,0 +1,108 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Chaque dimanche soir, je finis par improviser ma semaine et je perds le rythme. J ai l impression que Sophia devrait avoir une fonctionnalite pour preparer ce moment recurrent, mais je ne sais pas laquelle.",
+      "created_at": "2026-06-23T18:06:35.244564+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_atomic_20260623_r2-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui, ça ressemble bien à une opportunité pour les initiatives : un message récurrent avant ton dimanche soir peut t’aider à préparer ta semaine au lieu d’improviser. Tu veux qu’il t’aide à quoi en priorité : faire le point, planifier les 3 priorités, ou préparer le démarrage de lundi ?",
+      "created_at": "2026-06-23T18:06:43.765826+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_atomic_20260623_r2-t01",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Initiative, ok. Rappelle-moi dans 30 minutes de noter le message du dimanche soir, et dis-moi aussi ou je regle la destination Plan actuel ou Base de vie sans le faire a ma place.",
+      "created_at": "2026-06-23T18:06:53.60493+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_atomic_20260623_r2-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Pour la destination, ça se règle dans la section initiatives : tu choisis soit Plan actuel, soit Base de vie selon l’endroit où tu veux que le message apparaisse.\n\nPour ton cas du dimanche soir, initiatives est bien l’option adaptée : tu peux y préciser quoi dire, à quel moment le dire, et à quelle fréquence.",
+      "created_at": "2026-06-23T18:07:01.195103+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_atomic_20260623_r2-t02",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "d24fa363-2595-4b58-b7f1-99eff92b3576",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-23T18:06:43.749Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-23T18:07:01.182Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 2,
+            "trigger_context": "chaque dimanche soir",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "The user wants help with a recurring Sunday evening planning moment and is asking where to choose a destination between Plan actuel and Base de vie.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated weekly context fits initiatives.",
+              "trigger_context": "chaque dimanche soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "The user struggles to prepare their week in a repeated Sunday evening context and suggests Sophia should help with that recurring moment."
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-23T18:06:43.749Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-23T18:07:01.182Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 2,
+            "trigger_context": "chaque dimanche soir",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "The user wants help with a recurring Sunday evening planning moment and is asking where to choose a destination between Plan actuel and Base de vie.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated weekly context fits initiatives.",
+              "trigger_context": "chaque dimanche soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "The user struggles to prepare their week in a repeated Sunday evening context and suggests Sophia should help with that recurring moment."
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-23T18:07:01.189312+00:00"
+  }
+}

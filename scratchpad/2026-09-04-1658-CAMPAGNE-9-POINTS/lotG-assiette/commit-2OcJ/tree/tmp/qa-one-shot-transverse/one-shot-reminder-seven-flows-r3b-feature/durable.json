@@ -1,0 +1,145 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "428debaa-84ed-4065-b722-29ffed87b761",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T14:05:00+00:00",
+      "event_context": "one_shot_reminder:ecrire_un_exemple_precis",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: écrire un exemple précis.",
+        "parse_source": "payload_when_hint",
+        "request_text": "Rappelle-moi demain à 16h05 d'écrire un exemple précis.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: écrire un exemple précis.",
+        "source_message_id": null,
+        "reminder_instruction": "écrire un exemple précis"
+      },
+      "created_at": "2026-06-24T13:57:21.431721+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Idée produit : dans l'historique, j'aimerais voir les effets directs comme les rappels créés. Rappelle-moi demain à 16h05 d'écrire un exemple précis.",
+      "created_at": "2026-06-24T13:57:18.0027+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r3b-feature-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Bonne idée pour l’historique. Je ne peux pas confirmer cette vue ici, mais le rappel est bien noté pour demain à 16h05 : écrire un exemple précis.",
+      "created_at": "2026-06-24T13:57:29.979185+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r3b-feature-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "8e1f26f2-cde8-453e-92bc-99e51f9e8df6",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "product_help",
+        "started_at": "2026-06-24T13:57:29.972Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T13:57:29.972Z",
+        "working_state": {
+          "product_help_local_state": {
+            "mode": "standalone",
+            "status": "open",
+            "skill_id": "product_help",
+            "product_help_state": {
+              "stage": "answering",
+              "max_turns": 3,
+              "turn_count": 1,
+              "updated_at": "2026-06-24T13:57:28.358Z",
+              "last_intent": "explain_feature",
+              "last_target": {
+                "kind": "feature_catalog",
+                "confidence": "low",
+                "feature_id": "resources.overview",
+                "object_ref": null,
+                "object_type": null
+              },
+              "last_locations": [
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Ressources",
+                "Dashboard > Plan"
+              ],
+              "last_answer_summary": "Le user propose une idee produit sur l'affichage des effets directs dans l'historique, tout en demandant un rappel ponctuel.",
+              "parent_flow_context": null,
+              "last_catalog_feature_ids": [
+                "resources.overview",
+                "initiatives"
+              ]
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "product_help",
+        "started_at": "2026-06-24T13:57:29.972Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T13:57:29.972Z",
+        "working_state": {
+          "product_help_local_state": {
+            "mode": "standalone",
+            "status": "open",
+            "skill_id": "product_help",
+            "product_help_state": {
+              "stage": "answering",
+              "max_turns": 3,
+              "turn_count": 1,
+              "updated_at": "2026-06-24T13:57:28.358Z",
+              "last_intent": "explain_feature",
+              "last_target": {
+                "kind": "feature_catalog",
+                "confidence": "low",
+                "feature_id": "resources.overview",
+                "object_ref": null,
+                "object_type": null
+              },
+              "last_locations": [
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Ressources",
+                "Dashboard > Plan"
+              ],
+              "last_answer_summary": "Le user propose une idee produit sur l'affichage des effets directs dans l'historique, tout en demandant un rappel ponctuel.",
+              "parent_flow_context": null,
+              "last_catalog_feature_ids": [
+                "resources.overview",
+                "initiatives"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T13:57:29.976222+00:00"
+  }
+}

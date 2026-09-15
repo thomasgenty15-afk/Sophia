@@ -1,0 +1,312 @@
+{
+  "ok": true,
+  "request_id": "d42d1f11-e790-4467-b080-1b5cf7f375c0",
+  "user_id": "0877c183-c3c4-4691-98cb-0ccb913ae401",
+  "channel": "web",
+  "scope": "web",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Oui, ça ressemble à une bonne opportunité pour des initiatives : un message récurrent le dimanche soir pour te rappeler de préparer tes affaires pour le lundi. Tu veux que je te propose une formulation simple à utiliser ?",
+    "mode": "companion",
+    "delivery": null,
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "d42d1f11-e790-4467-b080-1b5cf7f375c0",
+        "source_message_id": "b57e7d15-30ff-4984-89a1-9ec217bee58e",
+        "user_id": "0877c183-c3c4-4691-98cb-0ccb913ae401",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "direct_effect_time_context": {
+          "now_utc": "2026-07-02T14:04:22.628Z",
+          "user_timezone": "Europe/Paris",
+          "user_locale": "fr-FR",
+          "user_local_datetime": "2026-07-02T16:04:22",
+          "user_local_human": "jeudi 2 juillet 2026 à 16:04"
+        },
+        "note_information": {
+          "source_flow_id": "feature_opportunity",
+          "handoff_reason": "topic_change",
+          "target_dispatcher": "global",
+          "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Tous les dimanches soir\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Tous les dimanches soir\",\"user_problem_summary\":\"User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time.\",\"priority_reason\":\"Repeated weekly context fits initiatives.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Tous les dimanches soir\",\"J'oublie de préparer mes affaires pour la semaine\",\"J'aimerais mettre un truc en place pour y penser à chaque fois\"]}",
+          "user_words": [
+            "Tous les dimanches soir j'oublie de préparer mes affaires pour la semaine et après je cours partout le lundi. J'aimerais mettre un truc en place pour y penser à chaque fois.",
+            "Tous les dimanches soir",
+            "J'oublie de préparer mes affaires pour la semaine"
+          ],
+          "structured_context": {
+            "user_message_summary": "User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time.",
+            "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+            "collected_state": {
+              "feature": "initiatives",
+              "opportunity_kind": "recurring_context",
+              "trigger_context": "Tous les dimanches soir",
+              "dispatcher_signal_context": {
+                "feature": "initiatives",
+                "opportunity_kind": "recurring_context",
+                "trigger_context": "Tous les dimanches soir",
+                "user_problem_summary": "User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time.",
+                "priority_reason": "Repeated weekly context fits initiatives."
+              }
+            },
+            "unresolved_questions": [],
+            "recommended_next_focus": "global",
+            "evidence": [
+              "Tous les dimanches soir",
+              "J'oublie de préparer mes affaires pour la semaine",
+              "J'aimerais mettre un truc en place pour y penser à chaque fois"
+            ]
+          },
+          "confidence": "high"
+        },
+        "skill_signals": {
+          "feature_opportunity": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "initiative_opportunity",
+            "context": {
+              "feature": "initiatives",
+              "opportunity_kind": "recurring_context",
+              "trigger_context": "Tous les dimanches soir",
+              "user_problem_summary": "User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time.",
+              "priority_reason": "Repeated weekly context fits initiatives."
+            }
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "feature_opportunity_initiatives",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "taxonomy_first",
+          "plan_confidence": 0.7
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "feature_opportunity",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "feature_opportunity_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "selected_handler": "feature_opportunity"
+      },
+      "effect_ledger": {
+        "turn_id": "d42d1f11-e790-4467-b080-1b5cf7f375c0",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "feature_opportunity",
+      "skill_run": {
+        "selected_skill_id": "feature_opportunity",
+        "reason_code": "feature_opportunity_signal",
+        "status": "continue",
+        "latency_ms": 7292
+      }
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "d42d1f11-e790-4467-b080-1b5cf7f375c0",
+      "source_message_id": "b57e7d15-30ff-4984-89a1-9ec217bee58e",
+      "user_id": "0877c183-c3c4-4691-98cb-0ccb913ae401",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "direct_effect_time_context": {
+        "now_utc": "2026-07-02T14:04:22.628Z",
+        "user_timezone": "Europe/Paris",
+        "user_locale": "fr-FR",
+        "user_local_datetime": "2026-07-02T16:04:22",
+        "user_local_human": "jeudi 2 juillet 2026 à 16:04"
+      },
+      "note_information": {
+        "source_flow_id": "feature_opportunity",
+        "handoff_reason": "topic_change",
+        "target_dispatcher": "global",
+        "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Tous les dimanches soir\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Tous les dimanches soir\",\"user_problem_summary\":\"User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time.\",\"priority_reason\":\"Repeated weekly context fits initiatives.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Tous les dimanches soir\",\"J'oublie de préparer mes affaires pour la semaine\",\"J'aimerais mettre un truc en place pour y penser à chaque fois\"]}",
+        "user_words": [
+          "Tous les dimanches soir j'oublie de préparer mes affaires pour la semaine et après je cours partout le lundi. J'aimerais mettre un truc en place pour y penser à chaque fois.",
+          "Tous les dimanches soir",
+          "J'oublie de préparer mes affaires pour la semaine"
+        ],
+        "structured_context": {
+          "user_message_summary": "User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time.",
+          "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+          "collected_state": {
+            "feature": "initiatives",
+            "opportunity_kind": "recurring_context",
+            "trigger_context": "Tous les dimanches soir",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "opportunity_kind": "recurring_context",
+              "trigger_context": "Tous les dimanches soir",
+              "user_problem_summary": "User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time.",
+              "priority_reason": "Repeated weekly context fits initiatives."
+            }
+          },
+          "unresolved_questions": [],
+          "recommended_next_focus": "global",
+          "evidence": [
+            "Tous les dimanches soir",
+            "J'oublie de préparer mes affaires pour la semaine",
+            "J'aimerais mettre un truc en place pour y penser à chaque fois"
+          ]
+        },
+        "confidence": "high"
+      },
+      "skill_signals": {
+        "feature_opportunity": {
+          "detected": true,
+          "confidence_band": "high",
+          "reason": "initiative_opportunity",
+          "context": {
+            "feature": "initiatives",
+            "opportunity_kind": "recurring_context",
+            "trigger_context": "Tous les dimanches soir",
+            "user_problem_summary": "User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time.",
+            "priority_reason": "Repeated weekly context fits initiatives."
+          }
+        }
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "feature_opportunity_initiatives",
+        "reasoning_complexity": "low",
+        "context_need": "minimal",
+        "memory_mode": "none",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "tiny",
+        "targets": [],
+        "retrieval_policy": "taxonomy_first",
+        "plan_confidence": 0.7
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "feature_opportunity",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "feature_opportunity_signal",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "selected_handler": "feature_opportunity"
+    },
+    "effect_ledger": {
+      "turn_id": "d42d1f11-e790-4467-b080-1b5cf7f375c0",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "feature_opportunity",
+    "skill_run": {
+      "selected_skill_id": "feature_opportunity",
+      "reason_code": "feature_opportunity_signal",
+      "status": "continue",
+      "latency_ms": 7292
+    }
+  },
+  "trace_error": null
+}

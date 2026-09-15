@@ -1,0 +1,3809 @@
+{
+  "run_id": "phase2-real-20260515-green-7",
+  "user_id": "9280501a-beab-4d33-bbbd-929aa1c671a9",
+  "scenarios": {
+    "s1-action-memory": {
+      "turns": [
+        {
+          "turn": 1,
+          "request_id": "phase2-real-20260515-green-7-s1-action-memory-t01",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Pour Session focus courte, souvenirs mémorisés uniquement : qu'est-ce qui aide au démarrage ?",
+          "assistant": "Oui. Pour Session focus courte, ce qui ressort est simple :\n- Tu démarres mieux quand tu ouvres directement un fichier déjà prêt et que tu lances un minuteur de 12 minutes.\n- Quand la cible augmente, garder un démarrage sous 15 minutes évite que l'habitude devienne intimidante.\nDonc je garderais surtout ça : préparer le démarrage, puis lancer le minuteur directement.",
+          "trace": {
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "reason_code": "normal_reply_default",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": "matched_active_plan_item",
+              "status": "identified",
+              "detected": true,
+              "action_type": "habit",
+              "action_title": "Session focus courte",
+              "plan_item_id": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+              "expansion_policy": "exact_then_action_family_recent",
+              "action_family_key": "habit:session_focus"
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habit:session_focus",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "startup friction focus session patterns",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                },
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "aide au démarrage session focus",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "Session focus courte",
+                  "expansion_policy": "exact_then_action_family_recent",
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "attack_card",
+              "surface_id": "attack_card",
+              "prop_reason": "user_asking_for_startup_help_on_specific_action",
+              "source_span": "qu'est-ce qui aide au démarrage ?",
+              "target_hint": "Session focus courte",
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "identified",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_attack_card"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {}
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        }
+      ]
+    },
+    "s2-level-memory": {
+      "turns": [
+        {
+          "turn": 1,
+          "request_id": "phase2-real-20260515-green-7-s2-level-memory-t01",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Je commence un nouveau niveau. D'après le handoff du niveau précédent, qu'est-ce que tu dois garder en tête ?",
+          "assistant": "Top pour le nouveau niveau ! 🚀 \n\nPour la suite, je dois surtout me rappeler que tu avances beaucoup mieux quand on se concentre sur une seule action concrète à la fois, d'après ce qu'on a vu dans l'étape Sortir de l'inertie. Mon but c'est d'éviter les gros blocs abstraits pour qu'on reste toujours dans l'efficace.",
+          "trace": {
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "reason_code": "normal_reply_default",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "level_reference": {
+              "reason": "level_transition_reference",
+              "status": "transition",
+              "detected": true,
+              "expansion_policy": "include_level_execution_handoff"
+            },
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "current_level",
+                  "type": "level",
+                  "priority": "high",
+                  "query_hint": "handoff niveau précédent",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "transition",
+                  "type": "level",
+                  "priority": "medium",
+                  "query_hint": "Je commence un nouveau niveau. D'après le handoff du niveau précédent, qu'est-ce que tu dois garder en tête ?",
+                  "expansion_policy": "include_level_execution_handoff",
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "taxonomy_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "self_reminder",
+              "surface_id": "dashboard.reminders",
+              "prop_reason": "user_formulates_useful_self_reminder",
+              "source_span": "garder en tete ?",
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": "create_recurring_reminder",
+              "confidence_band": "medium",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_self_reminder"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {}
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        }
+      ]
+    },
+    "s3-daily-active": {
+      "turns": [
+        {
+          "turn": 1,
+          "request_id": "phase2-real-20260515-green-7-s3-daily-active-t01",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Session focus courte, c'est fait. Bloquer les créneaux de la semaine, pas fait, j'étais trop crevée pour m'y mettre.",
+          "assistant": "Super pour la session focus, c'est top de l'avoir validée ! 👏\n\nPour les créneaux, c'est normal d'être complètement crevée un vendredi soir. Ne force pas. Repose-toi bien ce soir, tu pourras bloquer ça tranquillement ce week-end à tête reposée.",
+          "trace": {
+            "response_owner": "conversation_handler",
+            "selected_handler": "daily_action_review_v1",
+            "reason_code": "active_conversation_skill_continue",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "daily_action_review_v1": {
+                  "reason": "user_reporting_progress_during_daily_review",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        }
+      ]
+    },
+    "s4-weekly-active": {
+      "turns": [
+        {
+          "turn": 1,
+          "request_id": "phase2-real-20260515-green-7-s4-weekly-active-t01",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Cette semaine les habitudes sont à moitié passées : j'ai fait deux sessions focus mais j'ai raté la marche. Je me sens mieux quand même, juste fatiguée.",
+          "assistant": "Deux sessions focus validées, c'est déjà une très belle base ! C'est normal d'être fatiguée un vendredi soir, l'essentiel c'est que tu te sentes mieux globalement. \n\nRepose-toi bien ce soir, la marche de décompression pourra se faire tranquillement ce week-end sans te mettre la pression. 🛋️",
+          "trace": {
+            "response_owner": "conversation_handler",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "reason_code": "active_conversation_skill_continue",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_responding_to_weekly_review",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        }
+      ]
+    },
+    "s5-daily-exit-action-memory": {
+      "turns": [
+        {
+          "turn": 1,
+          "request_id": "phase2-real-20260515-green-7-s5-daily-exit-action-memory-t01",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Attends, oublie le bilan. Je veux parler de Session focus courte maintenant : pourquoi le démarrage bloque souvent ?",
+          "assistant": "Pour toi, le bon format ici serait une action de sept minutes, observable et concrète. Choisis une seule micro-livraison liée au sujet courant et rends-la visible, sans ouvrir une nouvelle décision.",
+          "trace": {
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "reason_code": "active_skill_exit_requested",
+            "active_flow_arbitration": {
+              "decision": "abandon_active",
+              "reason_code": "active_skill_exit_requested",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "normal_reply"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": "matched_active_plan_item",
+              "status": "identified",
+              "detected": true,
+              "action_type": "habit",
+              "action_title": "Session focus courte",
+              "plan_item_id": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+              "expansion_policy": "exact_then_action_family_recent",
+              "action_family_key": "habit:session_focus"
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "difficultés démarrage session focus",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "Session focus courte",
+                  "expansion_policy": "exact_then_action_family_recent",
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "inventory",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "medium"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "attack_card",
+              "surface_id": "attack_card",
+              "prop_reason": "user_mentions_recurring_startup_friction_on_habit",
+              "source_span": "le démarrage bloque souvent",
+              "target_hint": "Session focus courte",
+              "offer_timing": "after_current_pending",
+              "should_offer": false,
+              "target_status": "identified",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_attack_card"
+            },
+            "skill_signals": {
+              "exit": {
+                "reason": "user_explicitly_requested_to_skip_review",
+                "skill_id": "daily_action_review_v1"
+              },
+              "entry": {
+                "execution_breakdown": {
+                  "reason": "user_asking_about_execution_friction_on_specific_action",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {
+                "daily_action_review_v1": {
+                  "reason": "active_skill_continue",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        }
+      ]
+    },
+    "s5b-daily-exit-action-memory": {
+      "turns": [
+        {
+          "turn": 1,
+          "request_id": "phase2-real-20260515-green-7-s5b-daily-exit-action-memory-t01",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Attends, oublie le bilan. Je veux parler de Session focus courte maintenant : pourquoi le démarrage bloque souvent ?",
+          "assistant": "Pour toi, le bon format ici serait une action de sept minutes, observable et concrète. Choisis une seule micro-livraison liée au sujet courant et rends-la visible, sans ouvrir une nouvelle décision.",
+          "trace": {
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "reason_code": "active_skill_exit_requested",
+            "active_flow_arbitration": {
+              "decision": "abandon_active",
+              "reason_code": "active_skill_exit_requested",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "normal_reply"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": "matched_active_plan_item",
+              "status": "identified",
+              "detected": true,
+              "action_type": "habit",
+              "action_title": "Session focus courte",
+              "plan_item_id": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+              "expansion_policy": "exact_then_action_family_recent",
+              "action_family_key": "habit:session_focus"
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "session focus courte patterns",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                },
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "startup friction and focus sessions",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "Session focus courte",
+                  "expansion_policy": "exact_then_action_family_recent",
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "inventory",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "medium"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "attack_card",
+              "surface_id": "attack_card",
+              "prop_reason": "user_mentions_startup_friction_on_specific_habit",
+              "source_span": "le démarrage bloque souvent",
+              "target_hint": "Session focus courte",
+              "offer_timing": "after_current_pending",
+              "should_offer": false,
+              "target_status": "identified",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_attack_card"
+            },
+            "skill_signals": {
+              "exit": {
+                "reason": "user_explicitly_requested_to_stop_the_review",
+                "skill_id": "daily_action_review_v1"
+              },
+              "entry": {
+                "execution_breakdown": {
+                  "reason": "user_asking_for_analysis_of_startup_friction",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {
+                "daily_action_review_v1": {
+                  "reason": "active_skill_continue",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        }
+      ]
+    }
+  },
+  "db": {
+    "chat_messages": [
+      {
+        "id": "e567f324-328d-49d6-90ec-f1dc08df9dc8",
+        "scope": "phase2-real-phase2-real-20260515-green-7-s1-action-memory",
+        "role": "user",
+        "content": "Pour Session focus courte, souvenirs mémorisés uniquement : qu'est-ce qui aide au démarrage ?",
+        "metadata": {
+          "request_id": "phase2-real-20260515-green-7-s1-action-memory-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T18:32:08.708561+00:00"
+      },
+      {
+        "id": "c15c67a3-b568-4360-97c9-ec7414b1d34b",
+        "scope": "phase2-real-phase2-real-20260515-green-7-s1-action-memory",
+        "role": "assistant",
+        "content": "Oui. Pour Session focus courte, ce qui ressort est simple :\n- Tu démarres mieux quand tu ouvres directement un fichier déjà prêt et que tu lances un minuteur de 12 minutes.\n- Quand la cible augmente, garder un démarrage sous 15 minutes évite que l'habitude devienne intimidante.\nDonc je garderais surtout ça : préparer le démarrage, puis lancer le minuteur directement.",
+        "metadata": {
+          "channel": "web",
+          "request_id": "phase2-real-20260515-green-7-s1-action-memory-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T18:32:12.638144+00:00"
+      },
+      {
+        "id": "2c4f60bd-15be-4367-97d9-e9deb66c746c",
+        "scope": "phase2-real-phase2-real-20260515-green-7-s2-level-memory",
+        "role": "user",
+        "content": "Je commence un nouveau niveau. D'après le handoff du niveau précédent, qu'est-ce que tu dois garder en tête ?",
+        "metadata": {
+          "request_id": "phase2-real-20260515-green-7-s2-level-memory-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T18:32:26.361688+00:00"
+      },
+      {
+        "id": "1004db20-574e-4284-9042-b8497382176b",
+        "scope": "phase2-real-phase2-real-20260515-green-7-s2-level-memory",
+        "role": "assistant",
+        "content": "Top pour le nouveau niveau ! 🚀 \n\nPour la suite, je dois surtout me rappeler que tu avances beaucoup mieux quand on se concentre sur une seule action concrète à la fois, d'après ce qu'on a vu dans l'étape Sortir de l'inertie. Mon but c'est d'éviter les gros blocs abstraits pour qu'on reste toujours dans l'efficace.",
+        "metadata": {
+          "channel": "web",
+          "request_id": "phase2-real-20260515-green-7-s2-level-memory-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T18:32:39.439049+00:00"
+      },
+      {
+        "id": "0fa21da5-66ac-47ad-89fe-007b8effa63f",
+        "scope": "phase2-real-phase2-real-20260515-green-7-s3-daily-active",
+        "role": "user",
+        "content": "Session focus courte, c'est fait. Bloquer les créneaux de la semaine, pas fait, j'étais trop crevée pour m'y mettre.",
+        "metadata": {
+          "request_id": "phase2-real-20260515-green-7-s3-daily-active-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T18:32:54.426195+00:00"
+      },
+      {
+        "id": "d81d38a3-a53d-403b-83d2-e541066636c5",
+        "scope": "phase2-real-phase2-real-20260515-green-7-s3-daily-active",
+        "role": "assistant",
+        "content": "Super pour la session focus, c'est top de l'avoir validée ! 👏\n\nPour les créneaux, c'est normal d'être complètement crevée un vendredi soir. Ne force pas. Repose-toi bien ce soir, tu pourras bloquer ça tranquillement ce week-end à tête reposée.",
+        "metadata": {
+          "channel": "web",
+          "request_id": "phase2-real-20260515-green-7-s3-daily-active-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 1,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T18:33:08.552985+00:00"
+      },
+      {
+        "id": "ea5b1942-68e4-45ec-a153-06c58f9ab974",
+        "scope": "phase2-real-phase2-real-20260515-green-7-s4-weekly-active",
+        "role": "user",
+        "content": "Cette semaine les habitudes sont à moitié passées : j'ai fait deux sessions focus mais j'ai raté la marche. Je me sens mieux quand même, juste fatiguée.",
+        "metadata": {
+          "request_id": "phase2-real-20260515-green-7-s4-weekly-active-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T18:33:27.942662+00:00"
+      },
+      {
+        "id": "060a484f-39b5-40a5-b7ae-0f28e88341ca",
+        "scope": "phase2-real-phase2-real-20260515-green-7-s4-weekly-active",
+        "role": "assistant",
+        "content": "Deux sessions focus validées, c'est déjà une très belle base ! C'est normal d'être fatiguée un vendredi soir, l'essentiel c'est que tu te sentes mieux globalement. \n\nRepose-toi bien ce soir, la marche de décompression pourra se faire tranquillement ce week-end sans te mettre la pression. 🛋️",
+        "metadata": {
+          "channel": "web",
+          "request_id": "phase2-real-20260515-green-7-s4-weekly-active-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 1,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T18:33:41.780758+00:00"
+      },
+      {
+        "id": "d203fade-bbc0-4856-905d-8ff22916ea87",
+        "scope": "phase2-real-phase2-real-20260515-green-7-s5-daily-exit-action-memory",
+        "role": "user",
+        "content": "Attends, oublie le bilan. Je veux parler de Session focus courte maintenant : pourquoi le démarrage bloque souvent ?",
+        "metadata": {
+          "request_id": "phase2-real-20260515-green-7-s5-daily-exit-action-memory-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T18:34:01.479293+00:00"
+      },
+      {
+        "id": "d418f097-99e7-4f2d-b770-0e7c32874438",
+        "scope": "phase2-real-phase2-real-20260515-green-7-s5-daily-exit-action-memory",
+        "role": "assistant",
+        "content": "Pour toi, le bon format ici serait une action de sept minutes, observable et concrète. Choisis une seule micro-livraison liée au sujet courant et rends-la visible, sans ouvrir une nouvelle décision.",
+        "metadata": {
+          "channel": "web",
+          "request_id": "phase2-real-20260515-green-7-s5-daily-exit-action-memory-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gemini-3-flash-preview",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "standard",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_standard",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 3.5,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T18:34:13.322356+00:00"
+      },
+      {
+        "id": "3909e413-9ad9-414d-8009-333e0f3de489",
+        "scope": "phase2-real-phase2-real-20260515-green-7-s5b-daily-exit-action-memory",
+        "role": "user",
+        "content": "Attends, oublie le bilan. Je veux parler de Session focus courte maintenant : pourquoi le démarrage bloque souvent ?",
+        "metadata": {
+          "request_id": "phase2-real-20260515-green-7-s5b-daily-exit-action-memory-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T18:35:55.869983+00:00"
+      },
+      {
+        "id": "ddbf87b6-2d81-420e-88b2-457d5da69174",
+        "scope": "phase2-real-phase2-real-20260515-green-7-s5b-daily-exit-action-memory",
+        "role": "assistant",
+        "content": "Pour toi, le bon format ici serait une action de sept minutes, observable et concrète. Choisis une seule micro-livraison liée au sujet courant et rends-la visible, sans ouvrir une nouvelle décision.",
+        "metadata": {
+          "channel": "web",
+          "request_id": "phase2-real-20260515-green-7-s5b-daily-exit-action-memory-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gemini-3-flash-preview",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "standard",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_standard",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 3.5,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T18:36:08.589177+00:00"
+      }
+    ],
+    "entries": [],
+    "memories": [
+      {
+        "id": "1e0ac99f-bb35-40d4-88b8-02f4d86e019c",
+        "kind": "action_observation",
+        "status": "active",
+        "content_text": "Sur Session focus courte, le user demarre mieux quand il ouvre directement un fichier deja pret et lance un minuteur de 12 minutes.",
+        "metadata": {
+          "source": "phase2_real_qa_seed",
+          "memory_type": "action_execution_profile"
+        },
+        "canonical_key": "qa_action_exact:c99afab9-6c01-421f-9107-4b0bb245f1ed",
+        "observed_at": "2026-05-13T08:15:00+00:00"
+      },
+      {
+        "id": "62541e78-558c-4602-a8c2-f8be05bf38e9",
+        "kind": "action_observation",
+        "status": "active",
+        "content_text": "Pattern famille session_focus: quand la cible augmente, garder un demarrage sous 15 minutes evite que l'habitude devienne intimidante.",
+        "metadata": {
+          "source": "phase2_real_qa_seed",
+          "memory_type": "action_execution_profile"
+        },
+        "canonical_key": "qa_action_family:habit:session_focus",
+        "observed_at": "2026-05-10T08:15:00+00:00"
+      },
+      {
+        "id": "d915ac2c-9d1c-4fa5-a8f1-f3b86e5da858",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Niveau precedent Sortir de l'inertie: le user progresse mieux quand Sophia garde les demandes en une seule prochaine action et evite de reproposer des gros blocs abstraits.",
+        "metadata": {
+          "source": "phase2_real_qa_seed",
+          "memory_type": "level_execution_handoff",
+          "next_level_id": "32bbb73c-2444-4085-a1e3-9d8aa5182299",
+          "previous_level_id": "a67434bb-fecf-459b-abdc-e35fc5cbc25c",
+          "next_transformation_id": "32bbb73c-2444-4085-a1e3-9d8aa5182299",
+          "previous_transformation_id": "a67434bb-fecf-459b-abdc-e35fc5cbc25c"
+        },
+        "canonical_key": "level_execution_handoff:a67434bb-fecf-459b-abdc-e35fc5cbc25c",
+        "observed_at": "2026-05-08T18:30:00+00:00"
+      }
+    ],
+    "traces": [
+      {
+        "turn_id": "phase2-real-20260515-green-7-s1-action-memory-t01",
+        "user_id": "9280501a-beab-4d33-bbbd-929aa1c671a9",
+        "source_message_id": "e567f324-328d-49d6-90ec-f1dc08df9dc8",
+        "ts": "2026-05-15T18:32:12.613+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6552,
+          "latency_ms": 3424,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 755,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habit:session_focus",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "startup friction focus session patterns",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "aide au démarrage session focus",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte",
+                "expansion_policy": "exact_then_action_family_recent",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "phase2-real-20260515-green-7-s1-action-memory-t01",
+          "user_id": "9280501a-beab-4d33-bbbd-929aa1c671a9",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habit:session_focus",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "startup friction focus session patterns",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "aide au démarrage session focus",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte",
+                "expansion_policy": "exact_then_action_family_recent",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": "matched_active_plan_item",
+            "status": "identified",
+            "detected": true,
+            "action_type": "habit",
+            "action_title": "Session focus courte",
+            "plan_item_id": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+            "expansion_policy": "exact_then_action_family_recent",
+            "action_family_key": "habit:session_focus"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "e567f324-328d-49d6-90ec-f1dc08df9dc8",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "attack_card",
+            "surface_id": "attack_card",
+            "prop_reason": "user_asking_for_startup_help_on_specific_action",
+            "source_span": "qu'est-ce qui aide au démarrage ?",
+            "target_hint": "Session focus courte",
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "identified",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "high",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_attack_card"
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 3906,
+        "created_at": "2026-05-15T18:32:12.615866+00:00"
+      },
+      {
+        "turn_id": "phase2-real-20260515-green-7-s2-level-memory-t01",
+        "user_id": "9280501a-beab-4d33-bbbd-929aa1c671a9",
+        "source_message_id": "2c4f60bd-15be-4367-97d9-e9deb66c746c",
+        "ts": "2026-05-15T18:32:39.396+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6555,
+          "latency_ms": 2990,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 669,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "handoff niveau précédent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "transition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je commence un nouveau niveau. D'après le handoff du niveau précédent, qu'est-ce que tu dois garder en tête ?",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "phase2-real-20260515-green-7-s2-level-memory-t01",
+          "user_id": "9280501a-beab-4d33-bbbd-929aa1c671a9",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "handoff niveau précédent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "transition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je commence un nouveau niveau. D'après le handoff du niveau précédent, qu'est-ce que tu dois garder en tête ?",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_transition_reference",
+            "status": "transition",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "2c4f60bd-15be-4367-97d9-e9deb66c746c",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "self_reminder",
+            "surface_id": "dashboard.reminders",
+            "prop_reason": "user_formulates_useful_self_reminder",
+            "source_span": "garder en tete ?",
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": "create_recurring_reminder",
+            "confidence_band": "medium",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_self_reminder"
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 13036,
+        "created_at": "2026-05-15T18:32:39.401849+00:00"
+      },
+      {
+        "turn_id": "phase2-real-20260515-green-7-s3-daily-active-t01",
+        "user_id": "9280501a-beab-4d33-bbbd-929aa1c671a9",
+        "source_message_id": "0fa21da5-66ac-47ad-89fe-007b8effa63f",
+        "ts": "2026-05-15T18:33:08.521+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6603,
+          "latency_ms": 3901,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 571,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "phase2-real-20260515-green-7-s3-daily-active-t01",
+          "user_id": "9280501a-beab-4d33-bbbd-929aa1c671a9",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "daily_action_review_v1": {
+                "reason": "user_reporting_progress_during_daily_review",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "review_skill_owns_level_context",
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": "review_skill_owns_action_context",
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "0fa21da5-66ac-47ad-89fe-007b8effa63f",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_conversation_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "daily_action_review_v1",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_conversation_skill_continue",
+            "active_owner": "conversation_skill",
+            "resume_policy": "none",
+            "selected_owner": "conversation_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": null,
+          "reason_code": "active_conversation_skill_continue",
+          "selected_skill_id": "daily_action_review_v1"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 14097,
+        "created_at": "2026-05-15T18:33:08.525188+00:00"
+      },
+      {
+        "turn_id": "phase2-real-20260515-green-7-s4-weekly-active-t01",
+        "user_id": "9280501a-beab-4d33-bbbd-929aa1c671a9",
+        "source_message_id": "ea5b1942-68e4-45ec-a153-06c58f9ab974",
+        "ts": "2026-05-15T18:33:41.757+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6613,
+          "latency_ms": 3827,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 569,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "phase2-real-20260515-green-7-s4-weekly-active-t01",
+          "user_id": "9280501a-beab-4d33-bbbd-929aa1c671a9",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "weekly_adaptive_review_v1": {
+                "reason": "user_responding_to_weekly_review",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "review_skill_owns_level_context",
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": "review_skill_owns_action_context",
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "ea5b1942-68e4-45ec-a153-06c58f9ab974",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_conversation_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "weekly_adaptive_review_v1",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_conversation_skill_continue",
+            "active_owner": "conversation_skill",
+            "resume_policy": "none",
+            "selected_owner": "conversation_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": null,
+          "reason_code": "active_conversation_skill_continue",
+          "selected_skill_id": "weekly_adaptive_review_v1"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 13816,
+        "created_at": "2026-05-15T18:33:41.759935+00:00"
+      },
+      {
+        "turn_id": "phase2-real-20260515-green-7-s5-daily-exit-action-memory-t01",
+        "user_id": "9280501a-beab-4d33-bbbd-929aa1c671a9",
+        "source_message_id": "d203fade-bbc0-4856-905d-8ff22916ea87",
+        "ts": "2026-05-15T18:34:13.299+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "maintenant"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6606,
+          "latency_ms": 9362,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 816,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "difficultés démarrage session focus",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte",
+                "expansion_policy": "exact_then_action_family_recent",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "phase2-real-20260515-green-7-s5-daily-exit-action-memory-t01",
+          "user_id": "9280501a-beab-4d33-bbbd-929aa1c671a9",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "difficultés démarrage session focus",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte",
+                "expansion_policy": "exact_then_action_family_recent",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {
+              "reason": "user_explicitly_requested_to_skip_review",
+              "skill_id": "daily_action_review_v1"
+            },
+            "entry": {
+              "execution_breakdown": {
+                "reason": "user_asking_about_execution_friction_on_specific_action",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "daily_action_review_v1": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": "matched_active_plan_item",
+            "status": "identified",
+            "detected": true,
+            "action_type": "habit",
+            "action_title": "Session focus courte",
+            "plan_item_id": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+            "expansion_policy": "exact_then_action_family_recent",
+            "action_family_key": "habit:session_focus"
+          },
+          "conversation_risk": {
+            "score": 3.5,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": true,
+                "evidence": "oublie",
+                "contribution": 2.5
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "explicit_stop_or_abandon",
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "d203fade-bbc0-4856-905d-8ff22916ea87",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "attack_card",
+            "surface_id": "attack_card",
+            "prop_reason": "user_mentions_recurring_startup_friction_on_habit",
+            "source_span": "le démarrage bloque souvent",
+            "target_hint": "Session focus courte",
+            "offer_timing": "after_current_pending",
+            "should_offer": false,
+            "target_status": "identified",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "high",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_attack_card"
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_skill_exit_requested",
+          "blocked_paths": [
+            {
+              "path": "tool_skill_opportunity",
+              "reason_code": "active_flow_blocks_tool_opportunity"
+            }
+          ],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "abandon_active",
+            "reason_code": "active_skill_exit_requested",
+            "active_owner": "conversation_skill",
+            "resume_policy": "none",
+            "selected_owner": "normal_reply"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 11821,
+        "created_at": "2026-05-15T18:34:13.301796+00:00"
+      },
+      {
+        "turn_id": "phase2-real-20260515-green-7-s5b-daily-exit-action-memory-t01",
+        "user_id": "9280501a-beab-4d33-bbbd-929aa1c671a9",
+        "source_message_id": "3909e413-9ad9-414d-8009-333e0f3de489",
+        "ts": "2026-05-15T18:36:08.552+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "maintenant"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6606,
+          "latency_ms": 10148,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 864,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "session focus courte patterns",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "startup friction and focus sessions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte",
+                "expansion_policy": "exact_then_action_family_recent",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "phase2-real-20260515-green-7-s5b-daily-exit-action-memory-t01",
+          "user_id": "9280501a-beab-4d33-bbbd-929aa1c671a9",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "session focus courte patterns",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "startup friction and focus sessions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte",
+                "expansion_policy": "exact_then_action_family_recent",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {
+              "reason": "user_explicitly_requested_to_stop_the_review",
+              "skill_id": "daily_action_review_v1"
+            },
+            "entry": {
+              "execution_breakdown": {
+                "reason": "user_asking_for_analysis_of_startup_friction",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "daily_action_review_v1": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": "matched_active_plan_item",
+            "status": "identified",
+            "detected": true,
+            "action_type": "habit",
+            "action_title": "Session focus courte",
+            "plan_item_id": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+            "expansion_policy": "exact_then_action_family_recent",
+            "action_family_key": "habit:session_focus"
+          },
+          "conversation_risk": {
+            "score": 3.5,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": true,
+                "evidence": "oublie",
+                "contribution": 2.5
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "explicit_stop_or_abandon",
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "3909e413-9ad9-414d-8009-333e0f3de489",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "attack_card",
+            "surface_id": "attack_card",
+            "prop_reason": "user_mentions_startup_friction_on_specific_habit",
+            "source_span": "le démarrage bloque souvent",
+            "target_hint": "Session focus courte",
+            "offer_timing": "after_current_pending",
+            "should_offer": false,
+            "target_status": "identified",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "high",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_attack_card"
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_skill_exit_requested",
+          "blocked_paths": [
+            {
+              "path": "tool_skill_opportunity",
+              "reason_code": "active_flow_blocks_tool_opportunity"
+            }
+          ],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "abandon_active",
+            "reason_code": "active_skill_exit_requested",
+            "active_owner": "conversation_skill",
+            "resume_policy": "none",
+            "selected_owner": "normal_reply"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 12685,
+        "created_at": "2026-05-15T18:36:08.556408+00:00"
+      }
+    ],
+    "memory_events": [
+      {
+        "event_name": "dispatcher.memory_plan_generated",
+        "source_component": "router",
+        "payload": {
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habit:session_focus",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "startup friction focus session patterns",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "aide au démarrage session focus",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte",
+                "expansion_policy": "exact_then_action_family_recent",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "user_message_preview": "Pour Session focus courte, souvenirs mémorisés uniquement : qu'est-ce qui aide au démarrage ?"
+        },
+        "created_at": "2026-05-15T18:32:12.173015+00:00"
+      },
+      {
+        "event_name": "surface.state_transition",
+        "source_component": "surface_state",
+        "payload": {
+          "addon": null,
+          "after": {},
+          "before": {},
+          "target_mode": "companion",
+          "memory_plan_intent": "reflection",
+          "memory_plan_context_need": "targeted"
+        },
+        "created_at": "2026-05-15T18:32:12.179817+00:00"
+      },
+      {
+        "event_name": "context.memory_injected",
+        "source_component": "context_loader",
+        "payload": {
+          "mode": "companion",
+          "memory_blocks": {
+            "events": null,
+            "topics": null,
+            "globals": null,
+            "identity": null
+          },
+          "surface_addon": null,
+          "elements_loaded": [
+            "temporal",
+            "facts",
+            "plan_item_indicators",
+            "injected_context",
+            "dashboard_capabilities_lite_addon"
+          ],
+          "estimated_tokens": 999
+        },
+        "created_at": "2026-05-15T18:32:12.208864+00:00"
+      },
+      {
+        "event_name": "memory.runtime.active.loaded",
+        "source_component": "memory_v2_runtime_active",
+        "payload": {
+          "v1": null,
+          "total_ms": 386,
+          "loader_ms": 383,
+          "fallback_used": true,
+          "retrieval_mode": "cross_topic_lookup",
+          "rollout_bucket": 91,
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "retrieval_hints": [],
+          "payload_item_ids": [
+            "1e0ac99f-bb35-40d4-88b8-02f4d86e019c",
+            "62541e78-558c-4602-a8c2-f8be05bf38e9",
+            "d915ac2c-9d1c-4fa5-a8f1-f3b86e5da858"
+          ],
+          "retrieval_policy": "semantic_first",
+          "topic_confidence": 0,
+          "loader_plan_budget": {
+            "max_items": 4,
+            "event_items": 2,
+            "level_items": 1,
+            "topic_items": 3,
+            "action_items": 2,
+            "global_items": 2,
+            "max_entities": 2
+          },
+          "loader_plan_reason": "dispatcher_memory_plan",
+          "payload_item_count": 3,
+          "loaded_scope_counts": {
+            "event": 0,
+            "level": 0,
+            "topic": 0,
+            "action": 2,
+            "entity": 0,
+            "global": 3
+          },
+          "topic_router_skipped": true,
+          "cross_topic_cache_hit": false,
+          "dispatcher_memory_mode": "light",
+          "dispatcher_context_need": "targeted",
+          "invalid_injection_count": 0,
+          "loader_plan_domain_keys": [
+            "habitudes.procrastination"
+          ],
+          "sensitive_excluded_count": 0,
+          "loader_plan_action_targets": [
+            "habit:session_focus",
+            "c99afab9-6c01-421f-9107-4b0bb245f1ed"
+          ],
+          "loader_plan_domain_prefixes": [],
+          "loader_plan_requested_scopes": [
+            "global",
+            "action"
+          ],
+          "dispatcher_memory_plan_applied": true
+        },
+        "created_at": "2026-05-15T18:32:12.604869+00:00"
+      },
+      {
+        "event_name": "router.model_selected",
+        "source_component": "router",
+        "payload": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habit:session_focus",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "startup friction focus session patterns",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "aide au démarrage session focus",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte",
+                "expansion_policy": "exact_then_action_family_recent",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        },
+        "created_at": "2026-05-15T18:32:12.610156+00:00"
+      },
+      {
+        "event_name": "router_momentum_state_applied",
+        "source_component": "router",
+        "payload": {
+          "dimensions": {
+            "consent": "open",
+            "engagement": "high",
+            "progression": "unknown",
+            "emotional_load": "low"
+          },
+          "state_after": "friction_legere",
+          "next_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "high",
+            "updated_at": "2026-05-15T18:32:12.621Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-05-15T18:32:12.621Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "state_before": "friction_legere",
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "blocker_summary": {
+            "top_stage": null,
+            "top_action": null,
+            "active_count": 0,
+            "top_category": null,
+            "chronic_count": 0
+          },
+          "metrics_snapshot": {
+            "last_gap_hours": null,
+            "missed_actions_7d": null,
+            "emotional_high_72h": null,
+            "partial_actions_7d": null,
+            "improved_vitals_14d": null,
+            "worsened_vitals_14d": null,
+            "completed_actions_7d": null,
+            "emotional_medium_72h": null,
+            "consent_soft_declines_7d": null,
+            "consent_explicit_stops_7d": null,
+            "days_since_last_user_message": 0
+          },
+          "previous_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-05-15T18:32:12.621Z",
+            "progression": "unknown",
+            "state_reason": "initial_state",
+            "emotional_load": "low",
+            "stable_since_at": null,
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "classifier_source": "router",
+          "pending_transition": null
+        },
+        "created_at": "2026-05-15T18:32:12.629137+00:00"
+      },
+      {
+        "event_name": "dispatcher.memory_plan_generated",
+        "source_component": "router",
+        "payload": {
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "handoff niveau précédent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "transition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je commence un nouveau niveau. D'après le handoff du niveau précédent, qu'est-ce que tu dois garder en tête ?",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "user_message_preview": "Je commence un nouveau niveau. D'après le handoff du niveau précédent, qu'est-ce que tu dois garder en tête ?"
+        },
+        "created_at": "2026-05-15T18:32:29.467202+00:00"
+      },
+      {
+        "event_name": "surface.state_transition",
+        "source_component": "surface_state",
+        "payload": {
+          "addon": null,
+          "after": {},
+          "before": {},
+          "target_mode": "companion",
+          "memory_plan_intent": "reflection",
+          "memory_plan_context_need": "targeted"
+        },
+        "created_at": "2026-05-15T18:32:29.520453+00:00"
+      },
+      {
+        "event_name": "context.memory_injected",
+        "source_component": "context_loader",
+        "payload": {
+          "mode": "companion",
+          "memory_blocks": {
+            "events": null,
+            "topics": null,
+            "globals": null,
+            "identity": null
+          },
+          "surface_addon": null,
+          "elements_loaded": [
+            "temporal",
+            "facts",
+            "plan_item_indicators",
+            "dashboard_capabilities_lite_addon"
+          ],
+          "estimated_tokens": 915
+        },
+        "created_at": "2026-05-15T18:32:29.565063+00:00"
+      },
+      {
+        "event_name": "memory.runtime.active.loaded",
+        "source_component": "memory_v2_runtime_active",
+        "payload": {
+          "v1": null,
+          "total_ms": 5,
+          "loader_ms": 4,
+          "fallback_used": false,
+          "retrieval_mode": "topic_continuation",
+          "rollout_bucket": 91,
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "retrieval_hints": [],
+          "payload_item_ids": [
+            "d915ac2c-9d1c-4fa5-a8f1-f3b86e5da858"
+          ],
+          "retrieval_policy": "taxonomy_first",
+          "topic_confidence": 0,
+          "loader_plan_budget": {
+            "max_items": 4,
+            "event_items": 2,
+            "level_items": 1,
+            "topic_items": 3,
+            "action_items": 2,
+            "global_items": 2,
+            "max_entities": 2
+          },
+          "loader_plan_reason": "dispatcher_memory_plan",
+          "payload_item_count": 1,
+          "loaded_scope_counts": {
+            "event": 0,
+            "level": 1,
+            "topic": 0,
+            "action": 0,
+            "entity": 0,
+            "global": 0
+          },
+          "topic_router_skipped": true,
+          "cross_topic_cache_hit": false,
+          "dispatcher_memory_mode": "light",
+          "dispatcher_context_need": "targeted",
+          "invalid_injection_count": 0,
+          "loader_plan_domain_keys": [],
+          "sensitive_excluded_count": 0,
+          "loader_plan_action_targets": [],
+          "loader_plan_domain_prefixes": [],
+          "loader_plan_requested_scopes": [
+            "level"
+          ],
+          "dispatcher_memory_plan_applied": true
+        },
+        "created_at": "2026-05-15T18:32:29.581029+00:00"
+      },
+      {
+        "event_name": "router.model_selected",
+        "source_component": "router",
+        "payload": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "handoff niveau précédent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "transition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je commence un nouveau niveau. D'après le handoff du niveau précédent, qu'est-ce que tu dois garder en tête ?",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        },
+        "created_at": "2026-05-15T18:32:29.586624+00:00"
+      },
+      {
+        "event_name": "router_momentum_state_applied",
+        "source_component": "router",
+        "payload": {
+          "dimensions": {
+            "consent": "open",
+            "engagement": "high",
+            "progression": "unknown",
+            "emotional_load": "low"
+          },
+          "state_after": "friction_legere",
+          "next_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "high",
+            "updated_at": "2026-05-15T18:32:39.414Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-05-15T18:32:39.414Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "state_before": "friction_legere",
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "blocker_summary": {
+            "top_stage": null,
+            "top_action": null,
+            "active_count": 0,
+            "top_category": null,
+            "chronic_count": 0
+          },
+          "metrics_snapshot": {
+            "last_gap_hours": null,
+            "missed_actions_7d": null,
+            "emotional_high_72h": null,
+            "partial_actions_7d": null,
+            "improved_vitals_14d": null,
+            "worsened_vitals_14d": null,
+            "completed_actions_7d": null,
+            "emotional_medium_72h": null,
+            "consent_soft_declines_7d": null,
+            "consent_explicit_stops_7d": null,
+            "days_since_last_user_message": 0
+          },
+          "previous_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-05-15T18:32:39.414Z",
+            "progression": "unknown",
+            "state_reason": "initial_state",
+            "emotional_load": "low",
+            "stable_since_at": null,
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "classifier_source": "router",
+          "pending_transition": null
+        },
+        "created_at": "2026-05-15T18:32:39.426962+00:00"
+      },
+      {
+        "event_name": "dispatcher.memory_plan_generated",
+        "source_component": "router",
+        "payload": {
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "user_message_preview": "Session focus courte, c'est fait. Bloquer les créneaux de la semaine, pas fait, j'étais trop crevée pour m'y mettre."
+        },
+        "created_at": "2026-05-15T18:32:58.356202+00:00"
+      },
+      {
+        "event_name": "surface.state_transition",
+        "source_component": "surface_state",
+        "payload": {
+          "addon": null,
+          "after": {},
+          "before": {},
+          "target_mode": "companion",
+          "memory_plan_intent": "reflection",
+          "memory_plan_context_need": "minimal"
+        },
+        "created_at": "2026-05-15T18:32:58.360823+00:00"
+      },
+      {
+        "event_name": "context.memory_injected",
+        "source_component": "context_loader",
+        "payload": {
+          "mode": "companion",
+          "memory_blocks": {
+            "events": null,
+            "topics": null,
+            "globals": null,
+            "identity": null
+          },
+          "surface_addon": null,
+          "elements_loaded": [
+            "temporal",
+            "facts",
+            "plan_item_indicators",
+            "injected_context",
+            "dashboard_capabilities_lite_addon"
+          ],
+          "estimated_tokens": 1003
+        },
+        "created_at": "2026-05-15T18:32:58.376276+00:00"
+      },
+      {
+        "event_name": "memory.runtime.active.loaded",
+        "source_component": "memory_v2_runtime_active",
+        "payload": {
+          "v1": null,
+          "total_ms": 13,
+          "loader_ms": 12,
+          "fallback_used": false,
+          "retrieval_mode": "topic_continuation",
+          "rollout_bucket": 91,
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "retrieval_hints": [
+            "action_related"
+          ],
+          "payload_item_ids": [
+            "1e0ac99f-bb35-40d4-88b8-02f4d86e019c",
+            "62541e78-558c-4602-a8c2-f8be05bf38e9"
+          ],
+          "retrieval_policy": "semantic_first",
+          "topic_confidence": 0,
+          "loader_plan_budget": {
+            "max_items": 4,
+            "event_items": 2,
+            "level_items": 1,
+            "topic_items": 3,
+            "action_items": 2,
+            "global_items": 2,
+            "max_entities": 2
+          },
+          "loader_plan_reason": "runtime_signal_override",
+          "payload_item_count": 2,
+          "loaded_scope_counts": {
+            "event": 0,
+            "level": 0,
+            "topic": 0,
+            "action": 2,
+            "entity": 0,
+            "global": 0
+          },
+          "topic_router_skipped": true,
+          "cross_topic_cache_hit": false,
+          "dispatcher_memory_mode": "none",
+          "dispatcher_context_need": "minimal",
+          "invalid_injection_count": 0,
+          "loader_plan_domain_keys": [],
+          "sensitive_excluded_count": 0,
+          "loader_plan_action_targets": [],
+          "loader_plan_domain_prefixes": [],
+          "loader_plan_requested_scopes": [
+            "action"
+          ],
+          "dispatcher_memory_plan_applied": true
+        },
+        "created_at": "2026-05-15T18:32:58.394717+00:00"
+      },
+      {
+        "event_name": "router.model_selected",
+        "source_component": "router",
+        "payload": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        },
+        "created_at": "2026-05-15T18:32:58.397633+00:00"
+      },
+      {
+        "event_name": "router_momentum_state_applied",
+        "source_component": "router",
+        "payload": {
+          "dimensions": {
+            "consent": "open",
+            "engagement": "high",
+            "progression": "unknown",
+            "emotional_load": "low"
+          },
+          "state_after": "friction_legere",
+          "next_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "high",
+            "updated_at": "2026-05-15T18:33:08.530Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-05-15T18:33:08.530Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "state_before": "friction_legere",
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "blocker_summary": {
+            "top_stage": null,
+            "top_action": null,
+            "active_count": 0,
+            "top_category": null,
+            "chronic_count": 0
+          },
+          "metrics_snapshot": {
+            "last_gap_hours": null,
+            "missed_actions_7d": null,
+            "emotional_high_72h": null,
+            "partial_actions_7d": null,
+            "improved_vitals_14d": null,
+            "worsened_vitals_14d": null,
+            "completed_actions_7d": null,
+            "emotional_medium_72h": null,
+            "consent_soft_declines_7d": null,
+            "consent_explicit_stops_7d": null,
+            "days_since_last_user_message": 0
+          },
+          "previous_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-05-15T18:33:08.530Z",
+            "progression": "unknown",
+            "state_reason": "initial_state",
+            "emotional_load": "low",
+            "stable_since_at": null,
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "classifier_source": "router",
+          "pending_transition": null
+        },
+        "created_at": "2026-05-15T18:33:08.542031+00:00"
+      },
+      {
+        "event_name": "dispatcher.memory_plan_generated",
+        "source_component": "router",
+        "payload": {
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "user_message_preview": "Cette semaine les habitudes sont à moitié passées : j'ai fait deux sessions focus mais j'ai raté la marche. Je me sens mieux quand même, juste fatiguée."
+        },
+        "created_at": "2026-05-15T18:33:31.817865+00:00"
+      },
+      {
+        "event_name": "surface.state_transition",
+        "source_component": "surface_state",
+        "payload": {
+          "addon": null,
+          "after": {},
+          "before": {},
+          "target_mode": "companion",
+          "memory_plan_intent": "reflection",
+          "memory_plan_context_need": "minimal"
+        },
+        "created_at": "2026-05-15T18:33:31.823772+00:00"
+      },
+      {
+        "event_name": "context.memory_injected",
+        "source_component": "context_loader",
+        "payload": {
+          "mode": "companion",
+          "memory_blocks": {
+            "events": null,
+            "topics": null,
+            "globals": null,
+            "identity": null
+          },
+          "surface_addon": null,
+          "elements_loaded": [
+            "temporal",
+            "facts",
+            "plan_item_indicators",
+            "injected_context",
+            "dashboard_capabilities_lite_addon"
+          ],
+          "estimated_tokens": 1471
+        },
+        "created_at": "2026-05-15T18:33:31.843688+00:00"
+      },
+      {
+        "event_name": "memory.runtime.active.loaded",
+        "source_component": "memory_v2_runtime_active",
+        "payload": {
+          "v1": null,
+          "total_ms": 5,
+          "loader_ms": 5,
+          "fallback_used": false,
+          "retrieval_mode": "topic_continuation",
+          "rollout_bucket": 91,
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "retrieval_hints": [
+            "action_related"
+          ],
+          "payload_item_ids": [],
+          "retrieval_policy": "semantic_first",
+          "topic_confidence": 0,
+          "loader_plan_budget": {
+            "max_items": 4,
+            "event_items": 2,
+            "level_items": 1,
+            "topic_items": 3,
+            "action_items": 2,
+            "global_items": 2,
+            "max_entities": 2
+          },
+          "loader_plan_reason": "runtime_signal_override",
+          "payload_item_count": 0,
+          "loaded_scope_counts": {
+            "event": 0,
+            "level": 0,
+            "topic": 0,
+            "action": 0,
+            "entity": 0,
+            "global": 0
+          },
+          "topic_router_skipped": true,
+          "cross_topic_cache_hit": false,
+          "dispatcher_memory_mode": "none",
+          "dispatcher_context_need": "minimal",
+          "invalid_injection_count": 0,
+          "loader_plan_domain_keys": [],
+          "sensitive_excluded_count": 0,
+          "loader_plan_action_targets": [],
+          "loader_plan_domain_prefixes": [],
+          "loader_plan_requested_scopes": [
+            "action"
+          ],
+          "dispatcher_memory_plan_applied": true
+        },
+        "created_at": "2026-05-15T18:33:31.854769+00:00"
+      },
+      {
+        "event_name": "router.model_selected",
+        "source_component": "router",
+        "payload": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        },
+        "created_at": "2026-05-15T18:33:31.859727+00:00"
+      },
+      {
+        "event_name": "router_momentum_state_applied",
+        "source_component": "router",
+        "payload": {
+          "dimensions": {
+            "consent": "open",
+            "engagement": "high",
+            "progression": "unknown",
+            "emotional_load": "low"
+          },
+          "state_after": "friction_legere",
+          "next_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "high",
+            "updated_at": "2026-05-15T18:33:41.764Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-05-15T18:33:41.764Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "state_before": "friction_legere",
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "blocker_summary": {
+            "top_stage": null,
+            "top_action": null,
+            "active_count": 0,
+            "top_category": null,
+            "chronic_count": 0
+          },
+          "metrics_snapshot": {
+            "last_gap_hours": null,
+            "missed_actions_7d": null,
+            "emotional_high_72h": null,
+            "partial_actions_7d": null,
+            "improved_vitals_14d": null,
+            "worsened_vitals_14d": null,
+            "completed_actions_7d": null,
+            "emotional_medium_72h": null,
+            "consent_soft_declines_7d": null,
+            "consent_explicit_stops_7d": null,
+            "days_since_last_user_message": 0
+          },
+          "previous_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-05-15T18:33:41.764Z",
+            "progression": "unknown",
+            "state_reason": "initial_state",
+            "emotional_load": "low",
+            "stable_since_at": null,
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "classifier_source": "router",
+          "pending_transition": null
+        },
+        "created_at": "2026-05-15T18:33:41.771756+00:00"
+      },
+      {
+        "event_name": "dispatcher.memory_plan_generated",
+        "source_component": "router",
+        "payload": {
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "difficultés démarrage session focus",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte",
+                "expansion_policy": "exact_then_action_family_recent",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "user_message_preview": "Attends, oublie le bilan. Je veux parler de Session focus courte maintenant : pourquoi le démarrage bloque souvent ?"
+        },
+        "created_at": "2026-05-15T18:34:10.872208+00:00"
+      },
+      {
+        "event_name": "surface.state_transition",
+        "source_component": "surface_state",
+        "payload": {
+          "addon": null,
+          "after": {},
+          "before": {},
+          "target_mode": "companion",
+          "memory_plan_intent": "inventory",
+          "memory_plan_context_need": "targeted"
+        },
+        "created_at": "2026-05-15T18:34:10.882401+00:00"
+      },
+      {
+        "event_name": "context.memory_injected",
+        "source_component": "context_loader",
+        "payload": {
+          "mode": "companion",
+          "memory_blocks": {
+            "events": null,
+            "topics": null,
+            "globals": null,
+            "identity": null
+          },
+          "surface_addon": null,
+          "elements_loaded": [
+            "temporal",
+            "facts",
+            "plan_item_indicators",
+            "injected_context",
+            "dashboard_capabilities_lite_addon"
+          ],
+          "estimated_tokens": 999
+        },
+        "created_at": "2026-05-15T18:34:10.913356+00:00"
+      },
+      {
+        "event_name": "memory.runtime.active.loaded",
+        "source_component": "memory_v2_runtime_active",
+        "payload": {
+          "v1": null,
+          "total_ms": 376,
+          "loader_ms": 375,
+          "fallback_used": true,
+          "retrieval_mode": "cross_topic_lookup",
+          "rollout_bucket": 91,
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "retrieval_hints": [
+            "correction"
+          ],
+          "payload_item_ids": [
+            "1e0ac99f-bb35-40d4-88b8-02f4d86e019c",
+            "62541e78-558c-4602-a8c2-f8be05bf38e9",
+            "d915ac2c-9d1c-4fa5-a8f1-f3b86e5da858"
+          ],
+          "retrieval_policy": "taxonomy_first",
+          "topic_confidence": 0,
+          "loader_plan_budget": {
+            "max_items": 4,
+            "event_items": 2,
+            "level_items": 1,
+            "topic_items": 3,
+            "action_items": 2,
+            "global_items": 2,
+            "max_entities": 2
+          },
+          "loader_plan_reason": "dispatcher_memory_plan+correction_guard",
+          "payload_item_count": 3,
+          "loaded_scope_counts": {
+            "event": 0,
+            "level": 0,
+            "topic": 0,
+            "action": 2,
+            "entity": 0,
+            "global": 3
+          },
+          "topic_router_skipped": true,
+          "cross_topic_cache_hit": false,
+          "dispatcher_memory_mode": "light",
+          "dispatcher_context_need": "targeted",
+          "invalid_injection_count": 0,
+          "loader_plan_domain_keys": [],
+          "sensitive_excluded_count": 0,
+          "loader_plan_action_targets": [
+            "c99afab9-6c01-421f-9107-4b0bb245f1ed"
+          ],
+          "loader_plan_domain_prefixes": [],
+          "loader_plan_requested_scopes": [
+            "action"
+          ],
+          "dispatcher_memory_plan_applied": true
+        },
+        "created_at": "2026-05-15T18:34:11.29987+00:00"
+      },
+      {
+        "event_name": "router.model_selected",
+        "source_component": "router",
+        "payload": {
+          "tier": "standard",
+          "model": "gemini-3-flash-preview",
+          "source": "memory_plan_standard",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "difficultés démarrage session focus",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte",
+                "expansion_policy": "exact_then_action_family_recent",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        },
+        "created_at": "2026-05-15T18:34:11.304787+00:00"
+      },
+      {
+        "event_name": "router_momentum_state_applied",
+        "source_component": "router",
+        "payload": {
+          "dimensions": {
+            "consent": "open",
+            "engagement": "high",
+            "progression": "unknown",
+            "emotional_load": "low"
+          },
+          "state_after": "friction_legere",
+          "next_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "high",
+            "updated_at": "2026-05-15T18:34:13.307Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-05-15T18:34:13.307Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "state_before": "friction_legere",
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "blocker_summary": {
+            "top_stage": null,
+            "top_action": null,
+            "active_count": 0,
+            "top_category": null,
+            "chronic_count": 0
+          },
+          "metrics_snapshot": {
+            "last_gap_hours": null,
+            "missed_actions_7d": null,
+            "emotional_high_72h": null,
+            "partial_actions_7d": null,
+            "improved_vitals_14d": null,
+            "worsened_vitals_14d": null,
+            "completed_actions_7d": null,
+            "emotional_medium_72h": null,
+            "consent_soft_declines_7d": null,
+            "consent_explicit_stops_7d": null,
+            "days_since_last_user_message": 0
+          },
+          "previous_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-05-15T18:34:13.307Z",
+            "progression": "unknown",
+            "state_reason": "initial_state",
+            "emotional_load": "low",
+            "stable_since_at": null,
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "classifier_source": "router",
+          "pending_transition": null
+        },
+        "created_at": "2026-05-15T18:34:13.313971+00:00"
+      },
+      {
+        "event_name": "dispatcher.memory_plan_generated",
+        "source_component": "router",
+        "payload": {
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "session focus courte patterns",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "startup friction and focus sessions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte",
+                "expansion_policy": "exact_then_action_family_recent",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "user_message_preview": "Attends, oublie le bilan. Je veux parler de Session focus courte maintenant : pourquoi le démarrage bloque souvent ?"
+        },
+        "created_at": "2026-05-15T18:36:06.094561+00:00"
+      },
+      {
+        "event_name": "surface.state_transition",
+        "source_component": "surface_state",
+        "payload": {
+          "addon": null,
+          "after": {},
+          "before": {},
+          "target_mode": "companion",
+          "memory_plan_intent": "inventory",
+          "memory_plan_context_need": "targeted"
+        },
+        "created_at": "2026-05-15T18:36:06.103248+00:00"
+      },
+      {
+        "event_name": "context.memory_injected",
+        "source_component": "context_loader",
+        "payload": {
+          "mode": "companion",
+          "memory_blocks": {
+            "events": null,
+            "topics": null,
+            "globals": null,
+            "identity": null
+          },
+          "surface_addon": null,
+          "elements_loaded": [
+            "temporal",
+            "facts",
+            "plan_item_indicators",
+            "injected_context",
+            "dashboard_capabilities_lite_addon"
+          ],
+          "estimated_tokens": 999
+        },
+        "created_at": "2026-05-15T18:36:06.153671+00:00"
+      },
+      {
+        "event_name": "memory.runtime.active.loaded",
+        "source_component": "memory_v2_runtime_active",
+        "payload": {
+          "v1": null,
+          "total_ms": 386,
+          "loader_ms": 384,
+          "fallback_used": true,
+          "retrieval_mode": "cross_topic_lookup",
+          "rollout_bucket": 91,
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "retrieval_hints": [
+            "correction"
+          ],
+          "payload_item_ids": [
+            "1e0ac99f-bb35-40d4-88b8-02f4d86e019c",
+            "62541e78-558c-4602-a8c2-f8be05bf38e9",
+            "d915ac2c-9d1c-4fa5-a8f1-f3b86e5da858"
+          ],
+          "retrieval_policy": "semantic_first",
+          "topic_confidence": 0,
+          "loader_plan_budget": {
+            "max_items": 4,
+            "event_items": 2,
+            "level_items": 1,
+            "topic_items": 3,
+            "action_items": 2,
+            "global_items": 2,
+            "max_entities": 2
+          },
+          "loader_plan_reason": "dispatcher_memory_plan+correction_guard",
+          "payload_item_count": 3,
+          "loaded_scope_counts": {
+            "event": 0,
+            "level": 0,
+            "topic": 0,
+            "action": 2,
+            "entity": 0,
+            "global": 3
+          },
+          "topic_router_skipped": true,
+          "cross_topic_cache_hit": false,
+          "dispatcher_memory_mode": "light",
+          "dispatcher_context_need": "targeted",
+          "invalid_injection_count": 0,
+          "loader_plan_domain_keys": [
+            "habitudes.procrastination"
+          ],
+          "sensitive_excluded_count": 0,
+          "loader_plan_action_targets": [
+            "c99afab9-6c01-421f-9107-4b0bb245f1ed"
+          ],
+          "loader_plan_domain_prefixes": [],
+          "loader_plan_requested_scopes": [
+            "action"
+          ],
+          "dispatcher_memory_plan_applied": true
+        },
+        "created_at": "2026-05-15T18:36:06.561844+00:00"
+      },
+      {
+        "event_name": "router.model_selected",
+        "source_component": "router",
+        "payload": {
+          "tier": "standard",
+          "model": "gemini-3-flash-preview",
+          "source": "memory_plan_standard",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "session focus courte patterns",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "startup friction and focus sessions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "c99afab9-6c01-421f-9107-4b0bb245f1ed",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte",
+                "expansion_policy": "exact_then_action_family_recent",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        },
+        "created_at": "2026-05-15T18:36:06.567357+00:00"
+      },
+      {
+        "event_name": "router_momentum_state_applied",
+        "source_component": "router",
+        "payload": {
+          "dimensions": {
+            "consent": "open",
+            "engagement": "high",
+            "progression": "unknown",
+            "emotional_load": "low"
+          },
+          "state_after": "friction_legere",
+          "next_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "high",
+            "updated_at": "2026-05-15T18:36:08.565Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-05-15T18:36:08.565Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "state_before": "friction_legere",
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "blocker_summary": {
+            "top_stage": null,
+            "top_action": null,
+            "active_count": 0,
+            "top_category": null,
+            "chronic_count": 0
+          },
+          "metrics_snapshot": {
+            "last_gap_hours": null,
+            "missed_actions_7d": null,
+            "emotional_high_72h": null,
+            "partial_actions_7d": null,
+            "improved_vitals_14d": null,
+            "worsened_vitals_14d": null,
+            "completed_actions_7d": null,
+            "emotional_medium_72h": null,
+            "consent_soft_declines_7d": null,
+            "consent_explicit_stops_7d": null,
+            "days_since_last_user_message": 0
+          },
+          "previous_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-05-15T18:36:08.565Z",
+            "progression": "unknown",
+            "state_reason": "initial_state",
+            "emotional_load": "low",
+            "stable_since_at": null,
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "classifier_source": "router",
+          "pending_transition": null
+        },
+        "created_at": "2026-05-15T18:36:08.578906+00:00"
+      }
+    ]
+  }
+}

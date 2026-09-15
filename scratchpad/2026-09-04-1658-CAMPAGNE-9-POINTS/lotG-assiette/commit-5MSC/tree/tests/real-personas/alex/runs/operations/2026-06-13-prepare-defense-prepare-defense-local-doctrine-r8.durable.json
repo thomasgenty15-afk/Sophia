@@ -1,0 +1,2132 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "f41d4958-d271-41c6-9d84-8ed7fc2eb801",
+        "role": "user",
+        "content": "J’aimerais préparer une carte de défense pour les soirs où je rentre vidé, que je n’ai plus de filtre, et que je finis par commander n’importe quoi au lieu de me faire un vrai repas.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-12T22:04:25.617057+00:00"
+      },
+      {
+        "id": "b177c3aa-3725-4309-a3f7-615615bcf8cb",
+        "role": "assistant",
+        "content": "C'est un moment classique où la fatigue prend le dessus sur tes intentions. Pour ton champ **Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?**, tu peux utiliser cette formulation : *Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.* Pour ta carte dans tes **Cartes de défense** (situées dans Ressources / Défense / Cartes de défense libres), quelle action simple pourrais-tu faire dès ton arrivée pour éviter d'ouvrir une application de livraison ?",
+        "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "collecting",
+              "reason_code": "prepare_defense_card_local_collecting",
+              "ai_call_count": 2,
+              "handoff_state": {
+                "mode": "platform_handoff",
+                "draft": null,
+                "status": "collecting",
+                "skill_id": "prepare_defense_card",
+                "max_turns": 8,
+                "created_at": "2026-06-12T22:04:56.731Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-12T22:04:56.731Z",
+                "local_state": {
+                  "flow_id": "prepare_defense_card",
+                  "risk_state": {
+                    "label": "commande impulsive par fatigue",
+                    "status": "proposed",
+                    "why_status": "Risque identifié dans le message.",
+                    "description": "état vidé, absence de filtre, commande de malbouffe par automatisme",
+                    "timing_hint": "soir",
+                    "context_hint": "retour maison",
+                    "needs_user_confirmation": true
+                  },
+                  "route_kind": "free_card",
+                  "trigger_state": {
+                    "type": null,
+                    "status": "proposed",
+                    "why_status": "Signal interne décrit par le user.",
+                    "locked_value": null,
+                    "candidate_value": "se sentir vidé et sans filtre en rentrant",
+                    "needs_user_confirmation": true
+                  },
+                  "tool_fit_state": {
+                    "reason": "Le besoin concerne la protection contre une impulsion (commande de nourriture) liée à un état de fatigue.",
+                    "status": "defense",
+                    "why_status": "Défense confirmée par la description d'un moment de craquage.",
+                    "needs_user_confirmation": false
+                  },
+                  "attachment_state": {
+                    "kind": "free_risk_context",
+                    "status": "proposed",
+                    "why_status": "Contexte déduit du message.",
+                    "locked_value": null,
+                    "plan_item_id": null,
+                    "candidate_value": "soirs de retour à la maison après le travail",
+                    "candidate_options": [],
+                    "needs_user_confirmation": true
+                  },
+                  "subskill_history": [],
+                  "last_visible_task": "ask_defense_goal_or_response",
+                  "defense_goal_state": {
+                    "value": "interrupt_impulse",
+                    "status": "proposed",
+                    "why_status": "Objectif mentionné en fin de message.",
+                    "locked_value": null,
+                    "candidate_value": "réussir à se faire un vrai repas au lieu de commander",
+                    "needs_user_confirmation": true
+                  },
+                  "support_need_state": {
+                    "status": "proposed",
+                    "field_id": "support_need",
+                    "why_status": "Proposition de synthèse pour le champ plateforme.",
+                    "locked_value": null,
+                    "previous_value": null,
+                    "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                    "candidate_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                    "needs_user_confirmation": true
+                  },
+                  "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+                  "last_handoff_delivered": false,
+                  "defense_response_hint_state": {
+                    "status": "missing",
+                    "why_status": "Non encore exploré.",
+                    "locked_value": null,
+                    "strategy_hint": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  }
+                },
+                "no_chat_mutation": true
+              },
+              "runtime_trace": [
+                {
+                  "event": "active flow entry",
+                  "tool_fit": "ambiguous",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": null,
+                  "ai_call_count": 0,
+                  "handoff_ready": false,
+                  "slots_modified": [],
+                  "risk_assessment": null,
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": null,
+                  "support_need_status": "missing",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "local_dispatcher called",
+                  "tool_fit": "ambiguous",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": null,
+                  "ai_call_count": 0,
+                  "handoff_ready": false,
+                  "slots_modified": [],
+                  "risk_assessment": null,
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": null,
+                  "support_need_status": "missing",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "note_information_consumed",
+                  "component": "prepare_defense_card.local_flow",
+                  "source_flow_id": "global_dispatcher",
+                  "note_information": {
+                    "confidence": "high",
+                    "user_words": [
+                      "J’aimerais préparer une carte de défense pour les soirs où je rentre vidé",
+                      "J’aimerais préparer une carte de défense pour les soirs où je rentre vidé, que je n’ai plus de filtre, et que je finis par commander n’importe quoi au lieu de me faire un vrai repas."
+                    ],
+                    "handoff_reason": "explicit_user_request",
+                    "source_flow_id": "global_dispatcher",
+                    "target_dispatcher": "prepare_defense_card",
+                    "structured_context": {
+                      "evidence": [
+                        "J’aimerais préparer une carte de défense"
+                      ],
+                      "target_flow": "prepare_defense_card",
+                      "target_kind": "tool_skill",
+                      "confidence_band": "high",
+                      "primary_signal_path": "tool_skill_intents[0]",
+                      "recommended_next_focus": "Run the local dispatcher for prepare_defense_card to collect the remaining slots (technique, message, etc.) and confirm the draft."
+                    },
+                    "handoff_context_for_next_dispatcher": "User explicitly asks to create a defense card for a specific risk moment (coming home exhausted and ordering junk food). The intent is clear and the target is identified."
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "target_dispatcher": "prepare_defense_card"
+                },
+                {
+                  "event": "local_dispatcher decision",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "answer_current_field",
+                  "ai_call_count": 1,
+                  "handoff_ready": false,
+                  "slots_modified": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 2,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "ask_trigger_or_signal",
+                  "support_need_status": "proposed",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "reducer reduced",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "answer_current_field",
+                  "ai_call_count": 1,
+                  "handoff_ready": false,
+                  "slots_modified": [
+                    "tool_fit",
+                    "attachment",
+                    "risk_situation",
+                    "trigger",
+                    "defense_goal",
+                    "defense_response_hint",
+                    "support_need"
+                  ],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 2,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "ask_defense_goal_or_response",
+                  "support_need_status": "proposed",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "visible_prompt called",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "answer_current_field",
+                  "ai_call_count": 1,
+                  "handoff_ready": false,
+                  "slots_modified": [
+                    "tool_fit",
+                    "attachment",
+                    "risk_situation",
+                    "trigger",
+                    "defense_goal",
+                    "defense_response_hint",
+                    "support_need"
+                  ],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 2,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "ask_defense_goal_or_response",
+                  "support_need_status": "proposed",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "stage": "ask_defense_goal_or_response",
+                  "issues": [],
+                  "accepted": true,
+                  "component": "prepare_defense_card.visible_agent"
+                },
+                {
+                  "event": "visible_prompt complete",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "answer_current_field",
+                  "ai_call_count": 2,
+                  "handoff_ready": false,
+                  "slots_modified": [
+                    "tool_fit",
+                    "attachment",
+                    "risk_situation",
+                    "trigger",
+                    "defense_goal",
+                    "defense_response_hint",
+                    "support_need"
+                  ],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 2,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "ask_defense_goal_or_response",
+                  "support_need_status": "proposed",
+                  "exit_to_global_dispatcher": false
+                }
+              ],
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 2,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false,
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-12T22:04:56.738593+00:00"
+      },
+      {
+        "id": "e4a8b354-4d8c-4dfc-9582-20c48f21cbbb",
+        "role": "user",
+        "content": "Le signal, c’est vraiment quand je pose mon sac et que je me dis que je suis trop fatigué pour réfléchir. Je veux surtout éviter d’ouvrir l’appli de livraison par automatisme.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-12T22:05:10.665746+00:00"
+      },
+      {
+        "id": "e0143f3f-9010-48a2-9fd9-08d5de7a1af9",
+        "role": "assistant",
+        "content": "C'est un signal très précis : ce moment où tu poses ton sac et où la fatigue court-circuite ta réflexion. Pour construire ta carte de défense, voici la synthèse que tu peux copier dans le champ Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? :\n\n\"Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.\"\n\nTu peux maintenant te rendre dans Ressources / Défense / Cartes de défense libres pour créer ta carte (elle ne se crée pas automatiquement depuis notre discussion). Est-ce que cette description te semble fidèle à ce que tu ressens ?",
+        "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "reason_code": "platform_handoff_delivered",
+              "ai_call_count": 2,
+              "handoff_state": {
+                "mode": "platform_handoff",
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "commande impulsive par fatigue",
+                  "platform_flow": {
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": [
+                      {
+                        "value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "status": "locked",
+                        "field_id": "support_need",
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                      }
+                    ]
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "ouvre Ressources / Défense",
+                      "dans Cartes de défense libres, choisis Ajouter une carte",
+                      "reprends les champs préparés par Sophia"
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres"
+                  },
+                  "target_summary": "soirs de retour à la maison après le travail",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "prepare_defense_card_local_reducer"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "user_evidence": [
+                          "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas."
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "handoff_delivered",
+                "skill_id": "prepare_defense_card",
+                "max_turns": 8,
+                "created_at": "2026-06-12T22:04:56.731Z",
+                "turn_count": 2,
+                "updated_at": "2026-06-12T22:05:22.708Z",
+                "local_state": {
+                  "flow_id": "prepare_defense_card",
+                  "risk_state": {
+                    "label": "commande impulsive par fatigue",
+                    "status": "locked",
+                    "why_status": "Risque et moment précisément décrits.",
+                    "description": "poser son sac, se sentir trop fatigué pour réfléchir, ouvrir l'appli par automatisme",
+                    "timing_hint": "soir",
+                    "context_hint": "retour maison",
+                    "needs_user_confirmation": false
+                  },
+                  "route_kind": "free_card",
+                  "trigger_state": {
+                    "type": null,
+                    "status": "locked",
+                    "why_status": "Signal explicite fourni par le user.",
+                    "locked_value": "poser mon sac et me dire que je suis trop fatigué pour réfléchir",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "tool_fit_state": {
+                    "reason": "Le user confirme un moment de vulnérabilité (fatigue, automatisme) qu'il veut contrer.",
+                    "status": "defense",
+                    "why_status": "Défense confirmée par la volonté d'éviter un automatisme de craquage.",
+                    "needs_user_confirmation": false
+                  },
+                  "attachment_state": {
+                    "kind": "free_risk_context",
+                    "status": "locked",
+                    "why_status": "Contexte de retour à la maison validé par le signal du sac posé.",
+                    "locked_value": "soirs de retour à la maison après le travail",
+                    "plan_item_id": null,
+                    "candidate_value": null,
+                    "candidate_options": [],
+                    "needs_user_confirmation": false
+                  },
+                  "subskill_history": [],
+                  "last_visible_task": "handoff_ready",
+                  "defense_goal_state": {
+                    "value": "interrupt_impulse",
+                    "status": "locked",
+                    "why_status": "Objectif de protection confirmé.",
+                    "locked_value": "éviter d'ouvrir l'appli de livraison par automatisme",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "support_need_state": {
+                    "status": "locked",
+                    "field_id": "support_need",
+                    "why_status": "Nouvelle synthèse enrichie par le signal précis du user.",
+                    "locked_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                    "previous_value": null,
+                    "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+                  "last_handoff_delivered": true,
+                  "defense_response_hint_state": {
+                    "status": "missing",
+                    "why_status": "Non encore défini, focus sur support_need.",
+                    "locked_value": null,
+                    "strategy_hint": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  }
+                },
+                "no_chat_mutation": true
+              },
+              "runtime_trace": [
+                {
+                  "event": "active flow entry",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": null,
+                  "ai_call_count": 0,
+                  "handoff_ready": false,
+                  "slots_modified": [],
+                  "risk_assessment": null,
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": null,
+                  "support_need_status": "proposed",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "local_dispatcher called",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": null,
+                  "ai_call_count": 0,
+                  "handoff_ready": false,
+                  "slots_modified": [],
+                  "risk_assessment": null,
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": null,
+                  "support_need_status": "proposed",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "local_dispatcher decision",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "confirm_proposed_field",
+                  "ai_call_count": 1,
+                  "handoff_ready": false,
+                  "slots_modified": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "confirm_support_need_proposal",
+                  "support_need_status": "proposed",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "reducer reduced",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "confirm_proposed_field",
+                  "ai_call_count": 1,
+                  "handoff_ready": true,
+                  "slots_modified": [
+                    "tool_fit",
+                    "attachment",
+                    "risk_situation",
+                    "trigger",
+                    "defense_goal",
+                    "defense_response_hint",
+                    "support_need"
+                  ],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "handoff_ready",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "visible_prompt called",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "confirm_proposed_field",
+                  "ai_call_count": 1,
+                  "handoff_ready": true,
+                  "slots_modified": [
+                    "tool_fit",
+                    "attachment",
+                    "risk_situation",
+                    "trigger",
+                    "defense_goal",
+                    "defense_response_hint",
+                    "support_need"
+                  ],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "handoff_ready",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "stage": "handoff_ready",
+                  "issues": [],
+                  "accepted": true,
+                  "component": "prepare_defense_card.visible_agent"
+                },
+                {
+                  "event": "visible_prompt complete",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "confirm_proposed_field",
+                  "ai_call_count": 2,
+                  "handoff_ready": true,
+                  "slots_modified": [
+                    "tool_fit",
+                    "attachment",
+                    "risk_situation",
+                    "trigger",
+                    "defense_goal",
+                    "defense_response_hint",
+                    "support_need"
+                  ],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "handoff_ready",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                }
+              ],
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "commande impulsive par fatigue",
+                  "platform_flow": {
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": [
+                      {
+                        "value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "status": "locked",
+                        "field_id": "support_need",
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                      }
+                    ]
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "ouvre Ressources / Défense",
+                      "dans Cartes de défense libres, choisis Ajouter une carte",
+                      "reprends les champs préparés par Sophia"
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres"
+                  },
+                  "target_summary": "soirs de retour à la maison après le travail",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "prepare_defense_card_local_reducer"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "user_evidence": [
+                          "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas."
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "delivered",
+                "surface_id": "defense_cards",
+                "reason_code": "platform_handoff_delivered",
+                "operation_type": "prepare_defense_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false,
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-12T22:05:22.715634+00:00"
+      },
+      {
+        "id": "6fbe7209-ffe3-40c5-8352-01d849acc87e",
+        "role": "user",
+        "content": "Oui, cette formulation me va.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-12T22:05:31.97939+00:00"
+      },
+      {
+        "id": "c678f1b0-5477-4dd8-893f-c81dd04520a0",
+        "role": "assistant",
+        "content": "C'est parfait. Pour finaliser ta démarche, tu peux maintenant te rendre dans Ressources / Défense / Cartes de défense libres. En choisissant d'ajouter une carte, il te suffira de recopier cette phrase dans le champ Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? : Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas. Pense bien à faire cette étape manuellement, car la carte n'est pas créée automatiquement depuis notre échange.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "reason_code": "platform_handoff_delivered",
+              "ai_call_count": 2,
+              "handoff_state": {
+                "mode": "platform_handoff",
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "commande impulsive par fatigue",
+                  "platform_flow": {
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": [
+                      {
+                        "value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "status": "locked",
+                        "field_id": "support_need",
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                      }
+                    ]
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "ouvre Ressources / Défense",
+                      "dans Cartes de défense libres, choisis Ajouter une carte",
+                      "reprends les champs préparés par Sophia"
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres"
+                  },
+                  "target_summary": "soirs de retour à la maison après le travail",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "prepare_defense_card_local_reducer"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "user_evidence": [
+                          "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas."
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "handoff_delivered",
+                "skill_id": "prepare_defense_card",
+                "max_turns": 8,
+                "created_at": "2026-06-12T22:04:56.731Z",
+                "turn_count": 3,
+                "updated_at": "2026-06-12T22:05:48.691Z",
+                "local_state": {
+                  "flow_id": "prepare_defense_card",
+                  "risk_state": {
+                    "label": "commande impulsive par fatigue",
+                    "status": "locked",
+                    "why_status": "Risque et moment précisément décrits et validés.",
+                    "description": "poser son sac, se sentir trop fatigué pour réfléchir, ouvrir l'appli par automatisme",
+                    "timing_hint": "soir",
+                    "context_hint": "retour maison",
+                    "needs_user_confirmation": false
+                  },
+                  "route_kind": "free_card",
+                  "trigger_state": {
+                    "type": null,
+                    "status": "locked",
+                    "why_status": "Signal de déclenchement explicite.",
+                    "locked_value": "poser mon sac et me dire que je suis trop fatigué pour réfléchir",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "tool_fit_state": {
+                    "reason": "Le user confirme le besoin de protection contre un automatisme de craquage lié à la fatigue.",
+                    "status": "defense",
+                    "why_status": "Défense confirmée et validée par le user.",
+                    "needs_user_confirmation": false
+                  },
+                  "attachment_state": {
+                    "kind": "free_risk_context",
+                    "status": "locked",
+                    "why_status": "Contexte de vie identifié et validé.",
+                    "locked_value": "soirs de retour à la maison après le travail",
+                    "plan_item_id": null,
+                    "candidate_value": null,
+                    "candidate_options": [],
+                    "needs_user_confirmation": false
+                  },
+                  "subskill_history": [],
+                  "last_visible_task": "handoff_ready",
+                  "defense_goal_state": {
+                    "value": "interrupt_impulse",
+                    "status": "locked",
+                    "why_status": "Objectif de la carte validé.",
+                    "locked_value": "éviter d'ouvrir l'appli de livraison par automatisme",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "support_need_state": {
+                    "status": "locked",
+                    "field_id": "support_need",
+                    "why_status": "Formulation explicitement validée par le user.",
+                    "locked_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                    "previous_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                    "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+                  "last_handoff_delivered": true,
+                  "defense_response_hint_state": {
+                    "status": "missing",
+                    "why_status": "Non requis pour le champ support_need.",
+                    "locked_value": null,
+                    "strategy_hint": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  }
+                },
+                "no_chat_mutation": true
+              },
+              "runtime_trace": [
+                {
+                  "event": "active flow entry",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": null,
+                  "ai_call_count": 0,
+                  "handoff_ready": true,
+                  "slots_modified": [],
+                  "risk_assessment": null,
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": null,
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "local_dispatcher called",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": null,
+                  "ai_call_count": 0,
+                  "handoff_ready": false,
+                  "slots_modified": [],
+                  "risk_assessment": null,
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": null,
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "local_dispatcher decision",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "handoff_ready",
+                  "ai_call_count": 1,
+                  "handoff_ready": true,
+                  "slots_modified": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "handoff_ready",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "reducer reduced",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "handoff_ready",
+                  "ai_call_count": 1,
+                  "handoff_ready": true,
+                  "slots_modified": [
+                    "tool_fit",
+                    "attachment",
+                    "risk_situation",
+                    "trigger",
+                    "defense_goal",
+                    "defense_response_hint",
+                    "support_need"
+                  ],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "handoff_ready",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "visible_prompt called",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "handoff_ready",
+                  "ai_call_count": 1,
+                  "handoff_ready": true,
+                  "slots_modified": [
+                    "tool_fit",
+                    "attachment",
+                    "risk_situation",
+                    "trigger",
+                    "defense_goal",
+                    "defense_response_hint",
+                    "support_need"
+                  ],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "handoff_ready",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "stage": "handoff_ready",
+                  "issues": [],
+                  "accepted": true,
+                  "component": "prepare_defense_card.visible_agent"
+                },
+                {
+                  "event": "visible_prompt complete",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "handoff_ready",
+                  "ai_call_count": 2,
+                  "handoff_ready": true,
+                  "slots_modified": [
+                    "tool_fit",
+                    "attachment",
+                    "risk_situation",
+                    "trigger",
+                    "defense_goal",
+                    "defense_response_hint",
+                    "support_need"
+                  ],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "handoff_ready",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                }
+              ],
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "commande impulsive par fatigue",
+                  "platform_flow": {
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": [
+                      {
+                        "value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "status": "locked",
+                        "field_id": "support_need",
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                      }
+                    ]
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "ouvre Ressources / Défense",
+                      "dans Cartes de défense libres, choisis Ajouter une carte",
+                      "reprends les champs préparés par Sophia"
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres"
+                  },
+                  "target_summary": "soirs de retour à la maison après le travail",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "prepare_defense_card_local_reducer"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "user_evidence": [
+                          "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas."
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "delivered",
+                "surface_id": "defense_cards",
+                "reason_code": "platform_handoff_delivered",
+                "operation_type": "prepare_defense_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false,
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-12T22:05:48.707079+00:00"
+      },
+      {
+        "id": "715dd43b-d647-4264-aec5-0ddfa36cbd4c",
+        "role": "user",
+        "content": "Ok vas-y crée-la maintenant.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-12T22:05:57.121713+00:00"
+      },
+      {
+        "id": "0967b5f8-6c28-4e55-b741-a03bdb20ba2f",
+        "role": "assistant",
+        "content": "Je n'ai pas la main pour créer la carte directement d'ici, mais voici comment faire. Rends-toi dans Ressources / Défense / Cartes de défense libres et choisis Ajouter une carte. Pour le champ « Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? », tu n'as plus qu'à recopier cette phrase : Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "apply_attempt",
+              "reason_code": "apply_attempt_no_chat_mutation",
+              "ai_call_count": 2,
+              "handoff_state": {
+                "mode": "platform_handoff",
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "commande impulsive par fatigue",
+                  "platform_flow": {
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": [
+                      {
+                        "value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "status": "locked",
+                        "field_id": "support_need",
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                      }
+                    ]
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "ouvre Ressources / Défense",
+                      "dans Cartes de défense libres, choisis Ajouter une carte",
+                      "reprends les champs préparés par Sophia"
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres"
+                  },
+                  "target_summary": "soirs de retour à la maison après le travail",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "prepare_defense_card_local_reducer"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "user_evidence": [
+                          "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas."
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "apply_attempt",
+                "skill_id": "prepare_defense_card",
+                "max_turns": 8,
+                "created_at": "2026-06-12T22:04:56.731Z",
+                "turn_count": 4,
+                "updated_at": "2026-06-12T22:06:11.045Z",
+                "local_state": {
+                  "flow_id": "prepare_defense_card",
+                  "risk_state": {
+                    "label": "commande impulsive par fatigue",
+                    "status": "locked",
+                    "why_status": "Risque et moment précisément décrits et validés.",
+                    "description": "poser son sac, se sentir trop fatigué pour réfléchir, ouvrir l'appli par automatisme",
+                    "timing_hint": "soir",
+                    "context_hint": "retour maison",
+                    "needs_user_confirmation": false
+                  },
+                  "route_kind": "free_card",
+                  "trigger_state": {
+                    "type": null,
+                    "status": "locked",
+                    "why_status": "Signal de déclenchement explicite.",
+                    "locked_value": "poser mon sac et me dire que je suis trop fatigué pour réfléchir",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "tool_fit_state": {
+                    "reason": "Le user confirme le besoin de protection contre un automatisme de craquage lié à la fatigue.",
+                    "status": "defense",
+                    "why_status": "Défense confirmée et validée par le user.",
+                    "needs_user_confirmation": false
+                  },
+                  "attachment_state": {
+                    "kind": "free_risk_context",
+                    "status": "locked",
+                    "why_status": "Contexte de vie identifié et validé.",
+                    "locked_value": "soirs de retour à la maison après le travail",
+                    "plan_item_id": null,
+                    "candidate_value": null,
+                    "candidate_options": [],
+                    "needs_user_confirmation": false
+                  },
+                  "subskill_history": [],
+                  "last_visible_task": "apply_attempt",
+                  "defense_goal_state": {
+                    "value": "interrupt_impulse",
+                    "status": "locked",
+                    "why_status": "Objectif de la carte validé.",
+                    "locked_value": "éviter d'ouvrir l'appli de livraison par automatisme",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "support_need_state": {
+                    "status": "locked",
+                    "field_id": "support_need",
+                    "why_status": "Formulation explicitement validée par le user.",
+                    "locked_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                    "previous_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                    "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+                  "last_handoff_delivered": true,
+                  "defense_response_hint_state": {
+                    "status": "missing",
+                    "why_status": "Non requis pour le champ support_need.",
+                    "locked_value": null,
+                    "strategy_hint": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  }
+                },
+                "no_chat_mutation": true
+              },
+              "runtime_trace": [
+                {
+                  "event": "active flow entry",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": null,
+                  "ai_call_count": 0,
+                  "handoff_ready": true,
+                  "slots_modified": [],
+                  "risk_assessment": null,
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": null,
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "local_dispatcher called",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": null,
+                  "ai_call_count": 0,
+                  "handoff_ready": false,
+                  "slots_modified": [],
+                  "risk_assessment": null,
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": null,
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "local_dispatcher decision",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "apply_attempt",
+                  "ai_call_count": 1,
+                  "handoff_ready": true,
+                  "slots_modified": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "apply_attempt",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "reducer reduced",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "apply_attempt",
+                  "ai_call_count": 1,
+                  "handoff_ready": true,
+                  "slots_modified": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "apply_attempt",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "visible_prompt called",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "apply_attempt",
+                  "ai_call_count": 1,
+                  "handoff_ready": true,
+                  "slots_modified": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "apply_attempt",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "stage": "apply_attempt",
+                  "issues": [],
+                  "accepted": true,
+                  "component": "prepare_defense_card.visible_agent"
+                },
+                {
+                  "event": "visible_prompt complete",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "apply_attempt",
+                  "ai_call_count": 2,
+                  "handoff_ready": true,
+                  "slots_modified": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "apply_attempt",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                }
+              ],
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "create_defense_card",
+                  "reason_code": "chat_creation_disabled_platform_handoff"
+                }
+              ],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "commande impulsive par fatigue",
+                  "platform_flow": {
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": [
+                      {
+                        "value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "status": "locked",
+                        "field_id": "support_need",
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                      }
+                    ]
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "ouvre Ressources / Défense",
+                      "dans Cartes de défense libres, choisis Ajouter une carte",
+                      "reprends les champs préparés par Sophia"
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres"
+                  },
+                  "target_summary": "soirs de retour à la maison après le travail",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "prepare_defense_card_local_reducer"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "user_evidence": [
+                          "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas."
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "delivered",
+                "surface_id": "defense_cards",
+                "reason_code": "apply_attempt_no_chat_mutation",
+                "operation_type": "prepare_defense_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false,
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-12T22:06:11.055539+00:00"
+      },
+      {
+        "id": "021eb268-a6ec-4cf3-9990-24292f6fe85f",
+        "role": "user",
+        "content": "Je la mets où exactement déjà ?",
+        "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-12T22:06:21.07744+00:00"
+      },
+      {
+        "id": "574f6c35-1bfc-4076-9201-799bcdd7566e",
+        "role": "assistant",
+        "content": "Tu peux la placer dans Ressources / Défense / Cartes de défense libres. Dans le champ Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?, tu n'as plus qu'à recopier : Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "reason_code": "destination_short",
+              "ai_call_count": 2,
+              "handoff_state": {
+                "mode": "platform_handoff",
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "commande impulsive par fatigue",
+                  "platform_flow": {
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": [
+                      {
+                        "value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "status": "locked",
+                        "field_id": "support_need",
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                      }
+                    ]
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "ouvre Ressources / Défense",
+                      "dans Cartes de défense libres, choisis Ajouter une carte",
+                      "reprends les champs préparés par Sophia"
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres"
+                  },
+                  "target_summary": "soirs de retour à la maison après le travail",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "prepare_defense_card_local_reducer"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "user_evidence": [
+                          "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas."
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "handoff_delivered",
+                "skill_id": "prepare_defense_card",
+                "max_turns": 8,
+                "created_at": "2026-06-12T22:04:56.731Z",
+                "turn_count": 5,
+                "updated_at": "2026-06-12T22:06:43.462Z",
+                "local_state": {
+                  "flow_id": "prepare_defense_card",
+                  "risk_state": {
+                    "label": "commande impulsive par fatigue",
+                    "status": "locked",
+                    "why_status": "Risque et moment précisément décrits et validés.",
+                    "description": "poser son sac, se sentir trop fatigué pour réfléchir, ouvrir l'appli par automatisme",
+                    "timing_hint": "soir",
+                    "context_hint": "retour maison",
+                    "needs_user_confirmation": false
+                  },
+                  "route_kind": "free_card",
+                  "trigger_state": {
+                    "type": null,
+                    "status": "locked",
+                    "why_status": "Signal de déclenchement explicite.",
+                    "locked_value": "poser mon sac et me dire que je suis trop fatigué pour réfléchir",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "tool_fit_state": {
+                    "reason": "Le user confirme le besoin de protection contre un automatisme de craquage lié à la fatigue.",
+                    "status": "defense",
+                    "why_status": "Défense confirmée et validée par le user.",
+                    "needs_user_confirmation": false
+                  },
+                  "attachment_state": {
+                    "kind": "free_risk_context",
+                    "status": "locked",
+                    "why_status": "Contexte de vie identifié et validé.",
+                    "locked_value": "soirs de retour à la maison après le travail",
+                    "plan_item_id": null,
+                    "candidate_value": null,
+                    "candidate_options": [],
+                    "needs_user_confirmation": false
+                  },
+                  "subskill_history": [],
+                  "last_visible_task": "destination_short",
+                  "defense_goal_state": {
+                    "value": "interrupt_impulse",
+                    "status": "locked",
+                    "why_status": "Objectif de la carte validé.",
+                    "locked_value": "éviter d'ouvrir l'appli de livraison par automatisme",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "support_need_state": {
+                    "status": "locked",
+                    "field_id": "support_need",
+                    "why_status": "Formulation explicitement validée par le user.",
+                    "locked_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                    "previous_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                    "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+                  "last_handoff_delivered": true,
+                  "defense_response_hint_state": {
+                    "status": "missing",
+                    "why_status": "Non requis pour le champ support_need.",
+                    "locked_value": null,
+                    "strategy_hint": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  }
+                },
+                "no_chat_mutation": true
+              },
+              "runtime_trace": [
+                {
+                  "event": "active flow entry",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": null,
+                  "ai_call_count": 0,
+                  "handoff_ready": true,
+                  "slots_modified": [],
+                  "risk_assessment": null,
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": null,
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "local_dispatcher called",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": null,
+                  "ai_call_count": 0,
+                  "handoff_ready": false,
+                  "slots_modified": [],
+                  "risk_assessment": null,
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": null,
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "local_dispatcher decision",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "platform_destination_followup",
+                  "ai_call_count": 1,
+                  "handoff_ready": true,
+                  "slots_modified": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "destination_short",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "reducer reduced",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "platform_destination_followup",
+                  "ai_call_count": 1,
+                  "handoff_ready": true,
+                  "slots_modified": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "destination_short",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "visible_prompt called",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "platform_destination_followup",
+                  "ai_call_count": 1,
+                  "handoff_ready": true,
+                  "slots_modified": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "destination_short",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "stage": "destination_short",
+                  "issues": [],
+                  "accepted": true,
+                  "component": "prepare_defense_card.visible_agent"
+                },
+                {
+                  "event": "visible_prompt complete",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "platform_destination_followup",
+                  "ai_call_count": 2,
+                  "handoff_ready": true,
+                  "slots_modified": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "destination_short",
+                  "support_need_status": "locked",
+                  "exit_to_global_dispatcher": false
+                }
+              ],
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "commande impulsive par fatigue",
+                  "platform_flow": {
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": [
+                      {
+                        "value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "status": "locked",
+                        "field_id": "support_need",
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                      }
+                    ]
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "ouvre Ressources / Défense",
+                      "dans Cartes de défense libres, choisis Ajouter une carte",
+                      "reprends les champs préparés par Sophia"
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres"
+                  },
+                  "target_summary": "soirs de retour à la maison après le travail",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "prepare_defense_card_local_reducer"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas.",
+                        "user_evidence": [
+                          "Les soirs où je rentre vidé et sans filtre, pour éviter de commander n'importe quoi et réussir à me faire un vrai repas."
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "delivered",
+                "surface_id": "defense_cards",
+                "reason_code": "destination_short",
+                "operation_type": "prepare_defense_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false,
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-12T22:06:43.475977+00:00"
+      },
+      {
+        "id": "53d06135-1ac1-4ee4-a79e-6f48211cee5e",
+        "role": "user",
+        "content": "En fait je change : j’ai plutôt besoin d’une carte d’attaque pour me lancer demain matin sur mon dossier CAF.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-12T22:06:53.426939+00:00"
+      },
+      {
+        "id": "c9fdfd1d-8d7f-4d02-a0f7-7687ae32dfc8",
+        "role": "assistant",
+        "content": "On change de stratégie pour s'attaquer à ce dossier CAF dès demain matin. Qu'est-ce qui, d'habitude, te fait le plus hésiter ou dérailler au moment de commencer ce genre de paperasse ?",
+        "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "flow_action": "continue_local",
+              "reason_code": "prepare_attack_card_local_ask_blocker",
+              "visible_task": "ask_blocker",
+              "handoff_state": {
+                "mode": "platform_handoff",
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "prepare_attack_card",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "platform_steps": [
+                      "ouvre la section Cartes",
+                      "choisis Carte d’attaque",
+                      "reprends le brouillon proposé"
+                    ],
+                    "technique_label": "",
+                    "card_draft_summary": "",
+                    "why_this_technique": "technique selection follows blocker intake",
+                    "platform_destination": "dans la section Cartes d’attaque"
+                  },
+                  "target_summary": "dossier CAF",
+                  "blocker_summary": "",
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "collecting",
+                "target": {
+                  "kind": "personal_action",
+                  "title": "dossier CAF",
+                  "plan_item_id": null
+                },
+                "skill_id": "prepare_attack_card",
+                "max_turns": 8,
+                "created_at": "2026-06-12T22:07:24.117Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-12T22:07:24.117Z",
+                "local_state": {
+                  "flow_id": "prepare_attack_card",
+                  "flow_kind": "free_attack_card",
+                  "target_state": {
+                    "kind": "personal_action",
+                    "status": "locked",
+                    "why_status": "user explicitly requested this target for an attack card",
+                    "locked_value": "dossier CAF",
+                    "plan_item_id": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "blocker_state": {
+                    "status": "missing",
+                    "why_status": "Piège manquant.",
+                    "blocker_type": null,
+                    "locked_value": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "technique_state": {
+                    "status": "missing",
+                    "why_status": "technique selection follows blocker intake",
+                    "fit_warning": null,
+                    "technique_key": null,
+                    "technique_label": null,
+                    "candidate_options": [],
+                    "explicitly_requested": false,
+                    "needs_user_confirmation": false
+                  },
+                  "current_field_id": null,
+                  "subskill_history": [],
+                  "last_visible_task": "ask_blocker",
+                  "platform_destination": "dans la section Cartes d’attaque",
+                  "platform_field_order": [],
+                  "platform_field_states": {},
+                  "last_handoff_delivered": false,
+                  "activation_keyword_state": {
+                    "status": "not_applicable",
+                    "why_status": "not in pre_engagement technique",
+                    "locked_value": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  }
+                },
+                "source_draft": null,
+                "no_chat_mutation": true
+              },
+              "runtime_trace": [
+                {
+                  "event": "db_context_pack_loaded",
+                  "component": "prepare_attack_card.local_flow",
+                  "plan_items_count": 0,
+                  "selected_handler": "prepare_attack_card",
+                  "micro_memory_items_count": 0
+                },
+                {
+                  "event": "global_dispatcher_skipped",
+                  "component": "prepare_attack_card.local_flow",
+                  "reason_code": "active_prepare_attack_card_uses_local_dispatcher",
+                  "selected_handler": "prepare_attack_card"
+                },
+                {
+                  "event": "note_information_consumed",
+                  "component": "prepare_attack_card.local_flow",
+                  "source_flow_id": "global_dispatcher",
+                  "selected_handler": "prepare_attack_card",
+                  "target_dispatcher": "prepare_attack_card"
+                },
+                {
+                  "event": "local_dispatcher start",
+                  "stage": null,
+                  "component": "prepare_attack_card.local_flow",
+                  "flow_action": null,
+                  "target_status": "proposed",
+                  "technique_key": null,
+                  "blocker_status": "missing",
+                  "missing_fields": [],
+                  "risk_assessment": null,
+                  "current_field_id": null,
+                  "selected_handler": "prepare_attack_card",
+                  "visible_task_kind": null
+                },
+                {
+                  "event": "local_dispatcher decision",
+                  "stage": "ask_blocker",
+                  "component": "prepare_attack_card.local_flow",
+                  "flow_action": "continue_local",
+                  "target_status": "locked",
+                  "technique_key": null,
+                  "blocker_status": "missing",
+                  "missing_fields": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "current_field_id": null,
+                  "selected_handler": "prepare_attack_card",
+                  "visible_task_kind": "ask_blocker"
+                },
+                {
+                  "event": "reducer reduced",
+                  "stage": "ask_blocker",
+                  "component": "prepare_attack_card.local_flow",
+                  "flow_action": "continue_local",
+                  "target_status": "locked",
+                  "technique_key": null,
+                  "blocker_status": "missing",
+                  "missing_fields": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "current_field_id": null,
+                  "selected_handler": "prepare_attack_card",
+                  "visible_task_kind": "ask_blocker"
+                },
+                {
+                  "event": "visible_stage start",
+                  "stage": "ask_blocker",
+                  "component": "prepare_attack_card.local_flow",
+                  "flow_action": "continue_local",
+                  "target_status": "locked",
+                  "technique_key": null,
+                  "blocker_status": "missing",
+                  "missing_fields": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "current_field_id": null,
+                  "selected_handler": "prepare_attack_card",
+                  "visible_task_kind": "ask_blocker"
+                },
+                {
+                  "stage": "ask_blocker",
+                  "issues": [],
+                  "attempt": 1,
+                  "accepted": true,
+                  "component": "visible_agent"
+                },
+                {
+                  "event": "visible_stage complete",
+                  "stage": "ask_blocker",
+                  "component": "prepare_attack_card.local_flow",
+                  "flow_action": "continue_local",
+                  "target_status": "locked",
+                  "technique_key": null,
+                  "blocker_status": "missing",
+                  "missing_fields": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "current_field_id": null,
+                  "selected_handler": "prepare_attack_card",
+                  "visible_task_kind": "ask_blocker"
+                }
+              ],
+              "operation_type": "prepare_attack_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "selected_handler": "prepare_attack_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false,
+              "visible_task_context": {
+                "do_not_say": [
+                  "c'est cree",
+                  "je l'ai creee",
+                  "je l'ai ajoutee",
+                  "c'est active",
+                  "dis oui et je la cree",
+                  "c'est créé",
+                  "carte de défense"
+                ],
+                "user_words": [
+                  "dossier CAF",
+                  "demain matin"
+                ],
+                "handoff_data": {
+                  "flow_kind": "free_attack_card",
+                  "target_value": "dossier CAF",
+                  "blocker_value": null,
+                  "locked_fields": [],
+                  "surface_label": "Cartes d'attaque",
+                  "missing_fields": [
+                    "blocker",
+                    "technique"
+                  ],
+                  "operation_name": "prepare_attack_card",
+                  "platform_steps": [],
+                  "technique_label": null,
+                  "no_chat_mutation": true,
+                  "activation_keyword": null,
+                  "platform_destination": ""
+                },
+                "known_values": {
+                  "target": {
+                    "kind": "personal_action",
+                    "status": "locked",
+                    "why_status": "user explicitly requested this target for an attack card",
+                    "locked_value": "dossier CAF",
+                    "plan_item_id": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "blocker": {
+                    "status": "missing",
+                    "why_status": "Piège manquant.",
+                    "blocker_type": null,
+                    "locked_value": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "technique": {
+                    "status": "missing",
+                    "why_status": "technique selection follows blocker intake",
+                    "fit_warning": null,
+                    "technique_key": null,
+                    "technique_label": null,
+                    "candidate_options": [],
+                    "explicitly_requested": false,
+                    "needs_user_confirmation": false
+                  },
+                  "current_field": null,
+                  "activation_keyword": {
+                    "status": "not_applicable",
+                    "why_status": "not in pre_engagement technique",
+                    "locked_value": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  }
+                },
+                "evidence_used": [
+                  "besoin d’une carte d’attaque",
+                  "dossier CAF"
+                ],
+                "state_summary": "Changement de cap : cible verrouillée sur le dossier CAF pour demain matin. Étape suivante : identifier le piège ou la difficulté.",
+                "field_or_stage": "blocker_intake",
+                "context_summary": "L'utilisateur abandonne la carte de défense pour une carte d'attaque sur le dossier CAF. La cible est validée, on cherche maintenant l'obstacle.",
+                "tone_constraints": [
+                  "acknowledge the switch from defense to attack card",
+                  "focus on the difficulty of starting tomorrow morning"
+                ],
+                "selected_candidate": {
+                  "previous_value": null,
+                  "candidate_options": [],
+                  "recommended_technique": null,
+                  "allowed_technique_labels": []
+                },
+                "missing_or_weak_values": [
+                  "blocker"
+                ]
+              }
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-12T22:07:24.122105+00:00"
+      }
+    ]
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "connection": {
+    "persona": "qa-skill",
+    "connection_name": "product_help_dashboard_dashhelp1_c4_initiatives-preferences-base",
+    "user_id": "55dac09a-137d-45ed-af93-a48bf0a1337a",
+    "scope": "qa-update-coach-preferences-2026-05-16-prefarch1-r1"
+  },
+  "target": {
+    "key": "coach.tone",
+    "value": "direct",
+    "user": "A partir de maintenant, sois plus directe avec moi, moins arrondie."
+  },
+  "before": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T18:17:08.615716+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T18:17:08.615716+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T18:17:08.615716+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "after": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T18:17:08.615716+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T18:17:08.615716+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Très direct",
+          "value": "direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "explicit_user",
+        "reason": "A partir de maintenant, sois plus directe avec moi, moins arrondie.",
+        "updated_at": "2026-05-16T18:17:18.353+00:00",
+        "last_source_message_id": "f91859ff-deea-4201-9d7a-7f789ef39341"
+      }
+    ]
+  },
+  "restore": {
+    "status": 204,
+    "ok": true
+  },
+  "restored": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T18:17:08.615716+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T18:17:08.615716+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T18:17:18.353+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "6bccd418-8af8-4072-9ca1-c33a5a1bb92d",
+        "role": "user",
+        "content": "A partir de maintenant, sois plus directe avec moi, moins arrondie.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-16-prefarch1-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T18:17:09.296831+00:00"
+      },
+      {
+        "id": "d1b3fc09-17c0-4109-b068-1f966ed0e484",
+        "role": "assistant",
+        "content": "Je peux régler ma façon de répondre: Sophia utilisera un ton plus direct. Tu veux que je l'applique ?",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-16-prefarch1-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "patch": {
+                    "coach.tone": "direct"
+                  },
+                  "reason": "A partir de maintenant, sois plus directe avec moi, moins arrondie.",
+                  "summary": "Sophia utilisera un ton plus direct."
+                },
+                "output_schema": "coach_preferences_patch_draft_v1",
+                "operation_type": "update_coach_preferences",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je peux régler ma façon de répondre: Sophia utilisera un ton plus direct. Tu veux que je l'applique ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "a9926714-0c5b-43b2-97a2-8b6c9bbb8a3a",
+              "selected_handler": "update_coach_preferences"
+            }
+          }
+        },
+        "created_at": "2026-05-16T18:17:14.142229+00:00"
+      },
+      {
+        "id": "f91859ff-deea-4201-9d7a-7f789ef39341",
+        "role": "user",
+        "content": "Oui, applique cette préférence maintenant.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-16-prefarch1-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T18:17:14.192516+00:00"
+      },
+      {
+        "id": "dd98dcaf-3c69-4c0d-8ddb-e9474918af6d",
+        "role": "assistant",
+        "content": "C'est fait. J'ai appliqué cette préférence : Sophia utilisera un ton plus direct.",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-16-prefarch1-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "executed",
+              "operation_id": "a9926714-0c5b-43b2-97a2-8b6c9bbb8a3a",
+              "selected_handler": "update_coach_preferences",
+              "draft_review_decision": {
+                "decision": "approve",
+                "evidence": [
+                  "0"
+                ],
+                "confidence": "high",
+                "generated_user_message": null
+              },
+              "preferences_update_id": "coach.tone"
+            }
+          }
+        },
+        "created_at": "2026-05-16T18:17:18.360023+00:00"
+      }
+    ]
+  },
+  "cleanup": {
+    "chat_messages": {
+      "status": 204,
+      "ok": true
+    },
+    "user_profile_facts": {
+      "status": 204,
+      "ok": true
+    },
+    "auth_user": {
+      "status": 200,
+      "ok": true
+    }
+  }
+}

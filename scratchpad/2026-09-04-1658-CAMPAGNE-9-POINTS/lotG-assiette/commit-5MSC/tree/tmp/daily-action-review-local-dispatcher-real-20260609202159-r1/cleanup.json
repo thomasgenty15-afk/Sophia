@@ -1,0 +1,8 @@
+{
+  "run_id": "daily-action-review-local-dispatcher-real-20260609202159-r1",
+  "restored_profile": true,
+  "restored_existing_checkin_id": "7dd84043-442c-4046-9823-98a757939016",
+  "deleted_qa_checkin_id": "9caa8425-29ed-423a-b514-f6582386d409",
+  "deleted_test_message_filter": "original_checkin_id 7dd... created_at>=2026-06-09T20:20:00Z",
+  "cleaned_at": "2026-06-09T20:25:56.963Z"
+}

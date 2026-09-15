@@ -1,0 +1,225 @@
+══════════════════════════════════════════════════════════════════════════
+V2-D — RUN GROUPÉ DE LA VAGUE 2   ·   2026-08-22 14:06:05 CEST
+archives → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-140605
+mode     → DRY-RUN (aucun appel de modèle)
+══════════════════════════════════════════════════════════════════════════
+
+── ⓪.a  LE RUNTIME SERT-IL LE CODE NEUF ? ────────────────────────────────
+   conteneur supabase_edge_runtime_Sophia_2 démarré à 2026-08-22T12:05:28.589955634Z  (epoch 1787400328)
+   source la plus récente : 2026-08-22T12:02:20Z — /Users/ahmedamara/Dev/Sophia 2/supabase/functions/_shared/keel/composition_fill_io.ts
+   ✅ aucune source plus récente que le runtime (marge 188 s).
+   ⚠️ D'AUTRES SESSIONS ÉCRIVENT DANS CE DÉPÔT. Si une source bouge PENDANT
+      le lot, cette sonde ne le reverra pas: relance le lot, pas un run.
+
+── ⓪.b  LA FONCTION RÉPOND-ELLE ? (un POST vide ⇒ 400 nommé) ─────────────
+   API_URL = http://127.0.0.1:54321
+
+── ⓪.c  CONNEXION DU MAÎTRE (mot de passe — jamais service_role) ─────────
+   ✅ maître 53fb05ba-333a-4bf5-9e19-502103581ef7  (jeton 749 car.)
+   POST {} → http=400  ({"error":"replaces_required","detail":"intent=replace_current must name the plan it replaces (`replaces`).","request_id":"4a237a0c-0f28-4c33-8ba5-cb1fe2f11a9e"})
+   ✅ la fonction boote et refuse proprement (aucune génération dépensée).
+
+── ⓪.d  LA FIXTURE, VÉRIFIÉE ────────────────────────────────────────────
+                  id                  |             name             | free_until | couverte 
+--------------------------------------+------------------------------+------------+----------
+ b1959752-92c8-4038-8c17-992a77d68d21 | Fixture V0-C — foyer pluriel | 2026-09-20 | t
+(1 row)
+
+ first_name |  role  | a_un_compte | birth_date | mineure |    goal     |    diet    
+------------+--------+-------------+------------+---------+-------------+------------
+ Camille    | owner  | t           | 1986-03-14 | f       |             | 
+ Malo       | member | f           | 1992-07-09 | f       | fat_loss    | vegan
+ Anouk      | member | f           | 2011-05-20 | t       | muscle_gain | 
+ Yanis      | member | f           | 1989-11-02 | f       | maintenance | vegetarian
+(4 rows)
+
+           porte            | ok 
+----------------------------+----
+ coach_clients              |  1
+ student_goals              |  1
+ safety_constraints_actives |  0
+(3 rows)
+
+                  id                  | locale | country |   timezone   
+--------------------------------------+--------+---------+--------------
+ 53fb05ba-333a-4bf5-9e19-502103581ef7 | fr-FR  | FR      | Europe/Paris
+(1 row)
+
+   ✅ foyer couvert · objectif présent · coach actif.
+
+── ⓪.e  L'ÉTAT D'AVANT, ARCHIVÉ ──────────────────────────────────────────
+   HORODATAGE DE LANCEMENT (UTC) : 2026-08-22T12:06:13Z
+V2-D — ÉTAT D'AVANT · 2026-08-22T12:06:13Z
+plan de référence 66de9046-7b8e-48f9-958c-aa8086d65d66 : retired_at=NULL duration_days=7
+plan V0-D         3c781a71-da7c-4abe-8a99-4a6ed7445c99 : retired_at=NULL duration_days=1
+générations déjà en base (source sans point) : 370
+food_composition_pending : 5
+profiles.locale : fr-FR
+
+— plans VIVANTS de la fixture —
+                  id                  | plan_kind | starts_on  | duration_days | retired_at | content_locale |                              pv                               
+--------------------------------------+-----------+------------+---------------+------------+----------------+---------------------------------------------------------------
+ 3c781a71-da7c-4abe-8a99-4a6ed7445c99 | household | 2026-08-21 |             1 |            | fr-FR          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ 66de9046-7b8e-48f9-958c-aa8086d65d66 | household | 2026-08-22 |             7 |            | fr-FR          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+(2 rows)
+
+   plan de référence 66de9046-7b8e-48f9-958c-aa8086d65d66 : retired_at=NULL · durée=7 j
+   sas food_composition_pending : 5   ⚠️ le seuil L18b « ≥ 3 » est DÉJÀ atteint AVANT le run
+   compteur de générations (base entière) : 370
+   profiles.locale : fr-FR
+   → archivé dans /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-140605/01-avant.txt
+
+── LE PLAN DE RUN — 11 exécutions (plafond 11) ──────────────────
+     01:foyer:fr-FR
+     02:foyer:fr-FR
+     03:foyer:fr-FR
+     04:foyer:fr-FR
+     05:foyer:fr-FR
+     06:foyer:en-GB
+     07:foyer:en-GB
+     08:foyer:en-GB
+     09:foyer:en-GB
+     10:foyer:en-GB
+     11:solo:fr-FR
+     ⇒ foyer 5 fr-FR + 5 en-GB  (L2-lang conclut sur la portée « foyer »)
+     ⇒ solo  1 fr-FR            (premier v18 solo — L17/L-1/L18b, PAS un verdict de langue)
+
+══ RUN 01/11  ·  lane=foyer  ·  locale=fr-FR  ·  générations déjà dépensées: 0 ══
+   profiles.locale ← fr-FR  (DRY: NON appliqué)   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 66de9046-7b8e-48f9-958c-aa8086d65d66
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"66de9046-7b8e-48f9-958c-aa8086d65d66","context":null,"cooking_shape":null,"preferences":null}
+   ↷ DRY-RUN — aucun appel.
+
+══ RUN 02/11  ·  lane=foyer  ·  locale=fr-FR  ·  générations déjà dépensées: 0 ══
+   profiles.locale ← fr-FR  (DRY: NON appliqué)   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 66de9046-7b8e-48f9-958c-aa8086d65d66
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"66de9046-7b8e-48f9-958c-aa8086d65d66","context":null,"cooking_shape":null,"preferences":null}
+   ↷ DRY-RUN — aucun appel.
+
+══ RUN 03/11  ·  lane=foyer  ·  locale=fr-FR  ·  générations déjà dépensées: 0 ══
+   profiles.locale ← fr-FR  (DRY: NON appliqué)   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 66de9046-7b8e-48f9-958c-aa8086d65d66
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"66de9046-7b8e-48f9-958c-aa8086d65d66","context":null,"cooking_shape":null,"preferences":null}
+   ↷ DRY-RUN — aucun appel.
+
+══ RUN 04/11  ·  lane=foyer  ·  locale=fr-FR  ·  générations déjà dépensées: 0 ══
+   profiles.locale ← fr-FR  (DRY: NON appliqué)   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 66de9046-7b8e-48f9-958c-aa8086d65d66
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"66de9046-7b8e-48f9-958c-aa8086d65d66","context":null,"cooking_shape":null,"preferences":null}
+   ↷ DRY-RUN — aucun appel.
+
+══ RUN 05/11  ·  lane=foyer  ·  locale=fr-FR  ·  générations déjà dépensées: 0 ══
+   profiles.locale ← fr-FR  (DRY: NON appliqué)   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 66de9046-7b8e-48f9-958c-aa8086d65d66
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"66de9046-7b8e-48f9-958c-aa8086d65d66","context":null,"cooking_shape":null,"preferences":null}
+   ↷ DRY-RUN — aucun appel.
+
+══ RUN 06/11  ·  lane=foyer  ·  locale=en-GB  ·  générations déjà dépensées: 0 ══
+   profiles.locale ← en-GB  (DRY: NON appliqué)   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 66de9046-7b8e-48f9-958c-aa8086d65d66
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"66de9046-7b8e-48f9-958c-aa8086d65d66","context":null,"cooking_shape":null,"preferences":null}
+   ↷ DRY-RUN — aucun appel.
+
+══ RUN 07/11  ·  lane=foyer  ·  locale=en-GB  ·  générations déjà dépensées: 0 ══
+   profiles.locale ← en-GB  (DRY: NON appliqué)   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 66de9046-7b8e-48f9-958c-aa8086d65d66
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"66de9046-7b8e-48f9-958c-aa8086d65d66","context":null,"cooking_shape":null,"preferences":null}
+   ↷ DRY-RUN — aucun appel.
+
+══ RUN 08/11  ·  lane=foyer  ·  locale=en-GB  ·  générations déjà dépensées: 0 ══
+   profiles.locale ← en-GB  (DRY: NON appliqué)   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 66de9046-7b8e-48f9-958c-aa8086d65d66
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"66de9046-7b8e-48f9-958c-aa8086d65d66","context":null,"cooking_shape":null,"preferences":null}
+   ↷ DRY-RUN — aucun appel.
+
+══ RUN 09/11  ·  lane=foyer  ·  locale=en-GB  ·  générations déjà dépensées: 0 ══
+   profiles.locale ← en-GB  (DRY: NON appliqué)   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 66de9046-7b8e-48f9-958c-aa8086d65d66
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"66de9046-7b8e-48f9-958c-aa8086d65d66","context":null,"cooking_shape":null,"preferences":null}
+   ↷ DRY-RUN — aucun appel.
+
+══ RUN 10/11  ·  lane=foyer  ·  locale=en-GB  ·  générations déjà dépensées: 0 ══
+   profiles.locale ← en-GB  (DRY: NON appliqué)   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 66de9046-7b8e-48f9-958c-aa8086d65d66
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"66de9046-7b8e-48f9-958c-aa8086d65d66","context":null,"cooking_shape":null,"preferences":null}
+   ↷ DRY-RUN — aucun appel.
+
+══ RUN 11/11  ·  lane=solo  ·  locale=fr-FR  ·  générations déjà dépensées: 0 ══
+   profiles.locale ← fr-FR  (DRY: NON appliqué)   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-meal-v1
+   intent   : prepare_next   replaces: —
+   corps    : {"mode":"to_shop","window":{"kind":"days","count":7},"intent":"prepare_next","replaces":null,"meal_slot":null,"servings":1,"context":null,"preferences":null,"pantry":[]}
+   ↷ DRY-RUN — aucun appel.
+
+── ④  LE RAPPORT ─────────────────────────────────────────────────────────
+
+  ⓐ LE BUDGET — GÉNÉRATIONS d'un côté, relances/secours de l'autre (§⑩)
+ unite | source | model | appels | tokens | mediane_ms | max_ms 
+-------+--------+-------+--------+--------+------------+--------
+(0 rows)
+
+
+  ⓑ LES PLANS NEUFS — deux langues, un millésime par lane, 5 et 5
+ langue | plan_kind | millesime | count 
+--------+-----------+-----------+-------
+(0 rows)
+
+
+  ⓒ L18b — LE SAS. ⛔ LE SEUIL « pending ≥ 3 » ÉTAIT DÉJÀ ATTEINT AVANT LE RUN
+      avant 5   après 5   delta 0
+      ⇒ la seule lecture honnête est le DELTA et les termes NEUFS :
+ term | sightings | status | first_seen_at 
+------+-----------+--------+---------------
+(0 rows)
+
+
+  ⓓ L17-0 — LE VERDICT, PLAN PAR PLAN
+
+  ⓔ LE RÉCAPITULATIF DES RUNS  → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-140605/03-recap-runs.tsv
+idx	lane	locale	intent	replaces	http	secondes	plan_id	gen_cumul
+01	foyer	fr-FR	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+02	foyer	fr-FR	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+03	foyer	fr-FR	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+04	foyer	fr-FR	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+05	foyer	fr-FR	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+06	foyer	en-GB	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+07	foyer	en-GB	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+08	foyer	en-GB	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+09	foyer	en-GB	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+10	foyer	en-GB	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+11	solo	fr-FR	prepare_next	—	DRY	-	-	-
+
+  ⓕ ⛔ LES TROIS COMMANDES DE MESURE — À LANCER MAINTENANT, ZÉRO GÉNÉRATION
+
+     ① L2-lang (le critère de fin de vague — verdict PAR LANE) :
+        bash scripts/keel_l2lang_langue_20260822.sh --since='2026-08-22T12:06:13Z'
+        ⚠️ SANS --prompt-version : les deux lanes portent deux millésimes
+           différents, et le passer exclurait l'une des deux du banc.
+           La portée « les deux lanes » REFUSERA de conclure — c'est juste.
+           La portée « foyer » est celle qui porte le verdict.
+
+     ② L17 — les deux seuils, les deux dénominateurs :
+        bash scripts/keel_l17_bornes_20260822.sh
+
+     ③ V0-E′ — le tableau de bord de fin de vague :
+        bash scripts/keel_v0e_tableau_de_bord_20260821.sh
+
+══════════════════════════════════════════════════════════════════════════
+V2-D terminé · archives /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-140605
+══════════════════════════════════════════════════════════════════════════
+
+── ③  RESTAURATION ───────────────────────────────────────────────────────
+   profiles.locale rendu à « fr-FR ».
+   plan(s) foyer du lot retiré(s) — ils libèrent la fenêtre : UPDATE 0 
+   ✅ 66de9046-7b8e-48f9-958c-aa8086d65d66 RENDU INTACT — retired_at=NULL · durée=7 j (avant: 7 j)
+   état final des plans → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-140605/99-apres-plans.txt

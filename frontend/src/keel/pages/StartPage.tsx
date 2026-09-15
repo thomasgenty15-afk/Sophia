@@ -640,7 +640,11 @@ export default function StartPage() {
                   id="start-name"
                   type="text"
                   required
-                  autoComplete="name"
+                  // ⟳ 2026-09-11 — `given-name` ET PLUS `name`: le champ demande
+                  // un PRÉNOM, et c'est lui que le plan emploie pour nommer une
+                  // part. `autoComplete="name"` faisait proposer au navigateur
+                  // le nom complet, que personne ne veut lire sur une assiette.
+                  autoComplete="given-name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className={controlClass}

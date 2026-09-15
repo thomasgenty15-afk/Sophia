@@ -1,0 +1,40 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r136-repair-variant-robust-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je viens de relire la prochaine partie du plan. Ce qui me manque, ce n est pas analyser la dispute, c est une mini marche pour revenir en lien apres un accrochage avant de reparler du fond.",
+    "assistant": "Ouais, je vois exactement : t’as pas besoin de “tout analyser”, t’as besoin d’un petit rituel concret pour revenir au même endroit avant de replonger dans le sujet. Et franchement c’est une super idée. 🙂  \n\nOn peut le cadrer comme une mini marche en 2 temps très simple :\n1) Réglage du corps (la marche) : 3 à 5 minutes, marcher côte à côte ou juste à côté, sans débat, juste respirer et faire redescendre la tension.  \n2) Remise en lien (une phrase courte chacun) : “Je suis dispo pour reparler du fond, mais là je reviens en lien d’abord.” ou “Je veux qu’on se comprenne, on y va tranquillement ?”\n\nPour que ça marche même quand ça chauffe, on choisit une règle ultra claire : pendant la mini marche, pas de “alors tu as dit que…” ni de justification.\n\nTu veux que ce mini rituel soit plutôt en mode “silencieux + respiration” ou en mode “1 phrase de retour en lien chacun” ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r136-repair-variant-robust-t01",
+    "trace_error": null
+  }
+]

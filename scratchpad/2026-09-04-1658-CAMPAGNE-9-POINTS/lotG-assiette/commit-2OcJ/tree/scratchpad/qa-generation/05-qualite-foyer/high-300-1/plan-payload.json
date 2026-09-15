@@ -1,0 +1,2271 @@
+{
+    "scope": "several_days",
+    "dishes": [
+        {
+            "day": "wed",
+            "why": "A quick named plate fills Wednesday lunch before the first cooking session.",
+            "name": "Bright chickpea pepper salad",
+            "slot": "lunch",
+            "uses": [
+            ],
+            "title": "Chickpeas, peppers, cucumber and corn tortillas",
+            "method": "Mix the chickpeas, sliced peppers, cucumber and sweetcorn with lemon, olive oil and parsley. Serve with the corn tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "drained chickpeas",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 480,
+                    "quantity": "480 g drained chickpeas",
+                    "grams_raw": 480,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 peppers",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 cucumber",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "sweetcorn",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 200,
+                    "quantity": "200 g sweetcorn",
+                    "grams_raw": 200,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 lemon",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp olive oil",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "parsley",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 10,
+                    "quantity": "10 g parsley",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "This own plate keeps Wednesday lunch ready without asking the student to cook before the evening session.",
+            "name": "Tuna pepper tortilla plate",
+            "slot": "lunch",
+            "uses": [
+            ],
+            "title": "Tuna, peppers, cucumber and corn tortillas",
+            "method": "Flake the tuna and arrange it with the sliced pepper, cucumber and sweetcorn. Add lemon and olive oil, then serve with the tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "drained tuna",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 120,
+                    "quantity": "120 g drained tuna",
+                    "grams_raw": 120,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red pepper",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 pepper",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g cucumber",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "sweetcorn",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 80,
+                    "quantity": "80 g sweetcorn",
+                    "grams_raw": 80,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp olive oil",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "The trade-off is separate chicken plates for Roxane and Ivar so one reheatable pot can suit the rest of the table.",
+            "name": "Smoky lentil supper",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_lentil_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_lentil"
+                },
+                {
+                    "box_id": "box_prep_lentil_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_lentil"
+                }
+            ],
+            "title": "Lentils, courgettes, peppers and tomatoes",
+            "method": "Reheat the Zoe and Lubna portions of the lentil pot until piping hot; nothing else is cooked.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "A separate warm chicken plate gives Roxane a fresh shape from the first batch.",
+            "name": "Paprika chicken courgette plate",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_chicken_wed_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken_wed"
+                }
+            ],
+            "title": "Chicken, courgette, pepper and corn tortillas",
+            "method": "Assemble the cooked paprika chicken portion with sliced courgette, pepper, lemon and the corn tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "courgette",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g courgette",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red pepper",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 pepper",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "The same Wednesday pot becomes a portable lunch rather than another bowl.",
+            "name": "Lentil tortilla wraps",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_lentil_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_lentil"
+                },
+                {
+                    "box_id": "box_prep_lentil_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_lentil"
+                }
+            ],
+            "title": "Lentils, cucumber, peppers and corn tortillas",
+            "method": "Fill the tortillas with the lentil pot and sliced cucumber, then finish with lemon and parsley.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 cucumber",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 lemon",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                },
+                {
+                    "term": "parsley",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 10,
+                    "quantity": "10 g parsley",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "A crisp lunch format gives Roxane variety while using Wednesday's cooked protein.",
+            "name": "Chicken cucumber wraps",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_chicken_wed_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken_wed"
+                }
+            ],
+            "title": "Chicken, cucumber, pepper and corn tortillas",
+            "method": "Assemble the cooked chicken with cucumber, pepper, lemon and the tortillas for a work-ready wrap plate.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g cucumber",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red pepper",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 pepper",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "A hot cumin-scented bowl makes the second evening comforting with no new cooking.",
+            "name": "Cumin lentil bowls",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_lentil_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_lentil"
+                },
+                {
+                    "box_id": "box_prep_lentil_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_lentil"
+                }
+            ],
+            "title": "Lentils, courgettes, carrots and tomatoes",
+            "method": "Reheat the Zoe and Lubna portions of the lentil pot until piping hot; serve straight from the pot.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "Tomato and courgette change the chicken plate without another pan at seven.",
+            "name": "Chicken tomato tacos",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_chicken_wed_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken_wed"
+                }
+            ],
+            "title": "Chicken, tomatoes, courgette and corn tortillas",
+            "method": "Assemble the cooked chicken with chopped tomatoes, courgette, lemon and the tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "tomatoes",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tomatoes",
+                    "grams_raw": 200,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgette",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g courgette",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "fri",
+            "why": "This portable version keeps Friday lunch simple and colourful at work.",
+            "name": "Pepper lentil wraps",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_lentil_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_lentil"
+                },
+                {
+                    "box_id": "box_prep_lentil_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_lentil"
+                }
+            ],
+            "title": "Lentils, peppers, cucumber and corn tortillas",
+            "method": "Pack the lentil pot into the tortillas with sliced peppers and cucumber, then add lemon.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 peppers",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 cucumber",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 lemon",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "fri",
+            "why": "A portable pepper wrap uses the batch without repeating Thursday's tomato plate.",
+            "name": "Chicken pepper wraps",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_chicken_wed_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken_wed"
+                }
+            ],
+            "title": "Chicken, peppers, cucumber and corn tortillas",
+            "method": "Assemble the cooked chicken with peppers, cucumber, lemon and the tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 peppers",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g cucumber",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "fri",
+            "why": "A familiar warm pot is dependable after a late weekday and finishes its safe fridge window.",
+            "name": "Comforting lentil pot",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_lentil_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_lentil"
+                },
+                {
+                    "box_id": "box_prep_lentil_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_lentil"
+                }
+            ],
+            "title": "Lentils, courgettes, carrots and tomatoes",
+            "method": "Reheat the Zoe and Lubna portions of the lentil pot until piping hot.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "fri",
+            "why": "A taco-style plate gives Roxane another shape before Saturday's second session.",
+            "name": "Chicken courgette tacos",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_chicken_wed_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken_wed"
+                }
+            ],
+            "title": "Chicken, courgette, tomatoes and corn tortillas",
+            "method": "Assemble the cooked chicken with courgette, chopped tomatoes, lemon and the tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "courgette",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g courgette",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "tomatoes",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tomatoes",
+                    "grams_raw": 200,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "sat",
+            "why": "A warm final serving uses Wednesday's batch on its last planned day.",
+            "name": "Warm lentil plates",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_lentil_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_lentil"
+                },
+                {
+                    "box_id": "box_prep_lentil_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_lentil"
+                }
+            ],
+            "title": "Lentils, peppers, courgettes and tomatoes",
+            "method": "Reheat the Zoe and Lubna portions of the lentil pot until piping hot, then serve.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "sat",
+            "why": "A cool cucumber plate closes the first batch with a different texture.",
+            "name": "Chicken cucumber tortilla plate",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_chicken_wed_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken_wed"
+                }
+            ],
+            "title": "Chicken, cucumber, courgette and corn tortillas",
+            "method": "Assemble the cooked chicken with cucumber, courgette, lemon and the tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g cucumber",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgette",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g courgette",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "sat",
+            "why": "Saturday's second session starts a fresh warm batch for the remaining stretch.",
+            "name": "Golden chickpea curry",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_chickpea_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                },
+                {
+                    "box_id": "box_prep_chickpea_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                }
+            ],
+            "title": "Chickpeas, courgettes, peppers and tomatoes",
+            "method": "Reheat the Zoe and Lubna portions of the chickpea pot until piping hot.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "sat",
+            "why": "Saturday's new chicken batch begins with a bright courgette plate.",
+            "name": "Fresh chicken courgette plate",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_chicken_sat_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken_sat"
+                }
+            ],
+            "title": "Chicken, courgette, pepper and corn tortillas",
+            "method": "Assemble the freshly cooked chicken with courgette, pepper, lemon and the tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "courgette",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g courgette",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red pepper",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 pepper",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "sun",
+            "why": "The Saturday batch becomes a fresh, portable Sunday lunch.",
+            "name": "Chickpea tortilla bowls",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_chickpea_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                },
+                {
+                    "box_id": "box_prep_chickpea_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                }
+            ],
+            "title": "Chickpeas, cucumber, peppers and corn tortillas",
+            "method": "Spoon the chickpea pot into the tortillas and add sliced cucumber, peppers and lemon.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 cucumber",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 peppers",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 lemon",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "sun",
+            "why": "A simple cucumber bowl keeps Sunday lunch easy after Saturday cooking.",
+            "name": "Chicken cucumber bowl",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_chicken_sat_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken_sat"
+                }
+            ],
+            "title": "Chicken, cucumber, courgette and corn tortillas",
+            "method": "Assemble the cooked chicken with cucumber, courgette, lemon and the tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g cucumber",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgette",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g courgette",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "sun",
+            "why": "A hot Sunday supper makes the reheatable batch feel like a proper evening meal.",
+            "name": "Smoky chickpea supper",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_chickpea_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                },
+                {
+                    "box_id": "box_prep_chickpea_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                }
+            ],
+            "title": "Chickpeas, courgettes, spinach and tomatoes",
+            "method": "Reheat the Zoe and Lubna portions of the chickpea pot until piping hot.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "sun",
+            "why": "Courgette and tomato make a warm-batch dinner feel different from lunch.",
+            "name": "Chicken courgette supper",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_chicken_sat_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken_sat"
+                }
+            ],
+            "title": "Chicken, courgette, tomatoes and corn tortillas",
+            "method": "Assemble the cooked chicken with courgette, tomatoes, lemon and the tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "courgette",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g courgette",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "tomatoes",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tomatoes",
+                    "grams_raw": 200,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "mon",
+            "why": "A wrap keeps Monday lunch practical while the batch is still within its fridge window.",
+            "name": "Chickpea pepper wraps",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_chickpea_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                },
+                {
+                    "box_id": "box_prep_chickpea_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                }
+            ],
+            "title": "Chickpeas, peppers, cucumber and corn tortillas",
+            "method": "Fill the tortillas with the chickpea pot, peppers and cucumber, then add lemon.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 peppers",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 cucumber",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 lemon",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "mon",
+            "why": "A pepper-led bowl makes Monday lunch quick and visibly different.",
+            "name": "Chicken pepper tortilla bowl",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_chicken_sat_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken_sat"
+                }
+            ],
+            "title": "Chicken, peppers, courgette and corn tortillas",
+            "method": "Assemble the cooked chicken with peppers, courgette, lemon and the tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 peppers",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgette",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g courgette",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "mon",
+            "why": "A straightforward hot pot is reliable on a busy Monday evening.",
+            "name": "Herbed chickpea pot",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_chickpea_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                },
+                {
+                    "box_id": "box_prep_chickpea_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                }
+            ],
+            "title": "Chickpeas, courgettes, spinach and tomatoes",
+            "method": "Reheat the Zoe and Lubna portions of the chickpea pot until piping hot.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "mon",
+            "why": "A simple courgette plate keeps Monday dinner warm and low-effort.",
+            "name": "Chicken courgette tortilla plate",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_chicken_sat_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken_sat"
+                }
+            ],
+            "title": "Chicken, courgette, peppers and corn tortillas",
+            "method": "Assemble the cooked chicken with courgette, peppers, lemon and the tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "courgette",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g courgette",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 peppers",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "tue",
+            "why": "Crunchy fresh vegetables make Tuesday lunch feel new while using the same batch.",
+            "name": "Chickpea crunch wraps",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_chickpea_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                },
+                {
+                    "box_id": "box_prep_chickpea_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                }
+            ],
+            "title": "Chickpeas, cucumber, peppers and corn tortillas",
+            "method": "Fill the tortillas with the chickpea pot, cucumber and peppers, then add lemon.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 cucumber",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 peppers",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 lemon",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "tue",
+            "why": "A tomato bowl keeps Tuesday lunch quick and varied at the end of the stretch.",
+            "name": "Chicken tomato bowl",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_chicken_sat_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken_sat"
+                }
+            ],
+            "title": "Chicken, tomatoes, courgette and corn tortillas",
+            "method": "Assemble the cooked chicken with tomatoes, courgette, lemon and the tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "tomatoes",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tomatoes",
+                    "grams_raw": 200,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgette",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g courgette",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "tue",
+            "why": "A final hot bowl completes the stretch with the batch still within its fridge window.",
+            "name": "Paprika chickpea bowls",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_chickpea_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                },
+                {
+                    "box_id": "box_prep_chickpea_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_chickpea"
+                }
+            ],
+            "title": "Chickpeas, courgettes, peppers and tomatoes",
+            "method": "Reheat the Zoe and Lubna portions of the chickpea pot until piping hot.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "tue",
+            "why": "A bold pepper supper gives Roxane a clear final plate without a new session.",
+            "name": "Chicken pepper supper",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_chicken_sat_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken_sat"
+                }
+            ],
+            "title": "Chicken, peppers, courgette and corn tortillas",
+            "method": "Assemble the cooked chicken with peppers, courgette, lemon and the tortillas.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 peppers",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgette",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g courgette",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "corn tortillas",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tortillas",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        }
+    ],
+    "plan_id": "276b127e-993c-4a17-b1d9-05572cdbf1a8",
+    "servings": 4,
+    "starts_on": "2026-08-19",
+    "created_at": "2026-08-19T09:26:08.884812+00:00",
+    "preparations": [
+        {
+            "id": "prep_lentil",
+            "boxes": [
+                {
+                    "id": "box_prep_lentil_roxane",
+                    "grams": 283,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_prep_lentil_zoe",
+                    "grams": 248,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_prep_lentil_lubna",
+                    "grams": 277,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                },
+                {
+                    "id": "box_prep_lentil_ivar",
+                    "grams": 522,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                }
+            ],
+            "title": "Lentil, pepper and courgette stew",
+            "method": "Heat the oil in a large pot and soften the onions, carrots and peppers. Add the lentils, tomatoes, water, paprika and cumin, bring to a simmer and cook until the lentils are tender. Stir in the courgettes for the final few minutes, season, cool promptly and weigh into the named boxes.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "red lentils",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 900,
+                    "quantity": "900 g red lentils",
+                    "grams_raw": 900,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgettes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 1000,
+                    "quantity": "1,000 g courgettes",
+                    "grams_raw": 1000,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 800,
+                    "quantity": "800 g red peppers",
+                    "grams_raw": 800,
+                    "in_pantry": false
+                },
+                {
+                    "term": "carrots",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 600,
+                    "quantity": "600 g carrots",
+                    "grams_raw": 600,
+                    "in_pantry": false
+                },
+                {
+                    "term": "onions",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 600,
+                    "quantity": "600 g onions",
+                    "grams_raw": 600,
+                    "in_pantry": false
+                },
+                {
+                    "term": "chopped tomatoes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 2400,
+                    "quantity": "2,400 g chopped tomatoes",
+                    "grams_raw": 2400,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": "raw",
+                    "amount": 2500,
+                    "quantity": "2,500 ml water",
+                    "grams_raw": 2500,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 3,
+                    "quantity": "3 tbsp olive oil",
+                    "grams_raw": 45,
+                    "in_pantry": false
+                },
+                {
+                    "term": "smoked paprika",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 tsp smoked paprika",
+                    "grams_raw": 20,
+                    "in_pantry": false
+                },
+                {
+                    "term": "ground cumin",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 3,
+                    "quantity": "3 tsp ground cumin",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": null,
+                    "state": "raw",
+                    "amount": null,
+                    "quantity": "salt to taste",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 12,
+            "total_minutes": 45,
+            "active_minutes": 25
+        },
+        {
+            "id": "prep_chicken_wed",
+            "boxes": [
+                {
+                    "id": "box_prep_chicken_wed_roxane",
+                    "grams": 118,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_prep_chicken_wed_zoe",
+                    "grams": 103,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_prep_chicken_wed_ivar",
+                    "grams": 218,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                }
+            ],
+            "title": "Paprika chicken with courgettes",
+            "method": "Cut the chicken into bite-sized pieces and season with paprika, cumin and salt. Brown it in the oiled pan, add the onions, courgettes and water, cover and cook until the chicken is fully done. Cool promptly and weigh the cooked chicken into the named boxes.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "chicken thighs",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 1500,
+                    "quantity": "1,500 g chicken thighs",
+                    "grams_raw": 1500,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgettes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 500,
+                    "quantity": "500 g courgettes",
+                    "grams_raw": 500,
+                    "in_pantry": false
+                },
+                {
+                    "term": "onions",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 300,
+                    "quantity": "300 g onions",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 ml water",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tbsp olive oil",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                },
+                {
+                    "term": "smoked paprika",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 3,
+                    "quantity": "3 tsp smoked paprika",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "ground cumin",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tsp ground cumin",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": null,
+                    "state": "raw",
+                    "amount": null,
+                    "quantity": "salt to taste",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 10,
+            "total_minutes": 35,
+            "active_minutes": 25
+        },
+        {
+            "id": "prep_chickpea",
+            "boxes": [
+                {
+                    "id": "box_prep_chickpea_roxane",
+                    "grams": 283,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_prep_chickpea_zoe",
+                    "grams": 248,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_prep_chickpea_lubna",
+                    "grams": 277,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                },
+                {
+                    "id": "box_prep_chickpea_ivar",
+                    "grams": 522,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                }
+            ],
+            "title": "Chickpea, courgette and pepper pot",
+            "method": "Soften the onions and peppers in the oil in a large pot. Add the chickpeas, tomatoes, water, cumin and paprika, simmer until thick, then fold in the courgettes and spinach until tender. Cool promptly and weigh into the named boxes.",
+            "cook_on": "sat",
+            "ingredients": [
+                {
+                    "term": "drained chickpeas",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 1680,
+                    "quantity": "1,680 g drained chickpeas",
+                    "grams_raw": 1680,
+                    "in_pantry": false
+                },
+                {
+                    "term": "chopped tomatoes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 2800,
+                    "quantity": "2,800 g chopped tomatoes",
+                    "grams_raw": 2800,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgettes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 1200,
+                    "quantity": "1,200 g courgettes",
+                    "grams_raw": 1200,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 1000,
+                    "quantity": "1,000 g red peppers",
+                    "grams_raw": 1000,
+                    "in_pantry": false
+                },
+                {
+                    "term": "onions",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 600,
+                    "quantity": "600 g onions",
+                    "grams_raw": 600,
+                    "in_pantry": false
+                },
+                {
+                    "term": "spinach",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 300,
+                    "quantity": "300 g spinach",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": "raw",
+                    "amount": 1500,
+                    "quantity": "1,500 ml water",
+                    "grams_raw": 1500,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 3,
+                    "quantity": "3 tbsp olive oil",
+                    "grams_raw": 45,
+                    "in_pantry": false
+                },
+                {
+                    "term": "ground cumin",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 tsp ground cumin",
+                    "grams_raw": 20,
+                    "in_pantry": false
+                },
+                {
+                    "term": "smoked paprika",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 3,
+                    "quantity": "3 tsp smoked paprika",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": null,
+                    "state": "raw",
+                    "amount": null,
+                    "quantity": "salt to taste",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 14,
+            "total_minutes": 45,
+            "active_minutes": 25
+        },
+        {
+            "id": "prep_chicken_sat",
+            "boxes": [
+                {
+                    "id": "box_prep_chicken_sat_roxane",
+                    "grams": 118,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_prep_chicken_sat_zoe",
+                    "grams": 103,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_prep_chicken_sat_ivar",
+                    "grams": 218,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                }
+            ],
+            "title": "Pan chicken with peppers",
+            "method": "Cut and season the chicken with paprika, cumin and salt. Brown it in batches in the oiled pan, add the onions, peppers, courgettes and water, cover and cook until fully done. Cool promptly and weigh the cooked chicken into the named boxes.",
+            "cook_on": "sat",
+            "ingredients": [
+                {
+                    "term": "chicken thighs",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 2200,
+                    "quantity": "2,200 g chicken thighs",
+                    "grams_raw": 2200,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 700,
+                    "quantity": "700 g red peppers",
+                    "grams_raw": 700,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgettes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 600,
+                    "quantity": "600 g courgettes",
+                    "grams_raw": 600,
+                    "in_pantry": false
+                },
+                {
+                    "term": "onions",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 300,
+                    "quantity": "300 g onions",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": "raw",
+                    "amount": 150,
+                    "quantity": "150 ml water",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 3,
+                    "quantity": "3 tbsp olive oil",
+                    "grams_raw": 45,
+                    "in_pantry": false
+                },
+                {
+                    "term": "smoked paprika",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 tsp smoked paprika",
+                    "grams_raw": 20,
+                    "in_pantry": false
+                },
+                {
+                    "term": "ground cumin",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 3,
+                    "quantity": "3 tsp ground cumin",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": null,
+                    "state": "raw",
+                    "amount": null,
+                    "quantity": "salt to taste",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 14,
+            "total_minutes": 40,
+            "active_minutes": 30
+        }
+    ],
+    "duration_days": 7,
+    "shopping_list": [
+        {
+            "term": "red lentils",
+            "aisle": "grains",
+            "quantity": "900 g"
+        },
+        {
+            "term": "chickpeas",
+            "aisle": "pantry",
+            "quantity": "10 x 400 g tins"
+        },
+        {
+            "term": "chicken thighs",
+            "aisle": "protein",
+            "quantity": "3.7 kg"
+        },
+        {
+            "term": "tuna",
+            "aisle": "protein",
+            "quantity": "1 tin"
+        },
+        {
+            "term": "chopped tomatoes",
+            "aisle": "pantry",
+            "quantity": "13 x 400 g tins"
+        },
+        {
+            "term": "courgettes",
+            "aisle": "produce",
+            "quantity": "5 kg"
+        },
+        {
+            "term": "red peppers",
+            "aisle": "produce",
+            "quantity": "4 kg"
+        },
+        {
+            "term": "carrots",
+            "aisle": "produce",
+            "quantity": "600 g"
+        },
+        {
+            "term": "onions",
+            "aisle": "produce",
+            "quantity": "2 kg"
+        },
+        {
+            "term": "spinach",
+            "aisle": "produce",
+            "quantity": "300 g"
+        },
+        {
+            "term": "cucumbers",
+            "aisle": "produce",
+            "quantity": "6"
+        },
+        {
+            "term": "tomatoes",
+            "aisle": "produce",
+            "quantity": "12"
+        },
+        {
+            "term": "sweetcorn",
+            "aisle": "pantry",
+            "quantity": "2 x 340 g tins"
+        },
+        {
+            "term": "corn tortillas",
+            "aisle": "grains",
+            "quantity": "10 packs"
+        },
+        {
+            "term": "lemons",
+            "aisle": "produce",
+            "quantity": "6"
+        },
+        {
+            "term": "olive oil",
+            "aisle": "pantry",
+            "quantity": "1 bottle"
+        },
+        {
+            "term": "smoked paprika",
+            "aisle": "pantry",
+            "quantity": "1 jar"
+        },
+        {
+            "term": "ground cumin",
+            "aisle": "pantry",
+            "quantity": "1 jar"
+        },
+        {
+            "term": "parsley",
+            "aisle": "produce",
+            "quantity": "1 bunch"
+        },
+        {
+            "term": "salt",
+            "aisle": "pantry",
+            "quantity": "1 pack"
+        }
+    ],
+    "member_portions": [
+        {
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "display_name": "Roxane",
+            "portion_note": "Put the vegetables on the plate first, then the protein, then the tortillas or other starch. — Lentil, pepper and courgette stew 283 g · Paprika chicken with courgettes 118 g · Chickpea, courgette and pepper pot 283 g · Pan chicken with peppers 118 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the listed fresh plate components rather than the shared-pot portion.",
+                    "preparation_id": "prep_lentil"
+                },
+                {
+                    "note": "Take the Roxane chicken box for each own plate.",
+                    "preparation_id": "prep_chicken_wed"
+                },
+                {
+                    "note": "Use the listed fresh plate components rather than the shared-pot portion.",
+                    "preparation_id": "prep_chickpea"
+                },
+                {
+                    "note": "Take the Roxane chicken box for each own plate.",
+                    "preparation_id": "prep_chicken_sat"
+                }
+            ]
+        },
+        {
+            "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+            "display_name": "Zoe",
+            "portion_note": "Put all the listed components together on the plate. — Lentil, pepper and courgette stew 248 g · Paprika chicken with courgettes 103 g · Chickpea, courgette and pepper pot 248 g · Pan chicken with peppers 103 g",
+            "preparation_shares": [
+                {
+                    "note": "Take the Zoe box for the shared lentil plate.",
+                    "preparation_id": "prep_lentil"
+                },
+                {
+                    "note": "Take the Zoe box for the shared chickpea plate.",
+                    "preparation_id": "prep_chickpea"
+                }
+            ]
+        },
+        {
+            "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+            "display_name": "Lubna",
+            "portion_note": "Put all the listed components together on the plate. — Lentil, pepper and courgette stew 277 g · Chickpea, courgette and pepper pot 277 g",
+            "preparation_shares": [
+                {
+                    "note": "Take the Lubna box for the shared lentil plate.",
+                    "preparation_id": "prep_lentil"
+                },
+                {
+                    "note": "Take the Lubna box for the shared chickpea plate.",
+                    "preparation_id": "prep_chickpea"
+                }
+            ]
+        },
+        {
+            "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+            "display_name": "Ivar",
+            "portion_note": "Put the protein and tortillas on the plate first, then add the vegetables. — Lentil, pepper and courgette stew 522 g · Paprika chicken with courgettes 218 g · Chickpea, courgette and pepper pot 522 g · Pan chicken with peppers 218 g",
+            "preparation_shares": [
+                {
+                    "note": "Take the Ivar chicken box for each own plate.",
+                    "preparation_id": "prep_chicken_wed"
+                },
+                {
+                    "note": "Take the Ivar chicken box for each own plate.",
+                    "preparation_id": "prep_chicken_sat"
+                }
+            ]
+        }
+    ],
+    "cooking_sessions": [
+        {
+            "day": "wed",
+            "run_through": "Start the lentil pot with onions, carrots, peppers, tomatoes, lentils and water. While it simmers, season and brown the chicken in the second pan, then add its onions, courgettes and water. Finish both, cool promptly, weigh the named portions into boxes and refrigerate.",
+            "total_minutes": 50,
+            "preparation_ids": [
+                "prep_lentil",
+                "prep_chicken_wed"
+            ]
+        },
+        {
+            "day": "sat",
+            "run_through": "Start the chickpea pot with onions, peppers, tomatoes, chickpeas and spices. While it simmers, brown the chicken in batches in the second pan, then add its onions, peppers, courgettes and water. Finish both, cool promptly, weigh the named portions into boxes and refrigerate.",
+            "total_minutes": 50,
+            "preparation_ids": [
+                "prep_chickpea",
+                "prep_chicken_sat"
+            ]
+        }
+    ]
+}

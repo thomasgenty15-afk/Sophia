@@ -1,0 +1,643 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r74-whole-plan-concrete-t01",
+    "status": 200,
+    "ok": true,
+    "user": "La direction de la prochaine etape ne me convient plus: les conversations sensibles arrivent trop vite. Je veux intercaler une vraie etape tampon avant ca: une mission ponctuelle pour definir un protocole de retour au calme, puis une petite habitude de reparation simple. Garde le meme objectif global et fais en sorte que la suite reste progressive.",
+    "assistant": "Je comprends que tu souhaites réorganiser le plan global pour insérer une étape tampon avant les conversations sensibles, avec une mission pour un protocole de retour au calme et une habitude de réparation simple, tout en gardant le même objectif et la progression. Je peux te préparer une proposition concrète pour ça ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Toute proposition qui ignorerait le besoin explicite de 'tampon' et de 'progressivité'.",
+          "Des formulations qui pourraient donner l'impression que le user est en retard ou a échoué dans le rythme précédent.",
+          "Des suggestions qui augmenteraient la charge mentale ou émotionnelle au lieu de la réduire."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global du plan, qui est d'améliorer la communication et la sécurité dans la relation.",
+          "La progressivité et la logique d'escalade douce des étapes du plan.",
+          "Les actions existantes: 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause', 'Partager un point positif', 'Cartographier les déclencheurs', car elles contribuent à la sécurité et à l'observation.",
+          "L'intention de la phase actuelle ('Désamorcer et recréer de la sécurité') comme base sur laquelle la nouvelle étape tampon doit s'appuyer."
+        ],
+        "warnings": [
+          "Éviter de simplement ajouter des tâches isolées sans les structurer en une phase cohérente et nommée, ce qui irait à l'encontre de la demande d'une 'vraie étape tampon'.",
+          "Ne pas proposer des actions trop complexes ou exigeantes qui pourraient annuler l'effet 'tampon' et 'simple' recherché par le user.",
+          "Ne pas modifier ou supprimer les actions existantes ('Convenir d'un signal de pause', 'Partager un point positif') qui sont des fondations de sécurité déjà en place.",
+          "Ne pas anticiper le contenu précis du 'protocole de retour au calme' ou de l''habitude de réparation' sans l'input du user."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Guidelines action: Les nouvelles actions doivent clairement servir de pont vers des conversations plus difficiles, en renforçant la sécurité et la capacité de réparation. L'intention de désamorçage et de reconstruction de la sécurité doit être préservée. Ne pas changer la nature des actions existantes.",
+          "Guidelines niveau: La nouvelle étape doit s'intégrer naturellement dans la trajectoire du plan, sans surcharger le user. Elle doit être clairement définie comme une phase de consolidation avant d'aborder des sujets plus complexes, respectant la 'boundary' de fin de niveau actuel et le 'coeur' de la sécurité.",
+          "Guidelines whole_plan: La trajectoire globale du plan doit rester cohérente, avec cette nouvelle phase agissant comme un prérequis logique avant les 'conversations sensibles'. L'objectif et le questionnaire initiaux doivent être préservés, et l'ordre des phases doit refléter cette nouvelle progressivité."
+        ],
+        "observation": "Le user exprime un besoin de sécurité et de préparation accru avant d'aborder des sujets sensibles. Il perçoit un rythme trop rapide et demande l'insertion d'une phase tampon pour consolider les bases de gestion des tensions et de réparation, tout en maintenant l'objectif global et la progressivité du plan.",
+        "recommendation": "Introduire une nouvelle phase distincte, positionnée comme un pont entre les étapes actuelles de désamorçage et les futures conversations sensibles. Cette phase devrait se concentrer sur la définition explicite d'un protocole de retour au calme et l'établissement d'une habitude de réparation simple, renforçant ainsi la capacité du user à gérer les moments difficiles avant qu'ils ne s'intensifient.",
+        "options_to_discuss": [
+          "Explorer la durée idéale pour cette nouvelle étape tampon (ex: une ou deux semaines) afin d'assurer un sentiment de préparation suffisant.",
+          "Discuter de la manière dont le 'protocole de retour au calme' pourrait être formalisé (ex: une discussion conjointe, un document écrit, des actions individuelles prédéfinies).",
+          "Proposer des exemples concrets de 'petites habitudes de réparation simple' pour aider le user à visualiser et choisir ce qui résonne le mieux avec sa relation."
+        ],
+        "questions_to_clarify": [
+          "Pour le 'protocole de retour au calme', quelles sont les situations spécifiques que le user souhaite adresser ? Qu'est-ce qui, pour lui, constituerait un 'retour au calme' efficace ?",
+          "Concernant la 'petite habitude de réparation simple', quels types de 'dommages' ou de 'petits accrocs' le user souhaite-t-il pouvoir réparer rapidement ? Peut-il donner un exemple de ce qu'il imaginerait faire ou dire ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Toute proposition qui ignorerait le besoin explicite de 'tampon' et de 'progressivité'.",
+        "Des formulations qui pourraient donner l'impression que le user est en retard ou a échoué dans le rythme précédent.",
+        "Des suggestions qui augmenteraient la charge mentale ou émotionnelle au lieu de la réduire."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global du plan, qui est d'améliorer la communication et la sécurité dans la relation.",
+        "La progressivité et la logique d'escalade douce des étapes du plan.",
+        "Les actions existantes: 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause', 'Partager un point positif', 'Cartographier les déclencheurs', car elles contribuent à la sécurité et à l'observation.",
+        "L'intention de la phase actuelle ('Désamorcer et recréer de la sécurité') comme base sur laquelle la nouvelle étape tampon doit s'appuyer."
+      ],
+      "warnings": [
+        "Éviter de simplement ajouter des tâches isolées sans les structurer en une phase cohérente et nommée, ce qui irait à l'encontre de la demande d'une 'vraie étape tampon'.",
+        "Ne pas proposer des actions trop complexes ou exigeantes qui pourraient annuler l'effet 'tampon' et 'simple' recherché par le user.",
+        "Ne pas modifier ou supprimer les actions existantes ('Convenir d'un signal de pause', 'Partager un point positif') qui sont des fondations de sécurité déjà en place.",
+        "Ne pas anticiper le contenu précis du 'protocole de retour au calme' ou de l''habitude de réparation' sans l'input du user."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Guidelines action: Les nouvelles actions doivent clairement servir de pont vers des conversations plus difficiles, en renforçant la sécurité et la capacité de réparation. L'intention de désamorçage et de reconstruction de la sécurité doit être préservée. Ne pas changer la nature des actions existantes.",
+        "Guidelines niveau: La nouvelle étape doit s'intégrer naturellement dans la trajectoire du plan, sans surcharger le user. Elle doit être clairement définie comme une phase de consolidation avant d'aborder des sujets plus complexes, respectant la 'boundary' de fin de niveau actuel et le 'coeur' de la sécurité.",
+        "Guidelines whole_plan: La trajectoire globale du plan doit rester cohérente, avec cette nouvelle phase agissant comme un prérequis logique avant les 'conversations sensibles'. L'objectif et le questionnaire initiaux doivent être préservés, et l'ordre des phases doit refléter cette nouvelle progressivité."
+      ],
+      "observation": "Le user exprime un besoin de sécurité et de préparation accru avant d'aborder des sujets sensibles. Il perçoit un rythme trop rapide et demande l'insertion d'une phase tampon pour consolider les bases de gestion des tensions et de réparation, tout en maintenant l'objectif global et la progressivité du plan.",
+      "recommendation": "Introduire une nouvelle phase distincte, positionnée comme un pont entre les étapes actuelles de désamorçage et les futures conversations sensibles. Cette phase devrait se concentrer sur la définition explicite d'un protocole de retour au calme et l'établissement d'une habitude de réparation simple, renforçant ainsi la capacité du user à gérer les moments difficiles avant qu'ils ne s'intensifient.",
+      "options_to_discuss": [
+        "Explorer la durée idéale pour cette nouvelle étape tampon (ex: une ou deux semaines) afin d'assurer un sentiment de préparation suffisant.",
+        "Discuter de la manière dont le 'protocole de retour au calme' pourrait être formalisé (ex: une discussion conjointe, un document écrit, des actions individuelles prédéfinies).",
+        "Proposer des exemples concrets de 'petites habitudes de réparation simple' pour aider le user à visualiser et choisir ce qui résonne le mieux avec sa relation."
+      ],
+      "questions_to_clarify": [
+        "Pour le 'protocole de retour au calme', quelles sont les situations spécifiques que le user souhaite adresser ? Qu'est-ce qui, pour lui, constituerait un 'retour au calme' efficace ?",
+        "Concernant la 'petite habitude de réparation simple', quels types de 'dommages' ou de 'petits accrocs' le user souhaite-t-il pouvoir réparer rapidement ? Peut-il donner un exemple de ce qu'il imaginerait faire ou dire ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r74-whole-plan-concrete-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r74-whole-plan-concrete-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prepare cette proposition concrete et garde bien la trajectoire progressive.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "Garde le meme objectif global",
+              "fais en sorte que la suite reste progressive",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "coach_observation:La demande ne porte pas sur un simple ajustement local, mais sur une réorganisation de trajectoire: le plan est perçu comme trop rapide et il faut une étape tampon explicitement conçue pour consolider la sécurité avant les sujets sensibles. Humainement, l’enjeu central est la confiance dans le rythme; techniquement, cela implique de préserver l’objectif global tout en re-séquencant les phases pour éviter une montée trop précoce en intensité.",
+              "coach_recommendation:Orienter la prochaine proposition vers une réarchitecture du plan global avec une phase intermédiaire clairement nommée et cohérente, centrée sur la consolidation du désamorçage et de la réparation. Garder le cap global inchangé, mais insérer un pont suffisamment simple pour préparer la suite sans la précipiter.",
+              "coach_warning:Éviter de répondre comme s’il s’agissait d’un petit patch: le besoin exprimé est structurel, pas seulement fonctionnel.",
+              "coach_warning:Ne pas supprimer ni requalifier les actions déjà en place; elles servent de base de sécurité et doivent rester lisibles.",
+              "coach_warning:Ne pas proposer une nouvelle étape qui ressemble déjà à une conversation sensible; le tampon doit rester inférieur en charge et en enjeu.",
+              "coach_warning:Ne pas multiplier les sous-tâches sans architecture de phase, sinon la progressivité demandée disparaît.",
+              "coach_preserve:L’objectif global du plan.",
+              "coach_preserve:La logique de progressivité et de sécurité.",
+              "coach_preserve:Les actions fondatrices déjà présentes: signal de pause, point de suivi du signal, partage d’un point positif, cartographie des déclencheurs.",
+              "coach_preserve:L’intention de la phase actuelle comme socle avant toute montée en complexité.",
+              "coach_avoid:Ne pas proposer de passer directement aux sujets sensibles.",
+              "coach_avoid:Ne pas transformer la nouvelle étape en exigence émotionnelle élevée.",
+              "coach_avoid:Ne pas changer la nature des actions déjà installées.",
+              "coach_avoid:Ne pas présenter la progression comme une correction d’échec ou de retard.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Action: proposer une fonction de pont claire, avec une intention de sécurité explicitement préservée et sans changement de nature non demandé.",
+              "coach_guideline:Niveau: maintenir une charge faible à modérée, avec une frontière nette entre consolidation et exposition à plus de complexité.",
+              "coach_guideline:Whole plan: préserver la trajectoire globale, respecter l’ordre des phases et insérer la nouvelle étape comme prérequis logique avant les conversations sensibles.",
+              "coach_guideline:Raisonner en termes de séquence, de prérequis et de cohérence d’ensemble, pas en addition de tâches isolées.",
+              "coach_guideline:Mettre en avant ce qui reste stable avant de proposer toute réorganisation.",
+              "coach_guideline:Faire en sorte que la nouvelle phase soit lisible comme une consolidation, pas comme une accélération déguisée.",
+              "coach_guideline:Conserver les objectifs et le questionnaire implicites du plan; seul l’ordre et le pont intermédiaire doivent évoluer.",
+              "affected_item:la séquence des prochaines étapes",
+              "affected_item:le déroulement du plan",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause",
+              "affected_item:Partager un point positif"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "sequence",
+            "reason_change": "structure_bad_fit"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Rôle du signal de pause",
+              "Actions de soutien existantes sauf réordonnancement nécessaire"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La progression devient plus cohérente avec le rythme de sécurité du user.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+          "decision_basis": {
+            "evidence": [
+              "Oui, prepare cette proposition concrete et garde bien la trajectoire progressive.",
+              "le plan global doit garder la même trajectoire progressive",
+              "il faut une vraie étape tampon avant les sujets sensibles",
+              "intercaler une vraie etape tampon avant ca",
+              "la direction de la prochaine etape ne me convient plus",
+              "la prochaine etape arrive trop vite",
+              "besoin de plus de sécurité et de progressivité",
+              "les conversations sensibles arrivent trop vite",
+              "il faut une vraie étape tampon",
+              "intercaler une vraie etape tampon avant ca",
+              "adapter l'ordre des phases"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le prochain plan garde le même objectif mais avance plus progressivement.",
+            "expected_mechanism": "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "La prochaine étape semble arriver trop vite avant des conversations plus sensibles.",
+              "expected_effect": "Le plan avance sans surcharger le user ni casser l'objectif global.",
+              "why_this_change": "Une étape intermédiaire rend la trajectoire plus progressive et plus sécurisante."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde ce cap, mais ajoute d'abord une étape de consolidation pour sécuriser le retour au calme et la réparation simple.",
+                "before": "Le plan avance du désamorçage vers des conversations plus sensibles.",
+                "inserted_step": "Une étape intermédiaire de sécurité émotionnelle et de réparation simple après conflit.",
+                "coaching_reason": "La réparation après conflit devient plus réaliste si le couple a d'abord un protocole de pause et de reprise calme.",
+                "reordered_steps": [
+                  "Consolider le signal de pause",
+                  "S'entraîner au retour au calme et à la réparation simple",
+                  "Reprendre ensuite les conversations plus sensibles"
+                ],
+                "preserved_direction": "L'objectif global du plan et l'apprentissage du désamorçage restent la base."
+              }
+            },
+            "user_message_brief": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+            "user_message_detailed": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour ralentir la transition et consolider le signal de pause avec une réparation simple avant les conversations plus sensibles.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas."
+      },
+      "status": "draft_review",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "e7c7dc71-7f14-4bc7-9e51-3efe64d9e2ac",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer de passer directement aux sujets sensibles.",
+          "Ne pas transformer la nouvelle étape en exigence émotionnelle élevée.",
+          "Ne pas changer la nature des actions déjà installées.",
+          "Ne pas présenter la progression comme une correction d’échec ou de retard."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’objectif global du plan.",
+          "La logique de progressivité et de sécurité.",
+          "Les actions fondatrices déjà présentes: signal de pause, point de suivi du signal, partage d’un point positif, cartographie des déclencheurs.",
+          "L’intention de la phase actuelle comme socle avant toute montée en complexité."
+        ],
+        "warnings": [
+          "Éviter de répondre comme s’il s’agissait d’un petit patch: le besoin exprimé est structurel, pas seulement fonctionnel.",
+          "Ne pas supprimer ni requalifier les actions déjà en place; elles servent de base de sécurité et doivent rester lisibles.",
+          "Ne pas proposer une nouvelle étape qui ressemble déjà à une conversation sensible; le tampon doit rester inférieur en charge et en enjeu.",
+          "Ne pas multiplier les sous-tâches sans architecture de phase, sinon la progressivité demandée disparaît."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Action: proposer une fonction de pont claire, avec une intention de sécurité explicitement préservée et sans changement de nature non demandé.",
+          "Niveau: maintenir une charge faible à modérée, avec une frontière nette entre consolidation et exposition à plus de complexité.",
+          "Whole plan: préserver la trajectoire globale, respecter l’ordre des phases et insérer la nouvelle étape comme prérequis logique avant les conversations sensibles.",
+          "Raisonner en termes de séquence, de prérequis et de cohérence d’ensemble, pas en addition de tâches isolées.",
+          "Mettre en avant ce qui reste stable avant de proposer toute réorganisation.",
+          "Faire en sorte que la nouvelle phase soit lisible comme une consolidation, pas comme une accélération déguisée.",
+          "Conserver les objectifs et le questionnaire implicites du plan; seul l’ordre et le pont intermédiaire doivent évoluer."
+        ],
+        "observation": "La demande ne porte pas sur un simple ajustement local, mais sur une réorganisation de trajectoire: le plan est perçu comme trop rapide et il faut une étape tampon explicitement conçue pour consolider la sécurité avant les sujets sensibles. Humainement, l’enjeu central est la confiance dans le rythme; techniquement, cela implique de préserver l’objectif global tout en re-séquencant les phases pour éviter une montée trop précoce en intensité.",
+        "recommendation": "Orienter la prochaine proposition vers une réarchitecture du plan global avec une phase intermédiaire clairement nommée et cohérente, centrée sur la consolidation du désamorçage et de la réparation. Garder le cap global inchangé, mais insérer un pont suffisamment simple pour préparer la suite sans la précipiter.",
+        "options_to_discuss": [
+          "Créer une phase tampon distincte entre le désamorçage initial et l’entrée dans les sujets sensibles.",
+          "Définir cette phase autour d’un protocole de retour au calme simple et partagé, plutôt que d’actions analytiques.",
+          "Ajouter une petite habitude de réparation à faible charge pour renforcer la capacité à restaurer le lien après une tension.",
+          "Positionner cette étape comme prérequis avant tout sujet plus délicat, avec une durée limitée et lisible.",
+          "Conserver les actions actuelles comme fondations, tout en leur donnant un rôle de socle dans la nouvelle séquence."
+        ],
+        "questions_to_clarify": [
+          "Qu’est-ce qui doit absolument être vrai pour que cette étape tampon soit ressentie comme suffisante avant d’aborder les sujets sensibles ?",
+          "Quel niveau de simplicité est acceptable pour le protocole de retour au calme: un mot-clé, un geste, une règle commune, ou un mini-rituel ?",
+          "Quel type de réparation minimale serait le plus naturel dans cette relation: excuse courte, check-in, reprise du lien, ou autre ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer de passer directement aux sujets sensibles.",
+        "Ne pas transformer la nouvelle étape en exigence émotionnelle élevée.",
+        "Ne pas changer la nature des actions déjà installées.",
+        "Ne pas présenter la progression comme une correction d’échec ou de retard."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’objectif global du plan.",
+        "La logique de progressivité et de sécurité.",
+        "Les actions fondatrices déjà présentes: signal de pause, point de suivi du signal, partage d’un point positif, cartographie des déclencheurs.",
+        "L’intention de la phase actuelle comme socle avant toute montée en complexité."
+      ],
+      "warnings": [
+        "Éviter de répondre comme s’il s’agissait d’un petit patch: le besoin exprimé est structurel, pas seulement fonctionnel.",
+        "Ne pas supprimer ni requalifier les actions déjà en place; elles servent de base de sécurité et doivent rester lisibles.",
+        "Ne pas proposer une nouvelle étape qui ressemble déjà à une conversation sensible; le tampon doit rester inférieur en charge et en enjeu.",
+        "Ne pas multiplier les sous-tâches sans architecture de phase, sinon la progressivité demandée disparaît."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Action: proposer une fonction de pont claire, avec une intention de sécurité explicitement préservée et sans changement de nature non demandé.",
+        "Niveau: maintenir une charge faible à modérée, avec une frontière nette entre consolidation et exposition à plus de complexité.",
+        "Whole plan: préserver la trajectoire globale, respecter l’ordre des phases et insérer la nouvelle étape comme prérequis logique avant les conversations sensibles.",
+        "Raisonner en termes de séquence, de prérequis et de cohérence d’ensemble, pas en addition de tâches isolées.",
+        "Mettre en avant ce qui reste stable avant de proposer toute réorganisation.",
+        "Faire en sorte que la nouvelle phase soit lisible comme une consolidation, pas comme une accélération déguisée.",
+        "Conserver les objectifs et le questionnaire implicites du plan; seul l’ordre et le pont intermédiaire doivent évoluer."
+      ],
+      "observation": "La demande ne porte pas sur un simple ajustement local, mais sur une réorganisation de trajectoire: le plan est perçu comme trop rapide et il faut une étape tampon explicitement conçue pour consolider la sécurité avant les sujets sensibles. Humainement, l’enjeu central est la confiance dans le rythme; techniquement, cela implique de préserver l’objectif global tout en re-séquencant les phases pour éviter une montée trop précoce en intensité.",
+      "recommendation": "Orienter la prochaine proposition vers une réarchitecture du plan global avec une phase intermédiaire clairement nommée et cohérente, centrée sur la consolidation du désamorçage et de la réparation. Garder le cap global inchangé, mais insérer un pont suffisamment simple pour préparer la suite sans la précipiter.",
+      "options_to_discuss": [
+        "Créer une phase tampon distincte entre le désamorçage initial et l’entrée dans les sujets sensibles.",
+        "Définir cette phase autour d’un protocole de retour au calme simple et partagé, plutôt que d’actions analytiques.",
+        "Ajouter une petite habitude de réparation à faible charge pour renforcer la capacité à restaurer le lien après une tension.",
+        "Positionner cette étape comme prérequis avant tout sujet plus délicat, avec une durée limitée et lisible.",
+        "Conserver les actions actuelles comme fondations, tout en leur donnant un rôle de socle dans la nouvelle séquence."
+      ],
+      "questions_to_clarify": [
+        "Qu’est-ce qui doit absolument être vrai pour que cette étape tampon soit ressentie comme suffisante avant d’aborder les sujets sensibles ?",
+        "Quel niveau de simplicité est acceptable pour le protocole de retour au calme: un mot-clé, un geste, une règle commune, ou un mini-rituel ?",
+        "Quel type de réparation minimale serait le plus naturel dans cette relation: excuse courte, check-in, reprise du lien, ou autre ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r74-whole-plan-concrete-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r74-whole-plan-concrete-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, valide cet ajustement global et applique cette trajectoire plus progressive.",
+    "assistant": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour ralentir la transition et consolider le signal de pause avec une réparation simple avant les conversations plus sensibles. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "executed",
+      "reason_code": "normal_reply_default",
+      "operation_id": "e7c7dc71-7f14-4bc7-9e51-3efe64d9e2ac",
+      "plan_patch_id": "746992bb-7da1-4f37-80d3-4c7b093961a9",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer de passer directement aux sujets sensibles.",
+          "Ne pas transformer la nouvelle étape en exigence émotionnelle élevée.",
+          "Ne pas changer la nature des actions déjà installées.",
+          "Ne pas présenter la progression comme une correction d’échec ou de retard."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’objectif global du plan.",
+          "La logique de progressivité et de sécurité.",
+          "Les actions fondatrices déjà présentes: signal de pause, point de suivi du signal, partage d’un point positif, cartographie des déclencheurs.",
+          "L’intention de la phase actuelle comme socle avant toute montée en complexité."
+        ],
+        "warnings": [
+          "Éviter de répondre comme s’il s’agissait d’un petit patch: le besoin exprimé est structurel, pas seulement fonctionnel.",
+          "Ne pas supprimer ni requalifier les actions déjà en place; elles servent de base de sécurité et doivent rester lisibles.",
+          "Ne pas proposer une nouvelle étape qui ressemble déjà à une conversation sensible; le tampon doit rester inférieur en charge et en enjeu.",
+          "Ne pas multiplier les sous-tâches sans architecture de phase, sinon la progressivité demandée disparaît."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Action: proposer une fonction de pont claire, avec une intention de sécurité explicitement préservée et sans changement de nature non demandé.",
+          "Niveau: maintenir une charge faible à modérée, avec une frontière nette entre consolidation et exposition à plus de complexité.",
+          "Whole plan: préserver la trajectoire globale, respecter l’ordre des phases et insérer la nouvelle étape comme prérequis logique avant les conversations sensibles.",
+          "Raisonner en termes de séquence, de prérequis et de cohérence d’ensemble, pas en addition de tâches isolées.",
+          "Mettre en avant ce qui reste stable avant de proposer toute réorganisation.",
+          "Faire en sorte que la nouvelle phase soit lisible comme une consolidation, pas comme une accélération déguisée.",
+          "Conserver les objectifs et le questionnaire implicites du plan; seul l’ordre et le pont intermédiaire doivent évoluer."
+        ],
+        "observation": "La demande ne porte pas sur un simple ajustement local, mais sur une réorganisation de trajectoire: le plan est perçu comme trop rapide et il faut une étape tampon explicitement conçue pour consolider la sécurité avant les sujets sensibles. Humainement, l’enjeu central est la confiance dans le rythme; techniquement, cela implique de préserver l’objectif global tout en re-séquencant les phases pour éviter une montée trop précoce en intensité.",
+        "recommendation": "Orienter la prochaine proposition vers une réarchitecture du plan global avec une phase intermédiaire clairement nommée et cohérente, centrée sur la consolidation du désamorçage et de la réparation. Garder le cap global inchangé, mais insérer un pont suffisamment simple pour préparer la suite sans la précipiter.",
+        "options_to_discuss": [
+          "Créer une phase tampon distincte entre le désamorçage initial et l’entrée dans les sujets sensibles.",
+          "Définir cette phase autour d’un protocole de retour au calme simple et partagé, plutôt que d’actions analytiques.",
+          "Ajouter une petite habitude de réparation à faible charge pour renforcer la capacité à restaurer le lien après une tension.",
+          "Positionner cette étape comme prérequis avant tout sujet plus délicat, avec une durée limitée et lisible.",
+          "Conserver les actions actuelles comme fondations, tout en leur donnant un rôle de socle dans la nouvelle séquence."
+        ],
+        "questions_to_clarify": [
+          "Qu’est-ce qui doit absolument être vrai pour que cette étape tampon soit ressentie comme suffisante avant d’aborder les sujets sensibles ?",
+          "Quel niveau de simplicité est acceptable pour le protocole de retour au calme: un mot-clé, un geste, une règle commune, ou un mini-rituel ?",
+          "Quel type de réparation minimale serait le plus naturel dans cette relation: excuse courte, check-in, reprise du lien, ou autre ?"
+        ]
+      },
+      "bridge_plan_item_id": null,
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer de passer directement aux sujets sensibles.",
+        "Ne pas transformer la nouvelle étape en exigence émotionnelle élevée.",
+        "Ne pas changer la nature des actions déjà installées.",
+        "Ne pas présenter la progression comme une correction d’échec ou de retard."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’objectif global du plan.",
+        "La logique de progressivité et de sécurité.",
+        "Les actions fondatrices déjà présentes: signal de pause, point de suivi du signal, partage d’un point positif, cartographie des déclencheurs.",
+        "L’intention de la phase actuelle comme socle avant toute montée en complexité."
+      ],
+      "warnings": [
+        "Éviter de répondre comme s’il s’agissait d’un petit patch: le besoin exprimé est structurel, pas seulement fonctionnel.",
+        "Ne pas supprimer ni requalifier les actions déjà en place; elles servent de base de sécurité et doivent rester lisibles.",
+        "Ne pas proposer une nouvelle étape qui ressemble déjà à une conversation sensible; le tampon doit rester inférieur en charge et en enjeu.",
+        "Ne pas multiplier les sous-tâches sans architecture de phase, sinon la progressivité demandée disparaît."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Action: proposer une fonction de pont claire, avec une intention de sécurité explicitement préservée et sans changement de nature non demandé.",
+        "Niveau: maintenir une charge faible à modérée, avec une frontière nette entre consolidation et exposition à plus de complexité.",
+        "Whole plan: préserver la trajectoire globale, respecter l’ordre des phases et insérer la nouvelle étape comme prérequis logique avant les conversations sensibles.",
+        "Raisonner en termes de séquence, de prérequis et de cohérence d’ensemble, pas en addition de tâches isolées.",
+        "Mettre en avant ce qui reste stable avant de proposer toute réorganisation.",
+        "Faire en sorte que la nouvelle phase soit lisible comme une consolidation, pas comme une accélération déguisée.",
+        "Conserver les objectifs et le questionnaire implicites du plan; seul l’ordre et le pont intermédiaire doivent évoluer."
+      ],
+      "observation": "La demande ne porte pas sur un simple ajustement local, mais sur une réorganisation de trajectoire: le plan est perçu comme trop rapide et il faut une étape tampon explicitement conçue pour consolider la sécurité avant les sujets sensibles. Humainement, l’enjeu central est la confiance dans le rythme; techniquement, cela implique de préserver l’objectif global tout en re-séquencant les phases pour éviter une montée trop précoce en intensité.",
+      "recommendation": "Orienter la prochaine proposition vers une réarchitecture du plan global avec une phase intermédiaire clairement nommée et cohérente, centrée sur la consolidation du désamorçage et de la réparation. Garder le cap global inchangé, mais insérer un pont suffisamment simple pour préparer la suite sans la précipiter.",
+      "options_to_discuss": [
+        "Créer une phase tampon distincte entre le désamorçage initial et l’entrée dans les sujets sensibles.",
+        "Définir cette phase autour d’un protocole de retour au calme simple et partagé, plutôt que d’actions analytiques.",
+        "Ajouter une petite habitude de réparation à faible charge pour renforcer la capacité à restaurer le lien après une tension.",
+        "Positionner cette étape comme prérequis avant tout sujet plus délicat, avec une durée limitée et lisible.",
+        "Conserver les actions actuelles comme fondations, tout en leur donnant un rôle de socle dans la nouvelle séquence."
+      ],
+      "questions_to_clarify": [
+        "Qu’est-ce qui doit absolument être vrai pour que cette étape tampon soit ressentie comme suffisante avant d’aborder les sujets sensibles ?",
+        "Quel niveau de simplicité est acceptable pour le protocole de retour au calme: un mot-clé, un geste, une règle commune, ou un mini-rituel ?",
+        "Quel type de réparation minimale serait le plus naturel dans cette relation: excuse courte, check-in, reprise du lien, ou autre ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r74-whole-plan-concrete-t03",
+    "trace_error": null
+  }
+]

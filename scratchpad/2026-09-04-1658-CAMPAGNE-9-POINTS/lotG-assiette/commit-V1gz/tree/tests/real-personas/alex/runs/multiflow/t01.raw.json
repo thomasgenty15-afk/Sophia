@@ -1,0 +1,250 @@
+{
+  "ok": true,
+  "request_id": "b93d275d-f94e-4ca7-86e8-6e0e15fe45e8",
+  "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "channel": "web",
+  "scope": "web",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Tu es encore scotché devant l’écran, à presque 23h, et c’est le démarrage du coucher qui coince. Je partirais sur une carte d’attaque, technique texte magique : une phrase courte pour couper l’hésitation et te remettre en route vers le lit. Si tu veux, je te propose cette phrase tout de suite pour ton cas.",
+    "mode": "companion",
+    "delivery": null,
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "b93d275d-f94e-4ca7-86e8-6e0e15fe45e8",
+        "source_message_id": "c2a6a783-3293-4192-afc6-c2cdb88197a6",
+        "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "direct_effect_time_context": {
+          "now_utc": "2026-07-10T20:56:43.129Z",
+          "user_timezone": "Europe/Paris",
+          "user_locale": "fr-FR",
+          "user_local_datetime": "2026-07-10T22:56:43",
+          "user_local_human": "vendredi 10 juillet 2026 à 22:56"
+        },
+        "note_information": null,
+        "skill_signals": {
+          "coaching_recommendation": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "plan_action_coaching_need",
+            "context": {
+              "coaching_type": "plan_action",
+              "confidence": 0.86,
+              "reason": "User is blocked on a concrete active plan action: going to bed / starting the sleep transition, with emotional friction linked to that action.",
+              "action_context": {
+                "source": "plan",
+                "plan_item_id": "853f4649-cbdc-4af8-a886-44861b262468",
+                "action_title": "Préparer un sas de coucher"
+              }
+            }
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "support_on_blocked_sleep_transition_action",
+          "reasoning_complexity": "medium",
+          "context_need": "targeted",
+          "memory_mode": "light",
+          "model_tier_hint": "standard",
+          "context_budget_tier": "small",
+          "targets": [],
+          "retrieval_policy": "taxonomy_first",
+          "plan_confidence": 0.91
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "coaching_recommendation",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "coaching_recommendation_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "selected_handler": "coaching_recommendation"
+      },
+      "effect_ledger": {
+        "turn_id": "b93d275d-f94e-4ca7-86e8-6e0e15fe45e8",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "coaching_recommendation",
+      "skill_run": {
+        "selected_skill_id": "coaching_recommendation",
+        "reason_code": "coaching_recommendation_signal",
+        "status": "continue",
+        "latency_ms": 11815
+      }
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "b93d275d-f94e-4ca7-86e8-6e0e15fe45e8",
+      "source_message_id": "c2a6a783-3293-4192-afc6-c2cdb88197a6",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "direct_effect_time_context": {
+        "now_utc": "2026-07-10T20:56:43.129Z",
+        "user_timezone": "Europe/Paris",
+        "user_locale": "fr-FR",
+        "user_local_datetime": "2026-07-10T22:56:43",
+        "user_local_human": "vendredi 10 juillet 2026 à 22:56"
+      },
+      "note_information": null,
+      "skill_signals": {
+        "coaching_recommendation": {
+          "detected": true,
+          "confidence_band": "high",
+          "reason": "plan_action_coaching_need",
+          "context": {
+            "coaching_type": "plan_action",
+            "confidence": 0.86,
+            "reason": "User is blocked on a concrete active plan action: going to bed / starting the sleep transition, with emotional friction linked to that action.",
+            "action_context": {
+              "source": "plan",
+              "plan_item_id": "853f4649-cbdc-4af8-a886-44861b262468",
+              "action_title": "Préparer un sas de coucher"
+            }
+          }
+        }
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "support_on_blocked_sleep_transition_action",
+        "reasoning_complexity": "medium",
+        "context_need": "targeted",
+        "memory_mode": "light",
+        "model_tier_hint": "standard",
+        "context_budget_tier": "small",
+        "targets": [],
+        "retrieval_policy": "taxonomy_first",
+        "plan_confidence": 0.91
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "coaching_recommendation",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "coaching_recommendation_signal",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "selected_handler": "coaching_recommendation"
+    },
+    "effect_ledger": {
+      "turn_id": "b93d275d-f94e-4ca7-86e8-6e0e15fe45e8",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "coaching_recommendation",
+    "skill_run": {
+      "selected_skill_id": "coaching_recommendation",
+      "reason_code": "coaching_recommendation_signal",
+      "status": "continue",
+      "latency_ms": 11815
+    }
+  },
+  "trace_error": null
+}

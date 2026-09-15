@@ -1,0 +1,137 @@
+[
+  {
+    "run": 1,
+    "today": "2026-08-08",
+    "engine": {
+      "analysed": 1,
+      "proposed": 1,
+      "actions": {
+        "add_breakfast": 1
+      },
+      "silent_reasons": {},
+      "failures": []
+    },
+    "delivered_text": "You've told me more than once that you were still hungry, and I've already built your weeks to be more filling. That hasn't settled it, which usually means the shape of the day is the thing to change — not the plates. Want me to build a proper breakfast into your plan from here on?",
+    "buttons": [
+      "Yes, add it",
+      "No thanks"
+    ],
+    "db_row": {
+      "action": "add_breakfast",
+      "state": "proposed",
+      "fingerprint": "rhythm=dinner,lunch|doctrine=1",
+      "chat_message_id": true
+    },
+    "rhythm_before": [
+      "lunch",
+      "dinner"
+    ],
+    "tap_reply": "Done — breakfast is part of your rhythm now, and the next week you put together will have one.",
+    "rhythm_after": [
+      "lunch",
+      "dinner",
+      "breakfast"
+    ],
+    "db_after": {
+      "state": "accepted",
+      "applied_at": true
+    },
+    "ask_ledger": [
+      {
+        "kind": "daily_recommendation",
+        "axis": null
+      }
+    ],
+    "verdict": "GREEN"
+  },
+  {
+    "run": 2,
+    "today": "2026-08-08",
+    "engine": {
+      "analysed": 1,
+      "proposed": 1,
+      "actions": {
+        "add_breakfast": 1
+      },
+      "silent_reasons": {},
+      "failures": []
+    },
+    "delivered_text": "You've told me more than once that you were still hungry, and I've already built your weeks to be more filling. That hasn't settled it, which usually means the shape of the day is the thing to change — not the plates. Want me to build a proper breakfast into your plan from here on?",
+    "buttons": [
+      "Yes, add it",
+      "No thanks"
+    ],
+    "db_row": {
+      "action": "add_breakfast",
+      "state": "proposed",
+      "fingerprint": "rhythm=dinner,lunch|doctrine=1",
+      "chat_message_id": true
+    },
+    "rhythm_before": [
+      "lunch",
+      "dinner"
+    ],
+    "tap_reply": "Done — breakfast is part of your rhythm now, and the next week you put together will have one.",
+    "rhythm_after": [
+      "lunch",
+      "dinner",
+      "breakfast"
+    ],
+    "db_after": {
+      "state": "accepted",
+      "applied_at": true
+    },
+    "ask_ledger": [
+      {
+        "kind": "daily_recommendation",
+        "axis": null
+      }
+    ],
+    "verdict": "GREEN"
+  },
+  {
+    "run": 3,
+    "today": "2026-08-08",
+    "engine": {
+      "analysed": 1,
+      "proposed": 1,
+      "actions": {
+        "add_breakfast": 1
+      },
+      "silent_reasons": {},
+      "failures": []
+    },
+    "delivered_text": "You've told me more than once that you were still hungry, and I've already built your weeks to be more filling. That hasn't settled it, which usually means the shape of the day is the thing to change — not the plates. Want me to build a proper breakfast into your plan from here on?",
+    "buttons": [
+      "Yes, add it",
+      "No thanks"
+    ],
+    "db_row": {
+      "action": "add_breakfast",
+      "state": "proposed",
+      "fingerprint": "rhythm=dinner,lunch|doctrine=1",
+      "chat_message_id": true
+    },
+    "rhythm_before": [
+      "lunch",
+      "dinner"
+    ],
+    "tap_reply": "Done — breakfast is part of your rhythm now, and the next week you put together will have one.",
+    "rhythm_after": [
+      "lunch",
+      "dinner",
+      "breakfast"
+    ],
+    "db_after": {
+      "state": "accepted",
+      "applied_at": true
+    },
+    "ask_ledger": [
+      {
+        "kind": "daily_recommendation",
+        "axis": null
+      }
+    ],
+    "verdict": "GREEN"
+  }
+]

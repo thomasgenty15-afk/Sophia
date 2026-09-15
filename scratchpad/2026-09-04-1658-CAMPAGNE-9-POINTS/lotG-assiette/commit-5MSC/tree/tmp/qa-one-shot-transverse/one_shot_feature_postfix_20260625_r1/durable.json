@@ -1,0 +1,96 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Chaque dimanche soir, je finis par improviser ma semaine et je perds le rythme. J’ai l’impression que Sophia devrait avoir une fonctionnalité pour préparer ce moment récurrent, mais je ne sais pas laquelle.",
+      "created_at": "2026-06-25T10:04:39.627612+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_postfix_20260625_r1-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui, ça ressemble bien à une initiative : un message récurrent pour préparer ton dimanche soir et te remettre dans le rythme avant la semaine.\n\nTu peux la configurer dans la section initiatives avec quoi dire, quand l’envoyer, à quelle heure, quels jours actifs et où elle doit apparaître (Plan actuel ou Base de vie).",
+      "created_at": "2026-06-25T10:04:55.303581+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_postfix_20260625_r1-t01",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Initiative, ok. Rappelle-moi dans 31 minutes de noter le message du dimanche soir, et dis-moi aussi où je règle la destination Plan actuel ou Base de vie sans le faire à ma place.",
+      "created_at": "2026-06-25T10:05:32.297587+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_postfix_20260625_r1-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Tu le règles dans **Initiatives** : ouvre l’onglet **Dashboard > Initiatives** si l’initiative est dans le plan, ou **Base de vie > Initiatives** si elle est hors plan. C’est là que tu choisis **Plan actuel** ou **Base de vie**.\n\nPour le rappel, je ne peux pas te dire qu’il est programmé ici.",
+      "created_at": "2026-06-25T10:05:53.312245+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_postfix_20260625_r1-t02",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "5ea7b797-379c-40ce-af9a-20f2fcc1e589",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__last_feature_opportunity_exit_memo": {
+        "at": "2026-06-25T10:05:39.414Z",
+        "note_information": {
+          "confidence": "high",
+          "user_words": [
+            "Initiative, ok. Rappelle-moi dans 31 minutes de noter le message du dimanche soir, et dis-moi aussi où je règle la destination Plan actuel ou Base de vie sans le faire à ma place.",
+            "L'utilisateur mentionne un moment récurrent du dimanche soir, compatible avec initiatives.",
+            "L'utilisateur demande explicitement un rappel ponctuel dans 31 minutes."
+          ],
+          "handoff_reason": "topic_change",
+          "source_flow_id": "feature_opportunity",
+          "target_dispatcher": "global",
+          "structured_context": {
+            "evidence": [
+              "L'utilisateur mentionne un moment récurrent du dimanche soir, compatible avec initiatives.",
+              "L'utilisateur demande explicitement un rappel ponctuel dans 31 minutes.",
+              "L'utilisateur pose une question de compréhension directement liée à l'opportunité détectée."
+            ],
+            "collected_state": {
+              "feature": "initiatives",
+              "trigger_context": "Chaque dimanche soir",
+              "opportunity_kind": "recurring_context",
+              "dispatcher_signal_context": {
+                "feature": "initiatives",
+                "priority_reason": "Repeated weekly moment with a clear request for a feature to support it fits initiatives.",
+                "trigger_context": "Chaque dimanche soir",
+                "opportunity_kind": "recurring_context",
+                "user_problem_summary": "L'utilisateur improvise sa semaine chaque dimanche soir et perd le rythme, et suggère qu'une fonctionnalité Sophia pourrait préparer ce moment récurrent."
+              }
+            },
+            "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+            "unresolved_questions": [],
+            "user_message_summary": "L'utilisateur veut préparer un moment récurrent du dimanche soir pour ne pas perdre le rythme, et demande aussi un rappel ponctuel pour noter le message, ainsi qu'où régler la destination entre Plan actuel et Base de vie.",
+            "recommended_next_focus": "global"
+          },
+          "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"L'utilisateur veut préparer un moment récurrent du dimanche soir pour ne pas perdre le rythme, et demande aussi un rappel ponctuel pour noter le message, ainsi qu'où régler la destination entre Plan actuel et Base de vie.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Chaque dimanche soir\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"priority_reason\":\"Repeated weekly moment with a clear request for a feature to support it fits initiatives.\",\"trigger_context\":\"Chaque dimanche soir\",\"opportunity_kind\":\"recurring_context\",\"user_problem_summary\":\"L'utilisateur improvise sa semaine chaque dimanche soir et perd le rythme, et suggère qu'une fonctionnalité Sophia pourrait préparer ce moment récurrent.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"L'utilisateur mentionne un moment récurrent du dimanche soir, compatible avec initiatives.\",\"L'utilisateur demande explicitement un rappel ponctuel dans 31 minutes.\",\"L'utilisateur pose une question de compréhension directement liée à l'opportunité détectée.\"]}"
+        }
+      }
+    },
+    "updated_at": "2026-06-25T10:05:53.307453+00:00"
+  }
+}

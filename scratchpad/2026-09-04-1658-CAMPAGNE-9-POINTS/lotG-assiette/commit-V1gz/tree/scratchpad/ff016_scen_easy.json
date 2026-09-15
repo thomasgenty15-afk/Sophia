@@ -1,0 +1,7 @@
+[
+  { "id": "E1-fr-swap-permissive", "level": "easy", "student": "a", "message": "Je peux remplacer les pommes de terre par du riz ce soir ?", "runs": 3, "fresh": true },
+  { "id": "E2-fr-swap-strict", "level": "easy", "student": "b", "message": "Je peux remplacer les pommes de terre par du riz ce soir ?", "runs": 3, "fresh": true },
+  { "id": "M1-en-swap-permissive", "level": "medium", "student": "a", "message": "Can I swap the potatoes for rice tonight?", "runs": 3, "fresh": true },
+  { "id": "M2-en-breakfast", "level": "medium", "student": "a", "message": "What should I eat for breakfast?", "runs": 3, "fresh": true },
+  { "id": "M3-fr-breakfast", "level": "medium", "student": "a", "message": "Je mange quoi au petit-dej ?", "runs": 3, "fresh": true }
+]

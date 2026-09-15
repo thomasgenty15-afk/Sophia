@@ -1,0 +1,266 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   SOPHIA — LES JETONS DE LA MARQUE.  Direction « la fiche ».
+   ---------------------------------------------------------------------------
+   À POSER : `frontend/src/tokens.css`, puis, dans `frontend/src/index.css`,
+   une seule ligne ajoutée JUSTE APRÈS l'import de Tailwind :
+
+       @import "tailwindcss";
+       @import "./tokens.css";     ←  la ligne à ajouter
+
+   Les deux `@import` doivent rester en tête de fichier : le CSS refuse un
+   `@import` placé après une règle. Tailwind 4 lit les `@theme` du graphe
+   d'import ; il n'y a pas de `tailwind.config.*` dans ce dépôt et il ne faut
+   pas en créer un.
+
+   ---------------------------------------------------------------------------
+   CE QUE CE FICHIER REMPLACE DANS `index.css`, ET CE QU'IL NE TOUCHE PAS
+   ---------------------------------------------------------------------------
+   REMPLACE — les cinq jetons du bloc `@theme` actuel : `--color-primary`
+   (#7c3aed), `--color-secondary`, `--color-accent`, `--color-success`,
+   `--color-background`. Vérifié des deux côtés (orchestrateur et moi) :
+   ZÉRO consommateur dans tout `frontend/src/` — aucune classe utilitaire ne
+   les référence. Ce sont des reliquats du produit grand public supprimé. Les
+   retirer ne peut casser aucune surface.
+   ⚠ `variant="primary"` / `variant="secondary"` qu'on lit partout dans le code
+   sont les variantes de `ui/Button.tsx`, PAS ces jetons. Ne pas les confondre.
+
+   REMPLACE — `--font-sans`, qui nomme aujourd'hui `Inter` alors qu'aucun
+   fichier de police n'existe dans le dépôt : « Inter » n'est qu'un repli
+   système fantôme. La chaîne de repli emoji est CONSERVÉE telle quelle, elle
+   évite les tofus (carrés vides) sur certains OS.
+
+   REMPLACE — `@layer base { body { @apply bg-gray-50 text-gray-900 } }`.
+   Le corps du document passe au papier et à l'encre de la marque (voir plus
+   bas). C'est une modification à faire dans `index.css`, pas ici.
+
+   NE TOUCHE À RIEN — la règle `font-size: 16px` sur les champs sous `lg`.
+   Elle empêche Safari iOS de zoomer au focus et de ne jamais dézoomer. C'est
+   un vrai défaut réglé ; la déplacer ou la « nettoyer » le fait revenir.
+
+   NE TOUCHE À RIEN — les couleurs d'ÉTAT. Émeraude, ambre, rouge et bleu ne
+   sont pas dans `@theme` : elles viennent des échelles Tailwind par défaut,
+   utilisées directement dans `ui/Badge.tsx`. Elles restent la propriété
+   exclusive du sens. Voir §2 de CHARTE.md.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ───────────────────────────────────────────────────────────────────────────
+   1. LES POLICES
+   Deux familles, OFL 1.1 toutes les deux, servies LOCALEMENT depuis le dépôt.
+   Les fichiers à commiter dans `frontend/src/assets/fonts/` :
+       youngserif-latin.woff2   18 520 o = 18,1 Ko
+       publicsans-latin.woff2   26 636 o = 26,0 Ko
+                                ───────────────────
+                       total     45 156 o = 44,1 Ko
+
+   POURQUOI PAS DE `latin-ext`. Mesuré : é è ê à ù ç î ô (U+00C0-00FF), œ Œ
+   (U+0152-0153), « » (U+00AB/BB), l'apostrophe ’ (U+2019), l'espace insécable
+   (U+00A0) et € sont TOUS dans le sous-ensemble `latin`. Le seul caractère
+   français qui en sorte est Ÿ (L'Haÿ-les-Roses). `latin-ext` sert aux noms
+   propres étrangers (Łódź, Šimon). Si le site doit les composer un jour,
+   ajouter les deux fichiers `-latin-ext` (11,6 + 17,9 Ko) avec leur propre
+   `unicode-range` : le navigateur ne les téléchargera QUE si un tel caractère
+   apparaît réellement dans la page.
+
+   ⚠ U+202F (espace fine insécable) N'A PAS DE GLYPHE — vérifié dans les tables
+   cmap des fichiers complets des deux familles, et dans 24 autres familles.
+   Elle est déclarée dans l'`unicode-range` mais vide. Écrire `«&#8239;mot&#8239;»`
+   fait donc tomber ce seul caractère en repli système, au milieu d'un mot.
+   EN FRANÇAIS, SUR CE SITE : U+00A0, jamais U+202F.
+
+   ⚠ U+2192 « → » N'EXISTE PAS NON PLUS, ni dans le sous-ensemble ni dans les
+   fichiers complets (Young Serif : 567 glyphes ; Public Sans : 565). Aucun
+   choix de subsetting ne le récupère. Dans une figure, la flèche se DESSINE
+   (voir etalon-maquette.svg). En texte courant, ne pas l'employer.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* La plage `latin` telle que Google la sert réellement, relevée le 2026-08-12. */
+@font-face {
+  font-family: "Young Serif";
+  src: url("./assets/fonts/youngserif-latin.woff2") format("woff2");
+  font-weight: 400;                 /* une seule graisse : c'est tout ce qui existe */
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+                 U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Public Sans";
+  src: url("./assets/fonts/publicsans-latin.woff2") format("woff2");
+  font-weight: 100 900;             /* fichier variable : un seul pour toutes les graisses */
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+                 U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Dans `frontend/index.html`, précharger UNIQUEMENT la police de texte — la
+   première visible. Le `crossorigin` est obligatoire même en même origine :
+   une police est récupérée en mode CORS, et sans lui le fichier est téléchargé
+   DEUX fois. Vite réécrit et hache l'URL, et déduplique avec le `url()` du CSS.
+
+   <link rel="preload" as="font" type="font/woff2" crossorigin
+         href="/src/assets/fonts/publicsans-latin.woff2">                      */
+
+
+/* ───────────────────────────────────────────────────────────────────────────
+   2. LE THÈME TAILWIND
+   Tout ce qui est déclaré ici devient une classe utilitaire : `bg-paper`,
+   `text-ink`, `text-fig-700`, `font-display`, `rounded-fiche`, `text-hero`…
+   ─────────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* ── Surfaces et encres. Neutres non neutres : ils portent la teinte de la
+        marque à 8-27 % de saturation. Aucune ne se lit comme une couleur ; la
+        page a une température sans avoir un ton. C'est ce qui la distingue
+        d'un `gray-50` de plus. ─────────────────────────────────────────────*/
+  --color-paper:       #FBF8FA;  /* fond de page          H 320°  S 27%  L 98% */
+  --color-paper-2:     #F4EFF2;  /* fond de section alt.  H 324°  S 19%  L 95% */
+  --color-ink:         #23191F;  /* texte courant         H 324°  S 17%  L 12% */
+  --color-ink-soft:    #6A5A64;  /* texte secondaire      H 323°  S  8%  L 38% */
+  --color-line:        #E3DAE0;  /* séparateur décoratif — JAMAIS une bordure de contrôle */
+  --color-line-strong: #8E7886;  /* bordure de contrôle : 3,84:1, au-dessus du seuil 3:1 */
+
+  /* ── FIGUE — la teinte de marque. Teinte 325°.
+        Écart aux quatre familles d'état du kit Badge : rouge 35°, ambre 73°,
+        bleu 101°, émeraude 165°. Et 82° du violet SaaS (Stripe #635BFF).
+        Elle n'entre jamais dans une pastille : les pastilles appartiennent aux
+        états. Voir CHARTE.md §2 — c'est la contrainte la plus piégeuse. ─────*/
+  --color-fig-50:  #F9F1F5;
+  --color-fig-100: #EFE0E9;   /* le lavis : remplissage « matière » des figures */
+  --color-fig-300: #C9A3B8;   /* SUR FOND SOMBRE UNIQUEMENT — 2,11:1 sur papier */
+  --color-fig-600: #7E3C61;   /* anneau de focus */
+  --color-fig-700: #632C4C;   /* accent, lien, bouton plein, équerre */
+  --color-fig-800: #4A2039;   /* survol du bouton plein */
+  --color-fig-900: #331629;
+  --color-fig-950: #24101E;   /* le bloc sombre — un seul par page */
+
+  /* ── Typographie ────────────────────────────────────────────────────────*/
+  /* Young Serif : display SEULEMENT, jamais sous 20 px. Une seule graisse —
+     la hiérarchie se fait à la taille et à l'espace, jamais au gras. */
+  --font-display: "Young Serif", Georgia, "Times New Roman", serif;
+  /* Public Sans : texte, chiffres, libellés. Remplace `--font-sans` pour que
+     les `font-sans` déjà écrits dans l'app (App.tsx, Auth.tsx, AdminShell)
+     héritent de la marque sans une seule édition. Repli emoji conservé. */
+  --font-sans: "Public Sans", system-ui, -apple-system, "Segoe UI", Helvetica,
+               Arial, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji",
+               sans-serif;
+
+  /* L'échelle. Cinq crans, pas six. Les tailles fluides bornées par `clamp`
+     tiennent de 320 px à 1280 px sans point de rupture à écrire. */
+  --text-hero: clamp(2.05rem, 1.35rem + 3.9vw, 4.15rem);
+  --text-hero--line-height: 0.99;
+  --text-hero--letter-spacing: -0.021em;
+
+  --text-title: clamp(1.7rem, 1.2rem + 2.1vw, 2.7rem);
+  --text-title--line-height: 1.06;
+  --text-title--letter-spacing: -0.016em;
+
+  --text-sub: 1.2rem;
+  --text-sub--line-height: 1.25;
+  --text-sub--letter-spacing: -0.01em;
+
+  --text-lede: 1.125rem;
+  --text-lede--line-height: 1.62;
+
+  --text-label: 0.6875rem;              /* l'étiquette de champ, toujours en capitales */
+  --text-label--line-height: 1.2;
+  --text-label--letter-spacing: 0.1em;
+
+  /* ── Rayons. Jamais 0 : un angle vif appartient au journal, pas à la fiche.
+        `rounded-full` reste réservé aux boutons et aux pastilles d'état. ────*/
+  --radius-part:  0.25rem;   /*  4px — une petite pièce dans une figure */
+  --radius-card:  0.75rem;   /* 12px — une carte (aligné sur `Card.tsx`, rounded-xl) */
+  --radius-fiche: 1rem;      /* 16px — une surface entière */
+}
+
+
+/* ───────────────────────────────────────────────────────────────────────────
+   3. LES CINQ JETONS D'ILLUSTRATION
+   Hors `@theme` À DESSEIN : ils ne doivent générer AUCUNE classe utilitaire.
+   Une figure ne connaît que ces cinq noms. Si un agent a besoin d'une sixième
+   couleur, c'est la figure qui est fausse, pas la palette qui est trop courte.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --ill-ink:      var(--color-ink);        /* contour d'une chose réelle, épaisseur 2 */
+  --ill-ink-soft: var(--color-ink-soft);   /* annotation et détail interne, épaisseur 1 */
+  --ill-paper:    var(--color-paper);      /* un remplissage qui doit se lire VIDE */
+  --ill-wash:     var(--color-fig-100);    /* un remplissage qui doit se lire PLEIN */
+  --ill-fig:      var(--color-fig-700);    /* LA pièce chaude — une par figure */
+}
+
+/* Le seul remappage autorisé. Sur un fond sombre, figue tombe à 2,4:1 et
+   l'équerre disparaît ; --fig-300 la remonte à 8,06:1.
+   ⚠ Une MAQUETTE DE PRODUIT ne se pose jamais sur un fond sombre — le produit
+   est en clair uniquement, et un écran sombre montrerait un produit qui
+   n'existe pas. Cette classe est donc réservée aux figures de concept. */
+.on-dark {
+  --ill-fig:      var(--color-fig-300);
+  --ill-ink-soft: var(--color-fig-300);
+}
+
+
+/* ───────────────────────────────────────────────────────────────────────────
+   4. LE PLANCHER DE LISIBILITÉ D'UNE FIGURE
+   Une figure porte du texte à 9-13 unités sur une grille de 480. Étirée sur les
+   280 px utiles d'un téléphone de 320, ce texte tombe à 5-7 px : la figure est
+   là et ne se lit plus. Mesuré sur capture, pas supposé.
+   La réponse n'est pas d'agrandir le texte de la figure — ça casserait la
+   grille commune aux six agents. C'est de donner à la figure une largeur
+   PLANCHER, et de laisser son conteneur défiler sous ce plancher. Le
+   débordement reste borné au conteneur : la page ne défile jamais en largeur.
+   ─────────────────────────────────────────────────────────────────────────── */
+.fig-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+.fig-scroll > svg { min-width: 380px; }
+
+@media (max-width: 640px) {
+  /* La figure prend toute la largeur de l'écran, bords compris : 40 px gagnés
+     sur le plancher, donc moins de défilement à parcourir. Les valeurs suivent
+     le padding horizontal du conteneur de page. */
+  .fig-scroll { margin-inline: -1.25rem; padding-inline: 1.25rem; }
+}
+
+
+/* ───────────────────────────────────────────────────────────────────────────
+   5. L'ÉQUERRE — la signature, en HTML.
+   Un coin ouvert en haut à gauche. Elle marque l'origine de ce qui est
+   SPÉCIFIÉ : une section, une fiche, une figure, le nom de la marque.
+   Elle n'encadre jamais, elle ouvre. Et elle ne flotte JAMAIS seule : il y a
+   toujours un mot à sa droite. Une équerre sans libellé est un défaut.
+   Sa jumelle en SVG est dans les deux étalons, même géométrie.
+   ─────────────────────────────────────────────────────────────────────────── */
+.eq { position: relative; padding-left: 1.125rem; }
+.eq::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.18em;
+  width: 10px;
+  height: 14px;
+  border-left: 2px solid var(--color-fig-700);
+  border-top: 2px solid var(--color-fig-700);
+  border-top-left-radius: 5px;
+}
+.on-dark .eq::before,
+.eq-on-dark::before { border-color: var(--color-fig-300); }
+
+
+/* ───────────────────────────────────────────────────────────────────────────
+   6. LE PLANCHER DE QUALITÉ
+   ─────────────────────────────────────────────────────────────────────────── */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-fig-600);   /* 7,36:1 sur papier */
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

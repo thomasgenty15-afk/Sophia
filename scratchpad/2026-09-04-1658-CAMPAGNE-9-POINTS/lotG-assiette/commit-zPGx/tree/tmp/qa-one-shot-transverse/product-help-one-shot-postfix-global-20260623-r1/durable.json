@@ -1,0 +1,54 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "89194514-0a92-46bd-8553-39ea0b9b7596",
+      "status": "pending",
+      "scheduled_for": "2026-06-24T06:30:00+00:00",
+      "event_context": "one_shot_reminder:revoir_cette_difference",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: revoir cette difference.",
+        "parse_source": "payload",
+        "request_text": "Rappelle-moi demain a 8h30 de revoir cette difference",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: revoir cette difference.",
+        "source_message_id": null,
+        "reminder_instruction": "revoir cette difference"
+      },
+      "created_at": "2026-06-22T22:47:46.841554+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Dans Sophia, la carte d attaque c est pour m aider a commencer une action ou pour me proteger d un risque ? Rappelle-moi demain a 8h30 de revoir cette difference.",
+      "created_at": "2026-06-22T22:47:44.177233+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-postfix-global-20260623-r1-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui, plutôt pour t’aider à démarrer l’action : la carte d’attaque réduit la friction avant de commencer. La carte de défense, elle, sert à te protéger d’un risque pendant l’action. Et je te le rappellerai demain à 8h30 pour revoir cette différence.",
+      "created_at": "2026-06-22T22:47:51.581339+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-postfix-global-20260623-r1-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "826101b5-0c17-44d4-89e2-43710a78527a",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-22T22:47:51.57558+00:00"
+  }
+}

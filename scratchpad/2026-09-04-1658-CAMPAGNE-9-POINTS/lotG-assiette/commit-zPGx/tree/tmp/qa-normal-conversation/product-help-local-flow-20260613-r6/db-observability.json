@@ -1,0 +1,3652 @@
+{
+  "run_id": "product-help-local-flow-20260613-r6",
+  "user_id": "e8d577cf-41e7-4e0d-a5e4-1dfd7f40873e",
+  "request_ids": [
+    "product-help-local-flow-20260613-r6-t01",
+    "product-help-local-flow-20260613-r6-t02",
+    "product-help-local-flow-20260613-r6-t03",
+    "product-help-local-flow-20260613-r6-t04",
+    "product-help-local-flow-20260613-r6-t05"
+  ],
+  "queries": {
+    "llm_raw_by_request": {
+      "table": "llm_raw_response_events",
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "85e26aeb-769c-439e-8cc4-f16f8f213113",
+          "request_id": "product-help-local-flow-20260613-r6-t01",
+          "source": "dispatcher-v2-llm",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:26:52.920026+00:00",
+          "metadata": {
+            "source": "dispatcher-v2-llm",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 60000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 14788,
+            "force_real_ai": true,
+            "reasoning_effort": null,
+            "system_prompt_chars": 51440
+          }
+        },
+        {
+          "id": "8f239d74-db62-43e0-8ae1-84b5d68e2e8d",
+          "request_id": "product-help-local-flow-20260613-r6-t01",
+          "source": "dispatcher-v2-llm",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:26:52.923136+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "dispatcher-v2-llm",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 60000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 14788,
+            "force_real_ai": true,
+            "reasoning_effort": null,
+            "system_prompt_chars": 51440
+          }
+        },
+        {
+          "id": "1d4f8d82-44b5-4d7f-ae70-f3699d94653b",
+          "request_id": "product-help-local-flow-20260613-r6-t01",
+          "source": "dispatcher-v2-llm",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:26:52.925876+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "dispatcher-v2-llm",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 60000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 14788,
+            "force_real_ai": true,
+            "reasoning_effort": null,
+            "system_prompt_chars": 51440
+          }
+        },
+        {
+          "id": "cd1f2e77-4614-42b1-939c-75c7a5a998bb",
+          "request_id": "product-help-local-flow-20260613-r6-t01",
+          "source": "dispatcher-v2-llm",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:26:57.584407+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "5a1b02a9-6237-435f-aa8c-2f3e60ed4952",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:37.899131+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 8567,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "7c14904f-67f4-4de8-abfe-60c093c3bc8f",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:37.902648+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 8567,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "54ce7b5c-4ead-4a41-a03a-a2ae8e78dc3e",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:37.905156+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 8567,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "e2e26204-7761-44c8-a1ed-00ee77f37c36",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:42.54175+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "9dddd8ea-bad7-4b05-83f0-ed1efe366796",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.visible.plan_handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:42.546657+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.visible.plan_handoff_ready",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 2623,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3170
+          }
+        },
+        {
+          "id": "ed3533d6-d871-48c4-9932-6c1c08ed33ad",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.visible.plan_handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:42.550008+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 0,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.plan_handoff_ready",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 0,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 2623,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3170
+          }
+        },
+        {
+          "id": "2b9a49fb-e565-4994-b260-3501fbbb3172",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.visible.plan_handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:42.552785+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.plan_handoff_ready",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 2623,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3170
+          }
+        },
+        {
+          "id": "c735730c-0635-4f48-b151-e69645aabbf2",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.visible.plan_handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:46.717318+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "7139f0b8-6fd4-443b-841e-d82f3556dfed",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:59.1515+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7952,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "7de89f27-2053-4bde-a7af-ad67c4902313",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:59.153721+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7952,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "def18236-52c7-4a66-9306-85ecd37ac665",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:59.15581+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7952,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "f36f344e-f174-4997-8e43-04d21c57a307",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:04.603407+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "a2c3a39b-4f12-4e15-82ad-30420b0b7cd6",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.visible.revise_plan_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:04.608143+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.visible.revise_plan_handoff",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3133,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2890
+          }
+        },
+        {
+          "id": "67e9b74a-a283-41cf-a236-58dcfa891796",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.visible.revise_plan_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:04.611327+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.revise_plan_handoff",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3133,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2890
+          }
+        },
+        {
+          "id": "a2ee0f1e-428a-47bf-844f-95a85563e860",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.visible.revise_plan_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:04.614542+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.revise_plan_handoff",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3133,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2890
+          }
+        },
+        {
+          "id": "0dbb2681-8f03-4eae-b1b6-ee6e866d3532",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.visible.revise_plan_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:09.486875+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "971e352e-b359-40fd-b4bb-722fd49cf6d0",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:20.753912+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 9486,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "bd0c64d0-e00d-463e-bbac-1dd500ccb55c",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:20.755186+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 9486,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "a899bd65-1f15-4890-834c-ce94166112b4",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:20.756651+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 9486,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "04c11da9-b805-4a9b-a313-29890c8e90ba",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:26.260155+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "8c340464-7bd6-45a3-8295-17b78ffcd0d1",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.visible.explain_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:26.266325+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.visible.explain_handoff",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3186,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2628
+          }
+        },
+        {
+          "id": "daf40a6f-ca68-488f-ad40-33c6eced3325",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.visible.explain_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:26.271377+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.explain_handoff",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3186,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2628
+          }
+        },
+        {
+          "id": "971ae529-d7f3-48b4-a2f6-1da126389815",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.visible.explain_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:26.275246+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.explain_handoff",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 4,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3186,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2628
+          }
+        },
+        {
+          "id": "9e8ffb4c-e393-4309-a799-15254d5dbaad",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.visible.explain_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:30.491594+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "d1661804-b4df-4883-ab04-7d9225736af7",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:40.709903+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 10148,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "32376a89-efb3-4003-83d1-f5e14edfa1d6",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:40.712316+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 10148,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "cca80040-ece7-463a-ba77-9615e9f2142e",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:40.713846+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 10148,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "e2ffd041-8381-4eae-99e5-eb5d1cc9073e",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:46.912448+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "7db6cc7d-f821-4c89-97ee-e5b1bb839d4a",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.visible.inline_tool_return",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:04.226108+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.visible.inline_tool_return",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3990,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2657
+          }
+        },
+        {
+          "id": "aadafc28-021d-4f29-b4af-fe7fc6e89d61",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.visible.inline_tool_return",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:04.228149+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.inline_tool_return",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3990,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2657
+          }
+        },
+        {
+          "id": "7fbaec04-ab18-4441-a531-fc109f2a3a2f",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.visible.inline_tool_return",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:04.230172+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.inline_tool_return",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3990,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2657
+          }
+        },
+        {
+          "id": "15c93984-f072-45a9-ac66-3b76d2bfb506",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.visible.inline_tool_return",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:08.309604+00:00",
+          "metadata": {}
+        }
+      ]
+    },
+    "llm_usage_by_request": {
+      "table": "llm_usage_events",
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "2117746a-4fcf-4143-bc0f-6970f1e4f4eb",
+          "request_id": "product-help-local-flow-20260613-r6-t01",
+          "source": "dispatcher-v2-llm",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:26:57.576316+00:00"
+        },
+        {
+          "id": "d01e96f6-2426-4065-bfbd-435cc6bcad3d",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:42.536049+00:00"
+        },
+        {
+          "id": "4a63e370-4dff-416a-9687-14edbd38a213",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.visible.plan_handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:46.712091+00:00"
+        },
+        {
+          "id": "cce0e476-9cab-441a-8402-1a01c73518cf",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:04.596566+00:00"
+        },
+        {
+          "id": "49a3085a-4c18-4eeb-80db-1b7d645c3e18",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.visible.revise_plan_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:09.484604+00:00"
+        },
+        {
+          "id": "02d319a5-d77c-45ac-a82b-dd75d978a056",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:26.254052+00:00"
+        },
+        {
+          "id": "0f4ce59f-5981-4639-89b5-93e2f298e2b4",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.visible.explain_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:30.487295+00:00"
+        },
+        {
+          "id": "c6032e8d-b4dc-4beb-be64-e7f4c059c733",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:46.90497+00:00"
+        },
+        {
+          "id": "828a80a9-a821-498b-af78-f2e93b6c0eb7",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.visible.inline_tool_return",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:08.304885+00:00"
+        }
+      ]
+    },
+    "runtime_by_user": {
+      "table": "conversation_runtime_events",
+      "status": 400,
+      "ok": false,
+      "body": {
+        "code": "42703",
+        "details": null,
+        "hint": null,
+        "message": "column conversation_runtime_events.event_type does not exist"
+      }
+    },
+    "messages_by_user": {
+      "table": "chat_messages",
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "4606facc-7ae8-46c4-ad3f-17acf3e3c56c",
+          "role": "user",
+          "content": "Je suis un peu perdue dans Sophia : si une action de mon Plan est trop vague, comment je la rends plus concrete sans creer une carte d'attaque ni toucher au reste du Plan ? Explique-moi juste le principe.",
+          "created_at": "2026-06-13T00:26:52.86904+00:00"
+        },
+        {
+          "id": "3d2cdbba-e5a3-46f7-841c-b58039db9543",
+          "role": "assistant",
+          "content": "Pour rendre une action plus concrète sans créer de carte d'attaque, tu peux utiliser l'outil **Ajuster le plan** dans ton Dashboard. Il te suffit d'expliquer que l'étape actuelle est trop floue ; je pourrai alors analyser ton besoin et te proposer une modification directe de ton plan pour qu'il soit plus précis et actionnable.",
+          "created_at": "2026-06-13T00:27:13.772677+00:00"
+        },
+        {
+          "id": "0d03e6d1-32fd-496f-9f5c-3baf5402babf",
+          "role": "user",
+          "content": "Ok. Alors aide-moi maintenant a ajuster l'action 'Ranger mes papiers administratifs' : elle est trop vague, je veux une version plus concrete pour demain matin, sans ajouter de nouvelle action.",
+          "created_at": "2026-06-13T00:27:23.048843+00:00"
+        },
+        {
+          "id": "c3a80120-eee5-42da-a9df-f344c67379e1",
+          "role": "assistant",
+          "content": "Comme ton action 'Ranger mes papiers administratifs' te semble un peu trop floue, l'idée est de la remplacer par une version plus concrète pour demain matin. Pour effectuer cette modification, rends-toi dans ton Plan : juste sous le niveau actif, tu trouveras l'option 'Ajuster mon plan'. Tu n'auras qu'à y saisir : Remplacer 'Ranger mes papiers administratifs' par une version concrète (ex: Trier les factures du mois) prévue pour demain matin.",
+          "created_at": "2026-06-13T00:27:46.724447+00:00"
+        },
+        {
+          "id": "ad08824b-da0d-474e-8c3d-6e8106c7ee10",
+          "role": "user",
+          "content": "Non, evite l'exemple des factures du mois. Je veux plutot : mettre tous les papiers dans une seule pile, separer urgent / a classer / a jeter, et m'arreter apres 15 minutes.",
+          "created_at": "2026-06-13T00:27:59.110402+00:00"
+        },
+        {
+          "id": "d55eebed-aaf9-4494-9668-6b2fc601dbe6",
+          "role": "assistant",
+          "content": "C'est noté, on affine pour que ce soit moins vague. Voici la formulation à reprendre pour remplacer \"Ranger mes papiers administratifs\" : \"Mettre tous les papiers en une pile, trier (urgent/classer/jeter) pendant 15 min max\", prévu pour demain matin. Tu peux saisir cette consigne dans \"Ajuster mon plan\", que tu trouveras sur la plateforme dans ton Plan, juste sous le niveau actif.",
+          "created_at": "2026-06-13T00:28:09.498104+00:00"
+        },
+        {
+          "id": "a6dd170e-66fd-4048-868f-600817aa4a80",
+          "role": "user",
+          "content": "Donc la, est-ce que tu as deja modifie mon Plan, ou je dois encore aller le faire moi-meme dans Ajuster mon plan ?",
+          "created_at": "2026-06-13T00:28:20.719732+00:00"
+        },
+        {
+          "id": "2c85102d-1d95-4be8-a3a6-3dbfecc1131d",
+          "role": "assistant",
+          "content": "Non, je ne modifie pas ton plan directement. Pour que ton action 'Ranger mes papiers administratifs' soit plus efficace, je te suggère de la remplacer par une consigne plus précise : mettre tous tes papiers en une seule pile et trier (urgent, à classer ou à jeter) pendant 15 minutes maximum demain matin. Pour enregistrer ce changement, rends-toi dans ton Plan et utilise l'option 'Ajuster mon plan' située juste sous le niveau actif.",
+          "created_at": "2026-06-13T00:28:30.501847+00:00"
+        },
+        {
+          "id": "10c270f5-9f81-42aa-a382-bc06af63670e",
+          "role": "user",
+          "content": "Ok, et pendant qu'on y est, c'est quoi la difference entre ajuster mon plan et preparer une carte de defense ? Je veux juste comprendre, pas lancer une carte.",
+          "created_at": "2026-06-13T00:28:40.665687+00:00"
+        },
+        {
+          "id": "e29c0593-fd14-4849-b325-cbea7178d86a",
+          "role": "assistant",
+          "content": "C'est simple : l'ajustement modifie la structure de ton plan si une action ne te convient plus (trop lourde ou mal placée). La carte de défense, elle, ne change pas le plan, mais te prépare un « Plan B » pour ne pas dévier face à un piège précis au moment d'agir. On reprend pour l'ajustement de « Ranger mes papiers » ?",
+          "created_at": "2026-06-13T00:29:08.319987+00:00"
+        }
+      ]
+    },
+    "llm_raw_since_first_turn": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "3cbce10c-f7f5-4709-942c-fc900d1d0b31",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t02",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:17.930705+00:00",
+          "metadata": {
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 11350,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "c15231e2-4670-4e24-82bf-67c83ab4c322",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t02",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:17.932725+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 11350,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "0a7612d3-1794-47b6-8416-6c6c42f3289b",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t02",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:17.934981+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 11350,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "6442f81b-bb78-4448-9681-9f0b2abd5bd5",
+          "request_id": "prepare-defense-long-r1-t01",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:18.719954+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "96872d29-484c-45af-83b7-72e6d5a3abcc",
+          "request_id": "prepare-defense-long-r1-t01",
+          "source": "prepare_defense_card.visible.ask_defense_goal_or_response",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:18.726582+00:00",
+          "metadata": {
+            "source": "prepare_defense_card.visible.ask_defense_goal_or_response",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4384,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3135
+          }
+        },
+        {
+          "id": "487f59e0-59cc-4074-bd18-bf518a238624",
+          "request_id": "prepare-defense-long-r1-t01",
+          "source": "prepare_defense_card.visible.ask_defense_goal_or_response",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:18.729614+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.visible.ask_defense_goal_or_response",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4384,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3135
+          }
+        },
+        {
+          "id": "be965eb6-6a25-4c64-8547-0456b5584eae",
+          "request_id": "prepare-defense-long-r1-t01",
+          "source": "prepare_defense_card.visible.ask_defense_goal_or_response",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:18.734699+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.visible.ask_defense_goal_or_response",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "waited_ms": 4,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4384,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3135
+          }
+        },
+        {
+          "id": "3a968f73-1008-47c9-884e-f9ea3330ca2a",
+          "request_id": "0d03e6d1-32fd-496f-9f5c-3baf5402babf",
+          "source": "product_help.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:23.111067+00:00",
+          "metadata": {
+            "source": "product_help.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 57528,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21465
+          }
+        },
+        {
+          "id": "2ed359e8-d135-4980-a52c-e21843d92337",
+          "request_id": "0d03e6d1-32fd-496f-9f5c-3baf5402babf",
+          "source": "product_help.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:23.112827+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "product_help.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 57528,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21465
+          }
+        },
+        {
+          "id": "1e20b92e-ca55-44cf-8c32-24852b2c45c8",
+          "request_id": "0d03e6d1-32fd-496f-9f5c-3baf5402babf",
+          "source": "product_help.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:23.114978+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "product_help.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 57528,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21465
+          }
+        },
+        {
+          "id": "e710b3e3-72cd-4de9-bf86-9908a797b879",
+          "request_id": "prepare-defense-long-r1-t01",
+          "source": "prepare_defense_card.visible.ask_defense_goal_or_response",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:24.071+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "5e9cae17-1038-4b19-b8a7-9a4d53bcddd1",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t02",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:30.009327+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "2ced1772-12e9-43e6-aa22-9591c4468009",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t02",
+          "source": "weekly_adaptive_review.visible.review_action_gaps",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:30.012991+00:00",
+          "metadata": {
+            "source": "weekly_adaptive_review.visible.review_action_gaps",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7968,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3860
+          }
+        },
+        {
+          "id": "da2b3e12-9ea7-4679-8373-d44e4a9f9051",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t02",
+          "source": "weekly_adaptive_review.visible.review_action_gaps",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:30.016288+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.visible.review_action_gaps",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7968,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3860
+          }
+        },
+        {
+          "id": "8500d70c-46b9-4a73-a172-b8d11fe5e61b",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t02",
+          "source": "weekly_adaptive_review.visible.review_action_gaps",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:30.018872+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.visible.review_action_gaps",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7968,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3860
+          }
+        },
+        {
+          "id": "b76ae6bb-1430-4635-b41e-1ffc6cdc3be6",
+          "request_id": "prepare-defense-long-r1-t02",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:30.358158+00:00",
+          "metadata": {
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 8634,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "d957cabe-eab1-420e-b924-fe593c355dda",
+          "request_id": "prepare-defense-long-r1-t02",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:30.359608+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 8634,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "4a8484aa-b720-4c06-99ff-89a6bc10ebd1",
+          "request_id": "prepare-defense-long-r1-t02",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:30.361992+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 8634,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "3adf87e1-ef7e-41e8-9b90-dde697e1f61e",
+          "request_id": "prepare-defense-long-r1-t02",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:36.357154+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "82137159-6b27-4bdb-aec7-81df381527b8",
+          "request_id": "prepare-defense-long-r1-t02",
+          "source": "prepare_defense_card.visible.handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:36.364104+00:00",
+          "metadata": {
+            "source": "prepare_defense_card.visible.handoff_ready",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4355,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3343
+          }
+        },
+        {
+          "id": "945cd16c-6d1b-473d-8923-b385108475db",
+          "request_id": "prepare-defense-long-r1-t02",
+          "source": "prepare_defense_card.visible.handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:36.368876+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.visible.handoff_ready",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4355,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3343
+          }
+        },
+        {
+          "id": "66d64ee8-65a4-4281-924c-f551a2c75400",
+          "request_id": "prepare-defense-long-r1-t02",
+          "source": "prepare_defense_card.visible.handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:36.372845+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.visible.handoff_ready",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 4,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4355,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3343
+          }
+        },
+        {
+          "id": "cc43aa2b-bc69-4c2f-a484-2f995c653eee",
+          "request_id": "0d03e6d1-32fd-496f-9f5c-3baf5402babf",
+          "source": "product_help.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:37.869596+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "5a1b02a9-6237-435f-aa8c-2f3e60ed4952",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:37.899131+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 8567,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "7c14904f-67f4-4de8-abfe-60c093c3bc8f",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:37.902648+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 8567,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "54ce7b5c-4ead-4a41-a03a-a2ae8e78dc3e",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:37.905156+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 8567,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "0e72e385-6074-4d11-8f3d-cdcdfb441fda",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t02",
+          "source": "weekly_adaptive_review.visible.review_action_gaps",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:38.496465+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "41aab3b1-66b9-4d0e-9ab5-0bcc2ebcd669",
+          "request_id": "prepare-defense-long-r1-t02",
+          "source": "prepare_defense_card.visible.handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:40.739965+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "e2e26204-7761-44c8-a1ed-00ee77f37c36",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:42.54175+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "9dddd8ea-bad7-4b05-83f0-ed1efe366796",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.visible.plan_handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:42.546657+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.visible.plan_handoff_ready",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 2623,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3170
+          }
+        },
+        {
+          "id": "ed3533d6-d871-48c4-9932-6c1c08ed33ad",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.visible.plan_handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:42.550008+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 0,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.plan_handoff_ready",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 0,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 2623,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3170
+          }
+        },
+        {
+          "id": "2b9a49fb-e565-4994-b260-3501fbbb3172",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.visible.plan_handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:42.552785+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.plan_handoff_ready",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 2623,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3170
+          }
+        },
+        {
+          "id": "c735730c-0635-4f48-b151-e69645aabbf2",
+          "request_id": "product-help-local-flow-20260613-r6-t02",
+          "source": "adjust_plan_item.visible.plan_handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:46.717318+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "99eb29d7-c794-4e02-9d94-3f1c386f7cff",
+          "request_id": "prepare-defense-long-r1-t03",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:50.459018+00:00",
+          "metadata": {
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 12415,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "822163e9-1223-4d0a-a73a-c7a9cd540f07",
+          "request_id": "prepare-defense-long-r1-t03",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:50.46081+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 0,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 0,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 12415,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "c3a7e6b9-487c-4ab0-ab5d-acf610d8004c",
+          "request_id": "prepare-defense-long-r1-t03",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:50.462214+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "waited_ms": 1,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 12415,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "9cb9aa6b-b288-4fcb-b25e-dbdf2908feae",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t03",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:52.123983+00:00",
+          "metadata": {
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 13243,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "c55038cc-5a92-417c-b858-9bc2aae0cb0c",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t03",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:52.125412+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 13243,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "87a56cad-bb18-4504-ae6a-d5a0f5ee15d4",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t03",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:52.126603+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 13243,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "7139f0b8-6fd4-443b-841e-d82f3556dfed",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:59.1515+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7952,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "7de89f27-2053-4bde-a7af-ad67c4902313",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:59.153721+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7952,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "def18236-52c7-4a66-9306-85ecd37ac665",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:27:59.15581+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7952,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "c5db009f-9e71-40c0-9268-696e92fcc5c4",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t03",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:02.807916+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "f5ba8269-eea4-4349-b0fb-8126d3290eed",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t03",
+          "source": "weekly_adaptive_review.visible.ask_global_progress_feeling",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:02.81418+00:00",
+          "metadata": {
+            "source": "weekly_adaptive_review.visible.ask_global_progress_feeling",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7995,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3339
+          }
+        },
+        {
+          "id": "7eb706e6-67ed-47f3-ad70-ef0dc244f860",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t03",
+          "source": "weekly_adaptive_review.visible.ask_global_progress_feeling",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:02.818667+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.visible.ask_global_progress_feeling",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7995,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3339
+          }
+        },
+        {
+          "id": "c615315d-c86b-45f5-ba05-51610d1d7a44",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t03",
+          "source": "weekly_adaptive_review.visible.ask_global_progress_feeling",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:02.821369+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.visible.ask_global_progress_feeling",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7995,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3339
+          }
+        },
+        {
+          "id": "f5076e22-728f-4d9d-97e1-769440166f1d",
+          "request_id": "prepare-defense-long-r1-t03",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:04.154082+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "40e8e58f-1eea-4adc-8fce-cba5509ab9b5",
+          "request_id": "prepare-defense-long-r1-t03",
+          "source": "prepare_defense_card.visible.handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:04.158809+00:00",
+          "metadata": {
+            "source": "prepare_defense_card.visible.handoff_ready",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4441,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3343
+          }
+        },
+        {
+          "id": "dc7b4f02-dc1a-4026-9673-c38a39a239c2",
+          "request_id": "prepare-defense-long-r1-t03",
+          "source": "prepare_defense_card.visible.handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:04.16292+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.visible.handoff_ready",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4441,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3343
+          }
+        },
+        {
+          "id": "e9a241af-a0c0-4515-9e9a-03fe5ff372f3",
+          "request_id": "prepare-defense-long-r1-t03",
+          "source": "prepare_defense_card.visible.handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:04.166752+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.visible.handoff_ready",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 4,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4441,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3343
+          }
+        },
+        {
+          "id": "f36f344e-f174-4997-8e43-04d21c57a307",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:04.603407+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "a2c3a39b-4f12-4e15-82ad-30420b0b7cd6",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.visible.revise_plan_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:04.608143+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.visible.revise_plan_handoff",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3133,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2890
+          }
+        },
+        {
+          "id": "67e9b74a-a283-41cf-a236-58dcfa891796",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.visible.revise_plan_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:04.611327+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.revise_plan_handoff",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3133,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2890
+          }
+        },
+        {
+          "id": "a2ee0f1e-428a-47bf-844f-95a85563e860",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.visible.revise_plan_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:04.614542+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.revise_plan_handoff",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3133,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2890
+          }
+        },
+        {
+          "id": "e97c4ffd-0947-4435-8a1e-8a651c6948e6",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t03",
+          "source": "weekly_adaptive_review.visible.ask_global_progress_feeling",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:07.154489+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "567a5c67-e04b-40ce-aaf7-8cab69169d8d",
+          "request_id": "prepare-defense-long-r1-t03",
+          "source": "prepare_defense_card.visible.handoff_ready",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:08.023455+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "0dbb2681-8f03-4eae-b1b6-ee6e866d3532",
+          "request_id": "product-help-local-flow-20260613-r6-t03",
+          "source": "adjust_plan_item.visible.revise_plan_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:09.486875+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "eb789f10-d6b5-42bd-94bb-a5738b2089b8",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t04",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:16.191798+00:00",
+          "metadata": {
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 13716,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "8bb60dc5-4529-4b52-ae4f-dcad35806788",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t04",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:16.193436+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 0,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 0,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 13716,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "e5be603e-f8f3-4b6c-9e0a-133b798da8bd",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t04",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:16.195257+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 13716,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "4abb4a40-9777-4d84-b385-3b77996dad1e",
+          "request_id": "prepare-defense-long-r1-t04",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:19.039927+00:00",
+          "metadata": {
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 12831,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "5fb31f54-51d1-470f-b279-a5449cccf485",
+          "request_id": "prepare-defense-long-r1-t04",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:19.043137+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 12831,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "90de6492-f4b1-42f7-a6b7-f52f735c7494",
+          "request_id": "prepare-defense-long-r1-t04",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:19.046942+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "waited_ms": 4,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 12831,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "971e352e-b359-40fd-b4bb-722fd49cf6d0",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:20.753912+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 9486,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "bd0c64d0-e00d-463e-bbac-1dd500ccb55c",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:20.755186+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 9486,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "a899bd65-1f15-4890-834c-ce94166112b4",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:20.756651+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 9486,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "38544478-913b-483d-a33f-bcca0ae3fa2b",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t04",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:22.304289+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "f306640d-a1d6-4d92-b79f-a29ce41b1f03",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t04",
+          "source": "weekly_adaptive_review.visible.deepen_global_progress",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:22.311345+00:00",
+          "metadata": {
+            "source": "weekly_adaptive_review.visible.deepen_global_progress",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7962,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3350
+          }
+        },
+        {
+          "id": "085c061e-e6f7-40b5-b396-c5bfdf58e904",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t04",
+          "source": "weekly_adaptive_review.visible.deepen_global_progress",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:22.314877+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.visible.deepen_global_progress",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7962,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3350
+          }
+        },
+        {
+          "id": "f564b159-7a34-4e59-a05d-8e3d4cc550d2",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t04",
+          "source": "weekly_adaptive_review.visible.deepen_global_progress",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:22.318172+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.visible.deepen_global_progress",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7962,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3350
+          }
+        },
+        {
+          "id": "04c11da9-b805-4a9b-a313-29890c8e90ba",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:26.260155+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "8c340464-7bd6-45a3-8295-17b78ffcd0d1",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.visible.explain_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:26.266325+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.visible.explain_handoff",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3186,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2628
+          }
+        },
+        {
+          "id": "daf40a6f-ca68-488f-ad40-33c6eced3325",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.visible.explain_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:26.271377+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.explain_handoff",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3186,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2628
+          }
+        },
+        {
+          "id": "971ae529-d7f3-48b4-a2f6-1da126389815",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.visible.explain_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:26.275246+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.explain_handoff",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 4,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3186,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2628
+          }
+        },
+        {
+          "id": "6417a848-90ee-4956-abc3-70da1f810cbe",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t04",
+          "source": "weekly_adaptive_review.visible.deepen_global_progress",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:26.927194+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "259d1ab1-1d0c-4da3-bd9c-496e98dda16d",
+          "request_id": "prepare-defense-long-r1-t04",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:28.37851+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "490a079d-40b3-4569-a3c9-42408f7c8968",
+          "request_id": "prepare-defense-long-r1-t04",
+          "source": "prepare_defense_card.visible.destination_short",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:28.381979+00:00",
+          "metadata": {
+            "source": "prepare_defense_card.visible.destination_short",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4119,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3133
+          }
+        },
+        {
+          "id": "2441660a-0df3-48b8-b835-09d722d4a53f",
+          "request_id": "prepare-defense-long-r1-t04",
+          "source": "prepare_defense_card.visible.destination_short",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:28.384472+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.visible.destination_short",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4119,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3133
+          }
+        },
+        {
+          "id": "fd49652a-a47e-47d5-aa7c-239e131ae13d",
+          "request_id": "prepare-defense-long-r1-t04",
+          "source": "prepare_defense_card.visible.destination_short",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:28.386827+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.visible.destination_short",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4119,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3133
+          }
+        },
+        {
+          "id": "9e8ffb4c-e393-4309-a799-15254d5dbaad",
+          "request_id": "product-help-local-flow-20260613-r6-t04",
+          "source": "adjust_plan_item.visible.explain_handoff",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:30.491594+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "df71d5ee-2e45-45fb-8a20-4d63d6a3a79c",
+          "request_id": "prepare-defense-long-r1-t04",
+          "source": "prepare_defense_card.visible.destination_short",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:31.417144+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "e0a6b77f-1099-4b7e-b438-9c6f09e1059c",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t05",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:35.981507+00:00",
+          "metadata": {
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 14256,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "63a18dfa-e041-42ef-99b9-57662d76d290",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t05",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:35.98462+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 0,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 0,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 14256,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "8e1b2543-1c26-46b9-b0a5-d82879694cc2",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t05",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:35.987205+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "waited_ms": 4,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 14256,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "f388c391-25ec-4f72-8623-7cc49ec0b2e6",
+          "request_id": "prepare-defense-long-r1-t05",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:40.618138+00:00",
+          "metadata": {
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 13270,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "a38d4d11-0a52-40f2-a79b-24604ff3142e",
+          "request_id": "prepare-defense-long-r1-t05",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:40.620892+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 13270,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "f22cfcfa-253b-40f7-a923-b60d93993bf4",
+          "request_id": "prepare-defense-long-r1-t05",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:40.623544+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 13270,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "d1661804-b4df-4883-ab04-7d9225736af7",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:40.709903+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 10148,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "32376a89-efb3-4003-83d1-f5e14edfa1d6",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:40.712316+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 10148,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "cca80040-ece7-463a-ba77-9615e9f2142e",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:40.713846+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 10148,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 16751
+          }
+        },
+        {
+          "id": "e2ffd041-8381-4eae-99e5-eb5d1cc9073e",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:46.912448+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "1ebb00b1-003a-4297-a3b7-c4ea6f805548",
+          "request_id": "10c270f5-9f81-42aa-a382-bc06af63670e",
+          "source": "product_help.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:46.922004+00:00",
+          "metadata": {
+            "source": "product_help.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 81702,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21465
+          }
+        },
+        {
+          "id": "78cc3ee6-6513-4b75-b26a-7c1ed5f6436f",
+          "request_id": "10c270f5-9f81-42aa-a382-bc06af63670e",
+          "source": "product_help.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:46.925923+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "product_help.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 81702,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21465
+          }
+        },
+        {
+          "id": "a9ea743b-1333-4b5d-aaf2-483109ea7ed1",
+          "request_id": "10c270f5-9f81-42aa-a382-bc06af63670e",
+          "source": "product_help.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:46.930277+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "product_help.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 4,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 81702,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21465
+          }
+        },
+        {
+          "id": "73cec253-983c-4c08-9efc-090f476b8f8b",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t05",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:47.010249+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "9102da3d-6aa0-4b57-b9e5-bd3ba2667c17",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t05",
+          "source": "weekly_adaptive_review.visible.qualify_solution_fit",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:47.01693+00:00",
+          "metadata": {
+            "source": "weekly_adaptive_review.visible.qualify_solution_fit",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7935,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3370
+          }
+        },
+        {
+          "id": "f24dc865-3652-4c11-8b3d-ddd81f289f35",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t05",
+          "source": "weekly_adaptive_review.visible.qualify_solution_fit",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:47.02152+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.visible.qualify_solution_fit",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7935,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3370
+          }
+        },
+        {
+          "id": "8555e55d-d37b-4437-8803-3793f8296367",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t05",
+          "source": "weekly_adaptive_review.visible.qualify_solution_fit",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:47.024185+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.visible.qualify_solution_fit",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 7935,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3370
+          }
+        },
+        {
+          "id": "b5f742d7-d394-43e4-8b92-cc253f406467",
+          "request_id": "prepare-defense-long-r1-t05",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:48.57324+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "581e0c8b-0950-49cd-bf22-034b0d5bb6dc",
+          "request_id": "prepare-defense-long-r1-t05",
+          "source": "prepare_defense_card.visible.apply_attempt",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:48.579253+00:00",
+          "metadata": {
+            "source": "prepare_defense_card.visible.apply_attempt",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4149,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3164
+          }
+        },
+        {
+          "id": "3b52afcb-1482-4639-9c23-af44a3ffadcd",
+          "request_id": "prepare-defense-long-r1-t05",
+          "source": "prepare_defense_card.visible.apply_attempt",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:48.582723+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.visible.apply_attempt",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4149,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3164
+          }
+        },
+        {
+          "id": "e5c1339d-72bb-4cf1-9083-5cce938d2620",
+          "request_id": "prepare-defense-long-r1-t05",
+          "source": "prepare_defense_card.visible.apply_attempt",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:48.586093+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.visible.apply_attempt",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 4149,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 3164
+          }
+        },
+        {
+          "id": "a398b22a-461c-4c52-8197-e783ca346b82",
+          "request_id": "prepare-defense-long-r1-t05",
+          "source": "prepare_defense_card.visible.apply_attempt",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:52.226036+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "d65e19eb-2eff-4179-814f-f26c3f500d51",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t05",
+          "source": "weekly_adaptive_review.visible.qualify_solution_fit",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:52.896913+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "440620bc-4992-47d0-b3fd-7c8040b26017",
+          "request_id": "10c270f5-9f81-42aa-a382-bc06af63670e",
+          "source": "product_help.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:59.485609+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "e51b26e1-7fde-4ebd-b2d3-753110f017cd",
+          "request_id": "10c270f5-9f81-42aa-a382-bc06af63670e",
+          "source": "product_help.visible.compare_features",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:59.488831+00:00",
+          "metadata": {
+            "source": "product_help.visible.compare_features",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 27642,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 1931
+          }
+        },
+        {
+          "id": "cc407a89-77b2-4e93-b58d-c64fb823deaf",
+          "request_id": "10c270f5-9f81-42aa-a382-bc06af63670e",
+          "source": "product_help.visible.compare_features",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:59.490995+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 0,
+              "queued": 0
+            },
+            "source": "product_help.visible.compare_features",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 0,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 27642,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 1931
+          }
+        },
+        {
+          "id": "dfddb75c-678e-4415-938f-7b3db4d213a8",
+          "request_id": "10c270f5-9f81-42aa-a382-bc06af63670e",
+          "source": "product_help.visible.compare_features",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:28:59.495268+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "product_help.visible.compare_features",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "waited_ms": 3,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 27642,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 1931
+          }
+        },
+        {
+          "id": "f3fa613e-6bc7-43e5-8908-fe4e1a51bcf9",
+          "request_id": "prepare-defense-long-r1-t06",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:00.859729+00:00",
+          "metadata": {
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 13528,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "38d4d175-2b6c-4523-a216-d4f54c256ffe",
+          "request_id": "prepare-defense-long-r1-t06",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:00.861705+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 1,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 1,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 13528,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "1dea58e0-56af-407c-bdcd-3395fb019604",
+          "request_id": "prepare-defense-long-r1-t06",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:00.863283+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "prepare_defense_card.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 13528,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 21138
+          }
+        },
+        {
+          "id": "e85439f8-aeb2-4747-9356-305c7cc560d8",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t06",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:02.453942+00:00",
+          "metadata": {
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 14551,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "8744f128-a33f-4019-acf5-79f3471daf2e",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t06",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:02.455412+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 14551,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "33783fd0-1189-4bfa-a001-ef1b6f5d8ed2",
+          "request_id": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t06",
+          "source": "weekly_adaptive_review.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:02.456655+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "weekly_adaptive_review.local_dispatcher",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 14551,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 26734
+          }
+        },
+        {
+          "id": "f7f86883-ece5-4d82-86f7-04d153f9243d",
+          "request_id": "10c270f5-9f81-42aa-a382-bc06af63670e",
+          "source": "product_help.visible.compare_features",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:04.222577+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "7db6cc7d-f821-4c89-97ee-e5b1bb839d4a",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.visible.inline_tool_return",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:04.226108+00:00",
+          "metadata": {
+            "source": "adjust_plan_item.visible.inline_tool_return",
+            "has_tools": false,
+            "json_mode": true,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3990,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2657
+          }
+        },
+        {
+          "id": "aadafc28-021d-4f29-b4af-fe7fc6e89d61",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.visible.inline_tool_return",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:04.228149+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 2,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.inline_tool_return",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 2,
+              "queued": 0
+            },
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3990,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2657
+          }
+        },
+        {
+          "id": "7fbaec04-ab18-4441-a531-fc109f2a3a2f",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.visible.inline_tool_return",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:04.230172+00:00",
+          "metadata": {
+            "global": {
+              "max": 6,
+              "inUse": 3,
+              "queued": 0
+            },
+            "source": "adjust_plan_item.visible.inline_tool_return",
+            "has_tools": false,
+            "json_mode": true,
+            "per_model": {
+              "max": 3,
+              "inUse": 3,
+              "queued": 0
+            },
+            "waited_ms": 2,
+            "base_model": "gemini-3-flash-preview",
+            "timeout_ms": 45000,
+            "max_retries": 1,
+            "tool_choice": "auto",
+            "prompt_chars": 3990,
+            "force_real_ai": true,
+            "reasoning_effort": "low",
+            "system_prompt_chars": 2657
+          }
+        },
+        {
+          "id": "15c93984-f072-45a9-ac66-3b76d2bfb506",
+          "request_id": "product-help-local-flow-20260613-r6-t05",
+          "source": "adjust_plan_item.visible.inline_tool_return",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:08.309604+00:00",
+          "metadata": {}
+        },
+        {
+          "id": "3b4b1c9d-2b2a-4bb3-bee1-5021e9e4f442",
+          "request_id": "prepare-defense-long-r1-t06",
+          "source": "prepare_defense_card.local_dispatcher",
+          "model": "gemini-3-flash-preview",
+          "created_at": "2026-06-13T00:29:08.699418+00:00",
+          "metadata": {}
+        }
+      ]
+    }
+  },
+  "counts": {
+    "llm_raw_by_request": 36,
+    "llm_usage_by_request": 9,
+    "runtime_by_user": null,
+    "messages_by_user": 10,
+    "llm_raw_since_first_turn": 120
+  }
+}

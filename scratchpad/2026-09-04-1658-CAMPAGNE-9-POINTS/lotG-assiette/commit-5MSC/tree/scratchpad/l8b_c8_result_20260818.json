@@ -1,0 +1,696 @@
+{
+  "status": 200,
+  "ms": 15896,
+  "json": {
+    "ok": true,
+    "meal": {
+      "id": "73881ac5-e0f5-4578-a345-d1647efc5453"
+    },
+    "window": {
+      "starts_on": "2026-08-19",
+      "duration_days": 1
+    },
+    "suggested_window": {
+      "starts_on": "2026-08-18",
+      "shifted": null
+    },
+    "rationale": {
+      "lines": [
+        "This plan covers Wednesday 2026-08-19.",
+        "Quantities are made for 4 people."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "household": {
+      "id": "4123e479-f62a-4a3c-912e-5c7cb5c1f15a",
+      "member_count": 4
+    },
+    "dishes": [
+      {
+        "name": "Chicken rice supper",
+        "title": "Roast chicken thighs, lemon rice, roasted courgettes and peppers, herb yoghurt sauce",
+        "slot": "dinner",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "lemon wedge",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          }
+        ],
+        "method": "Reheat the shared boxes, then serve with a lemon wedge for squeezing at the table.",
+        "why": "A straightforward family dinner that uses one cooking session and gives everyone a protein-led plate.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "servings": 1,
+            "box_id": "box_roast_chicken_paul_lea_tom"
+          },
+          {
+            "preparation_id": "prep_rice",
+            "servings": 1,
+            "box_id": "box_rice_paul_lea_tom"
+          },
+          {
+            "preparation_id": "prep_roasted_vegetables",
+            "servings": 1,
+            "box_id": "box_roasted_vegetables_paul_lea_tom"
+          },
+          {
+            "preparation_id": "prep_yoghurt_sauce",
+            "servings": 1,
+            "box_id": "box_yoghurt_sauce_paul_lea_tom"
+          }
+        ],
+        "member_id": null,
+        "same_day": {
+          "kind": "reheat_only",
+          "minutes": 10
+        }
+      },
+      {
+        "name": "Nina's supper bowl",
+        "title": "Roast chicken thighs, lemon rice, roasted courgettes and peppers, herb yoghurt sauce",
+        "slot": "dinner",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "lemon wedge",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          }
+        ],
+        "method": "Reheat Nina's separate box, then finish with a lemon wedge.",
+        "why": "Nina gets her own plate from the same cook so the household can be served together without sharing portions.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "servings": 1,
+            "box_id": "box_roast_chicken_nina"
+          },
+          {
+            "preparation_id": "prep_rice",
+            "servings": 1,
+            "box_id": "box_rice_nina"
+          },
+          {
+            "preparation_id": "prep_roasted_vegetables",
+            "servings": 1,
+            "box_id": "box_roasted_vegetables_nina"
+          },
+          {
+            "preparation_id": "prep_yoghurt_sauce",
+            "servings": 1,
+            "box_id": "box_yoghurt_sauce_nina"
+          }
+        ],
+        "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+        "same_day": {
+          "kind": "reheat_only",
+          "minutes": 10
+        }
+      }
+    ],
+    "preparations": [
+      {
+        "id": "prep_roast_chicken",
+        "title": "Roast chicken thighs",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "chicken thighs",
+            "quantity": "1.1 kg",
+            "in_pantry": false,
+            "amount": 1100,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 1100
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "garlic cloves",
+            "quantity": "4",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 20
+          },
+          {
+            "term": "sweet paprika",
+            "quantity": "2 tsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 10
+          },
+          {
+            "term": "ground cumin",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          },
+          {
+            "term": "salt",
+            "quantity": "1 1/2 tsp",
+            "in_pantry": false,
+            "amount": 1.5,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 7.5
+          },
+          {
+            "term": "black pepper",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          },
+          {
+            "term": "lemon",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          }
+        ],
+        "method": "Heat the oven to 220 C. Toss the chicken thighs with olive oil, crushed garlic, paprika, cumin, salt, pepper and lemon zest. Spread on a tray and roast until browned and cooked through, turning once. Rest briefly, then portion into four named boxes with the juices.",
+        "active_minutes": 15,
+        "total_minutes": 40,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_roast_chicken_paul_lea_tom",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee",
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+              "8183690c-96c2-4ded-a818-f1edc36862c0"
+            ],
+            "grams": 360
+          },
+          {
+            "id": "box_roast_chicken_nina",
+            "member_ids": [
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 160
+          }
+        ]
+      },
+      {
+        "id": "prep_rice",
+        "title": "Lemon rice",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "basmati rice",
+            "quantity": "260 g",
+            "in_pantry": false,
+            "amount": 260,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 260
+          },
+          {
+            "term": "water",
+            "quantity": "520 ml",
+            "in_pantry": false,
+            "amount": 520,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 520
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          },
+          {
+            "term": "lemon zest",
+            "quantity": "from 1 lemon",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": null,
+            "grams_raw": null
+          }
+        ],
+        "method": "Rinse the rice, then simmer it in salted water until tender. Fluff with lemon zest and let it steam dry. Weigh straight into boxes while still warm.",
+        "active_minutes": 10,
+        "total_minutes": 25,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_rice_paul_lea_tom",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee",
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+              "8183690c-96c2-4ded-a818-f1edc36862c0"
+            ],
+            "grams": 360
+          },
+          {
+            "id": "box_rice_nina",
+            "member_ids": [
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 160
+          }
+        ]
+      },
+      {
+        "id": "prep_roasted_vegetables",
+        "title": "Roasted courgettes and peppers",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "courgettes",
+            "quantity": "3 medium",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 600
+          },
+          {
+            "term": "red peppers",
+            "quantity": "3",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 450
+          },
+          {
+            "term": "red onion",
+            "quantity": "2",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 220
+          },
+          {
+            "term": "cherry tomatoes",
+            "quantity": "400 g",
+            "in_pantry": false,
+            "amount": 400,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 400
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          },
+          {
+            "term": "black pepper",
+            "quantity": "1/2 tsp",
+            "in_pantry": false,
+            "amount": 0.5,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 2.5
+          }
+        ],
+        "method": "Toss the vegetables with oil, salt and pepper, then roast on a hot tray until browned at the edges and soft. Cool just enough to box them for the table.",
+        "active_minutes": 15,
+        "total_minutes": 35,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_roasted_vegetables_paul_lea_tom",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee",
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+              "8183690c-96c2-4ded-a818-f1edc36862c0"
+            ],
+            "grams": 540
+          },
+          {
+            "id": "box_roasted_vegetables_nina",
+            "member_ids": [
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 240
+          }
+        ]
+      },
+      {
+        "id": "prep_yoghurt_sauce",
+        "title": "Herb yoghurt sauce",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "Greek yoghurt",
+            "quantity": "300 g",
+            "in_pantry": false,
+            "amount": 300,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 300
+          },
+          {
+            "term": "lemon juice",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "garlic clove",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 5
+          },
+          {
+            "term": "fresh mint",
+            "quantity": "a small handful",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": null,
+            "grams_raw": null
+          },
+          {
+            "term": "fresh parsley",
+            "quantity": "a small handful",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": null,
+            "grams_raw": null
+          },
+          {
+            "term": "salt",
+            "quantity": "1/2 tsp",
+            "in_pantry": false,
+            "amount": 0.5,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 2.5
+          }
+        ],
+        "method": "Stir the yoghurt with lemon juice, grated garlic, chopped herbs and salt. Chill until serving, then box it by share.",
+        "active_minutes": 10,
+        "total_minutes": 10,
+        "cook_on": "wed",
+        "boxes": [
+          {
+            "id": "box_yoghurt_sauce_paul_lea_tom",
+            "member_ids": [
+              "30730edf-846c-4ea4-901d-39c9caaf7fee",
+              "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+              "8183690c-96c2-4ded-a818-f1edc36862c0"
+            ],
+            "grams": 180
+          },
+          {
+            "id": "box_yoghurt_sauce_nina",
+            "member_ids": [
+              "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+            ],
+            "grams": 120
+          }
+        ]
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "wed",
+        "preparation_ids": [
+          "prep_roast_chicken",
+          "prep_rice",
+          "prep_roasted_vegetables",
+          "prep_yoghurt_sauce"
+        ],
+        "run_through": "Heat the oven and start the rice first. While the rice simmers, prep the chicken with the spices and get it into the oven. Chop the vegetables, toss them with oil and seasonings, then roast them on a second tray. Mix the yoghurt sauce while everything cooks. Box the chicken, rice, vegetables and sauce into named portions when done.",
+        "total_minutes": 60
+      }
+    ],
+    "shopping_list": [
+      {
+        "term": "chicken thighs",
+        "quantity": "1.1 kg",
+        "aisle": "protein"
+      },
+      {
+        "term": "basmati rice",
+        "quantity": "260 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "Greek yoghurt",
+        "quantity": "300 g",
+        "aisle": "dairy"
+      },
+      {
+        "term": "courgettes",
+        "quantity": "3 medium",
+        "aisle": "produce"
+      },
+      {
+        "term": "red peppers",
+        "quantity": "3",
+        "aisle": "produce"
+      },
+      {
+        "term": "red onion",
+        "quantity": "2",
+        "aisle": "produce"
+      },
+      {
+        "term": "cherry tomatoes",
+        "quantity": "400 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "lemon",
+        "quantity": "2",
+        "aisle": "produce"
+      },
+      {
+        "term": "garlic",
+        "quantity": "1 bulb",
+        "aisle": "produce"
+      },
+      {
+        "term": "fresh mint",
+        "quantity": "1 small bunch",
+        "aisle": "produce"
+      },
+      {
+        "term": "fresh parsley",
+        "quantity": "1 small bunch",
+        "aisle": "produce"
+      },
+      {
+        "term": "olive oil",
+        "quantity": "1 bottle",
+        "aisle": "pantry"
+      },
+      {
+        "term": "sweet paprika",
+        "quantity": "1 jar",
+        "aisle": "pantry"
+      },
+      {
+        "term": "ground cumin",
+        "quantity": "1 jar",
+        "aisle": "pantry"
+      },
+      {
+        "term": "salt",
+        "quantity": "1 pack",
+        "aisle": "pantry"
+      },
+      {
+        "term": "black pepper",
+        "quantity": "1 pack",
+        "aisle": "pantry"
+      }
+    ],
+    "member_portions": [
+      {
+        "member_id": "30730edf-846c-4ea4-901d-39c9caaf7fee",
+        "display_name": "Paul",
+        "portion_note": "120 g chicken, 120 g cooked rice, plenty of vegetables, 2 tbsp yoghurt sauce",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "note": "take 120 g"
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "take 120 g"
+          },
+          {
+            "preparation_id": "prep_roasted_vegetables",
+            "note": "take plenty"
+          },
+          {
+            "preparation_id": "prep_yoghurt_sauce",
+            "note": "add 2 tbsp"
+          }
+        ]
+      },
+      {
+        "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+        "display_name": "Lea",
+        "portion_note": "120 g chicken, 120 g cooked rice, plenty of vegetables, 2 tbsp yoghurt sauce",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "note": "take 120 g"
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "take 120 g"
+          },
+          {
+            "preparation_id": "prep_roasted_vegetables",
+            "note": "take plenty"
+          },
+          {
+            "preparation_id": "prep_yoghurt_sauce",
+            "note": "add 2 tbsp"
+          }
+        ]
+      },
+      {
+        "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0",
+        "display_name": "Tom",
+        "portion_note": "120 g chicken, 120 g cooked rice, plenty of vegetables, 2 tbsp yoghurt sauce",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "note": "take 120 g"
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "take 120 g"
+          },
+          {
+            "preparation_id": "prep_roasted_vegetables",
+            "note": "take plenty"
+          },
+          {
+            "preparation_id": "prep_yoghurt_sauce",
+            "note": "add 2 tbsp"
+          }
+        ]
+      },
+      {
+        "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+        "display_name": "Nina",
+        "portion_note": "160 g chicken, 160 g cooked rice, plenty of vegetables, 3 tbsp yoghurt sauce",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "note": "take 160 g"
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "take 160 g"
+          },
+          {
+            "preparation_id": "prep_roasted_vegetables",
+            "note": "take plenty"
+          },
+          {
+            "preparation_id": "prep_yoghurt_sauce",
+            "note": "add 3 tbsp"
+          }
+        ]
+      }
+    ],
+    "member_deltas": [
+      {
+        "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+        "food_ref": "white_rice",
+        "grams": 60,
+        "moment": "plating",
+        "channel": "more_of_the_same"
+      },
+      {
+        "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0",
+        "food_ref": "white_rice",
+        "grams": 180,
+        "moment": "plating",
+        "channel": "more_of_the_same"
+      }
+    ],
+    "merged_members": [],
+    "issues": [
+      "household_mouths_without_envelope:1",
+      "preparations[prep_roast_chicken].boxes[box_roast_chicken_paul_lea_tom]: shared by mouths whose targets differ, grams left as written",
+      "preparations[prep_rice].boxes[box_rice_paul_lea_tom]: shared by mouths whose targets differ, grams left as written",
+      "preparations[prep_roasted_vegetables].boxes[box_roasted_vegetables_paul_lea_tom]: shared by mouths whose targets differ, grams left as written",
+      "preparations[prep_yoghurt_sauce].boxes[box_yoghurt_sauce_paul_lea_tom]: shared by mouths whose targets differ, grams left as written",
+      "shopping_list_unattributed: 1/16 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "empty_slots: wed/breakfast, wed/lunch",
+      "portion_note_vague:30730edf-846c-4ea4-901d-39c9caaf7fee:plenty of",
+      "portion_note_vague:e62e2bbd-b675-4fe2-be7d-9dd98510ee98:plenty of",
+      "portion_note_vague:8183690c-96c2-4ded-a818-f1edc36862c0:plenty of",
+      "portion_note_vague:e3d77550-6f51-411e-9d0c-8bd36c3d07a2:plenty of"
+    ],
+    "request_id": "e4a5fc5b-1131-469c-9163-fb1fc7bcb063"
+  }
+}

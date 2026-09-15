@@ -1,0 +1,1418 @@
+{
+  "request_id": "f030000c-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000002",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T00:30:10.886Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "8de09d3e-cfd6-4575-a142-d5785742dac5",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T00:26:01.224041+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 16953,
+    "user_message_truncated": false,
+    "user_message_written_chars": 16953,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 16953
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "7018baf5-0c66-41d0-9d04-21293736a732",
+    "created_at": "2026-08-19T00:30:10.265495+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Berry and Honey Yogurt Bowls\",\n      \"title\": \"Greek yogurt with blueberries, honey and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": null },\n        { \"term\": \"blueberries\", \"quantity\": \"40 g\", \"amount\": 40, \"unit\": \"g\", \"state\": null },\n        { \"term\": \"honey\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null },\n        { \"term\": \"wholemeal bread\", \"quantity\": \"1 slice\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"blackcurrant jam\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Divide the yogurt into bowls and top with fresh blueberries and a drizzle of honey. Toast the bread; Odalric has his with blackcurrant jam.\",\n      \"why\": \"A high-protein start to the day that requires zero cooking, perfect for a busy Wednesday morning. I have noted the Sunday traybake request, but as this plan covers your Wed-Fri stretch, we are focusing on your muscle-gain anchors first.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Hearty Beef and Lentil Fusilli\",\n      \"title\": \"Beef and red lentil ragu with wholewheat pasta\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"fresh spinach\", \"quantity\": \"30 g\", \"amount\": 30, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Take the fresh portions of ragu and pasta from the session. Stir through the fresh spinach until wilted and serve immediately.\",\n      \"why\": \"Combining beef with red lentils provides a double-hit of protein and fibre to fuel your afternoon.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_beef_ragu\", \"servings\": 1, \"box_id\": \"box_ragu_odalric\" },\n        { \"preparation_id\": \"prep_fusilli\", \"servings\": 1, \"box_id\": \"box_pasta_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\", \"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Golden Roast Chicken and Broccoli\",\n      \"title\": \"Lemon roasted chicken thighs with new potatoes and broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Plate up the warm chicken thighs, roasted potatoes, and steamed broccoli directly from the cooking session.\",\n      \"why\": \"Roasting chicken on the bone keeps it moist for later meals while providing a high-quality protein anchor for dinner.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_roast_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_odalric\" },\n        { \"preparation_id\": \"prep_broccoli\", \"servings\": 1, \"box_id\": \"box_broccoli_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\", \"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Simple Protein Scramble\",\n      \"title\": \"Scrambled eggs on wholemeal toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"eggs\", \"quantity\": \"3 units\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"wholemeal bread\", \"quantity\": \"2 slices\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Scramble the eggs in a pan with butter. Serve on hot toast. Odalric adds his blackcurrant jam to one slice of toast.\",\n      \"why\": \"A quick, warm breakfast that keeps you away from the kitchen table while Odalric is painting.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Warming Beef and Pasta Bowl\",\n      \"title\": \"Reheated beef and lentil ragu with fusilli\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Place the ragu and pasta in a saucepan with a splash of water. Heat gently over medium heat until piping hot, stirring occasionally.\",\n      \"why\": \"Using a single pan to reheat lunch avoids mess while the kitchen table is out of use.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_beef_ragu\", \"servings\": 1, \"box_id\": \"box_ragu_odalric\" },\n        { \"preparation_id\": \"prep_fusilli\", \"servings\": 1, \"box_id\": \"box_pasta_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Warm Chicken and Potato Salad\",\n      \"title\": \"Roasted chicken and potato salad with spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"fresh spinach\", \"quantity\": \"50 g\", \"amount\": 50, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null },\n        { \"term\": \"lemon juice\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Gently warm the chicken and potatoes in a pan. Toss with fresh spinach, olive oil, and lemon juice. The heat from the chicken will wilt the leaves slightly.\",\n      \"why\": \"Osric insists on a warm element for dinner; warming the prepped chicken and potatoes satisfies this while the kitchen is disrupted.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_roast_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Quick Morning Yogurt Bowl\",\n      \"title\": \"Greek yogurt with blueberries and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": null },\n        { \"term\": \"blueberries\", \"quantity\": \"40 g\", \"amount\": 40, \"unit\": \"g\", \"state\": null },\n        { \"term\": \"wholemeal bread\", \"quantity\": \"1 slice\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"blackcurrant jam\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Serve yogurt topped with berries. Toast the bread for the side; Odalric takes his with jam.\",\n      \"why\": \"Consistency in breakfast helps maintain the muscle-gain routine at the end of the week.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Tuna and White Bean Spinach Salad\",\n      \"title\": \"Tuna and cannellini bean salad with spinach and lemon\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"tinned tuna in spring water\", \"quantity\": \"1 tin\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"cooked\" },\n        { \"term\": \"cannellini beans\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"cooked\" },\n        { \"term\": \"fresh spinach\", \"quantity\": \"50 g\", \"amount\": 50, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null },\n        { \"term\": \"lemon juice\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Drain the tuna and beans. Toss with spinach, olive oil, and lemon juice in a large bowl. Season with black pepper.\",\n      \"why\": \"A fresh lunch using pantry staples to provide a lean protein anchor without needing a cooking session.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Pan-Seared Cod and Courgettes\",\n      \"title\": \"Pan-fried cod fillets with basmati rice and courgettes\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"hot sauce\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Serve the freshly cooked cod and courgettes over the warm rice. Casimir adds hot sauce to his portion.\",\n      \"why\": \"White fish provides a light but high-protein finish to the week. Cod is used instead of salmon to ensure no carrot-like colours are on Peregrine's plate.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_cod\", \"servings\": 1, \"box_id\": \"box_cod_odalric\" },\n        { \"preparation_id\": \"prep_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\", \"one_loud_vegetable\"]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_beef_ragu\",\n      \"title\": \"Beef and Red Lentil Ragu\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"beef mince\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"red lentils\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"chopped tomatoes\", \"quantity\": \"800 g\", \"amount\": 800, \"unit\": \"g\", \"state\": \"cooked\" },\n        { \"term\": \"onion\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"garlic cloves\", \"quantity\": \"2 unit\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Sauté diced onion and garlic in oil. Add beef and brown. Stir in lentils and tomatoes. Simmer for 25 minutes until lentils are soft and sauce is thick.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_ragu_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 200 },\n        { \"id\": \"box_ragu_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 200 },\n        { \"id\": \"box_ragu_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 200 },\n        { \"id\": \"box_ragu_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 200 }\n      ]\n    },\n    {\n      \"id\": \"prep_fusilli\",\n      \"title\": \"Boiled Wholewheat Fusilli\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"wholewheat fusilli\", \"quantity\": \"500 g\", \"amount\": 500, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Boil in salted water for 10-12 minutes until al dente. Drain and toss with a little oil to prevent sticking.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_pasta_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 150 },\n        { \"id\": \"box_pasta_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 150 },\n        { \"id\": \"box_pasta_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 150 },\n        { \"id\": \"box_pasta_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 150 }\n      ]\n    },\n    {\n      \"id\": \"prep_roast_chicken\",\n      \"title\": \"Lemon and Herb Roasted Chicken Thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"chicken thighs\", \"quantity\": \"8 unit\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null },\n        { \"term\": \"lemon\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Place thighs in a tray, drizzle with oil and lemon juice. Roast at 200C for 35 minutes until golden and cooked through.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 150 },\n        { \"id\": \"box_chicken_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 150 },\n        { \"id\": \"box_chicken_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 150 },\n        { \"id\": \"box_chicken_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 150 }\n      ]\n    },\n    {\n      \"id\": \"prep_potatoes\",\n      \"title\": \"Boiled New Potatoes\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"new potatoes\", \"quantity\": \"1 kg\", \"amount\": 1, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Boil whole new potatoes in salted water for 15-20 minutes until tender. Drain.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_potatoes_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 125 },\n        { \"id\": \"box_potatoes_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 125 },\n        { \"id\": \"box_potatoes_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 125 },\n        { \"id\": \"box_potatoes_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 125 }\n      ]\n    },\n    {\n      \"id\": \"prep_broccoli\",\n      \"title\": \"Steamed Broccoli Florets\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"broccoli\", \"quantity\": \"2 unit\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cut broccoli into florets. Steam for 5-7 minutes until bright green and tender-crisp.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_broccoli_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 100 },\n        { \"id\": \"box_broccoli_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 100 },\n        { \"id\": \"box_broccoli_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 100 },\n        { \"id\": \"box_broccoli_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 100 }\n      ]\n    },\n    {\n      \"id\": \"prep_cod\",\n      \"title\": \"Pan-Fried Cod Fillets\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"cod fillets\", \"quantity\": \"4 unit\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null },\n        { \"term\": \"courgettes\", \"quantity\": \"3 unit\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Slice courgettes. Pan-fry cod fillets in butter for 3-4 minutes per side. Sauté courgettes in the same pan until tender.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 15,\n      \"cook_on\": \"fri\",\n      \"boxes\": [\n        { \"id\": \"box_cod_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 120 },\n        { \"id\": \"box_cod_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 120 },\n        { \"id\": \"box_cod_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 120 },\n        { \"id\": \"box_cod_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 120 }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Boiled Basmati Rice\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"basmati rice\", \"quantity\": \"300 g\", \"amount\": 300, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Rinse rice. Boil in plenty of water for 10-12 minutes until tender. Drain.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"fri\",\n      \"boxes\": [\n        { \"id\": \"box_rice_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 150 },\n        { \"id\": \"box_rice_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 150 },\n        { \"id\": \"box_rice_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 150 },\n        { \"id\": \"box_rice_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 150 }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\"prep_beef_ragu\", \"prep_fusilli\", \"prep_roast_chicken\", \"prep_potatoes\", \"prep_broccoli\"],\n      \"total_minutes\": 55,\n      \"run_through\": \"Preheat oven to 200C. Start the chicken roasting. Get the ragu simmering on the hob. Boil two large pots of water for the potatoes and pasta. While they boil, cut the broccoli. Steam the broccoli over the pasta water. Drain everything and box up the portions for the week.\"\n    },\n    {\n      \"day\": \"fri\",\n      \"preparation_ids\": [\"prep_cod\", \"prep_rice\"],\n      \"total_minutes\": 25,\n      \"run_through\": \"Start the rice boiling. Slice the courgettes and pan-fry them with the cod fillets. Drain the rice and serve the meal fresh.\"\n    }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"beef mince\", \"quantity\": \"600 g\", \"aisle\": \"protein\" },\n    { \"term\": \"chicken thighs\", \"quantity\": \"8 unit\", \"aisle\": \"protein\" },\n    { \"term\": \"cod fillets\", \"quantity\": \"4 unit\", \"aisle\": \"protein\" },\n    { \"term\": \"tinned tuna in spring water\", \"quantity\": \"4 unit\", \"aisle\": \"pantry\" },\n    { \"term\": \"Greek yogurt\", \"quantity\": \"1.2 kg\", \"aisle\": \"dairy\" },\n    { \"term\": \"eggs\", \"quantity\": \"12 unit\", \"aisle\": \"dairy\" },\n    { \"term\": \"butter\", \"quantity\": \"100 g\", \"aisle\": \"dairy\" },\n    { \"term\": \"wholewheat fusilli\", \"quantity\": \"500 g\", \"aisle\": \"grains\" },\n    { \"term\": \"basmati rice\", \"quantity\": \"300 g\", \"aisle\": \"grains\" },\n    { \"term\": \"red lentils\", \"quantity\": \"150 g\", \"aisle\": \"grains\" },\n    { \"term\": \"cannellini beans\", \"quantity\": \"1 tin\", \"aisle\": \"pantry\" },\n    { \"term\": \"chopped tomatoes\", \"quantity\": \"2 tin\", \"aisle\": \"pantry\" },\n    { \"term\": \"new potatoes\", \"quantity\": \"1 kg\", \"aisle\": \"produce\" },\n    { \"term\": \"broccoli\", \"quantity\": \"2 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"fresh spinach\", \"quantity\": \"500 g\", \"aisle\": \"produce\" },\n    { \"term\": \"courgettes\", \"quantity\": \"3 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"blueberries\", \"quantity\": \"300 g\", \"aisle\": \"produce\" },\n    { \"term\": \"onion\", \"quantity\": \"1 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"garlic\", \"quantity\": \"1 bulb\", \"aisle\": \"produce\" },\n    { \"term\": \"lemon\", \"quantity\": \"2 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"wholemeal bread\", \"quantity\": \"1 loaf\", \"aisle\": \"produce\" },\n    { \"term\": \"blackcurrant jam\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"honey\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"hot sauce\", \"quantity\": \"1 bottle\", \"aisle\": \"pantry\" },\n    { \"term\": \"olive oil\", \"quantity\": \"250 ml\", \"aisle\": \"pantry\" }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Larger protein and starch share. Serve with blackcurrant jam on toast at breakfast.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_beef_ragu\", \"note\": \"Two full ladles per meal\" },\n        { \"preparation_id\": \"prep_fusilli\", \"note\": \"A large bowlful\" },\n        { \"preparation_id\": \"prep_roast_chicken\", \"note\": \"Two thighs\" },\n        { \"preparation_id\": \"prep_potatoes\", \"note\": \"A generous handful\" }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Child-size share. Cut the crusts off any bread served.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_beef_ragu\", \"note\": \"One small ladle\" },\n        { \"preparation_id\": \"prep_fusilli\", \"note\": \"A small cupful\" }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Larger protein and starch share. Ensure no orange-coloured vegetables are on the plate.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_beef_ragu\", \"note\": \"Two full ladles\" },\n        { \"preparation_id\": \"prep_roast_chicken\", \"note\": \"Two thighs\" }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Child-size share. Serve with a bottle of hot sauce on the side for every meal.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_cod\", \"note\": \"One small fillet\" },\n        { \"preparation_id\": \"prep_rice\", \"note\": \"A small scoop\" }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Berry and Honey Yogurt Bowls",
+          "title": "Greek yogurt with blueberries, honey and toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "blueberries",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "honey",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Divide the yogurt into bowls and top with fresh blueberries and a drizzle of honey. Toast the bread; Odalric has his with blackcurrant jam.",
+          "why": "A high-protein start to the day that requires zero cooking, perfect for a busy Wednesday morning. I have noted the Sunday traybake request, but as this plan covers your Wed-Fri stretch, we are focusing on your muscle-gain anchors first.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Hearty Beef and Lentil Fusilli",
+          "title": "Beef and red lentil ragu with wholewheat pasta",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "fresh spinach",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Take the fresh portions of ragu and pasta from the session. Stir through the fresh spinach until wilted and serve immediately.",
+          "why": "Combining beef with red lentils provides a double-hit of protein and fibre to fuel your afternoon.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_ragu",
+              "servings": 1,
+              "box_id": "box_ragu_odalric"
+            },
+            {
+              "preparation_id": "prep_fusilli",
+              "servings": 1,
+              "box_id": "box_pasta_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Golden Roast Chicken and Broccoli",
+          "title": "Lemon roasted chicken thighs with new potatoes and broccoli",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Plate up the warm chicken thighs, roasted potatoes, and steamed broccoli directly from the cooking session.",
+          "why": "Roasting chicken on the bone keeps it moist for later meals while providing a high-quality protein anchor for dinner.",
+          "uses": [
+            {
+              "preparation_id": "prep_roast_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_odalric"
+            },
+            {
+              "preparation_id": "prep_broccoli",
+              "servings": 1,
+              "box_id": "box_broccoli_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Simple Protein Scramble",
+          "title": "Scrambled eggs on wholemeal toast",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "3 units",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Scramble the eggs in a pan with butter. Serve on hot toast. Odalric adds his blackcurrant jam to one slice of toast.",
+          "why": "A quick, warm breakfast that keeps you away from the kitchen table while Odalric is painting.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Warming Beef and Pasta Bowl",
+          "title": "Reheated beef and lentil ragu with fusilli",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [],
+          "method": "Place the ragu and pasta in a saucepan with a splash of water. Heat gently over medium heat until piping hot, stirring occasionally.",
+          "why": "Using a single pan to reheat lunch avoids mess while the kitchen table is out of use.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_ragu",
+              "servings": 1,
+              "box_id": "box_ragu_odalric"
+            },
+            {
+              "preparation_id": "prep_fusilli",
+              "servings": 1,
+              "box_id": "box_pasta_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Warm Chicken and Potato Salad",
+          "title": "Roasted chicken and potato salad with spinach",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "fresh spinach",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "lemon juice",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Gently warm the chicken and potatoes in a pan. Toss with fresh spinach, olive oil, and lemon juice. The heat from the chicken will wilt the leaves slightly.",
+          "why": "Osric insists on a warm element for dinner; warming the prepped chicken and potatoes satisfies this while the kitchen is disrupted.",
+          "uses": [
+            {
+              "preparation_id": "prep_roast_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Quick Morning Yogurt Bowl",
+          "title": "Greek yogurt with blueberries and toast",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "blueberries",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Serve yogurt topped with berries. Toast the bread for the side; Odalric takes his with jam.",
+          "why": "Consistency in breakfast helps maintain the muscle-gain routine at the end of the week.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Tuna and White Bean Spinach Salad",
+          "title": "Tuna and cannellini bean salad with spinach and lemon",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "tinned tuna in spring water",
+              "quantity": "1 tin",
+              "amount": 1,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "cannellini beans",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "fresh spinach",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "lemon juice",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Drain the tuna and beans. Toss with spinach, olive oil, and lemon juice in a large bowl. Season with black pepper.",
+          "why": "A fresh lunch using pantry staples to provide a lean protein anchor without needing a cooking session.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Pan-Seared Cod and Courgettes",
+          "title": "Pan-fried cod fillets with basmati rice and courgettes",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "hot sauce",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Serve the freshly cooked cod and courgettes over the warm rice. Casimir adds hot sauce to his portion.",
+          "why": "White fish provides a light but high-protein finish to the week. Cod is used instead of salmon to ensure no carrot-like colours are on Peregrine's plate.",
+          "uses": [
+            {
+              "preparation_id": "prep_cod",
+              "servings": 1,
+              "box_id": "box_cod_odalric"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_beef_ragu",
+          "title": "Beef and Red Lentil Ragu",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "beef mince",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red lentils",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic cloves",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Sauté diced onion and garlic in oil. Add beef and brown. Stir in lentils and tomatoes. Simmer for 25 minutes until lentils are soft and sauce is thick.",
+          "active_minutes": 10,
+          "total_minutes": 35,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_ragu_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_ragu_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_ragu_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_ragu_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 200
+            }
+          ]
+        },
+        {
+          "id": "prep_fusilli",
+          "title": "Boiled Wholewheat Fusilli",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "wholewheat fusilli",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Boil in salted water for 10-12 minutes until al dente. Drain and toss with a little oil to prevent sticking.",
+          "active_minutes": 5,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_pasta_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_pasta_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_pasta_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_pasta_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_roast_chicken",
+          "title": "Lemon and Herb Roasted Chicken Thighs",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "chicken thighs",
+              "quantity": "8 unit",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "lemon",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Place thighs in a tray, drizzle with oil and lemon juice. Roast at 200C for 35 minutes until golden and cooked through.",
+          "active_minutes": 5,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_chicken_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_chicken_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_chicken_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_potatoes",
+          "title": "Boiled New Potatoes",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "new potatoes",
+              "quantity": "1 kg",
+              "amount": 1,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Boil whole new potatoes in salted water for 15-20 minutes until tender. Drain.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_potatoes_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 125
+            },
+            {
+              "id": "box_potatoes_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 125
+            },
+            {
+              "id": "box_potatoes_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 125
+            },
+            {
+              "id": "box_potatoes_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 125
+            }
+          ]
+        },
+        {
+          "id": "prep_broccoli",
+          "title": "Steamed Broccoli Florets",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "broccoli",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Cut broccoli into florets. Steam for 5-7 minutes until bright green and tender-crisp.",
+          "active_minutes": 5,
+          "total_minutes": 10,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_broccoli_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 100
+            },
+            {
+              "id": "box_broccoli_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 100
+            },
+            {
+              "id": "box_broccoli_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 100
+            },
+            {
+              "id": "box_broccoli_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 100
+            }
+          ]
+        },
+        {
+          "id": "prep_cod",
+          "title": "Pan-Fried Cod Fillets",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "cod fillets",
+              "quantity": "4 unit",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "courgettes",
+              "quantity": "3 unit",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Slice courgettes. Pan-fry cod fillets in butter for 3-4 minutes per side. Sauté courgettes in the same pan until tender.",
+          "active_minutes": 15,
+          "total_minutes": 15,
+          "cook_on": "fri",
+          "boxes": [
+            {
+              "id": "box_cod_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_cod_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_cod_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_cod_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 120
+            }
+          ]
+        },
+        {
+          "id": "prep_rice",
+          "title": "Boiled Basmati Rice",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse rice. Boil in plenty of water for 10-12 minutes until tender. Drain.",
+          "active_minutes": 5,
+          "total_minutes": 15,
+          "cook_on": "fri",
+          "boxes": [
+            {
+              "id": "box_rice_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_rice_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_rice_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_rice_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 150
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_beef_ragu",
+            "prep_fusilli",
+            "prep_roast_chicken",
+            "prep_potatoes",
+            "prep_broccoli"
+          ],
+          "total_minutes": 55,
+          "run_through": "Preheat oven to 200C. Start the chicken roasting. Get the ragu simmering on the hob. Boil two large pots of water for the potatoes and pasta. While they boil, cut the broccoli. Steam the broccoli over the pasta water. Drain everything and box up the portions for the week."
+        },
+        {
+          "day": "fri",
+          "preparation_ids": [
+            "prep_cod",
+            "prep_rice"
+          ],
+          "total_minutes": 25,
+          "run_through": "Start the rice boiling. Slice the courgettes and pan-fry them with the cod fillets. Drain the rice and serve the meal fresh."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "beef mince",
+          "quantity": "600 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "chicken thighs",
+          "quantity": "8 unit",
+          "aisle": "protein"
+        },
+        {
+          "term": "cod fillets",
+          "quantity": "4 unit",
+          "aisle": "protein"
+        },
+        {
+          "term": "tinned tuna in spring water",
+          "quantity": "4 unit",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Greek yogurt",
+          "quantity": "1.2 kg",
+          "aisle": "dairy"
+        },
+        {
+          "term": "eggs",
+          "quantity": "12 unit",
+          "aisle": "dairy"
+        },
+        {
+          "term": "butter",
+          "quantity": "100 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "wholewheat fusilli",
+          "quantity": "500 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "basmati rice",
+          "quantity": "300 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "red lentils",
+          "quantity": "150 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "cannellini beans",
+          "quantity": "1 tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chopped tomatoes",
+          "quantity": "2 tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "new potatoes",
+          "quantity": "1 kg",
+          "aisle": "produce"
+        },
+        {
+          "term": "broccoli",
+          "quantity": "2 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh spinach",
+          "quantity": "500 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "3 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "blueberries",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "onion",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemon",
+          "quantity": "2 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "wholemeal bread",
+          "quantity": "1 loaf",
+          "aisle": "produce"
+        },
+        {
+          "term": "blackcurrant jam",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "honey",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "hot sauce",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "250 ml",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+          "portion_note": "Larger protein and starch share. Serve with blackcurrant jam on toast at breakfast.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beef_ragu",
+              "note": "Two full ladles per meal"
+            },
+            {
+              "preparation_id": "prep_fusilli",
+              "note": "A large bowlful"
+            },
+            {
+              "preparation_id": "prep_roast_chicken",
+              "note": "Two thighs"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "A generous handful"
+            }
+          ]
+        },
+        {
+          "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+          "portion_note": "Child-size share. Cut the crusts off any bread served.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beef_ragu",
+              "note": "One small ladle"
+            },
+            {
+              "preparation_id": "prep_fusilli",
+              "note": "A small cupful"
+            }
+          ]
+        },
+        {
+          "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+          "portion_note": "Larger protein and starch share. Ensure no orange-coloured vegetables are on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beef_ragu",
+              "note": "Two full ladles"
+            },
+            {
+              "preparation_id": "prep_roast_chicken",
+              "note": "Two thighs"
+            }
+          ]
+        },
+        {
+          "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+          "portion_note": "Child-size share. Serve with a bottle of hot sauce on the side for every meal.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_cod",
+              "note": "One small fillet"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "A small scoop"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Berry and Honey Yogurt Bowls\",\n      \"title\": \"Greek yogurt with blueberries, honey and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": null },\n        { \"term\": \"blueberries\", \"quantity\": \"40 g\", \"amount\": 40, \"unit\": \"g\", \"state\": null },\n        { \"term\": \"honey\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null },\n        { \"term\": \"wholemeal bread\", \"quantity\": \"1 slice\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"blackcurrant jam\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Divide the yogurt into bowls and top with fresh blueberries and a drizzle of honey. Toast the bread; Odalric has his with blackcurrant jam.\",\n      \"why\": \"A high-protein start to the day that requires zero cooking, perfect for a busy Wednesday morning. I have noted the Sunday traybake request, but as this plan covers your Wed-Fri stretch, we are focusing on your muscle-gain anchors first.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Hearty Beef and Lentil Fusilli\",\n      \"title\": \"Beef and red lentil ragu with wholewheat pasta\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"fresh spinach\", \"quantity\": \"30 g\", \"amount\": 30, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Take the fresh portions of ragu and pasta from the session. Stir through the fresh spinach until wilted and serve immediately.\",\n      \"why\": \"Combining beef with red lentils provides a double-hit of protein and fibre to fuel your afternoon.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_beef_ragu\", \"servings\": 1, \"box_id\": \"box_ragu_odalric\" },\n        { \"preparation_id\": \"prep_fusilli\", \"servings\": 1, \"box_id\": \"box_pasta_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\", \"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Golden Roast Chicken and Broccoli\",\n      \"title\": \"Lemon roasted chicken thighs with new potatoes and broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Plate up the warm chicken thighs, roasted potatoes, and steamed broccoli directly from the cooking session.\",\n      \"why\": \"Roasting chicken on the bone keeps it moist for later meals while providing a high-quality protein anchor for dinner.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_roast_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_odalric\" },\n        { \"preparation_id\": \"prep_broccoli\", \"servings\": 1, \"box_id\": \"box_broccoli_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\", \"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Simple Protein Scramble\",\n      \"title\": \"Scrambled eggs on wholemeal toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"eggs\", \"quantity\": \"3 units\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"wholemeal bread\", \"quantity\": \"2 slices\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Scramble the eggs in a pan with butter. Serve on hot toast. Odalric adds his blackcurrant jam to one slice of toast.\",\n      \"why\": \"A quick, warm breakfast that keeps you away from the kitchen table while Odalric is painting.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Warming Beef and Pasta Bowl\",\n      \"title\": \"Reheated beef and lentil ragu with fusilli\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Place the ragu and pasta in a saucepan with a splash of water. Heat gently over medium heat until piping hot, stirring occasionally.\",\n      \"why\": \"Using a single pan to reheat lunch avoids mess while the kitchen table is out of use.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_beef_ragu\", \"servings\": 1, \"box_id\": \"box_ragu_odalric\" },\n        { \"preparation_id\": \"prep_fusilli\", \"servings\": 1, \"box_id\": \"box_pasta_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Warm Chicken and Potato Salad\",\n      \"title\": \"Roasted chicken and potato salad with spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"fresh spinach\", \"quantity\": \"50 g\", \"amount\": 50, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null },\n        { \"term\": \"lemon juice\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Gently warm the chicken and potatoes in a pan. Toss with fresh spinach, olive oil, and lemon juice. The heat from the chicken will wilt the leaves slightly.\",\n      \"why\": \"Osric insists on a warm element for dinner; warming the prepped chicken and potatoes satisfies this while the kitchen is disrupted.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_roast_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Quick Morning Yogurt Bowl\",\n      \"title\": \"Greek yogurt with blueberries and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": null },\n        { \"term\": \"blueberries\", \"quantity\": \"40 g\", \"amount\": 40, \"unit\": \"g\", \"state\": null },\n        { \"term\": \"wholemeal bread\", \"quantity\": \"1 slice\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"blackcurrant jam\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Serve yogurt topped with berries. Toast the bread for the side; Odalric takes his with jam.\",\n      \"why\": \"Consistency in breakfast helps maintain the muscle-gain routine at the end of the week.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Tuna and White Bean Spinach Salad\",\n      \"title\": \"Tuna and cannellini bean salad with spinach and lemon\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"tinned tuna in spring water\", \"quantity\": \"1 tin\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"cooked\" },\n        { \"term\": \"cannellini beans\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"cooked\" },\n        { \"term\": \"fresh spinach\", \"quantity\": \"50 g\", \"amount\": 50, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null },\n        { \"term\": \"lemon juice\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Drain the tuna and beans. Toss with spinach, olive oil, and lemon juice in a large bowl. Season with black pepper.\",\n      \"why\": \"A fresh lunch using pantry staples to provide a lean protein anchor without needing a cooking session.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Pan-Seared Cod and Courgettes\",\n      \"title\": \"Pan-fried cod fillets with basmati rice and courgettes\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"hot sauce\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Serve the freshly cooked cod and courgettes over the warm rice. Casimir adds hot sauce to his portion.\",\n      \"why\": \"White fish provides a light but high-protein finish to the week. Cod is used instead of salmon to ensure no carrot-like colours are on Peregrine's plate.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_cod\", \"servings\": 1, \"box_id\": \"box_cod_odalric\" },\n        { \"preparation_id\": \"prep_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\", \"one_loud_vegetable\"]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_beef_ragu\",\n      \"title\": \"Beef and Red Lentil Ragu\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"beef mince\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"red lentils\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"chopped tomatoes\", \"quantity\": \"800 g\", \"amount\": 800, \"unit\": \"g\", \"state\": \"cooked\" },\n        { \"term\": \"onion\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"garlic cloves\", \"quantity\": \"2 unit\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Sauté diced onion and garlic in oil. Add beef and brown. Stir in lentils and tomatoes. Simmer for 25 minutes until lentils are soft and sauce is thick.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_ragu_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 200 },\n        { \"id\": \"box_ragu_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 200 },\n        { \"id\": \"box_ragu_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 200 },\n        { \"id\": \"box_ragu_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 200 }\n      ]\n    },\n    {\n      \"id\": \"prep_fusilli\",\n      \"title\": \"Boiled Wholewheat Fusilli\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"wholewheat fusilli\", \"quantity\": \"500 g\", \"amount\": 500, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Boil in salted water for 10-12 minutes until al dente. Drain and toss with a little oil to prevent sticking.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_pasta_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 150 },\n        { \"id\": \"box_pasta_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 150 },\n        { \"id\": \"box_pasta_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 150 },\n        { \"id\": \"box_pasta_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 150 }\n      ]\n    },\n    {\n      \"id\": \"prep_roast_chicken\",\n      \"title\": \"Lemon and Herb Roasted Chicken Thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"chicken thighs\", \"quantity\": \"8 unit\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null },\n        { \"term\": \"lemon\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Place thighs in a tray, drizzle with oil and lemon juice. Roast at 200C for 35 minutes until golden and cooked through.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 150 },\n        { \"id\": \"box_chicken_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 150 },\n        { \"id\": \"box_chicken_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 150 },\n        { \"id\": \"box_chicken_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 150 }\n      ]\n    },\n    {\n      \"id\": \"prep_potatoes\",\n      \"title\": \"Boiled New Potatoes\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"new potatoes\", \"quantity\": \"1 kg\", \"amount\": 1, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Boil whole new potatoes in salted water for 15-20 minutes until tender. Drain.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_potatoes_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 125 },\n        { \"id\": \"box_potatoes_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 125 },\n        { \"id\": \"box_potatoes_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 125 },\n        { \"id\": \"box_potatoes_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 125 }\n      ]\n    },\n    {\n      \"id\": \"prep_broccoli\",\n      \"title\": \"Steamed Broccoli Florets\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"broccoli\", \"quantity\": \"2 unit\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cut broccoli into florets. Steam for 5-7 minutes until bright green and tender-crisp.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_broccoli_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 100 },\n        { \"id\": \"box_broccoli_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 100 },\n        { \"id\": \"box_broccoli_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 100 },\n        { \"id\": \"box_broccoli_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 100 }\n      ]\n    },\n    {\n      \"id\": \"prep_cod\",\n      \"title\": \"Pan-Fried Cod Fillets\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"cod fillets\", \"quantity\": \"4 unit\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null },\n        { \"term\": \"courgettes\", \"quantity\": \"3 unit\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Slice courgettes. Pan-fry cod fillets in butter for 3-4 minutes per side. Sauté courgettes in the same pan until tender.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 15,\n      \"cook_on\": \"fri\",\n      \"boxes\": [\n        { \"id\": \"box_cod_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 120 },\n        { \"id\": \"box_cod_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 120 },\n        { \"id\": \"box_cod_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 120 },\n        { \"id\": \"box_cod_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 120 }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Boiled Basmati Rice\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"basmati rice\", \"quantity\": \"300 g\", \"amount\": 300, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Rinse rice. Boil in plenty of water for 10-12 minutes until tender. Drain.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"fri\",\n      \"boxes\": [\n        { \"id\": \"box_rice_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 150 },\n        { \"id\": \"box_rice_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 150 },\n        { \"id\": \"box_rice_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 150 },\n        { \"id\": \"box_rice_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 150 }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\"prep_beef_ragu\", \"prep_fusilli\", \"prep_roast_chicken\", \"prep_potatoes\", \"prep_broccoli\"],\n      \"total_minutes\": 55,\n      \"run_through\": \"Preheat oven to 200C. Start the chicken roasting. Get the ragu simmering on the hob. Boil two large pots of water for the potatoes and pasta. While they boil, cut the broccoli. Steam the broccoli over the pasta water. Drain everything and box up the portions for the week.\"\n    },\n    {\n      \"day\": \"fri\",\n      \"preparation_ids\": [\"prep_cod\", \"prep_rice\"],\n      \"total_minutes\": 25,\n      \"run_through\": \"Start the rice boiling. Slice the courgettes and pan-fry them with the cod fillets. Drain the rice and serve the meal fresh.\"\n    }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"beef mince\", \"quantity\": \"600 g\", \"aisle\": \"protein\" },\n    { \"term\": \"chicken thighs\", \"quantity\": \"8 unit\", \"aisle\": \"protein\" },\n    { \"term\": \"cod fillets\", \"quantity\": \"4 unit\", \"aisle\": \"protein\" },\n    { \"term\": \"tinned tuna in spring water\", \"quantity\": \"4 unit\", \"aisle\": \"pantry\" },\n    { \"term\": \"Greek yogurt\", \"quantity\": \"1.2 kg\", \"aisle\": \"dairy\" },\n    { \"term\": \"eggs\", \"quantity\": \"12 unit\", \"aisle\": \"dairy\" },\n    { \"term\": \"butter\", \"quantity\": \"100 g\", \"aisle\": \"dairy\" },\n    { \"term\": \"wholewheat fusilli\", \"quantity\": \"500 g\", \"aisle\": \"grains\" },\n    { \"term\": \"basmati rice\", \"quantity\": \"300 g\", \"aisle\": \"grains\" },\n    { \"term\": \"red lentils\", \"quantity\": \"150 g\", \"aisle\": \"grains\" },\n    { \"term\": \"cannellini beans\", \"quantity\": \"1 tin\", \"aisle\": \"pantry\" },\n    { \"term\": \"chopped tomatoes\", \"quantity\": \"2 tin\", \"aisle\": \"pantry\" },\n    { \"term\": \"new potatoes\", \"quantity\": \"1 kg\", \"aisle\": \"produce\" },\n    { \"term\": \"broccoli\", \"quantity\": \"2 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"fresh spinach\", \"quantity\": \"500 g\", \"aisle\": \"produce\" },\n    { \"term\": \"courgettes\", \"quantity\": \"3 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"blueberries\", \"quantity\": \"300 g\", \"aisle\": \"produce\" },\n    { \"term\": \"onion\", \"quantity\": \"1 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"garlic\", \"quantity\": \"1 bulb\", \"aisle\": \"produce\" },\n    { \"term\": \"lemon\", \"quantity\": \"2 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"wholemeal bread\", \"quantity\": \"1 loaf\", \"aisle\": \"produce\" },\n    { \"term\": \"blackcurrant jam\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"honey\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"hot sauce\", \"quantity\": \"1 bottle\", \"aisle\": \"pantry\" },\n    { \"term\": \"olive oil\", \"quantity\": \"250 ml\", \"aisle\": \"pantry\" }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Larger protein and starch share. Serve with blackcurrant jam on toast at breakfast.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_beef_ragu\", \"note\": \"Two full ladles per meal\" },\n        { \"preparation_id\": \"prep_fusilli\", \"note\": \"A large bowlful\" },\n        { \"preparation_id\": \"prep_roast_chicken\", \"note\": \"Two thighs\" },\n        { \"preparation_id\": \"prep_potatoes\", \"note\": \"A generous handful\" }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Child-size share. Cut the crusts off any bread served.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_beef_ragu\", \"note\": \"One small ladle\" },\n        { \"preparation_id\": \"prep_fusilli\", \"note\": \"A small cupful\" }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Larger protein and starch share. Ensure no orange-coloured vegetables are on the plate.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_beef_ragu\", \"note\": \"Two full ladles\" },\n        { \"preparation_id\": \"prep_roast_chicken\", \"note\": \"Two thighs\" }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Child-size share. Serve with a bottle of hot sauce on the side for every meal.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_cod\", \"note\": \"One small fillet\" },\n        { \"preparation_id\": \"prep_rice\", \"note\": \"A small scoop\" }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "3viEasGoCb_8vdIPyee8mQo",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 21739,
+        "promptTokenCount": 8428,
+        "thoughtsTokenCount": 5815,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8428
+          }
+        ],
+        "candidatesTokenCount": 7496
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T00:26:01.224041+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:26:01.847298+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:26:05.998823+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:26:06.010287+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:26:06.018784+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:27:06.037615+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:27:06.048315+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:27:06.486214+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:27:11.269702+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:27:11.70369+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:27:16.62394+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:27:16.634395+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:27:16.643026+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:28:16.68185+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:28:16.698267+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:28:17.171042+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:28:23.25729+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:28:23.731126+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:28:29.327019+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:28:29.343665+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:28:29.352095+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:29:13.363026+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:29:13.400115+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:29:13.87171+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:29:18.03045+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:29:18.036076+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:29:18.039517+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:30:10.265495+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

@@ -1,0 +1,3288 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t01",
+    "user": "J’ai besoin d’un coup de main pour écrire ce que je veux demander dans Plan : la semaine me semble trop chargée, mais je veux garder l’objectif.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends tout à fait, c'est important de trouver le bon équilibre pour ta semaine tout en restant fidèle à tes objectifs ! Voici une suggestion de phrase que tu pourrais utiliser : \"La semaine me semble trop chargée, peux-tu m'aider à l'alléger tout en gardant l'objectif ?\" Pour l'utiliser, il te suffit d'aller dans Plan, d'ouvrir l'élément ou la zone que tu veux ajuster, puis de coller cette demande dans l'encart d'ajustement. Cela aidera la plateforme à comprendre précisément ce dont tu as besoin. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t01",
+            "source_message_id": "ca8b027d-c393-4323-bc27-43698ea97634",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "adjust_plan_item",
+                "explicitness": "explicit",
+                "target_hint": "semaine trop chargée",
+                "operation_input": {
+                  "target_granularity": {
+                    "status": "identified",
+                    "value": "current_level",
+                    "confidence": "high",
+                    "evidence": [
+                      "la semaine me semble trop chargée"
+                    ]
+                  },
+                  "scope": {
+                    "status": "identified",
+                    "kind": "current_level",
+                    "label": "semaine actuelle",
+                    "evidence": [
+                      "la semaine"
+                    ]
+                  }
+                },
+                "adjust_plan_scope": "current_level",
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "adjust"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "level",
+                  "key": "current_level",
+                  "query_hint": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "tool_skill_intent_start",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "adjust_plan_item"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "adjust_plan_handoff"
+            ],
+            "operation_types": [
+              "adjust_plan_item"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "dispatcher:adjust_plan_item:0",
+                "kind": "platform_handoff",
+                "owner": "adjust_plan_handoff",
+                "operation_type": "adjust_plan_item",
+                "intent": "update",
+                "source": "dispatcher",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "adjust_plan_item",
+            "reason_code": "adjust_plan_platform_input_coach_start",
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_input_coaching",
+            "status": "draft_delivered",
+            "operation_id": null,
+            "input_draft": {
+              "operation_type": "adjust_plan_item",
+              "mode": "platform_input_coaching",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_blocker_summary": "L'utilisateur trouve la charge de travail de la semaine trop élevée mais souhaite conserver l'objectif global.",
+              "suggested_platform_input": "La semaine me semble trop chargée, peux-tu m'aider à l'alléger tout en gardant l'objectif ?",
+              "preserve": [
+                "l'objectif"
+              ],
+              "avoid": [
+                "une semaine trop chargée"
+              ],
+              "destination": {
+                "product_area": "Plan",
+                "instruction": "Va dans Plan, ouvre l'élément ou la zone que tu veux ajuster, puis colle cette demande dans l'encart d'ajustement."
+              },
+              "missing_clarity": []
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "committed_effects": [],
+            "platform_handoff": {
+              "operation_type": "adjust_plan_item",
+              "status": "delivered",
+              "surface_id": "plan",
+              "reason_code": "adjust_plan_platform_input_coach_start",
+              "no_chat_mutation": true,
+              "executable_from_chat": false
+            },
+            "skill_result": {
+              "handled": true,
+              "status": "handoff_delivered",
+              "user_intent": "start",
+              "reply": "Je comprends tout à fait, c'est important de trouver le bon équilibre pour ta semaine tout en restant fidèle à tes objectifs ! Voici une suggestion de phrase que tu pourrais utiliser : \"La semaine me semble trop chargée, peux-tu m'aider à l'alléger tout en gardant l'objectif ?\" Pour l'utiliser, il te suffit d'aller dans Plan, d'ouvrir l'élément ou la zone que tu veux ajuster, puis de coller cette demande dans l'encart d'ajustement. Cela aidera la plateforme à comprendre précisément ce dont tu as besoin.",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "pending_confirmation": null,
+              "debug": {
+                "reason_code": "adjust_plan_platform_input_coach_start"
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t01:agenda:proposed:dispatcher:adjust_plan_item:0",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "adjust_plan_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "dispatcher:adjust_plan_item:0",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "explicit",
+                    "high",
+                    "semaine trop chargée"
+                  ],
+                  "user_goal_summary": "semaine trop chargée",
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t01:platform_handoff:delivered:adjust_plan_item:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "adjust_plan_item",
+                "status": "delivered",
+                "reason_code": "adjust_plan_platform_input_coach_start",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "draft_delivered",
+                  "surface_id": "plan"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t01",
+          "source_message_id": "ca8b027d-c393-4323-bc27-43698ea97634",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": null
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [
+            {
+              "operation_type": "adjust_plan_item",
+              "explicitness": "explicit",
+              "target_hint": "semaine trop chargée",
+              "operation_input": {
+                "target_granularity": {
+                  "status": "identified",
+                  "value": "current_level",
+                  "confidence": "high",
+                  "evidence": [
+                    "la semaine me semble trop chargée"
+                  ]
+                },
+                "scope": {
+                  "status": "identified",
+                  "kind": "current_level",
+                  "label": "semaine actuelle",
+                  "evidence": [
+                    "la semaine"
+                  ]
+                }
+              },
+              "adjust_plan_scope": "current_level",
+              "confidence_band": "high",
+              "ambiguity": "none",
+              "user_intent": "adjust"
+            }
+          ],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "level",
+                "key": "current_level",
+                "query_hint": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "tool_skill_intent_start",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "adjust_plan_item"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "adjust_plan_handoff"
+          ],
+          "operation_types": [
+            "adjust_plan_item"
+          ],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "dispatcher:adjust_plan_item:0",
+              "kind": "platform_handoff",
+              "owner": "adjust_plan_handoff",
+              "operation_type": "adjust_plan_item",
+              "intent": "update",
+              "source": "dispatcher",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "adjust_plan_item",
+          "reason_code": "adjust_plan_platform_input_coach_start",
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_input_coaching",
+          "status": "draft_delivered",
+          "operation_id": null,
+          "input_draft": {
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_input_coaching",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "user_blocker_summary": "L'utilisateur trouve la charge de travail de la semaine trop élevée mais souhaite conserver l'objectif global.",
+            "suggested_platform_input": "La semaine me semble trop chargée, peux-tu m'aider à l'alléger tout en gardant l'objectif ?",
+            "preserve": [
+              "l'objectif"
+            ],
+            "avoid": [
+              "une semaine trop chargée"
+            ],
+            "destination": {
+              "product_area": "Plan",
+              "instruction": "Va dans Plan, ouvre l'élément ou la zone que tu veux ajuster, puis colle cette demande dans l'encart d'ajustement."
+            },
+            "missing_clarity": []
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "blocked_effects": [],
+          "committed_effects": [],
+          "platform_handoff": {
+            "operation_type": "adjust_plan_item",
+            "status": "delivered",
+            "surface_id": "plan",
+            "reason_code": "adjust_plan_platform_input_coach_start",
+            "no_chat_mutation": true,
+            "executable_from_chat": false
+          },
+          "skill_result": {
+            "handled": true,
+            "status": "handoff_delivered",
+            "user_intent": "start",
+            "reply": "Je comprends tout à fait, c'est important de trouver le bon équilibre pour ta semaine tout en restant fidèle à tes objectifs ! Voici une suggestion de phrase que tu pourrais utiliser : \"La semaine me semble trop chargée, peux-tu m'aider à l'alléger tout en gardant l'objectif ?\" Pour l'utiliser, il te suffit d'aller dans Plan, d'ouvrir l'élément ou la zone que tu veux ajuster, puis de coller cette demande dans l'encart d'ajustement. Cela aidera la plateforme à comprendre précisément ce dont tu as besoin.",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "committed_effects": [],
+            "pending_confirmation": null,
+            "debug": {
+              "reason_code": "adjust_plan_platform_input_coach_start"
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 1,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t01:agenda:proposed:dispatcher:adjust_plan_item:0",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "adjust_plan_handoff",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "dispatcher:adjust_plan_item:0",
+                "source": "dispatcher",
+                "evidence": [
+                  "explicit",
+                  "high",
+                  "semaine trop chargée"
+                ],
+                "user_goal_summary": "semaine trop chargée",
+                "recommended_next_step": "open_platform_surface"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "plan",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t01:platform_handoff:delivered:adjust_plan_item:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "adjust_plan_item",
+              "status": "delivered",
+              "reason_code": "adjust_plan_platform_input_coach_start",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "draft_delivered",
+                "surface_id": "plan"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "plan",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t02",
+    "user": "Rends-la plus concrète : je veux alléger l’entrée de cette semaine sans lâcher le cap de fond.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Super, je vois ce que tu veux dire ! Pour que ce soit bien clair pour Plan, tu pourrais coller cette phrase : \"Je veux alléger l'entrée de cette semaine sans lâcher le cap de fond.\" C'est une formulation prête à l'emploi. Pour l'utiliser, il te suffit d'aller dans Plan, d'ouvrir l'élément ou la zone que tu veux ajuster, puis de coller cette demande dans l'encart d'ajustement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t02",
+            "source_message_id": "a5b24ef1-d10c-4ea5-bbee-731ab3792ad9",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 1,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": true,
+                  "weight": 1,
+                  "contribution": 1,
+                  "evidence": "active_skill_or_operation_state"
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "adjust_plan_item",
+                "explicitness": "explicit",
+                "target_hint": "cette semaine",
+                "operation_input": {
+                  "target_granularity": {
+                    "status": "identified",
+                    "value": "current_level",
+                    "confidence": "high",
+                    "evidence": [
+                      "entrée de cette semaine"
+                    ]
+                  },
+                  "scope": {
+                    "status": "identified",
+                    "kind": "current_level",
+                    "label": "semaine actuelle",
+                    "evidence": [
+                      "cette semaine"
+                    ]
+                  }
+                },
+                "adjust_plan_scope": "current_level",
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "adjust"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {
+                "adjust_plan_item": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_refines_adjustment_request_in_active_handoff"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "level",
+                  "key": "current_week",
+                  "query_hint": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": {
+              "type": "revise_handoff",
+              "confidence": "high",
+              "evidence": [
+                "Rends-la plus concrète",
+                "je veux alléger l’entrée de cette semaine"
+              ],
+              "target_skill_id": "adjust_plan_item"
+            },
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "tool_skill_intent_start",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "adjust_plan_item"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "adjust_plan_handoff"
+            ],
+            "operation_types": [
+              "adjust_plan_item"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "dispatcher:adjust_plan_item:0",
+                "kind": "platform_handoff",
+                "owner": "adjust_plan_handoff",
+                "operation_type": "adjust_plan_item",
+                "intent": "update",
+                "source": "dispatcher",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "adjust_plan_item",
+            "reason_code": "tool_skill_intent_revises_platform_input",
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_input_coaching",
+            "status": "revise_draft",
+            "operation_id": null,
+            "input_draft": {
+              "operation_type": "adjust_plan_item",
+              "mode": "platform_input_coaching",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_blocker_summary": "L'utilisateur souhaite alléger le début de la semaine en cours tout en maintenant l'objectif de fond.",
+              "suggested_platform_input": "Je veux alléger l'entrée de cette semaine sans lâcher le cap de fond.",
+              "preserve": [
+                "le cap de fond"
+              ],
+              "avoid": [
+                "une entrée de semaine trop lourde"
+              ],
+              "destination": {
+                "product_area": "Plan",
+                "instruction": "Va dans Plan, ouvre l'élément ou la zone que tu veux ajuster, puis colle cette demande dans l'encart d'ajustement."
+              },
+              "missing_clarity": []
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "committed_effects": [],
+            "platform_handoff": {
+              "operation_type": "adjust_plan_item",
+              "status": "delivered",
+              "surface_id": "plan",
+              "reason_code": "tool_skill_intent_revises_platform_input",
+              "no_chat_mutation": true,
+              "executable_from_chat": false
+            },
+            "skill_result": {
+              "handled": true,
+              "status": "handoff_delivered",
+              "user_intent": "revise",
+              "reply": "Super, je vois ce que tu veux dire ! Pour que ce soit bien clair pour Plan, tu pourrais coller cette phrase : \"Je veux alléger l'entrée de cette semaine sans lâcher le cap de fond.\" C'est une formulation prête à l'emploi. Pour l'utiliser, il te suffit d'aller dans Plan, d'ouvrir l'élément ou la zone que tu veux ajuster, puis de coller cette demande dans l'encart d'ajustement.",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "pending_confirmation": null,
+              "debug": {
+                "reason_code": "tool_skill_intent_revises_platform_input"
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t02:agenda:proposed:dispatcher:adjust_plan_item:0",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "adjust_plan_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "dispatcher:adjust_plan_item:0",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "explicit",
+                    "high",
+                    "cette semaine"
+                  ],
+                  "user_goal_summary": "cette semaine",
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t02:platform_handoff:delivered:adjust_plan_item:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "adjust_plan_item",
+                "status": "delivered",
+                "reason_code": "tool_skill_intent_revises_platform_input",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "revise_draft",
+                  "surface_id": "plan"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t02",
+          "source_message_id": "a5b24ef1-d10c-4ea5-bbee-731ab3792ad9",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 1,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": true,
+                "weight": 1,
+                "contribution": 1,
+                "evidence": "active_skill_or_operation_state"
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": "0;decay=0.55;recovery=0"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [
+            {
+              "operation_type": "adjust_plan_item",
+              "explicitness": "explicit",
+              "target_hint": "cette semaine",
+              "operation_input": {
+                "target_granularity": {
+                  "status": "identified",
+                  "value": "current_level",
+                  "confidence": "high",
+                  "evidence": [
+                    "entrée de cette semaine"
+                  ]
+                },
+                "scope": {
+                  "status": "identified",
+                  "kind": "current_level",
+                  "label": "semaine actuelle",
+                  "evidence": [
+                    "cette semaine"
+                  ]
+                }
+              },
+              "adjust_plan_scope": "current_level",
+              "confidence_band": "high",
+              "ambiguity": "none",
+              "user_intent": "adjust"
+            }
+          ],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {
+              "adjust_plan_item": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_refines_adjustment_request_in_active_handoff"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "level",
+                "key": "current_week",
+                "query_hint": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": {
+            "type": "revise_handoff",
+            "confidence": "high",
+            "evidence": [
+              "Rends-la plus concrète",
+              "je veux alléger l’entrée de cette semaine"
+            ],
+            "target_skill_id": "adjust_plan_item"
+          },
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "tool_skill_intent_start",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "adjust_plan_item"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "adjust_plan_handoff"
+          ],
+          "operation_types": [
+            "adjust_plan_item"
+          ],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "dispatcher:adjust_plan_item:0",
+              "kind": "platform_handoff",
+              "owner": "adjust_plan_handoff",
+              "operation_type": "adjust_plan_item",
+              "intent": "update",
+              "source": "dispatcher",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "adjust_plan_item",
+          "reason_code": "tool_skill_intent_revises_platform_input",
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_input_coaching",
+          "status": "revise_draft",
+          "operation_id": null,
+          "input_draft": {
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_input_coaching",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "user_blocker_summary": "L'utilisateur souhaite alléger le début de la semaine en cours tout en maintenant l'objectif de fond.",
+            "suggested_platform_input": "Je veux alléger l'entrée de cette semaine sans lâcher le cap de fond.",
+            "preserve": [
+              "le cap de fond"
+            ],
+            "avoid": [
+              "une entrée de semaine trop lourde"
+            ],
+            "destination": {
+              "product_area": "Plan",
+              "instruction": "Va dans Plan, ouvre l'élément ou la zone que tu veux ajuster, puis colle cette demande dans l'encart d'ajustement."
+            },
+            "missing_clarity": []
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "blocked_effects": [],
+          "committed_effects": [],
+          "platform_handoff": {
+            "operation_type": "adjust_plan_item",
+            "status": "delivered",
+            "surface_id": "plan",
+            "reason_code": "tool_skill_intent_revises_platform_input",
+            "no_chat_mutation": true,
+            "executable_from_chat": false
+          },
+          "skill_result": {
+            "handled": true,
+            "status": "handoff_delivered",
+            "user_intent": "revise",
+            "reply": "Super, je vois ce que tu veux dire ! Pour que ce soit bien clair pour Plan, tu pourrais coller cette phrase : \"Je veux alléger l'entrée de cette semaine sans lâcher le cap de fond.\" C'est une formulation prête à l'emploi. Pour l'utiliser, il te suffit d'aller dans Plan, d'ouvrir l'élément ou la zone que tu veux ajuster, puis de coller cette demande dans l'encart d'ajustement.",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "committed_effects": [],
+            "pending_confirmation": null,
+            "debug": {
+              "reason_code": "tool_skill_intent_revises_platform_input"
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 1,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t02:agenda:proposed:dispatcher:adjust_plan_item:0",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "adjust_plan_handoff",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "dispatcher:adjust_plan_item:0",
+                "source": "dispatcher",
+                "evidence": [
+                  "explicit",
+                  "high",
+                  "cette semaine"
+                ],
+                "user_goal_summary": "cette semaine",
+                "recommended_next_step": "open_platform_surface"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "plan",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t02:platform_handoff:delivered:adjust_plan_item:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "adjust_plan_item",
+              "status": "delivered",
+              "reason_code": "tool_skill_intent_revises_platform_input",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "revise_draft",
+                "surface_id": "plan"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "plan",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t03",
+    "user": "Redis-moi seulement la phrase courte à coller dans Plan.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je veux alléger l’entrée de cette semaine sans lâcher le cap de fond. 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t03",
+            "source_message_id": "630c0ee3-5bed-4b4f-a0c8-ce957cb9e7dc",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "previous_scores": [
+                0,
+                1
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": true,
+                  "weight": 1,
+                  "contribution": 1,
+                  "evidence": "active_skill_or_operation_state"
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": true,
+                  "weight": 10,
+                  "contribution": 0.6,
+                  "evidence": "0,1;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "active_handoff_platform_destination_followup"
+                }
+              },
+              "lifecycle": {
+                "adjust_plan_item": {
+                  "detected": true,
+                  "reason": "user_asks_for_repetition_of_handoff_content"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": {
+              "type": "repeat_handoff",
+              "confidence": "high",
+              "evidence": [
+                "Redis-moi seulement la phrase courte à coller dans Plan"
+              ],
+              "target_skill_id": "adjust_plan_item"
+            },
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "product_help"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "product_help"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "product_help",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "skill_entry_signal"
+              }
+            ]
+          },
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "product_help",
+              "status": "complete",
+              "response_intent": "technical_intake_failure",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "diagnosis": {
+                "feature_id": "dashboard.plan",
+                "feature_label": "Plan",
+                "intent": "unclear",
+                "target": {
+                  "kind": "unknown",
+                  "confidence_band": "low"
+                },
+                "grounding": {
+                  "catalog_feature_ids": [],
+                  "db_sources_required": false,
+                  "db_sources_used": []
+                },
+                "bridge": null,
+                "operation_bridge": null,
+                "constraints": [
+                  "non_mutating",
+                  "do_not_execute_tool",
+                  "do_not_claim_object_exists_without_source",
+                  "do_not_render_status_block",
+                  "short_reply"
+                ],
+                "locations": [
+                  "Dashboard > Plan"
+                ],
+                "intake_status": "technical_fallback",
+                "intake_errors": [
+                  "Expected ',' or '}' after property value in JSON at position 822 (line 1 column 823)"
+                ]
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "product_help_does_not_execute_operations",
+                  "operation_bridge_requires_confirmation_when_present",
+                  "non_mutating",
+                  "do_not_execute_tool",
+                  "do_not_claim_object_exists_without_source",
+                  "do_not_render_status_block",
+                  "short_reply"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [
+                  {
+                    "type": "durable_effect",
+                    "reason_code": "structured_intake_failed"
+                  }
+                ],
+                "committed": []
+              },
+              "state_patch": {
+                "summary": "Product help intake failed; no product answer rendered by code.",
+                "product_help_intake_errors": [
+                  "Expected ',' or '}' after property value in JSON at position 822 (line 1 column 823)"
+                ],
+                "product_help_decision": null
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t03",
+          "source_message_id": "630c0ee3-5bed-4b4f-a0c8-ce957cb9e7dc",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 1.6,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "previous_scores": [
+              0,
+              1
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": true,
+                "weight": 1,
+                "contribution": 1,
+                "evidence": "active_skill_or_operation_state"
+              },
+              {
+                "signal": "previous_risk",
+                "detected": true,
+                "weight": 10,
+                "contribution": 0.6,
+                "evidence": "0,1;decay=0.55;recovery=0"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "active_handoff_platform_destination_followup"
+              }
+            },
+            "lifecycle": {
+              "adjust_plan_item": {
+                "detected": true,
+                "reason": "user_asks_for_repetition_of_handoff_content"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": {
+            "type": "repeat_handoff",
+            "confidence": "high",
+            "evidence": [
+              "Redis-moi seulement la phrase courte à coller dans Plan"
+            ],
+            "target_skill_id": "adjust_plan_item"
+          },
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "skill_entry_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "product_help"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "product_help"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "product_help",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "skill_entry_signal"
+            }
+          ]
+        },
+        "skill_run": {
+          "selected_skill_id": "product_help",
+          "reason_code": "skill_entry_signal",
+          "output": {
+            "skill_id": "product_help",
+            "status": "complete",
+            "response_intent": "technical_intake_failure",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "diagnosis": {
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "intent": "unclear",
+              "target": {
+                "kind": "unknown",
+                "confidence_band": "low"
+              },
+              "grounding": {
+                "catalog_feature_ids": [],
+                "db_sources_required": false,
+                "db_sources_used": []
+              },
+              "bridge": null,
+              "operation_bridge": null,
+              "constraints": [
+                "non_mutating",
+                "do_not_execute_tool",
+                "do_not_claim_object_exists_without_source",
+                "do_not_render_status_block",
+                "short_reply"
+              ],
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "intake_status": "technical_fallback",
+              "intake_errors": [
+                "Expected ',' or '}' after property value in JSON at position 822 (line 1 column 823)"
+              ]
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_bridge_requires_confirmation_when_present",
+                "non_mutating",
+                "do_not_execute_tool",
+                "do_not_claim_object_exists_without_source",
+                "do_not_render_status_block",
+                "short_reply"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [
+                {
+                  "type": "durable_effect",
+                  "reason_code": "structured_intake_failed"
+                }
+              ],
+              "committed": []
+            },
+            "state_patch": {
+              "summary": "Product help intake failed; no product answer rendered by code.",
+              "product_help_intake_errors": [
+                "Expected ',' or '}' after property value in JSON at position 822 (line 1 column 823)"
+              ],
+              "product_help_decision": null
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "product_help"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t04",
+    "user": "Ok vas-y, applique cette phrase dans mon plan.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t04",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Super ! La phrase est bien prête pour ton Plan. Voici ce que tu peux y coller : \"Je veux alléger l'entrée de cette semaine sans lâcher le cap de fond.\" Pour l'utiliser, il te suffit d'aller dans Plan, d'ouvrir l'élément ou la zone que tu veux ajuster, puis de coller cette demande dans l'encart d'ajustement. C'est toi qui as le contrôle pour l'intégrer exactement là où tu le souhaites ! 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t04",
+            "source_message_id": "30f01fc8-60e3-4e3e-8ceb-de929295828d",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 1,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "previous_scores": [
+                0,
+                1,
+                1.6
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": true,
+                  "weight": 1,
+                  "contribution": 1,
+                  "evidence": "active_skill_or_operation_state"
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0,1,1.6;decay=0.55;recovery=1.5"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {
+                "adjust_plan_item": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_confirms_handoff_application_attempt"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "level",
+                  "key": "current_level",
+                  "query_hint": "current week load and goals",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": {
+              "type": "handoff_apply_attempt",
+              "confidence": "high",
+              "evidence": [
+                "Ok vas-y, applique cette phrase dans mon plan."
+              ],
+              "target_skill_id": "adjust_plan_item"
+            },
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "adjust_plan_item"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "normal_reply"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "normal_reply",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "normal_reply_default"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "adjust_plan_item",
+            "reason_code": "active_platform_input_coach_default_revision",
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_input_coaching",
+            "status": "revise_draft",
+            "operation_id": null,
+            "input_draft": {
+              "operation_type": "adjust_plan_item",
+              "mode": "platform_input_coaching",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_blocker_summary": "L'utilisateur",
+              "suggested_platform_input": "Je veux alléger l'entrée de cette semaine sans lâcher le cap de fond.",
+              "preserve": [
+                "le cap de fond"
+              ],
+              "avoid": [
+                "une entrée de semaine trop lourde"
+              ],
+              "destination": {
+                "product_area": "Plan",
+                "instruction": "Va dans Plan, ouvre l'élément ou la zone que tu veux ajuster, puis colle cette demande dans l'encart d'ajustement."
+              },
+              "missing_clarity": []
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "committed_effects": [],
+            "platform_handoff": {
+              "operation_type": "adjust_plan_item",
+              "status": "delivered",
+              "surface_id": "plan",
+              "reason_code": "active_platform_input_coach_default_revision",
+              "no_chat_mutation": true,
+              "executable_from_chat": false
+            },
+            "skill_result": {
+              "handled": true,
+              "status": "handoff_delivered",
+              "user_intent": "revise",
+              "reply": "Super ! La phrase est bien prête pour ton Plan. Voici ce que tu peux y coller : \"Je veux alléger l'entrée de cette semaine sans lâcher le cap de fond.\" Pour l'utiliser, il te suffit d'aller dans Plan, d'ouvrir l'élément ou la zone que tu veux ajuster, puis de coller cette demande dans l'encart d'ajustement. C'est toi qui as le contrôle pour l'intégrer exactement là où tu le souhaites !",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "pending_confirmation": null,
+              "debug": {
+                "reason_code": "active_platform_input_coach_default_revision"
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t04:platform_handoff:delivered:adjust_plan_item:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "adjust_plan_item",
+                "status": "delivered",
+                "reason_code": "active_platform_input_coach_default_revision",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "revise_draft",
+                  "surface_id": "plan"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t04",
+          "source_message_id": "30f01fc8-60e3-4e3e-8ceb-de929295828d",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 1,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "previous_scores": [
+              0,
+              1,
+              1.6
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": true,
+                "weight": 1,
+                "contribution": 1,
+                "evidence": "active_skill_or_operation_state"
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": "0,1,1.6;decay=0.55;recovery=1.5"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {
+              "adjust_plan_item": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_confirms_handoff_application_attempt"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "level",
+                "key": "current_level",
+                "query_hint": "current week load and goals",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": {
+            "type": "handoff_apply_attempt",
+            "confidence": "high",
+            "evidence": [
+              "Ok vas-y, applique cette phrase dans mon plan."
+            ],
+            "target_skill_id": "adjust_plan_item"
+          },
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "adjust_plan_item"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "normal_reply"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "normal_reply",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "normal_reply_default"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "adjust_plan_item",
+          "reason_code": "active_platform_input_coach_default_revision",
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_input_coaching",
+          "status": "revise_draft",
+          "operation_id": null,
+          "input_draft": {
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_input_coaching",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "user_blocker_summary": "L'utilisateur",
+            "suggested_platform_input": "Je veux alléger l'entrée de cette semaine sans lâcher le cap de fond.",
+            "preserve": [
+              "le cap de fond"
+            ],
+            "avoid": [
+              "une entrée de semaine trop lourde"
+            ],
+            "destination": {
+              "product_area": "Plan",
+              "instruction": "Va dans Plan, ouvre l'élément ou la zone que tu veux ajuster, puis colle cette demande dans l'encart d'ajustement."
+            },
+            "missing_clarity": []
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "blocked_effects": [],
+          "committed_effects": [],
+          "platform_handoff": {
+            "operation_type": "adjust_plan_item",
+            "status": "delivered",
+            "surface_id": "plan",
+            "reason_code": "active_platform_input_coach_default_revision",
+            "no_chat_mutation": true,
+            "executable_from_chat": false
+          },
+          "skill_result": {
+            "handled": true,
+            "status": "handoff_delivered",
+            "user_intent": "revise",
+            "reply": "Super ! La phrase est bien prête pour ton Plan. Voici ce que tu peux y coller : \"Je veux alléger l'entrée de cette semaine sans lâcher le cap de fond.\" Pour l'utiliser, il te suffit d'aller dans Plan, d'ouvrir l'élément ou la zone que tu veux ajuster, puis de coller cette demande dans l'encart d'ajustement. C'est toi qui as le contrôle pour l'intégrer exactement là où tu le souhaites !",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "committed_effects": [],
+            "pending_confirmation": null,
+            "debug": {
+              "reason_code": "active_platform_input_coach_default_revision"
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t04",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t04:platform_handoff:delivered:adjust_plan_item:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "adjust_plan_item",
+              "status": "delivered",
+              "reason_code": "active_platform_input_coach_default_revision",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "revise_draft",
+                "surface_id": "plan"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "plan",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t05",
+    "user": "Et concrètement, je trouve où l’endroit pour coller ça dans Plan ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t05",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Plan: Le Plan est l'espace principal d'execution d'une transformation active. Il montre les niveaux, les semaines, les elements du plan et l'avancement.\n\nComment l'utiliser: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nCe que ca apporte:\n- Donne une vue claire de ce qui est a faire maintenant.\n- Evite de melanger les actions du moment avec toute la transformation. 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t05",
+            "source_message_id": "1e1fdc9b-5ca3-4fef-822b-a8fc0c706b09",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "previous_scores": [
+                0,
+                1,
+                1.6,
+                1
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": true,
+                  "weight": 1,
+                  "contribution": 1,
+                  "evidence": "active_skill_or_operation_state"
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": true,
+                  "weight": 10,
+                  "contribution": 0.6,
+                  "evidence": "0,1,1.6,1;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "active_handoff_platform_destination_followup"
+                }
+              },
+              "lifecycle": {
+                "adjust_plan_item": {
+                  "detected": true,
+                  "reason": "user_asks_for_platform_location_of_active_handoff"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "level",
+                  "key": "current_level",
+                  "query_hint": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": {
+              "type": "platform_destination_followup",
+              "confidence": "high",
+              "evidence": [
+                "je trouve où l’endroit pour coller ça dans Plan ?"
+              ],
+              "target_skill_id": "adjust_plan_item"
+            },
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "product_help"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "product_help"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "product_help",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "skill_entry_signal"
+              }
+            ]
+          },
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "product_help",
+              "status": "complete",
+              "response_intent": "unclear",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "Plan: Le Plan est l'espace principal d'execution d'une transformation active. Il montre les niveaux, les semaines, les elements du plan et l'avancement.\n\nComment l'utiliser: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nCe que ca apporte:\n- Donne une vue claire de ce qui est a faire maintenant.\n- Evite de melanger les actions du moment avec toute la transformation.",
+              "diagnosis": {
+                "feature_id": "dashboard.plan",
+                "feature_label": "Plan",
+                "intent": "unclear",
+                "target": {
+                  "kind": "feature_catalog",
+                  "feature_id": "dashboard.plan",
+                  "confidence_band": "high"
+                },
+                "grounding": {
+                  "catalog_feature_ids": [
+                    "dashboard.plan"
+                  ],
+                  "db_sources_required": false,
+                  "db_sources_used": [
+                    {
+                      "source_type": "catalog",
+                      "id": "dashboard.plan",
+                      "label": "Plan"
+                    }
+                  ]
+                },
+                "bridge": null,
+                "operation_bridge": null,
+                "constraints": [
+                  "non_mutating",
+                  "do_not_execute_tool",
+                  "do_not_claim_object_exists_without_source",
+                  "do_not_render_status_block",
+                  "short_reply"
+                ],
+                "locations": [
+                  "Dashboard > Plan"
+                ],
+                "intake_status": "structured",
+                "intake_errors": []
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "product_help_does_not_execute_operations",
+                  "operation_bridge_requires_confirmation_when_present",
+                  "non_mutating",
+                  "do_not_execute_tool",
+                  "do_not_claim_object_exists_without_source",
+                  "do_not_render_status_block",
+                  "short_reply"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "summary": "Product help structured intake: unclear / dashboard.plan",
+                "product_help_intake_errors": [],
+                "product_help_decision": {
+                  "intent": "unclear",
+                  "target": {
+                    "kind": "feature_catalog",
+                    "feature_id": "dashboard.plan",
+                    "confidence_band": "high"
+                  },
+                  "bridge": null,
+                  "operation_suggestions": []
+                }
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t05",
+          "source_message_id": "1e1fdc9b-5ca3-4fef-822b-a8fc0c706b09",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 1.6,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "previous_scores": [
+              0,
+              1,
+              1.6,
+              1
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": true,
+                "weight": 1,
+                "contribution": 1,
+                "evidence": "active_skill_or_operation_state"
+              },
+              {
+                "signal": "previous_risk",
+                "detected": true,
+                "weight": 10,
+                "contribution": 0.6,
+                "evidence": "0,1,1.6,1;decay=0.55;recovery=0"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "active_handoff_platform_destination_followup"
+              }
+            },
+            "lifecycle": {
+              "adjust_plan_item": {
+                "detected": true,
+                "reason": "user_asks_for_platform_location_of_active_handoff"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "level",
+                "key": "current_level",
+                "query_hint": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": {
+            "type": "platform_destination_followup",
+            "confidence": "high",
+            "evidence": [
+              "je trouve où l’endroit pour coller ça dans Plan ?"
+            ],
+            "target_skill_id": "adjust_plan_item"
+          },
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "skill_entry_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "product_help"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "product_help"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "product_help",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "skill_entry_signal"
+            }
+          ]
+        },
+        "skill_run": {
+          "selected_skill_id": "product_help",
+          "reason_code": "skill_entry_signal",
+          "output": {
+            "skill_id": "product_help",
+            "status": "complete",
+            "response_intent": "unclear",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "Plan: Le Plan est l'espace principal d'execution d'une transformation active. Il montre les niveaux, les semaines, les elements du plan et l'avancement.\n\nComment l'utiliser: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nCe que ca apporte:\n- Donne une vue claire de ce qui est a faire maintenant.\n- Evite de melanger les actions du moment avec toute la transformation.",
+            "diagnosis": {
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "intent": "unclear",
+              "target": {
+                "kind": "feature_catalog",
+                "feature_id": "dashboard.plan",
+                "confidence_band": "high"
+              },
+              "grounding": {
+                "catalog_feature_ids": [
+                  "dashboard.plan"
+                ],
+                "db_sources_required": false,
+                "db_sources_used": [
+                  {
+                    "source_type": "catalog",
+                    "id": "dashboard.plan",
+                    "label": "Plan"
+                  }
+                ]
+              },
+              "bridge": null,
+              "operation_bridge": null,
+              "constraints": [
+                "non_mutating",
+                "do_not_execute_tool",
+                "do_not_claim_object_exists_without_source",
+                "do_not_render_status_block",
+                "short_reply"
+              ],
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "intake_status": "structured",
+              "intake_errors": []
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_bridge_requires_confirmation_when_present",
+                "non_mutating",
+                "do_not_execute_tool",
+                "do_not_claim_object_exists_without_source",
+                "do_not_render_status_block",
+                "short_reply"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "summary": "Product help structured intake: unclear / dashboard.plan",
+              "product_help_intake_errors": [],
+              "product_help_decision": {
+                "intent": "unclear",
+                "target": {
+                  "kind": "feature_catalog",
+                  "feature_id": "dashboard.plan",
+                  "confidence_band": "high"
+                },
+                "bridge": null,
+                "operation_suggestions": []
+              }
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r3-t05",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "product_help"
+      },
+      "trace_error": null
+    }
+  }
+]

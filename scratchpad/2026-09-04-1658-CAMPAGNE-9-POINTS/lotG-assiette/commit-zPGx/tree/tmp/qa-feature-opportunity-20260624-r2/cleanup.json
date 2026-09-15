@@ -1,0 +1,45 @@
+{
+  "user_id": "cfe425f6-654a-45b8-85ea-be4bf863aaf0",
+  "email": "qa-qa-skill-feature-opportunity-feature-opportunity-20260624-r2@example.com",
+  "tables": {
+    "conversation_turn_traces": {
+      "http_status": 200,
+      "deleted": 0,
+      "error": null
+    },
+    "chat_messages": {
+      "http_status": 200,
+      "deleted": 8,
+      "error": null
+    },
+    "user_chat_states": {
+      "http_status": 200,
+      "deleted": 1,
+      "error": null
+    },
+    "scheduled_checkins": {
+      "http_status": 200,
+      "deleted": 0,
+      "error": null
+    },
+    "user_plan_item_entries": {
+      "http_status": 200,
+      "deleted": 0,
+      "error": null
+    },
+    "system_runtime_snapshots": {
+      "http_status": 200,
+      "deleted": 0,
+      "error": null
+    },
+    "memory_items": {
+      "http_status": 200,
+      "deleted": 0,
+      "error": null
+    }
+  },
+  "auth_delete": {
+    "http_status": 200,
+    "error": null
+  }
+}

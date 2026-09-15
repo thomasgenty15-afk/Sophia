@@ -1,0 +1,33 @@
+{
+  "promptVersion": "meal.en.v15_the_plan_never_names_it",
+  "scenario-1": {
+    "userChars": 12722,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  },
+  "scenario-2": {
+    "userChars": 6469,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  },
+  "scenario-3": {
+    "userChars": 11785,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  },
+  "scenario-4": {
+    "userChars": 9283,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  },
+  "scenario-5": {
+    "userChars": 11842,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  }
+}

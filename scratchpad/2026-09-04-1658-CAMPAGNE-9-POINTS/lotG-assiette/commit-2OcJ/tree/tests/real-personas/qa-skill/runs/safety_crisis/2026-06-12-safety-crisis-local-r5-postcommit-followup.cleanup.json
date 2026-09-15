@@ -1,0 +1,11 @@
+{
+  "run_id": "2026-06-12-safety-crisis-local-r5-postcommit-followup",
+  "user_id": "b536a37a-cec2-423e-8112-cf65b5f327f4",
+  "scope": "qa-safety-crisis-2026-06-12-safety-crisis-local-r5-postcommit-followup",
+  "deleted": {
+    "chat_messages": 204,
+    "user_chat_states": 204
+  },
+  "connection_cleanup": "cleanup complete for qa-skill connection=safety_crisis_local_2026-06-12-safety-crisis-local-r5-postcommit-followup (b536a37a-cec2-423e-8112-cf65b5f327f4)",
+  "errors": []
+}

@@ -1,0 +1,444 @@
+{
+  "run_id": "daily-actions-trigger-20260520-r5",
+  "created_at": "2026-05-20T12:12:47.223Z",
+  "started_at": "2026-05-20T12:12:46.568Z",
+  "persona": "qa-skill",
+  "persona_conversationnel": "qa-skill",
+  "user_id": "7ddbaf82-9683-4389-986d-c8e201d9af0c",
+  "email": "qa-daily-actions-daily-actions-trigger-20260520-r5@example.com",
+  "connection_name": "daily_actions_daily-actions-trigger-20260520-r5",
+  "connection_path": "tests/real-personas/qa-skill/connections/daily_actions_daily-actions-trigger-20260520-r5.json",
+  "constraints": {
+    "local_supabase": "http://127.0.0.1:54321",
+    "force_full_ai": "non applicable: proactive schedule-only",
+    "deterministic_renderer": false,
+    "direct_executor": false,
+    "cleanup_destructive_db": false,
+    "process_checkins_not_run_reason": "global_due_queue_not_empty"
+  },
+  "fixture": {
+    "timezone": "Europe/Paris",
+    "localDate": "2026-05-20",
+    "weekday": "wed",
+    "weekStart": "2026-05-18",
+    "cycle": {
+      "id": "8671124c-bf9d-4807-83e5-775407f20c5a",
+      "user_id": "7ddbaf82-9683-4389-986d-c8e201d9af0c",
+      "status": "active",
+      "raw_intake_text": "QA dynamique: tester les encouragements d'actions du jour et le daily.",
+      "intake_language": "fr",
+      "duration_months": 1,
+      "birth_date_snapshot": null,
+      "gender_snapshot": null,
+      "active_transformation_id": null,
+      "version": 1,
+      "created_at": "2026-05-20T12:12:46.770718+00:00",
+      "updated_at": "2026-05-20T12:12:46.770718+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "validated_structure": null,
+      "requested_pace": null
+    },
+    "transformation": {
+      "id": "c92aa825-5bf0-494f-9602-1794ec84933f",
+      "cycle_id": "8671124c-bf9d-4807-83e5-775407f20c5a",
+      "priority_order": 1,
+      "status": "active",
+      "title": "QA actions du jour",
+      "internal_summary": "Fixture QA locale pour actions planifiées aujourd'hui.",
+      "user_summary": "Tester que Sophia encourage et demande le bilan.",
+      "success_definition": null,
+      "main_constraint": null,
+      "questionnaire_schema": null,
+      "questionnaire_answers": null,
+      "completion_summary": null,
+      "handoff_payload": null,
+      "created_at": "2026-05-20T12:12:46.779492+00:00",
+      "updated_at": "2026-05-20T12:12:46.779492+00:00",
+      "activated_at": "2026-05-19T12:12:46.776+00:00",
+      "completed_at": null,
+      "ordering_rationale": null,
+      "unlocked_principles": {
+        "kaizen": true
+      },
+      "base_de_vie_payload": null
+    },
+    "plan": {
+      "id": "6a7268f3-d596-4326-9716-c325c5aea2f9",
+      "user_id": "7ddbaf82-9683-4389-986d-c8e201d9af0c",
+      "cycle_id": "8671124c-bf9d-4807-83e5-775407f20c5a",
+      "transformation_id": "c92aa825-5bf0-494f-9602-1794ec84933f",
+      "status": "active",
+      "version": 1,
+      "title": "Plan QA actions du jour",
+      "content": {
+        "run_id": "daily-actions-trigger-20260520-r5",
+        "source": "qa_dynamic_fixture"
+      },
+      "generation_attempts": 0,
+      "last_generation_reason": null,
+      "activated_at": "2026-05-19T12:12:46.796+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "created_at": "2026-05-20T12:12:46.796989+00:00",
+      "updated_at": "2026-05-20T12:12:46.796989+00:00",
+      "generation_feedback": null,
+      "generation_input_snapshot": null
+    },
+    "items": [
+      {
+        "item": {
+          "id": "517221bb-5291-44aa-b186-8d82fcc3348c",
+          "user_id": "7ddbaf82-9683-4389-986d-c8e201d9af0c",
+          "cycle_id": "8671124c-bf9d-4807-83e5-775407f20c5a",
+          "transformation_id": "c92aa825-5bf0-494f-9602-1794ec84933f",
+          "plan_id": "6a7268f3-d596-4326-9716-c325c5aea2f9",
+          "dimension": "habits",
+          "kind": "habit",
+          "status": "active",
+          "title": "Faire dix minutes de rangement ciblé",
+          "description": "Action QA planifiée pour aujourd'hui.",
+          "tracking_type": "boolean",
+          "activation_order": 1,
+          "activation_condition": null,
+          "current_habit_state": "active_building",
+          "support_mode": null,
+          "support_function": null,
+          "target_reps": 1,
+          "current_reps": 0,
+          "cadence_label": "Aujourd'hui",
+          "scheduled_days": [
+            "wed"
+          ],
+          "time_of_day": "morning",
+          "start_after_item_id": null,
+          "payload": {
+            "run_id": "daily-actions-trigger-20260520-r5",
+            "source": "qa_dynamic_fixture"
+          },
+          "created_at": "2026-05-20T12:12:46.802205+00:00",
+          "updated_at": "2026-05-20T12:12:46.802205+00:00",
+          "activated_at": "2026-05-19T12:12:46.801+00:00",
+          "completed_at": null,
+          "phase_id": null,
+          "phase_order": null,
+          "defense_card_id": null,
+          "attack_card_id": null,
+          "cards_status": "not_required",
+          "cards_generated_at": null
+        },
+        "occurrence": {
+          "id": "d88ae007-b6cb-49a0-ae90-4f028a8aa77a",
+          "user_id": "7ddbaf82-9683-4389-986d-c8e201d9af0c",
+          "cycle_id": "8671124c-bf9d-4807-83e5-775407f20c5a",
+          "transformation_id": "c92aa825-5bf0-494f-9602-1794ec84933f",
+          "plan_id": "6a7268f3-d596-4326-9716-c325c5aea2f9",
+          "plan_item_id": "517221bb-5291-44aa-b186-8d82fcc3348c",
+          "week_start_date": "2026-05-18",
+          "ordinal": 1,
+          "planned_day": "wed",
+          "original_planned_day": "wed",
+          "actual_day": null,
+          "status": "planned",
+          "source": "weekly_confirmed",
+          "validated_at": null,
+          "created_at": "2026-05-20T12:12:46.815511+00:00",
+          "updated_at": "2026-05-20T12:12:46.815511+00:00",
+          "default_day": "wed"
+        }
+      },
+      {
+        "item": {
+          "id": "27535f3c-80c5-4954-8f41-59b5f6d2a66c",
+          "user_id": "7ddbaf82-9683-4389-986d-c8e201d9af0c",
+          "cycle_id": "8671124c-bf9d-4807-83e5-775407f20c5a",
+          "transformation_id": "c92aa825-5bf0-494f-9602-1794ec84933f",
+          "plan_id": "6a7268f3-d596-4326-9716-c325c5aea2f9",
+          "dimension": "habits",
+          "kind": "habit",
+          "status": "active",
+          "title": "Préparer le premier bloc de travail sans téléphone",
+          "description": "Action QA planifiée pour aujourd'hui.",
+          "tracking_type": "boolean",
+          "activation_order": 2,
+          "activation_condition": null,
+          "current_habit_state": "active_building",
+          "support_mode": null,
+          "support_function": null,
+          "target_reps": 1,
+          "current_reps": 0,
+          "cadence_label": "Aujourd'hui",
+          "scheduled_days": [
+            "wed"
+          ],
+          "time_of_day": "afternoon",
+          "start_after_item_id": null,
+          "payload": {
+            "run_id": "daily-actions-trigger-20260520-r5",
+            "source": "qa_dynamic_fixture"
+          },
+          "created_at": "2026-05-20T12:12:46.819526+00:00",
+          "updated_at": "2026-05-20T12:12:46.819526+00:00",
+          "activated_at": "2026-05-19T12:12:46.819+00:00",
+          "completed_at": null,
+          "phase_id": null,
+          "phase_order": null,
+          "defense_card_id": null,
+          "attack_card_id": null,
+          "cards_status": "not_required",
+          "cards_generated_at": null
+        },
+        "occurrence": {
+          "id": "c14985d7-9df8-47f4-ac8c-6e0c9a820343",
+          "user_id": "7ddbaf82-9683-4389-986d-c8e201d9af0c",
+          "cycle_id": "8671124c-bf9d-4807-83e5-775407f20c5a",
+          "transformation_id": "c92aa825-5bf0-494f-9602-1794ec84933f",
+          "plan_id": "6a7268f3-d596-4326-9716-c325c5aea2f9",
+          "plan_item_id": "27535f3c-80c5-4954-8f41-59b5f6d2a66c",
+          "week_start_date": "2026-05-18",
+          "ordinal": 2,
+          "planned_day": "wed",
+          "original_planned_day": "wed",
+          "actual_day": null,
+          "status": "planned",
+          "source": "weekly_confirmed",
+          "validated_at": null,
+          "created_at": "2026-05-20T12:12:46.828332+00:00",
+          "updated_at": "2026-05-20T12:12:46.828332+00:00",
+          "default_day": "wed"
+        }
+      }
+    ]
+  },
+  "unrelated_due_before_count": 50,
+  "unrelated_due_before_sample": [
+    {
+      "id": "c76b2bfe-b2d3-4390-9348-e366201bcb5e",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "recurring_reminder:9e069086-d981-42cf-8694-b2dbce1457fc",
+      "scheduled_for": "2026-05-19T05:30:00+00:00",
+      "status": "pending"
+    },
+    {
+      "id": "1ace9ece-37f1-4760-b2d4-1b8d7fd34dec",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "recurring_reminder:9e069086-d981-42cf-8694-b2dbce1457fc",
+      "scheduled_for": "2026-05-20T05:30:00+00:00",
+      "status": "pending"
+    },
+    {
+      "id": "782b6713-ac2f-42cd-bc13-11688cf1c073",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "recurring_reminder:9e069086-d981-42cf-8694-b2dbce1457fc",
+      "scheduled_for": "2026-05-19T06:30:00+00:00",
+      "status": "pending"
+    },
+    {
+      "id": "4a0db79e-2bda-4419-951a-5df2af14749a",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "recurring_reminder:9e069086-d981-42cf-8694-b2dbce1457fc",
+      "scheduled_for": "2026-05-20T06:30:00+00:00",
+      "status": "pending"
+    },
+    {
+      "id": "d28a5fbc-9975-4c53-8b0a-dfff10b3274e",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "recurring_reminder:0bf8e5a5-3b49-4072-9b6d-75a38037509f",
+      "scheduled_for": "2026-05-19T07:30:00+00:00",
+      "status": "pending"
+    },
+    {
+      "id": "0ed3be23-58e3-4dad-af7f-9764b8610717",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "recurring_reminder:0bf8e5a5-3b49-4072-9b6d-75a38037509f",
+      "scheduled_for": "2026-05-20T07:30:00+00:00",
+      "status": "pending"
+    },
+    {
+      "id": "3567b6e9-ccab-4042-bfed-2c55c5920d9c",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "recurring_reminder:0bf8e5a5-3b49-4072-9b6d-75a38037509f",
+      "scheduled_for": "2026-05-19T08:30:00+00:00",
+      "status": "pending"
+    },
+    {
+      "id": "fd87e6cf-3a97-439d-9a0d-6c29c6d552f3",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "recurring_reminder:0bf8e5a5-3b49-4072-9b6d-75a38037509f",
+      "scheduled_for": "2026-05-20T08:30:00+00:00",
+      "status": "pending"
+    },
+    {
+      "id": "4897e626-2792-4e8a-889a-258df61d47da",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "recurring_reminder:9e0a3a2b-bef5-4b44-98e9-a1395ae66b4e",
+      "scheduled_for": "2026-05-19T09:30:00+00:00",
+      "status": "pending"
+    },
+    {
+      "id": "59ea52c2-0a72-4c7e-916e-c8525c4594d4",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "recurring_reminder:9e0a3a2b-bef5-4b44-98e9-a1395ae66b4e",
+      "scheduled_for": "2026-05-20T09:30:00+00:00",
+      "status": "pending"
+    }
+  ],
+  "schedule_response": {
+    "success": true,
+    "scheduled": 2,
+    "action_morning_scheduled": 1,
+    "action_morning_followup_scheduled": 0,
+    "light_greeting_scheduled": 0,
+    "action_evening_review_scheduled": 1,
+    "weekly_planning_prompt_scheduled": 0,
+    "weekly_progress_review_scheduled": 0,
+    "skipped": 0,
+    "candidates": 1,
+    "request_id": "daily-actions-trigger-20260520-r5-schedule-only",
+    "user_id": "7ddbaf82-9683-4389-986d-c8e201d9af0c",
+    "event_context": "action_morning_encouragement_v2"
+  },
+  "scheduled_checkins": [
+    {
+      "id": "02dc1b8d-0e58-44e7-9701-e61db3b2be2c",
+      "status": "pending",
+      "origin": "action_morning",
+      "event_context": "action_morning_encouragement_v2",
+      "draft_message": "Aujourd'hui, tu as 2 actions prévues: \"Faire dix minutes de rangement ciblé\", \"Préparer le premier bloc de travail sans téléphone\". On garde ça simple et faisable.",
+      "message_mode": "dynamic",
+      "message_payload": {
+        "source": "schedule_action_morning_v2",
+        "version": 1,
+        "weekday": "wed",
+        "timezone": "Europe/Paris",
+        "local_date": "2026-05-20",
+        "instruction": "Message WhatsApp du matin.\nObjectif: encourager le user à réaliser les actions prévues aujourd'hui.\nTon: court, concret, chaleureux, pas de bilan, pas de question lourde.\nNombre d'actions prévues: 2.\nLe user a une transformation active.\nUne seule idée principale, 1 à 3 phrases maximum.",
+        "checkin_kind": "action_morning_encouragement",
+        "generated_at": "2026-05-20T12:12:47.158Z",
+        "plan_item_ids": [
+          "517221bb-5291-44aa-b186-8d82fcc3348c",
+          "27535f3c-80c5-4954-8f41-59b5f6d2a66c"
+        ],
+        "occurrence_ids": [
+          "d88ae007-b6cb-49a0-ae90-4f028a8aa77a",
+          "c14985d7-9df8-47f4-ac8c-6e0c9a820343"
+        ],
+        "chat_capability": "track_progress_only",
+        "event_grounding": "local_date=2026-05-20\nweekday=wed\ntransformation=QA actions du jour plan_id=6a7268f3-d596-4326-9716-c325c5aea2f9\n- occurrence_id=d88ae007-b6cb-49a0-ae90-4f028a8aa77a item_id=517221bb-5291-44aa-b186-8d82fcc3348c title=Faire dix minutes de rangement ciblé\n- occurrence_id=c14985d7-9df8-47f4-ac8c-6e0c9a820343 item_id=27535f3c-80c5-4954-8f41-59b5f6d2a66c title=Préparer le premier bloc de travail sans téléphone",
+        "transformations": [
+          {
+            "plan_id": "6a7268f3-d596-4326-9716-c325c5aea2f9",
+            "plan_title": "Plan QA actions du jour",
+            "occurrences": [
+              {
+                "kind": "habit",
+                "title": "Faire dix minutes de rangement ciblé",
+                "source": "weekly_confirmed",
+                "status": "planned",
+                "plan_id": "6a7268f3-d596-4326-9716-c325c5aea2f9",
+                "cycle_id": "8671124c-bf9d-4807-83e5-775407f20c5a",
+                "dimension": "habits",
+                "planned_day": "wed",
+                "time_of_day": "morning",
+                "plan_item_id": "517221bb-5291-44aa-b186-8d82fcc3348c",
+                "occurrence_id": "d88ae007-b6cb-49a0-ae90-4f028a8aa77a",
+                "transformation_id": "c92aa825-5bf0-494f-9602-1794ec84933f"
+              },
+              {
+                "kind": "habit",
+                "title": "Préparer le premier bloc de travail sans téléphone",
+                "source": "weekly_confirmed",
+                "status": "planned",
+                "plan_id": "6a7268f3-d596-4326-9716-c325c5aea2f9",
+                "cycle_id": "8671124c-bf9d-4807-83e5-775407f20c5a",
+                "dimension": "habits",
+                "planned_day": "wed",
+                "time_of_day": "afternoon",
+                "plan_item_id": "27535f3c-80c5-4954-8f41-59b5f6d2a66c",
+                "occurrence_id": "c14985d7-9df8-47f4-ac8c-6e0c9a820343",
+                "transformation_id": "c92aa825-5bf0-494f-9602-1794ec84933f"
+              }
+            ],
+            "transformation_id": "c92aa825-5bf0-494f-9602-1794ec84933f",
+            "transformation_title": "QA actions du jour"
+          }
+        ],
+        "week_start_date": "2026-05-18",
+        "reviewed_local_date": null,
+        "morning_encouragement_local_time": "08:16"
+      },
+      "scheduled_for": "2026-05-20T06:16:00+00:00",
+      "delivery_attempt_count": 0,
+      "processed_at": null
+    },
+    {
+      "id": "165e739e-eba2-483f-98a4-6dae2564bf00",
+      "status": "pending",
+      "origin": "action_review",
+      "event_context": "action_evening_review_v2",
+      "draft_message": "",
+      "message_mode": "dynamic",
+      "message_payload": {
+        "source": "schedule_action_evening_review_v2",
+        "version": 2,
+        "weekday": "wed",
+        "timezone": "Europe/Paris",
+        "local_date": "2026-05-20",
+        "generated_at": "2026-05-20T12:12:47.158Z",
+        "plan_item_ids": [
+          "517221bb-5291-44aa-b186-8d82fcc3348c",
+          "27535f3c-80c5-4954-8f41-59b5f6d2a66c"
+        ],
+        "occurrence_ids": [
+          "d88ae007-b6cb-49a0-ae90-4f028a8aa77a",
+          "c14985d7-9df8-47f4-ac8c-6e0c9a820343"
+        ],
+        "transformations": [
+          {
+            "plan_id": "6a7268f3-d596-4326-9716-c325c5aea2f9",
+            "plan_title": "Plan QA actions du jour",
+            "occurrences": [
+              {
+                "kind": "habit",
+                "title": "Faire dix minutes de rangement ciblé",
+                "source": "weekly_confirmed",
+                "status": "planned",
+                "plan_id": "6a7268f3-d596-4326-9716-c325c5aea2f9",
+                "cycle_id": "8671124c-bf9d-4807-83e5-775407f20c5a",
+                "dimension": "habits",
+                "planned_day": "wed",
+                "time_of_day": "morning",
+                "plan_item_id": "517221bb-5291-44aa-b186-8d82fcc3348c",
+                "occurrence_id": "d88ae007-b6cb-49a0-ae90-4f028a8aa77a",
+                "transformation_id": "c92aa825-5bf0-494f-9602-1794ec84933f"
+              },
+              {
+                "kind": "habit",
+                "title": "Préparer le premier bloc de travail sans téléphone",
+                "source": "weekly_confirmed",
+                "status": "planned",
+                "plan_id": "6a7268f3-d596-4326-9716-c325c5aea2f9",
+                "cycle_id": "8671124c-bf9d-4807-83e5-775407f20c5a",
+                "dimension": "habits",
+                "planned_day": "wed",
+                "time_of_day": "afternoon",
+                "plan_item_id": "27535f3c-80c5-4954-8f41-59b5f6d2a66c",
+                "occurrence_id": "c14985d7-9df8-47f4-ac8c-6e0c9a820343",
+                "transformation_id": "c92aa825-5bf0-494f-9602-1794ec84933f"
+              }
+            ],
+            "transformation_id": "c92aa825-5bf0-494f-9602-1794ec84933f",
+            "transformation_title": "QA actions du jour"
+          }
+        ],
+        "week_start_date": "2026-05-18",
+        "reviewed_local_date": "2026-05-20",
+        "selected_review_window": "today_non_late",
+        "evening_review_local_time": "19:24"
+      },
+      "scheduled_for": "2026-05-20T17:24:00+00:00",
+      "delivery_attempt_count": 0,
+      "processed_at": null
+    }
+  ]
+}

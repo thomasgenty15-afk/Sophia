@@ -1,0 +1,388 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Le truc des placards me bloque un peu. J'ai pas envie de l'enlever, mais là c'est trop massif pour démarrer.",
+    "assistant": "Je te propose de mettre une version mini de Nettoyer ton environnement direct maintenant, comme pont avant de reprendre l'action initiale. Tu veux que je l'applique ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "placards",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "difficulty": "low",
+            "duration_minutes": 5
+          },
+          "title": "Ajustement - Nettoyer ton environnement direct",
+          "scope_label": "Nettoyer ton environnement direct",
+          "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+          "bridge_action": {
+            "title": "Version mini - Nettoyer ton environnement direct",
+            "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+            "source_relation": "bridge_to_original_action",
+            "resume_original_after_completion": true
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+          "execution_strategy": "bridge_action",
+          "allowed_patch_fields": [
+            "difficulty",
+            "duration_minutes",
+            "instruction",
+            "paused"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose de mettre une version mini de Nettoyer ton environnement direct maintenant, comme pont avant de reprendre l'action initiale. Tu veux que je l'applique ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "ebe87af5-fbda-4777-8f0b-8c5e7a607571",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r2-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r2-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui vas-y, mais garde l'idée que je dois quand même le reprendre après.",
+    "assistant": "C'est fait : j'ai mis \"Version mini - Nettoyer ton environnement direct\" à la place pour l'instant. C'est une action pont de 5 minutes, difficulté basse; \"Nettoyer ton environnement direct\" reste prévue juste après, quand cette version mini est faite.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "ebe87af5-fbda-4777-8f0b-8c5e7a607571",
+      "plan_patch_id": "c001123e-67f5-4247-b95b-acf1492c3fc4",
+      "selected_handler": "adjust_plan_item",
+      "bridge_plan_item_id": "23e4ca44-0157-40f8-9c58-6587b0ccf3d1"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r2-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r2-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Tu as mis quoi exactement à la place ?",
+    "assistant": "J’ai mis “Version mini - Nettoyer ton environnement direct”. 🙂  \nL’idée c’est que tu fais juste un mini-pont de 5 minutes pour lancer l’élan, et ensuite tu reprends “Nettoyer ton environnement direct” normalement.  \n\nTu veux que je te dise exactement comment viser le “mini” pour que ce soit vraiment faisable maintenant ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "Plan: Le Plan est l'espace principal d'execution d'une transformation active. Il montre les niveaux, les semaines, les elements du plan et l'avancement.\n\nComment l'utiliser: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nCe que ca apporte:\n- Donne une vue claire de ce qui est a faire maintenant.\n- Evite de melanger les actions du moment avec toute la transformation.",
+        "status": "complete",
+        "skill_id": "product_help",
+        "diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "state_patch": {
+          "summary": "Product help answered for dashboard.plan."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "explain",
+        "recommendation_need": {
+          "type": "none",
+          "needed": false,
+          "urgency": "none",
+          "constraints": [
+            "product_help_does_not_execute_operations",
+            "operation_bridge_requires_confirmation_when_present"
+          ]
+        },
+        "operation_suggestions": []
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "product_help"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r2-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r2-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Et l'ancien truc, il est passé où dans le plan ?",
+    "assistant": "Bon, l’ancien “Nettoyer ton environnement direct”, il n’a pas disparu : il est juste en attente derrière la version mini, comme un stop-and-go pour démarrer sans te braquer. 🙂  \n\nDans le dashboard, tu le retrouveras au même endroit, mais la version mini est celle qui est active/au premier plan pour l’instant.  \nTu veux que je te dise comment le repérer précisément dans Dashboard > Plan (colonne de gauche + onglet Plan) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "Plan: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une transformation active existe. Tu peux y consulter le niveau actif, ouvrir les semaines, valider certains elements.\n\nLimites importantes:\n- Ce n'est pas un journal libre d'actions ou de bilans.\n- Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.",
+        "status": "complete",
+        "skill_id": "product_help",
+        "diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "state_patch": {
+          "summary": "Product help answered for dashboard.plan."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "how_to",
+        "recommendation_need": {
+          "type": "none",
+          "needed": false,
+          "urgency": "none",
+          "constraints": [
+            "product_help_does_not_execute_operations",
+            "operation_bridge_requires_confirmation_when_present"
+          ]
+        },
+        "operation_suggestions": []
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "product_help"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r2-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r2-t05",
+    "status": 502,
+    "ok": null,
+    "user": "Résume-moi juste le changement, version courte.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "safety_pregate": null,
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": null,
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r2-t05",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r2-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Résume-moi juste le changement, version courte.",
+    "assistant": "J’ai remplacé “Nettoyer ton environnement direct” par sa version mini, pour démarrer sans te braquer, et l’ancien reste en attente juste derrière pour après. 🙂  \nTu veux que je te dise quoi faire pour les 5 minutes du mini ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "Plan: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une transformation active existe. Tu peux y consulter le niveau actif, ouvrir les semaines, valider certains elements.\n\nLimites importantes:\n- Ce n'est pas un journal libre d'actions ou de bilans.\n- Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.",
+        "status": "complete",
+        "skill_id": "product_help",
+        "diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "state_patch": {
+          "summary": "Product help answered for dashboard.plan."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "how_to",
+        "recommendation_need": {
+          "type": "none",
+          "needed": false,
+          "urgency": "none",
+          "constraints": [
+            "product_help_does_not_execute_operations",
+            "operation_bridge_requires_confirmation_when_present"
+          ]
+        },
+        "operation_suggestions": []
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "product_help"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r2-t05",
+    "trace_error": null
+  }
+]

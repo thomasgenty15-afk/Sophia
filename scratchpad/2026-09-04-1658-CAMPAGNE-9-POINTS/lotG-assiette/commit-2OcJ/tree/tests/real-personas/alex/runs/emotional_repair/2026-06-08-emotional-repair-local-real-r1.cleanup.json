@@ -1,0 +1,23 @@
+{
+  "run_id": "2026-06-08-emotional-repair-local-real-r1",
+  "scope": "qa-emotional-repair-local-2026-06-08-emotional-repair-local-real-r1",
+  "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "cleanup_type": "targeted_qa_scope_delete",
+  "results": [
+    {
+      "table": "chat_messages",
+      "status": 200,
+      "ok": true,
+      "deleted_count": 8,
+      "response_shape": "array"
+    },
+    {
+      "table": "user_chat_states",
+      "status": 200,
+      "ok": true,
+      "deleted_count": 1,
+      "response_shape": "array"
+    }
+  ],
+  "created_at": "2026-06-08T19:22:53.882Z"
+}

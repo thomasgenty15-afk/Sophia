@@ -1,0 +1,368 @@
+/// <reference path="../../tsserver-shims.d.ts" />
+
+import { ACTIVE_CONVERSATION_SKILL_KEY } from "../skills/_shared/active_skill_state.ts";
+
+export type ActiveFlowState = {
+  activeSkillState: unknown;
+};
+
+/**
+ * LA TABLE QUI PORTE `temp_memory`, DONC L'ÉTAT DE FLOW ACTIF.
+ *
+ * Exportée depuis ICI, à côté du lecteur, parce que le seul écrivain vit dans
+ * une AUTRE fonction edge (`chat-inbound-v1`, garde 4) et que les deux se sont
+ * déjà désaccordés: l'armement écrivait dans `user_states`, qui n'existe pas.
+ * Le client PostgREST ne throw pas sur une table absente — il rend `{ error }`
+ * — donc le type-checker était muet, les tests unitaires aussi, et le seul
+ * symptôme était un flow qui ne s'armait jamais.
+ *
+ * Une constante partagée ne prouve pas que la table existe; elle garantit que
+ * l'écrivain et le lecteur se trompent ENSEMBLE, ce qui rend l'erreur visible
+ * au premier tour au lieu de la rendre silencieuse pour toujours.
+ */
+export const ACTIVE_FLOW_STATE_TABLE = "user_chat_states";
+
+export type ActiveLocalConversationFlowSkillId =
+  | "safety_crisis"
+  | "keel_reengagement_resume_v1";
+
+// W2.A: `feature_opportunity` et `potion_support_admission_v1` sont retirés du
+// registre en dur. Conséquence voulue: un état de flow résiduel déjà écrit en
+// base n'est plus reconnu comme flow actif — il ne peut ni reprendre la main,
+// ni faire sauter le dispatcher global; le tour repart en routage normal.
+const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
+  ActiveLocalConversationFlowSkillId
+>([
+  "safety_crisis",
+  "keel_reengagement_resume_v1",
+]);
+
+function legacyKey(...parts: string[]): string {
+  return parts.join("_");
+}
+
+const ACTIVE_SKILL_STATE_KEYS = [
+  ACTIVE_CONVERSATION_SKILL_KEY,
+  "__active_skill_state",
+  "active_skill_state",
+];
+
+// Ces listes sont des listes de PURGE (`clearTempMemoryKeys`), pas un registre
+// de features vivantes: une entrée existe précisément PARCE QUE la feature est
+// morte, pour balayer l'état résiduel déjà écrit en base. Les clés `defense`
+// SURVIVENT donc au retrait de la carte de défense (2026-08-07) — les retirer
+// laisserait `__active_defense_card_handoff` orphelin dans
+// `user_chat_states.temp_memory`, pour toujours et sans nettoyeur.
+const LEGACY_RUNTIME_STATE_KEYS = [
+  legacyKey("__clarification", "flow", "state"),
+  legacyKey("__status", "recap", "flow", "state", "v1"),
+  legacyKey("__flow", "opportunity", "verification", "state", "v1"),
+  legacyKey("__adjust", "plan", "handoff", "state"),
+  legacyKey("__active", "attack", "card", "handoff"),
+  legacyKey("__active", "defense", "card", "handoff"),
+  legacyKey("__recurring", "reminder", "handoff", "state"),
+  legacyKey("__coach", "preference", "flow", "state", "v1"),
+  legacyKey("__active", "tool", "skill", "intake"),
+  legacyKey("active", "tool", "skill", "intake"),
+  legacyKey("__pending", "tool", "skill", "confirmation"),
+  legacyKey("pending", "tool", "skill", "confirmation"),
+  legacyKey("__pending", "recommendation", "operation"),
+  legacyKey("pending", "recommendation", "operation"),
+  legacyKey("__suspended", "platform", "handoff", "state", "v1"),
+];
+
+const LEGACY_LOCAL_EXIT_MEMO_KEYS = [
+  legacyKey("__last", "adjust", "plan", "item", "exit", "memo"),
+  legacyKey("__last", "prepare", "attack", "card", "exit", "memo"),
+  legacyKey("__last", "prepare", "defense", "card", "exit", "memo"),
+  legacyKey("__last", "select", "state", "potion", "exit", "memo"),
+  legacyKey("__last", "update", "coach", "preferences", "exit", "memo"),
+  legacyKey("__last", "flow", "opportunity", "verification", "exit", "memo"),
+  legacyKey("__last", "status", "recap", "exit", "memo"),
+  legacyKey("__last", "emotional", "repair", "exit", "memo"),
+  legacyKey("__last", "demotivation", "repair", "exit", "memo"),
+];
+
+function readFirstTempMemoryKey(
+  tempMemory: unknown,
+  keys: readonly string[],
+): unknown {
+  const temp = (tempMemory ?? {}) as Record<string, unknown>;
+  for (const key of keys) {
+    if (temp[key] !== undefined) return temp[key];
+  }
+  return null;
+}
+
+function clearTempMemoryKeys<
+  T extends Record<string, unknown> | null | undefined,
+>(
+  tempMemory: T,
+  keys: readonly string[],
+): Record<string, unknown> {
+  const next = { ...((tempMemory ?? {}) as Record<string, unknown>) };
+  for (const key of keys) delete next[key];
+  return next;
+}
+
+function recordSkillId(value: unknown): string {
+  const record = value as any;
+  if (!record || typeof record !== "object" || Array.isArray(record)) {
+    return "";
+  }
+  return String(record.skill_id ?? "").trim();
+}
+
+// Borne de fraicheur des flows locaux: un flow actif dont le dernier tour
+// date de plus de 4h ne possede plus la conversation — le message courant
+// prime sur un vieux flow (charte anti-patching, commandement 9). Pour la
+// safety c'est sans risque: le pregate re-evalue chaque tour et re-engage
+// un flow frais si un signal reel est present.
+export const ACTIVE_LOCAL_FLOW_STALE_AFTER_MS = 4 * 60 * 60 * 1000;
+
+export function isStaleActiveLocalFlowState(
+  value: unknown,
+  nowMs: number = Date.now(),
+): boolean {
+  const record = value as any;
+  if (!record || typeof record !== "object" || Array.isArray(record)) {
+    return false;
+  }
+  // The proactive opening, not elapsed wall time, owns exactly one semantic
+  // reply. Daily/Weekly can overwrite this state; an arbitrary 4h timer may
+  // not expose the reply to the global dispatcher before local admission.
+  if (
+    String(record.skill_id ?? "") === "potion_support_admission_v1" &&
+    record.working_state?.potion_support_admission?.awaiting_first_reply === true
+  ) return false;
+  // ⚠️ LE CARVE-OUT DU RÉENGAGEMENT EST INERTE AUJOURD'HUI — vérifié en base.
+  //
+  // Il a été restauré en phase B sur l'argument du winback : « un élève répond
+  // à une relance plusieurs JOURS après son armement, un timer de 4 h le tue
+  // avant ». L'argument était juste POUR LE WINBACK, qui armait à l'ENVOI.
+  //
+  // Ce flow-ci arme à la RÉPONSE (`chat-inbound-v1`, garde 4, à la fermeture de
+  // l'épisode). Mesuré : entre la relance et la réponse, `temp_memory` ne porte
+  // AUCUN état de flow ; l'état naît et se consomme dans la même requête, donc
+  // `updated_at` vaut toujours ~maintenant et la borne de 4 h ne peut pas être
+  // franchie. C'est l'ÉPISODE qui porte l'attente, pas l'état de flow.
+  //
+  // Ce qui tient réellement le délai est donc ailleurs, et c'est prouvé :
+  // épisode ouvert 3 jours → réponse → `response_owner` =
+  // `keel_reengagement_resume_v1`, cadre rendu, épisode fermé `reengaged`.
+  //
+  // ── POURQUOI ON LE GARDE QUAND MÊME ─────────────────────────────────────────
+  // Même arbitrage que `no_tooling.product_help_called` dans le contrat safety :
+  // une garde inerte coûte trois lignes, la retirer coûte une panne silencieuse
+  // le jour où l'armement bouge. CONDITION DE SUPPRESSION, explicite : si
+  // l'armement passe un jour à l'ENVOI de la relance (ce qui exposerait l'état
+  // pendant des jours), ce carve-out redevient indispensable — le supprimer
+  // avant ce changement est sûr, le supprimer après ne l'est pas.
+  //
+  // Il est nommé INERTE ici plutôt que décrit comme une protection, parce que
+  // ce dépôt a déjà payé plusieurs fois une ceinture qui se lisait comme armée.
+  if (
+    String(record.skill_id ?? "") === "keel_reengagement_resume_v1" &&
+    record.working_state?.keel_reengagement_resume_local_state
+        ?.awaiting_first_reply === true
+  ) return false;
+  const touchedAt = Date.parse(
+    String(record.updated_at ?? record.started_at ?? ""),
+  );
+  // Sans timestamp exploitable, le flow est conserve: la fraicheur ne doit
+  // jamais casser un flow legitime a cause d'un state partiel.
+  if (!Number.isFinite(touchedAt)) return false;
+  return nowMs - touchedAt > ACTIVE_LOCAL_FLOW_STALE_AFTER_MS;
+}
+
+function activeLocalConversationSkillId(
+  value: unknown,
+): ActiveLocalConversationFlowSkillId | "" {
+  const skillId = recordSkillId(value);
+  const record = value as any;
+  const status = record && typeof record === "object" && !Array.isArray(record)
+    ? String(record.status ?? "").trim().toLowerCase()
+    : "";
+  const terminalStatuses = new Set([
+    "completed",
+    "done",
+    "closed",
+    "stopped",
+    "cancelled",
+    "canceled",
+    "deferred",
+    "exit_to_global",
+    "exiting",
+  ]);
+  if (terminalStatuses.has(status)) return "";
+  if (isStaleActiveLocalFlowState(value)) return "";
+  return ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS.has(
+      skillId as ActiveLocalConversationFlowSkillId,
+    )
+    ? skillId as ActiveLocalConversationFlowSkillId
+    : "";
+}
+
+export function readActiveFlowState(tempMemory: unknown): ActiveFlowState {
+  const activeSkillState = readFirstTempMemoryKey(
+    tempMemory,
+    ACTIVE_SKILL_STATE_KEYS,
+  );
+  return {
+    activeSkillState: activeLocalConversationSkillId(activeSkillState)
+      ? activeSkillState
+      : null,
+  };
+}
+
+/**
+ * LES FLOWS QUI CLASSENT LEUR PROPRE TOUR — et eux seuls sautent le dispatcher.
+ *
+ * Un flow ne peut se passer du dispatcher global que s'il porte SON PROPRE
+ * classifieur. `safety_crisis` en a un (`skills/safety_crisis/local_dispatcher.ts`).
+ *
+ * `keel_reengagement_resume_v1` n'en a pas: c'est un renderer déterministe, il
+ * ne lit du message que s'il est vide. Le sauter revenait donc à ce que PERSONNE
+ * ne classe le tour.
+ *
+ * ── CE QUE ÇA COÛTAIT, MESURÉ EN RUN RÉEL (2026-08-06) ───────────────────────
+ * Élève relancé, cadre armé, puis :
+ *
+ *   « Je suis là. J'ai repris le magnésium hier soir d'ailleurs. »
+ *      → cadre rendu, `protocol_events` : 0 ligne.               ✘
+ *
+ * Le même message, flow purgé, sur le tour suivant :
+ *      → `protocol_events` : 1 ligne, `substance_ref = magnesium_glycinate`. ✔
+ *
+ * Le fait rapporté par l'élève était PERDU — silencieusement, et précisément
+ * sur le tour où il revient. `routers.ts` porte pourtant le commentaire « les
+ * effets directs passent SANS fermer le flow » : il décrivait un code qui ne
+ * pouvait pas s'exécuter, puisque `direct_effects_to_run` se lit dans un
+ * `turn_frame` que plus personne ne remplissait.
+ *
+ * Liste POSITIVE et non une négation: un flow neuf ne saute rien tant que
+ * quelqu'un n'a pas écrit son classifieur et ne l'a pas inscrit ici.
+ */
+const FLOWS_WITH_THEIR_OWN_DISPATCHER = new Set<string>([
+  "safety_crisis",
+]);
+
+export function shouldSkipGlobalDispatcherForActiveLocalFlow(args: {
+  activeSkillState: unknown;
+}): boolean {
+  const skillId = activeLocalConversationSkillId(args.activeSkillState);
+  return skillId !== "" && FLOWS_WITH_THEIR_OWN_DISPATCHER.has(skillId);
+}
+
+export function clearLegacyRuntimeState<
+  T extends Record<string, unknown> | null | undefined,
+>(tempMemory: T): Record<string, unknown> {
+  return clearTempMemoryKeys(tempMemory, LEGACY_RUNTIME_STATE_KEYS);
+}
+
+export function clearActiveConversationSkillState<
+  T extends Record<string, unknown> | null | undefined,
+>(tempMemory: T): Record<string, unknown> {
+  return clearTempMemoryKeys(tempMemory, ACTIVE_SKILL_STATE_KEYS);
+}
+
+export function clearLegacyRuntimeStateForDirectEffect(tempMemory: any): any {
+  let next = clearLegacyRuntimeState(tempMemory);
+  for (const key of Object.keys(next)) {
+    if (key.includes("followup_consent")) delete next[key];
+  }
+  return next;
+}
+
+function compactRuntimeString(value: unknown): string | null {
+  const text = String(value ?? "").trim();
+  return text ? text.slice(0, 160) : null;
+}
+
+function compactStructuredLocalHandoff(
+  record: Record<string, unknown>,
+): {
+  flow_summary: string | null;
+  handoff_hint_for_global_dispatcher: string | null;
+} {
+  const handoffHint = record.handoff_hint_for_global_dispatcher &&
+      typeof record.handoff_hint_for_global_dispatcher === "object"
+    ? record.handoff_hint_for_global_dispatcher as Record<string, unknown>
+    : {};
+  const likelyIntent = compactRuntimeString(record.recommended_next_focus) ??
+    compactRuntimeString(handoffHint.likely_intent);
+  const why = compactRuntimeString(handoffHint.why) ??
+    compactRuntimeString(record.reason);
+  return {
+    flow_summary: compactRuntimeString(record.user_message_summary) ??
+      compactRuntimeString(record.flow_summary) ??
+      compactRuntimeString(record.user_intent_summary),
+    handoff_hint_for_global_dispatcher: [likelyIntent, why].filter(Boolean)
+      .join(": ") || null,
+  };
+}
+
+export function buildLastLocalFlowExitContext(
+  tempMemory: unknown,
+): Record<string, unknown> | null {
+  type LocalFlowExitContext = {
+    operation_type: string;
+    reason: string;
+    flow_summary: string | null;
+    handoff_hint_for_global_dispatcher: string | null;
+    note_information: Record<string, unknown> | null;
+    at: string | null;
+  };
+  const temp = (tempMemory ?? {}) as Record<string, unknown>;
+  const candidates: Array<{ operation_type: string; memo: unknown }> = [
+    {
+      operation_type: "whatsapp_onboarding",
+      memo: temp.__last_whatsapp_onboarding_exit_memo,
+    },
+    // W2.A: memos `feature_opportunity` et `potion_support_admission_v1`
+    // retirés des candidats — un mémo résiduel en base ne doit plus produire de
+    // hint de handoff vers une lane désactivée. Les clés restent purgées par
+    // `clearLastLocalFlowExitContext` ci-dessous.
+    {
+      operation_type: "safety_crisis",
+      memo: temp.__last_safety_crisis_exit_memo,
+    },
+  ];
+  const valid: LocalFlowExitContext[] = candidates
+    .map((candidate) => {
+      const memo = candidate.memo;
+      if (!memo || typeof memo !== "object" || Array.isArray(memo)) {
+        return null;
+      }
+      const record = memo as Record<string, unknown>;
+      const structuredLocalMemo = compactStructuredLocalHandoff(record);
+      return {
+        operation_type: candidate.operation_type,
+        reason: compactRuntimeString(record.reason) ?? "topic_change",
+        flow_summary: structuredLocalMemo.flow_summary,
+        handoff_hint_for_global_dispatcher:
+          structuredLocalMemo.handoff_hint_for_global_dispatcher,
+        note_information: record.note_information &&
+            typeof record.note_information === "object" &&
+            !Array.isArray(record.note_information)
+          ? record.note_information as Record<string, unknown>
+          : null,
+        at: compactRuntimeString(record.at),
+      };
+    })
+    .filter((value): value is LocalFlowExitContext => value !== null);
+  if (valid.length === 0) return null;
+  valid.sort((a, b) => String(b.at ?? "").localeCompare(String(a.at ?? "")));
+  return valid[0];
+}
+
+export function clearLastLocalFlowExitContext<
+  T extends Record<string, unknown> | null | undefined,
+>(tempMemory: T): Record<string, unknown> {
+  const next = clearTempMemoryKeys(tempMemory, LEGACY_LOCAL_EXIT_MEMO_KEYS);
+  delete next.__last_whatsapp_onboarding_exit_memo;
+  delete next.__last_potion_support_admission_exit_memo;
+  delete next.__last_feature_opportunity_exit_memo;
+  delete next.__last_safety_crisis_exit_memo;
+  return next;
+}

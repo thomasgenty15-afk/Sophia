@@ -94,7 +94,10 @@ import type { CountingStance } from "./energy_gate.ts";
  *   `no_day_target`   aucune cible de journée (voir `reason` de l'ancre) ;
  *   `no_slot_share`   le moment n'a aucun poids dans le rythme — jeton hors de
  *                     la liste fermée ;
- *   `no_plate_bounds` aucune borne d'assiette lisible pour ce corps.
+ *   `no_plate_bounds` aucune borne d'assiette lisible pour ce corps ;
+ *   `density_infeasible` ⟳ 2026-09-14 · BÊTA 1B ③ — LA PART NE TIENT PAS DANS
+ *                     L'ASSIETTE, et la redistribution de la journée n'y a rien
+ *                     changé. Voir le pavé ci-dessous.
  */
 export const SLOT_CONTRACT_STATUSES = [
   "computed",
@@ -102,6 +105,32 @@ export const SLOT_CONTRACT_STATUSES = [
   "no_day_target",
   "no_slot_share",
   "no_plate_bounds",
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-14 · BÊTA 1B ③ — « CALCULÉ » ET « CALCULÉ MAIS IMPOSSIBLE »
+   *                ÉTAIENT LE MÊME MOT
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE DÉFAUT, C'EST LE POINT ⑨ DE LA CLÔTURE DU 2026-09-14, CHIFFRÉ. Nils
+   * porte 4 099 kcal sur deux repas sous un plafond de masse de 700 g: il
+   * faudrait 312 kcal/100 g. `densityCorridorFor` calcule bien ce besoin, pose
+   * `incompatible: "above_askable_cap"` — puis RABAT les deux extrémités du
+   * couloir sur `MAX_ASKABLE_DENSITY_PER_100G`. Le contrat sortait `computed`,
+   * le prompt emportait le point unique 250, le produit servait 312 et la
+   * garde écrivait `conforme`. Personne, à aucun moment, ne disait que la
+   * demande était hors de portée.
+   *
+   * ⛔ ET LE PLAFOND N'EST PAS RELEVÉ POUR AUTANT. Le plan de bêta l'interdit
+   * en toutes lettres: « ne pas le relever pour faire passer Nils ; si la
+   * demande dépasse la capacité acceptée du produit, elle doit être traitée
+   * AVANT l'appel fournisseur ». Ce statut est ce traitement: il rend la
+   * demande LISIBLE là où elle se décide, au lieu de la déguiser en consigne.
+   *
+   * ⚠️ IL EST POSÉ APRÈS LA RELÂCHE, JAMAIS AVANT. `relaxDayForCorridors`
+   * déplace ce qu'elle peut entre les cases couvertes; ce statut ne décrit que
+   * ce qui RESTE impossible une fois ce déplacement fait.
+   */
+  "density_infeasible",
 ] as const;
 export type SlotContractStatus = (typeof SLOT_CONTRACT_STATUSES)[number];
 
@@ -160,6 +189,28 @@ export interface SlotNutritionContract {
    * pas la journée entière.
    */
   coveredBudgetKcal: number | null;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-12 · ÉTAPE C1 — LE MÊME BUDGET COUVERT, **AVANT** LE RETRAIT
+   * DES APPORTS FIXES.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ IL EXISTE POUR EMPÊCHER UN DOUBLE COMPTAGE, ET LE PLAN LE NOMME :
+   * « calculer la part protéique couverte **avant** la soustraction des apports
+   * fixes, puis retirer leurs protéines **une fois** ; ne pas réduire
+   * simultanément le besoin par un ratio énergétique déjà net **et** par une
+   * deuxième soustraction protéique ».
+   *
+   * `coveredBudgetKcal` est NET : le shaker en est déjà sorti. L'utiliser comme
+   * numérateur de la fraction `couvert / journée` fait donc DÉJÀ baisser le
+   * plancher protéique — et lui retrancher ensuite les protéines du shaker le
+   * ferait baisser une seconde fois, pour le même pot. La fraction se calcule
+   * sur CE nombre-ci ; la soustraction protéique se fait une fois, après.
+   *
+   * ⚠️ SANS APPORT FIXE, LES DEUX SONT ÉGAUX, à l'octet. C'est la propriété qui
+   * rend ce champ ajoutable sans changer un seul plan existant.
+   */
+  coveredBudgetGrossKcal: number | null;
   /** Ce que les apports fixes retranchent de CETTE case. Jamais négatif. */
   fixedKcal: number;
   /** La part de la journée qui tombe sur ce moment, AVANT retrait des apports fixes. */
@@ -198,6 +249,15 @@ export interface SlotContractCounters {
   fixed_covered: number;
   /** Celles dont le besoin a été raboté par `MAX_ASKABLE_DENSITY_PER_100G`. */
   capped: number;
+  /**
+   * ⟳ 2026-09-14 · BÊTA 1B ③ — CELLES DONT LA PART NE TIENT PAS DANS
+   * L'ASSIETTE, la relâche faite. Voir le statut `density_infeasible`.
+   *
+   * ⚠️ CE N'EST PAS `capped`. Une case peut être rabotée par le plafond sans
+   * être impossible (le besoin le frôle); celle-ci le DÉPASSE. Les confondre
+   * ferait refuser des demandes tenables ou en laisser passer d'intenables.
+   */
+  density_infeasible: number;
   /** Les journées dont l'énergie a été déplacée pour rendre un couloir tenable. */
   relaxed_days: number;
   /** Pourquoi une journée n'a pas pu être relâchée. */
@@ -250,6 +310,7 @@ function emptyCounters(): SlotContractCounters {
     slots: 0,
     fixed_covered: 0,
     capped: 0,
+    density_infeasible: 0,
     relaxed_days: 0,
     relax_refused: {},
   };
@@ -330,6 +391,7 @@ export function slotContractsFor(args: {
           lockedSlots: [...d.lockedSlots],
           dayTargetKcal: null,
           coveredBudgetKcal: null,
+          coveredBudgetGrossKcal: null,
           fixedKcal: 0,
           mealTargetKcal: null,
           composeKcal: null,
@@ -366,6 +428,15 @@ export function slotContractsFor(args: {
     // ── ② CE QUE LA FENÊTRE COUVRE, AVANT TOUT ARRONDI ──────────────────
     let coveredBudget = 0;
     for (const slot of covered) coveredBudget += withFixed.bySlot.get(slot) ?? 0;
+    // ⟳ 2026-09-12 · C1 — LE MÊME TOTAL, SUR LES MÊMES CASES, SANS LE RETRAIT.
+    // ⛔ `withoutFixed` EST DÉJÀ CALCULÉ (deuxième appel de `slotPlanTargets`
+    // ci-dessus) : cette boucle ne fait que le SOMMER. Refaire ici une
+    // soustraction à la main serait la troisième arithmétique de la part d'un
+    // moment, celle que l'en-tête de ce bloc interdit nommément.
+    let coveredBudgetGross = 0;
+    for (const slot of covered) {
+      coveredBudgetGross += withoutFixed.bySlot.get(slot) ?? 0;
+    }
 
     // ── ③ LES BORNES, PUIS LE COULOIR ───────────────────────────────────
     const targets = new Map<string, number>();
@@ -442,6 +513,7 @@ export function slotContractsFor(args: {
         lockedSlots: [...locked],
         dayTargetKcal: day.kcal,
         coveredBudgetKcal: coveredBudget,
+        coveredBudgetGrossKcal: coveredBudgetGross,
         fixedKcal: Math.max(0, d.fixedKcalBySlot?.get(slot) ?? 0),
         mealTargetKcal: withoutFixed.bySlot.get(slot) ?? null,
         abstainReason: null,
@@ -494,13 +566,22 @@ export function slotContractsFor(args: {
       if (corridor !== null && corridor.minPer100G === MAX_ASKABLE_DENSITY_PER_100G) {
         counters.capped++;
       }
+      // ⟳ 2026-09-14 · BÊTA 1B ③ — voir le pavé de `density_infeasible`. On lit
+      // le motif que `densityCorridorFor` pose DÉJÀ, on n'en recalcule aucun.
+      if (corridor !== null && corridor.incompatible === "above_askable_cap") {
+        counters.density_infeasible++;
+      }
       contracts.push({
         ...base,
         composeKcal: target,
         redistributedKcal: target - planned,
         bounds,
         corridor,
-        status: corridor === null ? "no_plate_bounds" : "computed",
+        status: corridor === null
+          ? "no_plate_bounds"
+          : corridor.incompatible === "above_askable_cap"
+          ? "density_infeasible"
+          : "computed",
       });
     }
   }
@@ -533,6 +614,107 @@ export function slotContractsFor(args: {
  *
  * PURE: no I/O, no clock, no randomness.
  */
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-14 · BÊTA 1B ③/⑤ — LA DEMANDE INTENABLE, DITE AVANT L'APPEL
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * CE QUE LA PERSONNE PEUT CHANGER POUR RENDRE SA DEMANDE TENABLE.
+ *
+ * ⛔ TROIS SORTIES, ET CE SONT TOUTES DES CHOSES QU'ELLE A DÉJÀ DÉCLARÉES. Le
+ * plan de bêta l'exige: « exposer une demande incompatible et une action UI
+ * concrète : modifier la répartition, le réglage léger ou ajouter un créneau.
+ * Toute modification d'un choix utilisateur doit être visible et validée par
+ * lui. Ne pas baisser sa cible calorique ou agrandir ses bornes silencieusement. »
+ *
+ *   · `add_slot`     — sa journée n'a pas assez de moments pour porter ce
+ *                      qu'elle mange. C'est la sortie la plus fréquente et la
+ *                      seule qui n'enlève rien.
+ *   · `unset_light`  — elle a marqué ce moment « repas léger », ce qui BAISSE
+ *                      la borne de masse. Le retirer rouvre l'assiette.
+ *   · `raise_appetite` — son appétit déclaré borne la masse; le monter l'ouvre.
+ *
+ * ⚠️ AUCUN CHIFFRE NE SORT D'ICI, ET C'EST DÉLIBÉRÉ. Ces motifs traversent
+ * jusqu'à l'écran, où les objectifs et les calories de quelqu'un peuvent être
+ * protégés. Le moteur dit QUOI CHANGER, jamais combien il manque.
+ */
+export const INFEASIBLE_DEMAND_ACTIONS = [
+  "add_slot",
+  "unset_light",
+  "raise_appetite",
+] as const;
+export type InfeasibleDemandAction = (typeof INFEASIBLE_DEMAND_ACTIONS)[number];
+
+export interface InfeasibleDemand {
+  readonly memberId: string;
+  readonly date: string;
+  readonly dayToken: string;
+  readonly slot: string;
+  /** Le moment porte la marque « repas léger » de cette personne. */
+  readonly light: boolean;
+  /** Combien de moments sa journée compte — le dénominateur de sa part. */
+  readonly rhythmSlots: number;
+  /** Les gestes qui peuvent rendre la demande tenable, du plus sûr au moins. */
+  readonly actions: readonly InfeasibleDemandAction[];
+}
+
+/**
+ * LES CASES DONT LA DEMANDE NE TIENT PAS, ET CE QU'ON PEUT Y FAIRE.
+ *
+ * ⛔ ELLE NE DÉCIDE RIEN ET N'ÉCRIT RIEN. L'appelant, voyant une liste non
+ * vide, s'abstient d'appeler le modèle — et c'est cette abstention-là qui est
+ * la garde, pas cette fonction. Même posture que `finalGateDelivery`.
+ *
+ * ⚠️ `appetite` ARRIVE PAR L'APPELANT, jamais relu ici: c'est le MÊME champ
+ * que `plateBoundsFor` a consommé pour poser la borne. Deux lectures d'une même
+ * déclaration finiraient par proposer un geste qui ne change rien.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function infeasibleDemands(args: {
+  readonly sets: readonly SlotContractSet[];
+  /** L'appétit déclaré par bouche. `null` = rien de déclaré ⇒ le monter est ouvert. */
+  readonly appetiteByMouth: ReadonlyMap<string, string | null>;
+}): InfeasibleDemand[] {
+  const out: InfeasibleDemand[] = [];
+  for (const set of args.sets) {
+    for (const c of set.contracts) {
+      if (c.status !== "density_infeasible") continue;
+      const actions: InfeasibleDemandAction[] = [];
+      // ⛔ L'ORDRE EST CELUI DU MOINDRE RENONCEMENT. Ajouter un moment ne
+      // retire rien à personne; retirer « léger » et monter l'appétit défont
+      // tous deux une déclaration de la personne.
+      if (c.rhythmSlots.length < MAX_RHYTHM_SLOTS_FOR_ADVICE) {
+        actions.push("add_slot");
+      }
+      if (c.light) actions.push("unset_light");
+      const appetite = args.appetiteByMouth.get(c.memberId) ?? null;
+      if (appetite !== "large") actions.push("raise_appetite");
+      out.push({
+        memberId: c.memberId,
+        date: c.date,
+        dayToken: c.dayToken,
+        slot: c.slot,
+        light: c.light,
+        rhythmSlots: c.rhythmSlots.length,
+        actions,
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * ⚠️ LE NOMBRE DE MOMENTS AU-DESSUS DUQUEL « AJOUTE UN CRÉNEAU » N'EST PLUS UN
+ * CONSEIL. Six moments, c'est le rythme le plus large que l'écran propose
+ * (`SLOT_DAY_WEIGHT` en couvre six depuis fin août): au-delà, le geste n'existe
+ * pas, et le proposer enverrait la personne chercher un bouton absent.
+ *
+ * ⛔ EXPORTÉE POUR ÊTRE ÉPINGLÉE, pas pour être réglée: un test la lit, et un
+ * commit ultérieur la déplacerait DÉLIBÉRÉMENT.
+ */
+export const MAX_RHYTHM_SLOTS_FOR_ADVICE = 6;
+
 export function mergeSlotContractSets(
   sets: readonly SlotContractSet[],
 ): SlotContractSet {
@@ -660,6 +842,12 @@ export function requiredDensityFromContracts(
   }
 
   const kept: SlotDensity[] = [];
+  /**
+   * ⟳ 2026-09-12 · ÉTAPE C4 — LE PLANCHER DE LA CLASSE D'UNE LIGNE.
+   * ⚠️ `light` porte déjà la classe: la relire évite de retenir le `floor` de
+   * la boucle, qui n'existe plus au moment où les compteurs se calculent.
+   */
+  const floorOf = (d: SlotDensity) => d.light ? floors.light : floors.normal;
   let split = 0;
   for (const [slot, rows] of bySlot) {
     const isLight = rows.some((r) => r.light);
@@ -680,7 +868,28 @@ export function requiredDensityFromContracts(
         preferredPer100G: c.preferredPer100G,
         neededMinPer100G: c.neededMinPer100G,
         incompatible: c.incompatible,
-        redundantMin: !(c.minPer100G > floor),
+        // ══════════════════════════════════════════════════════════════════
+        // ⟳ 2026-09-12 · ÉTAPE C4 — « REDONDANT » VEUT DIRE **ÉGAL**, PAS
+        // « PAS PLUS HAUT »
+        // ══════════════════════════════════════════════════════════════════
+        //
+        // ⛔ LA VERSION D'AVANT ÉTAIT `!(c.minPer100G > floor)`, et elle
+        // confondait deux situations opposées. À `min === floor`, la phrase
+        // commune du bloc dit déjà le nombre: le répéter en face d'un nom
+        // n'ajoute rien, et « un brief qui répète cesse d'être lu ». À
+        // `min < floor`, la phrase commune dit un nombre PLUS HAUT que le
+        // contrat — et la ligne qui l'aurait corrigé ne sortait pas. Mesuré au
+        // tir n° 3 du 2026-09-11: petit-déjeuner de 613,5 kcal à grand
+        // appétit, minimum réel **91**, consigne lue **100**, recettes rendues
+        // à 94 et 99 — comptées comme des violations par un rapport qui lisait
+        // la consigne, acceptées par la garde qui lit le contrat.
+        //
+        // ⛔ ON NE REMONTE PAS LE CONTRAT À 100. Le plan de clôture l'écrit:
+        // « ne pas réparer ces recettes sur la base du faux seuil de 100 ».
+        // C'est la consigne qui s'aligne — voir `DENSITY_CONSEQUENCE`, qui
+        // porte désormais la règle de préséance.
+        redundantMin: c.minPer100G === floor,
+
         occurrences: cluster.days.length,
         light: isLight,
         targetAnchoredPer100G: c.targetAnchoredPer100G,
@@ -698,7 +907,13 @@ export function requiredDensityFromContracts(
 
   const counters = {
     slots: set.counters.slots,
-    above_floor: kept.filter((d) => !d.redundantMin).length,
+    // ⟳ 2026-09-12 · ÉTAPE C4 — LE COMPTEUR REDEVIENT CE QUE SON NOM DIT.
+    // ⛔ `!redundantMin` COMPTAIT AUSSI LES MOMENTS SOUS LE PLANCHER depuis que
+    // `redundantMin` distingue les deux cas. Un compteur nommé « au-dessus du
+    // plancher » qui compte aussi ceux d'en dessous est un compteur qu'on lit
+    // à l'envers — et ce fichier en a déjà payé un.
+    above_floor: kept.filter((d) => d.minPer100G > floorOf(d)).length,
+    below_floor: kept.filter((d) => d.minPer100G < floorOf(d)).length,
     days_varied: daysVaried,
     capped: kept.filter((d) => d.kcalPer100G === MAX_ASKABLE_DENSITY_PER_100G)
       .length,

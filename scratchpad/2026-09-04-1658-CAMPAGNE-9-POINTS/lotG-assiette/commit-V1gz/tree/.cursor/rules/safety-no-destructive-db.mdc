@@ -1,0 +1,45 @@
+---
+description: Block destructive database and git commands
+alwaysApply: true
+---
+
+# Safety: No Destructive Commands
+
+Hard rules for this repository:
+
+- Never run database reset/destructive commands.
+- Never run destructive git commands.
+- Never run any remote Git/Supabase command automatically.
+- Require explicit user confirmation before any risky operation.
+
+## Forbidden commands
+
+- `supabase db reset`
+- `supabase db wipe`
+- `supabase db drop`
+- `supabase migration repair` (unless user explicitly asks for it)
+- `psql ... DROP DATABASE ...`
+- `git reset --hard`
+- `git checkout --`
+- `git clean -fd`
+- any command containing `DROP SCHEMA`, `DROP DATABASE`, `TRUNCATE` in production
+
+## Remote operations (strict allowlist)
+
+The agent must treat the following as remote/risky and NEVER run them unless the user explicitly asks in the same message:
+
+- Any `git push`, `git pull`, `git fetch`, `git clone`, `gh *`
+- Any `supabase link`, `supabase db push`, `supabase db reset`, `supabase functions deploy`
+- Any command using `--linked` or `--project-ref`
+
+If not explicitly requested, do not execute.
+
+## Risky operations policy
+
+Before running any operation that can modify remote data (database, auth users, migrations, deployment), the agent must:
+
+1. Explain exactly what will run.
+2. Ask for explicit confirmation in one message.
+3. Run only the confirmed command.
+
+If the user does not explicitly confirm, do not execute.

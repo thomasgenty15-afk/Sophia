@@ -1,0 +1,25 @@
+╔══════════════════════════════════════════════════════════════════╗
+║ LOT F ⑤ · TIR n° 3
+╚══════════════════════════════════════════════════════════════════╝
+   PERTE · grand appétit · journées entières
+   compte        lotf.camp3.c6@keeltest.dev
+   contexte      2026-09-12 03:50 (Europe/Paris) · 2026-09-12T01:50:23.146Z
+   fenêtre       3 jours, intent=prepare_next
+   CASES ANNONCÉES : 9 cases × 1 bouche(s) = 9 parts attendues
+   grille        {"sat":["breakfast","lunch","dinner"],"sun":["breakfast","lunch","dinner"],"mon":["breakfast","lunch","dinner"]}
+   dérivation    plan_hours.ts + meal_plan_window.ts, appelées à 03:50 : fenêtre de 3 jour(s) depuis 2026-09-12
+   ⛔ CE NOMBRE NE VIENT PAS DES PLATS. Une case sans plat restera attendue, et se comptera absente.
+   ⚠️ L'HORLOGE N'EST PAS INJECTABLE ICI : ce tir part par Kong, dans le processus de `functions serve`. Le cas « fenêtre d'après-midi » se prouve au banc ② (`banc-lot-F.ts --horloge=…`), pas ici.
+
+   ⏳ appel réel en cours — modèle facturé, aucune relance automatique…
+
+── RÉPONSE ───────────────────────────────────────────────
+   statut        422
+   durée totale  218528 ms
+   plafond hébergé 150000 ms → ⛔ COUPÉ EN PRODUCTION (68528 ms de trop)
+   plan          (aucun)
+   corps         {"error":"plan_not_deliverable","refusals":[{"cause":"ingredient_not_bought","day":null,"slot":null,"member_id":null,"term":"blancs d'œuf","detail":"« blancs d'œuf » n'est ni sur la liste de courses ni au garde-manger (aucune ligne de courses, aucun garde-manger)"}],"unevaluated":["title_promises_missing_preparation","mouth_energy_short"],"incomplete":[{"control":"mouth_energy","count":1}],"validation":{"version":1,"state":"non_livrable","defects":[{"cause":"ingredient_not_bought","severity":"refuse","blocking":true,"day":null,"slot":null,"member_id":null,"dish":null,"term":"blancs d'œuf","number_protected":false}],"incomplete":[{"control":"mouth_energy","count":1}],"not_applicable":[],"not_run":["title_promises_missing_preparation","mouth_energy_short"],"counts":{"blocking":1,"gaps":0,"incomplete":1,"not_applicable":0,"not_run":2},"repair":{"rounds":3,"calls_made":1,"defects_at_delivery":1,"by_kind":{"missing_meal":1},"by_source":{"gate":1,"output_contract":0,"quantities":0}}},"request_id":"b6dba4b5-b65d-4137-815e-459639eddb21"}
+   premier jet du modèle : 29646 caractères · réparations archivées : 1 · prompt : 24346 car.
+
+   sortie écrite : /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir3-c6-2026-09-12T01-50-23-146Z.json
+   ⛔ AUCUNE RELANCE AUTOMATIQUE. Si ce tir a échoué, il reste échoué ; c'est le plan du chantier qui l'exige.

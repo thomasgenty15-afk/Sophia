@@ -1,0 +1,350 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "9d23a39d-539d-414c-ac53-d621df90466f",
+        "role": "user",
+        "content": "Je crois que je veux une potion, mais je ne sais pas laquelle. J'ai l'impression d'être tendu et de perdre le fil, comme si je devais à la fois me calmer et me remettre en route.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T12:59:31.090038+00:00"
+      },
+      {
+        "id": "8e9b255d-be31-4e8e-9f7b-f942db9d3f20",
+        "role": "assistant",
+        "content": "Est-ce que tu veux choisir une potion pour changer d'état ou est-ce que tu cherches un soutien émotionnel ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-05T12:59:53.271634+00:00"
+      },
+      {
+        "id": "3741f597-eaba-46d3-adcb-97fe82ae0b1c",
+        "role": "user",
+        "content": "Oui, je veux bien choisir une potion. Je ne veux pas juste être rassuré, je veux trouver laquelle correspond à cet état.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:00:08.635729+00:00"
+      },
+      {
+        "id": "1b367973-9bb9-486f-8091-0594bd59bcb5",
+        "role": "assistant",
+        "content": "Je comprends. Pour t'aider à choisir, est-ce que tu as plus besoin d'une Potion d'apaisement pour redescendre en pression, ou d'une Potion anti-décrochage pour te remettre en route ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "collecting",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_collecting",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_collecting",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-05T13:00:25.174307+00:00"
+      },
+      {
+        "id": "49d69608-7175-452c-81c8-fb034b9ec4c0",
+        "role": "user",
+        "content": "Là, c'est vraiment la pression d'abord. Mon corps reste en alerte, je suis serré, et si je repars trop vite je sens que je vais juste forcer.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:00:43.224485+00:00"
+      },
+      {
+        "id": "6abc6ad1-d59f-43b7-8ecb-c67d99c6ac07",
+        "role": "assistant",
+        "content": "Je comprends que tu te sens stressé. Qu'est-ce qui te met le plus sous pression là ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_clarifying",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_clarifying",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-05T13:01:04.187499+00:00"
+      },
+      {
+        "id": "7a9b5282-d91a-413b-b11c-9fbe160a1609",
+        "role": "user",
+        "content": "C'est surtout l'accumulation des messages et des attentes autour de moi. J'ai l'impression que tout arrive en même temps et que je n'ai plus d'espace.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:01:19.114426+00:00"
+      },
+      {
+        "id": "68c77e62-bd99-4571-a02e-e5fcaee9a91f",
+        "role": "assistant",
+        "content": "Tu te sens plutôt comment ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_clarifying",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_clarifying",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-05T13:01:50.479357+00:00"
+      },
+      {
+        "id": "62431e90-32b5-4d66-acf2-7c7caa09395f",
+        "role": "user",
+        "content": "Je me sens à cran, un peu comprimé, comme si je devais redescendre avant de pouvoir réfléchir correctement.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:02:07.847402+00:00"
+      },
+      {
+        "id": "541b3261-a48e-4be6-9129-a1a46266e85d",
+        "role": "assistant",
+        "content": "Ce que je comprends : l'accumulation des messages et des attentes autour de moi, l'impression que tout arrive en même temps et que je n'ai plus d'espace ; a_cran\n\nJe te conseille de choisir Potion d'apaisement. Le shift recommandé est de redescendre la pression avant de reprendre.\n\nPourquoi cette potion : Tu te sens à cran et comprimé par l'accumulation des messages et des attentes, et tu as besoin de redescendre pour retrouver de l'espace.\nPetit pas immédiat : Je comprends que tu te sentes à cran et comprimé en ce moment. Prends une grande inspiration avec moi. Laisse l'air remplir tes poumons, puis expire lentement. Juste un instant pour relâcher un peu la pression.\n\nÀ mettre dans la plateforme :\nPotion : Potion d'apaisement\n- Qu'est-ce qui te met le plus sous pression la ? l'accumulation des messages et des attentes autour de moi, l'impression que tout arrive en même temps et que je n'ai plus d'espace\n- Tu te sens plutot comment ? A cran\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n1-r1-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion d'apaisement",
+                    "immediate_step": "Je comprends que tu te sentes à cran et comprimé en ce moment. Prends une grande inspiration avec moi. Laisse l'air remplir tes poumons, puis expire lentement. Juste un instant pour relâcher un peu la pression.",
+                    "platform_steps": [
+                      "ouvre la section État / Potions",
+                      "choisis la potion recommandée",
+                      "active-la depuis la plateforme si elle te convient"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "l'accumulation des messages et des attentes autour de moi, l'impression que tout arrive en même temps et que je n'ai plus d'espace",
+                          "question_id": "pressure_source",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Qu'est-ce qui te met le plus sous pression la ?"
+                        },
+                        {
+                          "value": "A cran",
+                          "question_id": "pressure_state",
+                          "option_label": "A cran",
+                          "option_value": "a_cran",
+                          "question_label": "Tu te sens plutot comment ?"
+                        }
+                      ],
+                      "potion_type": "apaisement",
+                      "potion_title": "Potion d'apaisement",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Tu te sens à cran et comprimé par l'accumulation des messages et des attentes, et tu as besoin de redescendre pour retrouver de l'espace.",
+                    "platform_destination": "dans la section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "l'accumulation des messages et des attentes autour de moi, l'impression que tout arrive en même temps et que je n'ai plus d'espace ; a_cran",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "Le shift recommandé est de redescendre la pression avant de reprendre."
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_platform_handoff_delivered",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-05T13:02:26.107506+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

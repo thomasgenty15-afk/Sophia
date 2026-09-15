@@ -1,0 +1,112 @@
+<!doctype html>
+<!-- `lang="fr"` parce que le REPLI ci-dessous est français. `SEO.tsx` réécrit
+     l'attribut à la locale du visiteur dès que le JS tourne; ce qui reste ici
+     est ce que lit un robot, et il doit s'accorder avec le texte qu'il lit. -->
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <!-- Le papier de la marque, et non l'ancien violet #6D28D9 — un jeton mort
+         du produit grand public supprimé. C'est la couleur de la chrome du
+         navigateur sur mobile: elle doit être le fond de la page, pas un accent. -->
+    <meta name="theme-color" content="#FBF8FA" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-site-verification" content="Y79Lt1_LtDrl-DoAJxsLROwYTwpr9GJ1UpDL_44zCcY" />
+    <!-- PRÉCHARGEMENT DE LA SEULE POLICE DE TEXTE — la première visible.
+         `crossorigin` est OBLIGATOIRE même en même origine: une police est
+         récupérée en mode CORS, et sans lui le fichier est téléchargé DEUX fois.
+         Vite réécrit et hache l'URL, et déduplique avec le `url()` du CSS.
+         Young Serif n'est PAS préchargée: elle ne sert qu'aux titres display. -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/src/assets/fonts/publicsans-latin.woff2"
+    />
+    <!-- ══ PRÉRENDU : CE BLOC EST RÉÉCRIT PAR PAGE ═══════════════════════
+         `scripts/prerender.mjs` remplace TOUT ce qui est entre les deux
+         marqueurs ci-dessous, une fois par surface publique, après `vite build`.
+         Ce que ce fichier contient est donc l'en-tête du HALL FRANÇAIS — et il
+         reste le repli servi si le prérendu ne tourne pas.
+
+         ⚠️ POURQUOI UN PRÉRENDU EXISTE. WhatsApp, Messenger, LinkedIn, Slack,
+         iMessage et X n'exécutent PAS le JavaScript: ils lisent le HTML servi.
+         Tant que les neuf URL publiques recevaient ce fichier-ci, elles
+         partageaient toutes le même aperçu. `components/SEO.tsx` corrigeait
+         bien l'en-tête au runtime — mais un `useEffect` n'a jamais réparé un
+         lien partagé. Mesuré le 2026-09-01: les quatre pages du foyer
+         annonçaient encore, en anglais, un produit B2B supprimé.
+
+         ⚠️ RÈGLE INCHANGÉE, ET C'EST ELLE QUI TIENT LE TOUT: toute phrase ici
+         est une COPIE MOT POUR MOT de `home.seo_*` (`i18n/fr.ts`). Le prérendu
+         lit les mêmes clés; `seoHead.int.test.ts` vérifie que ce fichier ne
+         s'en écarte pas. Deux rédactions du même hall divergent en silence, et
+         la `description` d'ici AVAIT déjà divergé de sa clé.
+
+         ⚠️ L'ATTRIBUT `lang` DE LA BALISE RACINE VA AVEC CE BLOC. Le prérendu
+         le réécrit par page; ici il doit s'accorder au texte français
+         ci-dessous, qui est ce que lit un robot sur `/`.
+         (La balise n'est pas citée ici en toutes lettres exprès: le prérendu
+         remplace la PREMIÈRE occurrence du motif dans le fichier, et une
+         citation dans ce commentaire en devenait une seconde, laissée en
+         français au milieu des pages anglaises.) -->
+    <!-- PRERENDER:HEAD:START -->
+    <title>Sophia — la semaine de repas de votre maison, décidée</title>
+    <meta name="description" content="Repas, équilibre, objectifs, contraintes et courses : Sophia compose une semaine qui s’adapte à votre maison et aux imprévus." />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <link rel="canonical" href="https://sophia-coach.ai/" />
+
+    <!-- LES ALTERNATIVES DE LANGUE. `/` est le français, `/en` l'anglais —
+         voir `LOCALE_ROUTED_PATHS` dans `src/keel/i18n/catalog.ts`. Un jeu
+         d'alternatives doit être RÉCIPROQUE et se contenir lui-même: une page
+         qui nomme l'autre sans être nommée en retour fait ignorer la paire
+         entière. `x-default` pointe sur l'anglais, cohérent avec
+         `DEFAULT_UI_LOCALE`. -->
+    <link rel="alternate" hreflang="fr-FR" href="https://sophia-coach.ai/" />
+    <link rel="alternate" hreflang="en" href="https://sophia-coach.ai/en" />
+    <link rel="alternate" hreflang="x-default" href="https://sophia-coach.ai/en" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://sophia-coach.ai/" />
+    <meta property="og:title" content="Sophia — la semaine de repas de votre maison, décidée" />
+    <meta property="og:description" content="Repas, équilibre, objectifs, contraintes et courses : Sophia compose une semaine qui s’adapte à votre maison et aux imprévus." />
+    <!-- « Sophia », et pas « Sophia Coach »: c'est le nom que porte déjà
+         l'organisation dans les données structurées (`lib/legalEntity.ts`
+         `organizationStructuredData`), et le mot « coach » n'apparaît nulle
+         part sur les pages du foyer — le laisser ici le remettait dans chaque
+         aperçu et chaque onglet. -->
+    <meta property="og:site_name" content="Sophia" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:locale:alternate" content="en_GB" />
+    <!-- ⚠️ PAS `apple-touch-icon.png`: une icône carrée de 1024 servie en
+         `summary_large_image` rend un aperçu rogné et vide. `og-image.png` est
+         une planche 1200×630 à la charte. -->
+    <meta property="og:image" content="https://sophia-coach.ai/og-image.png" />
+    <!-- Les dimensions RÉELLES du fichier, pas le 1200×630 nominal: la planche
+         est rendue à 2× pour rester nette sur un écran dense, et une balise qui
+         annonce une taille que le fichier n'a pas fait recadrer certains
+         aperçus. Le rapport, lui, est bien 1.91:1. Régénérer avec
+         `node scripts/og-image.mjs`. Ces deux nombres vivent aussi dans
+         `src/keel/seo/head.ts`, d'où le prérendu et `SEO.tsx` les lisent. -->
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta property="og:image:alt" content="Sophia — la semaine de repas de votre maison, décidée" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Sophia — la semaine de repas de votre maison, décidée" />
+    <meta name="twitter:description" content="Repas, équilibre, objectifs, contraintes et courses : Sophia compose une semaine qui s’adapte à votre maison et aux imprévus." />
+    <meta name="twitter:image" content="https://sophia-coach.ai/og-image.png" />
+    <meta name="twitter:image:alt" content="Sophia — la semaine de repas de votre maison, décidée" />
+    <!-- PRERENDER:HEAD:END -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

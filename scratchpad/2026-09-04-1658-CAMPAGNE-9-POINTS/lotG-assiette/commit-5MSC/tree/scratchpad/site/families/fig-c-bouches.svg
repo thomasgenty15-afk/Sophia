@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-c-t fig-c-d">
+  <title id="fig-c-t">Ce qu’on demande pour une bouche, et qui a un compte</title>
+  <desc id="fig-c-d">À gauche, les quatre champs demandés pour ajouter une bouche : prénom,
+    date de naissance, objectif, allergies. À droite, trois bouches du foyer : une seule a un
+    compte, les deux autres existent dans le plan sans compte ni écran.</desc>
+
+  <!-- FIGURE C — /families, section « les bouches sans compte ».
+       Faits ancrés : AUDIT C8 (user_id = null, la clé est memberId) et C14
+       (les quatre champs demandés — et AUCUNE durée : « 90 secondes » n'est
+       mesuré nulle part dans le dépôt, règle S8).
+       Pièce chaude : l'équerre + les deux filets des bouches sans compte.
+       Les deux filets sont dans un SEUL groupe : la règle F8 compte les
+       occurrences de l'attribut, pas les traits. -->
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">UNE BOUCHE, QUATRE CHAMPS</text>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <!-- ── Les quatre champs. Des champs, pas un questionnaire. ───────────── -->
+    <rect x="24" y="56" width="196" height="148" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <text x="40" y="80" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">CE QU’ON DEMANDE</text>
+    <g font-size="11" fill="var(--ill-ink, #23191F)">
+      <text x="40" y="106">prénom</text>
+      <text x="40" y="130">date de naissance</text>
+      <text x="40" y="154">objectif</text>
+      <text x="40" y="178">allergies</text>
+    </g>
+    <g fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <path d="M 40 112 L 204 112"/>
+      <path d="M 40 136 L 204 136"/>
+      <path d="M 40 160 L 204 160"/>
+      <path d="M 40 184 L 204 184"/>
+    </g>
+
+    <!-- ── Les trois bouches. Le filet chaud marque celles qui n'ont pas de
+            compte : ce sont elles le sujet de la figure. ──────────────────── -->
+    <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="244" y="56" width="212" height="44" rx="12"/>
+      <rect x="244" y="108" width="212" height="44" rx="12"/>
+      <rect x="244" y="160" width="212" height="44" rx="12"/>
+    </g>
+    <path d="M 260 68 L 260 88" fill="none" stroke="var(--ill-ink-soft, #6A5A64)"
+          stroke-width="2" stroke-linecap="round"/>
+    <g fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round">
+      <path d="M 260 120 L 260 140"/>
+      <path d="M 260 172 L 260 192"/>
+    </g>
+
+    <g font-size="13" fill="var(--ill-ink, #23191F)">
+      <text x="276" y="80">Vous</text>
+      <text x="276" y="132">Sami, 9 ans</text>
+      <text x="276" y="184">Inès, 6 ans</text>
+    </g>
+    <g font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">
+      <text x="276" y="94">UN COMPTE</text>
+      <text x="276" y="146">SANS COMPTE</text>
+      <text x="276" y="198">SANS COMPTE</text>
+    </g>
+
+    <text x="24" y="228" font-size="11"
+          fill="var(--ill-ink-soft, #6A5A64)">ni compte, ni écran, ni mot de passe à retenir</text>
+  </g>
+</svg>

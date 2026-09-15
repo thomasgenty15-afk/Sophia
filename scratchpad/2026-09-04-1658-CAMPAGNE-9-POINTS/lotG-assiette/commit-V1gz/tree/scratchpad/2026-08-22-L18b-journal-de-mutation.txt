@@ -1,0 +1,93 @@
+══════════════════════════════════════════════════════════════════════════
+L18b — JOURNAL DE MUTATION · 2026-08-22, 14:1x–14:3x CEST
+══════════════════════════════════════════════════════════════════════════
+
+Copie HORS DÉPÔT :
+  /private/tmp/claude-502/-Users-ahmedamara-Dev-Sophia-2/
+    2e823a24-8d2e-4cab-ab4e-731f242b0770/scratchpad/L18b-mut/
+  rsync -a --exclude node_modules --exclude .git --exclude frontend  (25 Mo)
+
+⛔ LA COPIE NON MUTÉE A ÉTÉ VÉRIFIÉE EN PREMIER, ET C'EST LA RÈGLE DE MÉTHODE
+   DE `V0-E′-bis` : sans elle, un rouge serait imputé au sabotage au lieu de la
+   copie.
+
+    ① NON MUTÉE  →  16 passed | 0 failed, rc=0
+       (`deno test --allow-read --allow-env composition_fill_rescue_group_test.ts`)
+
+──────────────────────────────────────────────────────────────────────────
+LES NEUF SABOTAGES — NEUF ROUGES
+──────────────────────────────────────────────────────────────────────────
+
+  ②  le sas n'est plus lu (worklist vidée)                    6 rouges · rc=1
+  ③  un MATCHER maison par préfixe (`laitue` → `lait`)        1 rouge  · rc=1
+  ④  `select *` — l'énergie du sas devient accessible          1 rouge  · rc=1
+  ⑤  un ALIAS est écrit dans `byAlias`                         2 rouges · rc=1
+  ⑥  la ligne armée par le sas fait monter `sightings`         1 rouge  · rc=1
+  ⑦  le sas ÉCRASE le groupe déclaré sur la ligne du plan      1 rouge  · rc=1
+  ⑧  la lecture qui lève casse le plan                         1 rouge  · rc=1
+  ⑨  la couture de banc devient le chemin par défaut           1 rouge  · rc=1
+  ⑩  le vocabulaire des groupes n'est plus fermé               1 rouge  · rc=1
+
+  COPIE RESTAURÉE  →  16 passed | 0 failed
+
+⚠️ LE SABOTAGE ⑤ A DÛ ÊTRE ÉCRIT DEUX FOIS, ET LA PREMIÈRE VERSION ÉTAIT UN
+   FAUX ROUGE. `index.byAlias.set(...)` ne compile pas : `CompositionIndex.byAlias`
+   est un `ReadonlyMap`. Le rouge venait donc du TYPE, pas de la garde — un
+   rc=1 sans une seule assertion mordue, c'est-à-dire une preuve qui n'en est
+   pas une (0 test FAILED, rc=1). Réécrit en construisant un index NEUF
+   (`new Map(byAlias)` + `set`), il compile, et **le cas ⑤ mord** (2 rouges).
+   ⇒ Le fait utile : la règle 3 du lot 18 est tenue à DEUX étages — par le type
+   ET par l'assertion d'identité. Les deux ont été vérifiés séparément.
+
+──────────────────────────────────────────────────────────────────────────
+⑪ LA SONDE DE TYPE — ⛔ ET ELLE RÉVÈLE AUTRE CHOSE QUE CE QU'ELLE CHERCHAIT
+──────────────────────────────────────────────────────────────────────────
+
+Question posée : le `PendingDbClient` élargi (avec `from?`) est-il réellement
+vérifié contre le `SupabaseClient` que les deux lanes passent ?
+
+  ⑪a  DANS LE DÉPÔT · `from` rendu OBLIGATOIRE
+      `deno check` des DEUX lanes  →  rc=0, VERT
+  ⑪b  DANS LE DÉPÔT · `select: (columns: number)`
+      →  TS2345, mais l'erreur est SUR L'APPEL INTERNE du module, pas sur
+         l'argument de la lane. Ne prouve donc rien sur la lane.
+  ⑪c  DANS LE DÉPÔT · un membre REQUIS que `SupabaseClient` n'a pas
+      (`__sonde_l18b: number`)
+      `deno check` de la lane  →  ⛔ **rc=0, AUCUNE ERREUR**
+
+⛔ CONCLUSION, ET ELLE EST UN FAIT NEUF SUR LE DÉPÔT :
+   **L'ARGUMENT `db` DES DEUX LANES N'EST PAS TYPE-CHECKÉ.** Sous
+   `supabase/functions/deno.json` (`nodeModulesDir: "auto"`), le type
+   `SupabaseClient` importé de `jsr:@supabase/supabase-js@2.87.3` se dégrade en
+   `any` à ce point du graphe : une interface qui exige un membre inexistant
+   passe VERTE. `PendingDbClient` n'a donc JAMAIS été une vérification au point
+   d'appel — ni avant `L18b`, ni après.
+
+   Contre-épreuve, dans un contexte où les types résolvent VRAIMENT (un fichier
+   sonde hors du dépôt, sans `deno.json`) :
+
+     TS2322: Type 'SupabaseClient<...>' is not assignable to type 'PendingDbClient'.
+       The types returned by 'rpc(...)' are incompatible between these types.
+         Type 'PostgrestFilterBuilder<...>' is missing the following properties
+         from type 'Promise<{ error: unknown; }>': catch, finally, ...
+
+   ⇒ L'incompatibilité est **ANTÉRIEURE À CE LOT** et porte sur `rpc`, pas sur
+     `from` : `PostgrestFilterBuilder` est un `PromiseLike`, pas un `Promise`.
+
+⇒ CE QUE ÇA CHANGE POUR CE LOT, ET C'EST POURQUOI LA PREUVE EST AILLEURS :
+   la seule preuve que la lecture fonctionne est un APPEL RÉEL à PostgREST, en
+   `service_role`, sur la pile locale — fait, et archivé :
+
+     curl "…/rest/v1/food_composition_pending?select=term,food_group_ref
+           &term=in.(figues,%22tofu+soyeux%22,laitue)"
+       →  HTTP 200
+          [{"term":"figues","food_group_ref":"other_fruit"},
+           {"term":"tofu soyeux","food_group_ref":"tofu_tempeh"}]
+
+   `laitue` (absent du sas) ne rend RIEN : l'égalité de clé est bien la seule
+   comparaison, jusque dans PostgREST.
+   Privilèges vérifiés : `select` sur `food_composition_pending` =
+   anon `f` · authenticated `f` · service_role `t`.
+
+⇒ Fiche neuve **`L18b-a`** : `PendingDbClient` (et toute interface de client
+  posée dans `_shared`) est décorative au point d'appel.

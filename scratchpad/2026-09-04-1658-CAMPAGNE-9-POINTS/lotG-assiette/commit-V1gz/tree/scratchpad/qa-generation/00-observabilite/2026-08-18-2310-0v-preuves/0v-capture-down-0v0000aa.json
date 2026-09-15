@@ -1,0 +1,29 @@
+{
+  "scenario": "capture-down",
+  "request_id": "0v0000aa-0000-4000-8000-00000000d501",
+  "duration_ms": 314,
+  "returned": "{\"ok\":true,\"produced_by\":\"gpt-5.4-mini\"}",
+  "threw": null,
+  "argument_bytes": {
+    "system_prompt_chars": 66,
+    "system_prompt_sha256": "69f5f274731261a7196ec9590397b515d941f9df5f0306b979c286a87791d34f",
+    "user_message_chars": 68,
+    "user_message_sha256": "307870c859e83b6addc88d55f9f9b34b2b40166402044d6cdcffead4c8112099"
+  },
+  "wire": [
+    {
+      "n": 1,
+      "at": "2026-08-18T21:02:41.874Z",
+      "url": "http://127.0.0.1:8899/v1/responses",
+      "model": "gpt-5.4-mini",
+      "instructions": "== 0V SYSTEM BLOCK ==\nTu composes un plat.\nRéponds en JSON strict.",
+      "input": "== 0V USER BLOCK ==\ndoctrine: protein_anchor\nFormat de sortie: json.",
+      "raw_body_sha256": "09bd40e47b387f0e152d4c4354ba324079cdd9b19d2096cee11be590ac813706",
+      "served": "200",
+      "instructions_chars": 66,
+      "instructions_sha256": "69f5f274731261a7196ec9590397b515d941f9df5f0306b979c286a87791d34f",
+      "input_chars": 68,
+      "input_sha256": "307870c859e83b6addc88d55f9f9b34b2b40166402044d6cdcffead4c8112099"
+    }
+  ]
+}

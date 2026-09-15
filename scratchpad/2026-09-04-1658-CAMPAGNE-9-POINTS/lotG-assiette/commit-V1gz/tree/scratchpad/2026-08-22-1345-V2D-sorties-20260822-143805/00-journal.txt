@@ -1,0 +1,265 @@
+══════════════════════════════════════════════════════════════════════════
+V2-D — RUN GROUPÉ DE LA VAGUE 2   ·   2026-08-22 14:38:05 CEST
+archives → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805
+mode     → RÉEL
+══════════════════════════════════════════════════════════════════════════
+
+── ⓪.a  LE RUNTIME SERT-IL LE CODE NEUF ? ────────────────────────────────
+   conteneur supabase_edge_runtime_Sophia_2 démarré à 2026-08-22T12:18:35.415277054Z  (epoch 1787401115)
+   source la plus récente : 2026-08-22T12:18:29Z — /Users/ahmedamara/Dev/Sophia 2/supabase/functions/_shared/keel/composition_fill_io.ts
+   ✅ aucune source plus récente que le runtime (marge 6 s).
+   ⚠️ D'AUTRES SESSIONS ÉCRIVENT DANS CE DÉPÔT. Si une source bouge PENDANT
+      le lot, cette sonde ne le reverra pas: relance le lot, pas un run.
+
+── ⓪.b  LA FONCTION RÉPOND-ELLE ? (un POST vide ⇒ 400 nommé) ─────────────
+   API_URL = http://127.0.0.1:54321
+
+── ⓪.c  CONNEXION DU MAÎTRE (mot de passe — jamais service_role) ─────────
+   ✅ maître 53fb05ba-333a-4bf5-9e19-502103581ef7  (jeton 749 car.)
+   POST {} → http=400  ({"error":"replaces_required","detail":"intent=replace_current must name the plan it replaces (`replaces`).","request_id":"807c31c6-9c42-4e16-a794-94ed922db545"})
+   ✅ la fonction boote et refuse proprement (aucune génération dépensée).
+
+── ⓪.d  LA FIXTURE, VÉRIFIÉE ────────────────────────────────────────────
+                  id                  |             name             | free_until | couverte 
+--------------------------------------+------------------------------+------------+----------
+ b1959752-92c8-4038-8c17-992a77d68d21 | Fixture V0-C — foyer pluriel | 2026-09-20 | t
+(1 row)
+
+ first_name |  role  | a_un_compte | birth_date | mineure |    goal     |    diet    
+------------+--------+-------------+------------+---------+-------------+------------
+ Camille    | owner  | t           | 1986-03-14 | f       |             | 
+ Malo       | member | f           | 1992-07-09 | f       | fat_loss    | vegan
+ Anouk      | member | f           | 2011-05-20 | t       | muscle_gain | 
+ Yanis      | member | f           | 1989-11-02 | f       | maintenance | vegetarian
+(4 rows)
+
+           porte            | ok 
+----------------------------+----
+ coach_clients              |  1
+ student_goals              |  1
+ safety_constraints_actives |  0
+(3 rows)
+
+                  id                  | locale | country |   timezone   
+--------------------------------------+--------+---------+--------------
+ 53fb05ba-333a-4bf5-9e19-502103581ef7 | fr-FR  | FR      | Europe/Paris
+(1 row)
+
+   ✅ foyer couvert · objectif présent · coach actif.
+
+── ⓪.e  L'ÉTAT D'AVANT, ARCHIVÉ ──────────────────────────────────────────
+   HORODATAGE DE LANCEMENT (UTC) : 2026-08-22T12:38:13Z
+V2-D — ÉTAT D'AVANT · 2026-08-22T12:38:13Z
+plan de référence 66de9046-7b8e-48f9-958c-aa8086d65d66 : retired_at=NULL duration_days=7
+plan V0-D         3c781a71-da7c-4abe-8a99-4a6ed7445c99 : retired_at=NULL duration_days=1
+générations déjà en base (source sans point) : 370
+food_composition_pending : 5
+profiles.locale : fr-FR
+
+— plans VIVANTS de la fixture —
+                  id                  | plan_kind | starts_on  | duration_days | retired_at | content_locale |                              pv                               
+--------------------------------------+-----------+------------+---------------+------------+----------------+---------------------------------------------------------------
+ 3c781a71-da7c-4abe-8a99-4a6ed7445c99 | household | 2026-08-21 |             1 |            | fr-FR          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ 66de9046-7b8e-48f9-958c-aa8086d65d66 | household | 2026-08-22 |             7 |            | fr-FR          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+(2 rows)
+
+   plan de référence 66de9046-7b8e-48f9-958c-aa8086d65d66 : retired_at=NULL · durée=7 j
+   sas food_composition_pending : 5   ⚠️ le seuil L18b « ≥ 3 » est DÉJÀ atteint AVANT le run
+   compteur de générations (base entière) : 370
+   profiles.locale : fr-FR
+   → archivé dans /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805/01-avant.txt
+
+── LE PLAN DE RUN — 11 exécutions (plafond 11) ──────────────────
+     01:foyer:fr-FR
+     02:foyer:fr-FR
+     03:foyer:fr-FR
+     04:foyer:fr-FR
+     05:foyer:fr-FR
+     06:foyer:en-GB
+     07:foyer:en-GB
+     08:foyer:en-GB
+     09:foyer:en-GB
+     10:foyer:en-GB
+     11:solo:fr-FR
+     ⇒ foyer 5 fr-FR + 5 en-GB  (L2-lang conclut sur la portée « foyer »)
+     ⇒ solo  1 fr-FR            (premier v18 solo — L17/L-1/L18b, PAS un verdict de langue)
+
+══ RUN 01/11  ·  lane=foyer  ·  locale=fr-FR  ·  générations déjà dépensées: 0 ══
+   profiles.locale ← fr-FR   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 66de9046-7b8e-48f9-958c-aa8086d65d66
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"66de9046-7b8e-48f9-958c-aa8086d65d66","context":null,"cooking_shape":null,"preferences":null}
+   début : 2026-08-22T12:38:14Z
+   fin   : 2026-08-22T12:39:21Z   curl rc=0 · http=200 · 67.250920 s
+   brut  → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805/run-01-foyer-fr-FR.json  (28915 octets)
+   durées des plans vivants — avant: [3c781a71:1 66de9046:7]  après: [3c781a71:1 3eae73ac:7]
+   plan écrit : 3eae73ac-373d-41c4-af3a-9e6c895ee86c
+   L17-0 : declared|valid|refused|persisted|lines|lignes_reelles|lignes_avec_groupe|verdict
+           60|60|0|60|60|60|60|OK — seuil atteint
+   compteur : 1 génération(s) dépensée(s) sur 11
+
+   ✅ FUMÉE VERTE — le runtime sert le code neuf ET « group » atteint la base.
+      Les dix suivantes peuvent partir.
+
+══ RUN 02/11  ·  lane=foyer  ·  locale=fr-FR  ·  générations déjà dépensées: 1 ══
+   profiles.locale ← fr-FR   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 3eae73ac-373d-41c4-af3a-9e6c895ee86c
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"3eae73ac-373d-41c4-af3a-9e6c895ee86c","context":null,"cooking_shape":null,"preferences":null}
+   début : 2026-08-22T12:39:22Z
+   fin   : 2026-08-22T12:40:13Z   curl rc=0 · http=200 · 50.826307 s
+   brut  → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805/run-02-foyer-fr-FR.json  (15027 octets)
+   durées des plans vivants — avant: [3c781a71:1 3eae73ac:7]  après: [3c781a71:1 09240cb5:7]
+   plan écrit : 09240cb5-7ca3-4080-a028-e364974e5b91
+   L17-0 : declared|valid|refused|persisted|lines|lignes_reelles|lignes_avec_groupe|verdict
+           37|37|0|37|37|37|37|OK — seuil atteint
+   compteur : 2 génération(s) dépensée(s) sur 11
+
+══ RUN 03/11  ·  lane=foyer  ·  locale=fr-FR  ·  générations déjà dépensées: 2 ══
+   profiles.locale ← fr-FR   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 09240cb5-7ca3-4080-a028-e364974e5b91
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"09240cb5-7ca3-4080-a028-e364974e5b91","context":null,"cooking_shape":null,"preferences":null}
+   début : 2026-08-22T12:40:13Z
+   fin   : 2026-08-22T12:41:44Z   curl rc=0 · http=200 · 90.861460 s
+   brut  → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805/run-03-foyer-fr-FR.json  (45777 octets)
+   durées des plans vivants — avant: [3c781a71:1 09240cb5:7]  après: [3c781a71:1 8f498609:7]
+   plan écrit : 8f498609-48b5-4faf-8349-a8d7be262006
+   L17-0 : declared|valid|refused|persisted|lines|lignes_reelles|lignes_avec_groupe|verdict
+           79|73|6|73|79|79|73|OK — seuil atteint
+   compteur : 3 génération(s) dépensée(s) sur 11
+
+══ RUN 04/11  ·  lane=foyer  ·  locale=fr-FR  ·  générations déjà dépensées: 3 ══
+   profiles.locale ← fr-FR   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 8f498609-48b5-4faf-8349-a8d7be262006
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"8f498609-48b5-4faf-8349-a8d7be262006","context":null,"cooking_shape":null,"preferences":null}
+   début : 2026-08-22T12:41:45Z
+   fin   : 2026-08-22T12:43:22Z   curl rc=0 · http=200 · 97.276028 s
+   brut  → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805/run-04-foyer-fr-FR.json  (50856 octets)
+   durées des plans vivants — avant: [3c781a71:1 8f498609:7]  après: [3c781a71:1 d46c4dad:7]
+   plan écrit : d46c4dad-ec3b-4bc1-af5e-8660b0c22b41
+   L17-0 : declared|valid|refused|persisted|lines|lignes_reelles|lignes_avec_groupe|verdict
+           99|95|4|95|99|99|95|OK — seuil atteint
+   compteur : 4 génération(s) dépensée(s) sur 11
+
+══ RUN 05/11  ·  lane=foyer  ·  locale=fr-FR  ·  générations déjà dépensées: 4 ══
+   profiles.locale ← fr-FR   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: d46c4dad-ec3b-4bc1-af5e-8660b0c22b41
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"d46c4dad-ec3b-4bc1-af5e-8660b0c22b41","context":null,"cooking_shape":null,"preferences":null}
+   début : 2026-08-22T12:43:23Z
+   fin   : 2026-08-22T12:44:23Z   curl rc=0 · http=200 · 60.543153 s
+   brut  → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805/run-05-foyer-fr-FR.json  (23904 octets)
+   durées des plans vivants — avant: [3c781a71:1 d46c4dad:7]  après: [3c781a71:1 4ef89334:7]
+   plan écrit : 4ef89334-81c0-40ec-895a-73b550de30da
+   L17-0 : declared|valid|refused|persisted|lines|lignes_reelles|lignes_avec_groupe|verdict
+           50|50|0|50|52|52|50|OK — seuil atteint
+   compteur : 5 génération(s) dépensée(s) sur 11
+
+══ RUN 06/11  ·  lane=foyer  ·  locale=en-GB  ·  générations déjà dépensées: 5 ══
+   profiles.locale ← en-GB   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 4ef89334-81c0-40ec-895a-73b550de30da
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"4ef89334-81c0-40ec-895a-73b550de30da","context":null,"cooking_shape":null,"preferences":null}
+   début : 2026-08-22T12:44:24Z
+   fin   : 2026-08-22T12:45:51Z   curl rc=0 · http=200 · 87.449090 s
+   brut  → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805/run-06-foyer-en-GB.json  (33929 octets)
+   durées des plans vivants — avant: [3c781a71:1 4ef89334:7]  après: [3c781a71:1 9ec54e51:7]
+   plan écrit : 9ec54e51-4bf2-42b3-aa30-038e38e598ce
+   L17-0 : declared|valid|refused|persisted|lines|lignes_reelles|lignes_avec_groupe|verdict
+           55|54|1|54|56|56|54|OK — seuil atteint
+   compteur : 6 génération(s) dépensée(s) sur 11
+
+══ RUN 07/11  ·  lane=foyer  ·  locale=en-GB  ·  générations déjà dépensées: 6 ══
+   profiles.locale ← en-GB   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 9ec54e51-4bf2-42b3-aa30-038e38e598ce
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"9ec54e51-4bf2-42b3-aa30-038e38e598ce","context":null,"cooking_shape":null,"preferences":null}
+   début : 2026-08-22T12:45:52Z
+   fin   : 2026-08-22T12:47:19Z   curl rc=0 · http=200 · 87.431033 s
+   brut  → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805/run-07-foyer-en-GB.json  (45778 octets)
+   durées des plans vivants — avant: [3c781a71:1 9ec54e51:7]  après: [3c781a71:1 5058be6a:7]
+   plan écrit : 5058be6a-3728-47f3-8685-9334519ad41f
+   L17-0 : declared|valid|refused|persisted|lines|lignes_reelles|lignes_avec_groupe|verdict
+           120|120|0|120|122|122|120|OK — seuil atteint
+   compteur : 7 génération(s) dépensée(s) sur 11
+
+══ RUN 08/11  ·  lane=foyer  ·  locale=en-GB  ·  générations déjà dépensées: 7 ══
+   profiles.locale ← en-GB   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 5058be6a-3728-47f3-8685-9334519ad41f
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"5058be6a-3728-47f3-8685-9334519ad41f","context":null,"cooking_shape":null,"preferences":null}
+   début : 2026-08-22T12:47:20Z
+   fin   : 2026-08-22T12:48:49Z   curl rc=0 · http=200 · 88.777457 s
+   brut  → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805/run-08-foyer-en-GB.json  (52633 octets)
+   durées des plans vivants — avant: [3c781a71:1 5058be6a:7]  après: [3c781a71:1 612ac898:7]
+   plan écrit : 612ac898-cfe0-45b7-b538-2152719f08b8
+   L17-0 : declared|valid|refused|persisted|lines|lignes_reelles|lignes_avec_groupe|verdict
+           91|91|0|91|91|91|91|OK — seuil atteint
+   compteur : 8 génération(s) dépensée(s) sur 11
+
+══ RUN 09/11  ·  lane=foyer  ·  locale=en-GB  ·  générations déjà dépensées: 8 ══
+   profiles.locale ← en-GB   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: 612ac898-cfe0-45b7-b538-2152719f08b8
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"612ac898-cfe0-45b7-b538-2152719f08b8","context":null,"cooking_shape":null,"preferences":null}
+   début : 2026-08-22T12:48:49Z
+   fin   : 2026-08-22T12:50:01Z   curl rc=0 · http=200 · 72.080220 s
+   brut  → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805/run-09-foyer-en-GB.json  (36644 octets)
+   durées des plans vivants — avant: [3c781a71:1 612ac898:7]  après: [3c781a71:1 a5b2a817:7]
+   plan écrit : a5b2a817-fd34-4f22-8632-8f47cb985146
+   L17-0 : declared|valid|refused|persisted|lines|lignes_reelles|lignes_avec_groupe|verdict
+           64|64|0|64|72|72|64|OK — seuil atteint
+   compteur : 9 génération(s) dépensée(s) sur 11
+
+══ RUN 10/11  ·  lane=foyer  ·  locale=en-GB  ·  générations déjà dépensées: 9 ══
+   profiles.locale ← en-GB   (retour à « fr-FR » garanti par le trap)
+   fonction : generate-household-meal-v1
+   intent   : replace_current   replaces: a5b2a817-fd34-4f22-8632-8f47cb985146
+   corps    : {"operation":"compose","window":{"kind":"days","count":7},"intent":"replace_current","replaces":"a5b2a817-fd34-4f22-8632-8f47cb985146","context":null,"cooking_shape":null,"preferences":null}
+   début : 2026-08-22T12:50:02Z
+   fin   : 2026-08-22T12:51:38Z   curl rc=0 · http=200 · 95.716981 s
+   brut  → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805/run-10-foyer-en-GB.json  (61020 octets)
+   durées des plans vivants — avant: [3c781a71:1 a5b2a817:7]  après: [3c781a71:1 9f02838a:7]
+   plan écrit : 9f02838a-7fc4-4e48-9653-6d226f6bfa64
+   L17-0 : declared|valid|refused|persisted|lines|lignes_reelles|lignes_avec_groupe|verdict
+           145|125|20|125|146|146|125|OK — seuil atteint
+   compteur : 10 génération(s) dépensée(s) sur 11
+
+══ RUN 11/11  ·  lane=solo  ·  locale=fr-FR  ·  générations déjà dépensées: 10 ══
+   profiles.locale ← fr-FR   (retour à « fr-FR » garanti par le trap)
+   ⚠️ LIGNE DE RÉGIME TEMPORAIRE POSÉE sur la lane solo (kind=diet/vegetarian/strict).
+      sans elle: declaredRegime=null ⇒ dietBlock="" ⇒ pas de FOOD_GROUP_DECLARATION_BLOCK.
+      elle est SUPPRIMÉE par le trap. Rollback manuel:
+        delete from student_safety_constraints where user_id='53fb05ba-333a-4bf5-9e19-502103581ef7'
+          and kind='diet' and notes='V2-D temporaire — a supprimer';
+   fonction : generate-meal-v1
+   intent   : prepare_next   replaces: —
+   corps    : {"mode":"to_shop","window":{"kind":"days","count":7},"intent":"prepare_next","replaces":null,"meal_slot":null,"servings":1,"context":null,"preferences":null,"pantry":[]}
+   début : 2026-08-22T12:51:38Z
+   fin   : 2026-08-22T12:52:15Z   curl rc=0 · http=502 · 36.498788 s
+   brut  → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805/run-11-solo-fr-FR.json  (75 octets)
+   durées des plans vivants — avant: [3c781a71:1 9f02838a:7]  après: [3c781a71:1 9f02838a:7]
+
+⛔ RUN 11 NON ABOUTI (rc=0, http=502, 36.498788 s).
+{
+  "message":"An invalid response was received from the upstream server"
+}
+   ⛔ LE SCRIPT NE RÉESSAIE PAS. Ordre imposé par le §⑩ :
+      ① mesurer la latence réelle :
+         select model, percentile_cont(0.5) within group (order by latency_ms), max(latency_ms), count(*)
+           from llm_usage_events where created_at > '2026-08-22T12:38:13Z' group by 1;
+         ⚠️ un appel qui EXPIRE n'écrit AUCUNE ligne — la latence des
+            expirations se lit dans les logs du runtime edge, pas ici.
+      ② la comparer au timeout EN VIGUEUR : PLAN_HTTP_TIMEOUT_MS = 300 000 ms
+         (generation_model.ts:107, passé en meta.httpTimeoutMs par les 5 sites)
+      ③ ne le relever QUE si la médiane le dépasse, et l'écrire au §⑨
+      ④ seulement alors, relancer avec --depuis=11
+
+── ③  RESTAURATION ───────────────────────────────────────────────────────
+   ligne de régime TEMPORAIRE supprimée.
+   profiles.locale rendu à « fr-FR ».
+   plan(s) foyer du lot retiré(s) — ils libèrent la fenêtre : 9f02838a UPDATE 1 
+   ✅ 66de9046-7b8e-48f9-958c-aa8086d65d66 RENDU INTACT — retired_at=NULL · durée=7 j (avant: 7 j)
+   état final des plans → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-22-1345-V2D-sorties-20260822-143805/99-apres-plans.txt

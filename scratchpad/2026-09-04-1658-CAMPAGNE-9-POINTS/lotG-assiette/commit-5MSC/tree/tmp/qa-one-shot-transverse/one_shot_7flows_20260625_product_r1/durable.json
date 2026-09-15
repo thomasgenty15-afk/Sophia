@@ -1,0 +1,77 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "72bdc115-03e6-40e8-b370-4478fc37fbb9",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T14:40:25.63+00:00",
+      "event_context": "one_shot_reminder:relire_la_fiche_initiatives",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: relire la fiche Initiatives.",
+        "local_label": "dans 27 minutes",
+        "parse_source": "payload_utc_time",
+        "request_text": "Rappelle-moi dans 27 minutes de relire la fiche Initiatives",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: relire la fiche Initiatives.",
+        "source_message_id": "bb7756fb-3704-493c-9cc1-ff4e97fcebd6",
+        "reminder_instruction": "relire la fiche Initiatives"
+      },
+      "created_at": "2026-06-25T14:13:29.404698+00:00"
+    }
+  ],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Dans Sophia, où est-ce que je retrouve les initiatives déjà créées et comment je vois si elles sont dans Plan actuel ou Base de vie ?",
+      "created_at": "2026-06-25T14:12:30.464938+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260625_product_r1-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Tu retrouves tes initiatives dans l’onglet Initiatives du dashboard. Si elles sont hors plan, tu les vois dans Base de vie > Initiatives. Si elles sont liées au plan en cours, elles apparaissent côté Plan.",
+      "created_at": "2026-06-25T14:12:43.689268+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260625_product_r1-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Rappelle-moi dans 27 minutes de relire la fiche Initiatives, et redis-moi juste où je vois Plan actuel ou Base de vie.",
+      "created_at": "2026-06-25T14:13:25.615841+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260625_product_r1-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Dans le dashboard, ouvre l’onglet Plan pour voir le Plan actuel. La Base de vie se trouve dans la sidebar, et c’est là que tu retrouves ce qui est hors plan.\nRappel dans 27 minutes : relire la fiche Initiatives.",
+      "created_at": "2026-06-25T14:13:38.361096+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260625_product_r1-t02",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "1bf5e6d1-0356-497f-9dea-5a7353d9ef3c",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-25T14:13:38.355708+00:00"
+  }
+}

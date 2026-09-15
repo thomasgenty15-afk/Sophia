@@ -1,0 +1,313 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r3-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux une carte d'attaque pour le sas du soir. Quand je sens que je vais craquer, il me faut un signal de secours tres rapide, sans lire un long texte.",
+    "assistant": "J'hésite entre \"Faire le sas de déchargement\" / \"Bilan et ajustement du sas\". Dis-moi laquelle viser.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "target",
+        "needed": true,
+        "reason": "target_ambiguous",
+        "status": "ambiguous",
+        "candidates": [
+          {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "reason": "close_partial_plan_item_matches",
+            "confidence": 0.5,
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+            "matched_tokens": [
+              "sas"
+            ]
+          },
+          {
+            "kind": "plan_item",
+            "title": "Bilan et ajustement du sas",
+            "reason": "close_partial_plan_item_matches",
+            "confidence": 0.33,
+            "plan_item_id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+            "matched_tokens": [
+              "sas"
+            ]
+          }
+        ],
+        "known_slots": {
+          "technique_options": [
+            {
+              "title": "Mot de bascule",
+              "reason": "utile quand il faut un signal de bascule rapide",
+              "example": "Exemple pour \"cette action\": un mot-cle a envoyer quand le moment devient fragile.",
+              "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "recommended": true,
+              "technique_key": "pre_engagement"
+            },
+            {
+              "title": "Preparer le terrain",
+              "reason": "option simple pour faciliter le demarrage",
+              "example": "Exemple pour \"cette action\": preparer l'environnement avant le moment critique.",
+              "description": "Retirer de la friction avant que le moment d'action arrive.",
+              "recommended": false,
+              "technique_key": "preparer_terrain"
+            },
+            {
+              "title": "Le texte magique",
+              "reason": "option utile si la resistance est surtout mentale",
+              "example": "Exemple pour \"cette action\": un texte court a relire quand tu negocies avec toi-meme.",
+              "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "recommended": false,
+              "technique_key": "texte_recadrage"
+            }
+          ],
+          "technique_signal_text": "Je veux une carte d'attaque pour le sas du soir. Quand je sens que je vais craquer, il me faut un signal de secours tres rapide, sans lire un long texte."
+        }
+      },
+      "reason_code": "normal_reply_default",
+      "missing_slots": [
+        "target"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r3-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Le sas de dechargement, evidemment. J'ai dit sas du soir, pas bilan.",
+    "assistant": "Quelle technique d'attaque tu veux utiliser ?\n\n1. Mot de bascule (recommandee): utile quand il faut un signal de bascule rapide. Exemple pour \"cette action\": un mot-cle a envoyer quand le moment devient fragile.\n2. Preparer le terrain: option simple pour faciliter le demarrage. Exemple pour \"cette action\": preparer l'environnement avant le moment critique.\n3. Le texte magique: option utile si la resistance est surtout mentale. Exemple pour \"cette action\": un texte court a relire quand tu negocies avec toi-meme.\n\nReponds avec le nom ou le numero.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "attack_technique_missing",
+        "status": "missing",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "technique_options": [
+            {
+              "title": "Mot de bascule",
+              "reason": "utile quand il faut un signal de bascule rapide",
+              "example": "Exemple pour \"cette action\": un mot-cle a envoyer quand le moment devient fragile.",
+              "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "recommended": true,
+              "technique_key": "pre_engagement"
+            },
+            {
+              "title": "Preparer le terrain",
+              "reason": "option simple pour faciliter le demarrage",
+              "example": "Exemple pour \"cette action\": preparer l'environnement avant le moment critique.",
+              "description": "Retirer de la friction avant que le moment d'action arrive.",
+              "recommended": false,
+              "technique_key": "preparer_terrain"
+            },
+            {
+              "title": "Le texte magique",
+              "reason": "option utile si la resistance est surtout mentale",
+              "example": "Exemple pour \"cette action\": un texte court a relire quand tu negocies avec toi-meme.",
+              "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "recommended": false,
+              "technique_key": "texte_recadrage"
+            }
+          ],
+          "technique_signal_text": "Je veux une carte d'attaque pour le sas du soir. Quand je sens que je vais craquer, il me faut un signal de secours tres rapide, sans lire un long texte.\nLe sas de dechargement, evidemment. J'ai dit sas du soir, pas bilan."
+        },
+        "technique_options": [
+          {
+            "title": "Mot de bascule",
+            "reason": "utile quand il faut un signal de bascule rapide",
+            "example": "Exemple pour \"cette action\": un mot-cle a envoyer quand le moment devient fragile.",
+            "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+            "recommended": true,
+            "technique_key": "pre_engagement"
+          },
+          {
+            "title": "Preparer le terrain",
+            "reason": "option simple pour faciliter le demarrage",
+            "example": "Exemple pour \"cette action\": preparer l'environnement avant le moment critique.",
+            "description": "Retirer de la friction avant que le moment d'action arrive.",
+            "recommended": false,
+            "technique_key": "preparer_terrain"
+          },
+          {
+            "title": "Le texte magique",
+            "reason": "option utile si la resistance est surtout mentale",
+            "example": "Exemple pour \"cette action\": un texte court a relire quand tu negocies avec toi-meme.",
+            "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "recommended": false,
+            "technique_key": "texte_recadrage"
+          }
+        ]
+      },
+      "reason_code": "active_tool_skill_continue",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r3-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Je connais pas vos noms de techniques. Choisis celle qui colle au signal de secours quand je vais craquer, fais pas un long texte.",
+    "assistant": "Je te propose cette carte d'attaque avant de la creer.\n\nMot de bascule\nMot-cle: BASCULE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.\n\nMode d'emploi: Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.\n\nTu veux que je cree cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Faire le sas de déchargement",
+          "technique": "pre_engagement",
+          "instruction": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Faire le sas de déchargement\".",
+          "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+          "generated_asset": "Mot-cle: BASCULE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.",
+          "technique_title": "Mot de bascule",
+          "supporting_points": []
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nMot de bascule\nMot-cle: BASCULE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.\n\nMode d'emploi: Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.\n\nTu veux que je cree cette carte ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "0e41cb80-18a1-45e6-a640-5e5e0c86a46a",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r3-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui cree-la.",
+    "assistant": "C'est fait. J'ai créé cette carte d'attaque :\n\nCarte d'attaque - Faire le sas de déchargement\nTechnique : Mot de bascule\nMot-cle: BASCULE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.\n\nMode d'emploi : Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la relire et l'utiliser. Elle ne se modifie pas directement; si elle ne convient plus, on peut en preparer une nouvelle version apres confirmation.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_attack_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "prepare_attack_card"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "0e41cb80-18a1-45e6-a640-5e5e0c86a46a",
+      "attack_card_id": "f92d1271-4fb4-456f-bf9a-3a8f7e9828a3",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

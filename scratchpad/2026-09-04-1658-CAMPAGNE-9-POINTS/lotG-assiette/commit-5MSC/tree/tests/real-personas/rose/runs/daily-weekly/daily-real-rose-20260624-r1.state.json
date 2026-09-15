@@ -1,0 +1,3008 @@
+{
+  "run_id": "daily-real-rose-20260624-r1",
+  "persona": "rose",
+  "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+  "connection_path": "tests/real-personas/rose/connection.json",
+  "created_at": "2026-06-23T23:13:36.168Z",
+  "qa_mode": "manual_adaptive_turn_by_turn",
+  "constraints": {
+    "no_create_one_shot_reminder": true,
+    "flow": "daily_only_normal"
+  },
+  "qa_setup": {
+    "selected_targets_discovered_at_runtime": [
+      {
+        "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "title": "Faire un sas de décompression (sans fumer)",
+        "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+        "dimension": "habits",
+        "kind": "habit",
+        "planned_day": "mon",
+        "week_start_date": "2026-06-15"
+      },
+      {
+        "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "title": "Cibler le joint réflexe",
+        "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+        "dimension": "clarifications",
+        "kind": "framework",
+        "planned_day": "thu",
+        "week_start_date": "2026-06-15"
+      },
+      {
+        "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "title": "Ranger le matériel hors de vue",
+        "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+        "dimension": "missions",
+        "kind": "task",
+        "planned_day": "thu",
+        "week_start_date": "2026-06-15"
+      }
+    ],
+    "occurrence_snapshots": [
+      {
+        "id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "planned_day": "mon",
+        "status": "planned",
+        "source": "default_generated",
+        "validated_at": null,
+        "week_start_date": "2026-06-15"
+      },
+      {
+        "id": "80fdc319-6115-493b-8e64-1db689665535",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "planned_day": "thu",
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "week_start_date": "2026-06-15"
+      },
+      {
+        "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "planned_day": "thu",
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "week_start_date": "2026-06-15"
+      }
+    ],
+    "inserted_scheduled_checkin": {
+      "id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "action_evening_review_v2",
+      "draft_message": null,
+      "scheduled_for": "2026-06-23T23:13:28.309+00:00",
+      "status": "pending",
+      "created_at": "2026-06-23T23:13:33.313477+00:00",
+      "processed_at": null,
+      "message_mode": "dynamic",
+      "message_payload": {
+        "source": "qa_dynamic_daily_evening_fixture",
+        "version": 1,
+        "timezone": "Europe/Paris",
+        "qa_run_id": "daily-real-rose-20260624-r1",
+        "local_date": "2026-06-18",
+        "occurrence_ids": [
+          "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+          "80fdc319-6115-493b-8e64-1db689665535",
+          "934ee6ce-a44b-4c3f-8266-defe9246131f"
+        ],
+        "chat_capability": "daily_action_review",
+        "week_start_date": "2026-06-15",
+        "reviewed_local_date": "2026-06-18"
+      },
+      "origin": "action_review",
+      "delivery_attempt_count": 0,
+      "delivery_last_error": null,
+      "delivery_last_error_at": null,
+      "delivery_last_request_id": null,
+      "recurring_reminder_id": null
+    },
+    "process_checkins_response": {
+      "success": true,
+      "processed": 1,
+      "flushed_deferred": 0,
+      "delivered_rendez_vous": 0,
+      "processed_access_notifications": 0,
+      "processed_proactive_candidates": 0,
+      "request_id": "daily-real-rose-20260624-r1-process"
+    }
+  },
+  "pending_initial": {
+    "id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+    "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+    "status": "pending",
+    "payload": {
+      "targets": [
+        {
+          "kind": "habit",
+          "title": "Faire un sas de décompression (sans fumer)",
+          "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+          "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "dimension": "habits",
+          "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+          "planned_day": "mon",
+          "time_of_day": "evening",
+          "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+          "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-06-15",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "reviewed_local_date": "2026-06-18",
+          "original_planned_day": null
+        },
+        {
+          "kind": "task",
+          "title": "Ranger le matériel hors de vue",
+          "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+          "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "dimension": "missions",
+          "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+          "planned_day": "thu",
+          "time_of_day": "anytime",
+          "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+          "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-06-15",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "reviewed_local_date": "2026-06-18",
+          "original_planned_day": "thu"
+        },
+        {
+          "kind": "framework",
+          "title": "Cibler le joint réflexe",
+          "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+          "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "dimension": "clarifications",
+          "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+          "planned_day": "thu",
+          "time_of_day": "anytime",
+          "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+          "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-06-15",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "reviewed_local_date": "2026-06-18",
+          "original_planned_day": null
+        }
+      ],
+      "timezone": "Europe/Paris",
+      "local_date": "2026-06-18",
+      "message_mode": "conversation",
+      "review_state": {
+        "items": {
+          "80fdc319-6115-493b-8e64-1db689665535": {
+            "title": "Cibler le joint réflexe",
+            "outcome": null,
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "clarification",
+            "reason_text": null,
+            "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+            "evidence_text": null,
+            "missing_slots": [
+              "not_asked",
+              "outcome"
+            ],
+            "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          },
+          "934ee6ce-a44b-4c3f-8266-defe9246131f": {
+            "title": "Ranger le matériel hors de vue",
+            "outcome": null,
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "mission",
+            "reason_text": null,
+            "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+            "evidence_text": null,
+            "missing_slots": [
+              "outcome"
+            ],
+            "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          },
+          "a8c5e803-1c14-4bbf-add0-f8d7802dd636": {
+            "title": "Faire un sas de décompression (sans fumer)",
+            "outcome": null,
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "habit",
+            "reason_text": null,
+            "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+            "evidence_text": null,
+            "missing_slots": [
+              "outcome"
+            ],
+            "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          }
+        },
+        "intent": "open_review",
+        "source": "daily_action_review_v1",
+        "status": "collecting",
+        "skill_id": "daily_action_review_v1",
+        "constraints": [
+          "one_question_max",
+          "no_solution_first",
+          "no_tool_suggestion",
+          "no_plan_adjustment",
+          "no_potion",
+          "no_guilt",
+          "respect_user_stopped",
+          "do_not_mark_without_evidence",
+          "do_not_apply_without_complete_slots"
+        ],
+        "effect_plan": {
+          "allowed": false,
+          "effects": []
+        },
+        "stop_reason": null,
+        "next_question": null,
+        "should_apply_effects": false,
+        "next_question_targets": [
+          "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+          "934ee6ce-a44b-4c3f-8266-defe9246131f"
+        ],
+        "generated_user_message": null,
+        "remaining_occurrence_ids": [
+          "80fdc319-6115-493b-8e64-1db689665535"
+        ],
+        "asked_occurrence_ids_history": [
+          [
+            "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f"
+          ]
+        ],
+        "current_focus_occurrence_ids": [
+          "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+          "934ee6ce-a44b-4c3f-8266-defe9246131f"
+        ],
+        "action_intelligence_by_occurrence_id": {}
+      },
+      "draft_message": "Je reviens sur tes deux actions du jour : le sas de décompression (sans fumer) et le matériel rangé hors de vue.  \nTu en es où là-dessus pour aujourd’hui ?",
+      "event_context": "action_evening_review_v2",
+      "occurrence_ids": [
+        "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+        "934ee6ce-a44b-4c3f-8266-defe9246131f",
+        "80fdc319-6115-493b-8e64-1db689665535"
+      ],
+      "chat_capability": "daily_action_review",
+      "grouping_reason": "same_plan",
+      "week_start_date": "2026-06-15",
+      "asked_occurrence_ids": [
+        "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+        "934ee6ce-a44b-4c3f-8266-defe9246131f"
+      ],
+      "action_evening_review": true,
+      "already_resolved_targets": [],
+      "initial_note_information": {
+        "evidence": [
+          "event_context=action_evening_review_v2",
+          "process-checkins selected and persisted daily review targets"
+        ],
+        "confidence": "high",
+        "risk_score": 0,
+        "source_flow": "process_checkins",
+        "handoff_reason": "bridge",
+        "source_flow_id": "process_checkins.action_evening_review_v2",
+        "collected_state": {
+          "timezone": "Europe/Paris",
+          "local_date": "2026-06-18",
+          "event_context": "action_evening_review_v2",
+          "target_titles": [
+            "Faire un sas de décompression (sans fumer)",
+            "Ranger le matériel hors de vue",
+            "Cibler le joint réflexe"
+          ],
+          "week_start_date": "2026-06-15",
+          "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+          "target_occurrence_ids": [
+            "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "already_resolved_occurrence_ids": []
+        },
+        "target_dispatcher": "daily_action_review_v1",
+        "structured_context": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Faire un sas de décompression (sans fumer)",
+              "dimension": "habits",
+              "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636"
+            },
+            {
+              "kind": "task",
+              "title": "Ranger le matériel hors de vue",
+              "dimension": "missions",
+              "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+              "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+              "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f"
+            },
+            {
+              "kind": "framework",
+              "title": "Cibler le joint réflexe",
+              "dimension": "clarifications",
+              "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+              "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+              "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535"
+            }
+          ],
+          "source_flow": "process_checkins",
+          "event_context": "action_evening_review_v2",
+          "chat_capability": "daily_action_review",
+          "pending_action_kind": "scheduled_checkin"
+        },
+        "active_flow_summary": "System opened daily review for the selected action targets.",
+        "unresolved_questions": [
+          "Which selected actions were done or not done today.",
+          "If not done, the reason and whether the action remains relevant."
+        ],
+        "user_message_summary": null,
+        "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+        "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+        "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+        "target_local_dispatcher_hint": "daily_action_review_v1",
+        "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+      },
+      "not_yet_asked_occurrence_ids": [
+        "80fdc319-6115-493b-8e64-1db689665535"
+      ]
+    },
+    "created_at": "2026-06-23T23:13:36.150945+00:00",
+    "processed_at": null
+  },
+  "assistant_opening_rows": [
+    {
+      "id": "79549729-b06a-4125-950e-43073119d1e8",
+      "content": "Je reviens sur tes deux actions du jour : le sas de décompression (sans fumer) et le matériel rangé hors de vue.  \nTu en es où là-dessus pour aujourd’hui ?",
+      "metadata": {
+        "to": "+10000000000",
+        "source": "scheduled_checkin",
+        "channel": "whatsapp",
+        "purpose": "action_evening_review",
+        "request_id": "59a06136-c106-419c-9d31-bf8021ea63cf",
+        "is_proactive": true,
+        "event_context": "action_evening_review_v2",
+        "plan_item_ids": [
+          "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+          "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+          "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c"
+        ],
+        "occurrence_ids": [
+          "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+          "934ee6ce-a44b-4c3f-8266-defe9246131f",
+          "80fdc319-6115-493b-8e64-1db689665535"
+        ],
+        "require_opted_in": true,
+        "whatsapp_buttons": [
+          "Oui!",
+          "Plus tard!"
+        ],
+        "whatsapp_template": {
+          "name": "global_reach_template",
+          "known": true,
+          "params": [
+            ""
+          ],
+          "buttons": [
+            "Oui!",
+            "Plus tard!"
+          ]
+        },
+        "simulated_whatsapp": true,
+        "original_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+        "outbound_tracking_id": "36ca7b7f-e8b8-4f09-a455-8b61e540f0dc",
+        "wa_outbound_message_id": "wamid_WEB_SIM_59a06136-c106-419c-9d31-bf8021ea63cf",
+        "simulation_bypassed_phone": true,
+        "simulation_bypassed_opt_in": null,
+        "already_resolved_occurrence_ids": []
+      },
+      "created_at": "2026-06-23T23:13:36.145067+00:00"
+    }
+  ],
+  "turns": [
+    {
+      "turn": 0,
+      "role": "assistant",
+      "text": "Je reviens sur tes deux actions du jour : le sas de décompression (sans fumer) et le matériel rangé hors de vue.  \nTu en es où là-dessus pour aujourd’hui ?",
+      "trace_short": {
+        "source": "process-checkins",
+        "pending_status": "pending",
+        "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+        "targets": [
+          {
+            "id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+            "title": "Faire un sas de décompression (sans fumer)",
+            "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          },
+          {
+            "id": "80fdc319-6115-493b-8e64-1db689665535",
+            "title": "Cibler le joint réflexe",
+            "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c"
+          },
+          {
+            "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "title": "Ranger le matériel hors de vue",
+            "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a"
+          }
+        ],
+        "asked": [
+          "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+          "934ee6ce-a44b-4c3f-8266-defe9246131f"
+        ],
+        "remaining": [
+          "80fdc319-6115-493b-8e64-1db689665535"
+        ]
+      }
+    },
+    {
+      "turn": 1,
+      "role": "user",
+      "text": "Le sas est fait. Le matériel, non : j’étais épuisée et je l’ai laissé dehors, mais ça reste utile pour demain."
+    },
+    {
+      "turn": 1,
+      "role": "assistant",
+      "text": "Et pour « Cibler le joint réflexe », c’est fait ou pas fait ?",
+      "trace_short": {
+        "http_status": 200,
+        "raw_response": "{\"ok\":true,\"request_id\":\"daily-real-rose-20260624-r1-t01\"}",
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_clarification",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "56e9d001-3626-496e-affd-4f51e144fed3",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "pending",
+        "pending_payload_summary": {
+          "asked": [
+            "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f"
+          ],
+          "not_yet": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "review_state_status": "needs_clarification",
+          "current_focus": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "remaining": [],
+          "items": {
+            "80fdc319-6115-493b-8e64-1db689665535": {
+              "title": "Cibler le joint réflexe",
+              "outcome": null,
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "low",
+              "plan_label": null,
+              "action_type": "clarification",
+              "reason_text": null,
+              "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+              "evidence_text": null,
+              "missing_slots": [
+                "outcome"
+              ],
+              "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            },
+            "934ee6ce-a44b-4c3f-8266-defe9246131f": {
+              "title": "Ranger le matériel hors de vue",
+              "outcome": "missed",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "high",
+              "plan_label": null,
+              "action_type": "mission",
+              "reason_text": "épuisement",
+              "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+              "evidence_text": "Le matériel, non : j’étais épuisée et je l’ai laissé dehors, mais ça reste utile pour demain.",
+              "missing_slots": [],
+              "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "still_relevant": true,
+              "reason_category": null,
+              "matched_user_text": null
+            },
+            "a8c5e803-1c14-4bbf-add0-f8d7802dd636": {
+              "title": "Faire un sas de décompression (sans fumer)",
+              "outcome": "completed",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "high",
+              "plan_label": null,
+              "action_type": "habit",
+              "reason_text": null,
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "evidence_text": "Le sas est fait.",
+              "missing_slots": [],
+              "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+              "still_relevant": "unknown",
+              "reason_category": "none",
+              "matched_user_text": null
+            }
+          }
+        },
+        "entries_count": 0,
+        "occurrence_statuses": [
+          {
+            "id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+            "status": "planned",
+            "planned_day": "mon"
+          },
+          {
+            "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "status": "planned",
+            "planned_day": "thu"
+          },
+          {
+            "id": "80fdc319-6115-493b-8e64-1db689665535",
+            "status": "planned",
+            "planned_day": "thu"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 2,
+      "role": "user",
+      "text": "Oui, fait aussi : j’ai repéré que le réflexe arrive surtout juste après le dîner."
+    },
+    {
+      "turn": 2,
+      "role": "assistant",
+      "text": "C’est noté pour les 3 points : le sas est fait, le réflexe est mieux ciblé, et le matériel est resté dehors.",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "7d41de57-5145-456f-b35e-ba12e6178442",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "done",
+        "entries_count": 3,
+        "occurrence_statuses": [
+          {
+            "id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+            "status": "done"
+          },
+          {
+            "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "status": "rescheduled"
+          },
+          {
+            "id": "80fdc319-6115-493b-8e64-1db689665535",
+            "status": "done"
+          }
+        ]
+      }
+    },
+    {
+      "turn": "post-daily",
+      "role": "user",
+      "text": "Merci, c’est tout pour ce soir."
+    },
+    {
+      "turn": "post-daily",
+      "role": "assistant",
+      "text": "Bien reçu, repose-toi 🙂",
+      "trace_short": {
+        "http_status": 200,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "pending_status": "done",
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    }
+  ],
+  "whatsapp": {
+    "from": "15550586860207",
+    "display_phone": "15551794960780",
+    "phone_number_id": "6426f41020dfaece"
+  },
+  "latest": {
+    "pending_after": [
+      {
+        "id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+        "status": "done",
+        "payload": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Faire un sas de décompression (sans fumer)",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "habits",
+              "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+              "planned_day": "mon",
+              "time_of_day": "evening",
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-15",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-18",
+              "original_planned_day": null
+            },
+            {
+              "kind": "task",
+              "title": "Ranger le matériel hors de vue",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "missions",
+              "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+              "planned_day": "thu",
+              "time_of_day": "anytime",
+              "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+              "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-15",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-18",
+              "original_planned_day": "thu"
+            },
+            {
+              "kind": "framework",
+              "title": "Cibler le joint réflexe",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "clarifications",
+              "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+              "planned_day": "thu",
+              "time_of_day": "anytime",
+              "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+              "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-15",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-18",
+              "original_planned_day": null
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "local_date": "2026-06-18",
+          "completed_at": "2026-06-23T23:14:45.050Z",
+          "message_mode": "conversation",
+          "review_state": {
+            "items": {
+              "80fdc319-6115-493b-8e64-1db689665535": {
+                "title": "Cibler le joint réflexe",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "clarification",
+                "reason_text": null,
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "evidence_text": "j’ai repéré que le réflexe arrive surtout juste après le dîner",
+                "missing_slots": [],
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              },
+              "934ee6ce-a44b-4c3f-8266-defe9246131f": {
+                "title": "Ranger le matériel hors de vue",
+                "outcome": "missed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": "épuisement",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "evidence_text": "Le matériel, non : j’étais épuisée et je l’ai laissé dehors, mais ça reste utile pour demain.",
+                "missing_slots": [],
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "still_relevant": true,
+                "reason_category": null,
+                "matched_user_text": null
+              },
+              "a8c5e803-1c14-4bbf-add0-f8d7802dd636": {
+                "title": "Faire un sas de décompression (sans fumer)",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "habit",
+                "reason_text": null,
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "evidence_text": "Le sas est fait.",
+                "missing_slots": [],
+                "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              }
+            },
+            "intent": "answer_review",
+            "source": "daily_action_review_v1",
+            "status": "complete",
+            "skill_id": "daily_action_review_v1",
+            "constraints": [
+              "one_question_max",
+              "no_solution_first",
+              "no_tool_suggestion",
+              "no_plan_adjustment",
+              "no_potion",
+              "no_guilt",
+              "respect_user_stopped",
+              "do_not_mark_without_evidence",
+              "do_not_apply_without_complete_slots"
+            ],
+            "effect_plan": {
+              "allowed": true,
+              "effects": [
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "missed",
+                  "reason_text": "épuisement",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                  "still_relevant": true,
+                  "reason_category": "unclear"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                }
+              ]
+            },
+            "stop_reason": "all_required_slots_filled",
+            "next_question": null,
+            "last_user_text": "Oui, fait aussi : j’ai repéré que le réflexe arrive surtout juste après le dîner.",
+            "blocked_effects": [],
+            "should_apply_effects": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "items.80fdc319-6115-493b-8e64-1db689665535",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [],
+              "preserved_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "next_question_targets": [],
+            "generated_user_message": "Et pour « Cibler le joint réflexe », c’est fait ou pas fait ?",
+            "remaining_occurrence_ids": [],
+            "asked_occurrence_ids_history": [
+              [
+                "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                "934ee6ce-a44b-4c3f-8266-defe9246131f"
+              ],
+              [
+                "80fdc319-6115-493b-8e64-1db689665535"
+              ]
+            ],
+            "current_focus_occurrence_ids": [
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "action_intelligence_by_occurrence_id": {}
+          },
+          "draft_message": "Je reviens sur tes deux actions du jour : le sas de décompression (sans fumer) et le matériel rangé hors de vue.  \nTu en es où là-dessus pour aujourd’hui ?",
+          "event_context": "action_evening_review_v2",
+          "last_user_text": "Le sas est fait. Le matériel, non : j’étais épuisée et je l’ai laissé dehors, mais ça reste utile pour demain.",
+          "occurrence_ids": [
+            "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "chat_capability": "daily_action_review",
+          "grouping_reason": "same_plan",
+          "week_start_date": "2026-06-15",
+          "completed_flow_memo": {
+            "status": "completed",
+            "completed_at": "2026-06-23T23:14:45.050Z",
+            "source_flow_id": "daily_action_review_v1",
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "36658eac-8676-4151-9ada-31bf4ce908b3",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "commit_status": "inserted",
+                "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "missed",
+                "entry_id": "387ac780-dcb8-4f7d-a22c-1a1924212de1",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "commit_status": "inserted",
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "reason_category": "unclear"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "17a12b09-6c93-42a3-905e-97b79251c268",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "commit_status": "inserted",
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "asked_occurrence_ids": [
+            "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f"
+          ],
+          "action_evening_review": true,
+          "missing_occurrence_ids": [],
+          "already_resolved_targets": [],
+          "initial_note_information": {
+            "evidence": [
+              "event_context=action_evening_review_v2",
+              "process-checkins selected and persisted daily review targets"
+            ],
+            "confidence": "high",
+            "risk_score": 0,
+            "source_flow": "process_checkins",
+            "handoff_reason": "bridge",
+            "source_flow_id": "process_checkins.action_evening_review_v2",
+            "collected_state": {
+              "timezone": "Europe/Paris",
+              "local_date": "2026-06-18",
+              "event_context": "action_evening_review_v2",
+              "target_titles": [
+                "Faire un sas de décompression (sans fumer)",
+                "Ranger le matériel hors de vue",
+                "Cibler le joint réflexe"
+              ],
+              "week_start_date": "2026-06-15",
+              "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+              "target_occurrence_ids": [
+                "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "80fdc319-6115-493b-8e64-1db689665535"
+              ],
+              "already_resolved_occurrence_ids": []
+            },
+            "target_dispatcher": "daily_action_review_v1",
+            "structured_context": {
+              "targets": [
+                {
+                  "kind": "habit",
+                  "title": "Faire un sas de décompression (sans fumer)",
+                  "dimension": "habits",
+                  "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636"
+                },
+                {
+                  "kind": "task",
+                  "title": "Ranger le matériel hors de vue",
+                  "dimension": "missions",
+                  "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f"
+                },
+                {
+                  "kind": "framework",
+                  "title": "Cibler le joint réflexe",
+                  "dimension": "clarifications",
+                  "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535"
+                }
+              ],
+              "source_flow": "process_checkins",
+              "event_context": "action_evening_review_v2",
+              "chat_capability": "daily_action_review",
+              "pending_action_kind": "scheduled_checkin"
+            },
+            "active_flow_summary": "System opened daily review for the selected action targets.",
+            "unresolved_questions": [
+              "Which selected actions were done or not done today.",
+              "If not done, the reason and whether the action remains relevant."
+            ],
+            "user_message_summary": null,
+            "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+            "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+            "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+            "target_local_dispatcher_hint": "daily_action_review_v1",
+            "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+          },
+          "daily_review_effects_result": {
+            "failed_effects": [],
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "36658eac-8676-4151-9ada-31bf4ce908b3",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "commit_status": "inserted",
+                "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "missed",
+                "entry_id": "387ac780-dcb8-4f7d-a22c-1a1924212de1",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "commit_status": "inserted",
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "reason_category": "unclear"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "17a12b09-6c93-42a3-905e-97b79251c268",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "commit_status": "inserted",
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "not_yet_asked_occurrence_ids": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "daily_action_review_diagnosis": {
+            "flow_action": "answer_review",
+            "visible_task": "commit_success",
+            "blocked_effects": [],
+            "selected_targets": [
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "candidate_summary": [
+              {
+                "title": "Faire un sas de décompression (sans fumer)",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636"
+              },
+              {
+                "title": "Ranger le matériel hors de vue",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f"
+              },
+              {
+                "title": "Cibler le joint réflexe",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535"
+              }
+            ],
+            "direct_handoff_flag": false,
+            "stabilization_ready": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "items.80fdc319-6115-493b-8e64-1db689665535",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [],
+              "preserved_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "pending_state_present": true
+          }
+        },
+        "processed_at": "2026-06-23T23:14:47.05+00:00"
+      }
+    ],
+    "entries": [
+      {
+        "id": "36658eac-8676-4151-9ada-31bf4ce908b3",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-06-18",
+          "reason_text": null,
+          "evidence_text": "Le sas est fait.",
+          "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "effective_at": "2026-06-18T12:00:00+00:00",
+        "created_at": "2026-06-23T23:14:45.05+00:00"
+      },
+      {
+        "id": "387ac780-dcb8-4f7d-a22c-1a1924212de1",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "entry_kind": "skip",
+        "outcome": "missed",
+        "value_text": "épuisement",
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-06-18",
+          "reason_text": "épuisement",
+          "evidence_text": "Le matériel, non : j’étais épuisée et je l’ai laissé dehors, mais ça reste utile pour demain.",
+          "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+          "daily_decision": "missed_rescheduled_tomorrow",
+          "outcome_source": "free_text",
+          "rescheduled_to": "fri",
+          "still_relevant": true,
+          "reason_category": null,
+          "matched_user_text": null,
+          "occurrence_status": "rescheduled",
+          "pending_action_id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+          "reschedule_decision": "rescheduled_tomorrow",
+          "completed_part_label": null,
+          "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "effective_at": "2026-06-18T12:00:00+00:00",
+        "created_at": "2026-06-23T23:14:45.05+00:00"
+      },
+      {
+        "id": "17a12b09-6c93-42a3-905e-97b79251c268",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "clarifications",
+          "confidence": "high",
+          "local_date": "2026-06-18",
+          "reason_text": null,
+          "evidence_text": "j’ai repéré que le réflexe arrive surtout juste après le dîner",
+          "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "effective_at": "2026-06-18T12:00:00+00:00",
+        "created_at": "2026-06-23T23:14:45.05+00:00"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "planned_day": "mon",
+        "status": "done",
+        "source": "default_generated",
+        "validated_at": "2026-06-23T23:14:45.05+00:00",
+        "updated_at": "2026-06-23T23:14:45.05+00:00"
+      },
+      {
+        "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "planned_day": "fri",
+        "status": "rescheduled",
+        "source": "auto_rescheduled",
+        "validated_at": null,
+        "updated_at": "2026-06-23T23:14:45.05+00:00"
+      },
+      {
+        "id": "80fdc319-6115-493b-8e64-1db689665535",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "planned_day": "thu",
+        "status": "done",
+        "source": "manual_change",
+        "validated_at": "2026-06-23T23:14:45.05+00:00",
+        "updated_at": "2026-06-23T23:14:45.05+00:00"
+      }
+    ]
+  },
+  "post_daily": {
+    "request_id": "daily-real-rose-20260624-r1-post-daily",
+    "http_status": 200,
+    "raw_response": {
+      "ok": true,
+      "request_id": "daily-real-rose-20260624-r1-post-daily",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "whatsapp",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Bien reçu, repose-toi 🙂",
+        "mode": "companion",
+        "delivery": {
+          "mode": "text_reply"
+        },
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "daily-real-rose-20260624-r1-post-daily",
+            "source_message_id": "e13ca52d-13d1-4bc8-810d-590d2b8ff95b",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "user_closes_conversation_after_progress_update",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_only",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "normal_reply",
+              "resume_policy": "none",
+              "reason_code": "normal_reply_default"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "daily-real-rose-20260624-r1-post-daily",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "daily-real-rose-20260624-r1-post-daily",
+          "source_message_id": "e13ca52d-13d1-4bc8-810d-590d2b8ff95b",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "user_closes_conversation_after_progress_update",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_only",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "minimal_global_dispatcher",
+            "active_owner": "none",
+            "selected_owner": "normal_reply",
+            "resume_policy": "none",
+            "reason_code": "normal_reply_default"
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "daily-real-rose-20260624-r1-post-daily",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "normal_reply"
+      },
+      "trace_error": null
+    },
+    "messages": [
+      {
+        "id": "e13ca52d-13d1-4bc8-810d-590d2b8ff95b",
+        "role": "user",
+        "content": "Merci, c’est tout pour ce soir.",
+        "metadata": {
+          "request_id": "daily-real-rose-20260624-r1-post-daily",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-23T23:15:19.758643+00:00"
+      },
+      {
+        "id": "ee17a41d-5f1c-472f-98bd-747439983fdd",
+        "role": "assistant",
+        "content": "Bien reçu, repose-toi 🙂",
+        "metadata": {
+          "request_id": "daily-real-rose-20260624-r1-post-daily",
+          "route_owner": "normal_reply",
+          "agent_latency_ms": 1206,
+          "selected_handler": null,
+          "context_latency_ms": 49,
+          "dispatcher_latency_ms": 2606,
+          "runtime_safety_risk_band": "none"
+        },
+        "created_at": "2026-06-23T23:15:23.660985+00:00"
+      }
+    ],
+    "pending_after": [
+      {
+        "id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+        "status": "done",
+        "payload": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Faire un sas de décompression (sans fumer)",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "habits",
+              "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+              "planned_day": "mon",
+              "time_of_day": "evening",
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-15",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-18",
+              "original_planned_day": null
+            },
+            {
+              "kind": "task",
+              "title": "Ranger le matériel hors de vue",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "missions",
+              "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+              "planned_day": "thu",
+              "time_of_day": "anytime",
+              "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+              "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-15",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-18",
+              "original_planned_day": "thu"
+            },
+            {
+              "kind": "framework",
+              "title": "Cibler le joint réflexe",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "clarifications",
+              "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+              "planned_day": "thu",
+              "time_of_day": "anytime",
+              "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+              "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-15",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-18",
+              "original_planned_day": null
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "local_date": "2026-06-18",
+          "completed_at": "2026-06-23T23:14:45.050Z",
+          "message_mode": "conversation",
+          "review_state": {
+            "items": {
+              "80fdc319-6115-493b-8e64-1db689665535": {
+                "title": "Cibler le joint réflexe",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "clarification",
+                "reason_text": null,
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "evidence_text": "j’ai repéré que le réflexe arrive surtout juste après le dîner",
+                "missing_slots": [],
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              },
+              "934ee6ce-a44b-4c3f-8266-defe9246131f": {
+                "title": "Ranger le matériel hors de vue",
+                "outcome": "missed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": "épuisement",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "evidence_text": "Le matériel, non : j’étais épuisée et je l’ai laissé dehors, mais ça reste utile pour demain.",
+                "missing_slots": [],
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "still_relevant": true,
+                "reason_category": null,
+                "matched_user_text": null
+              },
+              "a8c5e803-1c14-4bbf-add0-f8d7802dd636": {
+                "title": "Faire un sas de décompression (sans fumer)",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "habit",
+                "reason_text": null,
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "evidence_text": "Le sas est fait.",
+                "missing_slots": [],
+                "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              }
+            },
+            "intent": "answer_review",
+            "source": "daily_action_review_v1",
+            "status": "complete",
+            "skill_id": "daily_action_review_v1",
+            "constraints": [
+              "one_question_max",
+              "no_solution_first",
+              "no_tool_suggestion",
+              "no_plan_adjustment",
+              "no_potion",
+              "no_guilt",
+              "respect_user_stopped",
+              "do_not_mark_without_evidence",
+              "do_not_apply_without_complete_slots"
+            ],
+            "effect_plan": {
+              "allowed": true,
+              "effects": [
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "missed",
+                  "reason_text": "épuisement",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                  "still_relevant": true,
+                  "reason_category": "unclear"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                }
+              ]
+            },
+            "stop_reason": "all_required_slots_filled",
+            "next_question": null,
+            "last_user_text": "Oui, fait aussi : j’ai repéré que le réflexe arrive surtout juste après le dîner.",
+            "blocked_effects": [],
+            "should_apply_effects": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "items.80fdc319-6115-493b-8e64-1db689665535",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [],
+              "preserved_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "next_question_targets": [],
+            "generated_user_message": "Et pour « Cibler le joint réflexe », c’est fait ou pas fait ?",
+            "remaining_occurrence_ids": [],
+            "asked_occurrence_ids_history": [
+              [
+                "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                "934ee6ce-a44b-4c3f-8266-defe9246131f"
+              ],
+              [
+                "80fdc319-6115-493b-8e64-1db689665535"
+              ]
+            ],
+            "current_focus_occurrence_ids": [
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "action_intelligence_by_occurrence_id": {}
+          },
+          "draft_message": "Je reviens sur tes deux actions du jour : le sas de décompression (sans fumer) et le matériel rangé hors de vue.  \nTu en es où là-dessus pour aujourd’hui ?",
+          "event_context": "action_evening_review_v2",
+          "last_user_text": "Le sas est fait. Le matériel, non : j’étais épuisée et je l’ai laissé dehors, mais ça reste utile pour demain.",
+          "occurrence_ids": [
+            "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "chat_capability": "daily_action_review",
+          "grouping_reason": "same_plan",
+          "week_start_date": "2026-06-15",
+          "completed_flow_memo": {
+            "status": "completed",
+            "completed_at": "2026-06-23T23:14:45.050Z",
+            "source_flow_id": "daily_action_review_v1",
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "36658eac-8676-4151-9ada-31bf4ce908b3",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "commit_status": "inserted",
+                "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "missed",
+                "entry_id": "387ac780-dcb8-4f7d-a22c-1a1924212de1",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "commit_status": "inserted",
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "reason_category": "unclear"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "17a12b09-6c93-42a3-905e-97b79251c268",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "commit_status": "inserted",
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "asked_occurrence_ids": [
+            "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f"
+          ],
+          "action_evening_review": true,
+          "missing_occurrence_ids": [],
+          "already_resolved_targets": [],
+          "initial_note_information": {
+            "evidence": [
+              "event_context=action_evening_review_v2",
+              "process-checkins selected and persisted daily review targets"
+            ],
+            "confidence": "high",
+            "risk_score": 0,
+            "source_flow": "process_checkins",
+            "handoff_reason": "bridge",
+            "source_flow_id": "process_checkins.action_evening_review_v2",
+            "collected_state": {
+              "timezone": "Europe/Paris",
+              "local_date": "2026-06-18",
+              "event_context": "action_evening_review_v2",
+              "target_titles": [
+                "Faire un sas de décompression (sans fumer)",
+                "Ranger le matériel hors de vue",
+                "Cibler le joint réflexe"
+              ],
+              "week_start_date": "2026-06-15",
+              "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+              "target_occurrence_ids": [
+                "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "80fdc319-6115-493b-8e64-1db689665535"
+              ],
+              "already_resolved_occurrence_ids": []
+            },
+            "target_dispatcher": "daily_action_review_v1",
+            "structured_context": {
+              "targets": [
+                {
+                  "kind": "habit",
+                  "title": "Faire un sas de décompression (sans fumer)",
+                  "dimension": "habits",
+                  "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636"
+                },
+                {
+                  "kind": "task",
+                  "title": "Ranger le matériel hors de vue",
+                  "dimension": "missions",
+                  "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f"
+                },
+                {
+                  "kind": "framework",
+                  "title": "Cibler le joint réflexe",
+                  "dimension": "clarifications",
+                  "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535"
+                }
+              ],
+              "source_flow": "process_checkins",
+              "event_context": "action_evening_review_v2",
+              "chat_capability": "daily_action_review",
+              "pending_action_kind": "scheduled_checkin"
+            },
+            "active_flow_summary": "System opened daily review for the selected action targets.",
+            "unresolved_questions": [
+              "Which selected actions were done or not done today.",
+              "If not done, the reason and whether the action remains relevant."
+            ],
+            "user_message_summary": null,
+            "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+            "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+            "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+            "target_local_dispatcher_hint": "daily_action_review_v1",
+            "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+          },
+          "daily_review_effects_result": {
+            "failed_effects": [],
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "36658eac-8676-4151-9ada-31bf4ce908b3",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "commit_status": "inserted",
+                "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "missed",
+                "entry_id": "387ac780-dcb8-4f7d-a22c-1a1924212de1",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "commit_status": "inserted",
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "reason_category": "unclear"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "17a12b09-6c93-42a3-905e-97b79251c268",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "commit_status": "inserted",
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "not_yet_asked_occurrence_ids": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "daily_action_review_diagnosis": {
+            "flow_action": "answer_review",
+            "visible_task": "commit_success",
+            "blocked_effects": [],
+            "selected_targets": [
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "candidate_summary": [
+              {
+                "title": "Faire un sas de décompression (sans fumer)",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636"
+              },
+              {
+                "title": "Ranger le matériel hors de vue",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f"
+              },
+              {
+                "title": "Cibler le joint réflexe",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535"
+              }
+            ],
+            "direct_handoff_flag": false,
+            "stabilization_ready": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "items.80fdc319-6115-493b-8e64-1db689665535",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [],
+              "preserved_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "pending_state_present": true
+          }
+        },
+        "processed_at": "2026-06-23T23:14:47.05+00:00"
+      }
+    ]
+  },
+  "cleanup_candidates": {
+    "entries": [
+      {
+        "id": "36658eac-8676-4151-9ada-31bf4ce908b3",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "outcome": "completed",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-06-18",
+          "reason_text": null,
+          "evidence_text": "Le sas est fait.",
+          "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "created_at": "2026-06-23T23:14:45.05+00:00"
+      },
+      {
+        "id": "387ac780-dcb8-4f7d-a22c-1a1924212de1",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "outcome": "missed",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-06-18",
+          "reason_text": "épuisement",
+          "evidence_text": "Le matériel, non : j’étais épuisée et je l’ai laissé dehors, mais ça reste utile pour demain.",
+          "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+          "daily_decision": "missed_rescheduled_tomorrow",
+          "outcome_source": "free_text",
+          "rescheduled_to": "fri",
+          "still_relevant": true,
+          "reason_category": null,
+          "matched_user_text": null,
+          "occurrence_status": "rescheduled",
+          "pending_action_id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+          "reschedule_decision": "rescheduled_tomorrow",
+          "completed_part_label": null,
+          "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "created_at": "2026-06-23T23:14:45.05+00:00"
+      },
+      {
+        "id": "17a12b09-6c93-42a3-905e-97b79251c268",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "outcome": "completed",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "clarifications",
+          "confidence": "high",
+          "local_date": "2026-06-18",
+          "reason_text": null,
+          "evidence_text": "j’ai repéré que le réflexe arrive surtout juste après le dîner",
+          "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "created_at": "2026-06-23T23:14:45.05+00:00"
+      }
+    ],
+    "messages": [
+      {
+        "id": "ee17a41d-5f1c-472f-98bd-747439983fdd",
+        "role": "assistant",
+        "content": "Bien reçu, repose-toi 🙂",
+        "metadata": {
+          "request_id": "daily-real-rose-20260624-r1-post-daily",
+          "route_owner": "normal_reply",
+          "agent_latency_ms": 1206,
+          "selected_handler": null,
+          "context_latency_ms": 49,
+          "dispatcher_latency_ms": 2606,
+          "runtime_safety_risk_band": "none"
+        },
+        "created_at": "2026-06-23T23:15:23.660985+00:00"
+      },
+      {
+        "id": "e13ca52d-13d1-4bc8-810d-590d2b8ff95b",
+        "role": "user",
+        "content": "Merci, c’est tout pour ce soir.",
+        "metadata": {
+          "request_id": "daily-real-rose-20260624-r1-post-daily",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-23T23:15:19.758643+00:00"
+      },
+      {
+        "id": "922cd0a9-71f7-4381-bfb3-c97b61e4c5d2",
+        "role": "user",
+        "content": "Oui, fait aussi : j’ai repéré que le réflexe arrive surtout juste après le dîner.",
+        "metadata": {
+          "channel": "whatsapp",
+          "wa_from": "+15550586860207",
+          "wa_type": "text",
+          "request_id": "bb8c1e91-2297-48b0-bac1-f98133243f90",
+          "wa_message_id": "wamid_daily-real-rose-20260624-r1_2_32082e29-b7ab-4d0e-8ee5-ca9eac91e492",
+          "wa_profile_name": "rose QA",
+          "wa_interactive_id": null,
+          "webhook_request_id": "daily-real-rose-20260624-r1-t02",
+          "wa_interactive_title": null,
+          "daily_action_review_v1": {
+            "stop_reason": "all_required_slots_filled",
+            "skill_status": "complete",
+            "occurrence_ids": [
+              "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+              "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "pending_action_id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+            "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+            "structured_extraction_id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+            "structured_extraction_status": "complete"
+          },
+          "structured_extraction_id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+          "structured_extraction_source": "daily_action_review_v1"
+        },
+        "created_at": "2026-06-23T23:14:45.024818+00:00"
+      },
+      {
+        "id": "88c067ad-de2d-4e9f-9181-16b36f9c941d",
+        "role": "user",
+        "content": "Le sas est fait. Le matériel, non : j’étais épuisée et je l’ai laissé dehors, mais ça reste utile pour demain.",
+        "metadata": {
+          "channel": "whatsapp",
+          "wa_from": "+15550586860207",
+          "wa_type": "text",
+          "request_id": "271ea206-bd42-4a7a-874d-0cf90afa5ea6",
+          "wa_message_id": "wamid_daily-real-rose-20260624-r1_1_0cac2a93-9c9e-4f6f-981c-d54f84c0d853",
+          "wa_profile_name": "rose QA",
+          "wa_interactive_id": null,
+          "webhook_request_id": "daily-real-rose-20260624-r1-t01",
+          "wa_interactive_title": null,
+          "daily_action_review_v1": {
+            "stop_reason": null,
+            "skill_status": "needs_clarification",
+            "occurrence_ids": [
+              "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+              "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "pending_action_id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+            "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+            "structured_extraction_id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+            "structured_extraction_status": "partial"
+          },
+          "structured_extraction_id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+          "structured_extraction_source": "daily_action_review_v1"
+        },
+        "created_at": "2026-06-23T23:14:27.842387+00:00"
+      },
+      {
+        "id": "79549729-b06a-4125-950e-43073119d1e8",
+        "role": "assistant",
+        "content": "Je reviens sur tes deux actions du jour : le sas de décompression (sans fumer) et le matériel rangé hors de vue.  \nTu en es où là-dessus pour aujourd’hui ?",
+        "metadata": {
+          "to": "+10000000000",
+          "source": "scheduled_checkin",
+          "channel": "whatsapp",
+          "purpose": "action_evening_review",
+          "request_id": "59a06136-c106-419c-9d31-bf8021ea63cf",
+          "is_proactive": true,
+          "event_context": "action_evening_review_v2",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+            "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+            "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c"
+          ],
+          "occurrence_ids": [
+            "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "require_opted_in": true,
+          "whatsapp_buttons": [
+            "Oui!",
+            "Plus tard!"
+          ],
+          "whatsapp_template": {
+            "name": "global_reach_template",
+            "known": true,
+            "params": [
+              ""
+            ],
+            "buttons": [
+              "Oui!",
+              "Plus tard!"
+            ]
+          },
+          "simulated_whatsapp": true,
+          "original_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+          "outbound_tracking_id": "36ca7b7f-e8b8-4f09-a455-8b61e540f0dc",
+          "wa_outbound_message_id": "wamid_WEB_SIM_59a06136-c106-419c-9d31-bf8021ea63cf",
+          "simulation_bypassed_phone": true,
+          "simulation_bypassed_opt_in": null,
+          "already_resolved_occurrence_ids": []
+        },
+        "created_at": "2026-06-23T23:13:36.145067+00:00"
+      },
+      {
+        "id": "e1c3f899-d699-400b-81aa-bd8eb48ff232",
+        "role": "assistant",
+        "content": "C’est noté pour les 3 points : le sas est fait, le réflexe est mieux ciblé, et le matériel est resté dehors.",
+        "metadata": {
+          "source": "daily_action_review",
+          "channel": "whatsapp",
+          "purpose": "action_evening_review",
+          "is_proactive": false,
+          "event_context": "action_evening_review_v2",
+          "outbound_tracking_id": "7d41de57-5145-456f-b35e-ba12e6178442",
+          "wa_outbound_message_id": "wamid_DISABLED"
+        },
+        "created_at": "2026-06-23T23:14:48.072121+00:00"
+      },
+      {
+        "id": "0506d462-9c51-44bf-912b-209d0680307c",
+        "role": "assistant",
+        "content": "Et pour « Cibler le joint réflexe », c’est fait ou pas fait ?",
+        "metadata": {
+          "source": "daily_action_review_clarification",
+          "channel": "whatsapp",
+          "purpose": "action_evening_review",
+          "is_proactive": false,
+          "event_context": "action_evening_review_v2",
+          "outbound_tracking_id": "56e9d001-3626-496e-affd-4f51e144fed3",
+          "wa_outbound_message_id": "wamid_DISABLED"
+        },
+        "created_at": "2026-06-23T23:14:31.235487+00:00"
+      }
+    ],
+    "pending_id": "2d5cf067-1ec8-453a-a813-de6148adcf44",
+    "scheduled_checkin_id": "b5b6fb2f-a44c-446a-ad29-2db269496606",
+    "occurrences_before_restore": [
+      {
+        "id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "planned_day": "mon",
+        "status": "done",
+        "source": "default_generated",
+        "validated_at": "2026-06-23T23:14:45.05+00:00",
+        "updated_at": "2026-06-23T23:14:45.05+00:00"
+      },
+      {
+        "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "planned_day": "thu",
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "updated_at": "2026-06-23T23:16:21.693+00:00"
+      },
+      {
+        "id": "80fdc319-6115-493b-8e64-1db689665535",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "planned_day": "thu",
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "updated_at": "2026-06-23T23:16:21.693+00:00"
+      }
+    ],
+    "chat_state_before_cleanup": [
+      {
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "scope": "whatsapp",
+        "temp_memory": {
+          "__momentum_state_v2": {
+            "posture": {
+              "confidence": "high",
+              "recommended_posture": "simplify"
+            },
+            "version": 2,
+            "blockers": {
+              "blocker_kind": null,
+              "blocker_repeat_score": 0
+            },
+            "_internal": {
+              "sources": {
+                "router_updated_at": "2026-06-15T19:31:19.998Z",
+                "last_classified_by": "router"
+              },
+              "stability": {
+                "stable_since_at": "2026-06-12T13:40:06.040Z"
+              },
+              "signal_log": {
+                "consent_events": [],
+                "emotional_turns": [],
+                "response_quality_events": [
+                  {
+                    "at": "2026-06-12T13:40:06.040Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-06-12T14:09:27.789Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-06-12T17:18:10.191Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-06-15T19:31:19.998Z",
+                    "quality": "substantive"
+                  }
+                ]
+              },
+              "metrics_cache": {
+                "last_user_turn_at": "2026-06-15T19:31:19.998Z",
+                "last_user_turn_quality": "substantive",
+                "days_since_last_user_message": 0
+              }
+            },
+            "assessment": {
+              "top_risk": null,
+              "confidence": "low",
+              "top_blocker": null
+            },
+            "dimensions": {
+              "consent": {
+                "level": "open",
+                "reason": "no_decline_detected"
+              },
+              "plan_fit": {
+                "level": "uncertain"
+              },
+              "engagement": {
+                "level": "high",
+                "reason": "substantive_recent_reply"
+              },
+              "load_balance": {
+                "level": "balanced"
+              },
+              "emotional_load": {
+                "level": "low",
+                "reason": "no_emotional_marker"
+              },
+              "execution_traction": {
+                "level": "unknown"
+              }
+            },
+            "updated_at": "2026-06-15T19:31:19.998Z",
+            "active_load": {
+              "needs_reduce": false,
+              "needs_consolidate": false,
+              "current_load_score": 0,
+              "mission_slots_used": 0,
+              "support_slots_used": 0,
+              "habit_building_slots_used": 0
+            },
+            "memory_links": {
+              "last_useful_support_ids": [],
+              "last_failed_technique_ids": []
+            },
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "current_state": "friction_legere"
+          },
+          "__whatsapp_fil_rouge": {
+            "text": "Tu es soulagé; respiration et tri admin sont passés côté “daily” aujourd’hui. On clôture la session et on reprend demain sans nouvelle action.",
+            "marker": "fil_rouge_whatsapp",
+            "updated_at": "2026-06-12T17:18:10.216Z"
+          },
+          "__conversation_risk_last": {
+            "at": "2026-06-15T19:31:19.998Z",
+            "score": 0,
+            "threshold": 8,
+            "reason_codes": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__memory_payload_state_v2": {
+            "items": [],
+            "budget": {
+              "max_items": 12,
+              "max_entities": 5,
+              "tokens_target": 1800
+            },
+            "modules": {},
+            "version": 2,
+            "entities": [],
+            "last_turn_id": null,
+            "active_topic_id": null
+          },
+          "companion_question_rhythm": {
+            "preference": "normal",
+            "recent_turns": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "last_updated_at": "2026-06-23T23:15:23.650Z",
+            "last_turn_had_question": false,
+            "turns_since_last_question": 7
+          },
+          "__last_completed_flow_memo": {
+            "status": "completed",
+            "completed_at": "2026-06-23T23:14:45.050Z",
+            "source_flow_id": "daily_action_review_v1",
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "36658eac-8676-4151-9ada-31bf4ce908b3",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "commit_status": "inserted",
+                "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "missed",
+                "entry_id": "387ac780-dcb8-4f7d-a22c-1a1924212de1",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "commit_status": "inserted",
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "reason_category": "unclear"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "17a12b09-6c93-42a3-905e-97b79251c268",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "commit_status": "inserted",
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "__conversation_risk_history": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "__coaching_intervention_history": []
+        },
+        "updated_at": "2026-06-23T23:15:23.658554+00:00"
+      }
+    ]
+  },
+  "cleanup_result": {
+    "deleted_counts": {
+      "entries": 3,
+      "messages": 7,
+      "pending": 1,
+      "scheduled_checkin": 1
+    },
+    "restored": [
+      {
+        "id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "week_start_date": "2026-06-15",
+        "ordinal": 1,
+        "planned_day": "mon",
+        "original_planned_day": null,
+        "actual_day": null,
+        "status": "planned",
+        "source": "default_generated",
+        "validated_at": null,
+        "created_at": "2026-06-02T16:06:21.413983+00:00",
+        "updated_at": "2026-06-23T23:14:45.05+00:00",
+        "default_day": "mon"
+      },
+      {
+        "id": "80fdc319-6115-493b-8e64-1db689665535",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "week_start_date": "2026-06-15",
+        "ordinal": 4,
+        "planned_day": "thu",
+        "original_planned_day": null,
+        "actual_day": null,
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "created_at": "2026-06-18T15:46:31.804505+00:00",
+        "updated_at": "2026-06-23T23:16:21.693+00:00",
+        "default_day": "thu"
+      },
+      {
+        "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "week_start_date": "2026-06-15",
+        "ordinal": 4,
+        "planned_day": "thu",
+        "original_planned_day": null,
+        "actual_day": null,
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "created_at": "2026-06-18T15:46:31.786256+00:00",
+        "updated_at": "2026-06-23T23:16:21.693+00:00",
+        "default_day": "thu"
+      }
+    ],
+    "chat_state_cleanup": [
+      {
+        "before": {
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "scope": "whatsapp",
+          "temp_memory": {
+            "__momentum_state_v2": {
+              "posture": {
+                "confidence": "high",
+                "recommended_posture": "simplify"
+              },
+              "version": 2,
+              "blockers": {
+                "blocker_kind": null,
+                "blocker_repeat_score": 0
+              },
+              "_internal": {
+                "sources": {
+                  "router_updated_at": "2026-06-15T19:31:19.998Z",
+                  "last_classified_by": "router"
+                },
+                "stability": {
+                  "stable_since_at": "2026-06-12T13:40:06.040Z"
+                },
+                "signal_log": {
+                  "consent_events": [],
+                  "emotional_turns": [],
+                  "response_quality_events": [
+                    {
+                      "at": "2026-06-12T13:40:06.040Z",
+                      "quality": "substantive"
+                    },
+                    {
+                      "at": "2026-06-12T14:09:27.789Z",
+                      "quality": "substantive"
+                    },
+                    {
+                      "at": "2026-06-12T17:18:10.191Z",
+                      "quality": "substantive"
+                    },
+                    {
+                      "at": "2026-06-15T19:31:19.998Z",
+                      "quality": "substantive"
+                    }
+                  ]
+                },
+                "metrics_cache": {
+                  "last_user_turn_at": "2026-06-15T19:31:19.998Z",
+                  "last_user_turn_quality": "substantive",
+                  "days_since_last_user_message": 0
+                }
+              },
+              "assessment": {
+                "top_risk": null,
+                "confidence": "low",
+                "top_blocker": null
+              },
+              "dimensions": {
+                "consent": {
+                  "level": "open",
+                  "reason": "no_decline_detected"
+                },
+                "plan_fit": {
+                  "level": "uncertain"
+                },
+                "engagement": {
+                  "level": "high",
+                  "reason": "substantive_recent_reply"
+                },
+                "load_balance": {
+                  "level": "balanced"
+                },
+                "emotional_load": {
+                  "level": "low",
+                  "reason": "no_emotional_marker"
+                },
+                "execution_traction": {
+                  "level": "unknown"
+                }
+              },
+              "updated_at": "2026-06-15T19:31:19.998Z",
+              "active_load": {
+                "needs_reduce": false,
+                "needs_consolidate": false,
+                "current_load_score": 0,
+                "mission_slots_used": 0,
+                "support_slots_used": 0,
+                "habit_building_slots_used": 0
+              },
+              "memory_links": {
+                "last_useful_support_ids": [],
+                "last_failed_technique_ids": []
+              },
+              "state_reason": "engaged_but_not_clearly_progressing",
+              "current_state": "friction_legere"
+            },
+            "__whatsapp_fil_rouge": {
+              "text": "Tu es soulagé; respiration et tri admin sont passés côté “daily” aujourd’hui. On clôture la session et on reprend demain sans nouvelle action.",
+              "marker": "fil_rouge_whatsapp",
+              "updated_at": "2026-06-12T17:18:10.216Z"
+            },
+            "__conversation_risk_last": {
+              "at": "2026-06-15T19:31:19.998Z",
+              "score": 0,
+              "threshold": 8,
+              "reason_codes": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "__memory_payload_state_v2": {
+              "items": [],
+              "budget": {
+                "max_items": 12,
+                "max_entities": 5,
+                "tokens_target": 1800
+              },
+              "modules": {},
+              "version": 2,
+              "entities": [],
+              "last_turn_id": null,
+              "active_topic_id": null
+            },
+            "companion_question_rhythm": {
+              "preference": "normal",
+              "recent_turns": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "last_updated_at": "2026-06-23T23:15:23.650Z",
+              "last_turn_had_question": false,
+              "turns_since_last_question": 7
+            },
+            "__last_completed_flow_memo": {
+              "status": "completed",
+              "completed_at": "2026-06-23T23:14:45.050Z",
+              "source_flow_id": "daily_action_review_v1",
+              "committed_effects": [
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "entry_id": "36658eac-8676-4151-9ada-31bf4ce908b3",
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "commit_status": "inserted",
+                  "occurrence_id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "missed",
+                  "entry_id": "387ac780-dcb8-4f7d-a22c-1a1924212de1",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "commit_status": "inserted",
+                  "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                  "reason_category": "unclear"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "entry_id": "17a12b09-6c93-42a3-905e-97b79251c268",
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "commit_status": "inserted",
+                  "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                  "reason_category": "none"
+                }
+              ]
+            },
+            "__conversation_risk_history": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "__coaching_intervention_history": []
+          },
+          "updated_at": "2026-06-23T23:15:23.658554+00:00"
+        },
+        "after": {
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "current_mode": "companion",
+          "risk_level": 2,
+          "investigation_state": null,
+          "short_term_context": "",
+          "last_interaction_at": "2026-06-23T23:15:23.657+00:00",
+          "updated_at": "2026-06-23T23:16:33.37828+00:00",
+          "unprocessed_msg_count": 7,
+          "last_processed_at": "2026-06-23T23:15:23.657+00:00",
+          "scope": "whatsapp",
+          "temp_memory": {
+            "__momentum_state_v2": {
+              "posture": {
+                "confidence": "high",
+                "recommended_posture": "simplify"
+              },
+              "version": 2,
+              "blockers": {
+                "blocker_kind": null,
+                "blocker_repeat_score": 0
+              },
+              "_internal": {
+                "sources": {
+                  "router_updated_at": "2026-06-15T19:31:19.998Z",
+                  "last_classified_by": "router"
+                },
+                "stability": {
+                  "stable_since_at": "2026-06-12T13:40:06.040Z"
+                },
+                "signal_log": {
+                  "consent_events": [],
+                  "emotional_turns": [],
+                  "response_quality_events": [
+                    {
+                      "at": "2026-06-12T13:40:06.040Z",
+                      "quality": "substantive"
+                    },
+                    {
+                      "at": "2026-06-12T14:09:27.789Z",
+                      "quality": "substantive"
+                    },
+                    {
+                      "at": "2026-06-12T17:18:10.191Z",
+                      "quality": "substantive"
+                    },
+                    {
+                      "at": "2026-06-15T19:31:19.998Z",
+                      "quality": "substantive"
+                    }
+                  ]
+                },
+                "metrics_cache": {
+                  "last_user_turn_at": "2026-06-15T19:31:19.998Z",
+                  "last_user_turn_quality": "substantive",
+                  "days_since_last_user_message": 0
+                }
+              },
+              "assessment": {
+                "top_risk": null,
+                "confidence": "low",
+                "top_blocker": null
+              },
+              "dimensions": {
+                "consent": {
+                  "level": "open",
+                  "reason": "no_decline_detected"
+                },
+                "plan_fit": {
+                  "level": "uncertain"
+                },
+                "engagement": {
+                  "level": "high",
+                  "reason": "substantive_recent_reply"
+                },
+                "load_balance": {
+                  "level": "balanced"
+                },
+                "emotional_load": {
+                  "level": "low",
+                  "reason": "no_emotional_marker"
+                },
+                "execution_traction": {
+                  "level": "unknown"
+                }
+              },
+              "updated_at": "2026-06-15T19:31:19.998Z",
+              "active_load": {
+                "needs_reduce": false,
+                "needs_consolidate": false,
+                "current_load_score": 0,
+                "mission_slots_used": 0,
+                "support_slots_used": 0,
+                "habit_building_slots_used": 0
+              },
+              "memory_links": {
+                "last_useful_support_ids": [],
+                "last_failed_technique_ids": []
+              },
+              "state_reason": "engaged_but_not_clearly_progressing",
+              "current_state": "friction_legere"
+            },
+            "__whatsapp_fil_rouge": {
+              "text": "Tu es soulagé; respiration et tri admin sont passés côté “daily” aujourd’hui. On clôture la session et on reprend demain sans nouvelle action.",
+              "marker": "fil_rouge_whatsapp",
+              "updated_at": "2026-06-12T17:18:10.216Z"
+            },
+            "__conversation_risk_last": {
+              "at": "2026-06-15T19:31:19.998Z",
+              "score": 0,
+              "threshold": 8,
+              "reason_codes": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "__memory_payload_state_v2": {
+              "items": [],
+              "budget": {
+                "max_items": 12,
+                "max_entities": 5,
+                "tokens_target": 1800
+              },
+              "modules": {},
+              "version": 2,
+              "entities": [],
+              "last_turn_id": null,
+              "active_topic_id": null
+            },
+            "companion_question_rhythm": {
+              "preference": "normal",
+              "recent_turns": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "last_updated_at": "2026-06-23T23:15:23.650Z",
+              "last_turn_had_question": false,
+              "turns_since_last_question": 7
+            },
+            "__conversation_risk_history": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "__coaching_intervention_history": []
+          }
+        }
+      }
+    ]
+  },
+  "cleanup_verification": {
+    "entries_remaining": [],
+    "messages_remaining": [],
+    "pending_remaining": [],
+    "scheduled_checkin_remaining": [],
+    "occurrences_after_restore": [
+      {
+        "id": "a8c5e803-1c14-4bbf-add0-f8d7802dd636",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "planned_day": "mon",
+        "status": "planned",
+        "source": "default_generated",
+        "validated_at": null,
+        "updated_at": "2026-06-23T23:14:45.05+00:00"
+      },
+      {
+        "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "planned_day": "thu",
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "updated_at": "2026-06-23T23:16:21.693+00:00"
+      },
+      {
+        "id": "80fdc319-6115-493b-8e64-1db689665535",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "planned_day": "thu",
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "updated_at": "2026-06-23T23:16:21.693+00:00"
+      }
+    ],
+    "run_entries_remaining": [],
+    "chat_state_after_cleanup": [
+      {
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "scope": "whatsapp",
+        "temp_memory": {
+          "__momentum_state_v2": {
+            "posture": {
+              "confidence": "high",
+              "recommended_posture": "simplify"
+            },
+            "version": 2,
+            "blockers": {
+              "blocker_kind": null,
+              "blocker_repeat_score": 0
+            },
+            "_internal": {
+              "sources": {
+                "router_updated_at": "2026-06-15T19:31:19.998Z",
+                "last_classified_by": "router"
+              },
+              "stability": {
+                "stable_since_at": "2026-06-12T13:40:06.040Z"
+              },
+              "signal_log": {
+                "consent_events": [],
+                "emotional_turns": [],
+                "response_quality_events": [
+                  {
+                    "at": "2026-06-12T13:40:06.040Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-06-12T14:09:27.789Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-06-12T17:18:10.191Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-06-15T19:31:19.998Z",
+                    "quality": "substantive"
+                  }
+                ]
+              },
+              "metrics_cache": {
+                "last_user_turn_at": "2026-06-15T19:31:19.998Z",
+                "last_user_turn_quality": "substantive",
+                "days_since_last_user_message": 0
+              }
+            },
+            "assessment": {
+              "top_risk": null,
+              "confidence": "low",
+              "top_blocker": null
+            },
+            "dimensions": {
+              "consent": {
+                "level": "open",
+                "reason": "no_decline_detected"
+              },
+              "plan_fit": {
+                "level": "uncertain"
+              },
+              "engagement": {
+                "level": "high",
+                "reason": "substantive_recent_reply"
+              },
+              "load_balance": {
+                "level": "balanced"
+              },
+              "emotional_load": {
+                "level": "low",
+                "reason": "no_emotional_marker"
+              },
+              "execution_traction": {
+                "level": "unknown"
+              }
+            },
+            "updated_at": "2026-06-15T19:31:19.998Z",
+            "active_load": {
+              "needs_reduce": false,
+              "needs_consolidate": false,
+              "current_load_score": 0,
+              "mission_slots_used": 0,
+              "support_slots_used": 0,
+              "habit_building_slots_used": 0
+            },
+            "memory_links": {
+              "last_useful_support_ids": [],
+              "last_failed_technique_ids": []
+            },
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "current_state": "friction_legere"
+          },
+          "__whatsapp_fil_rouge": {
+            "text": "Tu es soulagé; respiration et tri admin sont passés côté “daily” aujourd’hui. On clôture la session et on reprend demain sans nouvelle action.",
+            "marker": "fil_rouge_whatsapp",
+            "updated_at": "2026-06-12T17:18:10.216Z"
+          },
+          "__conversation_risk_last": {
+            "at": "2026-06-15T19:31:19.998Z",
+            "score": 0,
+            "threshold": 8,
+            "reason_codes": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__memory_payload_state_v2": {
+            "items": [],
+            "budget": {
+              "max_items": 12,
+              "max_entities": 5,
+              "tokens_target": 1800
+            },
+            "modules": {},
+            "version": 2,
+            "entities": [],
+            "last_turn_id": null,
+            "active_topic_id": null
+          },
+          "companion_question_rhythm": {
+            "preference": "normal",
+            "recent_turns": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "last_updated_at": "2026-06-23T23:15:23.650Z",
+            "last_turn_had_question": false,
+            "turns_since_last_question": 7
+          },
+          "__conversation_risk_history": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "__coaching_intervention_history": []
+        },
+        "updated_at": "2026-06-23T23:16:33.37828+00:00"
+      }
+    ]
+  }
+}

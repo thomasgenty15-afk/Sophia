@@ -1,0 +1,20 @@
+[
+  {
+    "id": "M2-sonde-tour8-FR",
+    "run": 1,
+    "verdict": "GREEN",
+    "proof": "8 tours de contexte · fil 16 lignes · reply=\"You told me Tuesday and Thursday nights were complicated.\""
+  },
+  {
+    "id": "M2-sonde-tour8-FR",
+    "run": 2,
+    "verdict": "GREEN",
+    "proof": "8 tours de contexte · fil 16 lignes · reply=\"You told me it was complicated on Tuesday and Thursday night shifts.\""
+  },
+  {
+    "id": "M2-sonde-tour8-FR",
+    "run": 3,
+    "verdict": "GREEN",
+    "proof": "8 tours de contexte · fil 16 lignes · reply=\"You told me Tuesday and Thursday nights were complicated.\""
+  }
+]

@@ -1,0 +1,54 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "704ab359-9c5b-44fe-824d-9454310e7e41",
+      "status": "pending",
+      "scheduled_for": "2026-06-23T08:00:00+00:00",
+      "event_context": "one_shot_reminder:revoir_la_difference",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: revoir la difference.",
+        "parse_source": "payload",
+        "request_text": "rappelle-moi demain a 10h de revoir la difference",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: revoir la difference.",
+        "source_message_id": null,
+        "reminder_instruction": "revoir la difference"
+      },
+      "created_at": "2026-06-22T21:24:45.198386+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Dans Sophia, une carte de defense sert a quoi exactement par rapport a une carte d attaque ? Et rappelle-moi demain a 10h de revoir la difference.",
+      "created_at": "2026-06-22T21:24:40.976915+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-postfix-20260622-r3-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C'est programmé pour mardi 23 juin à 10:00: je te ferai un rappel pour revoir la difference.\n\nUne carte d’attaque t’aide à démarrer l’action : elle réduit la friction et te donne le premier pas. Une carte de défense te sert à tenir quand ça déraille : elle anticipe le risque, le piège ou l’impulsion, et prévoit quoi faire à ce moment-là.\n\nLe rappel pour mardi 23 juin à 10:00, c’est noté : revoir la différence.",
+      "created_at": "2026-06-22T21:24:50.992388+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-postfix-20260622-r3-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "ead41714-51ca-45bb-92a4-c1d077b41984",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-22T21:24:50.98623+00:00"
+  }
+}

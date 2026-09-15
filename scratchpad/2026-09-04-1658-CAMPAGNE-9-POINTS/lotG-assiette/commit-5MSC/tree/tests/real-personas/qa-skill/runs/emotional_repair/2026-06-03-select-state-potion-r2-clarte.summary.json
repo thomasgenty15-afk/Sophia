@@ -1,0 +1,248 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-clarte-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux une potion de clarte. Mon plan commence a perdre son sens : je ne vois plus le lien entre mes actions et mon pourquoi profond.",
+    "assistant": "Ce que je comprends : Je ne vois plus le lien entre mes actions et mon pourquoi profond.\n\nJe te conseille de choisir une potion de clarté. Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre.\n\nPourquoi cette potion : Tu m'as dit que ton plan commence à perdre son sens et que tu ne vois plus le lien entre tes actions et ton pourquoi profond. Cette potion est là pour t'aider à retrouver cette clarté.\nPetit pas immédiat : Je suis là pour t'aider à retrouver le fil. C'est normal de se sentir déconnecté parfois, et on va travailler ensemble pour ramener du sens.\n\nÀ mettre dans la plateforme :\nPotion : Potion de clarte\n- Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ? Je ne vois plus le lien entre mes actions et mon pourquoi profond.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "tool_skill_intent_start",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-clarte-t01",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_platform_handoff_delivered",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "handoff_delivered",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_platform_handoff_delivered",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "Je ne vois plus le lien entre mes actions et mon pourquoi profond.",
+          "desired_shift_summary": "Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre.",
+          "recommendation": {
+            "potion_label": "une potion de clarté",
+            "why_this_potion": "Tu m'as dit que ton plan commence à perdre son sens et que tu ne vois plus le lien entre tes actions et ton pourquoi profond. Cette potion est là pour t'aider à retrouver cette clarté.",
+            "immediate_step": "Je suis là pour t'aider à retrouver le fil. C'est normal de se sentir déconnecté parfois, et on va travailler ensemble pour ramener du sens.",
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "dans la section État / Potions",
+            "platform_steps": [
+              "ouvre la section État / Potions",
+              "choisis la potion recommandée",
+              "active-la depuis la plateforme si elle te convient"
+            ],
+            "platform_inputs": {
+              "potion_type": "clarte",
+              "potion_title": "Potion de clarte",
+              "answers": [
+                {
+                  "question_id": "plan_meaning_loss_reason",
+                  "question_label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                  "value": "Je ne vois plus le lien entre mes actions et mon pourquoi profond.",
+                  "option_value": null,
+                  "option_label": null
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-clarte-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Formule-le plutot comme ca : je fais les actions, mais je ne sens plus pourquoi elles comptent pour moi aujourd hui.",
+    "assistant": "Ce que je comprends : Je ne vois plus le lien entre mes actions et mon pourquoi profond.\n\nJe te conseille de choisir une potion de clarté. Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre.\n\nPourquoi cette potion : Tu as l'impression de faire tes actions mécaniquement et de ne plus voir le lien avec ton pourquoi profond.\nPetit pas immédiat : Je comprends que tu te sentes un peu perdu avec ton plan en ce moment. C'est normal de ne plus voir le lien parfois. Je suis là pour t'aider à retrouver ce qui compte vraiment pour toi.\n\nÀ mettre dans la plateforme :\nPotion : Potion de clarte\n- Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ? Je ne vois plus le lien entre mes actions et mon pourquoi profond.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "active_handoff_revise_handoff",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-clarte-t02",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_platform_handoff_delivered",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "handoff_delivered",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_platform_handoff_delivered",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "Je ne vois plus le lien entre mes actions et mon pourquoi profond.",
+          "desired_shift_summary": "Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre.",
+          "recommendation": {
+            "potion_label": "une potion de clarté",
+            "why_this_potion": "Tu as l'impression de faire tes actions mécaniquement et de ne plus voir le lien avec ton pourquoi profond.",
+            "immediate_step": "Je comprends que tu te sentes un peu perdu avec ton plan en ce moment. C'est normal de ne plus voir le lien parfois. Je suis là pour t'aider à retrouver ce qui compte vraiment pour toi.",
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "dans la section État / Potions",
+            "platform_steps": [
+              "ouvre la section État / Potions",
+              "choisis la potion recommandée",
+              "active-la depuis la plateforme si elle te convient"
+            ],
+            "platform_inputs": {
+              "potion_type": "clarte",
+              "potion_title": "Potion de clarte",
+              "answers": [
+                {
+                  "question_id": "plan_meaning_loss_reason",
+                  "question_label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                  "value": "Je ne vois plus le lien entre mes actions et mon pourquoi profond.",
+                  "option_value": null,
+                  "option_label": null
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-clarte-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Ok active celle-la.",
+    "assistant": "Je ne peux pas le créer/lancer depuis le chat.\nTu peux le faire toi-même dans la plateforme, dans la section État / Potions.\nChoisis : Potion de clarte.\nÀ renseigner :\n- Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ? Je ne vois plus le lien entre mes actions et mon pourquoi profond. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "active_handoff_apply_attempt",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-clarte-t03",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_apply_attempt_no_chat_execution",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "apply_attempt",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_apply_attempt_no_chat_execution",
+        "no_chat_mutation": true,
+        "draft": {
+          "mode": "platform_handoff",
+          "operation_type": "select_state_potion",
+          "recommendation": {
+            "avoid": [],
+            "preserve": [],
+            "potion_label": "une potion de clarté",
+            "immediate_step": "Je comprends que tu te sentes un peu perdu avec ton plan en ce moment. C'est normal de ne plus voir le lien parfois. Je suis là pour t'aider à retrouver ce qui compte vraiment pour toi.",
+            "platform_steps": [
+              "ouvre la section État / Potions",
+              "choisis la potion recommandée",
+              "active-la depuis la plateforme si elle te convient"
+            ],
+            "platform_inputs": {
+              "answers": [
+                {
+                  "value": "Je ne vois plus le lien entre mes actions et mon pourquoi profond.",
+                  "question_id": "plan_meaning_loss_reason",
+                  "option_label": null,
+                  "option_value": null,
+                  "question_label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?"
+                }
+              ],
+              "potion_type": "clarte",
+              "potion_title": "Potion de clarte",
+              "optional_free_text": null
+            },
+            "why_this_potion": "Tu as l'impression de faire tes actions mécaniquement et de ne plus voir le lien avec ton pourquoi profond.",
+            "platform_destination": "dans la section État / Potions"
+          },
+          "no_chat_mutation": true,
+          "missing_decisions": [],
+          "user_state_summary": "Je ne vois plus le lien entre mes actions et mon pourquoi profond.",
+          "executable_from_chat": false,
+          "desired_shift_summary": "Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre."
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "label": "before",
+  "captured_at": "2026-05-21T14:19:26.579Z",
+  "persona": "rose",
+  "run_id": "r119-env-smoke",
+  "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+  "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r119-env-smoke",
+  "plans": [],
+  "user_plan_items": [],
+  "user_plan_item_entries": [],
+  "chat_messages": [],
+  "user_chat_states": [],
+  "system_runtime_snapshots": [],
+  "conversation_turn_traces": [],
+  "rest_status": {
+    "plans": 200,
+    "user_plan_items": 200,
+    "user_plan_item_entries": 200,
+    "chat_messages": 200,
+    "user_chat_states": 200,
+    "system_runtime_snapshots": 200,
+    "conversation_turn_traces": 400
+  }
+}

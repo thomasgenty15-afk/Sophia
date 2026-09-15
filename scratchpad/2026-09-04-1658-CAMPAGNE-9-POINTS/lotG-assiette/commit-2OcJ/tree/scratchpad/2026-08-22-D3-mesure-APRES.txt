@@ -1,0 +1,121 @@
+══ D3′ — mesure APRÈS, 2026-08-22T16:37:32Z (UTC) ══
+
+══ D3′ · POSITION DU BLOC D'ARBITRAGE — mesure sur le prompt ASSEMBLÉ ══
+
+LANE FOYER (generate-household-meal-v1) — blocs APRÈS le bloc d'arbitrage
+
+  ① minimal — 4 bouches, rien de déclaré
+    trouvé: true · blocs de contenu après: 2
+      · == THE HOUSEHOLD ==
+      · HOUSEHOLD SERVING PLAN — one cooking session, portions that differ.
+    (aucun régime déclaré dans ce cas)
+
+  ② nominal — régime végane déclaré
+    trouvé: true · blocs de contenu après: 4
+      · == THE HOUSEHOLD ==
+      · HOUSEHOLD SERVING PLAN — one cooking session, portions that differ.
+      · == WHAT THE SHARED DISH MUST RESPECT ==
+      · == ONE EXTRA KEY ON EVERY INGREDIENT (because a diet is declared here) ==
+    ⛔ rang 1 dit « at the VERY TOP » — le régime est SOUS le bloc, à 63 lignes
+
+  ③ règles de maison + régime
+    trouvé: true · blocs de contenu après: 5
+      · == THE HOUSEHOLD ==
+      · HOUSEHOLD SERVING PLAN — one cooking session, portions that differ.
+      · == WHAT THE SHARED DISH MUST RESPECT ==
+      · == ONE EXTRA KEY ON EVERY INGREDIENT (because a diet is declared here) ==
+      · HOUSE RULES — foods this household does not serve to certain people.
+    ⛔ rang 1 dit « at the VERY TOP » — le régime est SOUS le bloc, à 63 lignes
+
+  ④ maximal — régime, règles, cuisine, plat dédié, médical
+    trouvé: true · blocs de contenu après: 9
+      · == THE HOUSEHOLD ==
+      · HOUSEHOLD SERVING PLAN — one cooking session, portions that differ.
+      · == A DISH OF THEIR OWN ==
+      · == THIS KITCHEN ==
+      · == WHAT THE SHARED DISH MUST RESPECT ==
+      · == ONE EXTRA KEY ON EVERY INGREDIENT (because a diet is declared here) ==
+      · HOUSE RULES — foods this household does not serve to certain people.
+      · == WHAT A "why" IS ALLOWED TO SAY ==
+      · == THE SAME KITCHEN, TWO DISHES ==
+    ⛔ rang 1 dit « at the VERY TOP » — le régime est SOUS le bloc, à 101 lignes
+
+  ⇒ étendue mesurée: 2 à 9 blocs de contenu après.
+
+  ⚠️ CONTRE-ÉPREUVE — TOUS les morceaux `\n\n` après le bloc, cas ④,
+     en-tête reconnu ou non. C'est ce qui empêche la taxonomie de
+     sous-compter en silence.
+     morceaux après: 25
+       [  suite ] 
+       [EN-TÊTE] == THE HOUSEHOLD ==
+       [  suite ] Exact ids to use in member_portions and on every meal's box lids:
+       [  suite ] - Camille = m-camille
+       [  suite ] - Malo = m-malo
+       [  suite ] - Yanis = m-yanis
+       [  suite ] - Anouk = m-anouk
+       [EN-TÊTE] HOUSEHOLD SERVING PLAN — one cooking session, portions that differ.
+       [  suite ] - Camille: generous vegetables, full protein share, smaller starch share
+       [  suite ] WEIGH IT ONCE, INTO BOXES NAMED BY MEAL.
+       [  suite ] NEVER state a reason, a goal, a calorie count or anything about a person
+       [EN-TÊTE] == A DISH OF THEIR OWN ==
+       [  suite ] WHAT THIS HOUSEHOLD ASKED FOR THIS WEEK.
+       [  suite ] "on a envie de gratin"
+       [  suite ] This line may contradict itself, or contradict the house rules below.
+       [EN-TÊTE] == THIS KITCHEN ==
+       [EN-TÊTE] == WHAT THE SHARED DISH MUST RESPECT ==
+       [EN-TÊTE] == ONE EXTRA KEY ON EVERY INGREDIENT (because a diet is declared here) =
+       [  suite ] Say what the food IS, not what it sounds like. Butter beans are legumes,
+       [  suite ] If a food genuinely fits none of them, write null. Do NOT guess a near-m
+       [EN-TÊTE] HOUSE RULES — foods this household does not serve to certain people.
+       [  suite ] - Anouk: never serve nutella
+       [EN-TÊTE] == WHAT A "why" IS ALLOWED TO SAY ==
+       [EN-TÊTE] == THE SAME KITCHEN, TWO DISHES ==
+       [EN-TÊTE] CONTENT_LANGUAGE:
+
+LANE SOLO (generate-meal-v1) — la même queue, sans suffixe de foyer
+  blocs de contenu après: 0
+  ⚠️ MAIS LA STRUCTURE LE PERMET: `generate-meal-v1/index.ts:1999` colle
+     `draftNoteSuffix` + `hungerSuffix` + `extra` APRÈS le bloc. Trois
+     places, vides sur le corpus mesuré, jamais interdites.
+
+══ D3′ · mesure APRÈS — le même assemblage + `movePrecedenceToTail` ══
+
+  ① minimal — 4 bouches, rien de déclaré
+    place: tail · exact: true · blocs de contenu après: 0
+    dernier paragraphe de contenu — allergie: oui · médical: oui
+    le rang 1 cite: 3/3 en-têtes de verrou (cités entre guillemets dans le bloc)
+
+  ② nominal — régime végane déclaré
+    place: tail · exact: true · blocs de contenu après: 0
+    dernier paragraphe de contenu — allergie: oui · médical: oui
+    le rang 1 cite: 3/3 en-têtes de verrou (cités entre guillemets dans le bloc)
+
+  ③ règles de maison + régime
+    place: tail · exact: true · blocs de contenu après: 0
+    dernier paragraphe de contenu — allergie: oui · médical: oui
+    le rang 1 cite: 3/3 en-têtes de verrou (cités entre guillemets dans le bloc)
+
+  ④ maximal — régime, règles, cuisine, plat dédié, médical
+    place: tail · exact: true · blocs de contenu après: 0
+    dernier paragraphe de contenu — allergie: oui · médical: oui
+    le rang 1 cite: 3/3 en-têtes de verrou (cités entre guillemets dans le bloc)
+
+  ⇒ SEUIL « 0 bloc de contenu après, lane foyer »: max mesuré = 0 ⇒ ATTEINT
+
+══ D3′ · compteur de rangs, DEUX populations (somme = 5) ══
+
+  ① foyer nu (rien de déclaré)
+    with_object=0 · without_object=5 · somme=5 · {"rank_1":0,"rank_2":0,"rank_3":0,"rank_4":0,"rank_5":0}
+  ② régime + règle de maison, rien d'autre
+    with_object=1 · without_object=4 · somme=5 · {"rank_1":2,"rank_2":0,"rank_3":0,"rank_4":0,"rank_5":0}
+  ③ foyer de la fixture (verrous, cuisine, envie)
+    with_object=3 · without_object=2 · somme=5 · {"rank_1":3,"rank_2":0,"rank_3":3,"rank_4":0,"rank_5":1}
+  ④ foyer complet
+    with_object=5 · without_object=0 · somme=5 · {"rank_1":3,"rank_2":4,"rank_3":3,"rank_4":2,"rank_5":1}
+
+  ⇒ SEUIL « les deux populations non nulles sur au moins un cas »: 2 cas ⇒ ATTEINT
+
+══ GARDE ══
+
+[0m[32mok[0m | 15 passed | 0 failed [0m[38;5;245m(70ms)[0m
+

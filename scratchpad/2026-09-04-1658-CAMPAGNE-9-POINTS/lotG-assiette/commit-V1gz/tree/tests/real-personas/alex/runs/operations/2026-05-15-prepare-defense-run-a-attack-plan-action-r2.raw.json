@@ -1,0 +1,1658 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Ce soir je vais préparer la zone de déchargement, mais je sens le vieux réflexe : comme c’est juste poser un carnet et un stylo, je vais me dire que ça ne mérite pas maintenant et repousser.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah oui, le classique “c’est simple donc ça attend” 😅\n\nLe piège, c’est que ton réflexe transforme “petit geste” en “pas important”. Donc on garde juste l’intention minimale: tu lances la zone de déchargement pour de vrai, en version express, sans négocier.\n\nMicro-action maintenant (2 minutes): tu sors le carnet + stylo et tu écris juste le titre “Zone de déchargement”, puis une seule ligne: “Je note tout ce qui me prend la tête”.\n\nTu veux que je t’aide à choisir une phrase d’étiquette pour quand tu repiques le “pas maintenant” (A) courte et dure, ou (B) douce mais ferme ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t01",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "aeed00b7-afef-4c55-9490-0e143423b1d0",
+        "ts": "2026-05-16T14:32:48.864+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "Ce soir"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_tonight"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 7078,
+          "latency_ms": 7481,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 691,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "contexte mission zone de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "procrastination sur petites tâches",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t01",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "contexte mission zone de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "procrastination sur petites tâches",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "blocked_execution",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "aeed00b7-afef-4c55-9490-0e143423b1d0",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "attack_card",
+            "surface_id": "attack_card",
+            "prop_reason": "action_startup_friction_anticipated",
+            "source_span": "je vais me dire que ça ne mérite pas maintenant et repousser",
+            "target_hint": "Préparer ta zone de déchargement",
+            "offer_timing": "now",
+            "should_offer": true,
+            "target_status": "identified",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "high",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_attack_card"
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+            "status": "continue",
+            "skill_id": "execution_breakdown",
+            "diagnosis": {
+              "stage": "diagnosis",
+              "blocker_candidates": [
+                "flou",
+                "energie",
+                "friction_demarrage"
+              ]
+            },
+            "state_patch": {
+              "summary": "Execution blocker diagnosis in progress."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "diagnose_blocker",
+            "recommendation_need": {
+              "type": "execution_repair",
+              "needed": true,
+              "urgency": "medium",
+              "constraints": [
+                "understand_before_solution"
+              ]
+            },
+            "operation_suggestions": [
+              {
+                "reason": "clear_execution_block_can_use_attack_card",
+                "urgency": "medium",
+                "operation_type": "prepare_attack_card",
+                "confidence_band": "medium",
+                "source_skill_id": "execution_breakdown",
+                "operation_input_hint": {
+                  "scope": {
+                    "kind": "plan_item",
+                    "title": "Préparer ta zone de déchargement",
+                    "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+                  },
+                  "target": {
+                    "kind": "plan_item",
+                    "title": "Préparer ta zone de déchargement",
+                    "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+                  },
+                  "blocker": {
+                    "type": "execution_block"
+                  }
+                },
+                "requires_user_consent": true
+              }
+            ],
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Ce soir je vais préparer la zone de déchargement, mais je sens le vieux réflexe : comme c’est juste poser un carnet et un stylo, je vais me dire que ça ne mérite pas maintenant et repousser.",
+                "confidence_band": "medium",
+                "sensitivity_level": 1,
+                "evidence_source_ids": [
+                  "aeed00b7-afef-4c55-9490-0e143423b1d0"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "timing": "now",
+            "decision": "recommend_operation",
+            "cta_style": "soft",
+            "confidence": 0.72,
+            "surface_id": "attack_card",
+            "alternatives": [],
+            "operation_type": "prepare_attack_card",
+            "operation_input": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Préparer ta zone de déchargement",
+                "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Préparer ta zone de déchargement",
+                "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "do_not_recommend": [],
+            "executor_tool_id": "prepare_attack_card",
+            "requires_consent": true,
+            "recommendation_id": "skill:execution_breakdown:prepare_attack_card:qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t01",
+            "user_facing_offer": "Je peux te proposer Carte d'attaque si tu veux passer par le flow propre.",
+            "presentation_level": 2
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 11415,
+        "created_at": "2026-05-16T14:32:48.867152+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux plutôt une carte d’attaque pour l’action du plan “Préparer ta zone de déchargement”. Je ne sais pas quelle technique choisir, mais je veux qu’elle attaque ce réflexe de repousser.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t02",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, je te propose qu’on utilise la Carte d’attaque (surface “Carte d’attaque”) pour ancrer un déclencheur simple contre ton réflexe de repousser. 💪😅\n\nAvant de la lancer, je te propose un choix rapide:\nTu veux attaquer plutôt en mode “je commence petit maintenant” ou en mode “je supprime la négociation dans ma tête” (A/B) ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t02",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "98fd682d-0ab2-47b7-a44a-d1084950ff2f",
+        "ts": "2026-05-16T14:33:14.419+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 7315,
+          "latency_ms": 9173,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 794,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "contexte de l'action préparer zone de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Préparer ta zone de déchargement",
+                "expansion_policy": "exact_action_only",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t02",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "contexte de l'action préparer zone de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Préparer ta zone de déchargement",
+                "expansion_policy": "exact_action_only",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {
+              "execution_breakdown": {
+                "reason": "user_requested_attack_card_tool_instead",
+                "detected": true
+              }
+            },
+            "entry": {},
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": "matched_active_plan_item",
+            "status": "identified",
+            "detected": true,
+            "action_type": "mission",
+            "action_title": "Préparer ta zone de déchargement",
+            "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+            "expansion_policy": "exact_action_only",
+            "action_family_key": "task:preparer_ta_zone_dechargement"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "98fd682d-0ab2-47b7-a44a-d1084950ff2f",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Préparer ta zone de déchargement",
+              "user_intent": "create",
+              "explicitness": "explicit",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_skill_exit_requested",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "abandon_active",
+            "reason_code": "active_skill_exit_requested",
+            "active_owner": "conversation_skill",
+            "resume_policy": "none",
+            "selected_owner": "normal_reply"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": null,
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "timing": "now",
+            "decision": "recommend_operation",
+            "cta_style": "soft",
+            "confidence": 0.72,
+            "surface_id": "attack_card",
+            "alternatives": [],
+            "operation_type": "prepare_attack_card",
+            "operation_input": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Préparer ta zone de déchargement",
+                "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Préparer ta zone de déchargement",
+                "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "do_not_recommend": [],
+            "executor_tool_id": "prepare_attack_card",
+            "requires_consent": true,
+            "recommendation_id": "skill:execution_breakdown:prepare_attack_card:qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t02",
+            "user_facing_offer": "Je peux te proposer Carte d'attaque si tu veux passer par le flow propre.",
+            "presentation_level": 2
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 11347,
+        "created_at": "2026-05-16T14:33:14.42206+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Plutôt “je commence petit maintenant”. Et oui, je veux vraiment préparer une carte d’attaque pour l’action Préparer ta zone de déchargement, pas juste une phrase dans le chat.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t03",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est noté pour l'action et ta phrase. Quelle approche te semble la plus efficace pour ne pas lâcher ?\n\n1. Mantra de force : répéter ta phrase pour te mettre dans l'axe.\n2. Mot de bascule : m'envoyer un mot court si tu sens que tu vas esquiver.\n3. Le texte magique : un court texte à relire pour calmer le débat intérieur.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t03",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "3406c1af-4009-4f1c-b51d-8fcb714ae973",
+        "ts": "2026-05-16T14:34:02.366+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "maintenant"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 7429,
+          "latency_ms": 4672,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 766,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Préparer ta zone de déchargement",
+                "expansion_policy": "exact_action_only",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t03",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Préparer ta zone de déchargement",
+                "expansion_policy": "exact_action_only",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": "matched_active_plan_item",
+            "status": "identified",
+            "detected": true,
+            "action_type": "mission",
+            "action_title": "Préparer ta zone de déchargement",
+            "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+            "expansion_policy": "exact_action_only",
+            "action_family_key": "task:preparer_ta_zone_dechargement"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "3406c1af-4009-4f1c-b51d-8fcb714ae973",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Préparer ta zone de déchargement",
+              "user_intent": "create",
+              "explicitness": "explicit",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "operation_input": {
+                "constraint": "pas juste une phrase dans le chat",
+                "user_choice": "je commence petit maintenant",
+                "target_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+              }
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "source": "recommendation_tool",
+          "status": "ask_question",
+          "slot_state": {
+            "slot": "technique",
+            "needed": true,
+            "reason": "structured_ai_missing_technique",
+            "status": "missing",
+            "question": "C'est noté pour l'action et ta phrase. Quelle approche te semble la plus efficace pour ne pas lâcher ?\n\n1. Mantra de force : répéter ta phrase pour te mettre dans l'axe.\n2. Mot de bascule : m'envoyer un mot court si tu sens que tu vas esquiver.\n3. Le texte magique : un court texte à relire pour calmer le débat intérieur.",
+            "known_slots": {
+              "target": {
+                "kind": "plan_item",
+                "title": "Préparer ta zone de déchargement",
+                "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+              },
+              "intake_state": {
+                "target": {
+                  "kind": "plan_item",
+                  "title": "Préparer ta zone de déchargement",
+                  "status": "identified",
+                  "evidence": [
+                    "L'utilisateur confirme explicitement l'action : 'préparer une carte d’attaque pour l’action Préparer ta zone de déchargement'"
+                  ],
+                  "confidence": "high",
+                  "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+                },
+                "blocker": {
+                  "type": "procrastination",
+                  "evidence": [
+                    "La phrase 'je commence petit maintenant' suggère une difficulté à démarrer ou une tendance à voir l'action comme trop lourde."
+                  ],
+                  "confidence": 0.8
+                },
+                "skill_id": "prepare_attack_card",
+                "technique": {
+                  "value": null,
+                  "status": "ambiguous",
+                  "options": [
+                    {
+                      "title": "Mantra de force",
+                      "reason": "Ta phrase 'je commence petit maintenant' est un excellent mantra pour briser la résistance.",
+                      "example": "Répéter 'je commence petit maintenant' 3 fois avant de t'installer.",
+                      "description": "Une phrase courte a repeter pour renforcer le rapport a l'action.",
+                      "recommended": true,
+                      "technique_key": "mantra_force"
+                    },
+                    {
+                      "title": "Mot de bascule",
+                      "reason": "Si tu as peur d'esquiver au dernier moment, un mot court à m'envoyer peut t'aider.",
+                      "example": "M'envoyer 'PETIT' quand tu sens que tu procrastines.",
+                      "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+                      "recommended": false,
+                      "technique_key": "pre_engagement"
+                    },
+                    {
+                      "title": "Le texte magique",
+                      "reason": "Pour développer l'idée de 'commencer petit' en un court paragraphe qui calme le mental.",
+                      "example": "Un texte qui explique pourquoi faire juste le premier pas suffit ce soir.",
+                      "description": "Un texte court a relire ou recopier quand la resistance monte.",
+                      "recommended": false,
+                      "technique_key": "texte_recadrage"
+                    }
+                  ],
+                  "evidence": [
+                    "L'utilisateur propose une phrase d'accroche ('je commence petit maintenant') mais n'a pas encore choisi le format technique."
+                  ],
+                  "confidence": "medium",
+                  "fit_warning": null,
+                  "explicitly_requested": false
+                },
+                "confidence": "high",
+                "constraints": [],
+                "current_step": "technique_selection",
+                "missing_slots": [
+                  "technique"
+                ],
+                "activation_keyword": {
+                  "value": null,
+                  "status": "missing",
+                  "options": [],
+                  "evidence": [],
+                  "confidence": "low",
+                  "rejected_value": null
+                },
+                "generated_user_message": "C'est noté pour l'action et ta phrase. Quelle approche te semble la plus efficace pour ne pas lâcher ?\n\n1. Mantra de force : répéter ta phrase pour te mettre dans l'axe.\n2. Mot de bascule : m'envoyer un mot court si tu sens que tu vas esquiver.\n3. Le texte magique : un court texte à relire pour calmer le débat intérieur."
+              },
+              "technique_options": [
+                {
+                  "title": "Mantra de force",
+                  "reason": "Ta phrase 'je commence petit maintenant' est un excellent mantra pour briser la résistance.",
+                  "example": "Répéter 'je commence petit maintenant' 3 fois avant de t'installer.",
+                  "description": "Une phrase courte a repeter pour renforcer le rapport a l'action.",
+                  "recommended": true,
+                  "technique_key": "mantra_force"
+                },
+                {
+                  "title": "Mot de bascule",
+                  "reason": "Si tu as peur d'esquiver au dernier moment, un mot court à m'envoyer peut t'aider.",
+                  "example": "M'envoyer 'PETIT' quand tu sens que tu procrastines.",
+                  "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+                  "recommended": false,
+                  "technique_key": "pre_engagement"
+                },
+                {
+                  "title": "Le texte magique",
+                  "reason": "Pour développer l'idée de 'commencer petit' en un court paragraphe qui calme le mental.",
+                  "example": "Un texte qui explique pourquoi faire juste le premier pas suffit ce soir.",
+                  "description": "Un texte court a relire ou recopier quand la resistance monte.",
+                  "recommended": false,
+                  "technique_key": "texte_recadrage"
+                }
+              ]
+            },
+            "technique_options": [
+              {
+                "title": "Mantra de force",
+                "reason": "Ta phrase 'je commence petit maintenant' est un excellent mantra pour briser la résistance.",
+                "example": "Répéter 'je commence petit maintenant' 3 fois avant de t'installer.",
+                "description": "Une phrase courte a repeter pour renforcer le rapport a l'action.",
+                "recommended": true,
+                "technique_key": "mantra_force"
+              },
+              {
+                "title": "Mot de bascule",
+                "reason": "Si tu as peur d'esquiver au dernier moment, un mot court à m'envoyer peut t'aider.",
+                "example": "M'envoyer 'PETIT' quand tu sens que tu procrastines.",
+                "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+                "recommended": false,
+                "technique_key": "pre_engagement"
+              },
+              {
+                "title": "Le texte magique",
+                "reason": "Pour développer l'idée de 'commencer petit' en un court paragraphe qui calme le mental.",
+                "example": "Un texte qui explique pourquoi faire juste le premier pas suffit ce soir.",
+                "description": "Un texte court a relire ou recopier quand la resistance monte.",
+                "recommended": false,
+                "technique_key": "texte_recadrage"
+              }
+            ],
+            "activation_keyword_options": []
+          },
+          "reason_code": "tool_skill_intent_start",
+          "missing_slots": [
+            "technique"
+          ],
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 27338,
+        "created_at": "2026-05-16T14:34:02.370685+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t04",
+    "auth_method": "get-jwt.sh",
+    "user": "Je pensais à “Préparer le terrain”, mais comme l’action c’est justement préparer le terrain, je ne veux pas une boucle bizarre. Dans tes options, Le texte magique me paraît mieux pour couper le débat “plus tard”.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t04",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Voici ta carte d'attaque :\n*Zone de déchargement prête* (Le texte magique)\n« Je ne discute pas avec la fatigue ou l'envie de remettre à plus tard. Je prépare juste l'espace, maintenant, pour libérer mon esprit. »\nLis ce texte dès que tu sens une résistance, puis fais le premier geste sans réfléchir.\nEst-ce que ce brouillon te convient ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t04",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "8247a864-2d0b-4062-8dcf-4105420b5284",
+        "ts": "2026-05-16T14:34:41.575+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 10377,
+          "latency_ms": 5093,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 596,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Préparer ta zone de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t04",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Préparer ta zone de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1.3,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,0;decay=0.55;recovery=0",
+                "contribution": 0.3
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "8247a864-2d0b-4062-8dcf-4105420b5284",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "title": "Zone de déchargement prête",
+              "technique": "texte_recadrage",
+              "instruction": "Recopie ou lis ce texte dès que tu commences à négocier avec toi-même.",
+              "mode_emploi": "Lis ce texte dès que tu sens une résistance, puis fais le premier geste sans réfléchir.",
+              "target_label": "Préparer ta zone de déchargement",
+              "why_it_helps": "Cela permet de court-circuiter le débat mental en rappelant l'objectif de clarté d'esprit.",
+              "generated_asset": "Je ne discute pas avec la fatigue ou l'envie de remettre à plus tard. Je prépare juste l'espace, maintenant, pour libérer mon esprit.",
+              "technique_title": "Le texte magique",
+              "supporting_points": [
+                "Coupe court à la négociation interne",
+                "Focalise sur le geste physique immédiat"
+              ],
+              "activation_keyword": null
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ta carte d'attaque :\n*Zone de déchargement prête* (Le texte magique)\n« Je ne discute pas avec la fatigue ou l'envie de remettre à plus tard. Je prépare juste l'espace, maintenant, pour libérer mon esprit. »\nLis ce texte dès que tu sens une résistance, puis fais le premier geste sans réfléchir.\nEst-ce que ce brouillon te convient ?"
+          },
+          "status": "pending_confirmation",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "5ddc8df2-4513-410e-8f09-84436e962a18",
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 24817,
+        "created_at": "2026-05-16T14:34:41.578044+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t05",
+    "auth_method": "get-jwt.sh",
+    "user": "Le brouillon me va presque. Remplace “je prépare juste l’espace” par “je sors le carnet et le stylo”, parce que je veux un premier geste vraiment concret.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t05",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Yes, bon ajustement. Ton texte magique peut devenir :\n\n« Je ne discute pas avec la fatigue ou l’envie de remettre à plus tard. Je sors le carnet et le stylo. Je commence maintenant par la zone de déchargement. »\n\nJe te conseille de le relire une fois, puis tu le mets en relance juste au moment où tu hésites. ✅😄\n\nTu veux que je garde exactement “carnet et le stylo” tels quels, ou tu préfères une version “ton matériel à toi” (ex: “le carnet bleu”, “le stylo noir”) ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t05",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "c44e6114-666b-4f85-8692-f206932f1c84",
+        "ts": "2026-05-16T14:35:15.638+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 7719,
+          "latency_ms": 4837,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 599,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t05",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0.7,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,0,1.3;decay=0.55;recovery=0",
+                "contribution": 0.7
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              0,
+              1.3
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "c44e6114-666b-4f85-8692-f206932f1c84",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Tu la retrouves dans Dashboard > Ressources > Cartes d'attaque du plan.\n\nCherche la carte liee a l'action concernee. Tu peux la consulter et l'utiliser. Si c'est une carte Mot de bascule, seul le mot peut etre remplace depuis Ressources; pour changer le contexte, la technique ou le contenu, on prepare une nouvelle carte apres confirmation.",
+            "status": "complete",
+            "skill_id": "product_help",
+            "diagnosis": {
+              "locations": [
+                "Dashboard > Ressources"
+              ],
+              "feature_id": "resources.attack_card",
+              "feature_label": "Carte d'attaque",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "prepare une carte d'attaque",
+                  "aide-moi a preparer cette action",
+                  "rends cette mission plus facile a lancer"
+                ],
+                "skill_or_operation": "prepare_attack_card",
+                "requires_confirmation": true
+              }
+            },
+            "state_patch": {
+              "summary": "Product help answered for attack card location."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "how_to",
+            "recommendation_need": {
+              "type": "none",
+              "needed": false,
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_bridge_requires_confirmation_when_present"
+              ]
+            },
+            "operation_suggestions": []
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "product_help"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 18916,
+        "created_at": "2026-05-16T14:35:15.650348+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

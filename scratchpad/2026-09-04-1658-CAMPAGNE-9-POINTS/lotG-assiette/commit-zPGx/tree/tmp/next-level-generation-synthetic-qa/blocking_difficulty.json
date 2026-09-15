@@ -1,0 +1,390 @@
+{
+  "id": "blocking_difficulty",
+  "answers": {
+    "global_metric_state": "regressed",
+    "next_plan_coherence": "mostly",
+    "difficulty_signal": "blocking",
+    "difficulty_details": "Le sas saute dès que la journée a été stressante. Dans ces moments, je n'arrive pas à attendre.",
+    "pride": "Je vois maintenant que le stress est le déclencheur principal."
+  },
+  "summary": {
+    "level_kind": "hybrid",
+    "global_metric_state": "regressed",
+    "next_plan_coherence": "mostly",
+    "coherence_reason": null,
+    "difficulty_signal": "blocking",
+    "difficulty_details": "Le sas saute dès que la journée a été stressante. Dans ces moments, je n'arrive pas à attendre.",
+    "pride": "Je vois maintenant que le stress est le déclencheur principal.",
+    "pace_signal": "balanced",
+    "readiness_signal": "ready",
+    "weekly_fit_signal": null,
+    "mission_signal": null,
+    "habit_signal": "unstable",
+    "support_signal": "need_more",
+    "free_text": "Le sas saute dès que la journée a été stressante. Dans ces moments, je n'arrive pas à attendre. | Je vois maintenant que le stress est le déclencheur principal."
+  },
+  "transition_preview": {
+    "decision": "lighten",
+    "reason": "Le dernier niveau est terminé. Il n'y a pas de niveau suivant à générer.",
+    "next_duration_weeks": null,
+    "next_review_focus": []
+  },
+  "validation": {
+    "valid": true,
+    "issues": []
+  },
+  "patch": {
+    "decision": "lighten_next_level",
+    "decision_reason": "La direction vers des jours off reste cohérente, mais le stress bloque encore le sas; il faut alléger la charge et ajouter un soutien simple avant d'augmenter l'ambition.",
+    "next_level": {
+      "phase_id": "phase-2",
+      "level_order": 2,
+      "title": "Installer un premier jour off simple",
+      "phase_objective": "Introduire un jour complet sans consommation par semaine avec un soutien de remplacement très léger.",
+      "rationale": "Le réflexe du soir commence à se casser, mais il ne tient pas encore sous stress; un seul jour off stable permet de tester la journée entière sans trop charger la transition.",
+      "what_this_phase_targets": "Le passage d'un retardement du soir à une journée complète sans consommation.",
+      "why_this_now": "Le user a identifié le stress comme déclencheur principal; on peut donc commencer les jours off sans viser une semaine entière trop tôt.",
+      "how_this_phase_works": "Choisir un jour off fixe, préparer à l'avance une option de secours pour la fin de journée, et suivre si le jour est tenu même quand la journée a été lourde.",
+      "duration_weeks": 3,
+      "phase_metric_target": "1 jour off tenu la première semaine, puis 2 jours off par semaine à la fin de la phase si c'est stable.",
+      "maintained_foundation": [
+        "sas de décompression avant décision",
+        "déclencheurs rangés hors de vue",
+        "alternative simple pour la première heure du soir",
+        "repérage du stress comme déclencheur principal"
+      ],
+      "heartbeat": {
+        "title": "Jours off tenus",
+        "unit": "jours/semaine",
+        "current": null,
+        "target": 2,
+        "tracking_mode": "manual"
+      },
+      "items": [
+        {
+          "temp_id": "gen-p2-missions-001",
+          "dimension": "missions",
+          "kind": "task",
+          "title": "Choisir un jour off fixe",
+          "description": "Définir à l'avance un jour complet de la semaine sans consommation et le rendre visible dans le planning.",
+          "tracking_type": "boolean",
+          "activation_order": 1,
+          "activation_condition": null,
+          "support_mode": null,
+          "support_function": null,
+          "target_reps": null,
+          "cadence_label": null,
+          "scheduled_days": null,
+          "time_of_day": "anytime",
+          "payload": {}
+        },
+        {
+          "temp_id": "gen-p2-support-001",
+          "dimension": "support",
+          "kind": "tool",
+          "title": "Préparer un plan de secours de 15 minutes",
+          "description": "Écrire une micro-routine très simple à faire si l'envie monte le jour off: eau, marche courte, douche ou appel bref.",
+          "tracking_type": "boolean",
+          "activation_order": 2,
+          "activation_condition": null,
+          "support_mode": "backup",
+          "support_function": "reduce_craving",
+          "target_reps": null,
+          "cadence_label": null,
+          "scheduled_days": null,
+          "time_of_day": "anytime",
+          "payload": {}
+        },
+        {
+          "temp_id": "gen-p2-habits-001",
+          "dimension": "habits",
+          "kind": "habit",
+          "title": "Tenir un jour off complet",
+          "description": "Passer la journée sans consommation, en s'autorisant seulement le plan de secours si la pression monte.",
+          "tracking_type": "count",
+          "activation_order": 3,
+          "activation_condition": null,
+          "support_mode": null,
+          "support_function": null,
+          "target_reps": 1,
+          "cadence_label": "1 à 2 fois/semaine",
+          "scheduled_days": null,
+          "time_of_day": "anytime",
+          "payload": {}
+        },
+        {
+          "temp_id": "gen-p2-clarifications-001",
+          "dimension": "clarifications",
+          "kind": "framework",
+          "title": "Repérer le moment de rupture",
+          "description": "Noter à quel moment du jour off l'envie devient la plus forte: matin, après-midi ou retour du travail.",
+          "tracking_type": "boolean",
+          "activation_order": 4,
+          "activation_condition": null,
+          "support_mode": null,
+          "support_function": null,
+          "target_reps": null,
+          "cadence_label": null,
+          "scheduled_days": null,
+          "time_of_day": "anytime",
+          "payload": {}
+        }
+      ],
+      "weeks": [
+        {
+          "week_order": 1,
+          "title": "Poser le premier jour off",
+          "focus": "Installer un jour complet sans consommation avec un filet de sécurité.",
+          "weekly_target_value": 1,
+          "weekly_target_label": "1 jour off tenu",
+          "progression_note": "On reste volontairement bas pour éviter le saut brutal.",
+          "action_focus": [
+            "choisir",
+            "prévoir",
+            "tenir"
+          ],
+          "item_assignments": [
+            {
+              "temp_id": "gen-p2-missions-001"
+            },
+            {
+              "temp_id": "gen-p2-habits-001"
+            }
+          ],
+          "reps_summary": "1 jour off",
+          "mission_days": [
+            "mon"
+          ],
+          "success_signal": "Le user arrive au soir du jour off sans décision automatique de reprendre.",
+          "status": "current"
+        },
+        {
+          "week_order": 2,
+          "title": "Stabiliser le jour off",
+          "focus": "Répéter le même jour off et tester le plan de secours quand la tension monte.",
+          "weekly_target_value": 1,
+          "weekly_target_label": "1 jour off tenu",
+          "progression_note": "Même objectif, plus de constance.",
+          "action_focus": [
+            "secours",
+            "constance",
+            "observation"
+          ],
+          "item_assignments": [
+            {
+              "temp_id": "gen-p2-support-001"
+            },
+            {
+              "temp_id": "gen-p2-habits-001"
+            }
+          ],
+          "reps_summary": "1 à 2 jours off",
+          "mission_days": [
+            "wed"
+          ],
+          "success_signal": "Le jour off devient prévisible et moins fragile.",
+          "status": "upcoming"
+        },
+        {
+          "week_order": 3,
+          "title": "Passer à deux jours off",
+          "focus": "Ajouter un deuxième jour sans consommation si le premier tient sans lutte permanente.",
+          "weekly_target_value": 2,
+          "weekly_target_label": "2 jours off tenus",
+          "progression_note": "Petite hausse seulement si la base reste stable.",
+          "action_focus": [
+            "ajuster",
+            "répéter",
+            "élargir"
+          ],
+          "item_assignments": [
+            {
+              "temp_id": "gen-p2-clarifications-001"
+            },
+            {
+              "temp_id": "gen-p2-habits-001"
+            }
+          ],
+          "reps_summary": "2 jours off",
+          "mission_days": [
+            "sun"
+          ],
+          "success_signal": "Le user sait identifier quand l'envie monte et garde quand même le jour off.",
+          "status": "upcoming"
+        }
+      ],
+      "review_focus": [
+        "Le jour off a-t-il tenu sans basculer dès le stress ?",
+        "Le plan de secours a-t-il été assez simple pour être utilisé ?",
+        "Quel moment de la journée reste le plus fragile ?"
+      ]
+    },
+    "future_blueprint_levels": [
+      {
+        "phase_id": "phase-3",
+        "level_order": 3,
+        "title": "Gérer les moments de stress à vide",
+        "intention": "Traverser les journées stressantes sans utiliser l'habitude comme amortisseur.",
+        "estimated_duration_weeks": 3,
+        "preview_summary": "Traiter le vrai défi : les émotions difficiles, la fatigue et le stress.",
+        "status": "upcoming"
+      },
+      {
+        "phase_id": "phase-4",
+        "level_order": 4,
+        "title": "Le saut vers le zéro",
+        "intention": "Couper les dernières consommations résiduelles et consolider une identité sans cette béquille.",
+        "estimated_duration_weeks": 3,
+        "preview_summary": "Atteindre l'arrêt total et sécuriser les nouvelles routines.",
+        "status": "upcoming"
+      }
+    ],
+    "continuity_notes": {
+      "kept_from_previous_level": [
+        "sas de décompression avant décision",
+        "déclencheurs rangés hors de vue",
+        "alternative anti-ennui pour le début de soirée",
+        "observation du déclencheur principal"
+      ],
+      "changed_because_of_review": [
+        "on passe d'un objectif de retardement à un vrai jour off",
+        "on réduit la charge avec un seul jour off fixe au départ",
+        "on ajoute un plan de secours très court pour absorber les pics de stress",
+        "on introduit une clarification du moment de rupture pour mieux calibrer la suite"
+      ],
+      "protected_global_logic": [
+        "la réduction commence par simplifier la friction avant d'élargir les jours sans consommation",
+        "la progression reste graduelle et n'attaque pas encore le stress de fond",
+        "les niveaux futurs restent orientés vers le stress sans béquille puis vers le zéro"
+      ]
+    }
+  },
+  "compact": {
+    "decision": "lighten_next_level",
+    "decision_reason": "La direction vers des jours off reste cohérente, mais le stress bloque encore le sas; il faut alléger la charge et ajouter un soutien simple avant d'augmenter l'ambition.",
+    "title": "Installer un premier jour off simple",
+    "objective": "Introduire un jour complet sans consommation par semaine avec un soutien de remplacement très léger.",
+    "duration_weeks": 3,
+    "metric_target": "1 jour off tenu la première semaine, puis 2 jours off par semaine à la fin de la phase si c'est stable.",
+    "heartbeat": {
+      "title": "Jours off tenus",
+      "unit": "jours/semaine",
+      "current": null,
+      "target": 2,
+      "tracking_mode": "manual"
+    },
+    "items": [
+      {
+        "temp_id": "gen-p2-missions-001",
+        "dimension": "missions",
+        "kind": "task",
+        "title": "Choisir un jour off fixe",
+        "target_reps": null,
+        "cadence_label": null,
+        "scheduled_days": null,
+        "time_of_day": "anytime"
+      },
+      {
+        "temp_id": "gen-p2-support-001",
+        "dimension": "support",
+        "kind": "tool",
+        "title": "Préparer un plan de secours de 15 minutes",
+        "target_reps": null,
+        "cadence_label": null,
+        "scheduled_days": null,
+        "time_of_day": "anytime"
+      },
+      {
+        "temp_id": "gen-p2-habits-001",
+        "dimension": "habits",
+        "kind": "habit",
+        "title": "Tenir un jour off complet",
+        "target_reps": 1,
+        "cadence_label": "1 à 2 fois/semaine",
+        "scheduled_days": null,
+        "time_of_day": "anytime"
+      },
+      {
+        "temp_id": "gen-p2-clarifications-001",
+        "dimension": "clarifications",
+        "kind": "framework",
+        "title": "Repérer le moment de rupture",
+        "target_reps": null,
+        "cadence_label": null,
+        "scheduled_days": null,
+        "time_of_day": "anytime"
+      }
+    ],
+    "weeks": [
+      {
+        "week_order": 1,
+        "title": "Poser le premier jour off",
+        "target": "1 jour off tenu",
+        "assignments": [
+          "gen-p2-missions-001",
+          "gen-p2-habits-001"
+        ],
+        "success_signal": "Le user arrive au soir du jour off sans décision automatique de reprendre."
+      },
+      {
+        "week_order": 2,
+        "title": "Stabiliser le jour off",
+        "target": "1 jour off tenu",
+        "assignments": [
+          "gen-p2-support-001",
+          "gen-p2-habits-001"
+        ],
+        "success_signal": "Le jour off devient prévisible et moins fragile."
+      },
+      {
+        "week_order": 3,
+        "title": "Passer à deux jours off",
+        "target": "2 jours off tenus",
+        "assignments": [
+          "gen-p2-clarifications-001",
+          "gen-p2-habits-001"
+        ],
+        "success_signal": "Le user sait identifier quand l'envie monte et garde quand même le jour off."
+      }
+    ],
+    "future_blueprint_levels": [
+      {
+        "phase_id": "phase-3",
+        "level_order": 3,
+        "title": "Gérer les moments de stress à vide",
+        "intention": "Traverser les journées stressantes sans utiliser l'habitude comme amortisseur.",
+        "estimated_duration_weeks": 3,
+        "preview_summary": "Traiter le vrai défi : les émotions difficiles, la fatigue et le stress.",
+        "status": "upcoming"
+      },
+      {
+        "phase_id": "phase-4",
+        "level_order": 4,
+        "title": "Le saut vers le zéro",
+        "intention": "Couper les dernières consommations résiduelles et consolider une identité sans cette béquille.",
+        "estimated_duration_weeks": 3,
+        "preview_summary": "Atteindre l'arrêt total et sécuriser les nouvelles routines.",
+        "status": "upcoming"
+      }
+    ],
+    "continuity_notes": {
+      "kept_from_previous_level": [
+        "sas de décompression avant décision",
+        "déclencheurs rangés hors de vue",
+        "alternative anti-ennui pour le début de soirée",
+        "observation du déclencheur principal"
+      ],
+      "changed_because_of_review": [
+        "on passe d'un objectif de retardement à un vrai jour off",
+        "on réduit la charge avec un seul jour off fixe au départ",
+        "on ajoute un plan de secours très court pour absorber les pics de stress",
+        "on introduit une clarification du moment de rupture pour mieux calibrer la suite"
+      ],
+      "protected_global_logic": [
+        "la réduction commence par simplifier la friction avant d'élargir les jours sans consommation",
+        "la progression reste graduelle et n'attaque pas encore le stress de fond",
+        "les niveaux futurs restent orientés vers le stress sans béquille puis vers le zéro"
+      ]
+    }
+  }
+}

@@ -1,0 +1,407 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r8-t01",
+    "status": 200,
+    "ok": true,
+    "user": "fais moi un truc d'attaque pour le machin du soir avec le carnet, j'ai pas d'idée de technique et j'ai pas envie d'un pavé",
+    "assistant": "C'est noté pour le sas de déchargement. Pour faire court et efficace, tu préfères quelle option ?\n\n- Mantra de force\n- Ancre visuelle\n- Mot de bascule",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "structured_ai_missing_technique",
+        "status": "missing",
+        "question": "C'est noté pour le sas de déchargement. Pour faire court et efficace, tu préfères quelle option ?\n\n- Mantra de force\n- Ancre visuelle\n- Mot de bascule",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "intake_state": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "machin du soir avec le carnet",
+                "sas de déchargement"
+              ],
+              "confidence": "high",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "blocker": {
+              "type": "friction",
+              "evidence": [
+                "pas envie d'un pavé"
+              ],
+              "confidence": 0.8
+            },
+            "skill_id": "prepare_attack_card",
+            "technique": {
+              "value": null,
+              "status": "ambiguous",
+              "options": [
+                {
+                  "title": "Mantra de force",
+                  "reason": "Très rapide, pas de texte long, idéal pour l'efficacité demandée.",
+                  "example": "Une phrase courte qui te remet dans ton axe.",
+                  "description": "Une phrase courte à répéter pour renforcer le rapport à l'action.",
+                  "recommended": true,
+                  "technique_key": "mantra_force"
+                },
+                {
+                  "title": "Ancre visuelle",
+                  "reason": "Utilise le carnet physique comme signal concret sans lecture longue.",
+                  "example": "Un carnet visible avec une phrase de départ.",
+                  "description": "Un repère visuel simple, avec une phrase associée.",
+                  "recommended": true,
+                  "technique_key": "ancre_visuelle"
+                },
+                {
+                  "title": "Mot de bascule",
+                  "reason": "L'option la plus courte : un seul mot à envoyer pour déclencher l'action.",
+                  "example": "Envoyer BASCULE quand tu sens que tu vas esquiver.",
+                  "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+                  "recommended": true,
+                  "technique_key": "pre_engagement"
+                }
+              ],
+              "evidence": [
+                "pas d'idée de technique",
+                "pas envie d'un pavé"
+              ],
+              "confidence": "medium",
+              "fit_warning": null,
+              "explicitly_requested": false
+            },
+            "confidence": "high",
+            "constraints": [
+              "format court",
+              "pas de pavé"
+            ],
+            "current_step": "technique_selection",
+            "missing_slots": [
+              "technique"
+            ],
+            "activation_keyword": {
+              "value": null,
+              "status": "missing",
+              "options": [],
+              "evidence": [],
+              "confidence": "low",
+              "rejected_value": null
+            },
+            "generated_user_message": "C'est noté pour le sas de déchargement. Pour faire court et efficace, tu préfères quelle option ?\n\n- Mantra de force\n- Ancre visuelle\n- Mot de bascule"
+          },
+          "technique_options": [
+            {
+              "title": "Mantra de force",
+              "reason": "Très rapide, pas de texte long, idéal pour l'efficacité demandée.",
+              "example": "Une phrase courte qui te remet dans ton axe.",
+              "description": "Une phrase courte à répéter pour renforcer le rapport à l'action.",
+              "recommended": true,
+              "technique_key": "mantra_force"
+            },
+            {
+              "title": "Ancre visuelle",
+              "reason": "Utilise le carnet physique comme signal concret sans lecture longue.",
+              "example": "Un carnet visible avec une phrase de départ.",
+              "description": "Un repère visuel simple, avec une phrase associée.",
+              "recommended": true,
+              "technique_key": "ancre_visuelle"
+            },
+            {
+              "title": "Mot de bascule",
+              "reason": "L'option la plus courte : un seul mot à envoyer pour déclencher l'action.",
+              "example": "Envoyer BASCULE quand tu sens que tu vas esquiver.",
+              "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+              "recommended": true,
+              "technique_key": "pre_engagement"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Mantra de force",
+            "reason": "Très rapide, pas de texte long, idéal pour l'efficacité demandée.",
+            "example": "Une phrase courte qui te remet dans ton axe.",
+            "description": "Une phrase courte à répéter pour renforcer le rapport à l'action.",
+            "recommended": true,
+            "technique_key": "mantra_force"
+          },
+          {
+            "title": "Ancre visuelle",
+            "reason": "Utilise le carnet physique comme signal concret sans lecture longue.",
+            "example": "Un carnet visible avec une phrase de départ.",
+            "description": "Un repère visuel simple, avec une phrase associée.",
+            "recommended": true,
+            "technique_key": "ancre_visuelle"
+          },
+          {
+            "title": "Mot de bascule",
+            "reason": "L'option la plus courte : un seul mot à envoyer pour déclencher l'action.",
+            "example": "Envoyer BASCULE quand tu sens que tu vas esquiver.",
+            "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+            "recommended": true,
+            "technique_key": "pre_engagement"
+          }
+        ],
+        "activation_keyword_options": []
+      },
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r8-t02",
+    "status": 200,
+    "ok": true,
+    "user": "mot de bascule. propose un mot mais pas un truc nul",
+    "assistant": "C'est parti pour le Mot de bascule. Pour ton sas de déchargement, je te propose un de ces mots à m'envoyer quand tu sens que tu vas esquiver : OFF, VIDE ou LIBRE. Lequel te parle ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "activation_keyword",
+        "needed": true,
+        "reason": "structured_ai_missing_activation_keyword",
+        "status": "missing",
+        "question": "C'est parti pour le Mot de bascule. Pour ton sas de déchargement, je te propose un de ces mots à m'envoyer quand tu sens que tu vas esquiver : OFF, VIDE ou LIBRE. Lequel te parle ?",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "technique": "pre_engagement",
+          "intake_state": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "structured_operation_input"
+              ],
+              "confidence": "high",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "blocker": {
+              "type": "friction",
+              "evidence": [
+                "pas envie d'un pavé"
+              ],
+              "confidence": 0.8
+            },
+            "skill_id": "prepare_attack_card",
+            "technique": {
+              "value": "pre_engagement",
+              "status": "identified",
+              "options": [
+                {
+                  "title": "Mot de bascule",
+                  "reason": "L'option la plus courte : un seul mot à envoyer pour déclencher l'action.",
+                  "example": "Envoyer BASCULE quand tu sens que tu vas esquiver.",
+                  "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+                  "recommended": true,
+                  "technique_key": "pre_engagement"
+                }
+              ],
+              "evidence": [
+                "mot de bascule"
+              ],
+              "confidence": "high",
+              "fit_warning": null,
+              "explicitly_requested": true
+            },
+            "confidence": "high",
+            "constraints": [
+              "format court",
+              "pas de pavé"
+            ],
+            "current_step": "keyword_intake",
+            "missing_slots": [
+              "activation_keyword"
+            ],
+            "activation_keyword": {
+              "value": null,
+              "status": "ambiguous",
+              "options": [
+                "OFF",
+                "VIDE",
+                "LIBRE"
+              ],
+              "evidence": [
+                "propose un mot mais pas un truc nul"
+              ],
+              "confidence": "medium",
+              "rejected_value": null
+            },
+            "generated_user_message": "C'est parti pour le Mot de bascule. Pour ton sas de déchargement, je te propose un de ces mots à m'envoyer quand tu sens que tu vas esquiver : OFF, VIDE ou LIBRE. Lequel te parle ?"
+          },
+          "technique_options": [
+            {
+              "title": "Mot de bascule",
+              "reason": "L'option la plus courte : un seul mot à envoyer pour déclencher l'action.",
+              "example": "Envoyer BASCULE quand tu sens que tu vas esquiver.",
+              "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+              "recommended": true,
+              "technique_key": "pre_engagement"
+            }
+          ],
+          "activation_keyword_options": [
+            "OFF",
+            "VIDE",
+            "LIBRE"
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Mot de bascule",
+            "reason": "L'option la plus courte : un seul mot à envoyer pour déclencher l'action.",
+            "example": "Envoyer BASCULE quand tu sens que tu vas esquiver.",
+            "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+            "recommended": true,
+            "technique_key": "pre_engagement"
+          }
+        ],
+        "activation_keyword_options": [
+          "OFF",
+          "VIDE",
+          "LIBRE"
+        ]
+      },
+      "reason_code": "active_tool_skill_continue",
+      "missing_slots": [
+        "activation_keyword"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r8-t03",
+    "status": 200,
+    "ok": true,
+    "user": "libre",
+    "assistant": "Voici ta carte d'attaque :\n\n*Sas de déchargement*\nTechnique : Mot de bascule\nMot-clé : LIBRE\n\nEnvoie LIBRE quand tu sens que tu vas esquiver pour déclencher ton sas.\n\nOn valide ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Sas de déchargement",
+          "technique": "pre_engagement",
+          "instruction": "Envoie le mot-clé dès que tu sens une hésitation à faire ton sas.",
+          "mode_emploi": "Envoie LIBRE quand tu sens que tu vas esquiver pour déclencher ton sas.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Ce mot court coupe court à la résistance mentale.",
+          "generated_asset": "LIBRE",
+          "technique_title": "Mot de bascule",
+          "supporting_points": [
+            "Bascule immédiate vers l'action",
+            "Évite la négociation mentale"
+          ],
+          "activation_keyword": "LIBRE"
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ta carte d'attaque :\n\n*Sas de déchargement*\nTechnique : Mot de bascule\nMot-clé : LIBRE\n\nEnvoie LIBRE quand tu sens que tu vas esquiver pour déclencher ton sas.\n\nOn valide ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "90edab6e-84e1-469c-ac3d-ae1b266aae70",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r8-t04",
+    "status": 200,
+    "ok": true,
+    "user": "ok go",
+    "assistant": "C'est fait. J'ai créé cette carte d'attaque :\n\nSas de déchargement\nTechnique : Mot de bascule\nLIBRE\n\nMode d'emploi : Envoie LIBRE quand tu sens que tu vas esquiver pour déclencher ton sas.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_attack_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "90edab6e-84e1-469c-ac3d-ae1b266aae70",
+      "attack_card_id": "ba469426-d2b0-4cc1-8b7f-6732dc3cff8f",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r8-t05",
+    "status": 200,
+    "ok": true,
+    "user": "LIBRE",
+    "assistant": "Parfait — envoie LIBRE maintenant, et fais juste le premier geste du sas de déchargement (1 minute max). T’as juste à démarrer, pas à “réussir” 😄",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "track_progress_plan_item"
+    ],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

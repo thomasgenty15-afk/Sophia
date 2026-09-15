@@ -1,0 +1,317 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r3-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Là je décroche un peu avec les grignotages. Je vois ce qui est prévu et ça me paraît trop lourd pour cette semaine.",
+    "assistant": "Ah ouais… quand ça paraît “trop lourd”, le cerveau décroche direct, surtout si les grignotages deviennent la soupape 😕🍪\n\nOn va alléger sans abandonner. Pour cette semaine, l’idée c’est : viser “moins de règles”, pas “zéro envie”.\nFais un mini ajustement dès maintenant : choisis une seule action à garder sur les grignotages (ex: ne pas grignoter debout / portionner à l’avance / attendre 10 minutes), et tout le reste tu le mets en mode simplifié.\n\nDis-moi juste A ou B :\nA) Tu veux surtout réduire la fréquence des grignotages\nB) Tu veux surtout réduire leur taille (portions)",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "plan",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r3-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r3-t02",
+    "status": 200,
+    "ok": true,
+    "user": "B peut-être, mais ce n'est pas seulement le grignotage lui-même. C'est tout ce qu'il y a autour qui me donne une sensation de trop.",
+    "assistant": "Ouais… je vois. Donc c’est pas “le cookie” le problème, c’est le décor complet: le timing, l’accès facile, l’habitude automatique, les micro-stress que ça ramène. Et quand ton cerveau sent “trop”, il décroche. 😕🍪\n\nOn va faire plus simple que “forcer de la volonté”:\n1) Tu identifies le “trop” en une phrase: c’est plutôt trop d’étapes, trop de décisions, ou trop de présence du food partout ?\n2) On ne supprime pas tout: on enlève juste une brique du décor qui alimente le trop (accès, visibilité, moment, ou déclencheur).\n\nRéponse A/B:\nA) Trop d’étapes/décisions autour\nB) Trop de déclencheurs/présence (lieu, moment, visibilité)",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "grignotage",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r3-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r3-t03",
+    "status": 200,
+    "ok": true,
+    "user": "A surtout. Et je voudrais que tu l'adaptes dans mon plan, sinon demain je retombe sur la même charge.",
+    "assistant": "Ok, je te suis. Si “A” c’est la règle “trop” autour des grignotages, on va l’alléger dans ton plan pour que demain ton cerveau n’ait pas la même sensation de charge. 🍪\n\nMais avant que je te propose la version adaptée, j’ai besoin que tu me dises juste A = quoi exactement chez toi ?\nA) trop d’étapes / trop de décisions\nB) bouffe trop accessible partout\nC) timing (fin de journée, pause, stress)\nD) autre (une phrase)\n\nTu me réponds juste A/B/C/D + 1 détail si tu veux ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "demain"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tomorrow"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "grignotages / charge du plan",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r3-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r3-t04",
+    "status": 200,
+    "ok": true,
+    "user": "A : trop d'étapes et trop de décisions. Le bon ajustement serait de garder l'idée mais en version beaucoup plus légère cette semaine.",
+    "assistant": "Je remarque que l'étape pour nettoyer ton environnement direct te semble trop lourde à cause du nombre de décisions à prendre. Est-ce que tu es d'accord pour que je propose une version encore plus simplifiée, une sorte de petit pont pour débloquer la situation aujourd'hui, tout en gardant l'action complète pour plus tard ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "grignotages",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "difficulty": "medium"
+          },
+          "title": "Ajustement - Version mini - Nettoyer ton environnement direct",
+          "confidence": "high",
+          "ack_summary": {
+            "changed": [
+              "ajustement de \"Version mini - Nettoyer ton environnement direct\""
+            ],
+            "unchanged": [
+              "le reste du plan n'est pas touché"
+            ],
+            "confidence": "high",
+            "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+            "follow_up_needed": null
+          },
+          "scope_label": "Version mini - Nettoyer ton environnement direct",
+          "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+          "decision_basis": {
+            "evidence": [
+              "A : trop d'étapes et trop de décisions. Le bon ajustement serait de garder l'idée mais en version beaucoup plus légère cette semaine.",
+              "operation_input.scope",
+              "message.rebalance",
+              "message.too_heavy"
+            ],
+            "confidence": "high",
+            "uncertainty": [],
+            "user_problem": "Version mini - Nettoyer ton environnement direct bloque parce que l'entree est trop lourde.",
+            "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+            "must_preserve": [
+              "intention du plan",
+              "reprendre Version mini - Nettoyer ton environnement direct apres la version mini"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "ajuster le plan de facon minimale",
+          "change_rationale": {
+            "why_this_change": "Ajuster \"Version mini - Nettoyer ton environnement direct\" traite le blocage identifié sans changer le reste du plan.",
+            "success_condition": "L'action redevient faisable.",
+            "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+          },
+          "adjust_plan_result": {
+            "scope": "action",
+            "rationale": {
+              "confidence": "high",
+              "missing_info": [],
+              "user_problem": "L'action actuelle demande trop d'énergie et de prises de décision, ce qui provoque un arrêt.",
+              "expected_effect": "Une reprise immédiate de l'activité grâce à une friction quasi nulle.",
+              "why_this_change": "Réduire la taille de la première marche permet de relancer la dynamique sans sentiment d'échec."
+            },
+            "boundaries": {
+              "explanation": "La modification est strictement locale pour lever un blocage ponctuel sans dénaturer ton programme.",
+              "affected_scope": "Uniquement l'action de nettoyage immédiate.",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "Objectif global de la méthode",
+                "Autres actions prévues dans la semaine",
+                "Structure de ton accompagnement"
+              ]
+            },
+            "applied_change": {
+              "summary": "Création d'une version allégée de l'action de nettoyage pour réduire la friction immédiate et servir de pont vers l'objectif initial.",
+              "changed_items": [
+                {
+                  "id": null,
+                  "kind": "action",
+                  "after": "Version ultra-simplifiée focalisée sur un micro-objectif",
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "before": "Action avec de nombreuses étapes et décisions pesantes",
+                  "reason": "L'entrée dans l'action était trop complexe et bloquait la progression."
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Structure globale du plan",
+                  "reason": "L'intention et la direction générale restent pertinentes."
+                },
+                {
+                  "id": null,
+                  "kind": "action",
+                  "title": "Action de nettoyage complète",
+                  "reason": "L'objectif final doit être repris après la réussite de la version mini."
+                }
+              ]
+            },
+            "user_message_brief": "Action simplifiée pour débloquer ton avancée.",
+            "user_message_detailed": "J'ai transformé l'action de nettoyage en une version miniature pour lever le blocage actuel. Cette version sert de pont pour te permettre d'avancer sans toucher au reste de ton programme."
+          },
+          "execution_strategy": "patch_existing",
+          "allowed_patch_fields": [
+            "difficulty",
+            "duration_minutes",
+            "instruction",
+            "paused"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "J'ai ajusté l'étape de nettoyage pour la rendre beaucoup plus accessible. J'ai créé une version miniature qui sert de transition : elle demande moins d'efforts immédiats et réduit la fatigue liée aux choix. Par exemple, au lieu de gérer l'ensemble de la zone, on se concentre sur un micro-espace prioritaire. Le reste de ton organisation ne change pas et l'action d'origine reste prévue dans ton parcours une fois ce premier pas franchi. C'est une solution efficace pour garder ton élan sans t'épuiser.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je remarque que l'étape pour nettoyer ton environnement direct te semble trop lourde à cause du nombre de décisions à prendre. Est-ce que tu es d'accord pour que je propose une version encore plus simplifiée, une sorte de petit pont pour débloquer la situation aujourd'hui, tout en gardant l'action complète pour plus tard ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "2c2ae5c5-d8c7-4cc5-bb8b-06f2f809c9f0",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r3-t04",
+    "trace_error": null
+  }
+]

@@ -1,0 +1,297 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-only-r3-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je ne veux pas modifier une seule action, et je ne veux pas reconstruire tout mon plan. C'est vraiment le niveau actuel Reprendre le controle sur le grignotage qui est trop dense cette semaine : entre nettoyer l'environnement, choisir du brut 6 jours sur 7 et gerer les envies apres le travail, ca me fait trop. Je veux garder l'objectif global et les niveaux suivants, mais alléger ce niveau actuel pour qu'il soit tenable.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-only-r3-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-only-r3",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends que le rythme actuel pour reprendre le contrôle sur le grignotage est trop intense avec toutes ces actions simultanées. Est-ce que tu serais d'accord pour que j'allège la charge globale de ton plan ? Cela permettrait de garder tes objectifs intacts tout en rendant tes journées plus digestes.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-only-r3-t01",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "67193032-c3cd-4918-9984-6931dfa84690",
+        "ts": "2026-05-13T03:09:52.589+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3974,
+          "latency_ms": 8956,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 359,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "alléger le niveau grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-only-r3-t01",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "alléger le niveau grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "overwhelmed_by_plan_density",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Reprendre le controle sur le grignotage",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "67193032-c3cd-4918-9984-6931dfa84690",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "operation_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "confidence": "medium",
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write"
+                ],
+                "reason_type": "too_heavy",
+                "change_target": "global_load",
+                "reason_change": "time_or_capacity_changed",
+                "load_adjustment": "lighter",
+                "plan_adjustment": "reduce_global_load"
+              },
+              "title": "Ajustement - plan global",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "plan global: reduce_global_load",
+                  "cible de changement: global_load"
+                ],
+                "unchanged": [
+                  "l'objectif/direction reste préservé sauf demande contraire explicite",
+                  "le plan canonique n'est pas reconstruit automatiquement"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel.",
+                "follow_up_needed": "identifier ensuite les semaines ou blocs les plus lourds pour affiner"
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+              "decision_basis": {
+                "evidence": [
+                  "Je ne veux pas modifier une seule action, et je ne veux pas reconstruire tout mon plan. C'est vraiment le niveau actuel Reprendre le controle sur le grignotage qui est trop dense cette semaine : entre nettoyer l'environnement, choisir du brut 6 jours sur 7 et gerer les envies apres le travail, ca me fait trop. Je veux garder l'objectif global et les niveaux suivants, mais alléger ce niveau actuel pour qu'il soit tenable.",
+                  "operation_input.scope",
+                  "message.reduce_global_load",
+                  "adjustment_type.reduce_global_load_default",
+                  "message.time_or_capacity_changed",
+                  "message.load_or_intensity"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "reduire la charge globale du plan",
+              "change_rationale": {
+                "why_this_change": "Réduire global_load répond au problème \"time_or_capacity_changed\" sans changer la direction du plan.",
+                "success_condition": "Le plan paraît tenable sans reconstruction complète ni changement d'objectif implicite.",
+                "expected_mechanism": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [
+                    "Quels moments précis de la journée restent les plus difficiles malgré l'allègement."
+                  ],
+                  "user_problem": "Le plan actuel est trop lourd à gérer, notamment sur la partie grignotage qui demande trop d'efforts simultanés.",
+                  "expected_effect": "Une meilleure adhésion au plan et une réduction du sentiment de surcharge.",
+                  "why_this_change": "Réduire la charge globale permet de maintenir l'engagement sans avoir à reconstruire tout le projet."
+                },
+                "boundaries": {
+                  "explanation": "La direction ne change pas, mais le rythme est adapté pour garantir la réussite.",
+                  "affected_scope": "L'ensemble du plan dans son exécution actuelle.",
+                  "global_plan_impact": "indirect",
+                  "explicitly_not_affected": [
+                    "Objectif principal",
+                    "Identité du plan"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Allègement de la charge globale du plan pour le rendre plus tenable.",
+                  "changed_items": [
+                    {
+                      "id": null,
+                      "kind": "plan_setting",
+                      "after": "Allégée",
+                      "title": "Intensité globale",
+                      "before": "Standard",
+                      "reason": "Le cumul des actions actuelles est jugé trop dense pour être maintenu sereinement."
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": null,
+                      "kind": "plan",
+                      "title": "Objectif global et niveaux futurs",
+                      "reason": "L'intention de fond et la direction du plan restent pertinentes."
+                    }
+                  ]
+                },
+                "user_message_brief": "J'ai réduit la charge globale de ton plan pour le rendre plus facile à suivre au quotidien.",
+                "user_message_detailed": "Pour répondre à ton besoin de moins de pression, j'ai passé ton plan en mode allégé. Tes objectifs de fond et tes prochaines étapes restent les mêmes, mais l'effort demandé chaque jour est diminué. C'est une solution idéale pour garder le cap sur le grignotage sans te laisser déborder par la logistique ou la fatigue."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "J'ai ajusté ton plan pour réduire la pression globale. L'objectif de fond reste le même et tes futurs paliers sont préservés, mais j'ai diminué l'intensité des efforts demandés pour que ton quotidien soit plus respirable. Cela devrait t'aider à rester régulier sans te sentir submergé par le cumul des tâches comme le choix des aliments bruts ou la gestion des envies. Je suis assez confiante sur le fait que cet équilibre est plus réaliste pour toi en ce moment.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je comprends que le rythme actuel pour reprendre le contrôle sur le grignotage est trop intense avec toutes ces actions simultanées. Est-ce que tu serais d'accord pour que j'allège la charge globale de ton plan ? Cela permettrait de garder tes objectifs intacts tout en rendant tes journées plus digestes."
+          },
+          "status": "pending_confirmation",
+          "reason_code": "operation_intent_start",
+          "operation_id": "63c32bb6-3f49-4784-a045-5e2d1b6e86bc",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 18527,
+        "created_at": "2026-05-13T03:09:52.590687+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

@@ -1,0 +1,43 @@
+{
+  "user": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "scopes": [
+    "qa-pmns-stateful-real-1781553797",
+    "qa-pmns-handoff-real-1781554025"
+  ],
+  "before": [
+    {
+      "table": "chat_messages",
+      "status": 200,
+      "count": 6
+    },
+    {
+      "table": "user_chat_states",
+      "status": 400,
+      "count": null
+    }
+  ],
+  "deleted": [
+    {
+      "table": "chat_messages",
+      "status": 200,
+      "deleted": 6
+    },
+    {
+      "table": "user_chat_states",
+      "status": 200,
+      "deleted": 2
+    }
+  ],
+  "after": [
+    {
+      "table": "chat_messages",
+      "status": 200,
+      "count": 0
+    },
+    {
+      "table": "user_chat_states",
+      "status": 400,
+      "count": null
+    }
+  ]
+}

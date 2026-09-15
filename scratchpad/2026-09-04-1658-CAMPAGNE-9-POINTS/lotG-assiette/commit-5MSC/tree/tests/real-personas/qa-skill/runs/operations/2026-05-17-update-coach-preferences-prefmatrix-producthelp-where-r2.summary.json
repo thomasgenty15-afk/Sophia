@@ -1,0 +1,44 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-update-coach-preferences-2026-05-17-prefmatrix-producthelp-where-r2-t01",
+    "user": "Je ne veux pas le changer maintenant, mais c'est où dans l'app pour régler ton style de réponse ?",
+    "assistant": "Tu peux régler mon style ici : Dashboard > Preferences. Ensuite tu modifies les options (ton, niveau de challenge, tendance à poser des questions) puis tu sauvegardes. 😊\n\nTu veux que je te dise exactement quoi toucher pour obtenir un rendu plus “direct” ou plus “posé” ?",
+    "status": 200,
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response_owner": "product_help",
+      "selected_handler": "product_help",
+      "route_selected_handler": "product_help",
+      "route_reason": "skill_entry_signal",
+      "safety": {
+        "detected": false,
+        "evidence": [
+          "maintenant"
+        ],
+        "risk_band": "none",
+        "reason_codes": [
+          "immediacy_now"
+        ],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": true,
+          "dispatcher_llm": false
+        }
+      },
+      "direct_effects": [],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "tool_execution": "none",
+      "trace_error": null,
+      "trace_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-producthelp-where-r2-t01"
+    }
+  }
+]

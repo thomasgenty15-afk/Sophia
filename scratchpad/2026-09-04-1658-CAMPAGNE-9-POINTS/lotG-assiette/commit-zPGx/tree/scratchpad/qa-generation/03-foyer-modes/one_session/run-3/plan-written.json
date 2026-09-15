@@ -1,0 +1,63 @@
+{
+    "cooking": {
+        "asked": "one_session",
+        "capped": false,
+        "served": "one_session",
+        "unused": false,
+        "computed": "one_session",
+        "diverging": [
+            "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+            "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+            "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+        ],
+        "dish_bearing": [
+            "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+            "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+            "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+        ]
+    },
+    "plan_id": "43ee0fb2-f99e-4999-b0dc-c0b404db049b",
+    "rationale": {
+        "lines": [
+            "This plan covers today.",
+            "You cook on Wednesday and Saturday, and that is what was kept.",
+            "Quantities are made for 4 people.",
+            "The shared dish is vegan: that is what Theodule eats.",
+            "The shopping budget is 115.",
+            "To stay inside it, expensive proteins give first, then out-of-season produce, then variety — never the portions."
+        ],
+        "refusal": null
+    },
+    "box_sizing": {
+        "boxes": 12,
+        "share": {
+            "sized": 4,
+            "no_body": 0,
+            "age_unknown": 0,
+            "no_reference": 0,
+            "restriction_floor": 0,
+            "restriction_unknown": 0,
+            "doctrine_no_counting": 0
+        },
+        "sized": 12,
+        "mouths": {
+            "minor": 1,
+            "sized": 1,
+            "no_body": 0,
+            "no_pace": 2,
+            "age_unknown": 0,
+            "no_direction": 0,
+            "restriction_floor": 0,
+            "implausible_factor": 0,
+            "restriction_unknown": 0,
+            "doctrine_no_counting": 0
+        },
+        "unchanged": 0,
+        "shared_mixed": 0,
+        "unverifiable": 2,
+        "capped_by_pot": 0,
+        "share_clamped": 0
+    },
+    "created_at": "2026-08-19T02:13:42.039527+00:00",
+    "attribution": null
+}

@@ -1,0 +1,7 @@
+Error: 400 http://127.0.0.1:54321/rest/v1/profiles?id=eq.02dc9ae2-4128-412b-b0be-56712bf775a8&select=id,email,full_name,access_tier,trial_end,is_test_persona&limit=1: {"code":"42703","details":null,"hint":null,"message":"column profiles.is_test_persona does not exist"}
+    at jsonFetch (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_coaching_bridge_20260619.mjs:113:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async rest (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_coaching_bridge_20260619.mjs:122:10)
+    at async select (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_coaching_bridge_20260619.mjs:135:11)
+    at async profileSnapshot (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_coaching_bridge_20260619.mjs:206:11)
+    at async main (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_coaching_bridge_20260619.mjs:644:19)

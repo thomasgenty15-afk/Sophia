@@ -1,0 +1,68 @@
+{
+  "request_id": "c0000001-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "5a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T10:17:02.912Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "37ebba3b-6800-47a9-b57b-56f30a099fcd",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T10:15:55.39744+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16669,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16669,
+    "user_message_chars": 21873,
+    "user_message_truncated": false,
+    "user_message_written_chars": 21873,
+    "independent_counters": {
+      "system_prompt_chars": 16669,
+      "prompt_chars": 21873
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "37ebba3b-6800-47a9-b57b-56f30a099fcd",
+    "created_at": "2026-08-19T10:15:55.39744+00:00",
+    "status": "attempt_start",
+    "outcome": "pending",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "http_status": null,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": null,
+    "output_text_json": null,
+    "raw_response_truncated": false,
+    "raw_response": null
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T10:15:55.39744+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    }
+  ]
+}

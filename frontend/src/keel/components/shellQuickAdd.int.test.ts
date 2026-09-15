@@ -67,6 +67,13 @@ describe("① la place du « + »", () => {
     // sans déplacer la main.
     expect(left.length).toBe(right.length);
   });
+
+  it("le « + » porte une légende visible, pas seulement un signe", () => {
+    const shell = read(SHELL);
+    expect(shell).toContain('t("shell.quick_add.caption")');
+    expect(shell).toContain('t("shell.quick_add.aria")');
+    expect(shell).toContain('data-testid="shell-quick-add-caption"');
+  });
 });
 
 describe("② le plafond de la barre", () => {

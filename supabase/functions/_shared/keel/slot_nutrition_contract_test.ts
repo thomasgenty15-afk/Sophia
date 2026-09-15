@@ -31,11 +31,16 @@ import { assert, assertAlmostEquals, assertEquals } from "jsr:@std/assert@1";
 import {
   contractKey,
   mergeSlotContractSets,
+  type SlotContractSet,
   requiredDensityFor,
   requiredDensityFromContracts,
   type ContractDay,
   type SlotNutritionContract,
   slotContractsFor,
+} from "./slot_nutrition_contract.ts";
+import {
+  infeasibleDemands,
+  MAX_RHYTHM_SLOTS_FOR_ADVICE,
 } from "./slot_nutrition_contract.ts";
 import {
   dayTargetFor,
@@ -681,4 +686,234 @@ Deno.test("⛔ LOT B — `requiredDensityFor` rend EXACTEMENT le pli du contrat"
       parPorte.named.find((d) => d.slot === "dinner")!.minPer100G,
     "le rythme ne change rien: le paramètre est désarmé",
   );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-12 · ÉTAPE C1 — LE BUDGET COUVERT BRUT, ET LE REPAS LÉGER
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ C1 · le budget couvert sort en DEUX nombres: brut et net", () => {
+  // Un shaker de 200 kcal au petit-déjeuner, fenêtre = les trois repas.
+  // brut = 2 454 (la journée entière est couverte)
+  // net  = 2 454 − 200 = 2 254
+  const set = contrats({
+    days: [jour("sat", "2026-09-12", ["breakfast", "lunch", "dinner"], {
+      fixedKcalBySlot: new Map([["breakfast", 200]]),
+    })],
+  });
+  const petitDej = caseDe(set, "sat", "breakfast");
+  assertAlmostEquals(petitDej.coveredBudgetGrossKcal ?? -1, CIBLE_PAUL, 0.01);
+  assertAlmostEquals(petitDej.coveredBudgetKcal ?? -1, CIBLE_PAUL - 200, 0.01);
+  // ⛔ LE NET RESTE LE BUDGET À COMPOSER — rien n'est changé pour l'énergie.
+  assertAlmostEquals(petitDej.fixedKcal, 200, 0.01);
+  assertAlmostEquals(
+    petitDej.mealTargetKcal! - petitDej.composeKcal!,
+    200,
+    0.01,
+    "l'apport est retranché UNE fois, de SA case",
+  );
+});
+
+Deno.test("⛔ C1 · sans apport fixe, brut et net sont le MÊME nombre", () => {
+  // La propriété qui rend ce champ ajoutable sans déplacer un plan existant.
+  const set = contrats();
+  for (const c of set.contracts) {
+    assertEquals(
+      c.coveredBudgetGrossKcal,
+      c.coveredBudgetKcal,
+      "brut = net quand personne ne déclare rien",
+    );
+  }
+});
+
+Deno.test("⛔ C1 · un moment « léger » est PRÉSENT dans le contrat, et il pèse moins", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE DÉFAUT DE LA CAMPAGNE: le tir n° 5 déclarait son déjeuner léger par
+  // `eating_rhythm[].size = "small"` — que RIEN ne lit pour le poids d'un
+  // moment. `light_slots` valait `[]`, et le contrat n'a jamais porté `light`.
+  //
+  // L'arithmétique, à la main:
+  //   ordinaire : 2 454 × 0,40 / (0,25+0,40+0,35)        = 981,60
+  //   léger     : 2 454 × 0,25 / (0,25+0,25+0,35)        = 721,76…
+  const ordinaire = contrats();
+  const leger = contrats({ lightSlots: ["lunch"] });
+
+  assertEquals(caseDe(ordinaire, "sat", "lunch").light, false);
+  assertEquals(caseDe(leger, "sat", "lunch").light, true, "⛔ le contrat le PORTE");
+
+  const avant = caseDe(ordinaire, "sat", "lunch").composeKcal!;
+  const apres = caseDe(leger, "sat", "lunch").composeKcal!;
+  assertAlmostEquals(avant, CIBLE_PAUL * 0.40, 0.01);
+  assertAlmostEquals(apres, CIBLE_PAUL * (0.25 / 0.85), 0.01);
+  assert(apres < avant, "un déjeuner léger pèse moins qu'un déjeuner ordinaire");
+
+  // ⛔ ET LA JOURNÉE NE MAIGRIT PAS: ce que le déjeuner rend, les autres
+  // moments le reprennent — les parts sont renormalisées.
+  const sommeAvant = ["breakfast", "lunch", "dinner"]
+    .reduce((n, s) => n + caseDe(ordinaire, "sat", s).composeKcal!, 0);
+  const sommeApres = ["breakfast", "lunch", "dinner"]
+    .reduce((n, s) => n + caseDe(leger, "sat", s).composeKcal!, 0);
+  assertAlmostEquals(sommeApres, sommeAvant, 0.01);
+
+  // ET LES BORNES SUIVENT: `plateBoundsFor` reçoit `light`, et c'est le
+  // PLANCHER DE DENSITÉ qui bouge (1,00 → 0,60 kcal/g). Le plafond de masse,
+  // lui, reste celui de la table — un déjeuner léger reste une assiette
+  // d'adulte, il est simplement moins dense.
+  const bornesAvant = caseDe(ordinaire, "sat", "lunch").bounds!;
+  const bornesApres = caseDe(leger, "sat", "lunch").bounds!;
+  assertEquals(bornesAvant.densityFloorPerG, 1);
+  assertEquals(bornesApres.densityFloorPerG, 0.6);
+  // Et le couloir transmis au modèle descend avec lui: 141 → 104 kcal/100 g.
+  assertEquals(caseDe(ordinaire, "sat", "lunch").corridor?.minPer100G, 141);
+  assertEquals(caseDe(leger, "sat", "lunch").corridor?.minPer100G, 104);
+});
+
+Deno.test("⛔ C1 · `eating_rhythm[].size` ne rend RIEN léger — c'est la garde", () => {
+  // LE CAS QUI MORD, et c'est exactement la faute du harnais au tir n° 5:
+  // déclarer `{"slot":"lunch","size":"small"}` et ne rien poser dans les
+  // habitudes laisse le contrat ordinaire. Le rythme dit QUAND on mange et
+  // avec quelle taille de PROSE; « léger » est une déclaration d'HABITUDE
+  // (`household_member_habits.slots[].light`), et c'est elle qui pèse.
+  const parLeRythme = contrats({
+    // `rhythmSlots` ne porte que des jetons de moment: la taille n'y entre même
+    // pas. C'est la preuve structurelle qu'elle ne peut pas alléger une case.
+    rhythmSlots: ["breakfast", "lunch", "dinner"],
+    lightSlots: [],
+  });
+  assertEquals(caseDe(parLeRythme, "sat", "lunch").light, false);
+  assertAlmostEquals(
+    caseDe(parLeRythme, "sat", "lunch").composeKcal!,
+    CIBLE_PAUL * 0.40,
+    0.01,
+  );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-14 · BÊTA 1B ③/⑤ — « CALCULÉ » ET « CALCULÉ MAIS IMPOSSIBLE »
+//
+// ⛔ POINT ⑨ DE LA CLÔTURE DU 2026-09-14. Une part qui ne tient pas dans
+// l'assiette sortait avec le statut `computed` et un couloir dont les DEUX
+// extrémités avaient été rabattues sur `MAX_ASKABLE_DENSITY_PER_100G`: le
+// prompt emportait un point unique parfaitement tenable en apparence, le
+// produit servait bien au-delà, et la garde écrivait `conforme`.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("BÊTA 1B ③ — LE CAS QUI PASSE: trois repas, la journée tient, statut `computed`", () => {
+  // ⛔ D'ABORD LE CAS NOMINAL. Sans lui, l'épreuve suivante serait vraie d'un
+  // statut posé sur tout le monde.
+  const set = contrats();
+  for (const c of set.contracts) {
+    assertEquals(c.status, "computed", `${c.slot}: ${c.status}`);
+  }
+  assertEquals(set.counters.density_infeasible, 0);
+  assertEquals(
+    infeasibleDemands({
+      sets: [set],
+      appetiteByMouth: new Map([["m-paul", "average"]]),
+    }),
+    [],
+  );
+});
+
+/** La même journée, resserrée sur UN seul repas: 2 454 kcal dans une assiette. */
+function journeeEtranglee() {
+  return contrats({
+    days: [jour("sat", "2026-09-12", ["lunch"])],
+    rhythmSlots: ["lunch"],
+  });
+}
+
+Deno.test("BÊTA 1B ③ — toute la journée sur un repas: la part NE TIENT PAS, et ça se dit", () => {
+  const set = journeeEtranglee();
+  const midi = caseDe(set, "sat", "lunch");
+  // ⛔ LE STATUT, ET C'EST LUI QUI COMPTE: `computed` aurait laissé tout l'aval
+  // croire que la consigne était tenable.
+  assertEquals(midi.status, "density_infeasible");
+  assertEquals(set.counters.density_infeasible, 1);
+  // ⚠️ ET LE COULOIR GARDE SON MOTIF: on ne le retire pas, on le LIT.
+  assertEquals(midi.corridor?.incompatible, "above_askable_cap");
+  // ⛔ LE PIÈGE NOMMÉ PAR LE PLAN: les deux extrémités sont bien rabattues sur
+  // le plafond. C'est précisément pour ça que le nombre seul ne suffit pas.
+  assertEquals(midi.corridor?.minPer100G, MAX_ASKABLE_DENSITY_PER_100G);
+  assertEquals(midi.corridor?.maxPer100G, MAX_ASKABLE_DENSITY_PER_100G);
+});
+
+Deno.test("BÊTA 1B ⑤ — le geste proposé est un réglage que la personne a déjà", () => {
+  const demandes = infeasibleDemands({
+    sets: [journeeEtranglee()],
+    appetiteByMouth: new Map([["m-paul", "average"]]),
+  });
+  assertEquals(demandes.length, 1);
+  assertEquals(demandes[0].slot, "lunch");
+  assertEquals(demandes[0].dayToken, "sat");
+  // ⛔ L'ORDRE EST CELUI DU MOINDRE RENONCEMENT: ajouter un moment ne retire
+  // rien à personne; monter l'appétit défait une déclaration.
+  assertEquals(demandes[0].actions, ["add_slot", "raise_appetite"]);
+  // ⚠️ AUCUN CHIFFRE DANS LA SORTIE. Les calories et l'objectif de quelqu'un
+  // sont protégés à l'écran, et cette liste y va.
+  assertEquals(
+    Object.keys(demandes[0]).filter((k) => k === "targetKcal" || k === "density"),
+    [],
+  );
+});
+
+Deno.test("BÊTA 1B ⑤ — « repas léger » déclaré ⇒ le retirer est proposé", () => {
+  const set = contrats({
+    days: [jour("sat", "2026-09-12", ["lunch"])],
+    rhythmSlots: ["lunch"],
+    lightSlots: ["lunch"],
+  });
+  const demandes = infeasibleDemands({
+    sets: [set],
+    appetiteByMouth: new Map([["m-paul", "large"]]),
+  });
+  assertEquals(demandes.length, 1);
+  // ⚠️ `raise_appetite` A DISPARU, et c'est le point: proposer de monter un
+  // appétit déjà au maximum enverrait la personne chercher un bouton qui ne
+  // changerait rien.
+  assertEquals(demandes[0].actions, ["add_slot", "unset_light"]);
+});
+
+Deno.test("BÊTA 1B ⑤ — à six moments, « ajoute un créneau » n'est plus proposé", () => {
+  // ⛔ LE GESTE N'EXISTE PAS AU-DELÀ DE CE QUE L'ÉCRAN PROPOSE. `SLOT_DAY_WEIGHT`
+  // couvre six moments; en suggérer un septième enverrait la personne chercher
+  // un bouton absent.
+  assertEquals(MAX_RHYTHM_SLOTS_FOR_ADVICE, 6);
+  // ⚠️ LE DÉCOR EST CONSTRUIT À LA MAIN, ET C'EST DÉLIBÉRÉ. Un décor calculé à
+  // six moments n'est pas forcément intenable — sa journée se divise — et le
+  // test serait alors passé sans rien exercer. Ce dépôt appelle ça un test qui
+  // ment; on pose donc directement le seul état que la règle lit.
+  const six = [
+    "breakfast",
+    "lunch",
+    "dinner",
+    "snack_morning",
+    "snack_afternoon",
+    "snack_evening",
+  ];
+  const base = caseDe(journeeEtranglee(), "sat", "lunch");
+  const large: SlotContractSet = {
+    memberId: "m-paul",
+    contracts: [{ ...base, rhythmSlots: six }],
+    byKey: new Map(),
+    dayTargetKcal: base.dayTargetKcal,
+    reason: "anchored",
+    gapClosed: "none",
+    counters: {
+      slots: 1,
+      fixed_covered: 0,
+      capped: 1,
+      density_infeasible: 1,
+      relaxed_days: 0,
+      relax_refused: {},
+    },
+  };
+  const demandes = infeasibleDemands({
+    sets: [large],
+    appetiteByMouth: new Map([["m-paul", "large"]]),
+  });
+  // ⛔ LA DEMANDE EXISTE BIEN — sans ça, l'assertion suivante serait vraie par
+  // vacuité, ce qui est exactement le défaut qu'on vient d'éviter.
+  assertEquals(demandes.length, 1);
+  assertEquals(demandes[0].actions.includes("add_slot"), false);
 });

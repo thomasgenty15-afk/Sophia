@@ -1,0 +1,20 @@
+[
+  {
+    "id": "X2-sujet-non-tranche-EN",
+    "run": 1,
+    "verdict": "GREEN",
+    "proof": "1 tours de contexte · fil 2 lignes · reply=\"Your coach hasn’t ruled on supplements in the material I have.  What is clear is the plate rule: protein anchor first, vegetables for volume\""
+  },
+  {
+    "id": "X2-sujet-non-tranche-EN",
+    "run": 2,
+    "verdict": "GREEN",
+    "proof": "1 tours de contexte · fil 2 lignes · reply=\"Your coach hasn’t ruled on supplements here.  What is clear is the plate method: protein anchor first, vegetables for volume. So on creatine\""
+  },
+  {
+    "id": "X2-sujet-non-tranche-EN",
+    "run": 3,
+    "verdict": "AMBER",
+    "proof": "1 tours de contexte · fil 2 lignes · reply=\"Your coach’s method doesn’t cover supplements in general, so there isn’t a broad in-method stance to quote.  On creatine specifically: the c\""
+  }
+]

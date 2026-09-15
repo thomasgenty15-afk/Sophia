@@ -1,0 +1,53 @@
+{
+  "traces": [],
+  "reminders": [
+    {
+      "id": "64b3d653-3964-4c8f-b80e-e71eb3b4b8dc",
+      "scheduled_for": "2026-06-23T07:00:00+00:00",
+      "status": "pending",
+      "origin": "rendez_vous",
+      "event_context": "one_shot_reminder:verifier_ca",
+      "draft_message": null,
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: vérifier ça.",
+        "parse_source": "payload",
+        "request_text": "Rappelle-moi demain à 9h de vérifier ça",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: vérifier ça.",
+        "source_message_id": null,
+        "reminder_instruction": "vérifier ça"
+      },
+      "created_at": "2026-06-22T19:11:32.778026+00:00"
+    },
+    {
+      "id": "4e9b9684-1618-480f-85bc-3cdd790a3fa4",
+      "scheduled_for": "2026-06-23T07:30:00+00:00",
+      "status": "pending",
+      "origin": "rendez_vous",
+      "event_context": "one_shot_reminder:choisir_la_carte_et_sinon_pour_l_instant_je_garde_cette_pist",
+      "draft_message": null,
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: choisir la carte, et sinon pour l'instant je garde cette piste.",
+        "parse_source": "local_parser",
+        "request_text": "Rappelle-moi demain à 9h30 de choisir la carte, et sinon pour l'instant je garde cette piste.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: choisir la carte, et sinon pour l'instant je garde cette piste.",
+        "source_message_id": null,
+        "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste"
+      },
+      "created_at": "2026-06-22T19:16:55.507938+00:00"
+    }
+  ],
+  "states": [
+    {
+      "user_id": "ace4bf63-52ba-40af-b8c9-abdd43344e96",
+      "scope": "product_help_local_skip_20260622_r1",
+      "temp_memory": {},
+      "updated_at": "2026-06-22T19:17:14.40789+00:00"
+    }
+  ]
+}

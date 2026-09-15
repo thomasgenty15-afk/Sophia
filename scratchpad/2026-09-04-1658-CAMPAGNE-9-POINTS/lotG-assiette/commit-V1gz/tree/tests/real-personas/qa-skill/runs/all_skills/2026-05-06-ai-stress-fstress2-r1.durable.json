@@ -1,0 +1,77 @@
+{
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "system_runtime_snapshots": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "b5716ae3-f3ee-4b65-baaf-baa6a7022f3a",
+        "user_id": "249184e6-34c8-48c1-89d0-a1ac58152c69",
+        "cycle_id": null,
+        "transformation_id": null,
+        "snapshot_type": "memory_retrieval_executed_v2",
+        "payload": {
+          "intent": "answer_user_now",
+          "user_id": "249184e6-34c8-48c1-89d0-a1ac58152c69",
+          "cycle_id": null,
+          "hit_count": 0,
+          "budget_tier": "full",
+          "tokens_used": 0,
+          "layers_loaded": [],
+          "transformation_id": null
+        },
+        "created_at": "2026-05-06T14:21:45.230274+00:00"
+      },
+      {
+        "id": "428592ca-de6c-4170-b0a8-3eb23e0b38b1",
+        "user_id": "249184e6-34c8-48c1-89d0-a1ac58152c69",
+        "cycle_id": null,
+        "transformation_id": null,
+        "snapshot_type": "memory_retrieval_executed_v2",
+        "payload": {
+          "intent": "answer_user_now",
+          "user_id": "249184e6-34c8-48c1-89d0-a1ac58152c69",
+          "cycle_id": null,
+          "hit_count": 0,
+          "budget_tier": "full",
+          "tokens_used": 0,
+          "layers_loaded": [],
+          "transformation_id": null
+        },
+        "created_at": "2026-05-06T14:21:20.034742+00:00"
+      },
+      {
+        "id": "7416a683-c0b0-4af0-90d3-a80df25d591a",
+        "user_id": "249184e6-34c8-48c1-89d0-a1ac58152c69",
+        "cycle_id": null,
+        "transformation_id": null,
+        "snapshot_type": "memory_retrieval_executed_v2",
+        "payload": {
+          "intent": "answer_user_now",
+          "user_id": "249184e6-34c8-48c1-89d0-a1ac58152c69",
+          "cycle_id": null,
+          "hit_count": 0,
+          "budget_tier": "full",
+          "tokens_used": 0,
+          "layers_loaded": [],
+          "transformation_id": null
+        },
+        "created_at": "2026-05-06T14:20:47.297334+00:00"
+      }
+    ]
+  }
+}

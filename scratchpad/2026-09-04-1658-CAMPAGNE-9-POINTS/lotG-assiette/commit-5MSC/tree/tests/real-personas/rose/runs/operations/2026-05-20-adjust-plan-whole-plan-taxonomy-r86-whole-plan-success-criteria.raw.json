@@ -1,0 +1,1478 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t01",
+    "user": "Je me rends compte que mesurer le plan avec juste 'moins de disputes' ou 'faire l'action' ne me parle plus trop. J'aimerais que la reussite du plan soit plutot autour de la qualite du lien, genre est-ce qu'on arrive a se sentir proches apres un echange, meme si tout n'est pas regle. Je ne sais pas si c'est un ajustement du plan global ou juste une note.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux le faire, mais j’ai besoin que tu me dises explicitement si tu veux remplacer le critère de réussite du plan par cette idée de qualité du lien. Si oui, tu préfères que je garde aussi « moins de disputes » comme critère secondaire, ou que je le reformule autrement ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "442119ee-bb2c-465a-be3b-098dcc9ac828",
+        "ts": "2026-05-20T18:09:52.866+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 12598,
+          "latency_ms": 4746,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 934,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "objectifs et criteres de reussite",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.couple",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "qualite du lien et disputes",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "action_observation",
+                "type": "action",
+                "query_hint": "Je me rends compte que mesurer le plan avec juste 'moins de disputes' ou 'faire l'action' ne me parle plus trop. J'aimerais que la reussite du plan soit plutot ",
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je me rends compte que mesurer le plan avec juste 'moins de disputes' ou 'faire l'action' ne me parle plus trop. J'aimerais que la reussite du plan soit plutot ",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "objectifs et criteres de reussite",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.couple",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "qualite du lien et disputes",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "action_observation",
+                "type": "action",
+                "query_hint": "Je me rends compte que mesurer le plan avec juste 'moins de disputes' ou 'faire l'action' ne me parle plus trop. J'aimerais que la reussite du plan soit plutot ",
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je me rends compte que mesurer le plan avec juste 'moins de disputes' ou 'faire l'action' ne me parle plus trop. J'aimerais que la reussite du plan soit plutot ",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "442119ee-bb2c-465a-be3b-098dcc9ac828",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "reussite du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "critères de réussite du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "mesurer le plan",
+                    "reussite du plan soit plutot autour de la qualite du lien"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "reussite du plan",
+                    "ajustement du plan global"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "adjustment_type:change_goal"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas proposer de supprimer les objectifs de réduction des disputes sans validation explicite.",
+              "Ne pas reformuler la réussite en une formule vague du type ‘aller mieux’ sans repère relationnel clair.",
+              "Ne pas proposer de réécrire tout le plan alors que la demande cible d’abord le critère de réussite.",
+              "Ne pas faire comme si cette demande n’avait d’impact que sur une petite note annexe.",
+              "Ne pas imposer une seule métrique unique si le plan a besoin d’un équilibre entre lien, apaisement et avancée."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L’intention de sécuriser la relation avant de viser la résolution complète.",
+              "La logique du plan comme trajectoire progressive, pas comme jugement instantané.",
+              "Les actions déjà construites pour désamorcer et recréer de la sécurité.",
+              "Le fait que la réussite du plan doit rester observable dans la vie réelle et pas seulement conceptuelle.",
+              "Le besoin de ne pas perdre la dimension d’action concrète au profit d’un critère purement émotionnel."
+            ],
+            "warnings": [
+              "Éviter de présenter ce changement comme un détail cosmétique si la métrique de réussite conditionne la lecture de tout le plan.",
+              "Éviter de remplacer complètement les critères opérationnels par un ressenti flou sans garder un minimum de lisibilité sur ce qui indique que le plan avance.",
+              "Éviter de mélanger objectif de lien et objectif de résolution comme s’ils étaient interchangeables ; ils peuvent coexister mais pas se confondre.",
+              "Éviter d’introduire un critère impossible à observer ou trop subjectif pour servir de repère stable.",
+              "Éviter de toucher aux étapes du plan tant que la nouvelle définition de réussite n’a pas été formulée proprement."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Rôle de l’action : traduire la réussite du plan en boussole cohérente avec le besoin relationnel exprimé, sans changer la nature des moyens déjà en place.",
+              "Intention préservée : garder le plan orienté sécurité et progression, tout en reconnaissant que le lien retrouvé après l’échange est une vraie forme de succès.",
+              "Pont mini si besoin : relier l’ancien critère de performance à un critère plus relationnel plutôt que de l’effacer brutalement.",
+              "Pas de changement de nature sans demande explicite : ne pas transformer un plan d’amélioration relationnelle en plan de résolution totale ou en plan purement émotionnel.",
+              "Niveau : maintenir la charge et le rythme actuels ; ce changement porte sur la lecture de la réussite, pas sur l’intensité des tâches.",
+              "Boundary de fin de niveau : conserver des signes concrets de passage et de consolidation, mais les interpréter à travers la qualité du lien.",
+              "Whole_plan : préserver la trajectoire, l’ordre des phases, les prérequis et les objectifs intermédiaires ; seul le critère de succès global se déplace.",
+              "Whole_plan : formuler un critère qui puisse coexister avec ‘moins de disputes’ sans s’y réduire.",
+              "Whole_plan : si besoin, distinguer critère principal, critère secondaire et signal de progression pour éviter l’ambiguïté."
+            ],
+            "observation": "La demande ne remet pas en cause l’axe du plan ni les actions en cours ; elle déplace surtout la définition de la réussite. Le vrai enjeu humain est que l’indicateur actuel semble trop orienté performance ou résolution, alors que le besoin ressenti est de capter une qualité relationnelle plus réparatrice : sortir d’un échange en se sentant encore proches, même quand tout n’est pas réglé. C’est un changement de critère de succès, pas seulement une note marginale.",
+            "change_family": "success_criteria_change",
+            "recommendation": "Traiter cela comme une réécriture du critère de réussite du plan, en gardant la trajectoire et les moyens actuels. Le brouillon doit recentrer l’évaluation sur le lien, tout en préservant la logique de progression : les actions restent des moyens, mais la réussite se mesure désormais aussi à l’état relationnel après l’échange. Il faut éviter de réduire ce souhait à un simple ajout décoratif, car il modifie la boussole du plan.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Faire du sentiment de proximité après un échange un critère principal de réussite, avec la résolution des problèmes comme critère secondaire.",
+              "Conserver les critères actuels et ajouter un indicateur relationnel complémentaire pour ne pas perdre la dimension de progression concrète.",
+              "Transformer la réussite en seuil qualitatif simple : échange difficile mais encore connecté, plutôt que échange totalement pacifié.",
+              "Formuler la réussite en deux niveaux : ce qui est visible pendant l’échange et ce qui est ressenti après.",
+              "Garder le plan inchangé mais modifier seulement le cadrage d’évaluation/lecture dans l’introduction du plan."
+            ],
+            "candidate_operation": "change_success_criteria",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire actuelle vise surtout à réduire la tension et faire avancer des actions concrètes ; la trajectoire possible consiste à conserver ces actions mais à définir la réussite du plan comme une capacité retrouvée à rester connectés et proches après l’échange.",
+            "must_not_execute_reason": null
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 21904,
+        "created_at": "2026-05-20T18:09:52.867867+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t02",
+    "user": "Oui, remplace-le comme critere principal. Je veux garder \"moins de disputes\" comme repere secondaire, mais la vraie reussite serait : apres une discussion un peu tendue, chacun peut dire ce qu il a compris de l autre et je ne me couche pas avec l impression d avoir perdu le lien.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "D’accord. Tu veux bien que je remplace le critère principal du plan par celui-ci : après une discussion tendue, chacun peut dire ce qu’il a compris de l’autre et tu ne te couches pas avec l’impression d’avoir perdu le lien ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "84fa131c-c80a-4e6e-aa0e-3c396ae52fe4",
+        "ts": "2026-05-20T18:11:39.895+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 17348,
+          "latency_ms": 5147,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 896,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "critères de réussite relationnelle",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "critères de réussite relationnelle",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "84fa131c-c80a-4e6e-aa0e-3c396ae52fe4",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "critères de réussite du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "critères de réussite du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "la réussite du plan soit plutôt autour de la qualité du lien"
+                  ]
+                },
+                "constraints": {
+                  "status": "identified",
+                  "values": [
+                    "keep_secondary:moins_de_disputes",
+                    "primary_criterion:qualite_du_lien_et_comprehension"
+                  ],
+                  "evidence": [
+                    "Je veux garder 'moins de disputes' comme repere secondaire"
+                  ]
+                },
+                "change_target": {
+                  "status": "identified",
+                  "evidence": [
+                    "apres une discussion un peu tendue, chacun peut dire ce qu il a compris de l autre et je ne me couche pas avec l impression d avoir perdu le lien"
+                  ]
+                },
+                "reason_change": {
+                  "status": "identified",
+                  "evidence": [
+                    "mesurer le plan avec juste 'moins de disputes' ou 'faire l'action' ne me parle plus trop"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "remplace-le comme critere principal",
+                    "reussite du plan",
+                    "ajustement du plan global"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_adjust_plan_intake_kept_in_tool_skill",
+          "blocked_paths": [
+            {
+              "path": "tool_skills",
+              "reason_code": "product_help_inline_preserves_active_tool_skill"
+            },
+            {
+              "path": "product_help",
+              "reason_code": "active_adjust_plan_intake_in_progress"
+            }
+          ],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "inline_answer_then_resume",
+            "reason_code": "product_help_inline_resume_active_tool_skill",
+            "active_owner": "tool_skill",
+            "resume_policy": "auto_after_answer",
+            "selected_owner": "product_help"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "active_adjust_plan_intake_kept_in_tool_skill",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "adjustment_type:change_goal"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de supprimer l’objectif de réduction des disputes.",
+              "Proposer une reformulation vague de la réussite sans critère relationnel clair.",
+              "Changer la nature du plan vers un plan de résolution totale des conflits.",
+              "Toucher aux étapes du plan sans avoir d’abord formulé proprement le nouveau critère de succès.",
+              "Faire comme si ce changement n’avait qu’un impact marginal sur le plan."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L’intention de sécuriser la relation avant de viser la résolution complète.",
+              "La trajectoire progressive du plan et l’ordre des phases déjà construit.",
+              "Les actions de désamorçage et de consolidation déjà en place.",
+              "Le besoin de garder des repères concrets et observables.",
+              "Le fait que \"moins de disputes\" reste un élément utile, mais non central."
+            ],
+            "warnings": [
+              "Éviter de présenter ce changement comme un détail cosmétique : il modifie la lecture du plan entier.",
+              "Éviter de supprimer complètement la logique de réduction des disputes ; elle doit rester un repère secondaire.",
+              "Éviter de transformer la réussite en formule floue du type \"aller mieux\" sans signe relationnel concret.",
+              "Éviter de réécrire toutes les étapes alors que la demande porte d’abord sur le critère de succès.",
+              "Éviter d’imposer un critère uniquement émotionnel si le plan doit rester observable dans la vie réelle."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter le whole plan comme une décision de trajectoire : objectif, cohérence, ordre des phases et lecture de la réussite.",
+              "Préserver explicitement ce que le user veut garder avant toute reorganisation.",
+              "Distinguer critère principal, critère secondaire et signe de progression si nécessaire.",
+              "Raisonner en termes de prérequis, séquençage et cohérence globale plutôt qu’en patch local.",
+              "Maintenir la charge et le rythme actuels : ce changement porte sur la boussole, pas sur l’intensité des actions.",
+              "Formuler un critère qui reste observable dans la réalité et qui puisse coexister avec \"moins de disputes\".",
+              "Ne pas changer la nature des moyens sans demande explicite ; le plan doit rester orienté sécurité et progression.",
+              "Si besoin, relier l’ancien critère à la nouvelle lecture relationnelle au lieu de l’effacer brutalement."
+            ],
+            "observation": "La demande ne touche pas la structure des étapes ni l’intention générale du plan ; elle déplace surtout la définition de ce qui compte comme réussite. Le besoin humain central n’est plus seulement de réduire les disputes ou de faire les actions, mais de retrouver une forme de lien perceptible après une discussion tendue, avec un critère relationnel plus réparateur et plus vivant.",
+            "change_family": "success_criteria_change",
+            "recommendation": "Traiter cela comme un changement de critères de réussite à l’échelle du plan entier, sans modifier pour l’instant les moyens déjà en place. Le prochain cadrage doit préserver \"moins de disputes\" comme repère secondaire, tout en faisant de la compréhension mutuelle et du sentiment de lien après l’échange le critère principal. Il faut garder une boussole observable et relationnelle, plutôt qu’un simple ressenti vague ou une métrique purement de performance.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Faire du fait de se sentir encore proches après un échange tendu le critère principal, avec moins de disputes comme critère secondaire.",
+              "Conserver un double repère : apaisement visible pendant l’échange et lien préservé après l’échange.",
+              "Définir la réussite comme une discussion difficile mais non cassante, où chacun peut reformuler ce qu’il a compris de l’autre.",
+              "Garder les actions actuelles inchangées et ne modifier que le cadrage d’évaluation du plan.",
+              "Formuler un critère principal + un signe de progression + un repère secondaire, pour éviter une définition trop vague ou trop stricte."
+            ],
+            "candidate_operation": "change_success_criteria",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire actuelle vise surtout à réduire la tension et faire avancer des actions concrètes ; la trajectoire possible consiste à conserver ces actions mais à définir la réussite du plan comme la capacité à rester connectés et se comprendre après un échange difficile.",
+            "must_not_execute_reason": null
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 24266,
+        "created_at": "2026-05-20T18:11:39.896154+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t03",
+    "user": "Oui, c est bien ca. Mais je veux d abord voir comment tu le formules dans le plan avant validation, sans appliquer tout de suite.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je dois verrouiller la dernière précision avant de te montrer le brouillon. Tu veux que le critère principal soit formulé comment, exactement, pour ce plan ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "ea53c124-ba5c-4ae1-b06d-b74f83d78a0c",
+        "ts": "2026-05-20T18:12:11.78+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "tout de suite"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 17615,
+          "latency_ms": 5706,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 805,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "contexte du niveau actuel pour cohérence des critères",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "low",
+                "query_hint": "critères de réussite relationnelle",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "contexte du niveau actuel pour cohérence des critères",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "low",
+                "query_hint": "critères de réussite relationnelle",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "ea53c124-ba5c-4ae1-b06d-b74f83d78a0c",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "critères de réussite du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "critères de réussite du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "la réussite du plan",
+                    "critère principal"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "remplace-le comme critere principal",
+                    "ajustement du plan global"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_adjust_plan_intake_kept_in_tool_skill",
+          "blocked_paths": [
+            {
+              "path": "tool_skills",
+              "reason_code": "product_help_inline_preserves_active_tool_skill"
+            },
+            {
+              "path": "product_help",
+              "reason_code": "active_adjust_plan_intake_in_progress"
+            }
+          ],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "inline_answer_then_resume",
+            "reason_code": "product_help_inline_resume_active_tool_skill",
+            "active_owner": "tool_skill",
+            "resume_policy": "auto_after_answer",
+            "selected_owner": "product_help"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "active_adjust_plan_intake_kept_in_tool_skill",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "whole_plan.adjustment_type",
+            "whole_plan.affected_items"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas proposer d’exécuter immédiatement le changement.",
+              "Ne pas élargir la demande vers une réécriture complète du plan.",
+              "Ne pas effacer l’ancien critère de réduction des disputes.",
+              "Ne pas reformuler en termes trop abstraits comme \"aller mieux\".",
+              "Ne pas modifier les étapes opérationnelles sans demande explicite."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L’objectif de sécurité relationnelle déjà installé dans le plan.",
+              "L’ordre des phases et la logique progressive du plan.",
+              "Les actions de désamorçage et de consolidation déjà en place.",
+              "Le repère secondaire \"moins de disputes\".",
+              "Le besoin d’un critère observable dans la vie réelle."
+            ],
+            "warnings": [
+              "Ne pas appliquer le changement comme s’il était déjà validé.",
+              "Ne pas reformuler la réussite de façon vague ou purement émotionnelle.",
+              "Ne pas supprimer \"moins de disputes\" alors que le user veut explicitement le garder comme repère secondaire.",
+              "Ne pas toucher aux actions du plan comme si ce changement portait sur les moyens.",
+              "Ne pas présenter cela comme un ajustement mineur : la boussole du plan change réellement."
+            ],
+            "readiness": "needs_confirmation",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Formuler un brouillon de changement et non une exécution.",
+              "Distinguer clairement critère principal, repère secondaire et moyen d’action.",
+              "Préserver la trajectoire globale du plan avant toute réorganisation locale.",
+              "Rester sur une boussole observable : compréhension mutuelle, lien préservé, disputes réduites.",
+              "Montrer explicitement ce qui change et ce qui ne change pas.",
+              "Ne pas changer la nature des moyens sans demande explicite.",
+              "Si besoin, relier l’ancien critère au nouveau au lieu de le remplacer brutalement.",
+              "Présenter le changement comme une évolution de lecture du succès, pas comme un simple détail cosmétique."
+            ],
+            "observation": "La demande ne vise plus à comprendre le besoin ni à changer les moyens du plan ; elle demande à voir la formulation du changement dans le plan avant toute validation. Humainement, le point sensible est la volonté de garder le contrôle sur une boussole qui touche au sens de la réussite, sans que le plan soit appliqué trop vite ou réinterprété de façon trop large.",
+            "change_family": "success_criteria_change",
+            "recommendation": "Préparer un brouillon de changement centré sur les critères de réussite du plan, sans l’exécuter. La formulation doit conserver \"moins de disputes\" comme repère secondaire, tout en mettant au premier plan la compréhension mutuelle après un échange tendu et le sentiment de lien préservé. Le sous-skill doit montrer la trajectoire proposée, les limites et ce qui reste stable, afin de permettre une validation éclairée.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Formuler un critère principal centré sur la compréhension réciproque après une discussion tendue.",
+              "Conserver un double repère : lien préservé comme critère principal, moins de disputes comme critère secondaire.",
+              "Ajouter un signe observable de progression, par exemple chacun peut reformuler ce qu’il a compris de l’autre.",
+              "Laisser les actions inchangées et ne modifier que la manière d’évaluer la réussite du plan.",
+              "Tester une formulation plus courte et plus concrète avant validation finale."
+            ],
+            "candidate_operation": "change_success_criteria",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire actuelle mesure surtout l’apaisement et l’exécution des actions ; la trajectoire possible garde ces actions mais définit la réussite comme une discussion où chacun comprend l’autre et où le lien reste intact, avec moins de disputes comme repère secondaire.",
+            "must_not_execute_reason": "Le user demande explicitement de voir la formulation dans le plan avant validation ; il ne faut donc pas appliquer le changement maintenant ni agir comme s’il était confirmé."
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 17492,
+        "created_at": "2026-05-20T18:12:11.781681+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t04",
+    "user": "Formule-le comme ca : reussir le plan, c est apprendre a traverser une discussion tendue sans perdre le lien, en repartant avec au moins une chose comprise chez l autre. Garde moins de disputes comme indicateur secondaire, pas comme objectif principal.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t04",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je n'ai pas une cible assez claire pour ajuster le plan depuis le chat. Tu peux le faire dans ton espace sur sophia-coach.ai. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t04",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "f9c95c58-2970-4a42-bb8c-c313524c4c8f",
+        "ts": "2026-05-20T18:12:42.439+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 17031,
+          "latency_ms": 9606,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 855,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Formule-le comme ca : reussir le plan, c est apprendre a traverser une discussion tendue sans perdre le lien, en repartant avec au moins une chose comprise chez",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r86-whole-plan-success-criteria-t04",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Formule-le comme ca : reussir le plan, c est apprendre a traverser une discussion tendue sans perdre le lien, en repartant avec au moins une chose comprise chez",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "reason": "user_providing_specific_formulation_for_plan_adjustment",
+              "active_skill_id": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1.6,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "f9c95c58-2970-4a42-bb8c-c313524c4c8f",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "whole_plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "critères de réussite du plan",
+                  "status": "identified"
+                },
+                "constraints": "Garde moins de disputes comme indicateur secondaire, pas comme objectif principal",
+                "change_target": "reussir le plan, c est apprendre a traverser une discussion tendue sans perdre le lien, en repartant avec au moins une chose comprise chez l autre",
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "reussir le plan",
+                    "objectif principal",
+                    "indicateur secondaire"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "fallback_dashboard",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "whole_plan.affected_items"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Éviter d’exécuter le changement immédiatement.",
+              "Éviter de réécrire tout le plan.",
+              "Éviter de remplacer la cible par un ressenti trop abstrait.",
+              "Éviter de modifier les moyens opérationnels sans demande explicite.",
+              "Éviter de faire comme si le changement était déjà validé."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "Le repère secondaire \"moins de disputes\".",
+              "L’objectif de sécurité relationnelle déjà présent dans le plan.",
+              "L’ordre des phases et la logique progressive du plan.",
+              "Les actions de désamorçage et de consolidation déjà en place.",
+              "Le besoin d’un critère observable dans la vie réelle."
+            ],
+            "warnings": [
+              "Ne pas présenter ce changement comme un simple détail rédactionnel: il modifie la lecture du succès.",
+              "Ne pas supprimer le repère secondaire \"moins de disputes\".",
+              "Ne pas reformuler la réussite en termes vagues comme \"aller mieux\" ou \"être plus heureux\".",
+              "Ne pas toucher aux actions concrètes du plan comme si elles devaient changer de nature.",
+              "Ne pas exécuter le changement sans validation explicite."
+            ],
+            "readiness": "needs_confirmation",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter le whole plan comme une décision de trajectoire: objectif, cohérence, ordre des phases et prochaine étape.",
+              "Préserver explicitement ce que le user veut garder avant toute réorganisation.",
+              "Raisonner en prérequis, séquençage et phases futures plutôt qu’en patch d’actions locales.",
+              "Distinguer clairement critère principal, repère secondaire et moyen d’action.",
+              "Rester sur une boussole observable: compréhension mutuelle, lien préservé, disputes réduites.",
+              "Ne pas changer la nature des moyens sans demande explicite.",
+              "Présenter le changement comme une évolution de la définition du succès, pas comme un détail cosmétique."
+            ],
+            "observation": "La demande porte sur une évolution de la boussole du plan: la réussite n’est plus mesurée d’abord par l’apaisement ou l’exécution, mais par la capacité à traverser une discussion tendue sans perdre le lien et en repartant avec quelque chose compris chez l’autre. Humainement, l’enjeu est de préserver le sens relationnel du plan tout en gardant un repère secondaire sur la baisse des disputes.",
+            "change_family": "success_criteria_change",
+            "recommendation": "Préparer un brouillon de changement centré sur les critères de réussite du plan, sans l’exécuter. Le sous-skill doit distinguer clairement le critère principal du repère secondaire, garder les moyens opérationnels inchangés, et formuler une version observable et sobre de la réussite relationnelle pour permettre validation ou ajustement.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Faire de la compréhension mutuelle après une discussion tendue le critère principal.",
+              "Conserver un double repère: lien préservé en priorité, moins de disputes en secondaire.",
+              "Ajouter un marqueur observable, par exemple chacun peut dire ce qu’il a compris de l’autre.",
+              "Ne modifier que le cadre d’évaluation du plan, sans changer les actions.",
+              "Tester une formulation courte et très concrète avant confirmation."
+            ],
+            "candidate_operation": "change_success_criteria",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire actuelle mesure surtout l’apaisement et l’exécution des actions; la trajectoire possible garde ces actions mais définit la réussite comme une discussion où chacun comprend l’autre et où le lien reste intact, avec moins de disputes comme repère secondaire.",
+            "must_not_execute_reason": "Le user demande de voir la formulation du changement dans le plan avant validation; il ne faut donc pas appliquer le changement maintenant."
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 17902,
+        "created_at": "2026-05-20T18:12:42.440345+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

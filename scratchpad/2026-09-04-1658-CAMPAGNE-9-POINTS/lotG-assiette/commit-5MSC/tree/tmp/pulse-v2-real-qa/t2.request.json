@@ -1,0 +1,15 @@
+{
+  "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "message": "Oui c est exactement ca. Je n ai pas envie d en refaire tout un sujet, mais demain matin si Sophia me remet doucement un peu de force sans citer tous les details, ca m aiderait.",
+  "force_full_ai": true,
+  "disable_debounce": true,
+  "channel": "web",
+  "scope": "qa-pulse-v2-real-1781201255",
+  "client_now_iso": "2026-06-11T09:23:00.000+02:00",
+  "metadata": {
+    "qa_run_id": "pulse-v2-real-1781201255",
+    "qa_scope": "qa-pulse-v2-real-1781201255",
+    "turn": 2,
+    "source": "conversation-pulse-v2-real-rerun"
+  }
+}

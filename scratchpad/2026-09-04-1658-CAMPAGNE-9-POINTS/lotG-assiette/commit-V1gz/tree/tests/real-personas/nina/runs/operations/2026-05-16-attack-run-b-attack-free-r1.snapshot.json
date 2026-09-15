@@ -1,0 +1,49 @@
+{
+  "persona": "nina",
+  "run_id": "run-b-attack-free-r1",
+  "request_id_prefix": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r1",
+  "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+  "attack_cards": [],
+  "plan_items": [
+    {
+      "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+      "title": "Nettoyer ton environnement direct",
+      "status": "pending",
+      "cards_status": "not_started",
+      "attack_card_id": null,
+      "defense_card_id": null,
+      "cards_generated_at": null,
+      "updated_at": "2026-05-14T17:33:10.37736+00:00"
+    },
+    {
+      "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+      "title": "Faire le choix du brut",
+      "status": "pending",
+      "cards_status": "ready",
+      "attack_card_id": null,
+      "defense_card_id": "643e623d-97ee-48cb-a970-6fcd32521873",
+      "cards_generated_at": "2026-05-15T18:07:14.34+00:00",
+      "updated_at": "2026-05-15T18:44:55.963941+00:00"
+    },
+    {
+      "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+      "title": "Décoder ton envie de grignoter",
+      "status": "pending",
+      "cards_status": "not_required",
+      "attack_card_id": null,
+      "defense_card_id": null,
+      "cards_generated_at": null,
+      "updated_at": "2026-05-15T18:44:55.955331+00:00"
+    },
+    {
+      "id": "23f34398-87ae-4388-80b4-786989faac97",
+      "title": "Préparer tes alternatives d'avance",
+      "status": "pending",
+      "cards_status": "not_started",
+      "attack_card_id": null,
+      "defense_card_id": null,
+      "cards_generated_at": null,
+      "updated_at": "2026-05-15T13:54:28.720386+00:00"
+    }
+  ]
+}

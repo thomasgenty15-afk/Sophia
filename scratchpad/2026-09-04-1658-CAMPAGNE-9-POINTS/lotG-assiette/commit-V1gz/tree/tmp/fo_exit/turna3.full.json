@@ -1,0 +1,310 @@
+{
+  "ok": true,
+  "request_id": "81d5260a-aaf3-4422-ad4f-4028bfcb5de7",
+  "user_id": "0877c183-c3c4-4691-98cb-0ccb913ae401",
+  "channel": "web",
+  "scope": "web",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Oui, c’est exactement le bon endroit pour ça : va dans Dashboard > Plan > Ajuster mon plan.\n\nDans le cadre, indique simplement ce qui ne tient plus cette semaine, ce qui a changé, ce que tu veux absolument garder, ce qui est devenu trop lourd, et le rythme qui te semblerait plus tenable. Plus tu donnes de contexte sur ta charge, ton énergie et ton retard, plus ton plan pourra être réaligné au bon niveau.",
+    "mode": "companion",
+    "delivery": null,
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "81d5260a-aaf3-4422-ad4f-4028bfcb5de7",
+        "source_message_id": "ff8422e5-99bb-430c-b0f5-6b52d9b892dc",
+        "user_id": "0877c183-c3c4-4691-98cb-0ccb913ae401",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "direct_effect_time_context": {
+          "now_utc": "2026-07-02T14:05:12.444Z",
+          "user_timezone": "Europe/Paris",
+          "user_locale": "fr-FR",
+          "user_local_datetime": "2026-07-02T16:05:12",
+          "user_local_human": "jeudi 2 juillet 2026 à 16:05"
+        },
+        "note_information": {
+          "source_flow_id": "feature_opportunity",
+          "handoff_reason": "topic_change",
+          "target_dispatcher": "global",
+          "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"User initially described a recurring weekly context, but the current message asks to reajust the weekly plan and rhythm.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Tous les dimanches soir\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"priority_reason\":\"Repeated weekly context fits initiatives.\",\"trigger_context\":\"Tous les dimanches soir\",\"opportunity_kind\":\"recurring_context\",\"user_problem_summary\":\"User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"aide-moi plutôt à réajuster mon plan de la semaine\",\"le rythme actuel tient plus\"]}",
+          "user_words": [
+            "En fait laisse tomber ça pour l'instant, aide-moi plutôt à réajuster mon plan de la semaine, le rythme actuel tient plus.",
+            "aide-moi plutôt à réajuster mon plan de la semaine",
+            "le rythme actuel tient plus"
+          ],
+          "structured_context": {
+            "user_message_summary": "User initially described a recurring weekly context, but the current message asks to reajust the weekly plan and rhythm.",
+            "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+            "collected_state": {
+              "feature": "initiatives",
+              "opportunity_kind": "recurring_context",
+              "trigger_context": "Tous les dimanches soir",
+              "dispatcher_signal_context": {
+                "feature": "initiatives",
+                "priority_reason": "Repeated weekly context fits initiatives.",
+                "trigger_context": "Tous les dimanches soir",
+                "opportunity_kind": "recurring_context",
+                "user_problem_summary": "User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time."
+              }
+            },
+            "unresolved_questions": [],
+            "recommended_next_focus": "global",
+            "evidence": [
+              "aide-moi plutôt à réajuster mon plan de la semaine",
+              "le rythme actuel tient plus"
+            ]
+          },
+          "confidence": "high"
+        },
+        "skill_signals": {
+          "plan_realignment": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "explicit_weekly_plan_adjust_request",
+            "context": {
+              "drift_type": "changed_context",
+              "scope": "week",
+              "explicit_adjust_request": true,
+              "product_execution_allowed": false,
+              "reason": "User explicitly asks to reajust the weekly plan and says the current rhythm no longer holds."
+            }
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "plan_realignment",
+          "reasoning_complexity": "low",
+          "context_need": "targeted",
+          "memory_mode": "light",
+          "model_tier_hint": "standard",
+          "context_budget_tier": "small",
+          "targets": [],
+          "retrieval_policy": "taxonomy_first",
+          "plan_confidence": 0.94
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "plan_realignment",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "plan_realignment_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "selected_handler": "plan_realignment"
+      },
+      "effect_ledger": {
+        "turn_id": "81d5260a-aaf3-4422-ad4f-4028bfcb5de7",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "plan_realignment",
+      "skill_run": {
+        "selected_skill_id": "plan_realignment",
+        "reason_code": "plan_realignment_signal",
+        "status": "continue",
+        "latency_ms": 6600
+      }
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "81d5260a-aaf3-4422-ad4f-4028bfcb5de7",
+      "source_message_id": "ff8422e5-99bb-430c-b0f5-6b52d9b892dc",
+      "user_id": "0877c183-c3c4-4691-98cb-0ccb913ae401",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "direct_effect_time_context": {
+        "now_utc": "2026-07-02T14:05:12.444Z",
+        "user_timezone": "Europe/Paris",
+        "user_locale": "fr-FR",
+        "user_local_datetime": "2026-07-02T16:05:12",
+        "user_local_human": "jeudi 2 juillet 2026 à 16:05"
+      },
+      "note_information": {
+        "source_flow_id": "feature_opportunity",
+        "handoff_reason": "topic_change",
+        "target_dispatcher": "global",
+        "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"User initially described a recurring weekly context, but the current message asks to reajust the weekly plan and rhythm.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Tous les dimanches soir\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"priority_reason\":\"Repeated weekly context fits initiatives.\",\"trigger_context\":\"Tous les dimanches soir\",\"opportunity_kind\":\"recurring_context\",\"user_problem_summary\":\"User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"aide-moi plutôt à réajuster mon plan de la semaine\",\"le rythme actuel tient plus\"]}",
+        "user_words": [
+          "En fait laisse tomber ça pour l'instant, aide-moi plutôt à réajuster mon plan de la semaine, le rythme actuel tient plus.",
+          "aide-moi plutôt à réajuster mon plan de la semaine",
+          "le rythme actuel tient plus"
+        ],
+        "structured_context": {
+          "user_message_summary": "User initially described a recurring weekly context, but the current message asks to reajust the weekly plan and rhythm.",
+          "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+          "collected_state": {
+            "feature": "initiatives",
+            "opportunity_kind": "recurring_context",
+            "trigger_context": "Tous les dimanches soir",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated weekly context fits initiatives.",
+              "trigger_context": "Tous les dimanches soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "User repeatedly forgets to prepare weekly items on Sunday evening and wants a recurring support to remember it each time."
+            }
+          },
+          "unresolved_questions": [],
+          "recommended_next_focus": "global",
+          "evidence": [
+            "aide-moi plutôt à réajuster mon plan de la semaine",
+            "le rythme actuel tient plus"
+          ]
+        },
+        "confidence": "high"
+      },
+      "skill_signals": {
+        "plan_realignment": {
+          "detected": true,
+          "confidence_band": "high",
+          "reason": "explicit_weekly_plan_adjust_request",
+          "context": {
+            "drift_type": "changed_context",
+            "scope": "week",
+            "explicit_adjust_request": true,
+            "product_execution_allowed": false,
+            "reason": "User explicitly asks to reajust the weekly plan and says the current rhythm no longer holds."
+          }
+        }
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "plan_realignment",
+        "reasoning_complexity": "low",
+        "context_need": "targeted",
+        "memory_mode": "light",
+        "model_tier_hint": "standard",
+        "context_budget_tier": "small",
+        "targets": [],
+        "retrieval_policy": "taxonomy_first",
+        "plan_confidence": 0.94
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "plan_realignment",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "plan_realignment_signal",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "selected_handler": "plan_realignment"
+    },
+    "effect_ledger": {
+      "turn_id": "81d5260a-aaf3-4422-ad4f-4028bfcb5de7",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "plan_realignment",
+    "skill_run": {
+      "selected_skill_id": "plan_realignment",
+      "reason_code": "plan_realignment_signal",
+      "status": "continue",
+      "latency_ms": 6600
+    }
+  },
+  "trace_error": null
+}

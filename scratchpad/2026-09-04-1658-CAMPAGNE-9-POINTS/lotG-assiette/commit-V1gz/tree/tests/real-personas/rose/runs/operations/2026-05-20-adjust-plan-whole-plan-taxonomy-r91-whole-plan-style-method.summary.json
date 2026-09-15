@@ -1,0 +1,1092 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r91-whole-plan-style-method-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J ai une impression bizarre sur le plan global : la direction me va, mais la methode ne me ressemble pas. C est tres cadrage, discussion, analyse. Moi j aurais besoin que les prochaines etapes passent plus par de petites experiences legeres et des gestes concrets, sinon je vais me braquer.",
+    "assistant": "Je peux partir là-dessus, mais il me manque une précision pour faire un vrai brouillon : sur quelles prochaines étapes du plan tu veux que je bascule en petites expériences concrètes, et sous quelle forme ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer un plan plus conceptuel ou plus conversationnel qu’avant.",
+          "Ne pas suggérer de nouvelles analyses comme solution principale.",
+          "Ne pas changer la cible relationnelle ou l’objectif global sans demande explicite.",
+          "Ne pas minimiser le signal de gêne méthodologique.",
+          "Ne pas parler d’optimisation technique au détriment de l’expérience humaine."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "La direction globale du plan, qui est jugée acceptable.",
+          "Le besoin de sécurité relationnelle et de désamorçage.",
+          "L’intention progressive du parcours, sans saut brutal de niveau.",
+          "Les repères déjà installés qui servent de base de stabilité.",
+          "Le principe que les changements restent compatibles avec le plan existant."
+        ],
+        "warnings": [
+          "Éviter de présenter cela comme un simple détail de formulation : le user décrit un vrai problème d’appropriation de méthode.",
+          "Éviter de rajouter encore du cadrage, des explications ou des analyses avant d’avoir ajusté la forme d’exécution.",
+          "Éviter de proposer une refonte complète du plan si la direction convient déjà.",
+          "Éviter de transformer les prochaines étapes en tâches trop abstraites ou trop lourdes qui renforceraient le risque de braquage.",
+          "Éviter de supprimer la dimension de sécurité et de progression ; il faut la préserver tout en changeant le véhicule d’entrée."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Rôle de l’action : préserver la trajectoire thérapeutique tout en changeant le format d’entrée pour l’adapter au style du user.",
+          "Intention préservée : garder la sécurité, la progression et la lisibilité du plan, mais réduire la charge mentale des prochaines étapes.",
+          "Pont mini si besoin : convertir chaque étape trop cadrée en essai court, concret, réversible et facile à lancer.",
+          "Pas de changement de nature sans demande explicite : ne pas remplacer la démarche relationnelle par une logique purement comportementale ou inversement.",
+          "Charge et rythme du niveau courant : maintenir la fonction de sécurisation, mais diminuer temporairement l’intensité de discussion et de préparation.",
+          "Baisse temporaire non globale : alléger les prochaines étapes sans dégrader l’ensemble du plan.",
+          "Boundary de fin de niveau : conserver les critères de passage, mais vérifier qu’ils restent atteignables via des gestes simples et observables.",
+          "Cœur du niveau préservé : désamorcer, recréer de la sécurité et rendre l’action faisable.",
+          "Trajectoire whole_plan : modifier l’emphase et la modalité d’exécution, pas la direction.",
+          "Cohérence globale : tout ajustement doit réduire la friction sans casser l’ordre des phases ni les prérequis.",
+          "Prérequis, ordre des phases, objectif et questionnaire préservés : ne pas réorganiser le plan tant que le problème principal est le style de méthode."
+        ],
+        "observation": "La demande ne remet pas en cause l’intention du plan, mais son mode opératoire : le user accepte la direction générale tout en signalant un décalage de méthode, avec un besoin de passer d’un cadre surtout verbal/analytique à des micro-expériences concrètes, légères et moins engageantes cognitivement. Le vrai enjeu est l’adhésion et la tolérance à l’effort, pas la logique du parcours.",
+        "change_family": "style_or_method_mismatch",
+        "recommendation": "Orienter la prochaine réponse vers un rééquilibrage d’emphase à l’échelle du plan global : garder la trajectoire et les objectifs, mais alléger le registre des prochaines étapes en les rendant plus expérimentales, plus concrètes, plus petites et moins discutées. Il faut surtout montrer comment le plan peut rester cohérent tout en devenant plus vivable, sans basculer vers une refonte de direction.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Remplacer une partie des étapes de discussion par de très petites expériences à réaliser entre deux temps d’échange.",
+          "Garder le même objectif mais réduire la taille, la durée et l’engagement demandés par chaque étape.",
+          "Ajouter une couche d’observation concrète avant toute discussion pour que le plan parte du vécu plutôt que du cadre.",
+          "Transformer certaines étapes en essais réversibles, avec droit explicite à l’imperfection.",
+          "Conserver les missions de sécurité mais alléger les phases d’analyse autour d’elles."
+        ],
+        "candidate_operation": "change_emphasis",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle reste valable, mais elle est vécue comme trop analytique ; la trajectoire possible consiste à conserver le cap tout en remplaçant une partie des prochaines étapes par des micro-expériences concrètes et légères.",
+        "must_not_execute_reason": "Le user exprime une préférence de méthode et une limite d’adhésion, pas une correction à appliquer telle quelle sans mise en forme adaptée. Il faut d’abord traduire ce besoin en changement d’emphase cohérent pour éviter de renforcer le braquage."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer un plan plus conceptuel ou plus conversationnel qu’avant.",
+        "Ne pas suggérer de nouvelles analyses comme solution principale.",
+        "Ne pas changer la cible relationnelle ou l’objectif global sans demande explicite.",
+        "Ne pas minimiser le signal de gêne méthodologique.",
+        "Ne pas parler d’optimisation technique au détriment de l’expérience humaine."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "La direction globale du plan, qui est jugée acceptable.",
+        "Le besoin de sécurité relationnelle et de désamorçage.",
+        "L’intention progressive du parcours, sans saut brutal de niveau.",
+        "Les repères déjà installés qui servent de base de stabilité.",
+        "Le principe que les changements restent compatibles avec le plan existant."
+      ],
+      "warnings": [
+        "Éviter de présenter cela comme un simple détail de formulation : le user décrit un vrai problème d’appropriation de méthode.",
+        "Éviter de rajouter encore du cadrage, des explications ou des analyses avant d’avoir ajusté la forme d’exécution.",
+        "Éviter de proposer une refonte complète du plan si la direction convient déjà.",
+        "Éviter de transformer les prochaines étapes en tâches trop abstraites ou trop lourdes qui renforceraient le risque de braquage.",
+        "Éviter de supprimer la dimension de sécurité et de progression ; il faut la préserver tout en changeant le véhicule d’entrée."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Rôle de l’action : préserver la trajectoire thérapeutique tout en changeant le format d’entrée pour l’adapter au style du user.",
+        "Intention préservée : garder la sécurité, la progression et la lisibilité du plan, mais réduire la charge mentale des prochaines étapes.",
+        "Pont mini si besoin : convertir chaque étape trop cadrée en essai court, concret, réversible et facile à lancer.",
+        "Pas de changement de nature sans demande explicite : ne pas remplacer la démarche relationnelle par une logique purement comportementale ou inversement.",
+        "Charge et rythme du niveau courant : maintenir la fonction de sécurisation, mais diminuer temporairement l’intensité de discussion et de préparation.",
+        "Baisse temporaire non globale : alléger les prochaines étapes sans dégrader l’ensemble du plan.",
+        "Boundary de fin de niveau : conserver les critères de passage, mais vérifier qu’ils restent atteignables via des gestes simples et observables.",
+        "Cœur du niveau préservé : désamorcer, recréer de la sécurité et rendre l’action faisable.",
+        "Trajectoire whole_plan : modifier l’emphase et la modalité d’exécution, pas la direction.",
+        "Cohérence globale : tout ajustement doit réduire la friction sans casser l’ordre des phases ni les prérequis.",
+        "Prérequis, ordre des phases, objectif et questionnaire préservés : ne pas réorganiser le plan tant que le problème principal est le style de méthode."
+      ],
+      "observation": "La demande ne remet pas en cause l’intention du plan, mais son mode opératoire : le user accepte la direction générale tout en signalant un décalage de méthode, avec un besoin de passer d’un cadre surtout verbal/analytique à des micro-expériences concrètes, légères et moins engageantes cognitivement. Le vrai enjeu est l’adhésion et la tolérance à l’effort, pas la logique du parcours.",
+      "change_family": "style_or_method_mismatch",
+      "recommendation": "Orienter la prochaine réponse vers un rééquilibrage d’emphase à l’échelle du plan global : garder la trajectoire et les objectifs, mais alléger le registre des prochaines étapes en les rendant plus expérimentales, plus concrètes, plus petites et moins discutées. Il faut surtout montrer comment le plan peut rester cohérent tout en devenant plus vivable, sans basculer vers une refonte de direction.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Remplacer une partie des étapes de discussion par de très petites expériences à réaliser entre deux temps d’échange.",
+        "Garder le même objectif mais réduire la taille, la durée et l’engagement demandés par chaque étape.",
+        "Ajouter une couche d’observation concrète avant toute discussion pour que le plan parte du vécu plutôt que du cadre.",
+        "Transformer certaines étapes en essais réversibles, avec droit explicite à l’imperfection.",
+        "Conserver les missions de sécurité mais alléger les phases d’analyse autour d’elles."
+      ],
+      "candidate_operation": "change_emphasis",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle reste valable, mais elle est vécue comme trop analytique ; la trajectoire possible consiste à conserver le cap tout en remplaçant une partie des prochaines étapes par des micro-expériences concrètes et légères.",
+      "must_not_execute_reason": "Le user exprime une préférence de méthode et une limite d’adhésion, pas une correction à appliquer telle quelle sans mise en forme adaptée. Il faut d’abord traduire ce besoin en changement d’emphase cohérent pour éviter de renforcer le braquage."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r91-whole-plan-style-method-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r91-whole-plan-style-method-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux surtout que le prochain niveau commence par tester dans le quotidien, pas par discuter longtemps. Par exemple une mini experience de 10 minutes sur un sujet simple, puis seulement apres on observe ce que ca a produit. Le but reste le meme, je veux juste changer la methode.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je change la méthode de progression du plan, avec Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.\n\nCe qui reste stable: l'objectif global et la charge du plan. On change surtout la méthode d'entrée dans chaque étape.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est appliqué tant que tu ne valides pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "tester dans le quotidien",
+              "pas discuter longtemps",
+              "mini experience de 10 minutes",
+              "sujet simple",
+              "observer apres l'experience",
+              "petites experiences legeres",
+              "gestes concrets",
+              "moins de cadrage",
+              "moins de discussion et d'analyse",
+              "ne pas provoquer de braquage",
+              "preserve_plan_intent",
+              "whole_plan_change_family:style_or_method_mismatch",
+              "whole_plan_candidate_operation:change_emphasis",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "coach_observation:La demande ne remet pas en cause l’intention du plan, mais son mode opératoire : le user veut garder le but tout en changeant la manière d’y entrer, avec un besoin clair de passer d’un cadre surtout verbal et analytique à des micro-expériences concrètes, courtes et moins engageantes cognitivement. Le vrai sujet est l’adhésion et la vivabilité du parcours, pas la direction du plan.",
+              "coach_recommendation:Orienter la prochaine réponse vers un rééquilibrage d’emphase à l’échelle du plan global : conserver la trajectoire, la sécurité et les objectifs, mais faire commencer les prochaines étapes par des essais très concrets, courts et observables, avec beaucoup moins de discussion préalable. Il faut traduire la préférence de méthode en modification cohérente du véhicule d’entrée, sans refonte de direction.",
+              "coach_warning:Éviter de répondre par plus de cadrage, de concepts ou d’explications que le plan actuel.",
+              "coach_warning:Éviter de proposer l’analyse comme solution principale alors que le besoin exprimé est de tester d’abord.",
+              "coach_warning:Éviter de changer l’objectif global ou la cible relationnelle sans demande explicite.",
+              "coach_warning:Éviter de minimiser le signal de gêne méthodologique : ce n’est pas un détail de formulation, c’est un problème d’appropriation.",
+              "coach_warning:Éviter de transformer les prochaines étapes en tâches trop abstraites ou trop lourdes qui renforceraient le risque de braquage.",
+              "coach_preserve:La direction globale du plan, jugée acceptable.",
+              "coach_preserve:Le besoin de sécurité relationnelle et de désamorçage.",
+              "coach_preserve:L’intention progressive du parcours, sans saut brutal de niveau.",
+              "coach_preserve:Les repères déjà installés qui servent de base de stabilité.",
+              "coach_preserve:Le principe que les changements restent compatibles avec le plan existant.",
+              "coach_avoid:Proposer un plan plus conceptuel ou plus conversationnel qu’avant.",
+              "coach_avoid:Suggérer de nouvelles analyses comme solution principale.",
+              "coach_avoid:Changer la cible relationnelle ou l’objectif global sans demande explicite.",
+              "coach_avoid:Présenter la gêne de méthode comme un simple détail.",
+              "coach_avoid:Supprimer la dimension de sécurité et de progression.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Préserver la trajectoire thérapeutique tout en changeant le format d’entrée pour l’adapter au style du user.",
+              "coach_guideline:Garder la sécurité, la progression et la lisibilité du plan, mais réduire la charge mentale des prochaines étapes.",
+              "coach_guideline:Convertir chaque étape trop cadrée en essai court, concret, réversible et facile à lancer.",
+              "coach_guideline:Ne pas remplacer la démarche relationnelle par une logique purement comportementale ou inversement sans demande explicite.",
+              "coach_guideline:Maintenir la fonction de sécurisation, mais diminuer temporairement l’intensité de discussion et de préparation.",
+              "coach_guideline:Alléger les prochaines étapes sans dégrader l’ensemble du plan.",
+              "coach_guideline:Conserver les critères de passage, mais vérifier qu’ils restent atteignables via des gestes simples et observables.",
+              "coach_guideline:Modifier l’emphase et la modalité d’exécution, pas la direction.",
+              "coach_guideline:Réduire la friction sans casser l’ordre des phases ni les prérequis.",
+              "coach_guideline:Ne pas réorganiser le plan tant que le problème principal est le style de méthode.",
+              "whole_plan_change_family:style_or_method_mismatch",
+              "whole_plan_candidate_operation:change_emphasis",
+              "whole_plan_readiness:draft_ready",
+              "coach_must_not_execute:Le user exprime une préférence de méthode et une limite d’adhésion, pas une correction à appliquer telle quelle sans mise en forme adaptée. Il faut d’abord traduire ce besoin en changement d’emphase cohérent pour éviter de renforcer le braquage.",
+              "coach_trajectory_hypothesis:La trajectoire actuelle reste valable, mais elle est vécue comme trop analytique ; la trajectoire possible consiste à conserver le cap tout en remplaçant une partie des prochaines étapes par des micro-expériences concrètes, légères et observables.",
+              "whole_plan_change_family:style_or_method_mismatch",
+              "whole_plan_candidate_operation:change_emphasis",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause",
+              "affected_item:Partager un point positif"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif.",
+          "decision_basis": {
+            "evidence": [
+              "Je veux surtout que le prochain niveau commence par tester dans le quotidien, pas par discuter longtemps. Par exemple une mini experience de 10 minutes sur un sujet simple, puis seulement apres on observe ce que ca a produit. Le but reste le meme, je veux juste changer la methode.",
+              "prochain niveau",
+              "changer la méthode",
+              "le but reste le même",
+              "allowed_adjustment_types",
+              "le prochain niveau commence par tester dans le quotidien avant de discuter longtemps",
+              "la méthode ne me ressemble pas",
+              "sinon je vais me braquer",
+              "le user veut garder le but mais changer la manière d'y entrer",
+              "le besoin est de rendre la trajectoire plus vivable et moins analytique",
+              "remplacer une partie des étapes de discussion par des micro-expériences concrètes",
+              "faire commencer le prochain niveau par une expérience simple dans le quotidien"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je change la méthode de progression du plan: Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le plan garde son objectif, mais chaque niveau part davantage du vécu concret avant de passer à l'analyse ou à la discussion.",
+            "expected_mechanism": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Le plan entrait trop vite par l'analyse, le cadrage ou la discussion.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je change la méthode de progression du plan: Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À reformuler dans une logique plus concrète: vivre une petite expérience, observer, puis discuter seulement si ça ouvre quelque chose.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À reformuler dans une logique plus concrète: vivre une petite expérience, observer, puis discuter seulement si ça ouvre quelque chose.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde son objectif, mais chaque niveau part davantage du vécu concret avant de passer à l'analyse ou à la discussion.",
+                "before": "Le plan entrait trop vite par l'analyse, le cadrage ou la discussion.",
+                "inserted_step": "Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.",
+                "coaching_reason": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif.",
+                "reordered_steps": [
+                  "Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.",
+                  "Reformuler les prochains niveaux autour de l'expérience puis de l'observation"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je change la méthode de progression du plan: Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.",
+            "user_message_detailed": "je change la méthode de progression du plan: Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour le plan garde son objectif, mais chaque niveau part davantage du vécu concret avant de passer à l'analyse ou à la discussion..",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je change la méthode de progression du plan, avec Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.\n\nCe qui reste stable: l'objectif global et la charge du plan. On change surtout la méthode d'entrée dans chaque étape.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est appliqué tant que tu ne valides pas clairement."
+      },
+      "status": "draft_review",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "f1bc18a7-7d80-49b7-ae03-74ed4e1a2fb8",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer un plan plus conceptuel ou plus conversationnel qu’avant.",
+          "Suggérer de nouvelles analyses comme solution principale.",
+          "Changer la cible relationnelle ou l’objectif global sans demande explicite.",
+          "Présenter la gêne de méthode comme un simple détail.",
+          "Supprimer la dimension de sécurité et de progression."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "La direction globale du plan, jugée acceptable.",
+          "Le besoin de sécurité relationnelle et de désamorçage.",
+          "L’intention progressive du parcours, sans saut brutal de niveau.",
+          "Les repères déjà installés qui servent de base de stabilité.",
+          "Le principe que les changements restent compatibles avec le plan existant."
+        ],
+        "warnings": [
+          "Éviter de répondre par plus de cadrage, de concepts ou d’explications que le plan actuel.",
+          "Éviter de proposer l’analyse comme solution principale alors que le besoin exprimé est de tester d’abord.",
+          "Éviter de changer l’objectif global ou la cible relationnelle sans demande explicite.",
+          "Éviter de minimiser le signal de gêne méthodologique : ce n’est pas un détail de formulation, c’est un problème d’appropriation.",
+          "Éviter de transformer les prochaines étapes en tâches trop abstraites ou trop lourdes qui renforceraient le risque de braquage."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une décision de trajectoire : objectif, cohérence, ordre des phases, prochaine étape ou architecture globale.",
+          "Vérifier que le changement reste cohérent avec l'objectif global et les réponses du questionnaire.",
+          "Préserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prérequis, sequencing et phases futures plutôt qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accélérer une étape qui sert de socle coaching.",
+          "Préserver la trajectoire thérapeutique tout en changeant le format d’entrée pour l’adapter au style du user.",
+          "Garder la sécurité, la progression et la lisibilité du plan, mais réduire la charge mentale des prochaines étapes.",
+          "Convertir chaque étape trop cadrée en essai court, concret, réversible et facile à lancer.",
+          "Ne pas remplacer la démarche relationnelle par une logique purement comportementale ou inversement sans demande explicite.",
+          "Maintenir la fonction de sécurisation, mais diminuer temporairement l’intensité de discussion et de préparation.",
+          "Alléger les prochaines étapes sans dégrader l’ensemble du plan.",
+          "Conserver les critères de passage, mais vérifier qu’ils restent atteignables via des gestes simples et observables.",
+          "Modifier l’emphase et la modalité d’exécution, pas la direction.",
+          "Réduire la friction sans casser l’ordre des phases ni les prérequis.",
+          "Ne pas réorganiser le plan tant que le problème principal est le style de méthode."
+        ],
+        "observation": "La demande ne remet pas en cause l’intention du plan, mais son mode opératoire : le user veut garder le but tout en changeant la manière d’y entrer, avec un besoin clair de passer d’un cadre surtout verbal et analytique à des micro-expériences concrètes, courtes et moins engageantes cognitivement. Le vrai sujet est l’adhésion et la vivabilité du parcours, pas la direction du plan.",
+        "change_family": "style_or_method_mismatch",
+        "recommendation": "Orienter la prochaine réponse vers un rééquilibrage d’emphase à l’échelle du plan global : conserver la trajectoire, la sécurité et les objectifs, mais faire commencer les prochaines étapes par des essais très concrets, courts et observables, avec beaucoup moins de discussion préalable. Il faut traduire la préférence de méthode en modification cohérente du véhicule d’entrée, sans refonte de direction.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Remplacer une partie des étapes de discussion par de très petites expériences à réaliser entre deux temps d’échange.",
+          "Garder le même objectif mais réduire la taille, la durée et l’engagement demandés par chaque étape.",
+          "Ajouter une couche d’observation concrète avant toute discussion pour partir du vécu plutôt que du cadre.",
+          "Transformer certaines étapes en essais réversibles, avec droit explicite à l’imperfection.",
+          "Conserver les missions de sécurité mais alléger les phases d’analyse autour d’elles."
+        ],
+        "candidate_operation": "change_emphasis",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle reste valable, mais elle est vécue comme trop analytique ; la trajectoire possible consiste à conserver le cap tout en remplaçant une partie des prochaines étapes par des micro-expériences concrètes, légères et observables.",
+        "must_not_execute_reason": "Le user exprime une préférence de méthode et une limite d’adhésion, pas une correction à appliquer telle quelle sans mise en forme adaptée. Il faut d’abord traduire ce besoin en changement d’emphase cohérent pour éviter de renforcer le braquage."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer un plan plus conceptuel ou plus conversationnel qu’avant.",
+        "Suggérer de nouvelles analyses comme solution principale.",
+        "Changer la cible relationnelle ou l’objectif global sans demande explicite.",
+        "Présenter la gêne de méthode comme un simple détail.",
+        "Supprimer la dimension de sécurité et de progression."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "La direction globale du plan, jugée acceptable.",
+        "Le besoin de sécurité relationnelle et de désamorçage.",
+        "L’intention progressive du parcours, sans saut brutal de niveau.",
+        "Les repères déjà installés qui servent de base de stabilité.",
+        "Le principe que les changements restent compatibles avec le plan existant."
+      ],
+      "warnings": [
+        "Éviter de répondre par plus de cadrage, de concepts ou d’explications que le plan actuel.",
+        "Éviter de proposer l’analyse comme solution principale alors que le besoin exprimé est de tester d’abord.",
+        "Éviter de changer l’objectif global ou la cible relationnelle sans demande explicite.",
+        "Éviter de minimiser le signal de gêne méthodologique : ce n’est pas un détail de formulation, c’est un problème d’appropriation.",
+        "Éviter de transformer les prochaines étapes en tâches trop abstraites ou trop lourdes qui renforceraient le risque de braquage."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une décision de trajectoire : objectif, cohérence, ordre des phases, prochaine étape ou architecture globale.",
+        "Vérifier que le changement reste cohérent avec l'objectif global et les réponses du questionnaire.",
+        "Préserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prérequis, sequencing et phases futures plutôt qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accélérer une étape qui sert de socle coaching.",
+        "Préserver la trajectoire thérapeutique tout en changeant le format d’entrée pour l’adapter au style du user.",
+        "Garder la sécurité, la progression et la lisibilité du plan, mais réduire la charge mentale des prochaines étapes.",
+        "Convertir chaque étape trop cadrée en essai court, concret, réversible et facile à lancer.",
+        "Ne pas remplacer la démarche relationnelle par une logique purement comportementale ou inversement sans demande explicite.",
+        "Maintenir la fonction de sécurisation, mais diminuer temporairement l’intensité de discussion et de préparation.",
+        "Alléger les prochaines étapes sans dégrader l’ensemble du plan.",
+        "Conserver les critères de passage, mais vérifier qu’ils restent atteignables via des gestes simples et observables.",
+        "Modifier l’emphase et la modalité d’exécution, pas la direction.",
+        "Réduire la friction sans casser l’ordre des phases ni les prérequis.",
+        "Ne pas réorganiser le plan tant que le problème principal est le style de méthode."
+      ],
+      "observation": "La demande ne remet pas en cause l’intention du plan, mais son mode opératoire : le user veut garder le but tout en changeant la manière d’y entrer, avec un besoin clair de passer d’un cadre surtout verbal et analytique à des micro-expériences concrètes, courtes et moins engageantes cognitivement. Le vrai sujet est l’adhésion et la vivabilité du parcours, pas la direction du plan.",
+      "change_family": "style_or_method_mismatch",
+      "recommendation": "Orienter la prochaine réponse vers un rééquilibrage d’emphase à l’échelle du plan global : conserver la trajectoire, la sécurité et les objectifs, mais faire commencer les prochaines étapes par des essais très concrets, courts et observables, avec beaucoup moins de discussion préalable. Il faut traduire la préférence de méthode en modification cohérente du véhicule d’entrée, sans refonte de direction.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Remplacer une partie des étapes de discussion par de très petites expériences à réaliser entre deux temps d’échange.",
+        "Garder le même objectif mais réduire la taille, la durée et l’engagement demandés par chaque étape.",
+        "Ajouter une couche d’observation concrète avant toute discussion pour partir du vécu plutôt que du cadre.",
+        "Transformer certaines étapes en essais réversibles, avec droit explicite à l’imperfection.",
+        "Conserver les missions de sécurité mais alléger les phases d’analyse autour d’elles."
+      ],
+      "candidate_operation": "change_emphasis",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle reste valable, mais elle est vécue comme trop analytique ; la trajectoire possible consiste à conserver le cap tout en remplaçant une partie des prochaines étapes par des micro-expériences concrètes, légères et observables.",
+      "must_not_execute_reason": "Le user exprime une préférence de méthode et une limite d’adhésion, pas une correction à appliquer telle quelle sans mise en forme adaptée. Il faut d’abord traduire ce besoin en changement d’emphase cohérent pour éviter de renforcer le braquage."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r91-whole-plan-style-method-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r91-whole-plan-style-method-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, mais je ne veux pas que ca baisse le niveau. Je veux que ca reste ambitieux, juste moins mental. Garde la discussion, mais apres l experience, pas avant.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je change la méthode de progression du plan, avec Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.\n\nCe qui reste stable: l'objectif global et la charge du plan. On change surtout la méthode d'entrée dans chaque étape.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est appliqué tant que tu ne valides pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "tester dans le quotidien",
+              "pas discuter longtemps",
+              "mini experience de 10 minutes",
+              "sujet simple",
+              "observer apres l'experience",
+              "petites experiences legeres",
+              "gestes concrets",
+              "moins de cadrage",
+              "moins de discussion et d'analyse",
+              "ne pas baisser le niveau",
+              "restaurer une trajectoire ambitieuse",
+              "discussion apres l'experience, pas avant",
+              "whole_plan_change_family:style_or_method_mismatch",
+              "whole_plan_candidate_operation:change_emphasis",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "coach_observation:Le user ne conteste pas la direction ni l’ambition du plan ; il affine la méthode attendue. Le point de tension réel n’est pas une baisse de niveau, mais une inversion du point d’entrée : l’expérience concrète doit précéder la discussion, tout en gardant un cadre exigeant et une visée élevée. Le besoin humain central est de préserver l’élan et la portée du plan sans surcharge mentale.",
+              "coach_recommendation:Proposer un rééquilibrage d’emphase, pas un allègement du niveau : garder l’ambition, conserver la discussion comme ressource utile, mais la déplacer après l’expérience vécue. Le bon angle coaching est de montrer que moins mental ne signifie pas moins exigeant : cela signifie plus incarné, plus observable, et mieux calibré pour l’adhésion.",
+              "coach_warning:Éviter de reformuler cela comme une baisse de niveau ou une simplification générale du plan.",
+              "coach_warning:Éviter de remettre la discussion au centre comme prérequis ; elle doit suivre le vécu, pas le précéder.",
+              "coach_warning:Éviter de compenser le besoin de concret par davantage d’analyse ou de cadrage.",
+              "coach_warning:Éviter de changer l’objectif global sous prétexte d’adapter la méthode.",
+              "coach_warning:Éviter de rendre les expériences trop petites au point de perdre leur portée ambitieuse.",
+              "coach_preserve:L’ambition globale du plan.",
+              "coach_preserve:La direction générale déjà jugée juste.",
+              "coach_preserve:La place de la discussion comme ressource, non comme point d’entrée.",
+              "coach_preserve:La fonction de sécurité et de progression du parcours.",
+              "coach_preserve:Le principe de cohérence avec le plan existant.",
+              "coach_avoid:Ne pas proposer un plan plus basique ou moins ambitieux.",
+              "coach_avoid:Ne pas mettre la discussion avant l’expérience.",
+              "coach_avoid:Ne pas transformer la demande en simple ajustement de fréquence ou de charge locale.",
+              "coach_avoid:Ne pas minimiser le besoin de moins mental.",
+              "coach_avoid:Ne pas changer l’objectif global sans demande explicite.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Traiter la demande comme un changement d’emphase au niveau du whole plan, pas comme une baisse de difficulté.",
+              "coach_guideline:Préserver l’ambition explicite et le cap global, tout en déplaçant le point d’entrée vers l’expérience concrète.",
+              "coach_guideline:Faire de la discussion un temps d’après-coup : observation, puis élucidation, puis éventuel ajustement.",
+              "coach_guideline:S’assurer que chaque étape reste suffisamment engageante pour soutenir le niveau visé, sans surcharge cognitive.",
+              "coach_guideline:Ne pas confondre sobriété mentale et moindre exigence ; le changement porte sur le format, pas sur la portée.",
+              "coach_guideline:Raisonner en trajectoire, en ordre des phases et en cohérence globale avant de détailler des ajustements locaux.",
+              "whole_plan_change_family:style_or_method_mismatch",
+              "whole_plan_candidate_operation:change_emphasis",
+              "whole_plan_readiness:draft_ready",
+              "coach_must_not_execute:Le user précise la forme souhaitée du changement, mais cela reste une direction de trajectoire à intégrer avec cohérence globale. Il ne faut pas l’appliquer comme un simple allègement : il faut le re-formuler pour préserver l’ambition tout en inversant l’ordre expérience/discussion.",
+              "coach_trajectory_hypothesis:La trajectoire reste la bonne, mais elle doit être rendue plus incarnée : des expériences concrètes d’abord, puis une discussion qui vient analyser ce qu’elles ont produit, sans perte d’ambition.",
+              "whole_plan_change_family:style_or_method_mismatch",
+              "whole_plan_candidate_operation:change_emphasis",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause",
+              "affected_item:Partager un point positif"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif.",
+          "decision_basis": {
+            "evidence": [
+              "Oui, mais je ne veux pas que ca baisse le niveau. Je veux que ca reste ambitieux, juste moins mental. Garde la discussion, mais apres l experience, pas avant.",
+              "prochain niveau",
+              "changer la méthode",
+              "le but reste le même",
+              "rebalance",
+              "deterministic whole-plan fit/complexity signal",
+              "garder le niveau ambitieux",
+              "rendre le plan moins mental",
+              "déplacer la discussion après l'experience",
+              "discussion apres l'experience, pas avant",
+              "reste ambitieux",
+              "moins mental"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je change la méthode de progression du plan: Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le plan garde son objectif, mais chaque niveau part davantage du vécu concret avant de passer à l'analyse ou à la discussion.",
+            "expected_mechanism": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Le plan entrait trop vite par l'analyse, le cadrage ou la discussion.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je change la méthode de progression du plan: Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À reformuler dans une logique plus concrète: vivre une petite expérience, observer, puis discuter seulement si ça ouvre quelque chose.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À reformuler dans une logique plus concrète: vivre une petite expérience, observer, puis discuter seulement si ça ouvre quelque chose.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde son objectif, mais chaque niveau part davantage du vécu concret avant de passer à l'analyse ou à la discussion.",
+                "before": "Le plan entrait trop vite par l'analyse, le cadrage ou la discussion.",
+                "inserted_step": "Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.",
+                "coaching_reason": "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif.",
+                "reordered_steps": [
+                  "Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.",
+                  "Reformuler les prochains niveaux autour de l'expérience puis de l'observation"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je change la méthode de progression du plan: Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.",
+            "user_message_detailed": "je change la méthode de progression du plan: Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour le plan garde son objectif, mais chaque niveau part davantage du vécu concret avant de passer à l'analyse ou à la discussion..",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je change la méthode de progression du plan, avec Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.\n\nCe qui reste stable: l'objectif global et la charge du plan. On change surtout la méthode d'entrée dans chaque étape.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est appliqué tant que tu ne valides pas clairement."
+      },
+      "status": "draft_review_updated",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "71e2d1b5-921a-4571-baab-a9bf488f8345",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer un plan plus basique ou moins ambitieux.",
+          "Ne pas mettre la discussion avant l’expérience.",
+          "Ne pas transformer la demande en simple ajustement de fréquence ou de charge locale.",
+          "Ne pas minimiser le besoin de moins mental.",
+          "Ne pas changer l’objectif global sans demande explicite."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’ambition globale du plan.",
+          "La direction générale déjà jugée juste.",
+          "La place de la discussion comme ressource, non comme point d’entrée.",
+          "La fonction de sécurité et de progression du parcours.",
+          "Le principe de cohérence avec le plan existant."
+        ],
+        "warnings": [
+          "Éviter de reformuler cela comme une baisse de niveau ou une simplification générale du plan.",
+          "Éviter de remettre la discussion au centre comme prérequis ; elle doit suivre le vécu, pas le précéder.",
+          "Éviter de compenser le besoin de concret par davantage d’analyse ou de cadrage.",
+          "Éviter de changer l’objectif global sous prétexte d’adapter la méthode.",
+          "Éviter de rendre les expériences trop petites au point de perdre leur portée ambitieuse."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter la demande comme un changement d’emphase au niveau du whole plan, pas comme une baisse de difficulté.",
+          "Préserver l’ambition explicite et le cap global, tout en déplaçant le point d’entrée vers l’expérience concrète.",
+          "Faire de la discussion un temps d’après-coup : observation, puis élucidation, puis éventuel ajustement.",
+          "S’assurer que chaque étape reste suffisamment engageante pour soutenir le niveau visé, sans surcharge cognitive.",
+          "Ne pas confondre sobriété mentale et moindre exigence ; le changement porte sur le format, pas sur la portée.",
+          "Raisonner en trajectoire, en ordre des phases et en cohérence globale avant de détailler des ajustements locaux."
+        ],
+        "observation": "Le user ne conteste pas la direction ni l’ambition du plan ; il affine la méthode attendue. Le point de tension réel n’est pas une baisse de niveau, mais une inversion du point d’entrée : l’expérience concrète doit précéder la discussion, tout en gardant un cadre exigeant et une visée élevée. Le besoin humain central est de préserver l’élan et la portée du plan sans surcharge mentale.",
+        "change_family": "style_or_method_mismatch",
+        "recommendation": "Proposer un rééquilibrage d’emphase, pas un allègement du niveau : garder l’ambition, conserver la discussion comme ressource utile, mais la déplacer après l’expérience vécue. Le bon angle coaching est de montrer que moins mental ne signifie pas moins exigeant : cela signifie plus incarné, plus observable, et mieux calibré pour l’adhésion.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Conserver le même niveau d’ambition, mais faire démarrer chaque étape par une expérience brève et concrète.",
+          "Garder les temps de discussion, en les plaçant après l’action pour en faire un temps d’élucidation et non de préparation.",
+          "Ajouter un rituel d’observation courte avant toute discussion, pour partir du vécu réel.",
+          "Définir des expériences simples mais suffisamment signifiantes pour rester à la hauteur du niveau visé.",
+          "Maintenir la sécurité du cadre, tout en réduisant la densité mentale de l’entrée dans chaque phase."
+        ],
+        "candidate_operation": "change_emphasis",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire reste la bonne, mais elle doit être rendue plus incarnée : des expériences concrètes d’abord, puis une discussion qui vient analyser ce qu’elles ont produit, sans perte d’ambition.",
+        "must_not_execute_reason": "Le user précise la forme souhaitée du changement, mais cela reste une direction de trajectoire à intégrer avec cohérence globale. Il ne faut pas l’appliquer comme un simple allègement : il faut le re-formuler pour préserver l’ambition tout en inversant l’ordre expérience/discussion."
+      },
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "Oui, mais je ne veux pas que ca baisse le niveau.",
+          "Je veux que ca reste ambitieux, juste moins mental.",
+          "Garde la discussion, mais apres l experience, pas avant."
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "previous_operation_id": "f1bc18a7-7d80-49b7-ae03-74ed4e1a2fb8",
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer un plan plus basique ou moins ambitieux.",
+        "Ne pas mettre la discussion avant l’expérience.",
+        "Ne pas transformer la demande en simple ajustement de fréquence ou de charge locale.",
+        "Ne pas minimiser le besoin de moins mental.",
+        "Ne pas changer l’objectif global sans demande explicite."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’ambition globale du plan.",
+        "La direction générale déjà jugée juste.",
+        "La place de la discussion comme ressource, non comme point d’entrée.",
+        "La fonction de sécurité et de progression du parcours.",
+        "Le principe de cohérence avec le plan existant."
+      ],
+      "warnings": [
+        "Éviter de reformuler cela comme une baisse de niveau ou une simplification générale du plan.",
+        "Éviter de remettre la discussion au centre comme prérequis ; elle doit suivre le vécu, pas le précéder.",
+        "Éviter de compenser le besoin de concret par davantage d’analyse ou de cadrage.",
+        "Éviter de changer l’objectif global sous prétexte d’adapter la méthode.",
+        "Éviter de rendre les expériences trop petites au point de perdre leur portée ambitieuse."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter la demande comme un changement d’emphase au niveau du whole plan, pas comme une baisse de difficulté.",
+        "Préserver l’ambition explicite et le cap global, tout en déplaçant le point d’entrée vers l’expérience concrète.",
+        "Faire de la discussion un temps d’après-coup : observation, puis élucidation, puis éventuel ajustement.",
+        "S’assurer que chaque étape reste suffisamment engageante pour soutenir le niveau visé, sans surcharge cognitive.",
+        "Ne pas confondre sobriété mentale et moindre exigence ; le changement porte sur le format, pas sur la portée.",
+        "Raisonner en trajectoire, en ordre des phases et en cohérence globale avant de détailler des ajustements locaux."
+      ],
+      "observation": "Le user ne conteste pas la direction ni l’ambition du plan ; il affine la méthode attendue. Le point de tension réel n’est pas une baisse de niveau, mais une inversion du point d’entrée : l’expérience concrète doit précéder la discussion, tout en gardant un cadre exigeant et une visée élevée. Le besoin humain central est de préserver l’élan et la portée du plan sans surcharge mentale.",
+      "change_family": "style_or_method_mismatch",
+      "recommendation": "Proposer un rééquilibrage d’emphase, pas un allègement du niveau : garder l’ambition, conserver la discussion comme ressource utile, mais la déplacer après l’expérience vécue. Le bon angle coaching est de montrer que moins mental ne signifie pas moins exigeant : cela signifie plus incarné, plus observable, et mieux calibré pour l’adhésion.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Conserver le même niveau d’ambition, mais faire démarrer chaque étape par une expérience brève et concrète.",
+        "Garder les temps de discussion, en les plaçant après l’action pour en faire un temps d’élucidation et non de préparation.",
+        "Ajouter un rituel d’observation courte avant toute discussion, pour partir du vécu réel.",
+        "Définir des expériences simples mais suffisamment signifiantes pour rester à la hauteur du niveau visé.",
+        "Maintenir la sécurité du cadre, tout en réduisant la densité mentale de l’entrée dans chaque phase."
+      ],
+      "candidate_operation": "change_emphasis",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire reste la bonne, mais elle doit être rendue plus incarnée : des expériences concrètes d’abord, puis une discussion qui vient analyser ce qu’elles ont produit, sans perte d’ambition.",
+      "must_not_execute_reason": "Le user précise la forme souhaitée du changement, mais cela reste une direction de trajectoire à intégrer avec cohérence globale. Il ne faut pas l’appliquer comme un simple allègement : il faut le re-formuler pour préserver l’ambition tout en inversant l’ordre expérience/discussion."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r91-whole-plan-style-method-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r91-whole-plan-style-method-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Ok, valide cette version : experience concrete d abord, observation ensuite, discussion seulement apres, sans baisser l ambition du plan.",
+    "assistant": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour le plan garde son objectif, mais chaque niveau part davantage du vécu concret avant de passer à l'analyse ou à la discussion.. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_intents": [],
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "executed",
+      "reason_code": "normal_reply_default",
+      "operation_id": "71e2d1b5-921a-4571-baab-a9bf488f8345",
+      "plan_patch_id": "299b22ef-3d10-443e-a36b-8ca2f987621d",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer un plan plus basique ou moins ambitieux.",
+          "Ne pas mettre la discussion avant l’expérience.",
+          "Ne pas transformer la demande en simple ajustement de fréquence ou de charge locale.",
+          "Ne pas minimiser le besoin de moins mental.",
+          "Ne pas changer l’objectif global sans demande explicite."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’ambition globale du plan.",
+          "La direction générale déjà jugée juste.",
+          "La place de la discussion comme ressource, non comme point d’entrée.",
+          "La fonction de sécurité et de progression du parcours.",
+          "Le principe de cohérence avec le plan existant."
+        ],
+        "warnings": [
+          "Éviter de reformuler cela comme une baisse de niveau ou une simplification générale du plan.",
+          "Éviter de remettre la discussion au centre comme prérequis ; elle doit suivre le vécu, pas le précéder.",
+          "Éviter de compenser le besoin de concret par davantage d’analyse ou de cadrage.",
+          "Éviter de changer l’objectif global sous prétexte d’adapter la méthode.",
+          "Éviter de rendre les expériences trop petites au point de perdre leur portée ambitieuse."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter la demande comme un changement d’emphase au niveau du whole plan, pas comme une baisse de difficulté.",
+          "Préserver l’ambition explicite et le cap global, tout en déplaçant le point d’entrée vers l’expérience concrète.",
+          "Faire de la discussion un temps d’après-coup : observation, puis élucidation, puis éventuel ajustement.",
+          "S’assurer que chaque étape reste suffisamment engageante pour soutenir le niveau visé, sans surcharge cognitive.",
+          "Ne pas confondre sobriété mentale et moindre exigence ; le changement porte sur le format, pas sur la portée.",
+          "Raisonner en trajectoire, en ordre des phases et en cohérence globale avant de détailler des ajustements locaux."
+        ],
+        "observation": "Le user ne conteste pas la direction ni l’ambition du plan ; il affine la méthode attendue. Le point de tension réel n’est pas une baisse de niveau, mais une inversion du point d’entrée : l’expérience concrète doit précéder la discussion, tout en gardant un cadre exigeant et une visée élevée. Le besoin humain central est de préserver l’élan et la portée du plan sans surcharge mentale.",
+        "change_family": "style_or_method_mismatch",
+        "recommendation": "Proposer un rééquilibrage d’emphase, pas un allègement du niveau : garder l’ambition, conserver la discussion comme ressource utile, mais la déplacer après l’expérience vécue. Le bon angle coaching est de montrer que moins mental ne signifie pas moins exigeant : cela signifie plus incarné, plus observable, et mieux calibré pour l’adhésion.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Conserver le même niveau d’ambition, mais faire démarrer chaque étape par une expérience brève et concrète.",
+          "Garder les temps de discussion, en les plaçant après l’action pour en faire un temps d’élucidation et non de préparation.",
+          "Ajouter un rituel d’observation courte avant toute discussion, pour partir du vécu réel.",
+          "Définir des expériences simples mais suffisamment signifiantes pour rester à la hauteur du niveau visé.",
+          "Maintenir la sécurité du cadre, tout en réduisant la densité mentale de l’entrée dans chaque phase."
+        ],
+        "candidate_operation": "change_emphasis",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire reste la bonne, mais elle doit être rendue plus incarnée : des expériences concrètes d’abord, puis une discussion qui vient analyser ce qu’elles ont produit, sans perte d’ambition.",
+        "must_not_execute_reason": "Le user précise la forme souhaitée du changement, mais cela reste une direction de trajectoire à intégrer avec cohérence globale. Il ne faut pas l’appliquer comme un simple allègement : il faut le re-formuler pour préserver l’ambition tout en inversant l’ordre expérience/discussion."
+      },
+      "bridge_plan_item_id": null,
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer un plan plus basique ou moins ambitieux.",
+        "Ne pas mettre la discussion avant l’expérience.",
+        "Ne pas transformer la demande en simple ajustement de fréquence ou de charge locale.",
+        "Ne pas minimiser le besoin de moins mental.",
+        "Ne pas changer l’objectif global sans demande explicite."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’ambition globale du plan.",
+        "La direction générale déjà jugée juste.",
+        "La place de la discussion comme ressource, non comme point d’entrée.",
+        "La fonction de sécurité et de progression du parcours.",
+        "Le principe de cohérence avec le plan existant."
+      ],
+      "warnings": [
+        "Éviter de reformuler cela comme une baisse de niveau ou une simplification générale du plan.",
+        "Éviter de remettre la discussion au centre comme prérequis ; elle doit suivre le vécu, pas le précéder.",
+        "Éviter de compenser le besoin de concret par davantage d’analyse ou de cadrage.",
+        "Éviter de changer l’objectif global sous prétexte d’adapter la méthode.",
+        "Éviter de rendre les expériences trop petites au point de perdre leur portée ambitieuse."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter la demande comme un changement d’emphase au niveau du whole plan, pas comme une baisse de difficulté.",
+        "Préserver l’ambition explicite et le cap global, tout en déplaçant le point d’entrée vers l’expérience concrète.",
+        "Faire de la discussion un temps d’après-coup : observation, puis élucidation, puis éventuel ajustement.",
+        "S’assurer que chaque étape reste suffisamment engageante pour soutenir le niveau visé, sans surcharge cognitive.",
+        "Ne pas confondre sobriété mentale et moindre exigence ; le changement porte sur le format, pas sur la portée.",
+        "Raisonner en trajectoire, en ordre des phases et en cohérence globale avant de détailler des ajustements locaux."
+      ],
+      "observation": "Le user ne conteste pas la direction ni l’ambition du plan ; il affine la méthode attendue. Le point de tension réel n’est pas une baisse de niveau, mais une inversion du point d’entrée : l’expérience concrète doit précéder la discussion, tout en gardant un cadre exigeant et une visée élevée. Le besoin humain central est de préserver l’élan et la portée du plan sans surcharge mentale.",
+      "change_family": "style_or_method_mismatch",
+      "recommendation": "Proposer un rééquilibrage d’emphase, pas un allègement du niveau : garder l’ambition, conserver la discussion comme ressource utile, mais la déplacer après l’expérience vécue. Le bon angle coaching est de montrer que moins mental ne signifie pas moins exigeant : cela signifie plus incarné, plus observable, et mieux calibré pour l’adhésion.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Conserver le même niveau d’ambition, mais faire démarrer chaque étape par une expérience brève et concrète.",
+        "Garder les temps de discussion, en les plaçant après l’action pour en faire un temps d’élucidation et non de préparation.",
+        "Ajouter un rituel d’observation courte avant toute discussion, pour partir du vécu réel.",
+        "Définir des expériences simples mais suffisamment signifiantes pour rester à la hauteur du niveau visé.",
+        "Maintenir la sécurité du cadre, tout en réduisant la densité mentale de l’entrée dans chaque phase."
+      ],
+      "candidate_operation": "change_emphasis",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire reste la bonne, mais elle doit être rendue plus incarnée : des expériences concrètes d’abord, puis une discussion qui vient analyser ce qu’elles ont produit, sans perte d’ambition.",
+      "must_not_execute_reason": "Le user précise la forme souhaitée du changement, mais cela reste une direction de trajectoire à intégrer avec cohérence globale. Il ne faut pas l’appliquer comme un simple allègement : il faut le re-formuler pour préserver l’ambition tout en inversant l’ordre expérience/discussion."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r91-whole-plan-style-method-t04",
+    "trace_error": null
+  }
+]

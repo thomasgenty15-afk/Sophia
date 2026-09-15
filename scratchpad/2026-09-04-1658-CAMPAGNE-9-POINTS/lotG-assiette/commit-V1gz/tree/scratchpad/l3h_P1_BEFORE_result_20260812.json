@@ -1,0 +1,923 @@
+{
+  "status": 200,
+  "ms": 19980,
+  "json": {
+    "ok": true,
+    "meal": {
+      "id": "28fb9623-391f-4065-8a11-879b7dd469b6"
+    },
+    "window": {
+      "starts_on": "2026-08-17",
+      "duration_days": 3
+    },
+    "household": {
+      "id": "4123e479-f62a-4a3c-912e-5c7cb5c1f15a",
+      "member_count": 4
+    },
+    "dishes": [
+      {
+        "title": "Yogurt bowl with peaches, oats and almonds",
+        "slot": "breakfast",
+        "day": "mon",
+        "ingredients": [
+          {
+            "term": "plain Greek yogurt",
+            "quantity": "800 g",
+            "in_pantry": false,
+            "amount": 800,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 800
+          },
+          {
+            "term": "peaches",
+            "quantity": "4",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 520
+          },
+          {
+            "term": "rolled oats",
+            "quantity": "120 g",
+            "in_pantry": false,
+            "amount": 120,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 120
+          },
+          {
+            "term": "almonds",
+            "quantity": "60 g",
+            "in_pantry": false,
+            "amount": 60,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 60
+          },
+          {
+            "term": "honey",
+            "quantity": "4 tsp",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 20
+          }
+        ],
+        "method": "Spoon the yogurt into four bowls, top with sliced peaches, oats and almonds, then finish with a little honey.",
+        "why": "It is fast, seasonal and gives the week an easy protein-anchored breakfast without any cooking session.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": []
+      },
+      {
+        "title": "Chicken, tomato and cucumber salad with bread",
+        "slot": "lunch",
+        "day": "mon",
+        "ingredients": [
+          {
+            "term": "wholemeal bread",
+            "quantity": "8 slices",
+            "in_pantry": false,
+            "amount": 8,
+            "unit": "unit",
+            "state": "cooked",
+            "grams_raw": 320
+          },
+          {
+            "term": "tomatoes",
+            "quantity": "4",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 400
+          },
+          {
+            "term": "cucumber",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "lemon",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          }
+        ],
+        "method": "Reheat portions of the chicken, slice the tomatoes and cucumber, and serve everything with the bread and a simple lemon-oil dressing.",
+        "why": "It turns one batch into a fresh lunch that fits a work-from-home day and uses summer produce well.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 4
+          }
+        ]
+      },
+      {
+        "title": "Chicken rice bowls with roasted courgettes and peppers",
+        "slot": "dinner",
+        "day": "mon",
+        "ingredients": [
+          {
+            "term": "lemon",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          }
+        ],
+        "method": "Reheat chicken, rice and vegetables, then finish each bowl with a squeeze of lemon.",
+        "why": "A single batch makes a complete family dinner with little evening work.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 4
+          },
+          {
+            "preparation_id": "prep_rice",
+            "servings": 4
+          },
+          {
+            "preparation_id": "prep_roasted_veg",
+            "servings": 4
+          }
+        ]
+      },
+      {
+        "title": "Overnight oats with yogurt and plums",
+        "slot": "breakfast",
+        "day": "tue",
+        "ingredients": [
+          {
+            "term": "plain Greek yogurt",
+            "quantity": "800 g",
+            "in_pantry": false,
+            "amount": 800,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 800
+          },
+          {
+            "term": "rolled oats",
+            "quantity": "120 g",
+            "in_pantry": false,
+            "amount": 120,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 120
+          },
+          {
+            "term": "plums",
+            "quantity": "4",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "walnuts",
+            "quantity": "60 g",
+            "in_pantry": false,
+            "amount": 60,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 60
+          }
+        ],
+        "method": "Mix the yogurt and oats in four jars or bowls, top with sliced plums and walnuts, and chill until breakfast.",
+        "why": "It is another no-fuss protein breakfast, using fruit that is in season in France.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": []
+      },
+      {
+        "title": "Chicken pasta salad with basil and tomatoes",
+        "slot": "lunch",
+        "day": "tue",
+        "ingredients": [
+          {
+            "term": "wholewheat pasta",
+            "quantity": "320 g",
+            "in_pantry": false,
+            "amount": 320,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 320
+          },
+          {
+            "term": "cherry tomatoes",
+            "quantity": "250 g",
+            "in_pantry": false,
+            "amount": 250,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 250
+          },
+          {
+            "term": "basil",
+            "quantity": "1 bunch",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": null,
+            "grams_raw": null
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "parmesan",
+            "quantity": "40 g",
+            "in_pantry": false,
+            "amount": 40,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 40
+          }
+        ],
+        "method": "Cook the pasta, cool it, then toss it with sliced chicken, tomatoes, basil, olive oil and parmesan.",
+        "why": "It gives the second day a different lunch shape while still leaning on the same cooked protein.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 4
+          }
+        ]
+      },
+      {
+        "title": "Chicken wraps with roasted vegetables and yogurt sauce",
+        "slot": "dinner",
+        "day": "tue",
+        "ingredients": [
+          {
+            "term": "tortillas",
+            "quantity": "8",
+            "in_pantry": false,
+            "amount": 8,
+            "unit": "unit",
+            "state": "cooked",
+            "grams_raw": 280
+          },
+          {
+            "term": "plain yogurt",
+            "quantity": "200 g",
+            "in_pantry": false,
+            "amount": 200,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 200
+          },
+          {
+            "term": "lettuce",
+            "quantity": "1 small head",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": null,
+            "grams_raw": null
+          }
+        ],
+        "method": "Warm the tortillas, fill them with chicken and roasted vegetables, add lettuce, and spoon over yogurt as a quick sauce.",
+        "why": "It keeps dinner different from Monday while still using the same batch efficiently.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 4
+          },
+          {
+            "preparation_id": "prep_roasted_veg",
+            "servings": 4
+          }
+        ]
+      },
+      {
+        "title": "Yogurt bowl with nectarines and muesli",
+        "slot": "breakfast",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "plain Greek yogurt",
+            "quantity": "800 g",
+            "in_pantry": false,
+            "amount": 800,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 800
+          },
+          {
+            "term": "nectarines",
+            "quantity": "4",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "muesli",
+            "quantity": "120 g",
+            "in_pantry": false,
+            "amount": 120,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 120
+          },
+          {
+            "term": "sunflower seeds",
+            "quantity": "40 g",
+            "in_pantry": false,
+            "amount": 40,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 40
+          }
+        ],
+        "method": "Divide the yogurt into four bowls, add sliced nectarines, scatter over muesli and sunflower seeds, and serve immediately.",
+        "why": "It stays seasonal and simple for the middle of the week, with the required protein anchor built in.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": []
+      },
+      {
+        "title": "Chicken couscous bowls with roasted vegetables and herbs",
+        "slot": "lunch",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "couscous",
+            "quantity": "300 g",
+            "in_pantry": false,
+            "amount": 300,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "fresh parsley",
+            "quantity": "1 bunch",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": null,
+            "grams_raw": null
+          },
+          {
+            "term": "lemon",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          }
+        ],
+        "method": "Steam the couscous with hot water, reheat the chicken and vegetables, then toss together with parsley and lemon.",
+        "why": "It uses the last batch portion the same week it was cooked and keeps lunch quick.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 4
+          },
+          {
+            "preparation_id": "prep_roasted_veg",
+            "servings": 4
+          }
+        ]
+      },
+      {
+        "title": "Tomato and chicken pasta bake with salad",
+        "slot": "dinner",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "wholewheat pasta",
+            "quantity": "320 g",
+            "in_pantry": false,
+            "amount": 320,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 320
+          },
+          {
+            "term": "tomatoes",
+            "quantity": "4",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 400
+          },
+          {
+            "term": "mixed salad leaves",
+            "quantity": "120 g",
+            "in_pantry": false,
+            "amount": 120,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 120
+          },
+          {
+            "term": "olive oil",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          }
+        ],
+        "method": "Cook the pasta, stir in chicken and tomatoes, bake until hot, and serve with a simple salad on the side.",
+        "why": "It finishes the stretch with a different family-style dinner built from the same cooked protein.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 4
+          }
+        ]
+      }
+    ],
+    "preparations": [
+      {
+        "id": "prep_chicken",
+        "title": "Roast chicken thighs",
+        "servings_made": 8,
+        "ingredients": [
+          {
+            "term": "chicken thighs",
+            "quantity": "1.8 kg",
+            "in_pantry": false,
+            "amount": 1800,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 1800
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "garlic",
+            "quantity": "4 cloves",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 20
+          },
+          {
+            "term": "paprika",
+            "quantity": "2 tsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 10
+          },
+          {
+            "term": "salt",
+            "quantity": "1 1/2 tsp",
+            "in_pantry": false,
+            "amount": 1.5,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 7.5
+          },
+          {
+            "term": "black pepper",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Heat the oven to 220°C. Rub the chicken thighs with olive oil, garlic, paprika, salt and pepper, spread them on two trays and roast until cooked through and browned.",
+        "active_minutes": 15,
+        "total_minutes": 40,
+        "cook_on": "wed"
+      },
+      {
+        "id": "prep_rice",
+        "title": "Steamed rice",
+        "servings_made": 4,
+        "ingredients": [
+          {
+            "term": "basmati rice",
+            "quantity": "300 g",
+            "in_pantry": false,
+            "amount": 300,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "water",
+            "quantity": "600 ml",
+            "in_pantry": false,
+            "amount": 600,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 600
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Rinse the rice, add it to a pan with water and salt, bring to a simmer, cover and cook until fluffy, then rest and fluff.",
+        "active_minutes": 5,
+        "total_minutes": 25,
+        "cook_on": "wed"
+      },
+      {
+        "id": "prep_roasted_veg",
+        "title": "Roasted courgettes and peppers",
+        "servings_made": 8,
+        "ingredients": [
+          {
+            "term": "courgettes",
+            "quantity": "4",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "red peppers",
+            "quantity": "4",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "red onion",
+            "quantity": "2",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "olive oil",
+            "quantity": "3 tbsp",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 45
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          },
+          {
+            "term": "black pepper",
+            "quantity": "1/2 tsp",
+            "in_pantry": false,
+            "amount": 0.5,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 2.5
+          }
+        ],
+        "method": "Chop the vegetables, toss with oil, salt and pepper, spread on trays and roast until browned and tender.",
+        "active_minutes": 15,
+        "total_minutes": 35,
+        "cook_on": "wed"
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "wed",
+        "preparation_ids": [
+          "prep_chicken",
+          "prep_rice",
+          "prep_roasted_veg"
+        ],
+        "run_through": "Put the oven on for the chicken and vegetables. While they roast, rinse and start the rice on the hob, then chop any last garnish and pack the chicken, rice and vegetables into containers once everything is cooked.",
+        "total_minutes": 55
+      }
+    ],
+    "shopping_list": [
+      {
+        "term": "plain Greek yogurt",
+        "quantity": "1.6 kg",
+        "aisle": "dairy"
+      },
+      {
+        "term": "peaches",
+        "quantity": "4",
+        "aisle": "produce"
+      },
+      {
+        "term": "rolled oats",
+        "quantity": "240 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "almonds",
+        "quantity": "60 g",
+        "aisle": "pantry"
+      },
+      {
+        "term": "honey",
+        "quantity": "4 tsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "wholemeal bread",
+        "quantity": "8 slices",
+        "aisle": "grains"
+      },
+      {
+        "term": "tomatoes",
+        "quantity": "8",
+        "aisle": "produce"
+      },
+      {
+        "term": "cucumber",
+        "quantity": "1",
+        "aisle": "produce"
+      },
+      {
+        "term": "olive oil",
+        "quantity": "7 tbsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "lemon",
+        "quantity": "3",
+        "aisle": "produce"
+      },
+      {
+        "term": "wholewheat pasta",
+        "quantity": "640 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "cherry tomatoes",
+        "quantity": "250 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "basil",
+        "quantity": "1 bunch",
+        "aisle": "produce"
+      },
+      {
+        "term": "parmesan",
+        "quantity": "40 g",
+        "aisle": "dairy"
+      },
+      {
+        "term": "tortillas",
+        "quantity": "8",
+        "aisle": "grains"
+      },
+      {
+        "term": "plain yogurt",
+        "quantity": "200 g",
+        "aisle": "dairy"
+      },
+      {
+        "term": "lettuce",
+        "quantity": "1 small head",
+        "aisle": "produce"
+      },
+      {
+        "term": "plums",
+        "quantity": "4",
+        "aisle": "produce"
+      },
+      {
+        "term": "walnuts",
+        "quantity": "60 g",
+        "aisle": "pantry"
+      },
+      {
+        "term": "nectarines",
+        "quantity": "4",
+        "aisle": "produce"
+      },
+      {
+        "term": "muesli",
+        "quantity": "120 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "sunflower seeds",
+        "quantity": "40 g",
+        "aisle": "pantry"
+      },
+      {
+        "term": "couscous",
+        "quantity": "300 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "fresh parsley",
+        "quantity": "1 bunch",
+        "aisle": "produce"
+      },
+      {
+        "term": "mixed salad leaves",
+        "quantity": "120 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "chicken thighs",
+        "quantity": "1.8 kg",
+        "aisle": "protein"
+      },
+      {
+        "term": "garlic",
+        "quantity": "4 cloves",
+        "aisle": "produce"
+      },
+      {
+        "term": "paprika",
+        "quantity": "2 tsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "basmati rice",
+        "quantity": "300 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "courgettes",
+        "quantity": "4",
+        "aisle": "produce"
+      },
+      {
+        "term": "red peppers",
+        "quantity": "4",
+        "aisle": "produce"
+      },
+      {
+        "term": "red onion",
+        "quantity": "2",
+        "aisle": "produce"
+      }
+    ],
+    "member_portions": [
+      {
+        "member_id": "30730edf-846c-4ea4-901d-39c9caaf7fee",
+        "display_name": "Paul",
+        "portion_note": "Serve a full plate with chicken, a balanced scoop of rice or pasta, and a normal amount of vegetables; keep the salad or bread on the side as listed.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_chicken",
+            "note": "1 plate-sized portion at each meal that uses it."
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "1 balanced share with dinner on Monday."
+          },
+          {
+            "preparation_id": "prep_roasted_veg",
+            "note": "1 balanced share with dinners or lunch as listed."
+          }
+        ]
+      },
+      {
+        "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+        "display_name": "Lea",
+        "portion_note": "Serve a smaller plate with the same components, using a child-size scoop of starch and a smaller mound of chicken and vegetables.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_chicken",
+            "note": "A smaller share than Paul, with the same accompaniments."
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "A child-size scoop at dinner."
+          },
+          {
+            "preparation_id": "prep_roasted_veg",
+            "note": "A child-size portion, with vegetables kept easy to eat."
+          }
+        ]
+      },
+      {
+        "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0",
+        "display_name": "Tom",
+        "portion_note": "Serve a child-size plate like Lea's, with chicken, a small starch portion, and the same vegetables.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_chicken",
+            "note": "A smaller share than Paul, with the same accompaniments."
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "A child-size scoop at dinner."
+          },
+          {
+            "preparation_id": "prep_roasted_veg",
+            "note": "A child-size portion, with vegetables kept easy to eat."
+          }
+        ]
+      },
+      {
+        "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+        "display_name": "Nina",
+        "portion_note": "Serve the chicken and starch in balanced amounts, then add extra roasted vegetables or salad on top of the plate.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_chicken",
+            "note": "Balanced protein share with the others."
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "Balanced starch share, not oversized."
+          },
+          {
+            "preparation_id": "prep_roasted_veg",
+            "note": "Extra vegetables added, especially at lunch or dinner."
+          }
+        ]
+      }
+    ],
+    "member_deltas": [],
+    "issues": [
+      "structured_quantity_missing: 3/34 ingredients",
+      "\"Chicken, tomato and cucumber salad with bread\" (mon) eats from \"Roast chicken thighs\", cooked on wed -- after the meal",
+      "\"Chicken rice bowls with roasted courgettes and peppers\" (mon) eats from \"Roast chicken thighs\", cooked on wed -- after the meal",
+      "\"Chicken rice bowls with roasted courgettes and peppers\" (mon) eats from \"Steamed rice\", cooked on wed -- after the meal",
+      "\"Chicken rice bowls with roasted courgettes and peppers\" (mon) eats from \"Roasted courgettes and peppers\", cooked on wed -- after the meal",
+      "\"Chicken pasta salad with basil and tomatoes\" (tue) eats from \"Roast chicken thighs\", cooked on wed -- after the meal",
+      "\"Chicken wraps with roasted vegetables and yogurt sauce\" (tue) eats from \"Roast chicken thighs\", cooked on wed -- after the meal",
+      "\"Chicken wraps with roasted vegetables and yogurt sauce\" (tue) eats from \"Roasted courgettes and peppers\", cooked on wed -- after the meal"
+    ],
+    "request_id": "970cc2d2-edd5-4535-beef-8c8413985a54"
+  }
+}

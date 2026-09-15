@@ -1,0 +1,133 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je viens de me faire recadrer sur un dossier et depuis je me parle comme si j'étais quelqu'un de nul. J'ai honte et je suis très dur avec moi.",
+    "assistant": "Je comprends que ce recadrage soit difficile à encaisser et que la honte prenne beaucoup de place en ce moment. C'est une réaction humaine, mais j'aimerais vraiment que tu fasses la part des choses : ce qui s'est passé sur ce dossier est un événement extérieur, pas une définition de ta valeur. On peut rater une étape ou recevoir une critique sans que cela ne signifie que tu es « nul ». Tu es bien plus que ce simple retour professionnel.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "skill_entry_signal",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour-t01",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Là ça se calme un peu. Ce dont j'aurais besoin, ce n'est pas une méthode ou une action, c'est un appui sur quelques jours pour me parler avec plus de chaleur quand la voix dure revient.",
+    "assistant": "Je suis là, tout près de toi. C'est une bonne chose que tu sentes un début d'apaisement. \n\nCe recadrage est un fait, une situation ponctuelle, mais il ne dit rien de ta valeur profonde. Tu as simplement besoin de douceur en ce moment pour contrer cette voix dure, et je compte bien te l'apporter sans aucune pression, juste en étant présente à tes côtés.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "active_emotional_repair_local_dispatcher",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour-t02",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "emotional_repair",
+      "reason_code": "emotional_repair_potion_bridge_blocked",
+      "skill_id": "emotional_repair",
+      "mode": "conversation_skill_local_flow",
+      "status": "continue",
+      "response_intent": "exit",
+      "flow_action": "potion_bridge_offer",
+      "visible_task": "separate_fact_from_identity",
+      "global_dispatcher_skipped": true,
+      "source_dispatcher_local": "emotional_repair.local_dispatcher",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [
+        {
+          "type": "select_state_potion",
+          "reason_code": "bridge_not_mature"
+        }
+      ],
+      "runtime_trace": [
+        {
+          "component": "emotional_repair",
+          "event": "local_dispatcher_turn",
+          "global_dispatcher_skipped": true,
+          "safety_handoff": false
+        }
+      ]
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, si ça existe sous forme de potion, je voudrais plutôt une potion d'amour ou de douceur envers moi. Quelque chose pour garder cette chaleur quand je replonge dans la honte.",
+    "assistant": "Je suis contente que tu cherches à préserver cette chaleur. Ce recadrage est un fait professionnel, une simple information technique qui ne définit en rien ta valeur. Tu mérites de garder cette douceur envers toi-même, car cet événement n'est pas ce que tu es.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "active_emotional_repair_local_dispatcher",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour-t03",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "emotional_repair",
+      "reason_code": "emotional_repair_potion_bridge_blocked",
+      "skill_id": "emotional_repair",
+      "mode": "conversation_skill_local_flow",
+      "status": "continue",
+      "response_intent": "exit",
+      "flow_action": "confirm_potion_bridge",
+      "visible_task": "separate_fact_from_identity",
+      "global_dispatcher_skipped": true,
+      "source_dispatcher_local": "emotional_repair.local_dispatcher",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [
+        {
+          "type": "select_state_potion",
+          "reason_code": "missing_previous_potion_offer"
+        }
+      ],
+      "runtime_trace": [
+        {
+          "component": "emotional_repair",
+          "event": "local_dispatcher_turn",
+          "global_dispatcher_skipped": true,
+          "safety_handoff": false
+        }
+      ]
+    }
+  }
+]

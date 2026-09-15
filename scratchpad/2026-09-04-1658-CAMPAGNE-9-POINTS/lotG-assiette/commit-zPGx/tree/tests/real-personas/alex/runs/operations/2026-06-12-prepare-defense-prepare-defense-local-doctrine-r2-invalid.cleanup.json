@@ -1,0 +1,141 @@
+{
+  "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "scopes": [
+    "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r2",
+    "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r2b"
+  ],
+  "results": [
+    {
+      "scope": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r2",
+      "before": {
+        "chat_messages": {
+          "status": 200,
+          "ok": true,
+          "count": 1,
+          "body": [
+            {
+              "id": "a6eedd15-003e-42aa-ad7a-fc9a848b93bd"
+            }
+          ]
+        },
+        "user_chat_states": {
+          "status": 200,
+          "ok": true,
+          "count": 1,
+          "body": [
+            {
+              "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+              "scope": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r2"
+            }
+          ]
+        }
+      },
+      "deleted": {
+        "chat_messages": {
+          "status": 200,
+          "ok": true,
+          "count": 1,
+          "body": [
+            {
+              "id": "a6eedd15-003e-42aa-ad7a-fc9a848b93bd"
+            }
+          ]
+        },
+        "user_chat_states": {
+          "status": 200,
+          "ok": true,
+          "count": 1,
+          "body": [
+            {
+              "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+              "scope": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r2"
+            }
+          ]
+        }
+      },
+      "after": {
+        "chat_messages": {
+          "status": 200,
+          "ok": true,
+          "count": 0,
+          "body": []
+        },
+        "user_chat_states": {
+          "status": 200,
+          "ok": true,
+          "count": 0,
+          "body": []
+        }
+      }
+    },
+    {
+      "scope": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r2b",
+      "before": {
+        "chat_messages": {
+          "status": 200,
+          "ok": true,
+          "count": 1,
+          "body": [
+            {
+              "id": "364db685-468b-4cdd-bd7e-e470342ed211"
+            }
+          ]
+        },
+        "user_chat_states": {
+          "status": 200,
+          "ok": true,
+          "count": 1,
+          "body": [
+            {
+              "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+              "scope": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r2b"
+            }
+          ]
+        }
+      },
+      "deleted": {
+        "chat_messages": {
+          "status": 200,
+          "ok": true,
+          "count": 1,
+          "body": [
+            {
+              "id": "364db685-468b-4cdd-bd7e-e470342ed211"
+            }
+          ]
+        },
+        "user_chat_states": {
+          "status": 200,
+          "ok": true,
+          "count": 1,
+          "body": [
+            {
+              "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+              "scope": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r2b"
+            }
+          ]
+        }
+      },
+      "after": {
+        "chat_messages": {
+          "status": 200,
+          "ok": true,
+          "count": 0,
+          "body": []
+        },
+        "user_chat_states": {
+          "status": 200,
+          "ok": true,
+          "count": 0,
+          "body": []
+        }
+      }
+    }
+  ],
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "count": 0,
+    "body": []
+  }
+}

@@ -1,0 +1,29 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-level-wording-green-r9-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "En fait c'est tout le rituel du soir contre les grignotages qui me fatigue. Quand je rentre, j'ai l'impression qu'il y a trop de petits choix à faire, donc je finis par lâcher.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-level-wording-green-r9-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-level-wording-green-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends, la fatigue décisionnelle en fin de journée est un vrai frein. Pour alléger ce rituel, préfères-tu qu'on automatise certains choix (par exemple en fixant une seule option à l'avance pour ne plus avoir à réfléchir) ou qu'on mette de côté les actions qui demandent trop d'analyse comme le décodage des envies ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  }
+]

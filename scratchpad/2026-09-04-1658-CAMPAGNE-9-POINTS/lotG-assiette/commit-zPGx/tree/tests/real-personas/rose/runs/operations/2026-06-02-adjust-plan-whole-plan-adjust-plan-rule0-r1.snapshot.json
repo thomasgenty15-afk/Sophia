@@ -1,0 +1,14 @@
+{
+  "label": "before",
+  "captured_at": "2026-06-02T14:43:10.645Z",
+  "persona": "rose",
+  "run_id": "adjust-plan-rule0-r1",
+  "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+  "scope": "qa-rose-2026-06-02-adjust-plan-whole-plan-adjust-plan-rule0-r1",
+  "plans": [],
+  "user_plan_items": [],
+  "chat_messages": [],
+  "user_chat_states": [],
+  "system_runtime_snapshots": [],
+  "user_plan_item_entries": []
+}

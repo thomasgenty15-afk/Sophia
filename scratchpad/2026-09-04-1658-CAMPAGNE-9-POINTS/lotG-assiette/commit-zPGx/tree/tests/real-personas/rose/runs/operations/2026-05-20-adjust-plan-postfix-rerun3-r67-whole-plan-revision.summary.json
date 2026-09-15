@@ -1,0 +1,80 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r67-whole-plan-revision-t01",
+    "status": 200,
+    "ok": true,
+    "user": "En regardant la suite du plan, je trouve que la prochaine étape arrive trop vite. Avant les conversations sensibles, je voudrais une étape intermédiaire plus sécurisante.",
+    "assistant": "Je te suis à 100% : si “trop vite” te met en alerte, c’est exactement le bon signal à écouter. 😮‍💨\n\nOn peut faire ça en douceur sans brûler les étapes : ajouter/placer une étape intermédiaire “sécurisante” juste avant les conversations sensibles, pour te mettre en condition (cadre + rituel + niveau d’exposition que tu contrôles), puis seulement ensuite enchaîner.\n\nPour que je l’ajuste proprement, tu veux plutôt une étape intermédiaire de type :\nA) cadrage/plan de discussion (quoi dire, quoi éviter, comment revenir en arrière)\nB) préparation émotionnelle + régulation (te calmer avant / pendant)\nC) pratique en version “soft” (une conversation test ou un échange moins risqué)\nD) autre (dis-moi en 1 phrase)\n\nTu choisis A/B/C/D ? 🎯",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r67-whole-plan-revision-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r67-whole-plan-revision-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Plutôt C, mais concrètement je veux une mission ponctuelle pour définir un protocole de retour au calme, puis une petite habitude de réparation simple avant les conversations sensibles.",
+    "assistant": "Ok, C. Concretement: tu veux 1 mission ponctuelle “protocole de retour au calme”, et 1 mini habitude de “réparation” juste avant les conversations sensibles. 🙂‍↕️\n\nLà, sur la semaine en cours, j’ai deux choses visibles: Partager un point positif (5 jours) et Cartographier les déclencheurs. Le “protocole de retour au calme” + “réparation” ne sont pas listés comme dispo cette semaine dans ce que je vois.\n\nDu coup, on fait simple et propre: tu veux que le protocole de retour au calme soit ta prochaine mission ponctuelle, et que la réparation devienne une habitude en parallèle (même si elle n’est pas celle de “partager un point positif”) ? 😮‍💨",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r67-whole-plan-revision-t02",
+    "trace_error": null
+  }
+]

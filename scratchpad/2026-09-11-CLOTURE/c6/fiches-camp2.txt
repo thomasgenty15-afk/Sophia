@@ -1,0 +1,414 @@
+══════════════════════════════════════════════════════════════════
+FICHES DE RECETTE — plan 89e94433-d68a-437f-bc3e-4f4f635cd477
+══════════════════════════════════════════════════════════════════
+⛔ BASE DE COMPARAISON : GRAMMES CRUS, convertis ligne à ligne par `resolveIngredients`.
+   Un pourcentage de pièces hétérogènes n'est pas une proportion massique ; les lignes
+   non convertibles sortent du dénominateur ET sont nommées.
+
+── PRÉPARATIONS ─────────────────────────────────────────────
+
+· prep_boiled_eggs — « Œufs durs »
+   AVANT (premier jet)
+     total 330.0 g crus · 1 / 1 ligne(s) converties
+       100.0 %      330.0 g   œufs
+   APRÈS (en base)
+     total 385.0 g crus · 1 / 1 ligne(s) converties
+       100.0 %      385.0 g   œufs
+     ✅ les deux dénominateurs couvrent TOUTES les lignes.
+     ✅ RAPPORTS MASSIQUES INCHANGÉS — la recette n'a été que mise à l'échelle.
+     facteurs par ligne (après ÷ avant) :
+       ×1.167   œufs  (6 → 7 unit)
+
+· prep_chicken — « Poulet rôti »
+   AVANT (premier jet)
+     total 450.0 g crus · 2 / 2 ligne(s) converties
+        97.8 %      440.0 g   blanc de poulet
+         2.2 %       10.0 g   huile d'olive
+   APRÈS (en base)
+     total 779.0 g crus · 2 / 2 ligne(s) converties
+        97.8 %      762.0 g   blanc de poulet
+         2.2 %       17.0 g   huile d'olive
+     ✅ les deux dénominateurs couvrent TOUTES les lignes.
+     ✅ RAPPORTS MASSIQUES INCHANGÉS — la recette n'a été que mise à l'échelle.
+     facteurs par ligne (après ÷ avant) :
+       ×1.732   blanc de poulet  (440 → 762 g)
+       ×1.700   huile d'olive  (10 → 17 g)
+
+· prep_salmon — « Saumon rôti »
+   AVANT (premier jet)
+     total 370.0 g crus · 2 / 2 ligne(s) converties
+        97.3 %      360.0 g   saumon frais
+         2.7 %       10.0 g   huile d'olive
+   APRÈS (en base)
+     total 377.0 g crus · 2 / 2 ligne(s) converties
+        97.3 %      367.0 g   saumon frais
+         2.7 %       10.0 g   huile d'olive
+     ✅ les deux dénominateurs couvrent TOUTES les lignes.
+     ⚠️ RAPPORTS MASSIQUES DÉPLACÉS :
+       saumon frais : 97.3 % → 97.3 % (+0.1 pt de MASSE)
+       huile d'olive : 2.7 % → 2.7 % (-0.1 pt de MASSE)
+     facteurs par ligne (après ÷ avant) :
+       ×1.019   saumon frais  (360 → 367 g)
+       ×1.000   huile d'olive  (10 → 10 g)
+
+· prep_couscous — « Couscous complet »
+   AVANT (premier jet)
+     total 140.0 g crus · 1 / 1 ligne(s) converties
+       100.0 %      140.0 g   couscous complet sec
+   APRÈS (en base)
+     total 145.0 g crus · 1 / 1 ligne(s) converties
+       100.0 %      145.0 g   couscous complet sec
+     ✅ les deux dénominateurs couvrent TOUTES les lignes.
+     ✅ RAPPORTS MASSIQUES INCHANGÉS — la recette n'a été que mise à l'échelle.
+     facteurs par ligne (après ÷ avant) :
+       ×1.036   couscous complet sec  (140 → 145 g)
+
+· prep_beef — « Bœuf haché poêlé »
+   AVANT (premier jet)
+     total 410.0 g crus · 2 / 2 ligne(s) converties
+        97.6 %      400.0 g   bœuf haché
+         2.4 %       10.0 g   huile d'olive
+   APRÈS (en base)
+     total 671.0 g crus · 2 / 2 ligne(s) converties
+        97.6 %      655.0 g   bœuf haché
+         2.4 %       16.0 g   huile d'olive
+     ✅ les deux dénominateurs couvrent TOUTES les lignes.
+     ⚠️ RAPPORTS MASSIQUES DÉPLACÉS :
+       bœuf haché : 97.6 % → 97.6 % (+0.1 pt de MASSE)
+       huile d'olive : 2.4 % → 2.4 % (-0.1 pt de MASSE)
+     facteurs par ligne (après ÷ avant) :
+       ×1.637   bœuf haché  (400 → 655 g)
+       ×1.600   huile d'olive  (10 → 16 g)
+
+── PLATS (frais assemblé) ───────────────────────────────────
+
+· sat/breakfast — « Œufs, yaourt grec, avoine, fraises et amandes »
+   AVANT (premier jet)
+     total 435.0 g crus · 4 / 4 ligne(s) converties
+        57.5 %      250.0 g   yaourt grec nature
+        34.5 %      150.0 g   fraises
+         5.7 %       25.0 g   flocons d'avoine
+         2.3 %       10.0 g   amandes
+   APRÈS (en base)
+     total 503.0 g crus · 4 / 4 ligne(s) converties
+        57.5 %      289.0 g   yaourt grec nature
+        34.4 %      173.0 g   fraises
+         5.8 %       29.0 g   flocons d'avoine
+         2.4 %       12.0 g   amandes
+     facteurs par ligne (après ÷ avant) :
+       ×1.156   yaourt grec nature  (250 → 289 g)
+       ×1.160   flocons d'avoine  (25 → 29 g)
+       ×1.153   fraises  (150 → 173 g)
+       ×1.200   amandes  (10 → 12 g)
+     rapport préparation / assiette — contenant box_sat_breakfast_0 (630 g PRÊTS, base distincte des grammes crus ci-dessus)
+       20.2 %   127 g prélevés dans prep_boiled_eggs   (lot : 385 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 3
+
+· sun/breakfast — « Œufs, yaourt grec, avoine, pêche et noix »
+   AVANT (premier jet)
+     total 415.0 g crus · 4 / 4 ligne(s) converties
+        60.2 %      250.0 g   yaourt grec nature
+        31.3 %      130.0 g   pêche
+         6.0 %       25.0 g   flocons d'avoine
+         2.4 %       10.0 g   noix
+   APRÈS (en base)
+     total 467.0 g crus · 4 / 4 ligne(s) converties
+        63.2 %      295.0 g   yaourt grec nature
+        27.8 %      130.0 g   pêche
+         6.4 %       30.0 g   flocons d'avoine
+         2.6 %       12.0 g   noix
+     facteurs par ligne (après ÷ avant) :
+       ×1.180   yaourt grec nature  (250 → 295 g)
+       ×1.200   flocons d'avoine  (25 → 30 g)
+       ×1.000   pêche  (1 → 1 unit)
+       ×1.200   noix  (10 → 12 g)
+     rapport préparation / assiette — contenant box_sun_breakfast_1 (621 g PRÊTS, base distincte des grammes crus ci-dessus)
+       20.9 %   130 g prélevés dans prep_boiled_eggs   (lot : 385 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 3
+
+· mon/breakfast — « Œufs, yaourt grec, avoine, figues et noix »
+   AVANT (premier jet)
+     total 385.0 g crus · 4 / 4 ligne(s) converties
+        64.9 %      250.0 g   yaourt grec nature
+        26.0 %      100.0 g   figues
+         6.5 %       25.0 g   flocons d'avoine
+         2.6 %       10.0 g   noix
+   APRÈS (en base)
+     total 432.0 g crus · 4 / 4 ligne(s) converties
+        67.4 %      291.0 g   yaourt grec nature
+        23.1 %      100.0 g   figues
+         6.7 %       29.0 g   flocons d'avoine
+         2.8 %       12.0 g   noix
+     facteurs par ligne (après ÷ avant) :
+       ×1.164   yaourt grec nature  (250 → 291 g)
+       ×1.160   flocons d'avoine  (25 → 29 g)
+       ×1.000   figues  (2 → 2 unit)
+       ×1.200   noix  (10 → 12 g)
+     rapport préparation / assiette — contenant box_mon_breakfast_2 (576 g PRÊTS, base distincte des grammes crus ci-dessus)
+       22.2 %   128 g prélevés dans prep_boiled_eggs   (lot : 385 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 3
+
+· sat/lunch — « Poulet, tortilla complète, tomate, laitue, tahini et citron »
+   AVANT (premier jet)
+     total 225.0 g crus · 6 / 6 ligne(s) converties
+        35.6 %       80.0 g   tomate
+        26.7 %       60.0 g   tortilla complète
+        13.3 %       30.0 g   laitue
+        13.3 %       30.0 g   citron
+         6.7 %       15.0 g   tahini
+         4.4 %       10.0 g   huile d'olive
+   APRÈS (en base)
+     total 414.0 g crus · 6 / 6 ligne(s) converties
+        33.6 %      139.0 g   tomate
+        29.0 %      120.0 g   tortilla complète
+        14.5 %       60.0 g   citron
+        12.6 %       52.0 g   laitue
+         6.3 %       26.0 g   tahini
+         4.1 %       17.0 g   huile d'olive
+     facteurs par ligne (après ÷ avant) :
+       ×2.000   tortilla complète  (1 → 2 unit)
+       ×1.738   tomate  (80 → 139 g)
+       ×1.733   laitue  (30 → 52 g)
+       ×1.733   tahini  (15 → 26 g)
+       ×2.000   citron  (0.5 → 1 unit)
+       ×1.700   huile d'olive  (10 → 17 g)
+     rapport préparation / assiette — contenant box_sat_lunch_3 (673 g PRÊTS, base distincte des grammes crus ci-dessus)
+       42.1 %   283 g prélevés dans prep_chicken   (lot : 779 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 3
+
+· sun/lunch — « Poulet, pita complète, houmous, tomate et radis »
+   AVANT (premier jet)
+     total 210.0 g crus · 5 / 5 ligne(s) converties
+        38.1 %       80.0 g   tomate
+        28.6 %       60.0 g   pita complète
+        19.0 %       40.0 g   houmous
+         9.5 %       20.0 g   radis
+         4.8 %       10.0 g   huile d'olive
+   APRÈS (en base)
+     total 379.0 g crus · 5 / 5 ligne(s) converties
+        36.4 %      138.0 g   tomate
+        31.7 %      120.0 g   pita complète
+        18.2 %       69.0 g   houmous
+         9.2 %       35.0 g   radis
+         4.5 %       17.0 g   huile d'olive
+     facteurs par ligne (après ÷ avant) :
+       ×2.000   pita complète  (1 → 2 unit)
+       ×1.725   houmous  (40 → 69 g)
+       ×1.725   tomate  (80 → 138 g)
+       ×1.750   radis  (20 → 35 g)
+       ×1.700   huile d'olive  (10 → 17 g)
+     rapport préparation / assiette — contenant box_sun_lunch_4 (646 g PRÊTS, base distincte des grammes crus ci-dessus)
+       43.8 %   283 g prélevés dans prep_chicken   (lot : 779 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 3
+
+· sat/dinner — « Saumon, couscous complet, tomate, citron et persil »
+   AVANT (premier jet)
+     total 190.0 g crus · 5 / 5 ligne(s) converties
+        42.1 %       80.0 g   tomate
+        36.8 %       70.0 g   couscous complet préparé
+        15.8 %       30.0 g   citron
+         2.6 %        5.0 g   huile d'olive
+         2.6 %        5.0 g   persil
+   APRÈS (en base)
+     total 231.4 g crus · 5 / 5 ligne(s) converties
+        37.2 %       86.0 g   tomate
+        32.6 %       75.4 g   couscous complet préparé
+        25.9 %       60.0 g   citron
+         2.2 %        5.0 g   huile d'olive
+         2.2 %        5.0 g   persil
+     facteurs par ligne (après ÷ avant) :
+       ×1.077   couscous complet préparé  (182 → 196 g)
+       ×1.075   tomate  (80 → 86 g)
+       ×1.000   huile d'olive  (5 → 5 g)
+       ×2.000   citron  (0.5 → 1 unit)
+       ⚪ persil — facteur incalculable (quantité absente)
+     rapport préparation / assiette — contenant box_sat_dinner_5 (680 g PRÊTS, base distincte des grammes crus ci-dessus)
+       23.5 %   160 g prélevés dans prep_salmon   (lot : 377 g crus — ⚠️ base différente, pas un rapport)
+       28.8 %   196 g prélevés dans prep_couscous   (lot : 145 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 4
+
+· sun/dinner — « Saumon, couscous complet, poivron, épinards et feta »
+   AVANT (premier jet)
+     total 285.0 g crus · 6 / 6 ligne(s) converties
+        35.1 %      100.0 g   poivron
+        24.6 %       70.0 g   couscous complet préparé
+        17.5 %       50.0 g   épinards
+        10.5 %       30.0 g   feta
+        10.5 %       30.0 g   citron
+         1.8 %        5.0 g   huile d'olive
+   APRÈS (en base)
+     total 274.7 g crus · 6 / 6 ligne(s) converties
+        34.9 %       96.0 g   poivron
+        24.6 %       67.7 g   couscous complet préparé
+        17.5 %       48.0 g   épinards
+        10.6 %       29.0 g   feta
+        10.6 %       29.0 g   citron
+         1.8 %        5.0 g   huile d'olive
+     facteurs par ligne (après ÷ avant) :
+       ×0.967   couscous complet préparé  (182 → 176 g)
+       ×0.960   poivron  (100 → 96 g)
+       ×0.960   épinards  (50 → 48 g)
+       ×0.967   feta  (30 → 29 g)
+       ⛔ citron — UNITÉ CHANGÉE (unit → g) : aucun facteur
+       ×1.000   huile d'olive  (5 → 5 g)
+     rapport préparation / assiette — contenant box_sun_dinner_6 (689 g PRÊTS, base distincte des grammes crus ci-dessus)
+       20.9 %   144 g prélevés dans prep_salmon   (lot : 377 g crus — ⚠️ base différente, pas un rapport)
+       25.5 %   176 g prélevés dans prep_couscous   (lot : 145 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 4
+
+· mon/lunch — « Bœuf, tortilla complète, tomate, laitue, yaourt et citron »
+   AVANT (premier jet)
+     total 265.0 g crus · 6 / 6 ligne(s) converties
+        30.2 %       80.0 g   tomate
+        22.6 %       60.0 g   tortilla complète
+        18.9 %       50.0 g   yaourt grec nature
+        11.3 %       30.0 g   laitue
+        11.3 %       30.0 g   citron
+         5.7 %       15.0 g   huile d'olive
+   APRÈS (en base)
+     total 471.0 g crus · 6 / 6 ligne(s) converties
+        28.2 %      133.0 g   tomate
+        25.5 %      120.0 g   tortilla complète
+        17.6 %       83.0 g   yaourt grec nature
+        12.7 %       60.0 g   citron
+        10.6 %       50.0 g   laitue
+         5.3 %       25.0 g   huile d'olive
+     facteurs par ligne (après ÷ avant) :
+       ×2.000   tortilla complète  (1 → 2 unit)
+       ×1.660   yaourt grec nature  (50 → 83 g)
+       ×1.663   tomate  (80 → 133 g)
+       ×1.667   laitue  (30 → 50 g)
+       ×2.000   citron  (0.5 → 1 unit)
+       ×1.667   huile d'olive  (15 → 25 g)
+     rapport préparation / assiette — contenant box_mon_lunch_7 (693 g PRÊTS, base distincte des grammes crus ci-dessus)
+       36.4 %   252 g prélevés dans prep_beef   (lot : 671 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 4
+
+· mon/dinner — « Bœuf, pita, tahini, poivron, oignon et citron »
+   AVANT (premier jet)
+     total 240.0 g crus · 5 / 5 ligne(s) converties
+        33.3 %       80.0 g   poivron
+        25.0 %       60.0 g   pita complète
+        20.8 %       50.0 g   oignon
+        12.5 %       30.0 g   citron
+         8.3 %       20.0 g   tahini
+   APRÈS (en base)
+     total 420.0 g crus · 5 / 5 ligne(s) converties
+        30.5 %      128.0 g   poivron
+        28.6 %      120.0 g   pita complète
+        19.0 %       80.0 g   oignon
+        14.3 %       60.0 g   citron
+         7.6 %       32.0 g   tahini
+     facteurs par ligne (après ÷ avant) :
+       ×2.000   pita complète  (1 → 2 unit)
+       ×1.600   tahini  (20 → 32 g)
+       ×1.600   poivron  (80 → 128 g)
+       ×1.600   oignon  (50 → 80 g)
+       ×2.000   citron  (0.5 → 1 unit)
+     rapport préparation / assiette — contenant box_mon_dinner_8 (605 g PRÊTS, base distincte des grammes crus ci-dessus)
+       40.0 %   242 g prélevés dans prep_beef   (lot : 671 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 4
+
+══ CE QUE LA PERSONNE LIT (fiches servies) ═══════════════════
+
+· Œufs durs
+  pour 3 part(s) · 15 min en tout, dont 5 min de mains
+  · 7 œufs
+  méthode : Cuire les œufs dans une casserole d'eau, les refroidir, les écaler et les conserver au réfrigérateur.
+
+· Poulet rôti
+  pour 2 part(s) · 35 min en tout, dont 10 min de mains
+  · 762 g de blanc de poulet
+  · 17 g d'huile d'olive
+  méthode : Enduire le poulet d'huile d'olive, le rôtir jusqu'à cuisson complète, le laisser refroidir puis le répartir en portions au réfrigérateur.
+
+· Saumon rôti
+  pour 2 part(s) · 15 min en tout, dont 5 min de mains
+  · 367 g de saumon frais
+  · 10 g d'huile d'olive
+  méthode : Badigeonner le saumon d'huile d'olive, le rôtir jusqu'à ce qu'il soit juste cuit, puis le refroidir et le conserver au réfrigérateur.
+
+· Couscous complet
+  pour 2 part(s) · 15 min en tout, dont 5 min de mains
+  · 145 g
+  méthode : Hydrater le couscous complet avec de l'eau bouillante, l'égrener et le refroidir avant de le conserver au réfrigérateur.
+
+· Bœuf haché poêlé
+  pour 2 part(s) · 20 min en tout, dont 10 min de mains
+  · 655 g
+  · 16 g
+  méthode : Faire revenir le bœuf dans l'huile d'olive jusqu'à cuisson complète, puis le laisser tiédir et répartir les portions pour les deux repas du lundi.
+
+· sat/breakfast — Œufs, yaourt grec, avoine, fraises et amandes
+  · 289 g de yaourt grec nature
+  · 29 g de flocons d'avoine
+  · 173 g de fraises
+  · 12 g d'amandes
+  méthode : Sortir les œufs durs préparés, puis déposer le yaourt grec, les flocons d'avoine et les fraises dans un bol. Ajouter les amandes par-dessus.
+
+· sun/breakfast — Œufs, yaourt grec, avoine, pêche et noix
+  · 295 g de yaourt grec nature
+  · 30 g de flocons d'avoine
+  · 1 pêche
+  · 12 g de noix
+  méthode : Sortir les œufs durs préparés, couper la pêche et réunir les œufs, le yaourt grec, les flocons d'avoine et la pêche dans un bol. Parsemer de noix.
+
+· mon/breakfast — Œufs, yaourt grec, avoine, figues et noix
+  · 291 g de yaourt grec nature
+  · 29 g de flocons d'avoine
+  · 2 figues
+  · 12 g de noix
+  méthode : Sortir les œufs durs préparés, couper les figues et mélanger les œufs, le yaourt grec, les flocons d'avoine et les figues dans un bol. Ajouter les noix.
+
+· sat/lunch — Poulet, tortilla complète, tomate, laitue, tahini et citron
+  · 2 tortilla complète
+  · 139 g de tomate
+  · 52 g de laitue
+  · 26 g de tahini
+  · 1 citron
+  · 17 g d'huile d'olive
+  méthode : Sortir une portion de poulet préparé. Mélanger le tahini, le citron et l'huile d'olive, puis garnir la tortilla de laitue, de tomate, de poulet et de sauce avant de la rouler.
+
+· sun/lunch — Poulet, pita complète, houmous, tomate et radis
+  · 2 pita complète
+  · 69 g de houmous
+  · 138 g de tomate
+  · 35 g de radis
+  · 17 g d'huile d'olive
+  méthode : Sortir une portion de poulet préparé. Ouvrir la pita, étaler le houmous, ajouter le poulet, la tomate et les radis, puis terminer avec l'huile d'olive.
+
+· sat/dinner — Saumon, couscous complet, tomate, citron et persil
+  · 196 g de couscous complet préparé
+  · 86 g de tomate
+  · 5 g d'huile d'olive
+  · 1 citron
+  · une pincée de persil
+  méthode : Sortir le saumon et le couscous préparés. Mélanger le couscous avec la tomate, le citron, le persil et l'huile d'olive, puis poser le saumon dessus.
+
+· sun/dinner — Saumon, couscous complet, poivron, épinards et feta
+  · 176 g de couscous complet préparé
+  · 96 g de poivron
+  · 48 g d'épinards
+  · 29 g de feta
+  · 29 g
+  · 5 g d'huile d'olive
+  méthode : Sortir le saumon et le couscous préparés. Mélanger le couscous avec le poivron, les épinards, le citron et l'huile d'olive, puis ajouter le saumon et la feta.
+
+· mon/lunch — Bœuf, tortilla complète, tomate, laitue, yaourt et citron
+  · 2 tortilla complète
+  · 83 g de yaourt grec nature
+  · 133 g de tomate
+  · 50 g de laitue
+  · 1 citron
+  · 25 g d'huile d'olive
+  méthode : Sortir une portion de bœuf préparé. Mélanger le yaourt grec, le citron et l'huile d'olive, puis garnir la tortilla de laitue, de tomate, de bœuf et de sauce.
+
+· mon/dinner — Bœuf, pita, tahini, poivron, oignon et citron
+  · 2 pita complète
+  · 32 g de tahini
+  · 128 g de poivron
+  · 80 g d'oignon
+  · 1 citron
+  méthode : Sortir une portion de bœuf préparé. Mélanger le tahini avec le citron, puis garnir la pita de bœuf, de poivron, d'oignon et de sauce.
+
+⛔ AUCUNE DE CES RECETTES N'A ÉTÉ CUISINÉE NI GOÛTÉE. Ce fichier imprime des grammes et des rapports ; la faisabilité se LIT, la saveur se GOÛTE, et la dégustation reste à faire par un humain.

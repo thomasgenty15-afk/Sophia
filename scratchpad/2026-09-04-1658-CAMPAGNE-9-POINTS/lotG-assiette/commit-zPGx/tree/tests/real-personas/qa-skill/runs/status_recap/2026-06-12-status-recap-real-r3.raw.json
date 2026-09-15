@@ -1,0 +1,3772 @@
+{
+  "run_id": "status-recap-real-r3",
+  "date": "2026-06-12",
+  "persona": "qa-skill",
+  "connection_name": "status_recap_status_recap_20260612_r2",
+  "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+  "email": "qa-qa-skill-status-recap-status-recap-20260612-r2@example.com",
+  "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+  "endpoint": "/functions/v1/test-send-message",
+  "force_full_ai": true,
+  "auth": {
+    "method": "refresh_token_to_access_token",
+    "token_verified": true,
+    "jwt_redacted": true
+  },
+  "seed": {
+    "checkins": [
+      {
+        "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+        "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+        "event_context": "one_shot_reminder:2026-06-12-status-recap-real-r3:pending",
+        "draft_message": null,
+        "scheduled_for": "2026-06-13T07:30:00+00:00",
+        "status": "pending",
+        "created_at": "2026-06-12T13:38:57.086871+00:00",
+        "processed_at": null,
+        "message_mode": "static",
+        "message_payload": {
+          "source": "2026-06-12-status-recap-real-r3",
+          "reminder_instruction": "relire le dossier budget"
+        },
+        "origin": "unknown",
+        "delivery_attempt_count": 0,
+        "delivery_last_error": null,
+        "delivery_last_error_at": null,
+        "delivery_last_request_id": null,
+        "recurring_reminder_id": null
+      },
+      {
+        "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+        "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+        "event_context": "one_shot_reminder:2026-06-12-status-recap-real-r3:cancelled",
+        "draft_message": null,
+        "scheduled_for": "2026-06-11T15:00:00+00:00",
+        "status": "cancelled",
+        "created_at": "2026-06-12T13:38:57.086871+00:00",
+        "processed_at": null,
+        "message_mode": "static",
+        "message_payload": {
+          "source": "2026-06-12-status-recap-real-r3",
+          "reminder_instruction": "ancien rappel annulé de devis"
+        },
+        "origin": "unknown",
+        "delivery_attempt_count": 0,
+        "delivery_last_error": null,
+        "delivery_last_error_at": null,
+        "delivery_last_request_id": null,
+        "recurring_reminder_id": null
+      }
+    ],
+    "recurring": [
+      {
+        "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+        "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+        "message_instruction": "faire le point hebdo",
+        "rationale": null,
+        "local_time_hhmm": "08:45",
+        "scheduled_days": [
+          "mon"
+        ],
+        "status": "active",
+        "deactivated_at": null,
+        "last_drafted_at": null,
+        "last_draft_message": null,
+        "created_at": "2026-06-12T08:00:00+00:00",
+        "updated_at": "2026-06-12T08:00:00+00:00",
+        "unanswered_probe_count": 0,
+        "probe_last_sent_at": null,
+        "probe_paused_at": null,
+        "personalization_level": 1,
+        "context_policy": {},
+        "classification_reason": null,
+        "last_classified_at": null,
+        "cycle_id": null,
+        "transformation_id": null,
+        "scope_kind": "out_of_plan",
+        "initiative_kind": "base_free",
+        "source_kind": "user_created",
+        "source_potion_session_id": null,
+        "starts_at": null,
+        "ends_at": null,
+        "ended_reason": null,
+        "archived_at": null,
+        "initiative_metadata": {},
+        "target_kind": "none",
+        "target_plan_item_id": null,
+        "target_action_family_key": null,
+        "target_generated_temp_id": null,
+        "target_binding_policy": "none",
+        "target_lifecycle_policy": "independent"
+      }
+    ],
+    "prefs": [
+      {
+        "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+        "scope": "global",
+        "key": "coach.tone",
+        "value": {
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 0.98,
+        "source_type": "explicit_user",
+        "last_source_message_id": null,
+        "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+        "created_at": "2026-06-12T08:00:00+00:00",
+        "updated_at": "2026-06-12T08:00:00+00:00",
+        "last_confirmed_at": null,
+        "version": 1,
+        "previous_values": []
+      }
+    ]
+  },
+  "before_rows": {
+    "scheduled_checkins": [
+      {
+        "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+        "event_context": "one_shot_reminder:2026-06-12-status-recap-real-r3:cancelled",
+        "scheduled_for": "2026-06-11T15:00:00+00:00",
+        "status": "cancelled",
+        "message_payload": {
+          "source": "2026-06-12-status-recap-real-r3",
+          "reminder_instruction": "ancien rappel annulé de devis"
+        }
+      },
+      {
+        "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+        "event_context": "one_shot_reminder:2026-06-12-status-recap-real-r3:pending",
+        "scheduled_for": "2026-06-13T07:30:00+00:00",
+        "status": "pending",
+        "message_payload": {
+          "source": "2026-06-12-status-recap-real-r3",
+          "reminder_instruction": "relire le dossier budget"
+        }
+      }
+    ],
+    "recurring": [
+      {
+        "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+        "status": "active",
+        "message_instruction": "faire le point hebdo",
+        "local_time_hhmm": "08:45",
+        "scheduled_days": [
+          "mon"
+        ],
+        "updated_at": "2026-06-12T08:00:00+00:00"
+      },
+      {
+        "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+        "status": "active",
+        "message_instruction": "faire le point hebdo",
+        "local_time_hhmm": "08:45",
+        "scheduled_days": [
+          "mon"
+        ],
+        "updated_at": "2026-06-12T08:00:00+00:00"
+      }
+    ],
+    "coach_preferences": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+        "updated_at": "2026-06-12T08:00:00+00:00"
+      }
+    ],
+    "chat_state": [
+      {
+        "temp_memory": {},
+        "current_mode": "companion",
+        "risk_level": 0
+      },
+      {
+        "temp_memory": {},
+        "current_mode": "companion",
+        "risk_level": 0
+      }
+    ]
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-2026-06-12-status-recap-real-r3-t01",
+      "user": "Peux-tu me faire un point factuel sur ce qui existe vraiment dans mon espace, sans rien modifier ?",
+      "assistant": "Voici un point factuel sur ton espace :\n\nFait : Ton coach est configuré sur un ton chaleureux et direct.\nPrévu : Rappel budget le 13/06 et point hebdo chaque lundi à 08:45.\nFragile : Le rappel pour le devis est marqué comme annulé.\n\nTu as un rappel pour \"relire le dossier budget\" prévu le 13 juin à 09:30. Tes deux rappels récurrents \"faire le point hebdo\" sont actifs pour les lundis matin. Aucune carte d'attaque ou de défense n'est présente.",
+      "http_status": 200,
+      "ok": true,
+      "raw_body": {
+        "ok": true,
+        "request_id": "qa-2026-06-12-status-recap-real-r3-t01",
+        "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+        "channel": "web",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Voici un point factuel sur ton espace :\n\nFait : Ton coach est configuré sur un ton chaleureux et direct.\nPrévu : Rappel budget le 13/06 et point hebdo chaque lundi à 08:45.\nFragile : Le rappel pour le devis est marqué comme annulé.\n\nTu as un rappel pour \"relire le dossier budget\" prévu le 13 juin à 09:30. Tes deux rappels récurrents \"faire le point hebdo\" sont actifs pour les lundis matin. Aucune carte d'attaque ou de défense n'est présente.",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-2026-06-12-status-recap-real-r3-t01",
+              "source_message_id": "65ff619f-b84c-4ed9-90a0-a1af631ca611",
+              "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "flow_opportunity": null,
+              "note_information": {
+                "source_flow_id": "global_dispatcher",
+                "handoff_reason": "explicit_user_request",
+                "target_dispatcher": "status_recap",
+                "handoff_context_for_next_dispatcher": "User explicitly requests a factual status report of their real space (cards, reminders, preferences) without making any changes. This is a read-only request for the current state of the user's database.",
+                "user_words": [
+                  "point factuel",
+                  "ce qui existe vraiment",
+                  "sans rien modifier"
+                ],
+                "structured_context": {
+                  "primary_signal_path": "skill_signals.entry.status_recap",
+                  "target_kind": "skill",
+                  "target_flow": "status_recap",
+                  "confidence_band": "high",
+                  "evidence": [
+                    "Peux-tu me faire un point factuel",
+                    "ce qui existe vraiment dans mon espace",
+                    "sans rien modifier"
+                  ],
+                  "recommended_next_focus": "Run the status_recap local dispatcher to provide a grounded summary of active items."
+                },
+                "confidence": "high"
+              },
+              "skill_signals": {
+                "entry": {
+                  "status_recap": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "user_requests_factual_status_of_real_user_space"
+                  }
+                },
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "runtime_snapshot",
+                    "key": "daily_conversation_pulse:current_week",
+                    "query_hint": "recent status and confirmations",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first",
+                    "priority": "medium",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.7
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "skill_entry_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "selected_handler": "status_recap",
+              "active_flow_debug": {
+                "version": "active_flow_debug_v1",
+                "snapshots": [
+                  {
+                    "phase": "user_state_loaded",
+                    "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 0,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_onboarding_and_reconcile",
+                    "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "read_active_flow_state",
+                    "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_pending_confirmation_reload",
+                    "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "before_run_conversation_routers",
+                    "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_run_conversation_routers",
+                    "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": "skill_entry_signal",
+                    "route_active_flow_reason_code": "no_active_flow"
+                  }
+                ]
+              }
+            },
+            "tool_skill_run": {
+              "selected_handler": "status_recap",
+              "reason_code": "status_recap_local_answer_status",
+              "status": "answered",
+              "flow_action": "answer_status",
+              "projection_used": true,
+              "intent": "durable_status",
+              "target_objects": [
+                "unknown"
+              ],
+              "visible_task": {
+                "kind": "status_compact",
+                "conversation_context": {
+                  "kind": "status_recap_conversation_context",
+                  "stage": "status_compact",
+                  "user_words": [
+                    "Peux-tu me faire un point factuel sur ce qui existe vraiment dans mon espace, sans rien modifier ?"
+                  ],
+                  "context_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+                  "visible_instruction": "Fournir un récapitulatif factuel et global basé sur les éléments actifs présents dans filtered_facts (rappels, préférences, etc.).",
+                  "status_intent_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+                  "projection_summary": {
+                    "attack_card_count": 0,
+                    "defense_card_count": 0,
+                    "one_shot_pending_count": 1,
+                    "one_shot_cancelled_recent_count": 1,
+                    "recurring_reminder_count": 2,
+                    "potion_session_count": 0,
+                    "coach_preference_count": 1,
+                    "recent_effect_history_count": 0
+                  },
+                  "requested_categories": [
+                    "all"
+                  ],
+                  "target_objects": [
+                    "unknown"
+                  ],
+                  "include_cancelled": false,
+                  "include_recent_failed_or_blocked_effects": false,
+                  "format": "compact",
+                  "filtered_facts": {
+                    "attack_cards": [],
+                    "defense_cards": [],
+                    "one_shot_reminders": {
+                      "pending": [
+                        {
+                          "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                          "scheduled_for": "2026-06-13T07:30:00+00:00",
+                          "local_time": "09:30",
+                          "instruction": "relire le dossier budget"
+                        }
+                      ],
+                      "cancelled_recent": [
+                        {
+                          "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                          "scheduled_for": "2026-06-11T15:00:00+00:00",
+                          "local_time": "17:00",
+                          "instruction": "ancien rappel annulé de devis",
+                          "updated_at": null
+                        }
+                      ]
+                    },
+                    "recurring_reminders": [
+                      {
+                        "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                        "status": "active",
+                        "cadence_label": "mon à 08:45",
+                        "instruction": "faire le point hebdo"
+                      },
+                      {
+                        "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                        "status": "active",
+                        "cadence_label": "mon à 08:45",
+                        "instruction": "faire le point hebdo"
+                      }
+                    ],
+                    "potion_sessions": [],
+                    "coach_preferences": [
+                      {
+                        "key": "coach.tone",
+                        "value": {
+                          "value": "warm_direct"
+                        },
+                        "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                        "source_type": "explicit_user",
+                        "updated_at": "2026-06-12T08:00:00+00:00"
+                      }
+                    ],
+                    "recent_effect_history": []
+                  },
+                  "previous_answer_summary": null,
+                  "handoff_data": {
+                    "inbound_note_summary": "User explicitly requests a factual status report of their real space (cards, reminders, preferences) without making any changes. This is a read-only request for the current state of the user's database.",
+                    "inbound_source_flow_id": "global_dispatcher",
+                    "inbound_handoff_reason": "explicit_user_request"
+                  },
+                  "constraints": {
+                    "read_only": true,
+                    "no_chat_mutation": true,
+                    "no_tool_execution": true,
+                    "no_product_how_to": true,
+                    "no_claim_without_filtered_fact": true,
+                    "micro_memory_raw_available_to_visible_agent": false
+                  }
+                }
+              },
+              "visible_task_kind": "status_compact",
+              "visible_prompt_id": "status_recap.visible.status_compact",
+              "conversation_context": {
+                "kind": "status_recap_conversation_context",
+                "stage": "status_compact",
+                "user_words": [
+                  "Peux-tu me faire un point factuel sur ce qui existe vraiment dans mon espace, sans rien modifier ?"
+                ],
+                "context_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+                "visible_instruction": "Fournir un récapitulatif factuel et global basé sur les éléments actifs présents dans filtered_facts (rappels, préférences, etc.).",
+                "status_intent_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+                "projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 1,
+                  "one_shot_cancelled_recent_count": 1,
+                  "recurring_reminder_count": 2,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 1,
+                  "recent_effect_history_count": 0
+                },
+                "requested_categories": [
+                  "all"
+                ],
+                "target_objects": [
+                  "unknown"
+                ],
+                "include_cancelled": false,
+                "include_recent_failed_or_blocked_effects": false,
+                "format": "compact",
+                "filtered_facts": {
+                  "attack_cards": [],
+                  "defense_cards": [],
+                  "one_shot_reminders": {
+                    "pending": [
+                      {
+                        "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                        "scheduled_for": "2026-06-13T07:30:00+00:00",
+                        "local_time": "09:30",
+                        "instruction": "relire le dossier budget"
+                      }
+                    ],
+                    "cancelled_recent": [
+                      {
+                        "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                        "scheduled_for": "2026-06-11T15:00:00+00:00",
+                        "local_time": "17:00",
+                        "instruction": "ancien rappel annulé de devis",
+                        "updated_at": null
+                      }
+                    ]
+                  },
+                  "recurring_reminders": [
+                    {
+                      "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    },
+                    {
+                      "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    }
+                  ],
+                  "potion_sessions": [],
+                  "coach_preferences": [
+                    {
+                      "key": "coach.tone",
+                      "value": {
+                        "value": "warm_direct"
+                      },
+                      "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                      "source_type": "explicit_user",
+                      "updated_at": "2026-06-12T08:00:00+00:00"
+                    }
+                  ],
+                  "recent_effect_history": []
+                },
+                "previous_answer_summary": null,
+                "handoff_data": {
+                  "inbound_note_summary": "User explicitly requests a factual status report of their real space (cards, reminders, preferences) without making any changes. This is a read-only request for the current state of the user's database.",
+                  "inbound_source_flow_id": "global_dispatcher",
+                  "inbound_handoff_reason": "explicit_user_request"
+                },
+                "constraints": {
+                  "read_only": true,
+                  "no_chat_mutation": true,
+                  "no_tool_execution": true,
+                  "no_product_how_to": true,
+                  "no_claim_without_filtered_fact": true,
+                  "micro_memory_raw_available_to_visible_agent": false
+                }
+              },
+              "note_information_inbound": {
+                "source_flow_id": "global_dispatcher",
+                "handoff_reason": "explicit_user_request",
+                "target_dispatcher": "status_recap",
+                "handoff_context_for_next_dispatcher": "User explicitly requests a factual status report of their real space (cards, reminders, preferences) without making any changes. This is a read-only request for the current state of the user's database.",
+                "user_words": [
+                  "point factuel",
+                  "ce qui existe vraiment",
+                  "sans rien modifier"
+                ],
+                "structured_context": {
+                  "primary_signal_path": "skill_signals.entry.status_recap",
+                  "target_kind": "skill",
+                  "target_flow": "status_recap",
+                  "confidence_band": "high",
+                  "evidence": [
+                    "Peux-tu me faire un point factuel",
+                    "ce qui existe vraiment dans mon espace",
+                    "sans rien modifier"
+                  ],
+                  "recommended_next_focus": "Run the status_recap local dispatcher to provide a grounded summary of active items."
+                },
+                "confidence": "high"
+              },
+              "operation_suggestions": [],
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "attack_card_found": false,
+              "defense_card_found": false,
+              "reminder_found": true,
+              "coach_preference_found": true,
+              "recent_effect_history_count": 0,
+              "projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 1,
+                "one_shot_cancelled_recent_count": 1,
+                "recurring_reminder_count": 2,
+                "potion_session_count": 0,
+                "coach_preference_count": 1,
+                "recent_effect_history_count": 0
+              },
+              "local_flow_state": {
+                "skill_id": "status_recap",
+                "mode": "local_readonly_flow",
+                "status": "active",
+                "last_intent": "durable_status",
+                "last_target_objects": [
+                  "unknown"
+                ],
+                "last_projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 1,
+                  "one_shot_cancelled_recent_count": 1,
+                  "recurring_reminder_count": 2,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 1,
+                  "recent_effect_history_count": 0
+                },
+                "last_answer_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+                "turn_count": 1,
+                "max_turns": 3,
+                "created_at": "2026-06-12T13:39:04.981Z",
+                "updated_at": "2026-06-12T13:39:04.981Z"
+              },
+              "evidence": [
+                "point factuel sur ce qui existe vraiment",
+                "sans rien modifier"
+              ],
+              "toolExecution": "none",
+              "executedTools": []
+            },
+            "effect_ledger": {
+              "turn_id": "qa-2026-06-12-status-recap-real-r3-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-2026-06-12-status-recap-real-r3-t01",
+            "source_message_id": "65ff619f-b84c-4ed9-90a0-a1af631ca611",
+            "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "status_recap",
+              "handoff_context_for_next_dispatcher": "User explicitly requests a factual status report of their real space (cards, reminders, preferences) without making any changes. This is a read-only request for the current state of the user's database.",
+              "user_words": [
+                "point factuel",
+                "ce qui existe vraiment",
+                "sans rien modifier"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.status_recap",
+                "target_kind": "skill",
+                "target_flow": "status_recap",
+                "confidence_band": "high",
+                "evidence": [
+                  "Peux-tu me faire un point factuel",
+                  "ce qui existe vraiment dans mon espace",
+                  "sans rien modifier"
+                ],
+                "recommended_next_focus": "Run the status_recap local dispatcher to provide a grounded summary of active items."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {
+                "status_recap": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_requests_factual_status_of_real_user_space"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "runtime_snapshot",
+                  "key": "daily_conversation_pulse:current_week",
+                  "query_hint": "recent status and confirmations",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "status_recap",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "skill_entry_signal",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "tool_skill_run": {
+            "selected_handler": "status_recap",
+            "reason_code": "status_recap_local_answer_status",
+            "status": "answered",
+            "flow_action": "answer_status",
+            "projection_used": true,
+            "intent": "durable_status",
+            "target_objects": [
+              "unknown"
+            ],
+            "visible_task": {
+              "kind": "status_compact",
+              "conversation_context": {
+                "kind": "status_recap_conversation_context",
+                "stage": "status_compact",
+                "user_words": [
+                  "Peux-tu me faire un point factuel sur ce qui existe vraiment dans mon espace, sans rien modifier ?"
+                ],
+                "context_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+                "visible_instruction": "Fournir un récapitulatif factuel et global basé sur les éléments actifs présents dans filtered_facts (rappels, préférences, etc.).",
+                "status_intent_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+                "projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 1,
+                  "one_shot_cancelled_recent_count": 1,
+                  "recurring_reminder_count": 2,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 1,
+                  "recent_effect_history_count": 0
+                },
+                "requested_categories": [
+                  "all"
+                ],
+                "target_objects": [
+                  "unknown"
+                ],
+                "include_cancelled": false,
+                "include_recent_failed_or_blocked_effects": false,
+                "format": "compact",
+                "filtered_facts": {
+                  "attack_cards": [],
+                  "defense_cards": [],
+                  "one_shot_reminders": {
+                    "pending": [
+                      {
+                        "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                        "scheduled_for": "2026-06-13T07:30:00+00:00",
+                        "local_time": "09:30",
+                        "instruction": "relire le dossier budget"
+                      }
+                    ],
+                    "cancelled_recent": [
+                      {
+                        "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                        "scheduled_for": "2026-06-11T15:00:00+00:00",
+                        "local_time": "17:00",
+                        "instruction": "ancien rappel annulé de devis",
+                        "updated_at": null
+                      }
+                    ]
+                  },
+                  "recurring_reminders": [
+                    {
+                      "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    },
+                    {
+                      "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    }
+                  ],
+                  "potion_sessions": [],
+                  "coach_preferences": [
+                    {
+                      "key": "coach.tone",
+                      "value": {
+                        "value": "warm_direct"
+                      },
+                      "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                      "source_type": "explicit_user",
+                      "updated_at": "2026-06-12T08:00:00+00:00"
+                    }
+                  ],
+                  "recent_effect_history": []
+                },
+                "previous_answer_summary": null,
+                "handoff_data": {
+                  "inbound_note_summary": "User explicitly requests a factual status report of their real space (cards, reminders, preferences) without making any changes. This is a read-only request for the current state of the user's database.",
+                  "inbound_source_flow_id": "global_dispatcher",
+                  "inbound_handoff_reason": "explicit_user_request"
+                },
+                "constraints": {
+                  "read_only": true,
+                  "no_chat_mutation": true,
+                  "no_tool_execution": true,
+                  "no_product_how_to": true,
+                  "no_claim_without_filtered_fact": true,
+                  "micro_memory_raw_available_to_visible_agent": false
+                }
+              }
+            },
+            "visible_task_kind": "status_compact",
+            "visible_prompt_id": "status_recap.visible.status_compact",
+            "conversation_context": {
+              "kind": "status_recap_conversation_context",
+              "stage": "status_compact",
+              "user_words": [
+                "Peux-tu me faire un point factuel sur ce qui existe vraiment dans mon espace, sans rien modifier ?"
+              ],
+              "context_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+              "visible_instruction": "Fournir un récapitulatif factuel et global basé sur les éléments actifs présents dans filtered_facts (rappels, préférences, etc.).",
+              "status_intent_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+              "projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 1,
+                "one_shot_cancelled_recent_count": 1,
+                "recurring_reminder_count": 2,
+                "potion_session_count": 0,
+                "coach_preference_count": 1,
+                "recent_effect_history_count": 0
+              },
+              "requested_categories": [
+                "all"
+              ],
+              "target_objects": [
+                "unknown"
+              ],
+              "include_cancelled": false,
+              "include_recent_failed_or_blocked_effects": false,
+              "format": "compact",
+              "filtered_facts": {
+                "attack_cards": [],
+                "defense_cards": [],
+                "one_shot_reminders": {
+                  "pending": [
+                    {
+                      "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                      "scheduled_for": "2026-06-13T07:30:00+00:00",
+                      "local_time": "09:30",
+                      "instruction": "relire le dossier budget"
+                    }
+                  ],
+                  "cancelled_recent": [
+                    {
+                      "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                      "scheduled_for": "2026-06-11T15:00:00+00:00",
+                      "local_time": "17:00",
+                      "instruction": "ancien rappel annulé de devis",
+                      "updated_at": null
+                    }
+                  ]
+                },
+                "recurring_reminders": [
+                  {
+                    "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                    "status": "active",
+                    "cadence_label": "mon à 08:45",
+                    "instruction": "faire le point hebdo"
+                  },
+                  {
+                    "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                    "status": "active",
+                    "cadence_label": "mon à 08:45",
+                    "instruction": "faire le point hebdo"
+                  }
+                ],
+                "potion_sessions": [],
+                "coach_preferences": [
+                  {
+                    "key": "coach.tone",
+                    "value": {
+                      "value": "warm_direct"
+                    },
+                    "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                    "source_type": "explicit_user",
+                    "updated_at": "2026-06-12T08:00:00+00:00"
+                  }
+                ],
+                "recent_effect_history": []
+              },
+              "previous_answer_summary": null,
+              "handoff_data": {
+                "inbound_note_summary": "User explicitly requests a factual status report of their real space (cards, reminders, preferences) without making any changes. This is a read-only request for the current state of the user's database.",
+                "inbound_source_flow_id": "global_dispatcher",
+                "inbound_handoff_reason": "explicit_user_request"
+              },
+              "constraints": {
+                "read_only": true,
+                "no_chat_mutation": true,
+                "no_tool_execution": true,
+                "no_product_how_to": true,
+                "no_claim_without_filtered_fact": true,
+                "micro_memory_raw_available_to_visible_agent": false
+              }
+            },
+            "note_information_inbound": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "status_recap",
+              "handoff_context_for_next_dispatcher": "User explicitly requests a factual status report of their real space (cards, reminders, preferences) without making any changes. This is a read-only request for the current state of the user's database.",
+              "user_words": [
+                "point factuel",
+                "ce qui existe vraiment",
+                "sans rien modifier"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.status_recap",
+                "target_kind": "skill",
+                "target_flow": "status_recap",
+                "confidence_band": "high",
+                "evidence": [
+                  "Peux-tu me faire un point factuel",
+                  "ce qui existe vraiment dans mon espace",
+                  "sans rien modifier"
+                ],
+                "recommended_next_focus": "Run the status_recap local dispatcher to provide a grounded summary of active items."
+              },
+              "confidence": "high"
+            },
+            "operation_suggestions": [],
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "attack_card_found": false,
+            "defense_card_found": false,
+            "reminder_found": true,
+            "coach_preference_found": true,
+            "recent_effect_history_count": 0,
+            "projection_summary": {
+              "attack_card_count": 0,
+              "defense_card_count": 0,
+              "one_shot_pending_count": 1,
+              "one_shot_cancelled_recent_count": 1,
+              "recurring_reminder_count": 2,
+              "potion_session_count": 0,
+              "coach_preference_count": 1,
+              "recent_effect_history_count": 0
+            },
+            "local_flow_state": {
+              "skill_id": "status_recap",
+              "mode": "local_readonly_flow",
+              "status": "active",
+              "last_intent": "durable_status",
+              "last_target_objects": [
+                "unknown"
+              ],
+              "last_projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 1,
+                "one_shot_cancelled_recent_count": 1,
+                "recurring_reminder_count": 2,
+                "potion_session_count": 0,
+                "coach_preference_count": 1,
+                "recent_effect_history_count": 0
+              },
+              "last_answer_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+              "turn_count": 1,
+              "max_turns": 3,
+              "created_at": "2026-06-12T13:39:04.981Z",
+              "updated_at": "2026-06-12T13:39:04.981Z"
+            },
+            "evidence": [
+              "point factuel sur ce qui existe vraiment",
+              "sans rien modifier"
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "qa-2026-06-12-status-recap-real-r3-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      },
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "status_recap",
+        "route_reason": "skill_entry_signal",
+        "blocked_paths": [],
+        "safety": {
+          "risk_band": "low",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "direct_effects": [],
+        "operation": "status_recap",
+        "pending_confirmation": null,
+        "memory_plan": null,
+        "executed_tools": [],
+        "durable_effect": null,
+        "flow_action": "answer_status",
+        "visible_task": "status_compact",
+        "reason_code": "status_recap_local_answer_status",
+        "projection_summary": {
+          "attack_card_count": 0,
+          "defense_card_count": 0,
+          "one_shot_pending_count": 1,
+          "one_shot_cancelled_recent_count": 1,
+          "recurring_reminder_count": 2,
+          "potion_session_count": 0,
+          "coach_preference_count": 1,
+          "recent_effect_history_count": 0
+        }
+      }
+    },
+    {
+      "turn": 2,
+      "request_id": "qa-2026-06-12-status-recap-real-r3-t02",
+      "user": "Oui, fais-le maintenant, uniquement factuel et sans rien modifier.",
+      "assistant": "Voici le récapitulatif de ton espace :\n\nFait : Ton ton est réglé sur chaleureux et direct.\nPrévu : Un rappel pour le dossier budget le 13/06 et tes points hebdo du lundi.\nFragile : Rien à signaler, un ancien rappel de devis a été annulé.",
+      "http_status": 200,
+      "ok": true,
+      "raw_body": {
+        "ok": true,
+        "request_id": "qa-2026-06-12-status-recap-real-r3-t02",
+        "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+        "channel": "web",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Voici le récapitulatif de ton espace :\n\nFait : Ton ton est réglé sur chaleureux et direct.\nPrévu : Un rappel pour le dossier budget le 13/06 et tes points hebdo du lundi.\nFragile : Rien à signaler, un ancien rappel de devis a été annulé.",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-2026-06-12-status-recap-real-r3-t02",
+              "source_message_id": "f94904b1-675b-4178-a7f9-941d9d904e0c",
+              "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {
+                "lifecycle": {
+                  "status_recap": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "active_status_recap_continue"
+                  }
+                }
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "status_recap",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_status_recap_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_status_recap_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "status_recap",
+              "reason_code": "status_recap_local_answer_status",
+              "status": "answered",
+              "flow_action": "answer_status",
+              "projection_used": true,
+              "intent": "durable_status",
+              "target_objects": [
+                "unknown"
+              ],
+              "visible_task": {
+                "kind": "status_compact",
+                "conversation_context": {
+                  "kind": "status_recap_conversation_context",
+                  "stage": "status_compact",
+                  "user_words": [
+                    "Oui, fais-le maintenant, uniquement factuel et sans rien modifier."
+                  ],
+                  "context_summary": "Le user confirme vouloir un point factuel global sans modification.",
+                  "visible_instruction": "Fournir un récapitulatif factuel global de l'espace (rappels, préférences, cartes) basé sur filtered_facts.",
+                  "status_intent_summary": "Le user confirme vouloir un point factuel global sans modification.",
+                  "projection_summary": {
+                    "attack_card_count": 0,
+                    "defense_card_count": 0,
+                    "one_shot_pending_count": 1,
+                    "one_shot_cancelled_recent_count": 1,
+                    "recurring_reminder_count": 2,
+                    "potion_session_count": 0,
+                    "coach_preference_count": 1,
+                    "recent_effect_history_count": 0
+                  },
+                  "requested_categories": [
+                    "all"
+                  ],
+                  "target_objects": [
+                    "unknown"
+                  ],
+                  "include_cancelled": false,
+                  "include_recent_failed_or_blocked_effects": false,
+                  "format": "compact",
+                  "filtered_facts": {
+                    "attack_cards": [],
+                    "defense_cards": [],
+                    "one_shot_reminders": {
+                      "pending": [
+                        {
+                          "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                          "scheduled_for": "2026-06-13T07:30:00+00:00",
+                          "local_time": "09:30",
+                          "instruction": "relire le dossier budget"
+                        }
+                      ],
+                      "cancelled_recent": [
+                        {
+                          "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                          "scheduled_for": "2026-06-11T15:00:00+00:00",
+                          "local_time": "17:00",
+                          "instruction": "ancien rappel annulé de devis",
+                          "updated_at": null
+                        }
+                      ]
+                    },
+                    "recurring_reminders": [
+                      {
+                        "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                        "status": "active",
+                        "cadence_label": "mon à 08:45",
+                        "instruction": "faire le point hebdo"
+                      },
+                      {
+                        "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                        "status": "active",
+                        "cadence_label": "mon à 08:45",
+                        "instruction": "faire le point hebdo"
+                      }
+                    ],
+                    "potion_sessions": [],
+                    "coach_preferences": [
+                      {
+                        "key": "coach.tone",
+                        "value": {
+                          "value": "warm_direct"
+                        },
+                        "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                        "source_type": "explicit_user",
+                        "updated_at": "2026-06-12T08:00:00+00:00"
+                      }
+                    ],
+                    "recent_effect_history": []
+                  },
+                  "previous_answer_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+                  "handoff_data": {
+                    "inbound_note_summary": null,
+                    "inbound_source_flow_id": null,
+                    "inbound_handoff_reason": null
+                  },
+                  "constraints": {
+                    "read_only": true,
+                    "no_chat_mutation": true,
+                    "no_tool_execution": true,
+                    "no_product_how_to": true,
+                    "no_claim_without_filtered_fact": true,
+                    "micro_memory_raw_available_to_visible_agent": false
+                  }
+                }
+              },
+              "visible_task_kind": "status_compact",
+              "visible_prompt_id": "status_recap.visible.status_compact",
+              "conversation_context": {
+                "kind": "status_recap_conversation_context",
+                "stage": "status_compact",
+                "user_words": [
+                  "Oui, fais-le maintenant, uniquement factuel et sans rien modifier."
+                ],
+                "context_summary": "Le user confirme vouloir un point factuel global sans modification.",
+                "visible_instruction": "Fournir un récapitulatif factuel global de l'espace (rappels, préférences, cartes) basé sur filtered_facts.",
+                "status_intent_summary": "Le user confirme vouloir un point factuel global sans modification.",
+                "projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 1,
+                  "one_shot_cancelled_recent_count": 1,
+                  "recurring_reminder_count": 2,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 1,
+                  "recent_effect_history_count": 0
+                },
+                "requested_categories": [
+                  "all"
+                ],
+                "target_objects": [
+                  "unknown"
+                ],
+                "include_cancelled": false,
+                "include_recent_failed_or_blocked_effects": false,
+                "format": "compact",
+                "filtered_facts": {
+                  "attack_cards": [],
+                  "defense_cards": [],
+                  "one_shot_reminders": {
+                    "pending": [
+                      {
+                        "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                        "scheduled_for": "2026-06-13T07:30:00+00:00",
+                        "local_time": "09:30",
+                        "instruction": "relire le dossier budget"
+                      }
+                    ],
+                    "cancelled_recent": [
+                      {
+                        "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                        "scheduled_for": "2026-06-11T15:00:00+00:00",
+                        "local_time": "17:00",
+                        "instruction": "ancien rappel annulé de devis",
+                        "updated_at": null
+                      }
+                    ]
+                  },
+                  "recurring_reminders": [
+                    {
+                      "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    },
+                    {
+                      "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    }
+                  ],
+                  "potion_sessions": [],
+                  "coach_preferences": [
+                    {
+                      "key": "coach.tone",
+                      "value": {
+                        "value": "warm_direct"
+                      },
+                      "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                      "source_type": "explicit_user",
+                      "updated_at": "2026-06-12T08:00:00+00:00"
+                    }
+                  ],
+                  "recent_effect_history": []
+                },
+                "previous_answer_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+                "handoff_data": {
+                  "inbound_note_summary": null,
+                  "inbound_source_flow_id": null,
+                  "inbound_handoff_reason": null
+                },
+                "constraints": {
+                  "read_only": true,
+                  "no_chat_mutation": true,
+                  "no_tool_execution": true,
+                  "no_product_how_to": true,
+                  "no_claim_without_filtered_fact": true,
+                  "micro_memory_raw_available_to_visible_agent": false
+                }
+              },
+              "note_information_inbound": null,
+              "operation_suggestions": [],
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "attack_card_found": false,
+              "defense_card_found": false,
+              "reminder_found": true,
+              "coach_preference_found": true,
+              "recent_effect_history_count": 0,
+              "projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 1,
+                "one_shot_cancelled_recent_count": 1,
+                "recurring_reminder_count": 2,
+                "potion_session_count": 0,
+                "coach_preference_count": 1,
+                "recent_effect_history_count": 0
+              },
+              "local_flow_state": {
+                "skill_id": "status_recap",
+                "mode": "local_readonly_flow",
+                "status": "active",
+                "last_intent": "durable_status",
+                "last_target_objects": [
+                  "unknown"
+                ],
+                "last_projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 1,
+                  "one_shot_cancelled_recent_count": 1,
+                  "recurring_reminder_count": 2,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 1,
+                  "recent_effect_history_count": 0
+                },
+                "last_answer_summary": "Le user confirme vouloir un point factuel global sans modification.",
+                "turn_count": 2,
+                "max_turns": 3,
+                "created_at": "2026-06-12T13:39:04.981Z",
+                "updated_at": "2026-06-12T13:39:14.665Z"
+              },
+              "evidence": [
+                "Oui, fais-le maintenant, uniquement factuel et sans rien modifier."
+              ],
+              "toolExecution": "none",
+              "executedTools": []
+            },
+            "effect_ledger": {
+              "turn_id": "qa-2026-06-12-status-recap-real-r3-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-2026-06-12-status-recap-real-r3-t02",
+            "source_message_id": "f94904b1-675b-4178-a7f9-941d9d904e0c",
+            "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {
+              "lifecycle": {
+                "status_recap": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "active_status_recap_continue"
+                }
+              }
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "status_recap",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_status_recap_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_status_recap_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "status_recap",
+            "reason_code": "status_recap_local_answer_status",
+            "status": "answered",
+            "flow_action": "answer_status",
+            "projection_used": true,
+            "intent": "durable_status",
+            "target_objects": [
+              "unknown"
+            ],
+            "visible_task": {
+              "kind": "status_compact",
+              "conversation_context": {
+                "kind": "status_recap_conversation_context",
+                "stage": "status_compact",
+                "user_words": [
+                  "Oui, fais-le maintenant, uniquement factuel et sans rien modifier."
+                ],
+                "context_summary": "Le user confirme vouloir un point factuel global sans modification.",
+                "visible_instruction": "Fournir un récapitulatif factuel global de l'espace (rappels, préférences, cartes) basé sur filtered_facts.",
+                "status_intent_summary": "Le user confirme vouloir un point factuel global sans modification.",
+                "projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 1,
+                  "one_shot_cancelled_recent_count": 1,
+                  "recurring_reminder_count": 2,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 1,
+                  "recent_effect_history_count": 0
+                },
+                "requested_categories": [
+                  "all"
+                ],
+                "target_objects": [
+                  "unknown"
+                ],
+                "include_cancelled": false,
+                "include_recent_failed_or_blocked_effects": false,
+                "format": "compact",
+                "filtered_facts": {
+                  "attack_cards": [],
+                  "defense_cards": [],
+                  "one_shot_reminders": {
+                    "pending": [
+                      {
+                        "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                        "scheduled_for": "2026-06-13T07:30:00+00:00",
+                        "local_time": "09:30",
+                        "instruction": "relire le dossier budget"
+                      }
+                    ],
+                    "cancelled_recent": [
+                      {
+                        "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                        "scheduled_for": "2026-06-11T15:00:00+00:00",
+                        "local_time": "17:00",
+                        "instruction": "ancien rappel annulé de devis",
+                        "updated_at": null
+                      }
+                    ]
+                  },
+                  "recurring_reminders": [
+                    {
+                      "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    },
+                    {
+                      "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    }
+                  ],
+                  "potion_sessions": [],
+                  "coach_preferences": [
+                    {
+                      "key": "coach.tone",
+                      "value": {
+                        "value": "warm_direct"
+                      },
+                      "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                      "source_type": "explicit_user",
+                      "updated_at": "2026-06-12T08:00:00+00:00"
+                    }
+                  ],
+                  "recent_effect_history": []
+                },
+                "previous_answer_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+                "handoff_data": {
+                  "inbound_note_summary": null,
+                  "inbound_source_flow_id": null,
+                  "inbound_handoff_reason": null
+                },
+                "constraints": {
+                  "read_only": true,
+                  "no_chat_mutation": true,
+                  "no_tool_execution": true,
+                  "no_product_how_to": true,
+                  "no_claim_without_filtered_fact": true,
+                  "micro_memory_raw_available_to_visible_agent": false
+                }
+              }
+            },
+            "visible_task_kind": "status_compact",
+            "visible_prompt_id": "status_recap.visible.status_compact",
+            "conversation_context": {
+              "kind": "status_recap_conversation_context",
+              "stage": "status_compact",
+              "user_words": [
+                "Oui, fais-le maintenant, uniquement factuel et sans rien modifier."
+              ],
+              "context_summary": "Le user confirme vouloir un point factuel global sans modification.",
+              "visible_instruction": "Fournir un récapitulatif factuel global de l'espace (rappels, préférences, cartes) basé sur filtered_facts.",
+              "status_intent_summary": "Le user confirme vouloir un point factuel global sans modification.",
+              "projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 1,
+                "one_shot_cancelled_recent_count": 1,
+                "recurring_reminder_count": 2,
+                "potion_session_count": 0,
+                "coach_preference_count": 1,
+                "recent_effect_history_count": 0
+              },
+              "requested_categories": [
+                "all"
+              ],
+              "target_objects": [
+                "unknown"
+              ],
+              "include_cancelled": false,
+              "include_recent_failed_or_blocked_effects": false,
+              "format": "compact",
+              "filtered_facts": {
+                "attack_cards": [],
+                "defense_cards": [],
+                "one_shot_reminders": {
+                  "pending": [
+                    {
+                      "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                      "scheduled_for": "2026-06-13T07:30:00+00:00",
+                      "local_time": "09:30",
+                      "instruction": "relire le dossier budget"
+                    }
+                  ],
+                  "cancelled_recent": [
+                    {
+                      "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                      "scheduled_for": "2026-06-11T15:00:00+00:00",
+                      "local_time": "17:00",
+                      "instruction": "ancien rappel annulé de devis",
+                      "updated_at": null
+                    }
+                  ]
+                },
+                "recurring_reminders": [
+                  {
+                    "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                    "status": "active",
+                    "cadence_label": "mon à 08:45",
+                    "instruction": "faire le point hebdo"
+                  },
+                  {
+                    "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                    "status": "active",
+                    "cadence_label": "mon à 08:45",
+                    "instruction": "faire le point hebdo"
+                  }
+                ],
+                "potion_sessions": [],
+                "coach_preferences": [
+                  {
+                    "key": "coach.tone",
+                    "value": {
+                      "value": "warm_direct"
+                    },
+                    "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                    "source_type": "explicit_user",
+                    "updated_at": "2026-06-12T08:00:00+00:00"
+                  }
+                ],
+                "recent_effect_history": []
+              },
+              "previous_answer_summary": "Le user demande un point factuel global sur l'état de son espace (cartes, rappels, préférences) sans modification.",
+              "handoff_data": {
+                "inbound_note_summary": null,
+                "inbound_source_flow_id": null,
+                "inbound_handoff_reason": null
+              },
+              "constraints": {
+                "read_only": true,
+                "no_chat_mutation": true,
+                "no_tool_execution": true,
+                "no_product_how_to": true,
+                "no_claim_without_filtered_fact": true,
+                "micro_memory_raw_available_to_visible_agent": false
+              }
+            },
+            "note_information_inbound": null,
+            "operation_suggestions": [],
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "attack_card_found": false,
+            "defense_card_found": false,
+            "reminder_found": true,
+            "coach_preference_found": true,
+            "recent_effect_history_count": 0,
+            "projection_summary": {
+              "attack_card_count": 0,
+              "defense_card_count": 0,
+              "one_shot_pending_count": 1,
+              "one_shot_cancelled_recent_count": 1,
+              "recurring_reminder_count": 2,
+              "potion_session_count": 0,
+              "coach_preference_count": 1,
+              "recent_effect_history_count": 0
+            },
+            "local_flow_state": {
+              "skill_id": "status_recap",
+              "mode": "local_readonly_flow",
+              "status": "active",
+              "last_intent": "durable_status",
+              "last_target_objects": [
+                "unknown"
+              ],
+              "last_projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 1,
+                "one_shot_cancelled_recent_count": 1,
+                "recurring_reminder_count": 2,
+                "potion_session_count": 0,
+                "coach_preference_count": 1,
+                "recent_effect_history_count": 0
+              },
+              "last_answer_summary": "Le user confirme vouloir un point factuel global sans modification.",
+              "turn_count": 2,
+              "max_turns": 3,
+              "created_at": "2026-06-12T13:39:04.981Z",
+              "updated_at": "2026-06-12T13:39:14.665Z"
+            },
+            "evidence": [
+              "Oui, fais-le maintenant, uniquement factuel et sans rien modifier."
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "qa-2026-06-12-status-recap-real-r3-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      },
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "status_recap",
+        "route_reason": "active_status_recap_local_dispatcher",
+        "blocked_paths": [
+          {
+            "path": "global_dispatcher",
+            "reason_code": "active_status_recap_uses_local_dispatcher"
+          }
+        ],
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "direct_effects": [],
+        "operation": "status_recap",
+        "pending_confirmation": null,
+        "memory_plan": null,
+        "executed_tools": [],
+        "durable_effect": null,
+        "flow_action": "answer_status",
+        "visible_task": "status_compact",
+        "reason_code": "status_recap_local_answer_status",
+        "projection_summary": {
+          "attack_card_count": 0,
+          "defense_card_count": 0,
+          "one_shot_pending_count": 1,
+          "one_shot_cancelled_recent_count": 1,
+          "recurring_reminder_count": 2,
+          "potion_session_count": 0,
+          "coach_preference_count": 1,
+          "recent_effect_history_count": 0
+        }
+      }
+    },
+    {
+      "turn": 3,
+      "request_id": "qa-2026-06-12-status-recap-real-r3-t03",
+      "user": "Et côté rappels annulés, tu vois quelque chose ou rien du tout ?",
+      "assistant": "Oui, j'en vois un. Le rappel pour ton devis qui était prévu le 11 juin à 17:00 a bien été annulé.\n\nfait: le rappel de devis du 11 juin est annulé.\nprévu: ton rappel pour le dossier budget est maintenu.\nfragile: c'est le seul rappel annulé que j'ai trouvé.\n\nEst-ce que tu veux que je te liste tes rappels qui sont toujours actifs ?",
+      "http_status": 200,
+      "ok": true,
+      "raw_body": {
+        "ok": true,
+        "request_id": "qa-2026-06-12-status-recap-real-r3-t03",
+        "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+        "channel": "web",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, j'en vois un. Le rappel pour ton devis qui était prévu le 11 juin à 17:00 a bien été annulé.\n\nfait: le rappel de devis du 11 juin est annulé.\nprévu: ton rappel pour le dossier budget est maintenu.\nfragile: c'est le seul rappel annulé que j'ai trouvé.\n\nEst-ce que tu veux que je te liste tes rappels qui sont toujours actifs ?",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-2026-06-12-status-recap-real-r3-t03",
+              "source_message_id": "9bbf107c-b144-402f-85a1-91ffcd48a02a",
+              "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {
+                "lifecycle": {
+                  "status_recap": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "active_status_recap_continue"
+                  }
+                }
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "status_recap",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_status_recap_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_status_recap_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "status_recap",
+              "reason_code": "status_recap_local_answer_cancelled_objects",
+              "status": "answered",
+              "flow_action": "answer_cancelled_objects",
+              "projection_used": true,
+              "intent": "cancelled_objects",
+              "target_objects": [
+                "one_shot_reminder",
+                "recurring_reminder"
+              ],
+              "visible_task": {
+                "kind": "cancelled_objects",
+                "conversation_context": {
+                  "kind": "status_recap_conversation_context",
+                  "stage": "cancelled_objects",
+                  "user_words": [
+                    "Et côté rappels annulés, tu vois quelque chose ou rien du tout ?"
+                  ],
+                  "context_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+                  "visible_instruction": "Lister les rappels annulés ou supprimés présents dans filtered_facts.",
+                  "status_intent_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+                  "projection_summary": {
+                    "attack_card_count": 0,
+                    "defense_card_count": 0,
+                    "one_shot_pending_count": 1,
+                    "one_shot_cancelled_recent_count": 1,
+                    "recurring_reminder_count": 2,
+                    "potion_session_count": 0,
+                    "coach_preference_count": 1,
+                    "recent_effect_history_count": 0
+                  },
+                  "requested_categories": [
+                    "one_shot_reminders",
+                    "recurring_reminders"
+                  ],
+                  "target_objects": [
+                    "one_shot_reminder",
+                    "recurring_reminder"
+                  ],
+                  "include_cancelled": true,
+                  "include_recent_failed_or_blocked_effects": false,
+                  "format": "object_answer",
+                  "filtered_facts": {
+                    "attack_cards": [],
+                    "defense_cards": [],
+                    "one_shot_reminders": {
+                      "pending": [
+                        {
+                          "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                          "scheduled_for": "2026-06-13T07:30:00+00:00",
+                          "local_time": "09:30",
+                          "instruction": "relire le dossier budget"
+                        }
+                      ],
+                      "cancelled_recent": [
+                        {
+                          "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                          "scheduled_for": "2026-06-11T15:00:00+00:00",
+                          "local_time": "17:00",
+                          "instruction": "ancien rappel annulé de devis",
+                          "updated_at": null
+                        }
+                      ]
+                    },
+                    "recurring_reminders": [
+                      {
+                        "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                        "status": "active",
+                        "cadence_label": "mon à 08:45",
+                        "instruction": "faire le point hebdo"
+                      },
+                      {
+                        "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                        "status": "active",
+                        "cadence_label": "mon à 08:45",
+                        "instruction": "faire le point hebdo"
+                      }
+                    ],
+                    "potion_sessions": [],
+                    "coach_preferences": [
+                      {
+                        "key": "coach.tone",
+                        "value": {
+                          "value": "warm_direct"
+                        },
+                        "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                        "source_type": "explicit_user",
+                        "updated_at": "2026-06-12T08:00:00+00:00"
+                      }
+                    ],
+                    "recent_effect_history": []
+                  },
+                  "previous_answer_summary": "Le user confirme vouloir un point factuel global sans modification.",
+                  "handoff_data": {
+                    "inbound_note_summary": null,
+                    "inbound_source_flow_id": null,
+                    "inbound_handoff_reason": null
+                  },
+                  "constraints": {
+                    "read_only": true,
+                    "no_chat_mutation": true,
+                    "no_tool_execution": true,
+                    "no_product_how_to": true,
+                    "no_claim_without_filtered_fact": true,
+                    "micro_memory_raw_available_to_visible_agent": false
+                  }
+                }
+              },
+              "visible_task_kind": "cancelled_objects",
+              "visible_prompt_id": "status_recap.visible.cancelled_objects",
+              "conversation_context": {
+                "kind": "status_recap_conversation_context",
+                "stage": "cancelled_objects",
+                "user_words": [
+                  "Et côté rappels annulés, tu vois quelque chose ou rien du tout ?"
+                ],
+                "context_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+                "visible_instruction": "Lister les rappels annulés ou supprimés présents dans filtered_facts.",
+                "status_intent_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+                "projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 1,
+                  "one_shot_cancelled_recent_count": 1,
+                  "recurring_reminder_count": 2,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 1,
+                  "recent_effect_history_count": 0
+                },
+                "requested_categories": [
+                  "one_shot_reminders",
+                  "recurring_reminders"
+                ],
+                "target_objects": [
+                  "one_shot_reminder",
+                  "recurring_reminder"
+                ],
+                "include_cancelled": true,
+                "include_recent_failed_or_blocked_effects": false,
+                "format": "object_answer",
+                "filtered_facts": {
+                  "attack_cards": [],
+                  "defense_cards": [],
+                  "one_shot_reminders": {
+                    "pending": [
+                      {
+                        "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                        "scheduled_for": "2026-06-13T07:30:00+00:00",
+                        "local_time": "09:30",
+                        "instruction": "relire le dossier budget"
+                      }
+                    ],
+                    "cancelled_recent": [
+                      {
+                        "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                        "scheduled_for": "2026-06-11T15:00:00+00:00",
+                        "local_time": "17:00",
+                        "instruction": "ancien rappel annulé de devis",
+                        "updated_at": null
+                      }
+                    ]
+                  },
+                  "recurring_reminders": [
+                    {
+                      "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    },
+                    {
+                      "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    }
+                  ],
+                  "potion_sessions": [],
+                  "coach_preferences": [
+                    {
+                      "key": "coach.tone",
+                      "value": {
+                        "value": "warm_direct"
+                      },
+                      "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                      "source_type": "explicit_user",
+                      "updated_at": "2026-06-12T08:00:00+00:00"
+                    }
+                  ],
+                  "recent_effect_history": []
+                },
+                "previous_answer_summary": "Le user confirme vouloir un point factuel global sans modification.",
+                "handoff_data": {
+                  "inbound_note_summary": null,
+                  "inbound_source_flow_id": null,
+                  "inbound_handoff_reason": null
+                },
+                "constraints": {
+                  "read_only": true,
+                  "no_chat_mutation": true,
+                  "no_tool_execution": true,
+                  "no_product_how_to": true,
+                  "no_claim_without_filtered_fact": true,
+                  "micro_memory_raw_available_to_visible_agent": false
+                }
+              },
+              "note_information_inbound": null,
+              "operation_suggestions": [],
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "attack_card_found": false,
+              "defense_card_found": false,
+              "reminder_found": true,
+              "coach_preference_found": true,
+              "recent_effect_history_count": 0,
+              "projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 1,
+                "one_shot_cancelled_recent_count": 1,
+                "recurring_reminder_count": 2,
+                "potion_session_count": 0,
+                "coach_preference_count": 1,
+                "recent_effect_history_count": 0
+              },
+              "local_flow_state": {
+                "skill_id": "status_recap",
+                "mode": "local_readonly_flow",
+                "status": "active",
+                "last_intent": "cancelled_objects",
+                "last_target_objects": [
+                  "one_shot_reminder",
+                  "recurring_reminder"
+                ],
+                "last_projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 1,
+                  "one_shot_cancelled_recent_count": 1,
+                  "recurring_reminder_count": 2,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 1,
+                  "recent_effect_history_count": 0
+                },
+                "last_answer_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+                "turn_count": 3,
+                "max_turns": 3,
+                "created_at": "2026-06-12T13:39:04.981Z",
+                "updated_at": "2026-06-12T13:39:26.233Z"
+              },
+              "evidence": [
+                "côté rappels annulés",
+                "tu vois quelque chose ou rien du tout"
+              ],
+              "toolExecution": "none",
+              "executedTools": []
+            },
+            "effect_ledger": {
+              "turn_id": "qa-2026-06-12-status-recap-real-r3-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-2026-06-12-status-recap-real-r3-t03",
+            "source_message_id": "9bbf107c-b144-402f-85a1-91ffcd48a02a",
+            "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {
+              "lifecycle": {
+                "status_recap": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "active_status_recap_continue"
+                }
+              }
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "status_recap",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_status_recap_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_status_recap_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "status_recap",
+            "reason_code": "status_recap_local_answer_cancelled_objects",
+            "status": "answered",
+            "flow_action": "answer_cancelled_objects",
+            "projection_used": true,
+            "intent": "cancelled_objects",
+            "target_objects": [
+              "one_shot_reminder",
+              "recurring_reminder"
+            ],
+            "visible_task": {
+              "kind": "cancelled_objects",
+              "conversation_context": {
+                "kind": "status_recap_conversation_context",
+                "stage": "cancelled_objects",
+                "user_words": [
+                  "Et côté rappels annulés, tu vois quelque chose ou rien du tout ?"
+                ],
+                "context_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+                "visible_instruction": "Lister les rappels annulés ou supprimés présents dans filtered_facts.",
+                "status_intent_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+                "projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 1,
+                  "one_shot_cancelled_recent_count": 1,
+                  "recurring_reminder_count": 2,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 1,
+                  "recent_effect_history_count": 0
+                },
+                "requested_categories": [
+                  "one_shot_reminders",
+                  "recurring_reminders"
+                ],
+                "target_objects": [
+                  "one_shot_reminder",
+                  "recurring_reminder"
+                ],
+                "include_cancelled": true,
+                "include_recent_failed_or_blocked_effects": false,
+                "format": "object_answer",
+                "filtered_facts": {
+                  "attack_cards": [],
+                  "defense_cards": [],
+                  "one_shot_reminders": {
+                    "pending": [
+                      {
+                        "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                        "scheduled_for": "2026-06-13T07:30:00+00:00",
+                        "local_time": "09:30",
+                        "instruction": "relire le dossier budget"
+                      }
+                    ],
+                    "cancelled_recent": [
+                      {
+                        "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                        "scheduled_for": "2026-06-11T15:00:00+00:00",
+                        "local_time": "17:00",
+                        "instruction": "ancien rappel annulé de devis",
+                        "updated_at": null
+                      }
+                    ]
+                  },
+                  "recurring_reminders": [
+                    {
+                      "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    },
+                    {
+                      "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    }
+                  ],
+                  "potion_sessions": [],
+                  "coach_preferences": [
+                    {
+                      "key": "coach.tone",
+                      "value": {
+                        "value": "warm_direct"
+                      },
+                      "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                      "source_type": "explicit_user",
+                      "updated_at": "2026-06-12T08:00:00+00:00"
+                    }
+                  ],
+                  "recent_effect_history": []
+                },
+                "previous_answer_summary": "Le user confirme vouloir un point factuel global sans modification.",
+                "handoff_data": {
+                  "inbound_note_summary": null,
+                  "inbound_source_flow_id": null,
+                  "inbound_handoff_reason": null
+                },
+                "constraints": {
+                  "read_only": true,
+                  "no_chat_mutation": true,
+                  "no_tool_execution": true,
+                  "no_product_how_to": true,
+                  "no_claim_without_filtered_fact": true,
+                  "micro_memory_raw_available_to_visible_agent": false
+                }
+              }
+            },
+            "visible_task_kind": "cancelled_objects",
+            "visible_prompt_id": "status_recap.visible.cancelled_objects",
+            "conversation_context": {
+              "kind": "status_recap_conversation_context",
+              "stage": "cancelled_objects",
+              "user_words": [
+                "Et côté rappels annulés, tu vois quelque chose ou rien du tout ?"
+              ],
+              "context_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+              "visible_instruction": "Lister les rappels annulés ou supprimés présents dans filtered_facts.",
+              "status_intent_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+              "projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 1,
+                "one_shot_cancelled_recent_count": 1,
+                "recurring_reminder_count": 2,
+                "potion_session_count": 0,
+                "coach_preference_count": 1,
+                "recent_effect_history_count": 0
+              },
+              "requested_categories": [
+                "one_shot_reminders",
+                "recurring_reminders"
+              ],
+              "target_objects": [
+                "one_shot_reminder",
+                "recurring_reminder"
+              ],
+              "include_cancelled": true,
+              "include_recent_failed_or_blocked_effects": false,
+              "format": "object_answer",
+              "filtered_facts": {
+                "attack_cards": [],
+                "defense_cards": [],
+                "one_shot_reminders": {
+                  "pending": [
+                    {
+                      "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                      "scheduled_for": "2026-06-13T07:30:00+00:00",
+                      "local_time": "09:30",
+                      "instruction": "relire le dossier budget"
+                    }
+                  ],
+                  "cancelled_recent": [
+                    {
+                      "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                      "scheduled_for": "2026-06-11T15:00:00+00:00",
+                      "local_time": "17:00",
+                      "instruction": "ancien rappel annulé de devis",
+                      "updated_at": null
+                    }
+                  ]
+                },
+                "recurring_reminders": [
+                  {
+                    "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                    "status": "active",
+                    "cadence_label": "mon à 08:45",
+                    "instruction": "faire le point hebdo"
+                  },
+                  {
+                    "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                    "status": "active",
+                    "cadence_label": "mon à 08:45",
+                    "instruction": "faire le point hebdo"
+                  }
+                ],
+                "potion_sessions": [],
+                "coach_preferences": [
+                  {
+                    "key": "coach.tone",
+                    "value": {
+                      "value": "warm_direct"
+                    },
+                    "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                    "source_type": "explicit_user",
+                    "updated_at": "2026-06-12T08:00:00+00:00"
+                  }
+                ],
+                "recent_effect_history": []
+              },
+              "previous_answer_summary": "Le user confirme vouloir un point factuel global sans modification.",
+              "handoff_data": {
+                "inbound_note_summary": null,
+                "inbound_source_flow_id": null,
+                "inbound_handoff_reason": null
+              },
+              "constraints": {
+                "read_only": true,
+                "no_chat_mutation": true,
+                "no_tool_execution": true,
+                "no_product_how_to": true,
+                "no_claim_without_filtered_fact": true,
+                "micro_memory_raw_available_to_visible_agent": false
+              }
+            },
+            "note_information_inbound": null,
+            "operation_suggestions": [],
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "attack_card_found": false,
+            "defense_card_found": false,
+            "reminder_found": true,
+            "coach_preference_found": true,
+            "recent_effect_history_count": 0,
+            "projection_summary": {
+              "attack_card_count": 0,
+              "defense_card_count": 0,
+              "one_shot_pending_count": 1,
+              "one_shot_cancelled_recent_count": 1,
+              "recurring_reminder_count": 2,
+              "potion_session_count": 0,
+              "coach_preference_count": 1,
+              "recent_effect_history_count": 0
+            },
+            "local_flow_state": {
+              "skill_id": "status_recap",
+              "mode": "local_readonly_flow",
+              "status": "active",
+              "last_intent": "cancelled_objects",
+              "last_target_objects": [
+                "one_shot_reminder",
+                "recurring_reminder"
+              ],
+              "last_projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 1,
+                "one_shot_cancelled_recent_count": 1,
+                "recurring_reminder_count": 2,
+                "potion_session_count": 0,
+                "coach_preference_count": 1,
+                "recent_effect_history_count": 0
+              },
+              "last_answer_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+              "turn_count": 3,
+              "max_turns": 3,
+              "created_at": "2026-06-12T13:39:04.981Z",
+              "updated_at": "2026-06-12T13:39:26.233Z"
+            },
+            "evidence": [
+              "côté rappels annulés",
+              "tu vois quelque chose ou rien du tout"
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "qa-2026-06-12-status-recap-real-r3-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      },
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "status_recap",
+        "route_reason": "active_status_recap_local_dispatcher",
+        "blocked_paths": [
+          {
+            "path": "global_dispatcher",
+            "reason_code": "active_status_recap_uses_local_dispatcher"
+          }
+        ],
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "direct_effects": [],
+        "operation": "status_recap",
+        "pending_confirmation": null,
+        "memory_plan": null,
+        "executed_tools": [],
+        "durable_effect": null,
+        "flow_action": "answer_cancelled_objects",
+        "visible_task": "cancelled_objects",
+        "reason_code": "status_recap_local_answer_cancelled_objects",
+        "projection_summary": {
+          "attack_card_count": 0,
+          "defense_card_count": 0,
+          "one_shot_pending_count": 1,
+          "one_shot_cancelled_recent_count": 1,
+          "recurring_reminder_count": 2,
+          "potion_session_count": 0,
+          "coach_preference_count": 1,
+          "recent_effect_history_count": 0
+        }
+      }
+    },
+    {
+      "turn": 4,
+      "request_id": "qa-2026-06-12-status-recap-real-r3-t04",
+      "user": "Tu peux me dire sur quelles sources tu t’es basé pour ce point factuel ?",
+      "assistant": "Je m'appuie uniquement sur tes données concrètes et l'historique de tes actions pour te répondre, sans faire de suppositions.\n\nFait : Ton point hebdo récurrent et ta préférence pour un ton chaleureux.\nPrévu : Ton rappel pour relire le dossier budget prévu le 13 juin.\nFragile : Ton rappel de devis annulé le 11 juin.\n\nCes éléments proviennent directement de tes rappels enregistrés et de tes réglages de coach. Est-ce que cela répond à ta question ?",
+      "http_status": 200,
+      "ok": true,
+      "raw_body": {
+        "ok": true,
+        "request_id": "qa-2026-06-12-status-recap-real-r3-t04",
+        "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+        "channel": "web",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je m'appuie uniquement sur tes données concrètes et l'historique de tes actions pour te répondre, sans faire de suppositions.\n\nFait : Ton point hebdo récurrent et ta préférence pour un ton chaleureux.\nPrévu : Ton rappel pour relire le dossier budget prévu le 13 juin.\nFragile : Ton rappel de devis annulé le 11 juin.\n\nCes éléments proviennent directement de tes rappels enregistrés et de tes réglages de coach. Est-ce que cela répond à ta question ?",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-2026-06-12-status-recap-real-r3-t04",
+              "source_message_id": "0e40b053-b40c-4327-afb2-a2db801255b6",
+              "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {
+                "lifecycle": {
+                  "status_recap": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "active_status_recap_continue"
+                  }
+                }
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "status_recap",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_status_recap_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_status_recap_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "status_recap",
+              "reason_code": "status_recap_local_explain_sources",
+              "status": "answered",
+              "flow_action": "explain_sources",
+              "projection_used": true,
+              "intent": "durable_status",
+              "target_objects": [
+                "unknown"
+              ],
+              "visible_task": {
+                "kind": "explain_sources",
+                "conversation_context": {
+                  "kind": "status_recap_conversation_context",
+                  "stage": "explain_sources",
+                  "user_words": [
+                    "Tu peux me dire sur quelles sources tu t’es basé pour ce point factuel ?"
+                  ],
+                  "context_summary": "Le user demande les sources utilisées pour le point factuel précédent.",
+                  "visible_instruction": "Expliquer que les informations proviennent uniquement de la base de données (rappels, préférences coach) et non de la mémoire de conversation ou d'hallucinations.",
+                  "status_intent_summary": "Le user demande les sources utilisées pour le point factuel précédent.",
+                  "projection_summary": {
+                    "attack_card_count": 0,
+                    "defense_card_count": 0,
+                    "one_shot_pending_count": 1,
+                    "one_shot_cancelled_recent_count": 1,
+                    "recurring_reminder_count": 2,
+                    "potion_session_count": 0,
+                    "coach_preference_count": 1,
+                    "recent_effect_history_count": 0
+                  },
+                  "requested_categories": [
+                    "all"
+                  ],
+                  "target_objects": [
+                    "unknown"
+                  ],
+                  "include_cancelled": true,
+                  "include_recent_failed_or_blocked_effects": false,
+                  "format": "compact",
+                  "filtered_facts": {
+                    "attack_cards": [],
+                    "defense_cards": [],
+                    "one_shot_reminders": {
+                      "pending": [
+                        {
+                          "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                          "scheduled_for": "2026-06-13T07:30:00+00:00",
+                          "local_time": "09:30",
+                          "instruction": "relire le dossier budget"
+                        }
+                      ],
+                      "cancelled_recent": [
+                        {
+                          "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                          "scheduled_for": "2026-06-11T15:00:00+00:00",
+                          "local_time": "17:00",
+                          "instruction": "ancien rappel annulé de devis",
+                          "updated_at": null
+                        }
+                      ]
+                    },
+                    "recurring_reminders": [
+                      {
+                        "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                        "status": "active",
+                        "cadence_label": "mon à 08:45",
+                        "instruction": "faire le point hebdo"
+                      },
+                      {
+                        "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                        "status": "active",
+                        "cadence_label": "mon à 08:45",
+                        "instruction": "faire le point hebdo"
+                      }
+                    ],
+                    "potion_sessions": [],
+                    "coach_preferences": [
+                      {
+                        "key": "coach.tone",
+                        "value": {
+                          "value": "warm_direct"
+                        },
+                        "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                        "source_type": "explicit_user",
+                        "updated_at": "2026-06-12T08:00:00+00:00"
+                      }
+                    ],
+                    "recent_effect_history": []
+                  },
+                  "previous_answer_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+                  "handoff_data": {
+                    "inbound_note_summary": null,
+                    "inbound_source_flow_id": null,
+                    "inbound_handoff_reason": null
+                  },
+                  "constraints": {
+                    "read_only": true,
+                    "no_chat_mutation": true,
+                    "no_tool_execution": true,
+                    "no_product_how_to": true,
+                    "no_claim_without_filtered_fact": true,
+                    "micro_memory_raw_available_to_visible_agent": false
+                  }
+                }
+              },
+              "visible_task_kind": "explain_sources",
+              "visible_prompt_id": "status_recap.visible.explain_sources",
+              "conversation_context": {
+                "kind": "status_recap_conversation_context",
+                "stage": "explain_sources",
+                "user_words": [
+                  "Tu peux me dire sur quelles sources tu t’es basé pour ce point factuel ?"
+                ],
+                "context_summary": "Le user demande les sources utilisées pour le point factuel précédent.",
+                "visible_instruction": "Expliquer que les informations proviennent uniquement de la base de données (rappels, préférences coach) et non de la mémoire de conversation ou d'hallucinations.",
+                "status_intent_summary": "Le user demande les sources utilisées pour le point factuel précédent.",
+                "projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 1,
+                  "one_shot_cancelled_recent_count": 1,
+                  "recurring_reminder_count": 2,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 1,
+                  "recent_effect_history_count": 0
+                },
+                "requested_categories": [
+                  "all"
+                ],
+                "target_objects": [
+                  "unknown"
+                ],
+                "include_cancelled": true,
+                "include_recent_failed_or_blocked_effects": false,
+                "format": "compact",
+                "filtered_facts": {
+                  "attack_cards": [],
+                  "defense_cards": [],
+                  "one_shot_reminders": {
+                    "pending": [
+                      {
+                        "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                        "scheduled_for": "2026-06-13T07:30:00+00:00",
+                        "local_time": "09:30",
+                        "instruction": "relire le dossier budget"
+                      }
+                    ],
+                    "cancelled_recent": [
+                      {
+                        "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                        "scheduled_for": "2026-06-11T15:00:00+00:00",
+                        "local_time": "17:00",
+                        "instruction": "ancien rappel annulé de devis",
+                        "updated_at": null
+                      }
+                    ]
+                  },
+                  "recurring_reminders": [
+                    {
+                      "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    },
+                    {
+                      "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    }
+                  ],
+                  "potion_sessions": [],
+                  "coach_preferences": [
+                    {
+                      "key": "coach.tone",
+                      "value": {
+                        "value": "warm_direct"
+                      },
+                      "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                      "source_type": "explicit_user",
+                      "updated_at": "2026-06-12T08:00:00+00:00"
+                    }
+                  ],
+                  "recent_effect_history": []
+                },
+                "previous_answer_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+                "handoff_data": {
+                  "inbound_note_summary": null,
+                  "inbound_source_flow_id": null,
+                  "inbound_handoff_reason": null
+                },
+                "constraints": {
+                  "read_only": true,
+                  "no_chat_mutation": true,
+                  "no_tool_execution": true,
+                  "no_product_how_to": true,
+                  "no_claim_without_filtered_fact": true,
+                  "micro_memory_raw_available_to_visible_agent": false
+                }
+              },
+              "note_information_inbound": null,
+              "operation_suggestions": [],
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "attack_card_found": false,
+              "defense_card_found": false,
+              "reminder_found": true,
+              "coach_preference_found": true,
+              "recent_effect_history_count": 0,
+              "projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 1,
+                "one_shot_cancelled_recent_count": 1,
+                "recurring_reminder_count": 2,
+                "potion_session_count": 0,
+                "coach_preference_count": 1,
+                "recent_effect_history_count": 0
+              },
+              "local_flow_state": {
+                "skill_id": "status_recap",
+                "mode": "local_readonly_flow",
+                "status": "active",
+                "last_intent": "durable_status",
+                "last_target_objects": [
+                  "unknown"
+                ],
+                "last_projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 1,
+                  "one_shot_cancelled_recent_count": 1,
+                  "recurring_reminder_count": 2,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 1,
+                  "recent_effect_history_count": 0
+                },
+                "last_answer_summary": "Le user demande les sources utilisées pour le point factuel précédent.",
+                "turn_count": 4,
+                "max_turns": 3,
+                "created_at": "2026-06-12T13:39:04.981Z",
+                "updated_at": "2026-06-12T13:39:47.189Z"
+              },
+              "evidence": [
+                "sur quelles sources tu t’es basé"
+              ],
+              "toolExecution": "none",
+              "executedTools": []
+            },
+            "effect_ledger": {
+              "turn_id": "qa-2026-06-12-status-recap-real-r3-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-2026-06-12-status-recap-real-r3-t04",
+            "source_message_id": "0e40b053-b40c-4327-afb2-a2db801255b6",
+            "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {
+              "lifecycle": {
+                "status_recap": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "active_status_recap_continue"
+                }
+              }
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "status_recap",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_status_recap_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_status_recap_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "status_recap",
+            "reason_code": "status_recap_local_explain_sources",
+            "status": "answered",
+            "flow_action": "explain_sources",
+            "projection_used": true,
+            "intent": "durable_status",
+            "target_objects": [
+              "unknown"
+            ],
+            "visible_task": {
+              "kind": "explain_sources",
+              "conversation_context": {
+                "kind": "status_recap_conversation_context",
+                "stage": "explain_sources",
+                "user_words": [
+                  "Tu peux me dire sur quelles sources tu t’es basé pour ce point factuel ?"
+                ],
+                "context_summary": "Le user demande les sources utilisées pour le point factuel précédent.",
+                "visible_instruction": "Expliquer que les informations proviennent uniquement de la base de données (rappels, préférences coach) et non de la mémoire de conversation ou d'hallucinations.",
+                "status_intent_summary": "Le user demande les sources utilisées pour le point factuel précédent.",
+                "projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 1,
+                  "one_shot_cancelled_recent_count": 1,
+                  "recurring_reminder_count": 2,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 1,
+                  "recent_effect_history_count": 0
+                },
+                "requested_categories": [
+                  "all"
+                ],
+                "target_objects": [
+                  "unknown"
+                ],
+                "include_cancelled": true,
+                "include_recent_failed_or_blocked_effects": false,
+                "format": "compact",
+                "filtered_facts": {
+                  "attack_cards": [],
+                  "defense_cards": [],
+                  "one_shot_reminders": {
+                    "pending": [
+                      {
+                        "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                        "scheduled_for": "2026-06-13T07:30:00+00:00",
+                        "local_time": "09:30",
+                        "instruction": "relire le dossier budget"
+                      }
+                    ],
+                    "cancelled_recent": [
+                      {
+                        "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                        "scheduled_for": "2026-06-11T15:00:00+00:00",
+                        "local_time": "17:00",
+                        "instruction": "ancien rappel annulé de devis",
+                        "updated_at": null
+                      }
+                    ]
+                  },
+                  "recurring_reminders": [
+                    {
+                      "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    },
+                    {
+                      "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                      "status": "active",
+                      "cadence_label": "mon à 08:45",
+                      "instruction": "faire le point hebdo"
+                    }
+                  ],
+                  "potion_sessions": [],
+                  "coach_preferences": [
+                    {
+                      "key": "coach.tone",
+                      "value": {
+                        "value": "warm_direct"
+                      },
+                      "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                      "source_type": "explicit_user",
+                      "updated_at": "2026-06-12T08:00:00+00:00"
+                    }
+                  ],
+                  "recent_effect_history": []
+                },
+                "previous_answer_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+                "handoff_data": {
+                  "inbound_note_summary": null,
+                  "inbound_source_flow_id": null,
+                  "inbound_handoff_reason": null
+                },
+                "constraints": {
+                  "read_only": true,
+                  "no_chat_mutation": true,
+                  "no_tool_execution": true,
+                  "no_product_how_to": true,
+                  "no_claim_without_filtered_fact": true,
+                  "micro_memory_raw_available_to_visible_agent": false
+                }
+              }
+            },
+            "visible_task_kind": "explain_sources",
+            "visible_prompt_id": "status_recap.visible.explain_sources",
+            "conversation_context": {
+              "kind": "status_recap_conversation_context",
+              "stage": "explain_sources",
+              "user_words": [
+                "Tu peux me dire sur quelles sources tu t’es basé pour ce point factuel ?"
+              ],
+              "context_summary": "Le user demande les sources utilisées pour le point factuel précédent.",
+              "visible_instruction": "Expliquer que les informations proviennent uniquement de la base de données (rappels, préférences coach) et non de la mémoire de conversation ou d'hallucinations.",
+              "status_intent_summary": "Le user demande les sources utilisées pour le point factuel précédent.",
+              "projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 1,
+                "one_shot_cancelled_recent_count": 1,
+                "recurring_reminder_count": 2,
+                "potion_session_count": 0,
+                "coach_preference_count": 1,
+                "recent_effect_history_count": 0
+              },
+              "requested_categories": [
+                "all"
+              ],
+              "target_objects": [
+                "unknown"
+              ],
+              "include_cancelled": true,
+              "include_recent_failed_or_blocked_effects": false,
+              "format": "compact",
+              "filtered_facts": {
+                "attack_cards": [],
+                "defense_cards": [],
+                "one_shot_reminders": {
+                  "pending": [
+                    {
+                      "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+                      "scheduled_for": "2026-06-13T07:30:00+00:00",
+                      "local_time": "09:30",
+                      "instruction": "relire le dossier budget"
+                    }
+                  ],
+                  "cancelled_recent": [
+                    {
+                      "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+                      "scheduled_for": "2026-06-11T15:00:00+00:00",
+                      "local_time": "17:00",
+                      "instruction": "ancien rappel annulé de devis",
+                      "updated_at": null
+                    }
+                  ]
+                },
+                "recurring_reminders": [
+                  {
+                    "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+                    "status": "active",
+                    "cadence_label": "mon à 08:45",
+                    "instruction": "faire le point hebdo"
+                  },
+                  {
+                    "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+                    "status": "active",
+                    "cadence_label": "mon à 08:45",
+                    "instruction": "faire le point hebdo"
+                  }
+                ],
+                "potion_sessions": [],
+                "coach_preferences": [
+                  {
+                    "key": "coach.tone",
+                    "value": {
+                      "value": "warm_direct"
+                    },
+                    "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+                    "source_type": "explicit_user",
+                    "updated_at": "2026-06-12T08:00:00+00:00"
+                  }
+                ],
+                "recent_effect_history": []
+              },
+              "previous_answer_summary": "Le user demande spécifiquement à voir les rappels qui ont été annulés.",
+              "handoff_data": {
+                "inbound_note_summary": null,
+                "inbound_source_flow_id": null,
+                "inbound_handoff_reason": null
+              },
+              "constraints": {
+                "read_only": true,
+                "no_chat_mutation": true,
+                "no_tool_execution": true,
+                "no_product_how_to": true,
+                "no_claim_without_filtered_fact": true,
+                "micro_memory_raw_available_to_visible_agent": false
+              }
+            },
+            "note_information_inbound": null,
+            "operation_suggestions": [],
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "attack_card_found": false,
+            "defense_card_found": false,
+            "reminder_found": true,
+            "coach_preference_found": true,
+            "recent_effect_history_count": 0,
+            "projection_summary": {
+              "attack_card_count": 0,
+              "defense_card_count": 0,
+              "one_shot_pending_count": 1,
+              "one_shot_cancelled_recent_count": 1,
+              "recurring_reminder_count": 2,
+              "potion_session_count": 0,
+              "coach_preference_count": 1,
+              "recent_effect_history_count": 0
+            },
+            "local_flow_state": {
+              "skill_id": "status_recap",
+              "mode": "local_readonly_flow",
+              "status": "active",
+              "last_intent": "durable_status",
+              "last_target_objects": [
+                "unknown"
+              ],
+              "last_projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 1,
+                "one_shot_cancelled_recent_count": 1,
+                "recurring_reminder_count": 2,
+                "potion_session_count": 0,
+                "coach_preference_count": 1,
+                "recent_effect_history_count": 0
+              },
+              "last_answer_summary": "Le user demande les sources utilisées pour le point factuel précédent.",
+              "turn_count": 4,
+              "max_turns": 3,
+              "created_at": "2026-06-12T13:39:04.981Z",
+              "updated_at": "2026-06-12T13:39:47.189Z"
+            },
+            "evidence": [
+              "sur quelles sources tu t’es basé"
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "qa-2026-06-12-status-recap-real-r3-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      },
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "status_recap",
+        "route_reason": "active_status_recap_local_dispatcher",
+        "blocked_paths": [
+          {
+            "path": "global_dispatcher",
+            "reason_code": "active_status_recap_uses_local_dispatcher"
+          }
+        ],
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "direct_effects": [],
+        "operation": "status_recap",
+        "pending_confirmation": null,
+        "memory_plan": null,
+        "executed_tools": [],
+        "durable_effect": null,
+        "flow_action": "explain_sources",
+        "visible_task": "explain_sources",
+        "reason_code": "status_recap_local_explain_sources",
+        "projection_summary": {
+          "attack_card_count": 0,
+          "defense_card_count": 0,
+          "one_shot_pending_count": 1,
+          "one_shot_cancelled_recent_count": 1,
+          "recurring_reminder_count": 2,
+          "potion_session_count": 0,
+          "coach_preference_count": 1,
+          "recent_effect_history_count": 0
+        }
+      }
+    }
+  ],
+  "after_rows": {
+    "scheduled_checkins": [
+      {
+        "id": "9b058e85-364f-4e4d-ae21-fc7b1e25e0d1",
+        "event_context": "one_shot_reminder:2026-06-12-status-recap-real-r3:cancelled",
+        "scheduled_for": "2026-06-11T15:00:00+00:00",
+        "status": "cancelled",
+        "message_payload": {
+          "source": "2026-06-12-status-recap-real-r3",
+          "reminder_instruction": "ancien rappel annulé de devis"
+        }
+      },
+      {
+        "id": "22eb7081-5ac7-4fe8-a861-8f7c2aeb3b03",
+        "event_context": "one_shot_reminder:2026-06-12-status-recap-real-r3:pending",
+        "scheduled_for": "2026-06-13T07:30:00+00:00",
+        "status": "pending",
+        "message_payload": {
+          "source": "2026-06-12-status-recap-real-r3",
+          "reminder_instruction": "relire le dossier budget"
+        }
+      }
+    ],
+    "recurring": [
+      {
+        "id": "53547602-fa08-4647-b573-8855eddd2e0c",
+        "status": "active",
+        "message_instruction": "faire le point hebdo",
+        "local_time_hhmm": "08:45",
+        "scheduled_days": [
+          "mon"
+        ],
+        "updated_at": "2026-06-12T08:00:00+00:00"
+      },
+      {
+        "id": "a491ff49-9db2-4c04-a084-ef0713b97668",
+        "status": "active",
+        "message_instruction": "faire le point hebdo",
+        "local_time_hhmm": "08:45",
+        "scheduled_days": [
+          "mon"
+        ],
+        "updated_at": "2026-06-12T08:00:00+00:00"
+      }
+    ],
+    "coach_preferences": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "reason": "QA fixture 2026-06-12-status-recap-real-r3",
+        "updated_at": "2026-06-12T08:00:00+00:00"
+      }
+    ],
+    "chat_messages": [
+      {
+        "role": "user",
+        "content": "Peux-tu me faire un point factuel sur ce qui existe vraiment dans mon espace, sans rien modifier ?",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+        "created_at": "2026-06-12T13:38:57.200438+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Voici un point factuel sur ton espace :\n\nFait : Ton coach est configuré sur un ton chaleureux et direct.\nPrévu : Rappel budget le 13/06 et point hebdo chaque lundi à 08:45.\nFragile : Le rappel pour le devis est marqué comme annulé.\n\nTu as un rappel pour \"relire le dossier budget\" prévu le 13 juin à 09:30. Tes deux rappels récurrents \"faire le point hebdo\" sont actifs pour les lundis matin. Aucune carte d'attaque ou de défense n'est présente.",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+        "created_at": "2026-06-12T13:39:11.47899+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Oui, fais-le maintenant, uniquement factuel et sans rien modifier.",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+        "created_at": "2026-06-12T13:39:11.556665+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Voici le récapitulatif de ton espace :\n\nFait : Ton ton est réglé sur chaleureux et direct.\nPrévu : Un rappel pour le dossier budget le 13/06 et tes points hebdo du lundi.\nFragile : Rien à signaler, un ancien rappel de devis a été annulé.",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+        "created_at": "2026-06-12T13:39:23.0226+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Et côté rappels annulés, tu vois quelque chose ou rien du tout ?",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+        "created_at": "2026-06-12T13:39:23.0923+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Oui, j'en vois un. Le rappel pour ton devis qui était prévu le 11 juin à 17:00 a bien été annulé.\n\nfait: le rappel de devis du 11 juin est annulé.\nprévu: ton rappel pour le dossier budget est maintenu.\nfragile: c'est le seul rappel annulé que j'ai trouvé.\n\nEst-ce que tu veux que je te liste tes rappels qui sont toujours actifs ?",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+        "created_at": "2026-06-12T13:39:43.825923+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Tu peux me dire sur quelles sources tu t’es basé pour ce point factuel ?",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+        "created_at": "2026-06-12T13:39:44.034909+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Je m'appuie uniquement sur tes données concrètes et l'historique de tes actions pour te répondre, sans faire de suppositions.\n\nFait : Ton point hebdo récurrent et ta préférence pour un ton chaleureux.\nPrévu : Ton rappel pour relire le dossier budget prévu le 13 juin.\nFragile : Ton rappel de devis annulé le 11 juin.\n\nCes éléments proviennent directement de tes rappels enregistrés et de tes réglages de coach. Est-ce que cela répond à ta question ?",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r3",
+        "created_at": "2026-06-12T13:39:55.588581+00:00"
+      }
+    ],
+    "chat_state": [
+      {
+        "temp_memory": {},
+        "current_mode": "companion",
+        "risk_level": 0
+      },
+      {
+        "temp_memory": {
+          "__conversation_risk_last": {
+            "at": "2026-06-12T13:39:01.776Z",
+            "score": 0,
+            "threshold": 8,
+            "reason_codes": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__conversation_risk_history": [
+            0
+          ],
+          "__status_recap_flow_state_v1": {
+            "mode": "local_readonly_flow",
+            "status": "active",
+            "skill_id": "status_recap",
+            "max_turns": 3,
+            "created_at": "2026-06-12T13:39:04.981Z",
+            "turn_count": 4,
+            "updated_at": "2026-06-12T13:39:47.189Z",
+            "last_intent": "durable_status",
+            "last_answer_summary": "Le user demande les sources utilisées pour le point factuel précédent.",
+            "last_target_objects": [
+              "unknown"
+            ],
+            "last_projection_summary": {
+              "attack_card_count": 0,
+              "defense_card_count": 0,
+              "potion_session_count": 0,
+              "coach_preference_count": 1,
+              "one_shot_pending_count": 1,
+              "recurring_reminder_count": 2,
+              "recent_effect_history_count": 0,
+              "one_shot_cancelled_recent_count": 1
+            }
+          },
+          "__coaching_intervention_history": []
+        },
+        "current_mode": "companion",
+        "risk_level": 2
+      }
+    ]
+  }
+}

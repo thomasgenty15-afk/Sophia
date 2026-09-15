@@ -1,0 +1,822 @@
+{
+  "dishes": [
+    {
+      "name": "Brouillade de tofu mon",
+      "title": "Tofu brouillé, edamame, graines de courge et pain complet",
+      "slot": "breakfast",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "tofu",
+          "quantity": "250 g de tofu",
+          "amount": 250,
+          "unit": "g",
+          "state": "raw",
+          "ref": "tofu"
+        },
+        {
+          "term": "edamame",
+          "quantity": "110 g de edamame",
+          "amount": 110,
+          "unit": "g",
+          "state": "raw",
+          "ref": "edamame"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "52 g de graines de courge",
+          "amount": 52,
+          "unit": "g",
+          "state": "raw",
+          "ref": "pumpkin_seeds"
+        },
+        {
+          "term": "pain complet",
+          "quantity": "12 g de pain complet",
+          "amount": 12,
+          "unit": "g",
+          "state": "raw",
+          "ref": "wholemeal_bread"
+        },
+        {
+          "term": "épinards",
+          "quantity": "40 g de épinards",
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "ref": "spinach"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "3 g de huile d'olive",
+          "amount": 3,
+          "unit": "g",
+          "state": "raw",
+          "ref": "olive_oil"
+        }
+      ],
+      "method": "Émietter le tofu dans une poêle huilée, le faire dorer avec les épinards, parsemer de graines de courge et servir avec le pain complet.",
+      "why": "Un petit-déjeuner salé qui porte la protéine du matin, végétal pour toute la table.",
+      "density_check": 195,
+      "uses": [],
+      "same_day": {
+        "kind": "cook_fresh",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Bol tofu graines mon",
+      "title": "Tofu doré, graines de courge et couscous complet",
+      "slot": "lunch",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "couscous complet",
+          "quantity": "18 g de couscous complet",
+          "amount": 18,
+          "unit": "g",
+          "state": "raw",
+          "ref": "couscous_wholemeal"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "35 g de graines de courge",
+          "amount": 35,
+          "unit": "g",
+          "state": "raw",
+          "ref": "pumpkin_seeds"
+        }
+      ],
+      "method": "Verser de l'eau bouillante sur le couscous, laisser gonfler cinq minutes, ajouter la portion de tofu doré et les graines de courge.",
+      "why": "Le lot de tofu du lundi porte le déjeuner de la table sans nouvelle cuisson.",
+      "density_check": 242,
+      "uses": [
+        {
+          "preparation_id": "prep_tofu_table",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 6
+      }
+    },
+    {
+      "name": "Assiette tofu mon",
+      "title": "Tofu doré, edamame et tomate",
+      "slot": "dinner",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "edamame",
+          "quantity": "120 g de edamame",
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "ref": "edamame"
+        },
+        {
+          "term": "tomate",
+          "quantity": "30 g de tomate",
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "ref": "tomato"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "25 g de graines de courge",
+          "amount": 25,
+          "unit": "g",
+          "state": "raw",
+          "ref": "pumpkin_seeds"
+        }
+      ],
+      "method": "Réchauffer la portion de tofu doré, ajouter les edamame et la tomate coupée, parsemer de graines de courge.",
+      "why": "Le même lot donne le dîner de la table, en changeant l'accompagnement.",
+      "density_check": 217,
+      "uses": [
+        {
+          "preparation_id": "prep_tofu_table",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Bol de Lea mon matin",
+      "title": "Yaourt de soja, avoine et graines de courge",
+      "slot": "breakfast",
+      "day": "mon",
+      "for_member_id": "25954fff-f0fc-43ab-88dc-ba5101a88cf9",
+      "ingredients": [
+        {
+          "term": "yaourt de soja",
+          "quantity": "260 g de yaourt de soja",
+          "amount": 260,
+          "unit": "g",
+          "state": "raw",
+          "ref": "soy_yogurt"
+        },
+        {
+          "term": "avoine",
+          "quantity": "30 g de avoine",
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "ref": "oats"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "26 g de graines de courge",
+          "amount": 26,
+          "unit": "g",
+          "state": "raw",
+          "ref": "pumpkin_seeds"
+        },
+        {
+          "term": "edamame",
+          "quantity": "90 g de edamame",
+          "amount": 90,
+          "unit": "g",
+          "state": "raw",
+          "ref": "edamame"
+        }
+      ],
+      "method": "Mélanger le yaourt de soja, l'avoine et les graines de courge, servir avec les edamame tièdes.",
+      "why": "Un bol du matin à elle, monté avant que la poêle de la table ne serve.",
+      "density_check": 122,
+      "uses": [],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Déjeuner de Lea mon",
+      "title": "Tempeh, lentilles et courgette",
+      "slot": "lunch",
+      "day": "mon",
+      "for_member_id": "25954fff-f0fc-43ab-88dc-ba5101a88cf9",
+      "ingredients": [
+        {
+          "term": "courgette",
+          "quantity": "90 g de courgette",
+          "amount": 90,
+          "unit": "g",
+          "state": "raw",
+          "ref": "courgette"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "16 g de graines de courge",
+          "amount": 16,
+          "unit": "g",
+          "state": "raw",
+          "ref": "pumpkin_seeds"
+        }
+      ],
+      "method": "Réchauffer sa portion de tempeh et lentilles dans sa propre poêle, ajouter la courgette et les graines de courge.",
+      "why": "Son lot à elle, cuisiné et mis en boîte avant celui de la table.",
+      "density_check": 134,
+      "uses": [
+        {
+          "preparation_id": "prep_tempeh_lea",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 7
+      }
+    },
+    {
+      "name": "Dîner de Lea mon",
+      "title": "Tofu, edamame et épinards",
+      "slot": "dinner",
+      "day": "mon",
+      "for_member_id": "25954fff-f0fc-43ab-88dc-ba5101a88cf9",
+      "ingredients": [
+        {
+          "term": "tofu",
+          "quantity": "200 g de tofu",
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "ref": "tofu"
+        },
+        {
+          "term": "edamame",
+          "quantity": "110 g de edamame",
+          "amount": 110,
+          "unit": "g",
+          "state": "raw",
+          "ref": "edamame"
+        },
+        {
+          "term": "épinards",
+          "quantity": "80 g de épinards",
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "ref": "spinach"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "12 g de graines de courge",
+          "amount": 12,
+          "unit": "g",
+          "state": "raw",
+          "ref": "pumpkin_seeds"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "5 g de huile d'olive",
+          "amount": 5,
+          "unit": "g",
+          "state": "raw",
+          "ref": "olive_oil"
+        }
+      ],
+      "method": "Faire sauter le tofu et les edamame dans sa propre poêle avec les épinards, parsemer de graines de courge.",
+      "why": "Un dîner à elle, cuit en premier dans une poêle lavée et une huile neuve.",
+      "density_check": 149,
+      "uses": [],
+      "same_day": {
+        "kind": "cook_fresh",
+        "minutes": 12
+      }
+    },
+    {
+      "name": "Brouillade de tofu tue",
+      "title": "Tofu brouillé, edamame, graines de courge et pain complet",
+      "slot": "breakfast",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "tofu",
+          "quantity": "250 g de tofu",
+          "amount": 250,
+          "unit": "g",
+          "state": "raw",
+          "ref": "tofu"
+        },
+        {
+          "term": "edamame",
+          "quantity": "110 g de edamame",
+          "amount": 110,
+          "unit": "g",
+          "state": "raw",
+          "ref": "edamame"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "52 g de graines de courge",
+          "amount": 52,
+          "unit": "g",
+          "state": "raw",
+          "ref": "pumpkin_seeds"
+        },
+        {
+          "term": "pain complet",
+          "quantity": "12 g de pain complet",
+          "amount": 12,
+          "unit": "g",
+          "state": "raw",
+          "ref": "wholemeal_bread"
+        },
+        {
+          "term": "épinards",
+          "quantity": "40 g de épinards",
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "ref": "spinach"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "3 g de huile d'olive",
+          "amount": 3,
+          "unit": "g",
+          "state": "raw",
+          "ref": "olive_oil"
+        }
+      ],
+      "method": "Émietter le tofu dans une poêle huilée, le faire dorer avec les épinards, parsemer de graines de courge et servir avec le pain complet.",
+      "why": "Un petit-déjeuner salé qui porte la protéine du matin, végétal pour toute la table.",
+      "density_check": 195,
+      "uses": [],
+      "same_day": {
+        "kind": "cook_fresh",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Bol tofu graines tue",
+      "title": "Tofu doré, graines de courge et couscous complet",
+      "slot": "lunch",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "couscous complet",
+          "quantity": "18 g de couscous complet",
+          "amount": 18,
+          "unit": "g",
+          "state": "raw",
+          "ref": "couscous_wholemeal"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "35 g de graines de courge",
+          "amount": 35,
+          "unit": "g",
+          "state": "raw",
+          "ref": "pumpkin_seeds"
+        }
+      ],
+      "method": "Verser de l'eau bouillante sur le couscous, laisser gonfler cinq minutes, ajouter la portion de tofu doré et les graines de courge.",
+      "why": "Le lot de tofu du lundi porte le déjeuner de la table sans nouvelle cuisson.",
+      "density_check": 242,
+      "uses": [
+        {
+          "preparation_id": "prep_tofu_table",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 6
+      }
+    },
+    {
+      "name": "Assiette tofu tue",
+      "title": "Tofu doré, edamame et tomate",
+      "slot": "dinner",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "edamame",
+          "quantity": "120 g de edamame",
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "ref": "edamame"
+        },
+        {
+          "term": "tomate",
+          "quantity": "30 g de tomate",
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "ref": "tomato"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "25 g de graines de courge",
+          "amount": 25,
+          "unit": "g",
+          "state": "raw",
+          "ref": "pumpkin_seeds"
+        }
+      ],
+      "method": "Réchauffer la portion de tofu doré, ajouter les edamame et la tomate coupée, parsemer de graines de courge.",
+      "why": "Le même lot donne le dîner de la table, en changeant l'accompagnement.",
+      "density_check": 217,
+      "uses": [
+        {
+          "preparation_id": "prep_tofu_table",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Bol de Lea tue matin",
+      "title": "Yaourt de soja, avoine et graines de courge",
+      "slot": "breakfast",
+      "day": "tue",
+      "for_member_id": "25954fff-f0fc-43ab-88dc-ba5101a88cf9",
+      "ingredients": [
+        {
+          "term": "yaourt de soja",
+          "quantity": "260 g de yaourt de soja",
+          "amount": 260,
+          "unit": "g",
+          "state": "raw",
+          "ref": "soy_yogurt"
+        },
+        {
+          "term": "avoine",
+          "quantity": "30 g de avoine",
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "ref": "oats"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "26 g de graines de courge",
+          "amount": 26,
+          "unit": "g",
+          "state": "raw",
+          "ref": "pumpkin_seeds"
+        },
+        {
+          "term": "edamame",
+          "quantity": "90 g de edamame",
+          "amount": 90,
+          "unit": "g",
+          "state": "raw",
+          "ref": "edamame"
+        }
+      ],
+      "method": "Mélanger le yaourt de soja, l'avoine et les graines de courge, servir avec les edamame tièdes.",
+      "why": "Un bol du matin à elle, monté avant que la poêle de la table ne serve.",
+      "density_check": 122,
+      "uses": [],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Déjeuner de Lea tue",
+      "title": "Tempeh, lentilles et courgette",
+      "slot": "lunch",
+      "day": "tue",
+      "for_member_id": "25954fff-f0fc-43ab-88dc-ba5101a88cf9",
+      "ingredients": [
+        {
+          "term": "courgette",
+          "quantity": "90 g de courgette",
+          "amount": 90,
+          "unit": "g",
+          "state": "raw",
+          "ref": "courgette"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "16 g de graines de courge",
+          "amount": 16,
+          "unit": "g",
+          "state": "raw",
+          "ref": "pumpkin_seeds"
+        }
+      ],
+      "method": "Réchauffer sa portion de tempeh et lentilles dans sa propre poêle, ajouter la courgette et les graines de courge.",
+      "why": "Son lot à elle, cuisiné et mis en boîte avant celui de la table.",
+      "density_check": 134,
+      "uses": [
+        {
+          "preparation_id": "prep_tempeh_lea",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 7
+      }
+    },
+    {
+      "name": "Dîner de Lea tue",
+      "title": "Tofu, edamame et épinards",
+      "slot": "dinner",
+      "day": "tue",
+      "for_member_id": "25954fff-f0fc-43ab-88dc-ba5101a88cf9",
+      "ingredients": [
+        {
+          "term": "tofu",
+          "quantity": "200 g de tofu",
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "ref": "tofu"
+        },
+        {
+          "term": "edamame",
+          "quantity": "110 g de edamame",
+          "amount": 110,
+          "unit": "g",
+          "state": "raw",
+          "ref": "edamame"
+        },
+        {
+          "term": "épinards",
+          "quantity": "80 g de épinards",
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "ref": "spinach"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "12 g de graines de courge",
+          "amount": 12,
+          "unit": "g",
+          "state": "raw",
+          "ref": "pumpkin_seeds"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "5 g de huile d'olive",
+          "amount": 5,
+          "unit": "g",
+          "state": "raw",
+          "ref": "olive_oil"
+        }
+      ],
+      "method": "Faire sauter le tofu et les edamame dans sa propre poêle avec les épinards, parsemer de graines de courge.",
+      "why": "Un dîner à elle, cuit en premier dans une poêle lavée et une huile neuve.",
+      "density_check": 149,
+      "uses": [],
+      "same_day": {
+        "kind": "cook_fresh",
+        "minutes": 12
+      }
+    }
+  ],
+  "preparations": [
+    {
+      "id": "prep_tofu_table",
+      "title": "Tofu doré aux graines et courgette",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "tofu",
+          "quantity": "1800 g de tofu",
+          "amount": 1800,
+          "unit": "g",
+          "state": "raw",
+          "ref": "tofu"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "455 g de graines de courge",
+          "amount": 455,
+          "unit": "g",
+          "state": "raw",
+          "ref": "pumpkin_seeds"
+        },
+        {
+          "term": "courgette",
+          "quantity": "120 g de courgette",
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "ref": "courgette"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "8 g de huile d'olive",
+          "amount": 8,
+          "unit": "g",
+          "state": "raw",
+          "ref": "olive_oil"
+        },
+        {
+          "term": "sauce soja",
+          "quantity": "50 g de sauce soja",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "ref": "soy_sauce"
+        }
+      ],
+      "method": "Couper le tofu en cubes, le faire dorer à l'huile d'olive avec la courgette, déglacer à la sauce soja et parsemer de graines de courge. Laisser tiédir et répartir en quatre portions au réfrigérateur.",
+      "active_minutes": 20,
+      "total_minutes": 35,
+      "cook_on": "mon"
+    },
+    {
+      "id": "prep_tempeh_lea",
+      "title": "Tempeh et lentilles pour Lea",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "tempeh",
+          "quantity": "420 g de tempeh",
+          "amount": 420,
+          "unit": "g",
+          "state": "raw",
+          "ref": "tempeh"
+        },
+        {
+          "term": "lentilles",
+          "quantity": "260 g de lentilles",
+          "amount": 260,
+          "unit": "g",
+          "state": "raw",
+          "ref": "lentils_cooked"
+        },
+        {
+          "term": "oignon",
+          "quantity": "90 g de oignon",
+          "amount": 90,
+          "unit": "g",
+          "state": "raw",
+          "ref": "onion"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "14 g de huile d'olive",
+          "amount": 14,
+          "unit": "g",
+          "state": "raw",
+          "ref": "olive_oil"
+        }
+      ],
+      "method": "Dans une poêle lavée et une huile neuve, faire revenir l'oignon, ajouter le tempeh émietté puis les lentilles. Laisser mijoter dix minutes et répartir en deux portions.",
+      "active_minutes": 15,
+      "total_minutes": 25,
+      "cook_on": "mon"
+    }
+  ],
+  "cooking_sessions": [
+    {
+      "day": "mon",
+      "preparation_ids": [
+        "prep_tempeh_lea",
+        "prep_tofu_table"
+      ],
+      "total_minutes": 60,
+      "run_through": "Commencer par le lot de Lea : poêle propre, huile neuve, faire revenir l'oignon, ajouter le tempeh émietté puis les lentilles, mijoter dix minutes, mettre en boîte et fermer les boîtes. Laver la planche, le couteau et la poêle, changer l'huile. Faire ensuite dorer le tofu et la courgette, déglacer à la sauce soja, ajouter les graines de courge, tiédir et répartir en quatre portions. Une cuillère de service par lot, jamais passée de l'un à l'autre."
+    }
+  ],
+  "shopping_list": [
+    {
+      "term": "tofu",
+      "ref": "tofu",
+      "quantity": "2700 g",
+      "amount": 2700,
+      "unit": "g",
+      "aisle": "protein"
+    },
+    {
+      "term": "graines de courge",
+      "ref": "pumpkin_seeds",
+      "quantity": "787 g",
+      "amount": 787,
+      "unit": "g",
+      "aisle": "grains"
+    },
+    {
+      "term": "courgette",
+      "ref": "courgette",
+      "quantity": "300 g",
+      "amount": 300,
+      "unit": "g",
+      "aisle": "produce"
+    },
+    {
+      "term": "huile d'olive",
+      "ref": "olive_oil",
+      "quantity": "38 g",
+      "amount": 38,
+      "unit": "g",
+      "aisle": "pantry"
+    },
+    {
+      "term": "sauce soja",
+      "ref": "soy_sauce",
+      "quantity": "50 g",
+      "amount": 50,
+      "unit": "g",
+      "aisle": "pantry"
+    },
+    {
+      "term": "tempeh",
+      "ref": "tempeh",
+      "quantity": "420 g",
+      "amount": 420,
+      "unit": "g",
+      "aisle": "protein"
+    },
+    {
+      "term": "lentilles",
+      "ref": "lentils_cooked",
+      "quantity": "260 g",
+      "amount": 260,
+      "unit": "g",
+      "aisle": "pantry"
+    },
+    {
+      "term": "oignon",
+      "ref": "onion",
+      "quantity": "90 g",
+      "amount": 90,
+      "unit": "g",
+      "aisle": "produce"
+    },
+    {
+      "term": "edamame",
+      "ref": "edamame",
+      "quantity": "860 g",
+      "amount": 860,
+      "unit": "g",
+      "aisle": "frozen"
+    },
+    {
+      "term": "pain complet",
+      "ref": "wholemeal_bread",
+      "quantity": "24 g",
+      "amount": 24,
+      "unit": "g",
+      "aisle": "grains"
+    },
+    {
+      "term": "épinards",
+      "ref": "spinach",
+      "quantity": "240 g",
+      "amount": 240,
+      "unit": "g",
+      "aisle": "produce"
+    },
+    {
+      "term": "couscous complet",
+      "ref": "couscous_wholemeal",
+      "quantity": "36 g",
+      "amount": 36,
+      "unit": "g",
+      "aisle": "grains"
+    },
+    {
+      "term": "tomate",
+      "ref": "tomato",
+      "quantity": "60 g",
+      "amount": 60,
+      "unit": "g",
+      "aisle": "produce"
+    },
+    {
+      "term": "yaourt de soja",
+      "ref": "soy_yogurt",
+      "quantity": "520 g",
+      "amount": 520,
+      "unit": "g",
+      "aisle": "dairy"
+    },
+    {
+      "term": "avoine",
+      "ref": "oats",
+      "quantity": "60 g",
+      "amount": 60,
+      "unit": "g",
+      "aisle": "grains"
+    }
+  ],
+  "explanation": [
+    "Toute la fenêtre est végétale : la base partagée suit la ligne la plus stricte de la table, et Lea a son propre lot, cuit et mis en boîte avant celui des autres."
+  ]
+}

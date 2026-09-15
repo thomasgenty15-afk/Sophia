@@ -1,0 +1,44 @@
+[
+  {
+    "table": "user_attack_cards",
+    "status": 200,
+    "count": 0,
+    "ok": true
+  },
+  {
+    "table": "user_defense_cards",
+    "status": 200,
+    "count": 0,
+    "ok": true
+  },
+  {
+    "table": "user_support_cards",
+    "status": 200,
+    "count": 0,
+    "ok": true
+  },
+  {
+    "table": "user_recurring_reminders",
+    "status": 200,
+    "count": 0,
+    "ok": true
+  },
+  {
+    "table": "scheduled_checkins",
+    "status": 200,
+    "count": 0,
+    "ok": true
+  },
+  {
+    "table": "user_chat_states",
+    "status": 200,
+    "count": 1,
+    "ok": true,
+    "body": [
+      {
+        "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+        "temp_memory": {}
+      }
+    ]
+  }
+]

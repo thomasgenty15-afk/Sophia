@@ -1,0 +1,49 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Le truc des placards dans mon plan est trop gros, je veux le rendre beaucoup plus petit.",
+    "assistant": "Ok je te suis : il est trop “lourd”, donc on va le compacter. 😄\n\nD’abord, dis-moi juste : quand tu dis “placards”, tu parles plutôt de l’un de ces trucs ?\nA) nettoyer/ranger les placards\nB) le rituel de gestion du bordel dans les placards\nC) un objectif/mission “placards” dans ton plan\n\nRéponds juste A, B ou C.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "operation_escape_to_normal_reply",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "Nettoyer ton environnement direct",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r2-t01",
+    "trace_error": null
+  }
+]

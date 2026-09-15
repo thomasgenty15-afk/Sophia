@@ -1,0 +1,100 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress2-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux que tu me rappelles mon plan, mais je ne sais pas si c'est juste demain ou plutôt toutes les semaines.",
+    "assistant": "Ok, on va clarifier ça vite, parce que “rappel de plan” peut vouloir dire 2 trucs différents. 😊\n\nTu veux :\nA) un rappel ponctuel demain\nB) un rappel récurrent chaque semaine\n\nTu préfères A ou B ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "route_decision": {
+      "reason_code": "normal_reply_default",
+      "blocked_paths": [],
+      "route_version": "v1",
+      "response_owner": "normal_reply",
+      "memory_use_kind": "none",
+      "direct_effects_to_run": [],
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": []
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "demain"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tomorrow"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "turn_frame_direct_effects": [],
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [],
+    "tool_skill_run": null,
+    "pending_tool_skill_confirmation": null,
+    "recommendation": null,
+    "memory_write_candidates_emitted": 0,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress2-r2-t02",
+    "status": 200,
+    "ok": true,
+    "user": "B. Chaque lundi à 9h, message 'Quelle est la prochaine petite action ?'. Demande-moi confirmation avant de le créer.",
+    "assistant": "Parfait, B = un rappel hebdo chaque lundi à 9h, avec le message: “Quelle est la prochaine petite action ?” 😊\nPour le faire correctement sans te le créer “à l’aveugle”, confirme-moi juste ceci : tu veux que je programme ce rappel pour toi, dès que tu dis “oui”, et c’est bien lundi 9h (heure de Paris) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "route_decision": {
+      "reason_code": "normal_reply_default",
+      "blocked_paths": [],
+      "route_version": "v1",
+      "response_owner": "normal_reply",
+      "memory_use_kind": "none",
+      "direct_effects_to_run": [],
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": []
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "turn_frame_direct_effects": [],
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [],
+    "tool_skill_run": null,
+    "pending_tool_skill_confirmation": null,
+    "recommendation": null,
+    "memory_write_candidates_emitted": 0,
+    "trace_error": null
+  }
+]

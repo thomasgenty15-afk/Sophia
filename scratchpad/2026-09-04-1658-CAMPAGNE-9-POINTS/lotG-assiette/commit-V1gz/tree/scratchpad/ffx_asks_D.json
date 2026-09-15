@@ -1,0 +1,106 @@
+{
+  "today": "2026-08-08",
+  "timezone": "Asia/Bangkok",
+  "created": [
+    "91180642-e5cd-4221-b824-5d80e26564ec",
+    "2462cc98-5b47-4756-8179-89b5fbeb6a9f",
+    "f97fa21b-fb7e-400c-9481-86f6143a4063",
+    "e929b294-902c-4ef8-a8f9-d83e630cd16f",
+    "1622bf9f-1c3b-46fa-ab57-16adb192c4e8",
+    "99a40465-da41-4941-b588-0c2e1a7135c3"
+  ],
+  "results": {
+    "D": [
+      {
+        "run": 1,
+        "userId": "91180642-e5cd-4221-b824-5d80e26564ec",
+        "trace": [
+          {
+            "step": "practice",
+            "out": "{\"source\":\"composed\",\"reason\":\"\",\"practiceMode\":\"ask\",\"body\":\"You ticked off chicken and greens and beef and root vegetables today. Did you manage to sit down for a meal, tu?\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "reco",
+            "out": "{\"outcome\":\"outside_window\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "photo",
+            "out": "Understood. You reported takeaway pizza for dinner; I’ve got that.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "precision",
+            "out": "Noted: chicken for lunch. I’ve got the lunch report.",
+            "ledgerAfter": 1
+          }
+        ],
+        "finalLedger": [
+          "practice_question|2026-08-08|chat|-|You ticked off chicken and greens and beef and root vegetabl"
+        ],
+        "verdict": "GREEN"
+      },
+      {
+        "run": 2,
+        "userId": "f97fa21b-fb7e-400c-9481-86f6143a4063",
+        "trace": [
+          {
+            "step": "practice",
+            "out": "{\"source\":\"composed\",\"reason\":\"\",\"practiceMode\":\"ask\",\"body\":\"Bud, you ticked off chicken and greens and beef and root vegetables today. Did you sit down for a meal away from a screen?\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "reco",
+            "out": "{\"outcome\":\"outside_window\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "photo",
+            "out": "Protein at lunch is still the only meal anchor on record for today, and vegetables at lunch is still unreported. Your pizza note doesn’t change that.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "precision",
+            "out": "Chicken for lunch is now on record. Protein at lunch is covered; vegetables at lunch are still unreported.",
+            "ledgerAfter": 1
+          }
+        ],
+        "finalLedger": [
+          "practice_question|2026-08-08|chat|-|Bud, you ticked off chicken and greens and beef and root veg"
+        ],
+        "verdict": "GREEN"
+      },
+      {
+        "run": 3,
+        "userId": "1622bf9f-1c3b-46fa-ab57-16adb192c4e8",
+        "trace": [
+          {
+            "step": "practice",
+            "out": "{\"source\":\"composed\",\"reason\":\"\",\"practiceMode\":\"ask\",\"body\":\"Bud, you ticked off chicken and greens and beef and root vegetables today. Did you sit down for a meal away from a screen?\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "reco",
+            "out": "{\"outcome\":\"outside_window\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "photo",
+            "out": "Protein at dinner is still the anchor to build around; pizza by itself doesn’t give you that structure. If you want, I can help you frame the next meal around protein and vegetables.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "precision",
+            "out": "Protein at lunch is now covered.",
+            "ledgerAfter": 1
+          }
+        ],
+        "finalLedger": [
+          "practice_question|2026-08-08|chat|-|Bud, you ticked off chicken and greens and beef and root veg"
+        ],
+        "verdict": "GREEN"
+      }
+    ]
+  }
+}

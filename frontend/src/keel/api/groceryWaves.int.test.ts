@@ -32,7 +32,23 @@ function item(term: string, aisle: string): ShoppingItem {
   // pendant que la date d'achat n'atteignait plus aucun écran. Un cast sur un
   // type étranger désarme le typecheck: si cette fonction ne compile plus, c'est
   // que `ShoppingItem` a bougé, et c'est exactement ce qu'on veut savoir.
-  return { term, quantity: null, aisle, food_group: null, buy_on: null, freeze_on_purchase: false };
+  // ⟳ 2026-09-12 · FERMETURE LOT 2 — LES CINQ CHAMPS DU LOT 1 SONT REQUIS.
+  // `ShoppingItem` porte désormais l'identité (`ref`), la quantité structurée
+  // et `purchasable`: ce banc ne mesure que les VAGUES, mais il doit compiler
+  // sur la forme réelle — c'est tout l'objet du cast retiré ci-dessus.
+  return {
+    term,
+    quantity: null,
+    aisle,
+    food_group: null,
+    buy_on: null,
+    freeze_on_purchase: false,
+    ref: null,
+    amount: null,
+    unit: null,
+    state: null,
+    purchasable: true,
+  };
 }
 
 

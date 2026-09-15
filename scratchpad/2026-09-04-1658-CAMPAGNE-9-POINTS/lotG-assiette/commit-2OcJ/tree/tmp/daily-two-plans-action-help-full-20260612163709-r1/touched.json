@@ -1,0 +1,24 @@
+{
+  "qaPhone": "+336991300958",
+  "planIds": [
+    "4bd98c89-1d63-472d-88f0-5daedb91d70d",
+    "512e5794-5ac5-483a-b00e-927284a2f752"
+  ],
+  "itemIds": [
+    "78910fed-197b-409f-ad0c-6bca04b63075",
+    "c4c76922-876f-4921-83af-14b1313f554f"
+  ],
+  "occurrenceIds": [
+    "3a47d532-87c4-418b-ad5a-4f978354215c",
+    "87435db2-bfce-4d09-bed6-c08264639033"
+  ],
+  "checkinId": "c2b50f1d-8bc8-4a43-80dd-ea5ddcc03844",
+  "pendingIds": [],
+  "entryIds": [],
+  "dedupWamids": [],
+  "chatMessageIds": [],
+  "deferredDueCheckinIds": [
+    "8363fc9a-540b-4756-945b-eafdd7fc0f0f",
+    "666976c4-762d-4014-8eb0-c00a6b75f951"
+  ]
+}

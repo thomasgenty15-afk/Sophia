@@ -1,0 +1,687 @@
+{
+  "request_id": "3a010001-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "3a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T01:52:42.308Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "e100da62-2d96-4437-b718-7feb59c20808",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T01:51:54.720554+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 16108,
+    "user_message_truncated": false,
+    "user_message_written_chars": 16108,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 16108
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "37f9bf4b-c97f-4eb2-8be9-fbe15519f4a7",
+    "created_at": "2026-08-19T01:52:41.697975+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Summer Bean Bowls\",\n      \"title\": \"Smoky black beans with rice, avocado and lime\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocados\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"1 bunch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"limes\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the beans and rice in a pan with a splash of water until steaming hot. Spoon into bowls and top with sliced avocado, fresh coriander, and a squeeze of lime.\",\n      \"why\": \"This dish uses slow-simmered beans and smoky spices to meet your request for deep flavours while keeping the oven free for your single-tray week.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans_midday\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_midday_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_lunch_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Charred Pepper Bean Wraps\",\n      \"title\": \"Smoky black beans in tortillas with crunchy red cabbage\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"flour tortillas (sesame-free)\",\n          \"quantity\": \"8 units\",\n          \"amount\": 8,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red cabbage\",\n          \"quantity\": \"160 g\",\n          \"amount\": 160,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the smoky beans in a pan until bubbling. Warm the tortillas in a separate dry pan for 30 seconds each side. Fill the wraps with the warm beans and top with plenty of shredded red cabbage and a squeeze of lime.\",\n      \"why\": \"The crunchy red cabbage provides the loud vegetable required by the method, paired with a warm, smoky bean base that satisfies the house's craving.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans_evening\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_evening_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_beans_midday\",\n      \"title\": \"Slow-simmered smoky beans (Lunch)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red bell peppers\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"kidney beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chipotle paste (sesame-free)\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté diced onion and peppers in oil until soft. Add minced garlic, paprika, and chipotle paste for 1 minute. Stir in the beans and tomatoes. Simmer on low heat for 30 minutes until thick and smoky.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_midday_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beans_midday_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beans_midday_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beans_midday_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beans_evening\",\n      \"title\": \"Slow-simmered smoky beans (Dinner)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red bell peppers\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"kidney beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chipotle paste (sesame-free)\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté diced onion and peppers in oil until soft. Add minced garlic, paprika, and chipotle paste for 1 minute. Stir in the beans and tomatoes. Simmer on low heat for 30 minutes until thick and smoky.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_evening_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beans_evening_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beans_evening_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beans_evening_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice_lunch\",\n      \"title\": \"Fluffy basmati rice\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"600 ml\",\n          \"amount\": 600,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice. Bring water to a boil, add rice and a pinch of salt, cover and simmer on the lowest heat for 12 minutes. Turn off the heat and let it steam for 5 minutes before fluffing with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_lunch_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_lunch_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_lunch_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_lunch_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_beans_midday\",\n        \"prep_beans_evening\",\n        \"prep_rice_lunch\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice in a small pot. While it simmers, dice the onions and peppers and start the large pot of smoky beans. Shred the red cabbage for the evening wraps while the beans simmer. Once everything is cooked, portion the rice and beans into their respective boxes for lunch and dinner.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"800 g (2 tins)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"kidney beans\",\n      \"quantity\": \"800 g (2 tins)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"800 g (2 tins)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"red bell peppers\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"avocados\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"limes\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red cabbage\",\n      \"quantity\": \"1 small\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"flour tortillas (check for sesame-free)\",\n      \"quantity\": \"8 units\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chipotle paste (check for sesame-free)\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Arrange the bell peppers and red cabbage on the plate first, followed by the smoky beans, and finally the rice or tortillas.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_midday\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_beans_evening\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_lunch\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Plate the smoky beans and rice or tortillas first, then add the peppers and red cabbage to the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_midday\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_beans_evening\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_lunch\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Plate the smoky beans and rice or tortillas first, then add the peppers and red cabbage to the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_midday\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_beans_evening\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_lunch\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Serve all components together on the plate, mixing the beans with the rice or cabbage as desired.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_midday\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_beans_evening\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_lunch\",\n          \"note\": \"one box\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Smoky Summer Bean Bowls",
+          "title": "Smoky black beans with rice, avocado and lime",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "avocados",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "fresh coriander",
+              "quantity": "1 bunch",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            },
+            {
+              "term": "limes",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the beans and rice in a pan with a splash of water until steaming hot. Spoon into bowls and top with sliced avocado, fresh coriander, and a squeeze of lime.",
+          "why": "This dish uses slow-simmered beans and smoky spices to meet your request for deep flavours while keeping the oven free for your single-tray week.",
+          "uses": [
+            {
+              "preparation_id": "prep_beans_midday",
+              "servings": 1,
+              "box_id": "box_beans_midday_aurele"
+            },
+            {
+              "preparation_id": "prep_rice_lunch",
+              "servings": 1,
+              "box_id": "box_rice_lunch_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Charred Pepper Bean Wraps",
+          "title": "Smoky black beans in tortillas with crunchy red cabbage",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "flour tortillas (sesame-free)",
+              "quantity": "8 units",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red cabbage",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lime",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the smoky beans in a pan until bubbling. Warm the tortillas in a separate dry pan for 30 seconds each side. Fill the wraps with the warm beans and top with plenty of shredded red cabbage and a squeeze of lime.",
+          "why": "The crunchy red cabbage provides the loud vegetable required by the method, paired with a warm, smoky bean base that satisfies the house's craving.",
+          "uses": [
+            {
+              "preparation_id": "prep_beans_evening",
+              "servings": 1,
+              "box_id": "box_beans_evening_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_beans_midday",
+          "title": "Slow-simmered smoky beans (Lunch)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red bell peppers",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic cloves",
+              "quantity": "3 units",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "black beans",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "kidney beans",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "chipotle paste (sesame-free)",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Sauté diced onion and peppers in oil until soft. Add minced garlic, paprika, and chipotle paste for 1 minute. Stir in the beans and tomatoes. Simmer on low heat for 30 minutes until thick and smoky.",
+          "active_minutes": 15,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beans_midday_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_beans_midday_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_beans_midday_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_beans_midday_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_beans_evening",
+          "title": "Slow-simmered smoky beans (Dinner)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red bell peppers",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic cloves",
+              "quantity": "3 units",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "black beans",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "kidney beans",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "chipotle paste (sesame-free)",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Sauté diced onion and peppers in oil until soft. Add minced garlic, paprika, and chipotle paste for 1 minute. Stir in the beans and tomatoes. Simmer on low heat for 30 minutes until thick and smoky.",
+          "active_minutes": 15,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beans_evening_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_beans_evening_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_beans_evening_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_beans_evening_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_rice_lunch",
+          "title": "Fluffy basmati rice",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "600 ml",
+              "amount": 600,
+              "unit": "ml",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse the rice. Bring water to a boil, add rice and a pinch of salt, cover and simmer on the lowest heat for 12 minutes. Turn off the heat and let it steam for 5 minutes before fluffing with a fork.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_lunch_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_lunch_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_lunch_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_lunch_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 180
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_beans_midday",
+            "prep_beans_evening",
+            "prep_rice_lunch"
+          ],
+          "total_minutes": 50,
+          "run_through": "Start the rice in a small pot. While it simmers, dice the onions and peppers and start the large pot of smoky beans. Shred the red cabbage for the evening wraps while the beans simmer. Once everything is cooked, portion the rice and beans into their respective boxes for lunch and dinner."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "basmati rice",
+          "quantity": "300 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "black beans",
+          "quantity": "800 g (2 tins)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "kidney beans",
+          "quantity": "800 g (2 tins)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chopped tomatoes",
+          "quantity": "800 g (2 tins)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "red bell peppers",
+          "quantity": "4 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "onions",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "avocados",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "limes",
+          "quantity": "3 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh coriander",
+          "quantity": "1 bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "red cabbage",
+          "quantity": "1 small",
+          "aisle": "produce"
+        },
+        {
+          "term": "flour tortillas (check for sesame-free)",
+          "quantity": "8 units",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chipotle paste (check for sesame-free)",
+          "quantity": "1 small jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "portion_note": "Arrange the bell peppers and red cabbage on the plate first, followed by the smoky beans, and finally the rice or tortillas.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beans_midday",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_beans_evening",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_rice_lunch",
+              "note": "one box"
+            }
+          ]
+        },
+        {
+          "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "portion_note": "Plate the smoky beans and rice or tortillas first, then add the peppers and red cabbage to the side.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beans_midday",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_beans_evening",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_rice_lunch",
+              "note": "one box"
+            }
+          ]
+        },
+        {
+          "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "portion_note": "Plate the smoky beans and rice or tortillas first, then add the peppers and red cabbage to the side.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beans_midday",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_beans_evening",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_rice_lunch",
+              "note": "one box"
+            }
+          ]
+        },
+        {
+          "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+          "portion_note": "Serve all components together on the plate, mixing the beans with the rice or cabbage as desired.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beans_midday",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_beans_evening",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_rice_lunch",
+              "note": "one box"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Summer Bean Bowls\",\n      \"title\": \"Smoky black beans with rice, avocado and lime\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocados\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"1 bunch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"limes\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the beans and rice in a pan with a splash of water until steaming hot. Spoon into bowls and top with sliced avocado, fresh coriander, and a squeeze of lime.\",\n      \"why\": \"This dish uses slow-simmered beans and smoky spices to meet your request for deep flavours while keeping the oven free for your single-tray week.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans_midday\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_midday_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_lunch_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Charred Pepper Bean Wraps\",\n      \"title\": \"Smoky black beans in tortillas with crunchy red cabbage\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"flour tortillas (sesame-free)\",\n          \"quantity\": \"8 units\",\n          \"amount\": 8,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red cabbage\",\n          \"quantity\": \"160 g\",\n          \"amount\": 160,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the smoky beans in a pan until bubbling. Warm the tortillas in a separate dry pan for 30 seconds each side. Fill the wraps with the warm beans and top with plenty of shredded red cabbage and a squeeze of lime.\",\n      \"why\": \"The crunchy red cabbage provides the loud vegetable required by the method, paired with a warm, smoky bean base that satisfies the house's craving.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans_evening\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_evening_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_beans_midday\",\n      \"title\": \"Slow-simmered smoky beans (Lunch)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red bell peppers\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"kidney beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chipotle paste (sesame-free)\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté diced onion and peppers in oil until soft. Add minced garlic, paprika, and chipotle paste for 1 minute. Stir in the beans and tomatoes. Simmer on low heat for 30 minutes until thick and smoky.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_midday_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beans_midday_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beans_midday_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beans_midday_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beans_evening\",\n      \"title\": \"Slow-simmered smoky beans (Dinner)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red bell peppers\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"kidney beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chipotle paste (sesame-free)\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté diced onion and peppers in oil until soft. Add minced garlic, paprika, and chipotle paste for 1 minute. Stir in the beans and tomatoes. Simmer on low heat for 30 minutes until thick and smoky.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_evening_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beans_evening_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beans_evening_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beans_evening_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice_lunch\",\n      \"title\": \"Fluffy basmati rice\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"600 ml\",\n          \"amount\": 600,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice. Bring water to a boil, add rice and a pinch of salt, cover and simmer on the lowest heat for 12 minutes. Turn off the heat and let it steam for 5 minutes before fluffing with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_lunch_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_lunch_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_lunch_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_lunch_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_beans_midday\",\n        \"prep_beans_evening\",\n        \"prep_rice_lunch\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice in a small pot. While it simmers, dice the onions and peppers and start the large pot of smoky beans. Shred the red cabbage for the evening wraps while the beans simmer. Once everything is cooked, portion the rice and beans into their respective boxes for lunch and dinner.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"800 g (2 tins)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"kidney beans\",\n      \"quantity\": \"800 g (2 tins)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"800 g (2 tins)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"red bell peppers\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"avocados\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"limes\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red cabbage\",\n      \"quantity\": \"1 small\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"flour tortillas (check for sesame-free)\",\n      \"quantity\": \"8 units\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chipotle paste (check for sesame-free)\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Arrange the bell peppers and red cabbage on the plate first, followed by the smoky beans, and finally the rice or tortillas.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_midday\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_beans_evening\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_lunch\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Plate the smoky beans and rice or tortillas first, then add the peppers and red cabbage to the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_midday\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_beans_evening\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_lunch\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Plate the smoky beans and rice or tortillas first, then add the peppers and red cabbage to the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_midday\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_beans_evening\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_lunch\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Serve all components together on the plate, mixing the beans with the rice or cabbage as desired.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_midday\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_beans_evening\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_lunch\",\n          \"note\": \"one box\"\n        }\n      ]\n    }\n  ]\n}\n",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "PwyFaqjhA-2cnsEP_pCmiQw",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 19100,
+        "promptTokenCount": 8109,
+        "thoughtsTokenCount": 6271,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8109
+          }
+        ],
+        "candidatesTokenCount": 4720
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T01:51:54.720554+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:51:55.247466+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:51:58.830647+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:51:58.842846+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:51:58.849675+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:52:41.697975+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

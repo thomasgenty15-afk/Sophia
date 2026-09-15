@@ -1,0 +1,2080 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t01",
+    "user": "Oui, la fatigue c'est bien le sujet. J'ai quand meme l'impression d'avoir avance vers l'objectif: j'ai moins fume certains soirs, mais je me sens encore fragile. Peut-etre qu'une carte d'attaque aiderait plus tard, mais pour l'instant j'aimerais surtout comprendre quoi alleger.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Tu as réussi à maintenir le cap sur le rangement du matériel et à entamer un travail sur les réflexes, malgré une fatigue bien présente en fin de semaine. C'est encourageant, même si cette fragilité demande de la prudence. Pour alléger la suite, on pourrait simplifier tes objectifs pour te laisser plus d'espace de récupération. Est-ce que c'est le 'sas de décompression' qui te semble le plus difficile à tenir en ce moment ?",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t01",
+            "source_message_id": "624e3e0e-f569-44a8-a01c-db3f4a21d54e",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_weekly_review_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_weekly_review_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_local_confirm_weekly_reading",
+            "operation_type": "weekly_adaptive_review_v1",
+            "status": "answered",
+            "flow_action": "confirm_weekly_reading",
+            "visible_task": "weekly_reading",
+            "confidence": "high",
+            "risk_score": 0,
+            "weekly_intent": {
+              "kind": "weekly_answer",
+              "summary": "Le user confirme la fatigue comme bloqueur, ressent une progression malgré une fragilité et demande des précisions sur l'allègement du plan."
+            },
+            "handoff_updates": {
+              "status": "none",
+              "requested_adjustment_summary": null,
+              "revision_summary": null,
+              "platform_destination": null,
+              "scope": {
+                "kind": "none",
+                "plan_id": null,
+                "plan_title": null,
+                "plan_item_ids": [],
+                "scope_summary": null,
+                "needs_scope_clarification": false
+              }
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null
+            },
+            "local_flow_state": {
+              "stage": "strategy_ready",
+              "proposal_status": "none",
+              "validation_unlock_status": "locked_until_weekly_complete",
+              "human_signals": {
+                "objective_delta": "slight_progress",
+                "felt_state": "tired_but_ok"
+              },
+              "felt_progress": "encouraged",
+              "last_user_signal": "Confirme la fatigue; ressent une avancée (moins fumé certains soirs) mais se sent fragile; prêt à voir les ajustements.",
+              "last_visible_summary": "Le user confirme la fatigue comme bloqueur, ressent une progression malgré une fragilité et demande des précisions sur l'allègement du plan.",
+              "last_handoff_summary": null,
+              "child_flow": {
+                "status": "none",
+                "flow_id": null,
+                "reason": null,
+                "expected_return_focus": null,
+                "result_summary": null
+              },
+              "turn_count": 1,
+              "max_turns": 6,
+              "updated_at": "2026-06-12T00:45:36.493Z"
+            },
+            "target_dispatcher": "none",
+            "note_information": null,
+            "conversation_context": {
+              "state_summary": "Le user confirme la fatigue comme bloqueur, ressent une progression malgré une fragilité et demande des précisions sur l'allègement du plan.",
+              "user_words": [],
+              "week_window": {
+                "start_date": "2026-06-01",
+                "end_date": "2026-06-07"
+              },
+              "field_or_stage": "weekly_reading",
+              "known_values": {
+                "human_signals": {
+                  "objective_delta": "slight_progress",
+                  "felt_state": "tired_but_ok"
+                },
+                "felt_progress": "encouraged",
+                "validation_unlock_status": "locked_until_weekly_complete",
+                "proposal_status": "none",
+                "child_flow": {
+                  "status": "none",
+                  "flow_id": null,
+                  "reason": null,
+                  "expected_return_focus": null,
+                  "result_summary": null
+                },
+                "dominant_blocker_confirmation": "confirmed"
+              },
+              "missing_or_weak_values": [],
+              "weekly_reading": {
+                "strategy_label_human": "hold",
+                "reason_human": "Le signal est insuffisant; Sophia doit clarifier avant d'avancer.",
+                "confidence": "high"
+              },
+              "plan_contexts": [
+                {
+                  "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "action_count": 3
+                }
+              ],
+              "item_summaries": [
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "qa-weekly-weekly-child-detours-r1-occ-1",
+                  "title": "Ranger le matériel hors de vue",
+                  "family": "habit",
+                  "status": "done",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "reschedule_decision": null
+                  }
+                },
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "qa-weekly-weekly-child-detours-r1-occ-2",
+                  "title": "Cibler le joint réflexe",
+                  "family": "habit",
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "reschedule_decision": null
+                  }
+                },
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "qa-weekly-weekly-child-detours-r1-occ-3",
+                  "title": "Faire un sas de décompression (sans fumer)",
+                  "family": "habit",
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": "fatigue fin de semaine",
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "reschedule_decision": null
+                  }
+                }
+              ],
+              "handoff_data": {
+                "summary": null,
+                "platform_destination": null,
+                "scope": {
+                  "kind": "none",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "plan_item_ids": [],
+                  "scope_summary": null,
+                  "needs_scope_clarification": false
+                },
+                "requested_adjustment_summary": null,
+                "revision_summary": null,
+                "no_chat_mutation": true
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null,
+                "no_plan_adjustment": true
+              },
+              "inline_result": {},
+              "tone_constraints": [
+                "compact",
+                "one_question_max_when_asking",
+                "human_language"
+              ],
+              "do_not_say": [
+                "bridge_week",
+                "carry_over",
+                "repeat_week",
+                "level_review",
+                "plan_patch",
+                "item_decision",
+                "dominant_blocker",
+                "applique",
+                "modifie le plan",
+                "valide le plan",
+                "enregistre le plan"
+              ],
+              "context_summary": "Le user confirme la fatigue comme bloqueur, ressent une progression malgré une fragilité et demande des précisions sur l'allègement du plan.",
+              "evidence_used": [
+                "Oui, la fatigue c'est bien le sujet",
+                "impression d'avoir avance vers l'objectif",
+                "me sens encore fragile",
+                "comprendre quoi alleger",
+                "fatigue"
+              ]
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "visible_fallback_used": false,
+            "qa_green_eligible": true,
+            "no_chat_mutation": true,
+            "no_durable_plan_mutation": true,
+            "evidence": [
+              "Oui, la fatigue c'est bien le sujet",
+              "impression d'avoir avance vers l'objectif",
+              "me sens encore fragile",
+              "comprendre quoi alleger"
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t01",
+          "source_message_id": "624e3e0e-f569-44a8-a01c-db3f4a21d54e",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "weekly_adaptive_review_v1",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_weekly_review_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_weekly_review_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "weekly_adaptive_review_v1",
+          "reason_code": "weekly_review_local_confirm_weekly_reading",
+          "operation_type": "weekly_adaptive_review_v1",
+          "status": "answered",
+          "flow_action": "confirm_weekly_reading",
+          "visible_task": "weekly_reading",
+          "confidence": "high",
+          "risk_score": 0,
+          "weekly_intent": {
+            "kind": "weekly_answer",
+            "summary": "Le user confirme la fatigue comme bloqueur, ressent une progression malgré une fragilité et demande des précisions sur l'allègement du plan."
+          },
+          "handoff_updates": {
+            "status": "none",
+            "requested_adjustment_summary": null,
+            "revision_summary": null,
+            "platform_destination": null,
+            "scope": {
+              "kind": "none",
+              "plan_id": null,
+              "plan_title": null,
+              "plan_item_ids": [],
+              "scope_summary": null,
+              "needs_scope_clarification": false
+            }
+          },
+          "forgotten_progress": {
+            "status": "none",
+            "target_hint": null,
+            "outcome_hint": null,
+            "evidence": null
+          },
+          "local_flow_state": {
+            "stage": "strategy_ready",
+            "proposal_status": "none",
+            "validation_unlock_status": "locked_until_weekly_complete",
+            "human_signals": {
+              "objective_delta": "slight_progress",
+              "felt_state": "tired_but_ok"
+            },
+            "felt_progress": "encouraged",
+            "last_user_signal": "Confirme la fatigue; ressent une avancée (moins fumé certains soirs) mais se sent fragile; prêt à voir les ajustements.",
+            "last_visible_summary": "Le user confirme la fatigue comme bloqueur, ressent une progression malgré une fragilité et demande des précisions sur l'allègement du plan.",
+            "last_handoff_summary": null,
+            "child_flow": {
+              "status": "none",
+              "flow_id": null,
+              "reason": null,
+              "expected_return_focus": null,
+              "result_summary": null
+            },
+            "turn_count": 1,
+            "max_turns": 6,
+            "updated_at": "2026-06-12T00:45:36.493Z"
+          },
+          "target_dispatcher": "none",
+          "note_information": null,
+          "conversation_context": {
+            "state_summary": "Le user confirme la fatigue comme bloqueur, ressent une progression malgré une fragilité et demande des précisions sur l'allègement du plan.",
+            "user_words": [],
+            "week_window": {
+              "start_date": "2026-06-01",
+              "end_date": "2026-06-07"
+            },
+            "field_or_stage": "weekly_reading",
+            "known_values": {
+              "human_signals": {
+                "objective_delta": "slight_progress",
+                "felt_state": "tired_but_ok"
+              },
+              "felt_progress": "encouraged",
+              "validation_unlock_status": "locked_until_weekly_complete",
+              "proposal_status": "none",
+              "child_flow": {
+                "status": "none",
+                "flow_id": null,
+                "reason": null,
+                "expected_return_focus": null,
+                "result_summary": null
+              },
+              "dominant_blocker_confirmation": "confirmed"
+            },
+            "missing_or_weak_values": [],
+            "weekly_reading": {
+              "strategy_label_human": "hold",
+              "reason_human": "Le signal est insuffisant; Sophia doit clarifier avant d'avancer.",
+              "confidence": "high"
+            },
+            "plan_contexts": [
+              {
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "action_count": 3
+              }
+            ],
+            "item_summaries": [
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "occurrence_id": "qa-weekly-weekly-child-detours-r1-occ-1",
+                "title": "Ranger le matériel hors de vue",
+                "family": "habit",
+                "status": "done",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": null,
+                  "still_relevant": true,
+                  "reason_category": "none",
+                  "reschedule_decision": null
+                }
+              },
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "occurrence_id": "qa-weekly-weekly-child-detours-r1-occ-2",
+                "title": "Cibler le joint réflexe",
+                "family": "habit",
+                "status": "partial",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": null,
+                  "still_relevant": true,
+                  "reason_category": "none",
+                  "reschedule_decision": null
+                }
+              },
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "occurrence_id": "qa-weekly-weekly-child-detours-r1-occ-3",
+                "title": "Faire un sas de décompression (sans fumer)",
+                "family": "habit",
+                "status": "missed",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": "fatigue fin de semaine",
+                  "still_relevant": true,
+                  "reason_category": "fatigue",
+                  "reschedule_decision": null
+                }
+              }
+            ],
+            "handoff_data": {
+              "summary": null,
+              "platform_destination": null,
+              "scope": {
+                "kind": "none",
+                "plan_id": null,
+                "plan_title": null,
+                "plan_item_ids": [],
+                "scope_summary": null,
+                "needs_scope_clarification": false
+              },
+              "requested_adjustment_summary": null,
+              "revision_summary": null,
+              "no_chat_mutation": true
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null,
+              "no_plan_adjustment": true
+            },
+            "inline_result": {},
+            "tone_constraints": [
+              "compact",
+              "one_question_max_when_asking",
+              "human_language"
+            ],
+            "do_not_say": [
+              "bridge_week",
+              "carry_over",
+              "repeat_week",
+              "level_review",
+              "plan_patch",
+              "item_decision",
+              "dominant_blocker",
+              "applique",
+              "modifie le plan",
+              "valide le plan",
+              "enregistre le plan"
+            ],
+            "context_summary": "Le user confirme la fatigue comme bloqueur, ressent une progression malgré une fragilité et demande des précisions sur l'allègement du plan.",
+            "evidence_used": [
+              "Oui, la fatigue c'est bien le sujet",
+              "impression d'avoir avance vers l'objectif",
+              "me sens encore fragile",
+              "comprendre quoi alleger",
+              "fatigue"
+            ]
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "visible_fallback_used": false,
+          "qa_green_eligible": true,
+          "no_chat_mutation": true,
+          "no_durable_plan_mutation": true,
+          "evidence": [
+            "Oui, la fatigue c'est bien le sujet",
+            "impression d'avoir avance vers l'objectif",
+            "me sens encore fragile",
+            "comprendre quoi alleger"
+          ],
+          "toolExecution": "none",
+          "executedTools": []
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t02",
+    "user": "Oui, c'est le sas de decompression qui craque. Ajuste cette action pour la semaine prochaine: je veux la rendre plus petite, juste 5 minutes sans fumer avant de decider quoi faire, pas un gros sas complet.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Comme ton sas de décompression actuel est devenu trop difficile à tenir avec la fatigue, on va réduire sa durée. L'idée est de passer à 5 minutes sans fumer pour la semaine prochaine, afin que ce soit plus gérable pour toi. Pour effectuer ce changement, rends-toi dans ton Plan : sous le niveau actif, tu trouveras l'option 'Ajuster mon plan' où tu pourras simplement saisir '5 minutes'.",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t02",
+            "source_message_id": "5db3fd79-f9e0-4bfe-9096-c62baa3533db",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "adjust_plan_item",
+                "explicitness": "explicit",
+                "operation_input": {
+                  "source_flow_id": "weekly_adaptive_review_v1",
+                  "source_flow_summary": "weekly review parent active",
+                  "handoff_reason": "bridge",
+                  "handoff_context_for_next_dispatcher": "User wants to reduce 'Faire un sas de décompression (sans fumer)' to just 5 minutes. This is a child flow detour from the weekly review. Return to weekly after adjustment.",
+                  "structured_context": {
+                    "user_message_summary": "demande d'allègement du sas de décompression",
+                    "active_flow_summary": "weekly review parent active",
+                    "collected_state": {
+                      "return_to_weekly": true,
+                      "weekly_stage": "plan_handoff"
+                    },
+                    "unresolved_questions": [],
+                    "recommended_next_focus": "prepare plan handoff then return weekly"
+                  },
+                  "note_information": {
+                    "source_flow_id": "weekly_adaptive_review_v1",
+                    "handoff_reason": "bridge",
+                    "target_dispatcher": "adjust_plan_item",
+                    "handoff_context_for_next_dispatcher": "User wants to reduce 'Faire un sas de décompression (sans fumer)' to just 5 minutes. This is a child flow detour from the weekly review. Return to weekly after adjustment.",
+                    "user_words": [
+                      "juste 5 minutes sans fumer avant de decider quoi faire",
+                      "Oui, c'est le sas de decompression qui craque. Ajuste cette action pour la semaine prochaine: je veux la rendre plus petite, juste 5 minutes sans fumer avant de decider quoi faire, pas un gros sas complet."
+                    ],
+                    "structured_context": {
+                      "user_message_summary": "demande d'allègement du sas de décompression",
+                      "active_flow_summary": "weekly review parent active",
+                      "collected_state": {
+                        "return_to_weekly": true,
+                        "weekly_stage": "plan_handoff"
+                      },
+                      "unresolved_questions": [],
+                      "recommended_next_focus": "prepare plan handoff then return weekly"
+                    },
+                    "confidence": "high"
+                  }
+                },
+                "payload_hint": {
+                  "source_flow_id": "weekly_adaptive_review_v1",
+                  "note_information": {
+                    "source_flow_id": "weekly_adaptive_review_v1",
+                    "handoff_reason": "bridge",
+                    "target_dispatcher": "adjust_plan_item",
+                    "handoff_context_for_next_dispatcher": "User wants to reduce 'Faire un sas de décompression (sans fumer)' to just 5 minutes. This is a child flow detour from the weekly review. Return to weekly after adjustment.",
+                    "user_words": [
+                      "juste 5 minutes sans fumer avant de decider quoi faire",
+                      "Oui, c'est le sas de decompression qui craque. Ajuste cette action pour la semaine prochaine: je veux la rendre plus petite, juste 5 minutes sans fumer avant de decider quoi faire, pas un gros sas complet."
+                    ],
+                    "structured_context": {
+                      "user_message_summary": "demande d'allègement du sas de décompression",
+                      "active_flow_summary": "weekly review parent active",
+                      "collected_state": {
+                        "return_to_weekly": true,
+                        "weekly_stage": "plan_handoff"
+                      },
+                      "unresolved_questions": [],
+                      "recommended_next_focus": "prepare plan handoff then return weekly"
+                    },
+                    "confidence": "high"
+                  }
+                },
+                "confidence_band": "high",
+                "ambiguity": "target_ambiguous",
+                "user_intent": "adjust"
+              }
+            ],
+            "note_information": {
+              "source_flow_id": "weekly_adaptive_review_v1",
+              "handoff_reason": "bridge",
+              "target_dispatcher": "adjust_plan_item",
+              "handoff_context_for_next_dispatcher": "User wants to reduce 'Faire un sas de décompression (sans fumer)' to just 5 minutes. This is a child flow detour from the weekly review. Return to weekly after adjustment.",
+              "user_words": [
+                "juste 5 minutes sans fumer avant de decider quoi faire",
+                "Oui, c'est le sas de decompression qui craque. Ajuste cette action pour la semaine prochaine: je veux la rendre plus petite, juste 5 minutes sans fumer avant de decider quoi faire, pas un gros sas complet."
+              ],
+              "structured_context": {
+                "user_message_summary": "demande d'allègement du sas de décompression",
+                "active_flow_summary": "weekly review parent active",
+                "collected_state": {
+                  "return_to_weekly": true,
+                  "weekly_stage": "plan_handoff"
+                },
+                "unresolved_questions": [],
+                "recommended_next_focus": "prepare plan handoff then return weekly"
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {
+                "adjust_plan_item": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "weekly_adaptive_review_v1_handoff"
+                }
+              }
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "adjust_plan_item",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "weekly_adaptive_review_v1_handoff_to_adjust_plan_item_skips_global_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "weekly_adaptive_review_v1_handoff_to_adjust_plan_item",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "adjust_plan_item",
+            "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_handoff",
+            "status": "draft_delivered",
+            "operation_id": null,
+            "input_draft": {
+              "operation_type": "adjust_plan_item",
+              "mode": "platform_handoff",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_blocker_summary": "le sas actuel craque, trop difficile à tenir avec la fatigue",
+              "suggested_platform_input": "5 minutes",
+              "preserve": [
+                "ne pas fumer pendant le sas"
+              ],
+              "avoid": [
+                "gros sas complet"
+              ],
+              "destination": {
+                "product_area": "Plan",
+                "instruction": "Reprendre cette proposition dans la surface Plan."
+              },
+              "missing_clarity": []
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "committed_effects": [],
+            "platform_handoff": {
+              "operation_type": "adjust_plan_item",
+              "status": "delivered",
+              "surface_id": "plan",
+              "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "draft": {
+                "operation_type": "adjust_plan_item",
+                "mode": "platform_handoff",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "user_blocker_summary": "le sas actuel craque, trop difficile à tenir avec la fatigue",
+                "suggested_platform_input": "5 minutes",
+                "preserve": [
+                  "ne pas fumer pendant le sas"
+                ],
+                "avoid": [
+                  "gros sas complet"
+                ],
+                "destination": {
+                  "product_area": "Plan",
+                  "instruction": "Reprendre cette proposition dans la surface Plan."
+                },
+                "missing_clarity": []
+              }
+            },
+            "skill_result": {
+              "handled": true,
+              "status": "handoff_delivered",
+              "user_intent": "start",
+              "reply": "Comme ton sas de décompression actuel est devenu trop difficile à tenir avec la fatigue, on va réduire sa durée. L'idée est de passer à 5 minutes sans fumer pour la semaine prochaine, afin que ce soit plus gérable pour toi. Pour effectuer ce changement, rends-toi dans ton Plan : sous le niveau actif, tu trouveras l'option 'Ajuster mon plan' où tu pourras simplement saisir '5 minutes'.",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "pending_confirmation": null,
+              "debug": {
+                "reason_code": "adjust_plan_item_local_plan_handoff_ready"
+              }
+            },
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "pending_confirmation": null,
+            "flow_action": "prepare_plan_handoff",
+            "local_flow_state": {
+              "skill_id": "adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "stage": "handoff",
+              "scope": {
+                "kind": "specific_plan_item",
+                "confidence": "high",
+                "plan_id": null,
+                "plan_title": null,
+                "level_id": "phase-1",
+                "level_title": "Casser l'automatisme du soir",
+                "plan_item_ids": [
+                  "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+                ],
+                "target_summary": "Faire un sas de décompression (sans fumer)",
+                "needs_scope_clarification": false
+              },
+              "adjustment_need": {
+                "reason_change": "le sas actuel craque, trop difficile à tenir avec la fatigue",
+                "requested_change": "réduire à 5 minutes sans fumer avant de décider quoi faire",
+                "change_kind": "reduce",
+                "constraints": [
+                  "pour la semaine prochaine"
+                ],
+                "preserve": [
+                  "ne pas fumer pendant le sas"
+                ],
+                "avoid": [
+                  "gros sas complet"
+                ],
+                "missing": []
+              },
+              "platform_handoff": {
+                "status": "delivered",
+                "destination": "Plan",
+                "suggested_platform_input": "Réduire la durée du sas de décompression à 5 minutes (au lieu de 45-60 min) pour la semaine prochaine, pour simplement marquer une pause sans fumer avant de décider de la suite.",
+                "grouped_by_plan": [],
+                "previous_value": "45 à 60 minutes",
+                "revised_value": "5 minutes"
+              },
+              "last_visible_task": "plan_handoff_ready",
+              "last_handoff_summary": "5 minutes",
+              "turn_count": 1,
+              "subskill_history": []
+            },
+            "visible_task": {
+              "kind": "plan_handoff_ready"
+            },
+            "conversation_context": {
+              "state_summary": "Le user veut réduire la durée du sas de décompression à 5 minutes pour la semaine prochaine.",
+              "user_words": [
+                "rendre plus petite",
+                "juste 5 minutes sans fumer",
+                "pas un gros sas complet"
+              ],
+              "field_or_stage": "handoff",
+              "known_values": {
+                "scope": {
+                  "kind": "specific_plan_item",
+                  "confidence": "high",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "level_id": "phase-1",
+                  "level_title": "Casser l'automatisme du soir",
+                  "plan_item_ids": [
+                    "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+                  ],
+                  "target_summary": "Faire un sas de décompression (sans fumer)",
+                  "needs_scope_clarification": false
+                },
+                "adjustment_need": {
+                  "reason_change": "le sas actuel craque, trop difficile à tenir avec la fatigue",
+                  "requested_change": "réduire à 5 minutes sans fumer avant de décider quoi faire",
+                  "change_kind": "reduce",
+                  "constraints": [
+                    "pour la semaine prochaine"
+                  ],
+                  "preserve": [
+                    "ne pas fumer pendant le sas"
+                  ],
+                  "avoid": [
+                    "gros sas complet"
+                  ],
+                  "missing": []
+                },
+                "constraints": [
+                  "pour la semaine prochaine"
+                ],
+                "preserve": [
+                  "ne pas fumer pendant le sas"
+                ],
+                "avoid": [
+                  "gros sas complet"
+                ]
+              },
+              "missing_or_weak_values": [],
+              "selected_candidate": {
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "title": "Faire un sas de décompression (sans fumer)",
+                "plan_id": null,
+                "plan_title": null,
+                "level_id": "phase-1",
+                "level_title": "Casser l'automatisme du soir",
+                "plan_item_ids": [
+                  "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+                ],
+                "target_summary": "Faire un sas de décompression (sans fumer)",
+                "scope_kind": "specific_plan_item",
+                "scope_confidence": "high"
+              },
+              "handoff_data": {
+                "destination": "Plan",
+                "suggested_platform_input": "5 minutes",
+                "grouped_by_plan": [],
+                "previous_value": "45 à 60 minutes",
+                "revised_value": "5 minutes"
+              },
+              "tone_constraints": [],
+              "do_not_say": [
+                "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+                "Ne mentionne pas les labels internes du dispatcher.",
+                "Ne dis pas que le plan est déjà modifié.",
+                "Ne dis pas que c'est enregistré en base de données."
+              ],
+              "context_summary": "Ajustement d'une habitude spécifique identifiée dans le plan actuel.",
+              "evidence_used": [
+                "sas de decompression qui craque",
+                "juste 5 minutes sans fumer",
+                "semaine prochaine",
+                "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "juste 5 minutes sans fumer"
+              ]
+            },
+            "handoff_core": {
+              "target_to_modify": "Faire un sas de décompression (sans fumer)",
+              "reason_change": "le sas actuel craque, trop difficile à tenir avec la fatigue",
+              "requested_change": "réduire à 5 minutes sans fumer avant de décider quoi faire",
+              "change_kind": "reduce",
+              "has_core_triptych": true,
+              "missing_or_weak_values": []
+            },
+            "risk_score": 0,
+            "runtime_trace": [
+              {
+                "component": "adjust_plan_item.visible_agent",
+                "stage": "plan_handoff_ready",
+                "accepted": true,
+                "issues": []
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t02:platform_handoff:delivered:adjust_plan_item:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "adjust_plan_item",
+                "status": "delivered",
+                "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "draft_delivered",
+                  "surface_id": "plan"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t02",
+          "source_message_id": "5db3fd79-f9e0-4bfe-9096-c62baa3533db",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [
+            {
+              "operation_type": "adjust_plan_item",
+              "explicitness": "explicit",
+              "operation_input": {
+                "source_flow_id": "weekly_adaptive_review_v1",
+                "source_flow_summary": "weekly review parent active",
+                "handoff_reason": "bridge",
+                "handoff_context_for_next_dispatcher": "User wants to reduce 'Faire un sas de décompression (sans fumer)' to just 5 minutes. This is a child flow detour from the weekly review. Return to weekly after adjustment.",
+                "structured_context": {
+                  "user_message_summary": "demande d'allègement du sas de décompression",
+                  "active_flow_summary": "weekly review parent active",
+                  "collected_state": {
+                    "return_to_weekly": true,
+                    "weekly_stage": "plan_handoff"
+                  },
+                  "unresolved_questions": [],
+                  "recommended_next_focus": "prepare plan handoff then return weekly"
+                },
+                "note_information": {
+                  "source_flow_id": "weekly_adaptive_review_v1",
+                  "handoff_reason": "bridge",
+                  "target_dispatcher": "adjust_plan_item",
+                  "handoff_context_for_next_dispatcher": "User wants to reduce 'Faire un sas de décompression (sans fumer)' to just 5 minutes. This is a child flow detour from the weekly review. Return to weekly after adjustment.",
+                  "user_words": [
+                    "juste 5 minutes sans fumer avant de decider quoi faire",
+                    "Oui, c'est le sas de decompression qui craque. Ajuste cette action pour la semaine prochaine: je veux la rendre plus petite, juste 5 minutes sans fumer avant de decider quoi faire, pas un gros sas complet."
+                  ],
+                  "structured_context": {
+                    "user_message_summary": "demande d'allègement du sas de décompression",
+                    "active_flow_summary": "weekly review parent active",
+                    "collected_state": {
+                      "return_to_weekly": true,
+                      "weekly_stage": "plan_handoff"
+                    },
+                    "unresolved_questions": [],
+                    "recommended_next_focus": "prepare plan handoff then return weekly"
+                  },
+                  "confidence": "high"
+                }
+              },
+              "payload_hint": {
+                "source_flow_id": "weekly_adaptive_review_v1",
+                "note_information": {
+                  "source_flow_id": "weekly_adaptive_review_v1",
+                  "handoff_reason": "bridge",
+                  "target_dispatcher": "adjust_plan_item",
+                  "handoff_context_for_next_dispatcher": "User wants to reduce 'Faire un sas de décompression (sans fumer)' to just 5 minutes. This is a child flow detour from the weekly review. Return to weekly after adjustment.",
+                  "user_words": [
+                    "juste 5 minutes sans fumer avant de decider quoi faire",
+                    "Oui, c'est le sas de decompression qui craque. Ajuste cette action pour la semaine prochaine: je veux la rendre plus petite, juste 5 minutes sans fumer avant de decider quoi faire, pas un gros sas complet."
+                  ],
+                  "structured_context": {
+                    "user_message_summary": "demande d'allègement du sas de décompression",
+                    "active_flow_summary": "weekly review parent active",
+                    "collected_state": {
+                      "return_to_weekly": true,
+                      "weekly_stage": "plan_handoff"
+                    },
+                    "unresolved_questions": [],
+                    "recommended_next_focus": "prepare plan handoff then return weekly"
+                  },
+                  "confidence": "high"
+                }
+              },
+              "confidence_band": "high",
+              "ambiguity": "target_ambiguous",
+              "user_intent": "adjust"
+            }
+          ],
+          "note_information": {
+            "source_flow_id": "weekly_adaptive_review_v1",
+            "handoff_reason": "bridge",
+            "target_dispatcher": "adjust_plan_item",
+            "handoff_context_for_next_dispatcher": "User wants to reduce 'Faire un sas de décompression (sans fumer)' to just 5 minutes. This is a child flow detour from the weekly review. Return to weekly after adjustment.",
+            "user_words": [
+              "juste 5 minutes sans fumer avant de decider quoi faire",
+              "Oui, c'est le sas de decompression qui craque. Ajuste cette action pour la semaine prochaine: je veux la rendre plus petite, juste 5 minutes sans fumer avant de decider quoi faire, pas un gros sas complet."
+            ],
+            "structured_context": {
+              "user_message_summary": "demande d'allègement du sas de décompression",
+              "active_flow_summary": "weekly review parent active",
+              "collected_state": {
+                "return_to_weekly": true,
+                "weekly_stage": "plan_handoff"
+              },
+              "unresolved_questions": [],
+              "recommended_next_focus": "prepare plan handoff then return weekly"
+            },
+            "confidence": "high"
+          },
+          "skill_signals": {
+            "entry": {
+              "adjust_plan_item": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "weekly_adaptive_review_v1_handoff"
+              }
+            }
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "adjust_plan_item",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "weekly_adaptive_review_v1_handoff_to_adjust_plan_item_skips_global_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "weekly_adaptive_review_v1_handoff_to_adjust_plan_item",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "adjust_plan_item",
+          "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_handoff",
+          "status": "draft_delivered",
+          "operation_id": null,
+          "input_draft": {
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "user_blocker_summary": "le sas actuel craque, trop difficile à tenir avec la fatigue",
+            "suggested_platform_input": "5 minutes",
+            "preserve": [
+              "ne pas fumer pendant le sas"
+            ],
+            "avoid": [
+              "gros sas complet"
+            ],
+            "destination": {
+              "product_area": "Plan",
+              "instruction": "Reprendre cette proposition dans la surface Plan."
+            },
+            "missing_clarity": []
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "blocked_effects": [],
+          "committed_effects": [],
+          "platform_handoff": {
+            "operation_type": "adjust_plan_item",
+            "status": "delivered",
+            "surface_id": "plan",
+            "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "draft": {
+              "operation_type": "adjust_plan_item",
+              "mode": "platform_handoff",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_blocker_summary": "le sas actuel craque, trop difficile à tenir avec la fatigue",
+              "suggested_platform_input": "5 minutes",
+              "preserve": [
+                "ne pas fumer pendant le sas"
+              ],
+              "avoid": [
+                "gros sas complet"
+              ],
+              "destination": {
+                "product_area": "Plan",
+                "instruction": "Reprendre cette proposition dans la surface Plan."
+              },
+              "missing_clarity": []
+            }
+          },
+          "skill_result": {
+            "handled": true,
+            "status": "handoff_delivered",
+            "user_intent": "start",
+            "reply": "Comme ton sas de décompression actuel est devenu trop difficile à tenir avec la fatigue, on va réduire sa durée. L'idée est de passer à 5 minutes sans fumer pour la semaine prochaine, afin que ce soit plus gérable pour toi. Pour effectuer ce changement, rends-toi dans ton Plan : sous le niveau actif, tu trouveras l'option 'Ajuster mon plan' où tu pourras simplement saisir '5 minutes'.",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "committed_effects": [],
+            "pending_confirmation": null,
+            "debug": {
+              "reason_code": "adjust_plan_item_local_plan_handoff_ready"
+            }
+          },
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "pending_confirmation": null,
+          "flow_action": "prepare_plan_handoff",
+          "local_flow_state": {
+            "skill_id": "adjust_plan_item",
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_handoff",
+            "status": "handoff_delivered",
+            "stage": "handoff",
+            "scope": {
+              "kind": "specific_plan_item",
+              "confidence": "high",
+              "plan_id": null,
+              "plan_title": null,
+              "level_id": "phase-1",
+              "level_title": "Casser l'automatisme du soir",
+              "plan_item_ids": [
+                "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+              ],
+              "target_summary": "Faire un sas de décompression (sans fumer)",
+              "needs_scope_clarification": false
+            },
+            "adjustment_need": {
+              "reason_change": "le sas actuel craque, trop difficile à tenir avec la fatigue",
+              "requested_change": "réduire à 5 minutes sans fumer avant de décider quoi faire",
+              "change_kind": "reduce",
+              "constraints": [
+                "pour la semaine prochaine"
+              ],
+              "preserve": [
+                "ne pas fumer pendant le sas"
+              ],
+              "avoid": [
+                "gros sas complet"
+              ],
+              "missing": []
+            },
+            "platform_handoff": {
+              "status": "delivered",
+              "destination": "Plan",
+              "suggested_platform_input": "Réduire la durée du sas de décompression à 5 minutes (au lieu de 45-60 min) pour la semaine prochaine, pour simplement marquer une pause sans fumer avant de décider de la suite.",
+              "grouped_by_plan": [],
+              "previous_value": "45 à 60 minutes",
+              "revised_value": "5 minutes"
+            },
+            "last_visible_task": "plan_handoff_ready",
+            "last_handoff_summary": "5 minutes",
+            "turn_count": 1,
+            "subskill_history": []
+          },
+          "visible_task": {
+            "kind": "plan_handoff_ready"
+          },
+          "conversation_context": {
+            "state_summary": "Le user veut réduire la durée du sas de décompression à 5 minutes pour la semaine prochaine.",
+            "user_words": [
+              "rendre plus petite",
+              "juste 5 minutes sans fumer",
+              "pas un gros sas complet"
+            ],
+            "field_or_stage": "handoff",
+            "known_values": {
+              "scope": {
+                "kind": "specific_plan_item",
+                "confidence": "high",
+                "plan_id": null,
+                "plan_title": null,
+                "level_id": "phase-1",
+                "level_title": "Casser l'automatisme du soir",
+                "plan_item_ids": [
+                  "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+                ],
+                "target_summary": "Faire un sas de décompression (sans fumer)",
+                "needs_scope_clarification": false
+              },
+              "adjustment_need": {
+                "reason_change": "le sas actuel craque, trop difficile à tenir avec la fatigue",
+                "requested_change": "réduire à 5 minutes sans fumer avant de décider quoi faire",
+                "change_kind": "reduce",
+                "constraints": [
+                  "pour la semaine prochaine"
+                ],
+                "preserve": [
+                  "ne pas fumer pendant le sas"
+                ],
+                "avoid": [
+                  "gros sas complet"
+                ],
+                "missing": []
+              },
+              "constraints": [
+                "pour la semaine prochaine"
+              ],
+              "preserve": [
+                "ne pas fumer pendant le sas"
+              ],
+              "avoid": [
+                "gros sas complet"
+              ]
+            },
+            "missing_or_weak_values": [],
+            "selected_candidate": {
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "title": "Faire un sas de décompression (sans fumer)",
+              "plan_id": null,
+              "plan_title": null,
+              "level_id": "phase-1",
+              "level_title": "Casser l'automatisme du soir",
+              "plan_item_ids": [
+                "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+              ],
+              "target_summary": "Faire un sas de décompression (sans fumer)",
+              "scope_kind": "specific_plan_item",
+              "scope_confidence": "high"
+            },
+            "handoff_data": {
+              "destination": "Plan",
+              "suggested_platform_input": "5 minutes",
+              "grouped_by_plan": [],
+              "previous_value": "45 à 60 minutes",
+              "revised_value": "5 minutes"
+            },
+            "tone_constraints": [],
+            "do_not_say": [
+              "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+              "Ne mentionne pas les labels internes du dispatcher.",
+              "Ne dis pas que le plan est déjà modifié.",
+              "Ne dis pas que c'est enregistré en base de données."
+            ],
+            "context_summary": "Ajustement d'une habitude spécifique identifiée dans le plan actuel.",
+            "evidence_used": [
+              "sas de decompression qui craque",
+              "juste 5 minutes sans fumer",
+              "semaine prochaine",
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "juste 5 minutes sans fumer"
+            ]
+          },
+          "handoff_core": {
+            "target_to_modify": "Faire un sas de décompression (sans fumer)",
+            "reason_change": "le sas actuel craque, trop difficile à tenir avec la fatigue",
+            "requested_change": "réduire à 5 minutes sans fumer avant de décider quoi faire",
+            "change_kind": "reduce",
+            "has_core_triptych": true,
+            "missing_or_weak_values": []
+          },
+          "risk_score": 0,
+          "runtime_trace": [
+            {
+              "component": "adjust_plan_item.visible_agent",
+              "stage": "plan_handoff_ready",
+              "accepted": true,
+              "issues": []
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t02:platform_handoff:delivered:adjust_plan_item:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "adjust_plan_item",
+              "status": "delivered",
+              "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "draft_delivered",
+                "surface_id": "plan"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "plan",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t03",
+    "user": "Ok, on revient au weekly. Vu comme ca, cette version plus petite me rassure et je pense que ca suffit pour conclure le bilan de la semaine.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est entendu pour le sas de 5 minutes, c'est une approche plus douce pour tes moments de fatigue. On termine ce bilan ici. Rien n'est changé depuis notre discussion, mais tu as désormais une piste claire pour la suite. Prêt à démarrer ta nouvelle semaine ?",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t03",
+            "source_message_id": "d542bafe-e742-4f40-bbb7-47cc992fe562",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_weekly_review_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_weekly_review_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_local_complete_weekly_no_change",
+            "operation_type": "weekly_adaptive_review_v1",
+            "status": "closed",
+            "flow_action": "complete_weekly_no_change",
+            "visible_task": "complete_no_change",
+            "confidence": "high",
+            "risk_score": 0,
+            "weekly_intent": {
+              "kind": "weekly_confirmation",
+              "summary": "Le user est rassuré par l'ajustement du plan et souhaite conclure le bilan hebdomadaire."
+            },
+            "handoff_updates": {
+              "status": "ready",
+              "requested_adjustment_summary": "Réduire le sas de décompression à 5 minutes.",
+              "revision_summary": null,
+              "platform_destination": "Plan",
+              "scope": {
+                "kind": "specific_item",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_ids": [
+                  "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+                ],
+                "scope_summary": "sas de décompression",
+                "needs_scope_clarification": false
+              }
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null
+            },
+            "local_flow_state": {
+              "stage": "closing",
+              "proposal_status": "handoff_delivered",
+              "validation_unlock_status": "available",
+              "human_signals": {
+                "objective_delta": "slight_progress",
+                "felt_state": "tired_but_ok"
+              },
+              "felt_progress": "encouraged",
+              "last_user_signal": "Rassuré par la réduction de l'action 'sas de décompression' à 5 minutes.",
+              "last_visible_summary": "Le user est rassuré par l'ajustement du plan et souhaite conclure le bilan hebdomadaire.",
+              "last_handoff_summary": "Réduire le sas de décompression à 5 minutes.",
+              "child_flow": {
+                "status": "completed",
+                "flow_id": "adjust_plan_item",
+                "reason": "Le user confirme le blocage sur le sas de décompression et demande de le réduire à 5 minutes pour la semaine prochaine.",
+                "expected_return_focus": "weekly_synthesis_and_closure",
+                "result_summary": "adjust_plan_item_local_plan_handoff_ready"
+              },
+              "turn_count": 3,
+              "max_turns": 6,
+              "updated_at": "2026-06-12T00:46:38.480Z"
+            },
+            "target_dispatcher": "none",
+            "note_information": null,
+            "conversation_context": {
+              "state_summary": "Le user est rassuré par l'ajustement du plan et souhaite conclure le bilan hebdomadaire.",
+              "user_words": [],
+              "week_window": {
+                "start_date": "2026-06-01",
+                "end_date": "2026-06-07"
+              },
+              "field_or_stage": "complete_no_change",
+              "known_values": {
+                "human_signals": {
+                  "objective_delta": "slight_progress",
+                  "felt_state": "tired_but_ok"
+                },
+                "felt_progress": "encouraged",
+                "validation_unlock_status": "available",
+                "proposal_status": "handoff_delivered",
+                "child_flow": {
+                  "status": "completed",
+                  "flow_id": "adjust_plan_item",
+                  "reason": "Le user confirme le blocage sur le sas de décompression et demande de le réduire à 5 minutes pour la semaine prochaine.",
+                  "expected_return_focus": "weekly_synthesis_and_closure",
+                  "result_summary": "adjust_plan_item_local_plan_handoff_ready"
+                },
+                "dominant_blocker_confirmation": "confirmed"
+              },
+              "missing_or_weak_values": [],
+              "weekly_reading": {
+                "strategy_label_human": "hold",
+                "reason_human": "Le signal est insuffisant; Sophia doit clarifier avant d'avancer.",
+                "confidence": "high"
+              },
+              "plan_contexts": [
+                {
+                  "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "action_count": 3
+                }
+              ],
+              "item_summaries": [
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "qa-weekly-weekly-child-detours-r1-occ-1",
+                  "title": "Ranger le matériel hors de vue",
+                  "family": "habit",
+                  "status": "done",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "reschedule_decision": null
+                  }
+                },
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "qa-weekly-weekly-child-detours-r1-occ-2",
+                  "title": "Cibler le joint réflexe",
+                  "family": "habit",
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "reschedule_decision": null
+                  }
+                },
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "qa-weekly-weekly-child-detours-r1-occ-3",
+                  "title": "Faire un sas de décompression (sans fumer)",
+                  "family": "habit",
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": "fatigue fin de semaine",
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "reschedule_decision": null
+                  }
+                }
+              ],
+              "handoff_data": {
+                "summary": "Réduire le sas de décompression à 5 minutes.",
+                "platform_destination": "Plan",
+                "scope": {
+                  "kind": "specific_item",
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_ids": [
+                    "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+                  ],
+                  "scope_summary": "sas de décompression",
+                  "needs_scope_clarification": false
+                },
+                "requested_adjustment_summary": "Réduire le sas de décompression à 5 minutes.",
+                "revision_summary": null,
+                "no_chat_mutation": true
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null,
+                "no_plan_adjustment": true
+              },
+              "inline_result": {},
+              "tone_constraints": [
+                "compact",
+                "one_question_max_when_asking",
+                "human_language"
+              ],
+              "do_not_say": [
+                "bridge_week",
+                "carry_over",
+                "repeat_week",
+                "level_review",
+                "plan_patch",
+                "item_decision",
+                "dominant_blocker",
+                "applique",
+                "modifie le plan",
+                "valide le plan",
+                "enregistre le plan"
+              ],
+              "context_summary": "Le user est rassuré par l'ajustement du plan et souhaite conclure le bilan hebdomadaire.",
+              "evidence_used": [
+                "cette version plus petite me rassure",
+                "ca suffit pour conclure le bilan",
+                "fatigue"
+              ]
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "visible_fallback_used": false,
+            "qa_green_eligible": true,
+            "no_chat_mutation": true,
+            "no_durable_plan_mutation": true,
+            "evidence": [
+              "cette version plus petite me rassure",
+              "ca suffit pour conclure le bilan"
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t03",
+          "source_message_id": "d542bafe-e742-4f40-bbb7-47cc992fe562",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "weekly_adaptive_review_v1",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_weekly_review_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_weekly_review_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "weekly_adaptive_review_v1",
+          "reason_code": "weekly_review_local_complete_weekly_no_change",
+          "operation_type": "weekly_adaptive_review_v1",
+          "status": "closed",
+          "flow_action": "complete_weekly_no_change",
+          "visible_task": "complete_no_change",
+          "confidence": "high",
+          "risk_score": 0,
+          "weekly_intent": {
+            "kind": "weekly_confirmation",
+            "summary": "Le user est rassuré par l'ajustement du plan et souhaite conclure le bilan hebdomadaire."
+          },
+          "handoff_updates": {
+            "status": "ready",
+            "requested_adjustment_summary": "Réduire le sas de décompression à 5 minutes.",
+            "revision_summary": null,
+            "platform_destination": "Plan",
+            "scope": {
+              "kind": "specific_item",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "plan_title": "Libération progressive du cannabis",
+              "plan_item_ids": [
+                "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+              ],
+              "scope_summary": "sas de décompression",
+              "needs_scope_clarification": false
+            }
+          },
+          "forgotten_progress": {
+            "status": "none",
+            "target_hint": null,
+            "outcome_hint": null,
+            "evidence": null
+          },
+          "local_flow_state": {
+            "stage": "closing",
+            "proposal_status": "handoff_delivered",
+            "validation_unlock_status": "available",
+            "human_signals": {
+              "objective_delta": "slight_progress",
+              "felt_state": "tired_but_ok"
+            },
+            "felt_progress": "encouraged",
+            "last_user_signal": "Rassuré par la réduction de l'action 'sas de décompression' à 5 minutes.",
+            "last_visible_summary": "Le user est rassuré par l'ajustement du plan et souhaite conclure le bilan hebdomadaire.",
+            "last_handoff_summary": "Réduire le sas de décompression à 5 minutes.",
+            "child_flow": {
+              "status": "completed",
+              "flow_id": "adjust_plan_item",
+              "reason": "Le user confirme le blocage sur le sas de décompression et demande de le réduire à 5 minutes pour la semaine prochaine.",
+              "expected_return_focus": "weekly_synthesis_and_closure",
+              "result_summary": "adjust_plan_item_local_plan_handoff_ready"
+            },
+            "turn_count": 3,
+            "max_turns": 6,
+            "updated_at": "2026-06-12T00:46:38.480Z"
+          },
+          "target_dispatcher": "none",
+          "note_information": null,
+          "conversation_context": {
+            "state_summary": "Le user est rassuré par l'ajustement du plan et souhaite conclure le bilan hebdomadaire.",
+            "user_words": [],
+            "week_window": {
+              "start_date": "2026-06-01",
+              "end_date": "2026-06-07"
+            },
+            "field_or_stage": "complete_no_change",
+            "known_values": {
+              "human_signals": {
+                "objective_delta": "slight_progress",
+                "felt_state": "tired_but_ok"
+              },
+              "felt_progress": "encouraged",
+              "validation_unlock_status": "available",
+              "proposal_status": "handoff_delivered",
+              "child_flow": {
+                "status": "completed",
+                "flow_id": "adjust_plan_item",
+                "reason": "Le user confirme le blocage sur le sas de décompression et demande de le réduire à 5 minutes pour la semaine prochaine.",
+                "expected_return_focus": "weekly_synthesis_and_closure",
+                "result_summary": "adjust_plan_item_local_plan_handoff_ready"
+              },
+              "dominant_blocker_confirmation": "confirmed"
+            },
+            "missing_or_weak_values": [],
+            "weekly_reading": {
+              "strategy_label_human": "hold",
+              "reason_human": "Le signal est insuffisant; Sophia doit clarifier avant d'avancer.",
+              "confidence": "high"
+            },
+            "plan_contexts": [
+              {
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "action_count": 3
+              }
+            ],
+            "item_summaries": [
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "occurrence_id": "qa-weekly-weekly-child-detours-r1-occ-1",
+                "title": "Ranger le matériel hors de vue",
+                "family": "habit",
+                "status": "done",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": null,
+                  "still_relevant": true,
+                  "reason_category": "none",
+                  "reschedule_decision": null
+                }
+              },
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "occurrence_id": "qa-weekly-weekly-child-detours-r1-occ-2",
+                "title": "Cibler le joint réflexe",
+                "family": "habit",
+                "status": "partial",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": null,
+                  "still_relevant": true,
+                  "reason_category": "none",
+                  "reschedule_decision": null
+                }
+              },
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "occurrence_id": "qa-weekly-weekly-child-detours-r1-occ-3",
+                "title": "Faire un sas de décompression (sans fumer)",
+                "family": "habit",
+                "status": "missed",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": "fatigue fin de semaine",
+                  "still_relevant": true,
+                  "reason_category": "fatigue",
+                  "reschedule_decision": null
+                }
+              }
+            ],
+            "handoff_data": {
+              "summary": "Réduire le sas de décompression à 5 minutes.",
+              "platform_destination": "Plan",
+              "scope": {
+                "kind": "specific_item",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_ids": [
+                  "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+                ],
+                "scope_summary": "sas de décompression",
+                "needs_scope_clarification": false
+              },
+              "requested_adjustment_summary": "Réduire le sas de décompression à 5 minutes.",
+              "revision_summary": null,
+              "no_chat_mutation": true
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null,
+              "no_plan_adjustment": true
+            },
+            "inline_result": {},
+            "tone_constraints": [
+              "compact",
+              "one_question_max_when_asking",
+              "human_language"
+            ],
+            "do_not_say": [
+              "bridge_week",
+              "carry_over",
+              "repeat_week",
+              "level_review",
+              "plan_patch",
+              "item_decision",
+              "dominant_blocker",
+              "applique",
+              "modifie le plan",
+              "valide le plan",
+              "enregistre le plan"
+            ],
+            "context_summary": "Le user est rassuré par l'ajustement du plan et souhaite conclure le bilan hebdomadaire.",
+            "evidence_used": [
+              "cette version plus petite me rassure",
+              "ca suffit pour conclure le bilan",
+              "fatigue"
+            ]
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "visible_fallback_used": false,
+          "qa_green_eligible": true,
+          "no_chat_mutation": true,
+          "no_durable_plan_mutation": true,
+          "evidence": [
+            "cette version plus petite me rassure",
+            "ca suffit pour conclure le bilan"
+          ],
+          "toolExecution": "none",
+          "executedTools": []
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  }
+]

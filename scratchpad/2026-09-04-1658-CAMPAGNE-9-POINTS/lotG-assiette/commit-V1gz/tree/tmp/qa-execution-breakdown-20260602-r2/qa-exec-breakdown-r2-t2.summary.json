@@ -1,0 +1,20 @@
+{
+  "http_status": 200,
+  "ok": true,
+  "request_id": "qa-exec-breakdown-r2-t2",
+  "user_id": "5b06f153-476c-486d-8d7d-2db9e08ef1dc",
+  "scope": "qa-execution-breakdown-20260602-r2",
+  "content": "Je veux le découper maintenant, pas déplacer mon plan. Aide-moi à trouver la toute première mini-étape concrète.",
+  "assistant": "Je ne l'ai pas modifié. 🙂",
+  "response_owner": "conversation_handler",
+  "selected_handler": null,
+  "route_reason": null,
+  "safety": null,
+  "operation": null,
+  "pending_confirmation": null,
+  "executed_tools": [],
+  "direct_effects": [],
+  "memory_plan": null,
+  "trace_error": null,
+  "raw_path": "tmp/qa-execution-breakdown-20260602-r2/qa-exec-breakdown-r2-t2.raw.json"
+}

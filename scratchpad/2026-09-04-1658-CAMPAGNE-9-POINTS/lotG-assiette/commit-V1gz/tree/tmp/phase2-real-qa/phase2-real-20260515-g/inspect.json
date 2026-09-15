@@ -1,0 +1,2532 @@
+{
+  "run_id": "phase2-real-20260515-g",
+  "user_id": "c440290a-dac8-4b4a-b1fc-943190d074e4",
+  "scenarios": {
+    "s1-action-memory": {
+      "turns": [
+        {
+          "turn": 1,
+          "request_id": "phase2-real-20260515-g-s1-action-memory-t01",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Pour Session focus courte, souvenirs memorises uniquement : qu'est-ce qui aide au demarrage ?",
+          "assistant": "D'après tes souvenirs mémorisés uniquement pour Session focus courte :\n- Sur Session focus courte, le user demarre mieux quand il ouvre directement un fichier deja pret et lance un minuteur de 12 minutes.\n- Pattern famille session_focus: quand la cible augmente, garder un demarrage sous 15 minutes evite que l'habitude devienne intimidante.",
+          "trace": {
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "reason_code": "normal_reply_default",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "4eb0c41f-f2d8-4498-87bc-d021075eecd5",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "demarrage session focus courte",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "attack_card",
+              "surface_id": "attack_card",
+              "prop_reason": "execution_block_or_startup_friction_mentioned",
+              "source_span": "demarrage ?",
+              "target_hint": "Session focus courte",
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "identified",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "medium",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_attack_card"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {}
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        },
+        {
+          "turn": 2,
+          "request_id": "phase2-real-20260515-g-s1-action-memory-t02",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Donc je confirme simplement : fichier pret + minuteur, pas de nouvelle carte ni nouvelle technique.",
+          "assistant": "Oui, fichier prêt + minuteur. ✅🧠\n\nTu le lances directement à quel moment : avant d’ouvrir le dossier, ou après l’avoir ouvert ?",
+          "trace": {
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "reason_code": "normal_reply_default",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "4eb0c41f-f2d8-4498-87bc-d021075eecd5",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "Session focus courte demarrage",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "attack_card",
+              "surface_id": "attack_card",
+              "prop_reason": "user_explicitly_declined_new_tools",
+              "source_span": "pas de nouvelle carte ni nouvelle technique",
+              "target_hint": "Session focus courte",
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "identified",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_attack_card"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {}
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        }
+      ]
+    },
+    "s2-level-memory": {
+      "turns": [
+        {
+          "turn": 1,
+          "request_id": "phase2-real-20260515-g-s2-level-memory-t01",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Je commence un nouveau niveau. Avant de me proposer quoi que ce soit, qu'est-ce que tu dois garder en tete du niveau precedent ?",
+          "assistant": "Ok. Pour que je te propose quelque chose de vraiment cohérent avec le niveau précédent, je dois garder en tête :\n\n1) Les éléments que tu as déjà testés/clarifiés (ce qui t’a aidé vs ce qui t’a freiné).\n2) Le rythme qui te convenait (le niveau d’effort et comment tu “encales” les moments d’action dans ta semaine).\n3) Tes points de friction récurrents (ce qui déclenche le blocage, même si c’est juste “au mauvais moment”).\n4) La direction exacte que tu étais en train d’améliorer (le thème central, pas juste des tâches isolées).\n\nLà, j’ai besoin d’un mini rappel de ton côté : c’était quoi le niveau précédent (le thème) et le plus gros truc que tu voulais améliorer dedans ? 🙂",
+          "trace": {
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "reason_code": "skill_entry_signal",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "level_reference": {
+              "reason": "level_transition_reference",
+              "status": "transition",
+              "detected": true,
+              "expansion_policy": "include_level_execution_handoff"
+            },
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "previous_level",
+                  "type": "level",
+                  "priority": "high",
+                  "query_hint": "bilan et handoff du niveau precedent",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "transition",
+                  "type": "level",
+                  "priority": "medium",
+                  "query_hint": "Je commence un nouveau niveau. Avant de me proposer quoi que ce soit, qu'est-ce que tu dois garder en tete du niveau precedent ?",
+                  "expansion_policy": "include_level_execution_handoff",
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "taxonomy_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {
+                "product_help": {
+                  "reason": "product_question",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {}
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        },
+        {
+          "turn": 2,
+          "request_id": "phase2-real-20260515-g-s2-level-memory-t02",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Je veux dire : lis le handoff du niveau precedent, ne me demande pas de le rappeler. Quel signal exact tu dois garder ?",
+          "assistant": "Ok. Le signal exact, c’est : tes points de friction récurrents, ceux qui déclenchent le blocage “même si c’est juste au mauvais moment” 😅\n\nAutrement dit, je garde la formule précise du niveau précédent : ce qui t’a freiné en contexte réel (déclencheur + moment), pas juste le thème global.\n\nTu veux que je le reformule en une phrase actionnable (du style “quand X arrive, je fais Y”) ?",
+          "trace": {
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "reason_code": "skill_entry_signal",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "level_reference": {
+              "reason": "level_transition_reference",
+              "status": "transition",
+              "detected": true,
+              "expansion_policy": "include_level_execution_handoff"
+            },
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "handoff niveau precedent",
+                  "type": "level",
+                  "priority": "high",
+                  "query_hint": "handoff niveau precedent",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "transition",
+                  "type": "level",
+                  "priority": "medium",
+                  "query_hint": "Je veux dire : lis le handoff du niveau precedent, ne me demande pas de le rappeler. Quel signal exact tu dois garder ?",
+                  "expansion_policy": "include_level_execution_handoff",
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "taxonomy_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {
+                "product_help": {
+                  "reason": "user_asks_about_internal_memory_signals_and_handoff_logic",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {}
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        }
+      ]
+    }
+  },
+  "db": {
+    "chat_messages": [
+      {
+        "id": "1566ca7c-5bd4-4de7-9718-f782dde65f96",
+        "scope": "phase2-real-phase2-real-20260515-g-s1-action-memory",
+        "role": "user",
+        "content": "Pour Session focus courte, souvenirs memorises uniquement : qu'est-ce qui aide au demarrage ?",
+        "metadata": {
+          "request_id": "phase2-real-20260515-g-s1-action-memory-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:48:40.740394+00:00"
+      },
+      {
+        "id": "b11a50bb-b051-4017-ba8c-45bfa6456c29",
+        "scope": "phase2-real-phase2-real-20260515-g-s1-action-memory",
+        "role": "assistant",
+        "content": "D'après tes souvenirs mémorisés uniquement pour Session focus courte :\n- Sur Session focus courte, le user demarre mieux quand il ouvre directement un fichier deja pret et lance un minuteur de 12 minutes.\n- Pattern famille session_focus: quand la cible augmente, garder un demarrage sous 15 minutes evite que l'habitude devienne intimidante.",
+        "metadata": {
+          "channel": "web",
+          "request_id": "phase2-real-20260515-g-s1-action-memory-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T17:48:43.866146+00:00"
+      },
+      {
+        "id": "1cb8dd9e-82c5-4c64-8595-2d6a0b080caa",
+        "scope": "phase2-real-phase2-real-20260515-g-s1-action-memory",
+        "role": "user",
+        "content": "Donc je confirme simplement : fichier pret + minuteur, pas de nouvelle carte ni nouvelle technique.",
+        "metadata": {
+          "request_id": "phase2-real-20260515-g-s1-action-memory-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:48:54.493221+00:00"
+      },
+      {
+        "id": "984e764c-cafb-4c3e-af4c-e1caf25819d5",
+        "scope": "phase2-real-phase2-real-20260515-g-s1-action-memory",
+        "role": "assistant",
+        "content": "Oui, fichier prêt + minuteur. ✅🧠\n\nTu le lances directement à quel moment : avant d’ouvrir le dossier, ou après l’avoir ouvert ?",
+        "metadata": {
+          "channel": "web",
+          "request_id": "phase2-real-20260515-g-s1-action-memory-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T17:49:03.464076+00:00"
+      },
+      {
+        "id": "5f75b172-ecd6-46c0-baca-05be315a9404",
+        "scope": "phase2-real-phase2-real-20260515-g-s2-level-memory",
+        "role": "user",
+        "content": "Je commence un nouveau niveau. Avant de me proposer quoi que ce soit, qu'est-ce que tu dois garder en tete du niveau precedent ?",
+        "metadata": {
+          "request_id": "phase2-real-20260515-g-s2-level-memory-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:49:16.614909+00:00"
+      },
+      {
+        "id": "eb7c7367-f85a-451d-97a4-8b35f1ec07e5",
+        "scope": "phase2-real-phase2-real-20260515-g-s2-level-memory",
+        "role": "assistant",
+        "content": "Ok. Pour que je te propose quelque chose de vraiment cohérent avec le niveau précédent, je dois garder en tête :\n\n1) Les éléments que tu as déjà testés/clarifiés (ce qui t’a aidé vs ce qui t’a freiné).\n2) Le rythme qui te convenait (le niveau d’effort et comment tu “encales” les moments d’action dans ta semaine).\n3) Tes points de friction récurrents (ce qui déclenche le blocage, même si c’est juste “au mauvais moment”).\n4) La direction exacte que tu étais en train d’améliorer (le thème central, pas juste des tâches isolées).\n\nLà, j’ai besoin d’un mini rappel de ton côté : c’était quoi le niveau précédent (le thème) et le plus gros truc que tu voulais améliorer dedans ? 🙂",
+        "metadata": {
+          "channel": "web",
+          "request_id": "phase2-real-20260515-g-s2-level-memory-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T17:49:21.619153+00:00"
+      },
+      {
+        "id": "8e3d2c70-a055-4767-aea2-53e94b31d7d1",
+        "scope": "phase2-real-phase2-real-20260515-g-s2-level-memory",
+        "role": "user",
+        "content": "Je veux dire : lis le handoff du niveau precedent, ne me demande pas de le rappeler. Quel signal exact tu dois garder ?",
+        "metadata": {
+          "request_id": "phase2-real-20260515-g-s2-level-memory-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:49:57.144489+00:00"
+      },
+      {
+        "id": "36e58760-6366-4c20-adb8-aa12ee446317",
+        "scope": "phase2-real-phase2-real-20260515-g-s2-level-memory",
+        "role": "assistant",
+        "content": "Ok. Le signal exact, c’est : tes points de friction récurrents, ceux qui déclenchent le blocage “même si c’est juste au mauvais moment” 😅\n\nAutrement dit, je garde la formule précise du niveau précédent : ce qui t’a freiné en contexte réel (déclencheur + moment), pas juste le thème global.\n\nTu veux que je le reformule en une phrase actionnable (du style “quand X arrive, je fais Y”) ?",
+        "metadata": {
+          "channel": "web",
+          "request_id": "phase2-real-20260515-g-s2-level-memory-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T17:50:10.22472+00:00"
+      }
+    ],
+    "entries": [],
+    "memories": [
+      {
+        "id": "a012c6b5-d8d0-48e8-825b-02992dee2b5c",
+        "kind": "action_observation",
+        "status": "active",
+        "content_text": "Sur Session focus courte, le user demarre mieux quand il ouvre directement un fichier deja pret et lance un minuteur de 12 minutes.",
+        "metadata": {
+          "source": "phase2_real_qa_seed",
+          "memory_type": "action_execution_profile"
+        },
+        "canonical_key": "qa_action_exact:4eb0c41f-f2d8-4498-87bc-d021075eecd5",
+        "observed_at": "2026-05-13T08:15:00+00:00"
+      },
+      {
+        "id": "5222e35f-71b3-4c10-8be5-0ad62b8baa30",
+        "kind": "action_observation",
+        "status": "active",
+        "content_text": "Pattern famille session_focus: quand la cible augmente, garder un demarrage sous 15 minutes evite que l'habitude devienne intimidante.",
+        "metadata": {
+          "source": "phase2_real_qa_seed",
+          "memory_type": "action_execution_profile"
+        },
+        "canonical_key": "qa_action_family:habit:session_focus",
+        "observed_at": "2026-05-10T08:15:00+00:00"
+      },
+      {
+        "id": "8dde7212-17e0-4a73-b674-7a70f51965f4",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Niveau precedent Sortir de l'inertie: le user progresse mieux quand Sophia garde les demandes en une seule prochaine action et evite de reproposer des gros blocs abstraits.",
+        "metadata": {
+          "source": "phase2_real_qa_seed",
+          "memory_type": "level_execution_handoff",
+          "next_level_id": "401fc782-2fb8-4166-88b5-a329dc9e0dc3",
+          "previous_level_id": "be6e9181-77f7-401c-86a9-5accfbf5c575",
+          "next_transformation_id": "401fc782-2fb8-4166-88b5-a329dc9e0dc3",
+          "previous_transformation_id": "be6e9181-77f7-401c-86a9-5accfbf5c575"
+        },
+        "canonical_key": "level_execution_handoff:be6e9181-77f7-401c-86a9-5accfbf5c575",
+        "observed_at": "2026-05-08T18:30:00+00:00"
+      }
+    ],
+    "traces": [
+      {
+        "turn_id": "phase2-real-20260515-g-s1-action-memory-t01",
+        "user_id": "c440290a-dac8-4b4a-b1fc-943190d074e4",
+        "source_message_id": "1566ca7c-5bd4-4de7-9718-f782dde65f96",
+        "ts": "2026-05-15T17:48:43.844+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6550,
+          "latency_ms": 3028,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 596,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "4eb0c41f-f2d8-4498-87bc-d021075eecd5",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "demarrage session focus courte",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "phase2-real-20260515-g-s1-action-memory-t01",
+          "user_id": "c440290a-dac8-4b4a-b1fc-943190d074e4",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "4eb0c41f-f2d8-4498-87bc-d021075eecd5",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "demarrage session focus courte",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "1566ca7c-5bd4-4de7-9718-f782dde65f96",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "attack_card",
+            "surface_id": "attack_card",
+            "prop_reason": "execution_block_or_startup_friction_mentioned",
+            "source_span": "demarrage ?",
+            "target_hint": "Session focus courte",
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "identified",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "medium",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_attack_card"
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 3105,
+        "created_at": "2026-05-15T17:48:43.845557+00:00"
+      },
+      {
+        "turn_id": "phase2-real-20260515-g-s1-action-memory-t02",
+        "user_id": "c440290a-dac8-4b4a-b1fc-943190d074e4",
+        "source_message_id": "1cb8dd9e-82c5-4c64-8595-2d6a0b080caa",
+        "ts": "2026-05-15T17:49:03.436+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6676,
+          "latency_ms": 6812,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 606,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "4eb0c41f-f2d8-4498-87bc-d021075eecd5",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte demarrage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "phase2-real-20260515-g-s1-action-memory-t02",
+          "user_id": "c440290a-dac8-4b4a-b1fc-943190d074e4",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "4eb0c41f-f2d8-4498-87bc-d021075eecd5",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte demarrage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "1cb8dd9e-82c5-4c64-8595-2d6a0b080caa",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "attack_card",
+            "surface_id": "attack_card",
+            "prop_reason": "user_explicitly_declined_new_tools",
+            "source_span": "pas de nouvelle carte ni nouvelle technique",
+            "target_hint": "Session focus courte",
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "identified",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_attack_card"
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 8944,
+        "created_at": "2026-05-15T17:49:03.43897+00:00"
+      },
+      {
+        "turn_id": "phase2-real-20260515-g-s2-level-memory-t01",
+        "user_id": "c440290a-dac8-4b4a-b1fc-943190d074e4",
+        "source_message_id": "5f75b172-ecd6-46c0-baca-05be315a9404",
+        "ts": "2026-05-15T17:49:21.597+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6559,
+          "latency_ms": 2794,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 667,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "previous_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "bilan et handoff du niveau precedent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "transition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je commence un nouveau niveau. Avant de me proposer quoi que ce soit, qu'est-ce que tu dois garder en tete du niveau precedent ?",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "phase2-real-20260515-g-s2-level-memory-t01",
+          "user_id": "c440290a-dac8-4b4a-b1fc-943190d074e4",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "previous_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "bilan et handoff du niveau precedent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "transition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je commence un nouveau niveau. Avant de me proposer quoi que ce soit, qu'est-ce que tu dois garder en tete du niveau precedent ?",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_transition_reference",
+            "status": "transition",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "5f75b172-ecd6-46c0-baca-05be315a9404",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Plan: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une transformation active existe. Tu peux y consulter le niveau actif, ouvrir les semaines, valider certains elements.\n\nLimites importantes:\n- Ce n'est pas un journal libre d'actions ou de bilans.\n- Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.",
+            "status": "complete",
+            "skill_id": "product_help",
+            "diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "operation_bridge": null
+            },
+            "state_patch": {
+              "summary": "Product help answered for dashboard.plan."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "how_to",
+            "recommendation_need": {
+              "type": "none",
+              "needed": false,
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_bridge_requires_confirmation_when_present"
+              ]
+            },
+            "operation_suggestions": []
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "product_help"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 4984,
+        "created_at": "2026-05-15T17:49:21.599462+00:00"
+      },
+      {
+        "turn_id": "phase2-real-20260515-g-s2-level-memory-t02",
+        "user_id": "c440290a-dac8-4b4a-b1fc-943190d074e4",
+        "source_message_id": "8e3d2c70-a055-4767-aea2-53e94b31d7d1",
+        "ts": "2026-05-15T17:50:10.201+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6776,
+          "latency_ms": 11165,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 680,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "handoff niveau precedent",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "handoff niveau precedent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "transition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je veux dire : lis le handoff du niveau precedent, ne me demande pas de le rappeler. Quel signal exact tu dois garder ?",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "phase2-real-20260515-g-s2-level-memory-t02",
+          "user_id": "c440290a-dac8-4b4a-b1fc-943190d074e4",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "handoff niveau precedent",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "handoff niveau precedent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "transition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je veux dire : lis le handoff du niveau precedent, ne me demande pas de le rappeler. Quel signal exact tu dois garder ?",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "user_asks_about_internal_memory_signals_and_handoff_logic",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_transition_reference",
+            "status": "transition",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "8e3d2c70-a055-4767-aea2-53e94b31d7d1",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Initiatives: Une initiative est un message recurrent planifie que j'envoie. Elle contient une instruction, un contexte, une heure, des jours actifs et une destination: Plan actuel ou Base de vie.\n\nComment l'utiliser: Ouvre l'onglet Initiatives. C'est le seul endroit pour creer une initiative independamment d'une potion. Cree ou modifie une initiative en precisant ce que je dois envoyer, pourquoi c'est important, l'heure et les jours actifs.\n\nCe que ca apporte:\n- Installe une presence utile dans le temps.\n- Soutient une transformation sans obliger le user a revenir au dashboard.\n\nSi tu veux vraiment le faire, ce n'est pas product_help qui execute: il faut passer par le flow create_or_update_initiative, avec confirmation.",
+            "status": "complete",
+            "skill_id": "product_help",
+            "diagnosis": {
+              "locations": [
+                "Dashboard > Initiatives",
+                "Base de vie > Initiatives"
+              ],
+              "feature_id": "initiatives",
+              "feature_label": "Initiatives",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "cree une initiative",
+                  "programme un rendez-vous recurrent",
+                  "modifie cette initiative",
+                  "mets cette relance dans ma base de vie"
+                ],
+                "skill_or_operation": "create_or_update_initiative",
+                "requires_confirmation": true
+              }
+            },
+            "state_patch": {
+              "summary": "Product help answered for initiatives."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "explain",
+            "recommendation_need": {
+              "type": "none",
+              "needed": false,
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_bridge_requires_confirmation_when_present"
+              ]
+            },
+            "operation_suggestions": []
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "product_help"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 13058,
+        "created_at": "2026-05-15T17:50:10.203939+00:00"
+      }
+    ],
+    "memory_events": [
+      {
+        "event_name": "dispatcher.memory_plan_generated",
+        "source_component": "router",
+        "payload": {
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "4eb0c41f-f2d8-4498-87bc-d021075eecd5",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "demarrage session focus courte",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "user_message_preview": "Pour Session focus courte, souvenirs memorises uniquement : qu'est-ce qui aide au demarrage ?"
+        },
+        "created_at": "2026-05-15T17:48:43.800148+00:00"
+      },
+      {
+        "event_name": "surface.state_transition",
+        "source_component": "surface_state",
+        "payload": {
+          "addon": null,
+          "after": {},
+          "before": {},
+          "target_mode": "companion",
+          "memory_plan_intent": "reflection",
+          "memory_plan_context_need": "targeted"
+        },
+        "created_at": "2026-05-15T17:48:43.804447+00:00"
+      },
+      {
+        "event_name": "context.memory_injected",
+        "source_component": "context_loader",
+        "payload": {
+          "mode": "companion",
+          "memory_blocks": {
+            "events": null,
+            "topics": null,
+            "globals": null,
+            "identity": null
+          },
+          "surface_addon": null,
+          "elements_loaded": [
+            "temporal",
+            "facts",
+            "plan_item_indicators",
+            "injected_context",
+            "dashboard_capabilities_lite_addon"
+          ],
+          "estimated_tokens": 999
+        },
+        "created_at": "2026-05-15T17:48:43.821778+00:00"
+      },
+      {
+        "event_name": "memory.runtime.active.loaded",
+        "source_component": "memory_v2_runtime_active",
+        "payload": {
+          "v1": null,
+          "total_ms": 9,
+          "loader_ms": 9,
+          "fallback_used": false,
+          "retrieval_mode": "topic_continuation",
+          "rollout_bucket": 85,
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "retrieval_hints": [],
+          "payload_item_ids": [
+            "a012c6b5-d8d0-48e8-825b-02992dee2b5c",
+            "5222e35f-71b3-4c10-8be5-0ad62b8baa30"
+          ],
+          "retrieval_policy": "semantic_first",
+          "topic_confidence": 0,
+          "loader_plan_budget": {
+            "max_items": 4,
+            "event_items": 2,
+            "level_items": 1,
+            "topic_items": 3,
+            "action_items": 2,
+            "global_items": 2,
+            "max_entities": 2
+          },
+          "loader_plan_reason": "dispatcher_memory_plan",
+          "payload_item_count": 2,
+          "loaded_scope_counts": {
+            "event": 0,
+            "level": 0,
+            "topic": 0,
+            "action": 2,
+            "entity": 0,
+            "global": 0
+          },
+          "topic_router_skipped": true,
+          "cross_topic_cache_hit": false,
+          "dispatcher_memory_mode": "light",
+          "dispatcher_context_need": "targeted",
+          "invalid_injection_count": 0,
+          "loader_plan_domain_keys": [],
+          "sensitive_excluded_count": 0,
+          "loader_plan_action_targets": [
+            "4eb0c41f-f2d8-4498-87bc-d021075eecd5"
+          ],
+          "loader_plan_domain_prefixes": [],
+          "loader_plan_requested_scopes": [
+            "action"
+          ],
+          "dispatcher_memory_plan_applied": true
+        },
+        "created_at": "2026-05-15T17:48:43.8383+00:00"
+      },
+      {
+        "event_name": "router.model_selected",
+        "source_component": "router",
+        "payload": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "4eb0c41f-f2d8-4498-87bc-d021075eecd5",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "demarrage session focus courte",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        },
+        "created_at": "2026-05-15T17:48:43.842358+00:00"
+      },
+      {
+        "event_name": "router_momentum_state_applied",
+        "source_component": "router",
+        "payload": {
+          "dimensions": {
+            "consent": "open",
+            "engagement": "high",
+            "progression": "unknown",
+            "emotional_load": "low"
+          },
+          "state_after": "friction_legere",
+          "next_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "high",
+            "updated_at": "2026-05-15T17:48:43.850Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-05-15T17:48:43.850Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "state_before": "friction_legere",
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "blocker_summary": {
+            "top_stage": null,
+            "top_action": null,
+            "active_count": 0,
+            "top_category": null,
+            "chronic_count": 0
+          },
+          "metrics_snapshot": {
+            "last_gap_hours": null,
+            "missed_actions_7d": null,
+            "emotional_high_72h": null,
+            "partial_actions_7d": null,
+            "improved_vitals_14d": null,
+            "worsened_vitals_14d": null,
+            "completed_actions_7d": null,
+            "emotional_medium_72h": null,
+            "consent_soft_declines_7d": null,
+            "consent_explicit_stops_7d": null,
+            "days_since_last_user_message": 0
+          },
+          "previous_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-05-15T17:48:43.850Z",
+            "progression": "unknown",
+            "state_reason": "initial_state",
+            "emotional_load": "low",
+            "stable_since_at": null,
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "classifier_source": "router",
+          "pending_transition": null
+        },
+        "created_at": "2026-05-15T17:48:43.858317+00:00"
+      },
+      {
+        "event_name": "dispatcher.memory_plan_generated",
+        "source_component": "router",
+        "payload": {
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "4eb0c41f-f2d8-4498-87bc-d021075eecd5",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte demarrage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "user_message_preview": "Donc je confirme simplement : fichier pret + minuteur, pas de nouvelle carte ni nouvelle technique."
+        },
+        "created_at": "2026-05-15T17:49:01.327027+00:00"
+      },
+      {
+        "event_name": "surface.state_transition",
+        "source_component": "surface_state",
+        "payload": {
+          "addon": null,
+          "after": {},
+          "before": {},
+          "target_mode": "companion",
+          "memory_plan_intent": "reflection",
+          "memory_plan_context_need": "targeted"
+        },
+        "created_at": "2026-05-15T17:49:01.332561+00:00"
+      },
+      {
+        "event_name": "context.memory_injected",
+        "source_component": "context_loader",
+        "payload": {
+          "mode": "companion",
+          "memory_blocks": {
+            "events": null,
+            "topics": null,
+            "globals": null,
+            "identity": null
+          },
+          "surface_addon": null,
+          "elements_loaded": [
+            "temporal",
+            "facts",
+            "plan_item_indicators",
+            "recent_turns",
+            "dashboard_capabilities_lite_addon"
+          ],
+          "estimated_tokens": 1058
+        },
+        "created_at": "2026-05-15T17:49:01.347268+00:00"
+      },
+      {
+        "event_name": "memory.runtime.active.loaded",
+        "source_component": "memory_v2_runtime_active",
+        "payload": {
+          "v1": null,
+          "total_ms": 9,
+          "loader_ms": 9,
+          "fallback_used": false,
+          "retrieval_mode": "topic_continuation",
+          "rollout_bucket": 85,
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "retrieval_hints": [],
+          "payload_item_ids": [
+            "a012c6b5-d8d0-48e8-825b-02992dee2b5c",
+            "5222e35f-71b3-4c10-8be5-0ad62b8baa30"
+          ],
+          "retrieval_policy": "semantic_first",
+          "topic_confidence": 0,
+          "loader_plan_budget": {
+            "max_items": 4,
+            "event_items": 2,
+            "level_items": 1,
+            "topic_items": 3,
+            "action_items": 2,
+            "global_items": 2,
+            "max_entities": 2
+          },
+          "loader_plan_reason": "dispatcher_memory_plan",
+          "payload_item_count": 2,
+          "loaded_scope_counts": {
+            "event": 0,
+            "level": 0,
+            "topic": 0,
+            "action": 2,
+            "entity": 0,
+            "global": 0
+          },
+          "topic_router_skipped": true,
+          "cross_topic_cache_hit": false,
+          "dispatcher_memory_mode": "light",
+          "dispatcher_context_need": "targeted",
+          "invalid_injection_count": 0,
+          "loader_plan_domain_keys": [],
+          "sensitive_excluded_count": 0,
+          "loader_plan_action_targets": [
+            "4eb0c41f-f2d8-4498-87bc-d021075eecd5"
+          ],
+          "loader_plan_domain_prefixes": [],
+          "loader_plan_requested_scopes": [
+            "action"
+          ],
+          "dispatcher_memory_plan_applied": true
+        },
+        "created_at": "2026-05-15T17:49:01.362909+00:00"
+      },
+      {
+        "event_name": "router.model_selected",
+        "source_component": "router",
+        "payload": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "4eb0c41f-f2d8-4498-87bc-d021075eecd5",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Session focus courte demarrage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        },
+        "created_at": "2026-05-15T17:49:01.36678+00:00"
+      },
+      {
+        "event_name": "router_momentum_state_applied",
+        "source_component": "router",
+        "payload": {
+          "dimensions": {
+            "consent": "open",
+            "engagement": "high",
+            "progression": "unknown",
+            "emotional_load": "low"
+          },
+          "state_after": "friction_legere",
+          "next_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "high",
+            "updated_at": "2026-05-15T17:49:03.445Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-05-15T17:48:43.850Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "state_before": "friction_legere",
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "blocker_summary": {
+            "top_stage": null,
+            "top_action": null,
+            "active_count": 0,
+            "top_category": null,
+            "chronic_count": 0
+          },
+          "metrics_snapshot": {
+            "last_gap_hours": null,
+            "missed_actions_7d": null,
+            "emotional_high_72h": null,
+            "partial_actions_7d": null,
+            "improved_vitals_14d": null,
+            "worsened_vitals_14d": null,
+            "completed_actions_7d": null,
+            "emotional_medium_72h": null,
+            "consent_soft_declines_7d": null,
+            "consent_explicit_stops_7d": null,
+            "days_since_last_user_message": 0
+          },
+          "previous_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "high",
+            "updated_at": "2026-05-15T17:48:43.850Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-05-15T17:48:43.850Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "classifier_source": "router",
+          "pending_transition": null
+        },
+        "created_at": "2026-05-15T17:49:03.453562+00:00"
+      },
+      {
+        "event_name": "dispatcher.memory_plan_generated",
+        "source_component": "router",
+        "payload": {
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "previous_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "bilan et handoff du niveau precedent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "transition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je commence un nouveau niveau. Avant de me proposer quoi que ce soit, qu'est-ce que tu dois garder en tete du niveau precedent ?",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "user_message_preview": "Je commence un nouveau niveau. Avant de me proposer quoi que ce soit, qu'est-ce que tu dois garder en tete du niveau precedent ?"
+        },
+        "created_at": "2026-05-15T17:49:19.434221+00:00"
+      },
+      {
+        "event_name": "surface.state_transition",
+        "source_component": "surface_state",
+        "payload": {
+          "addon": null,
+          "after": {},
+          "before": {},
+          "target_mode": "companion",
+          "memory_plan_intent": "reflection",
+          "memory_plan_context_need": "targeted"
+        },
+        "created_at": "2026-05-15T17:49:19.440855+00:00"
+      },
+      {
+        "event_name": "context.memory_injected",
+        "source_component": "context_loader",
+        "payload": {
+          "mode": "companion",
+          "memory_blocks": {
+            "events": null,
+            "topics": null,
+            "globals": null,
+            "identity": null
+          },
+          "surface_addon": null,
+          "elements_loaded": [
+            "temporal",
+            "facts",
+            "plan_item_indicators",
+            "injected_context",
+            "dashboard_capabilities_lite_addon"
+          ],
+          "estimated_tokens": 1367
+        },
+        "created_at": "2026-05-15T17:49:19.463128+00:00"
+      },
+      {
+        "event_name": "memory.runtime.active.loaded",
+        "source_component": "memory_v2_runtime_active",
+        "payload": {
+          "v1": null,
+          "total_ms": 4,
+          "loader_ms": 4,
+          "fallback_used": false,
+          "retrieval_mode": "topic_continuation",
+          "rollout_bucket": 85,
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "retrieval_hints": [],
+          "payload_item_ids": [],
+          "retrieval_policy": "taxonomy_first",
+          "topic_confidence": 0,
+          "loader_plan_budget": {
+            "max_items": 4,
+            "event_items": 2,
+            "level_items": 1,
+            "topic_items": 3,
+            "action_items": 2,
+            "global_items": 2,
+            "max_entities": 2
+          },
+          "loader_plan_reason": "dispatcher_memory_plan",
+          "payload_item_count": 0,
+          "loaded_scope_counts": {
+            "event": 0,
+            "level": 0,
+            "topic": 0,
+            "action": 0,
+            "entity": 0,
+            "global": 0
+          },
+          "topic_router_skipped": true,
+          "cross_topic_cache_hit": false,
+          "dispatcher_memory_mode": "light",
+          "dispatcher_context_need": "targeted",
+          "invalid_injection_count": 0,
+          "loader_plan_domain_keys": [],
+          "sensitive_excluded_count": 0,
+          "loader_plan_action_targets": [],
+          "loader_plan_domain_prefixes": [],
+          "loader_plan_requested_scopes": [
+            "level"
+          ],
+          "dispatcher_memory_plan_applied": true
+        },
+        "created_at": "2026-05-15T17:49:19.473856+00:00"
+      },
+      {
+        "event_name": "router.model_selected",
+        "source_component": "router",
+        "payload": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "previous_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "bilan et handoff du niveau precedent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "transition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je commence un nouveau niveau. Avant de me proposer quoi que ce soit, qu'est-ce que tu dois garder en tete du niveau precedent ?",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        },
+        "created_at": "2026-05-15T17:49:19.478439+00:00"
+      },
+      {
+        "event_name": "router_momentum_state_applied",
+        "source_component": "router",
+        "payload": {
+          "dimensions": {
+            "consent": "open",
+            "engagement": "high",
+            "progression": "unknown",
+            "emotional_load": "low"
+          },
+          "state_after": "friction_legere",
+          "next_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "high",
+            "updated_at": "2026-05-15T17:49:21.603Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-05-15T17:49:21.603Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "state_before": "friction_legere",
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "blocker_summary": {
+            "top_stage": null,
+            "top_action": null,
+            "active_count": 0,
+            "top_category": null,
+            "chronic_count": 0
+          },
+          "metrics_snapshot": {
+            "last_gap_hours": null,
+            "missed_actions_7d": null,
+            "emotional_high_72h": null,
+            "partial_actions_7d": null,
+            "improved_vitals_14d": null,
+            "worsened_vitals_14d": null,
+            "completed_actions_7d": null,
+            "emotional_medium_72h": null,
+            "consent_soft_declines_7d": null,
+            "consent_explicit_stops_7d": null,
+            "days_since_last_user_message": 0
+          },
+          "previous_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-05-15T17:49:21.603Z",
+            "progression": "unknown",
+            "state_reason": "initial_state",
+            "emotional_load": "low",
+            "stable_since_at": null,
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "classifier_source": "router",
+          "pending_transition": null
+        },
+        "created_at": "2026-05-15T17:49:21.609907+00:00"
+      },
+      {
+        "event_name": "dispatcher.memory_plan_generated",
+        "source_component": "router",
+        "payload": {
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "handoff niveau precedent",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "handoff niveau precedent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "transition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je veux dire : lis le handoff du niveau precedent, ne me demande pas de le rappeler. Quel signal exact tu dois garder ?",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "user_message_preview": "Je veux dire : lis le handoff du niveau precedent, ne me demande pas de le rappeler. Quel signal exact tu dois garder ?"
+        },
+        "created_at": "2026-05-15T17:50:08.336514+00:00"
+      },
+      {
+        "event_name": "surface.state_transition",
+        "source_component": "surface_state",
+        "payload": {
+          "addon": null,
+          "after": {},
+          "before": {},
+          "target_mode": "companion",
+          "memory_plan_intent": "reflection",
+          "memory_plan_context_need": "targeted"
+        },
+        "created_at": "2026-05-15T17:50:08.342758+00:00"
+      },
+      {
+        "event_name": "context.memory_injected",
+        "source_component": "context_loader",
+        "payload": {
+          "mode": "companion",
+          "memory_blocks": {
+            "events": null,
+            "topics": null,
+            "globals": null,
+            "identity": null
+          },
+          "surface_addon": null,
+          "elements_loaded": [
+            "temporal",
+            "facts",
+            "plan_item_indicators",
+            "recent_turns",
+            "injected_context",
+            "dashboard_capabilities_lite_addon"
+          ],
+          "estimated_tokens": 1599
+        },
+        "created_at": "2026-05-15T17:50:08.361211+00:00"
+      },
+      {
+        "event_name": "memory.runtime.active.loaded",
+        "source_component": "memory_v2_runtime_active",
+        "payload": {
+          "v1": null,
+          "total_ms": 5,
+          "loader_ms": 2,
+          "fallback_used": false,
+          "retrieval_mode": "topic_continuation",
+          "rollout_bucket": 85,
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "retrieval_hints": [],
+          "payload_item_ids": [],
+          "retrieval_policy": "taxonomy_first",
+          "topic_confidence": 0,
+          "loader_plan_budget": {
+            "max_items": 4,
+            "event_items": 2,
+            "level_items": 1,
+            "topic_items": 3,
+            "action_items": 2,
+            "global_items": 2,
+            "max_entities": 2
+          },
+          "loader_plan_reason": "dispatcher_memory_plan",
+          "payload_item_count": 0,
+          "loaded_scope_counts": {
+            "event": 0,
+            "level": 0,
+            "topic": 0,
+            "action": 0,
+            "entity": 0,
+            "global": 0
+          },
+          "topic_router_skipped": true,
+          "cross_topic_cache_hit": false,
+          "dispatcher_memory_mode": "light",
+          "dispatcher_context_need": "targeted",
+          "invalid_injection_count": 0,
+          "loader_plan_domain_keys": [],
+          "sensitive_excluded_count": 0,
+          "loader_plan_action_targets": [],
+          "loader_plan_domain_prefixes": [],
+          "loader_plan_requested_scopes": [
+            "level"
+          ],
+          "dispatcher_memory_plan_applied": true
+        },
+        "created_at": "2026-05-15T17:50:08.373871+00:00"
+      },
+      {
+        "event_name": "router.model_selected",
+        "source_component": "router",
+        "payload": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "handoff niveau precedent",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "handoff niveau precedent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "transition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je veux dire : lis le handoff du niveau precedent, ne me demande pas de le rappeler. Quel signal exact tu dois garder ?",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        },
+        "created_at": "2026-05-15T17:50:08.378179+00:00"
+      },
+      {
+        "event_name": "router_momentum_state_applied",
+        "source_component": "router",
+        "payload": {
+          "dimensions": {
+            "consent": "open",
+            "engagement": "high",
+            "progression": "unknown",
+            "emotional_load": "low"
+          },
+          "state_after": "friction_legere",
+          "next_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "high",
+            "updated_at": "2026-05-15T17:50:10.209Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-05-15T17:49:21.603Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "state_before": "friction_legere",
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "blocker_summary": {
+            "top_stage": null,
+            "top_action": null,
+            "active_count": 0,
+            "top_category": null,
+            "chronic_count": 0
+          },
+          "metrics_snapshot": {
+            "last_gap_hours": null,
+            "missed_actions_7d": null,
+            "emotional_high_72h": null,
+            "partial_actions_7d": null,
+            "improved_vitals_14d": null,
+            "worsened_vitals_14d": null,
+            "completed_actions_7d": null,
+            "emotional_medium_72h": null,
+            "consent_soft_declines_7d": null,
+            "consent_explicit_stops_7d": null,
+            "days_since_last_user_message": 0
+          },
+          "previous_summary": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "high",
+            "updated_at": "2026-05-15T17:49:21.603Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-05-15T17:49:21.603Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "classifier_source": "router",
+          "pending_transition": null
+        },
+        "created_at": "2026-05-15T17:50:10.216649+00:00"
+      }
+    ]
+  }
+}

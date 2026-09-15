@@ -1,0 +1,1063 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-prepare-attack-server-owned-server_owned_r1-t01",
+    "user": "Je veux préparer une carte d’attaque pour arrêter de repousser ma séance de sport du soir.",
+    "assistant": "Je suis prête à t'aider pour tes Cartes d'attaque. Est-ce que c'est bien pour ta séance de sport du soir que tu veux agir ?",
+    "http_status": 200,
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_attack_card",
+      "route_reason": "tool_skill_intent_start",
+      "turn_frame_handler": null,
+      "operation": "prepare_attack_card",
+      "status": "collecting",
+      "reason_code": "prepare_attack_card_local_confirm_target_candidate",
+      "flow_action": "confirm_candidate",
+      "visible_task": "confirm_target_candidate",
+      "tool_execution": null,
+      "executed_tools": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "platform_handoff": null,
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "flow_id",
+          "platform_destination",
+          "platform_field_order",
+          "current_field_id",
+          "last_visible_task",
+          "last_handoff_delivered",
+          "subskill_history",
+          "target_state",
+          "blocker_state",
+          "technique_state",
+          "platform_field_states",
+          "activation_keyword_state",
+          "note_information",
+          "exit_memo",
+          "local_state_summary",
+          "previous_flow_summary"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "technique_state",
+          "target_state",
+          "last_visible_task"
+        ],
+        "preserved_fields": [
+          "platform_field_states",
+          "blocker_state",
+          "current_field_id",
+          "last_handoff_delivered"
+        ],
+        "restored_fields": [],
+        "cleared_fields": [
+          "activation_keyword_state"
+        ],
+        "rejected_changes": []
+      },
+      "reducer_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "reducer reduced",
+        "flow_action": "confirm_candidate",
+        "stage": "confirm_target_candidate",
+        "visible_task_kind": "confirm_target_candidate",
+        "current_field_id": null,
+        "technique_key": null,
+        "target_status": "proposed",
+        "blocker_status": "missing",
+        "missing_fields": [],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "flow_id",
+            "platform_destination",
+            "platform_field_order",
+            "current_field_id",
+            "last_visible_task",
+            "last_handoff_delivered",
+            "subskill_history",
+            "target_state",
+            "blocker_state",
+            "technique_state",
+            "platform_field_states",
+            "activation_keyword_state",
+            "note_information",
+            "exit_memo",
+            "local_state_summary",
+            "previous_flow_summary"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "technique_state",
+            "target_state",
+            "last_visible_task"
+          ],
+          "preserved_fields": [
+            "platform_field_states",
+            "blocker_state",
+            "current_field_id",
+            "last_handoff_delivered"
+          ],
+          "restored_fields": [],
+          "cleared_fields": [
+            "activation_keyword_state"
+          ],
+          "rejected_changes": []
+        }
+      },
+      "last_runtime_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "visible_stage complete",
+        "flow_action": "confirm_candidate",
+        "stage": "confirm_target_candidate",
+        "visible_task_kind": "confirm_target_candidate",
+        "current_field_id": null,
+        "technique_key": null,
+        "target_status": "proposed",
+        "blocker_status": "missing",
+        "missing_fields": [],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": null
+      },
+      "safety": null
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "qa-prepare-attack-server-owned-server_owned_r1-t02",
+    "user": "Oui, c’est bien cette séance. Le piège c’est que je me dis que je suis fatigué et que je peux la faire demain.",
+    "assistant": "Je suis prête à t'épauler face à cette fatigue. Quelle technique préfères-tu utiliser pour ta séance de sport : Le texte magique, Mantra de force, Ancre visuelle, Meditation de 5 minutes, Preparer le terrain ou Mot de bascule ?",
+    "http_status": 200,
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_attack_card",
+      "route_reason": "active_prepare_attack_card_local_dispatcher",
+      "turn_frame_handler": null,
+      "operation": "prepare_attack_card",
+      "status": "clarifying",
+      "reason_code": "prepare_attack_card_local_ask_or_confirm_technique",
+      "flow_action": "choose_technique",
+      "visible_task": "ask_or_confirm_technique",
+      "tool_execution": null,
+      "executed_tools": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "platform_handoff": null,
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "flow_id",
+          "platform_destination",
+          "platform_field_order",
+          "current_field_id",
+          "last_visible_task",
+          "last_handoff_delivered",
+          "subskill_history",
+          "target_state",
+          "blocker_state",
+          "technique_state",
+          "platform_field_states",
+          "activation_keyword_state",
+          "note_information",
+          "exit_memo",
+          "local_state_summary",
+          "previous_flow_summary"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "technique_state",
+          "target_state",
+          "blocker_state",
+          "last_visible_task"
+        ],
+        "preserved_fields": [
+          "platform_field_states",
+          "current_field_id",
+          "last_handoff_delivered"
+        ],
+        "restored_fields": [],
+        "cleared_fields": [
+          "activation_keyword_state"
+        ],
+        "rejected_changes": []
+      },
+      "reducer_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "reducer reduced",
+        "flow_action": "choose_technique",
+        "stage": "ask_or_confirm_technique",
+        "visible_task_kind": "ask_or_confirm_technique",
+        "current_field_id": null,
+        "technique_key": null,
+        "target_status": "locked",
+        "blocker_status": "locked",
+        "missing_fields": [],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "flow_id",
+            "platform_destination",
+            "platform_field_order",
+            "current_field_id",
+            "last_visible_task",
+            "last_handoff_delivered",
+            "subskill_history",
+            "target_state",
+            "blocker_state",
+            "technique_state",
+            "platform_field_states",
+            "activation_keyword_state",
+            "note_information",
+            "exit_memo",
+            "local_state_summary",
+            "previous_flow_summary"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "technique_state",
+            "target_state",
+            "blocker_state",
+            "last_visible_task"
+          ],
+          "preserved_fields": [
+            "platform_field_states",
+            "current_field_id",
+            "last_handoff_delivered"
+          ],
+          "restored_fields": [],
+          "cleared_fields": [
+            "activation_keyword_state"
+          ],
+          "rejected_changes": []
+        }
+      },
+      "last_runtime_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "visible_stage complete",
+        "flow_action": "choose_technique",
+        "stage": "ask_or_confirm_technique",
+        "visible_task_kind": "ask_or_confirm_technique",
+        "current_field_id": null,
+        "technique_key": null,
+        "target_status": "locked",
+        "blocker_status": "locked",
+        "missing_fields": [],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": null
+      },
+      "safety": null
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "qa-prepare-attack-server-owned-server_owned_r1-t03",
+    "user": "Prenons Le texte magique.",
+    "assistant": "Je suis prête pour Le texte magique. Pour tes Cartes d'attaque, est-ce que l'action que tu sais que tu dois faire, mais que tu commences souvent à négocier, est bien ta séance de sport du soir ?",
+    "http_status": 200,
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_attack_card",
+      "route_reason": "active_prepare_attack_card_local_dispatcher",
+      "turn_frame_handler": null,
+      "operation": "prepare_attack_card",
+      "status": "clarifying",
+      "reason_code": "prepare_attack_card_local_confirm_platform_field_proposal",
+      "flow_action": "confirm_technique_proposal",
+      "visible_task": "confirm_platform_field_proposal",
+      "tool_execution": null,
+      "executed_tools": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "platform_handoff": null,
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "flow_id",
+          "platform_destination",
+          "platform_field_order",
+          "current_field_id",
+          "last_visible_task",
+          "last_handoff_delivered",
+          "subskill_history",
+          "target_state",
+          "blocker_state",
+          "technique_state",
+          "platform_field_states",
+          "activation_keyword_state",
+          "note_information",
+          "exit_memo",
+          "local_state_summary",
+          "previous_flow_summary"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "technique_state",
+          "platform_field_states",
+          "platform_field_order",
+          "target_state",
+          "blocker_state",
+          "current_field_id",
+          "last_visible_task"
+        ],
+        "preserved_fields": [
+          "last_handoff_delivered"
+        ],
+        "restored_fields": [],
+        "cleared_fields": [
+          "platform_field_states",
+          "activation_keyword_state"
+        ],
+        "rejected_changes": []
+      },
+      "reducer_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "reducer reduced",
+        "flow_action": "confirm_technique_proposal",
+        "stage": "confirm_platform_field_proposal",
+        "visible_task_kind": "confirm_platform_field_proposal",
+        "current_field_id": "negotiated_action",
+        "technique_key": "texte_recadrage",
+        "target_status": "locked",
+        "blocker_status": "locked",
+        "missing_fields": [
+          "negotiated_action",
+          "recurring_excuse",
+          "desired_reframe_state"
+        ],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "flow_id",
+            "platform_destination",
+            "platform_field_order",
+            "current_field_id",
+            "last_visible_task",
+            "last_handoff_delivered",
+            "subskill_history",
+            "target_state",
+            "blocker_state",
+            "technique_state",
+            "platform_field_states",
+            "activation_keyword_state",
+            "note_information",
+            "exit_memo",
+            "local_state_summary",
+            "previous_flow_summary"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "technique_state",
+            "platform_field_states",
+            "platform_field_order",
+            "target_state",
+            "blocker_state",
+            "current_field_id",
+            "last_visible_task"
+          ],
+          "preserved_fields": [
+            "last_handoff_delivered"
+          ],
+          "restored_fields": [],
+          "cleared_fields": [
+            "platform_field_states",
+            "activation_keyword_state"
+          ],
+          "rejected_changes": []
+        }
+      },
+      "last_runtime_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "visible_stage complete",
+        "flow_action": "confirm_technique_proposal",
+        "stage": "confirm_platform_field_proposal",
+        "visible_task_kind": "confirm_platform_field_proposal",
+        "current_field_id": "negotiated_action",
+        "technique_key": "texte_recadrage",
+        "target_status": "locked",
+        "blocker_status": "locked",
+        "missing_fields": [
+          "negotiated_action",
+          "recurring_excuse",
+          "desired_reframe_state"
+        ],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": null
+      },
+      "safety": null
+    }
+  },
+  {
+    "turn": 4,
+    "request_id": "qa-prepare-attack-server-owned-server_owned_r1-t04",
+    "user": "Oui, c’est exactement ça.",
+    "assistant": "Est-ce que 'je me dis que je suis fatigué et que je peux la faire demain' est bien l'excuse qui revient le plus souvent quand tu négocies ta séance de sport du soir ?",
+    "http_status": 200,
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_attack_card",
+      "route_reason": "active_prepare_attack_card_local_dispatcher",
+      "turn_frame_handler": null,
+      "operation": "prepare_attack_card",
+      "status": "clarifying",
+      "reason_code": "prepare_attack_card_local_confirm_platform_field_proposal",
+      "flow_action": "confirm_proposed_field",
+      "visible_task": "confirm_platform_field_proposal",
+      "tool_execution": null,
+      "executed_tools": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "platform_handoff": null,
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "flow_id",
+          "platform_destination",
+          "platform_field_order",
+          "current_field_id",
+          "last_visible_task",
+          "last_handoff_delivered",
+          "subskill_history",
+          "target_state",
+          "blocker_state",
+          "technique_state",
+          "platform_field_states",
+          "activation_keyword_state",
+          "note_information",
+          "exit_memo",
+          "local_state_summary",
+          "previous_flow_summary"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "platform_field_states",
+          "current_field_id"
+        ],
+        "preserved_fields": [
+          "technique_state",
+          "target_state",
+          "blocker_state",
+          "last_handoff_delivered"
+        ],
+        "restored_fields": [],
+        "cleared_fields": [
+          "activation_keyword_state"
+        ],
+        "rejected_changes": []
+      },
+      "reducer_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "reducer reduced",
+        "flow_action": "confirm_proposed_field",
+        "stage": "confirm_platform_field_proposal",
+        "visible_task_kind": "confirm_platform_field_proposal",
+        "current_field_id": "recurring_excuse",
+        "technique_key": "texte_recadrage",
+        "target_status": "locked",
+        "blocker_status": "locked",
+        "missing_fields": [
+          "recurring_excuse",
+          "desired_reframe_state"
+        ],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "flow_id",
+            "platform_destination",
+            "platform_field_order",
+            "current_field_id",
+            "last_visible_task",
+            "last_handoff_delivered",
+            "subskill_history",
+            "target_state",
+            "blocker_state",
+            "technique_state",
+            "platform_field_states",
+            "activation_keyword_state",
+            "note_information",
+            "exit_memo",
+            "local_state_summary",
+            "previous_flow_summary"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "platform_field_states",
+            "current_field_id"
+          ],
+          "preserved_fields": [
+            "technique_state",
+            "target_state",
+            "blocker_state",
+            "last_handoff_delivered"
+          ],
+          "restored_fields": [],
+          "cleared_fields": [
+            "activation_keyword_state"
+          ],
+          "rejected_changes": []
+        }
+      },
+      "last_runtime_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "visible_stage complete",
+        "flow_action": "confirm_proposed_field",
+        "stage": "confirm_platform_field_proposal",
+        "visible_task_kind": "confirm_platform_field_proposal",
+        "current_field_id": "recurring_excuse",
+        "technique_key": "texte_recadrage",
+        "target_status": "locked",
+        "blocker_status": "locked",
+        "missing_fields": [
+          "recurring_excuse",
+          "desired_reframe_state"
+        ],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": null
+      },
+      "safety": null
+    }
+  },
+  {
+    "turn": 5,
+    "request_id": "qa-prepare-attack-server-owned-server_owned_r1-t05",
+    "user": "Pas exactement, mets plutôt : j’ai déjà eu une journée longue, je mérite de sauter.",
+    "assistant": "C'est entendu pour ton excuse. Pour finir la préparation de ton texte magique, dans quel état est-ce que tu veux te remettre en l'écrivant ?",
+    "http_status": 200,
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_attack_card",
+      "route_reason": "active_prepare_attack_card_local_dispatcher",
+      "turn_frame_handler": null,
+      "operation": "prepare_attack_card",
+      "status": "clarifying",
+      "reason_code": "prepare_attack_card_local_ask_platform_field",
+      "flow_action": "revise_current_field",
+      "visible_task": "ask_platform_field",
+      "tool_execution": null,
+      "executed_tools": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "platform_handoff": null,
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "flow_id",
+          "platform_destination",
+          "platform_field_order",
+          "current_field_id",
+          "last_visible_task",
+          "last_handoff_delivered",
+          "subskill_history",
+          "target_state",
+          "blocker_state",
+          "technique_state",
+          "platform_field_states",
+          "activation_keyword_state",
+          "note_information",
+          "exit_memo",
+          "local_state_summary",
+          "previous_flow_summary"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "platform_field_states",
+          "current_field_id",
+          "last_visible_task"
+        ],
+        "preserved_fields": [
+          "technique_state",
+          "target_state",
+          "last_handoff_delivered"
+        ],
+        "restored_fields": [
+          "blocker_state"
+        ],
+        "cleared_fields": [
+          "activation_keyword_state"
+        ],
+        "rejected_changes": [
+          {
+            "field": "blocker_state",
+            "reason_code": "invalid_status_transition"
+          }
+        ]
+      },
+      "reducer_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "reducer reduced",
+        "flow_action": "revise_current_field",
+        "stage": "ask_platform_field",
+        "visible_task_kind": "ask_platform_field",
+        "current_field_id": "desired_reframe_state",
+        "technique_key": "texte_recadrage",
+        "target_status": "locked",
+        "blocker_status": "locked",
+        "missing_fields": [
+          "desired_reframe_state"
+        ],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "flow_id",
+            "platform_destination",
+            "platform_field_order",
+            "current_field_id",
+            "last_visible_task",
+            "last_handoff_delivered",
+            "subskill_history",
+            "target_state",
+            "blocker_state",
+            "technique_state",
+            "platform_field_states",
+            "activation_keyword_state",
+            "note_information",
+            "exit_memo",
+            "local_state_summary",
+            "previous_flow_summary"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "platform_field_states",
+            "current_field_id",
+            "last_visible_task"
+          ],
+          "preserved_fields": [
+            "technique_state",
+            "target_state",
+            "last_handoff_delivered"
+          ],
+          "restored_fields": [
+            "blocker_state"
+          ],
+          "cleared_fields": [
+            "activation_keyword_state"
+          ],
+          "rejected_changes": [
+            {
+              "field": "blocker_state",
+              "reason_code": "invalid_status_transition"
+            }
+          ]
+        }
+      },
+      "last_runtime_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "visible_stage complete",
+        "flow_action": "revise_current_field",
+        "stage": "ask_platform_field",
+        "visible_task_kind": "ask_platform_field",
+        "current_field_id": "desired_reframe_state",
+        "technique_key": "texte_recadrage",
+        "target_status": "locked",
+        "blocker_status": "locked",
+        "missing_fields": [
+          "desired_reframe_state"
+        ],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": null
+      },
+      "safety": null
+    }
+  },
+  {
+    "turn": 6,
+    "request_id": "qa-prepare-attack-server-owned-server_owned_r1-t06",
+    "user": "Je veux me remettre dans un état décidé mais calme : je choisis juste d’y aller dix minutes.",
+    "assistant": "Je suis prête pour la suite. Pour finaliser ta préparation dans la section Cartes d'attaque avec la technique Le texte magique, voici les éléments à utiliser :\n\n- Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ? : séance de sport du soir\n- Quelles excuses ou pensees reviennent quand tu sens que tu glisses ? : j’ai déjà eu une journée longue, je mérite de sauter\n- Dans quel etat tu veux te remettre en ecrivant ce texte ? : un état décidé mais calme : je choisis juste d’y aller dix minutes\n\nPour terminer, ouvre la section Cartes, choisis Carte d’attaque et reprends le brouillon proposé.",
+    "http_status": 200,
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_attack_card",
+      "route_reason": "active_prepare_attack_card_local_dispatcher",
+      "turn_frame_handler": null,
+      "operation": "prepare_attack_card",
+      "status": "handoff_delivered",
+      "reason_code": "handoff_ready",
+      "flow_action": "answer_current_field",
+      "visible_task": "handoff_ready",
+      "tool_execution": null,
+      "executed_tools": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "platform_handoff": {
+        "operation_type": "prepare_attack_card",
+        "status": "delivered",
+        "surface_id": "attack_cards",
+        "reason_code": "handoff_ready",
+        "executable_from_chat": false
+      },
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "flow_id",
+          "platform_destination",
+          "platform_field_order",
+          "current_field_id",
+          "last_visible_task",
+          "last_handoff_delivered",
+          "subskill_history",
+          "target_state",
+          "blocker_state",
+          "technique_state",
+          "platform_field_states",
+          "activation_keyword_state",
+          "note_information",
+          "exit_memo",
+          "local_state_summary",
+          "previous_flow_summary"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "platform_field_states",
+          "blocker_state",
+          "current_field_id",
+          "last_visible_task",
+          "last_handoff_delivered"
+        ],
+        "preserved_fields": [
+          "technique_state",
+          "target_state"
+        ],
+        "restored_fields": [],
+        "cleared_fields": [
+          "activation_keyword_state"
+        ],
+        "rejected_changes": []
+      },
+      "reducer_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "reducer reduced",
+        "flow_action": "answer_current_field",
+        "stage": "handoff_ready",
+        "visible_task_kind": "handoff_ready",
+        "current_field_id": null,
+        "technique_key": "texte_recadrage",
+        "target_status": "locked",
+        "blocker_status": "locked",
+        "missing_fields": [],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "flow_id",
+            "platform_destination",
+            "platform_field_order",
+            "current_field_id",
+            "last_visible_task",
+            "last_handoff_delivered",
+            "subskill_history",
+            "target_state",
+            "blocker_state",
+            "technique_state",
+            "platform_field_states",
+            "activation_keyword_state",
+            "note_information",
+            "exit_memo",
+            "local_state_summary",
+            "previous_flow_summary"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "platform_field_states",
+            "blocker_state",
+            "current_field_id",
+            "last_visible_task",
+            "last_handoff_delivered"
+          ],
+          "preserved_fields": [
+            "technique_state",
+            "target_state"
+          ],
+          "restored_fields": [],
+          "cleared_fields": [
+            "activation_keyword_state"
+          ],
+          "rejected_changes": []
+        }
+      },
+      "last_runtime_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "handoff_ready",
+        "flow_action": "answer_current_field",
+        "stage": "handoff_ready",
+        "visible_task_kind": "handoff_ready",
+        "current_field_id": null,
+        "technique_key": "texte_recadrage",
+        "target_status": "locked",
+        "blocker_status": "locked",
+        "missing_fields": [],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": null
+      },
+      "safety": null
+    }
+  },
+  {
+    "turn": 7,
+    "request_id": "qa-prepare-attack-server-owned-server_owned_r1-t07",
+    "user": "Ok crée-la maintenant.",
+    "assistant": "Je ne peux pas créer la carte moi-même depuis notre discussion, mais je suis ravie de t'avoir aidé à préparer tout ça. Pour qu'elle soit active, tu dois l'enregistrer dans la section **Cartes d'attaque**.\n\nVoici la marche à suivre : ouvre la section Cartes, choisis Carte d’attaque et reprends le brouillon proposé.\n\nVoici les données exactes à saisir :\n- Technique : **Le texte magique**\n- Action : **séance de sport du soir**\n- Excuse : **j’ai déjà eu une journée longue, je mérite de sauter**\n- État souhaité : **un état décidé mais calme : je choisis juste d’y aller dix minutes**\n\nEst-ce que tu as besoin d'une précision sur ces étapes ?",
+    "http_status": 200,
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_attack_card",
+      "route_reason": "active_prepare_attack_card_local_dispatcher",
+      "turn_frame_handler": null,
+      "operation": "prepare_attack_card",
+      "status": "apply_attempt",
+      "reason_code": "apply_attempt_not_executable_from_chat",
+      "flow_action": "apply_attempt",
+      "visible_task": "apply_attempt",
+      "tool_execution": null,
+      "executed_tools": [],
+      "committed_effects": [],
+      "blocked_effects": [
+        {
+          "type": "create_attack_card",
+          "reason_code": "chat_creation_disabled_platform_handoff"
+        }
+      ],
+      "platform_handoff": {
+        "operation_type": "prepare_attack_card",
+        "status": "delivered",
+        "surface_id": "attack_cards",
+        "reason_code": "apply_attempt_not_executable_from_chat",
+        "executable_from_chat": false
+      },
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "flow_id",
+          "platform_destination",
+          "platform_field_order",
+          "current_field_id",
+          "last_visible_task",
+          "last_handoff_delivered",
+          "subskill_history",
+          "target_state",
+          "blocker_state",
+          "technique_state",
+          "platform_field_states",
+          "activation_keyword_state",
+          "note_information",
+          "exit_memo",
+          "local_state_summary",
+          "previous_flow_summary"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "last_visible_task"
+        ],
+        "preserved_fields": [
+          "target_state",
+          "blocker_state",
+          "technique_state",
+          "platform_field_states",
+          "activation_keyword_state",
+          "current_field_id",
+          "last_handoff_delivered"
+        ],
+        "restored_fields": [
+          "platform_field_states"
+        ],
+        "cleared_fields": [],
+        "rejected_changes": [
+          {
+            "field": "platform_field_states",
+            "reason_code": "blocked_by_constraint"
+          }
+        ]
+      },
+      "reducer_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "reducer reduced",
+        "flow_action": "apply_attempt",
+        "stage": "apply_attempt",
+        "visible_task_kind": "apply_attempt",
+        "current_field_id": null,
+        "technique_key": "texte_recadrage",
+        "target_status": "locked",
+        "blocker_status": "locked",
+        "missing_fields": [],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "flow_id",
+            "platform_destination",
+            "platform_field_order",
+            "current_field_id",
+            "last_visible_task",
+            "last_handoff_delivered",
+            "subskill_history",
+            "target_state",
+            "blocker_state",
+            "technique_state",
+            "platform_field_states",
+            "activation_keyword_state",
+            "note_information",
+            "exit_memo",
+            "local_state_summary",
+            "previous_flow_summary"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "last_visible_task"
+          ],
+          "preserved_fields": [
+            "target_state",
+            "blocker_state",
+            "technique_state",
+            "platform_field_states",
+            "activation_keyword_state",
+            "current_field_id",
+            "last_handoff_delivered"
+          ],
+          "restored_fields": [
+            "platform_field_states"
+          ],
+          "cleared_fields": [],
+          "rejected_changes": [
+            {
+              "field": "platform_field_states",
+              "reason_code": "blocked_by_constraint"
+            }
+          ]
+        }
+      },
+      "last_runtime_trace": {
+        "component": "prepare_attack_card.local_flow",
+        "event": "handoff_ready",
+        "flow_action": "apply_attempt",
+        "stage": "apply_attempt",
+        "visible_task_kind": "apply_attempt",
+        "current_field_id": null,
+        "technique_key": "texte_recadrage",
+        "target_status": "locked",
+        "blocker_status": "locked",
+        "missing_fields": [],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "selected_handler": "prepare_attack_card",
+        "state_mutation_audit": null
+      },
+      "safety": null
+    }
+  },
+  {
+    "turn": 8,
+    "request_id": "qa-prepare-attack-server-owned-server_owned_r1-t08",
+    "user": "Laisse tomber la carte pour maintenant, aide-moi plutôt à prioriser ce que je fais ce soir.",
+    "assistant": "Bien sûr. On laisse tomber la carte pour maintenant. Ce soir, l’objectif c’est simple : réduire ta charge mentale et te laisser une trajectoire réaliste ✅🙂\n\nVu que tu vises la séance de sport du soir mais que ton cerveau cherche “demain”, je te propose une priorité en 3 niveaux (sans te demander d’être héroïque) :\n\n1) Priorité 1 (non négociable) : préparer le terrain pour le sport (juste le “prêt à y aller”).\n2) Priorité 2 : faire 10 minutes de la séance (même si c’est moche).\n3) Priorité 3 : si vraiment c’est impossible, faire un minimum de récupération (douche / étirements / marche courte) plutôt que de tout abandonner.\n\nDans ta tête, la lutte c’est peut-être “je mérite de sauter” vs “je choisis d’avancer”. Ton plan ce soir, c’est de basculer vers l’option 1, puis 2.\n\nQu’est-ce que tu dois faire avant le sport ce soir (la première “petite chose” concrète qui bloque d’habitude : douche, tenue, matériel, transport, autre) ?",
+    "http_status": 200,
+    "trace": {
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "normal_reply_default",
+      "turn_frame_handler": null,
+      "operation": null,
+      "status": null,
+      "reason_code": null,
+      "flow_action": null,
+      "visible_task": null,
+      "tool_execution": null,
+      "executed_tools": [],
+      "committed_effects": null,
+      "blocked_effects": null,
+      "platform_handoff": null,
+      "state_mutation_audit": null,
+      "reducer_trace": null,
+      "last_runtime_trace": null,
+      "safety": null
+    }
+  }
+]

@@ -1,0 +1,364 @@
+{
+  "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+  "scope": "qa-adjust-plan-nina-2026-05-15-test3-global-level-confirmation-r18",
+  "plan_patches": {
+    "ok": false,
+    "status": 404,
+    "body": {
+      "code": "PGRST205",
+      "details": null,
+      "hint": "Perhaps you meant the table 'public.user_plan_item_entries'",
+      "message": "Could not find the table 'public.plan_patches' in the schema cache"
+    }
+  },
+  "plan_items": {
+    "ok": false,
+    "status": 404,
+    "body": {
+      "code": "PGRST205",
+      "details": null,
+      "hint": "Perhaps you meant the table 'public.user_plan_items'",
+      "message": "Could not find the table 'public.plan_items' in the schema cache"
+    }
+  },
+  "user_chat_state": {
+    "ok": true,
+    "status": 200,
+    "body": [
+      {
+        "temp_memory": {
+          "__conversation_risk_last": {
+            "at": "2026-05-15T18:15:33.771Z",
+            "score": 1,
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__active_tool_skill_intake": {
+            "phase": "generation",
+            "turn_count": 3,
+            "updated_at": "2026-05-15T18:16:06.438Z",
+            "missing_slots": [
+              "draft_generation_retry_needed"
+            ],
+            "operation_type": "adjust_plan_item",
+            "operation_input": {
+              "scope": {
+                "kind": "current_level",
+                "title": "Reprendre le contrôle sur le grignotage",
+                "plan_item_id": null,
+                "current_summary": "Reprendre le contrôle sur le grignotage"
+              },
+              "payload": {
+                "reason": {
+                  "status": "missing",
+                  "evidence": []
+                },
+                "scope_kind": "current_level",
+                "constraints": {
+                  "status": "identified",
+                  "values": [
+                    "trop de petites décisions",
+                    "fatigue le soir",
+                    "rendre les actions plus automatiques",
+                    "sans réduire le nombre d’éléments",
+                    "sans réduire la fréquence",
+                    "exact_text:Le choix du brut doit être décidé avant le soir",
+                    "exact_text:le décodage doit rester une question courte"
+                  ],
+                  "evidence": [
+                    "trop de petites décisions quand je suis déjà crevée",
+                    "le soir",
+                    "rendre les actions plus automatiques",
+                    "sans réduire le nombre d’éléments ni la fréquence",
+                    "Le choix du brut doit être décidé avant le soir",
+                    "le décodage doit rester une question courte"
+                  ]
+                },
+                "change_target": {
+                  "value": "global_load",
+                  "status": "identified",
+                  "evidence": [
+                    "trop de petites décisions",
+                    "rendre les actions plus automatiques"
+                  ]
+                },
+                "reason_change": {
+                  "value": "context_changed",
+                  "status": "identified",
+                  "evidence": [
+                    "trop de petites décisions quand je suis déjà crevée",
+                    "rendre les actions plus automatiques"
+                  ]
+                },
+                "affected_items": {
+                  "status": "identified",
+                  "values": [
+                    "Faire le choix du brut",
+                    "Décoder ton envie de grignoter"
+                  ],
+                  "evidence": [
+                    "Le choix du brut",
+                    "le décodage"
+                  ]
+                },
+                "adjustment_type": {
+                  "value": "rebalance",
+                  "status": "identified",
+                  "evidence": [
+                    "rendre les actions plus automatiques",
+                    "sans réduire le nombre d’éléments ni la fréquence"
+                  ]
+                },
+                "load_adjustment": {
+                  "value": "same",
+                  "status": "identified",
+                  "evidence": [
+                    "sans réduire le nombre d’éléments ni la fréquence"
+                  ],
+                  "confidence": "high"
+                },
+                "level_adjustment": {
+                  "value": "rebalance",
+                  "status": "identified",
+                  "evidence": [
+                    "rendre les actions plus automatiques",
+                    "sans réduire le nombre d’éléments ni la fréquence"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "intake_state": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Reprendre le contrôle sur le grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "operation_input.scope",
+                    "bloc grignotage"
+                  ]
+                },
+                "payload": {
+                  "reason": {
+                    "status": "missing",
+                    "evidence": []
+                  },
+                  "scope_kind": "current_level",
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "trop de petites décisions",
+                      "fatigue le soir",
+                      "rendre les actions plus automatiques",
+                      "sans réduire le nombre d’éléments",
+                      "sans réduire la fréquence",
+                      "exact_text:Le choix du brut doit être décidé avant le soir",
+                      "exact_text:le décodage doit rester une question courte"
+                    ],
+                    "evidence": [
+                      "trop de petites décisions quand je suis déjà crevée",
+                      "le soir",
+                      "rendre les actions plus automatiques",
+                      "sans réduire le nombre d’éléments ni la fréquence",
+                      "Le choix du brut doit être décidé avant le soir",
+                      "le décodage doit rester une question courte"
+                    ]
+                  },
+                  "change_target": {
+                    "value": "global_load",
+                    "status": "identified",
+                    "evidence": [
+                      "trop de petites décisions",
+                      "rendre les actions plus automatiques"
+                    ]
+                  },
+                  "reason_change": {
+                    "value": "context_changed",
+                    "status": "identified",
+                    "evidence": [
+                      "trop de petites décisions quand je suis déjà crevée",
+                      "rendre les actions plus automatiques"
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      "Faire le choix du brut",
+                      "Décoder ton envie de grignoter"
+                    ],
+                    "evidence": [
+                      "Le choix du brut",
+                      "le décodage"
+                    ]
+                  },
+                  "adjustment_type": {
+                    "value": "rebalance",
+                    "status": "identified",
+                    "evidence": [
+                      "rendre les actions plus automatiques",
+                      "sans réduire le nombre d’éléments ni la fréquence"
+                    ]
+                  },
+                  "load_adjustment": {
+                    "value": "same",
+                    "status": "identified",
+                    "evidence": [
+                      "sans réduire le nombre d’éléments ni la fréquence"
+                    ],
+                    "confidence": "high"
+                  },
+                  "level_adjustment": {
+                    "value": "rebalance",
+                    "status": "identified",
+                    "evidence": [
+                      "rendre les actions plus automatiques",
+                      "sans réduire le nombre d’éléments ni la fréquence"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "selected_sub_skill": "level_intake",
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "le niveau entier",
+                    "bloc grignotage"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": []
+                }
+              },
+              "change_target": {
+                "value": "global_load",
+                "evidence": [
+                  "trop de petites décisions",
+                  "rendre les actions plus automatiques"
+                ]
+              },
+              "reason_change": {
+                "type": "context_changed",
+                "evidence": [
+                  "trop de petites décisions quand je suis déjà crevée",
+                  "rendre les actions plus automatiques"
+                ]
+              },
+              "decision_basis": {
+                "evidence": [
+                  "Oui, prépare une proposition concrète, mais ne l’applique pas. Je veux voir deux exemples précis avec avant / après / pourquoi ça aide, et ce qui ne bouge pas.",
+                  "operation_input.scope",
+                  "bloc grignotage",
+                  "rendre les actions plus automatiques",
+                  "sans réduire le nombre d’éléments ni la fréquence",
+                  "trop de petites décisions quand je suis déjà crevée",
+                  "rendre les actions plus automatiques",
+                  "trop de petites décisions",
+                  "rendre les actions plus automatiques"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "actions exactes du niveau a choisir pour une modification fine"
+                ],
+                "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                "must_preserve": [
+                  "coeur du niveau"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "target_granularity": {
+                "value": "current_level",
+                "status": "identified",
+                "evidence": [
+                  "le niveau entier",
+                  "bloc grignotage"
+                ],
+                "confidence": "high",
+                "negative_evidence": []
+              },
+              "adjust_plan_sub_skills": [
+                {
+                  "id": "scope_router",
+                  "role": "Determine if the user targets one action, the current level, or the whole plan.",
+                  "minimum_ready_slots": [
+                    "scope.status=identified",
+                    "scope.kind"
+                  ]
+                },
+                {
+                  "id": "action_intake",
+                  "role": "Fill the action-specific adjustment payload once scope is a specific plan item.",
+                  "minimum_ready_slots": [
+                    "scope.plan_item_id",
+                    "adjustment_type",
+                    "reason",
+                    "constraints"
+                  ]
+                },
+                {
+                  "id": "level_intake",
+                  "role": "Fill the current-level adjustment payload and protect whole-plan boundaries.",
+                  "minimum_ready_slots": [
+                    "reason_change",
+                    "change_target",
+                    "constraints",
+                    "affected_items_before_execution"
+                  ]
+                },
+                {
+                  "id": "whole_plan_intake",
+                  "role": "Fill the whole-plan adjustment payload and preserve the global objective when requested.",
+                  "minimum_ready_slots": [
+                    "reason_change",
+                    "global_change_target",
+                    "preserved_intent",
+                    "impact_examples_before_confirmation"
+                  ]
+                },
+                {
+                  "id": "draft_validation",
+                  "role": "Validate the generated draft and require concrete examples before confirmation.",
+                  "minimum_ready_slots": [
+                    "user_ready_review_message",
+                    "changed_examples",
+                    "boundaries",
+                    "no_pre_confirmation_execution_claim"
+                  ]
+                }
+              ],
+              "latest_turn_operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Reprendre le contrôle sur le grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "bloc grignotage"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "le niveau entier",
+                    "bloc grignotage"
+                  ],
+                  "confidence": "high"
+                }
+              }
+            }
+          },
+          "__conversation_risk_history": [
+            0,
+            1,
+            1
+          ],
+          "__coaching_intervention_history": []
+        },
+        "updated_at": "2026-05-15T18:16:06.440858+00:00"
+      }
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+╔══════════════════════════════════════════════════════════════════╗
+║ LOT F ⑤ · TIR n° 5
+╚══════════════════════════════════════════════════════════════════╝
+   PERTE · repas léger déclaré et apport fixe · sans réintroduire d'extra
+   compte        lotf.camp5.c6@keeltest.dev
+   contexte      2026-09-12 03:59 (Europe/Paris) · 2026-09-12T01:59:05.393Z
+   rythme        [{"slot":"breakfast","size":"medium"},{"slot":"lunch","size":"small"},{"slot":"dinner","size":"medium"}] (student_goals.practical_constraints)
+   fenêtre       3 jours, intent=prepare_next
+   CASES ANNONCÉES : 9 cases × 1 bouche(s) = 9 parts attendues
+   grille        {"sat":["breakfast","lunch","dinner"],"sun":["breakfast","lunch","dinner"],"mon":["breakfast","lunch","dinner"]}
+   dérivation    plan_hours.ts + meal_plan_window.ts, appelées à 03:59 : fenêtre de 3 jour(s) depuis 2026-09-12
+   ⛔ CE NOMBRE NE VIENT PAS DES PLATS. Une case sans plat restera attendue, et se comptera absente.
+   ⚠️ L'HORLOGE N'EST PAS INJECTABLE ICI : ce tir part par Kong, dans le processus de `functions serve`. Le cas « fenêtre d'après-midi » se prouve au banc ② (`banc-lot-F.ts --horloge=…`), pas ici.
+
+   ⏳ appel réel en cours — modèle facturé, aucune relance automatique…
+
+── RÉPONSE ───────────────────────────────────────────────
+   statut        200
+   durée totale  301559 ms
+   plafond hébergé 150000 ms → ⛔ COUPÉ EN PRODUCTION (151559 ms de trop)
+   plan          39280f70-735b-412c-b7e2-5db9703a30c1
+   premier jet du modèle : 31013 caractères · réparations archivées : 3 · prompt : 24942 car.
+
+   sortie écrite : /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir5-c6-2026-09-12T01-59-05-393Z.json
+   ⛔ AUCUNE RELANCE AUTOMATIQUE. Si ce tir a échoué, il reste échoué ; c'est le plan du chantier qui l'exige.

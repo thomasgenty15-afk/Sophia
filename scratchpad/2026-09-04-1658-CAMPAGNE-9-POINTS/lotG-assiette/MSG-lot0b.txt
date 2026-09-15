@@ -1,0 +1,16 @@
+un frais non résolu se juge contre la boîte entière, pas contre le frais seul : la garniture inconnue ne rend plus la casserole illisible
+
+Effet de bord du lot 0 (092b2bba), mesuré sur les tirs du 2026-09-06 : « vinaigrette au
+citron », « poulet » sans pièce, « galette complete » rendaient l'énergie PROPRE du plat
+incomplète (la règle des 5 % de `dishEnergy` jugée sur le frais seul), donc la boîte entière
+`dish_incomplete` — 188 à 342 g par jour et par bouche « sans énergie lisible », et deux
+journées-bouche `day_incomplete` sur le duo. Hier, le même terme se diluait dans le pliage
+casserole comprise.
+
+`boxKcalByItems` lit désormais le frais à tolérance pleine (borné par les bandes de groupe)
+et applique la règle des 5 % à `casserole + frais` de CHAQUE boîte : même seuil, même
+bande, dénominateur juste. Un frais sans borne ni quantité reste illisible ; un ingrédient
+principal inconnu (200 g de « poulet ») aussi — la bande de groupe est large, exprès. Test :
+une garniture inconnue de 4 g passe à côté de 600 g de casserole, et reste illisible seule.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

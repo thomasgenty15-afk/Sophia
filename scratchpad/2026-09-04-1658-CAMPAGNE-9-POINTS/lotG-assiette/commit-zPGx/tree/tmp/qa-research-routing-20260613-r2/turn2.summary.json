@@ -1,0 +1,20 @@
+{
+  "status": "HTTP/1.1 200 OK",
+  "ok": true,
+  "request_id": "772d9350-61d8-4859-aa31-fb10e11246ba",
+  "content": "OK 🙂 Si ton besoin principal c’est “classer un ticket en 3 catégories + générer une phrase courte”, je choisirais Mini d’abord (meilleur compromis qualité/robustesse pour la classification), et Nano seulement si tu es vraiment à l’ultra-optimisation coût/latence.\n\nCheck ultra-prioritaire avant de trancher :\n- Est-ce que la sortie doit être très fiable (peu d’erreurs de catégorie) ? => Mini.\n- Est-ce que tu peux tolérer un peu plus d’erreurs (et compenser par des règles/validation) ? => Nano.\n\nTu prends quel type de tickets (plutôt répétitifs et simples, ou variés et ambigus) ? 🙂",
+  "forbidden": {
+    "fil_rouge": false,
+    "html_comment": false
+  },
+  "needs_research": {
+    "detected": false,
+    "value": false,
+    "query": null,
+    "domain_hint": null,
+    "confidence": 0,
+    "reason": null
+  },
+  "response_owner": "normal_reply",
+  "reason_code": "normal_reply_default"
+}

@@ -1,0 +1,246 @@
+{
+  "user": "Au passage, ça me frustre un peu quand Sophia me pose plein de questions alors que je veux surtout une réponse directe. Est-ce que ce genre de préférence peut se changer ?",
+  "ok": true,
+  "request_id": "e594c79f-855e-4888-8486-96f0b6ec36d1",
+  "user_id": "cfe425f6-654a-45b8-85ea-be4bf863aaf0",
+  "channel": "web",
+  "scope": "web",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Oui, ce genre de préférence se change. Pour aller dans ton sens, tu peux viser un style plus direct, avec moins de questions et des réponses plus brèves dans les Preferences coach.",
+    "mode": "companion",
+    "delivery": null,
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "e594c79f-855e-4888-8486-96f0b6ec36d1",
+        "source_message_id": "495993ac-c212-41e1-8baa-44031af66b89",
+        "user_id": "cfe425f6-654a-45b8-85ea-be4bf863aaf0",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "note_information": null,
+        "skill_signals": {
+          "feature_opportunity": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "coach_preferences_opportunity",
+            "context": {
+              "feature": "coach_preferences",
+              "opportunity_kind": "coach_style_feedback",
+              "trigger_context": "tu me poses plein de questions / je veux surtout une réponse directe",
+              "user_problem_summary": "The user is frustrated that Sophia asks too many questions and wants a more direct response style.",
+              "priority_reason": "Style feedback maps to supported coach preferences."
+            }
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "answer_feature_preference_change",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "force_taxonomy",
+          "plan_confidence": 0.7
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "feature_opportunity",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "feature_opportunity_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "minimal_global_dispatcher",
+          "active_owner": "none",
+          "selected_owner": "feature_opportunity",
+          "resume_policy": "none",
+          "reason_code": "feature_opportunity_signal"
+        },
+        "selected_handler": "feature_opportunity"
+      },
+      "effect_ledger": {
+        "turn_id": "e594c79f-855e-4888-8486-96f0b6ec36d1",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "feature_opportunity",
+      "skill_run": {
+        "selected_skill_id": "feature_opportunity",
+        "reason_code": "feature_opportunity_signal",
+        "status": "continue",
+        "latency_ms": 4964
+      }
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "e594c79f-855e-4888-8486-96f0b6ec36d1",
+      "source_message_id": "495993ac-c212-41e1-8baa-44031af66b89",
+      "user_id": "cfe425f6-654a-45b8-85ea-be4bf863aaf0",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "note_information": null,
+      "skill_signals": {
+        "feature_opportunity": {
+          "detected": true,
+          "confidence_band": "high",
+          "reason": "coach_preferences_opportunity",
+          "context": {
+            "feature": "coach_preferences",
+            "opportunity_kind": "coach_style_feedback",
+            "trigger_context": "tu me poses plein de questions / je veux surtout une réponse directe",
+            "user_problem_summary": "The user is frustrated that Sophia asks too many questions and wants a more direct response style.",
+            "priority_reason": "Style feedback maps to supported coach preferences."
+          }
+        }
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "answer_feature_preference_change",
+        "reasoning_complexity": "low",
+        "context_need": "minimal",
+        "memory_mode": "none",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "tiny",
+        "targets": [],
+        "retrieval_policy": "force_taxonomy",
+        "plan_confidence": 0.7
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "feature_opportunity",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "feature_opportunity_signal",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "active_flow_arbitration": {
+        "decision": "minimal_global_dispatcher",
+        "active_owner": "none",
+        "selected_owner": "feature_opportunity",
+        "resume_policy": "none",
+        "reason_code": "feature_opportunity_signal"
+      },
+      "selected_handler": "feature_opportunity"
+    },
+    "effect_ledger": {
+      "turn_id": "e594c79f-855e-4888-8486-96f0b6ec36d1",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "feature_opportunity",
+    "skill_run": {
+      "selected_skill_id": "feature_opportunity",
+      "reason_code": "feature_opportunity_signal",
+      "status": "continue",
+      "latency_ms": 4964
+    }
+  },
+  "trace_error": null,
+  "http_status": 200
+}

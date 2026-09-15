@@ -1,0 +1,251 @@
+{
+    "plan_id": "0a02b706-ca90-4f58-a642-a681610b9bf8",
+    "household": {
+        "id": "9e90b53d-2ed5-4d25-8682-4cdd5532d07e",
+        "hand": {
+            "taken": [
+            ],
+            "partial": [
+            ],
+            "unmerged": [
+            ],
+            "reclaimed": [
+            ]
+        },
+        "boxes": {
+            "boxes": 7,
+            "capped": 0,
+            "mouths": 4,
+            "refused": 0,
+            "sum_over": 0,
+            "with_boxes": 2,
+            "mouth_slots": 8,
+            "sum_checked": 2,
+            "preparations": 2,
+            "mouths_double": 0,
+            "mouths_unboxed": 1,
+            "sum_unverifiable": 0
+        },
+        "shares": {
+            "shares": 7,
+            "unknown": 0,
+            "regime_refused": 0
+        },
+        "voices": {
+            "heard": 0,
+            "lines_in": 0,
+            "over_cap": 0,
+            "withheld": 0,
+            "lines_used": 0,
+            "per_member": [
+            ],
+            "accounts_at_table": 1
+        },
+        "cooking": {
+            "asked": null,
+            "capped": false,
+            "served": "one_session",
+            "unused": false,
+            "computed": "one_session",
+            "diverging": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+                "12362957-32c9-43a5-82ef-66b8d5732171"
+            ],
+            "dish_bearing": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+                "12362957-32c9-43a5-82ef-66b8d5732171"
+            ]
+        },
+        "kitchen": {
+            "missing": [
+                "oven",
+                "freezer",
+                "air_fryer",
+                "pressure_cooker"
+            ],
+            "declared": [
+                "stovetop",
+                "microwave",
+                "blender"
+            ]
+        },
+        "box_uses": {
+            "uses": 5,
+            "cited": 5,
+            "refused": 0,
+            "resolved": 5
+        },
+        "presence": {
+            "members": [
+                {
+                    "away": [
+                        {
+                            "day": "wed",
+                            "slots": [
+                                "lunch"
+                            ]
+                        },
+                        {
+                            "day": "thu",
+                            "slots": [
+                                "lunch"
+                            ]
+                        },
+                        {
+                            "day": "fri",
+                            "slots": [
+                                "lunch"
+                            ]
+                        }
+                    ],
+                    "self": [
+                    ],
+                    "household": [
+                        {
+                            "day": "wed",
+                            "slots": [
+                                "lunch"
+                            ]
+                        },
+                        {
+                            "day": "thu",
+                            "slots": [
+                                "lunch"
+                            ]
+                        },
+                        {
+                            "day": "fri",
+                            "slots": [
+                                "lunch"
+                            ]
+                        }
+                    ],
+                    "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+                    "eating_out": [
+                        {
+                            "day": "wed",
+                            "slots": [
+                                "lunch"
+                            ]
+                        },
+                        {
+                            "day": "thu",
+                            "slots": [
+                                "lunch"
+                            ]
+                        },
+                        {
+                            "day": "fri",
+                            "slots": [
+                                "lunch"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "deserted": [
+            ],
+            "servings": 4
+        },
+        "why_rule": {
+            "valid": 0,
+            "dishes": 5,
+            "holders": 2,
+            "refused": 0,
+            "declared": 0
+        },
+        "envy_week": "2026-08-17",
+        "box_sizing": {
+            "boxes": 7,
+            "share": {
+                "sized": 4,
+                "no_body": 0,
+                "age_unknown": 0,
+                "no_reference": 0,
+                "restriction_floor": 0,
+                "restriction_unknown": 0
+            },
+            "sized": 7,
+            "mouths": {
+                "minor": 1,
+                "sized": 1,
+                "no_body": 0,
+                "no_pace": 0,
+                "age_unknown": 0,
+                "no_direction": 1,
+                "restriction_floor": 0,
+                "implausible_factor": 0,
+                "sized_default_pace": 1,
+                "restriction_unknown": 0,
+                "doctrine_no_counting": 0
+            },
+            "unchanged": 0,
+            "shared_mixed": 0,
+            "unverifiable": 0,
+            "capped_by_pot": 0,
+            "share_clamped": 1,
+            "shared_scaled": 0
+        },
+        "eating_out": {
+            "cells": 1,
+            "mouths": 1
+        },
+        "dish_owners": {
+            "asked": 3,
+            "refused": 0,
+            "declared": 3,
+            "attributed": 3
+        },
+        "minor_count": 1,
+        "regime_belt": {
+            "kept": 2,
+            "mouths": 1,
+            "checked": 2,
+            "refused": 0,
+            "silenced": 0,
+            "groups_valid": 25,
+            "unknown_mouth": 0,
+            "group_excluded": 0,
+            "groups_refused": 0,
+            "group_undecided": 4,
+            "groups_declared": 25,
+            "group_plant_only": 13
+        },
+        "member_count": 4,
+        "member_deltas": [
+        ],
+        "envy_line_used": true,
+        "vague_portions": {
+            "notes": 11,
+            "vague": 0,
+            "box_ids": 0,
+            "quantified": 0
+        },
+        "accountless_count": 3,
+        "restriction_count": 1,
+        "unknown_age_count": 0,
+        "portion_quantities": {
+            "notes": 4,
+            "engine": 4,
+            "model_quantity": 0,
+            "model_size_word": 0
+        },
+        "unquantified_dish_ingredients": {
+            "ingredients": 10,
+            "unquantified": 6
+        }
+    },
+    "rationale": {
+        "lines": [
+            "This plan covers today.",
+            "You cook on Wednesday and Saturday, and that is what was kept.",
+            "Quantities are made for 4 people.",
+            "The shared dish is vegan: that is what Lubna eats.",
+            "The shopping budget is 95.",
+            "To stay inside it, expensive proteins give first, then out-of-season produce, then variety — never the portions."
+        ],
+        "refusal": null
+    },
+    "starts_on": "2026-08-19",
+    "created_at": "2026-08-19T10:18:29.878128+00:00"
+}

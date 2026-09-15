@@ -1,0 +1,70 @@
+██████████████████████████████████████████████████████████████████████████
+1 — RLS: un élève ne lit QUE ses lignes
+██████████████████████████████████████████████████████████████████████████
+  chat_messages                → 2 ligne(s) ✅ aucune ligne d'autrui
+  protocol_events              → 1 ligne(s) ✅ aucune ligne d'autrui
+  student_safety_constraints   → 0 ligne(s) ✅ aucune ligne d'autrui
+  student_week_plans           → 1 ligne(s) ✅ aucune ligne d'autrui
+  meal_precision_questions     → refus: permission denied for table meal_precision_questio ✅ aucune ligne d'autrui
+  plan_commitments             → 2 ligne(s) ✅ aucune ligne d'autrui
+  plan_versions                → 1 ligne(s) ✅ aucune ligne d'autrui
+  écriture chez Bob → ✅ refusée: new row violates row-level security policy for table "chat_messages"
+
+██████████████████████████████████████████████████████████████████████████
+2 — PRIVILÈGES anon (jamais 'public')
+██████████████████████████████████████████████████████████████████████████
+  protocol_events              anon(S,I,U,D)=true,true,true,true  rls=true ⚠️ privilèges présents
+  chat_messages                anon(S,I,U,D)=true,true,true,true  rls=true ⚠️ privilèges présents
+  student_week_plans           anon(S,I,U,D)=true,true,true,true  rls=true ⚠️ privilèges présents
+  student_safety_constraints   anon(S,I,U,D)=true,true,true,true  rls=true ⚠️ privilèges présents
+  student_daily_checkins       anon(S,I,U,D)=true,true,true,true  rls=true ⚠️ privilèges présents
+  planned_deviations           anon(S,I,U,D)=true,true,true,true  rls=true ⚠️ privilèges présents
+  meal_precision_questions     anon(S,I,U,D)=false,false,false,false  rls=true ✅ aucun
+  outbound_messages            anon(S,I,U,D)=true,true,true,true  rls=true ⚠️ privilèges présents
+  coach_syntheses              anon(S,I,U,D)=true,true,true,true  rls=true ⚠️ privilèges présents
+  reengagement_episodes        anon(S,I,U,D)=true,true,true,true  rls=true ⚠️ privilèges présents
+  contract_change_requests     anon(S,I,U,D)=true,true,true,true  rls=true ⚠️ privilèges présents
+  coach_clients                anon(S,I,U,D)=false,false,false,false  rls=true ✅ aucun
+  coach_doctrines              anon(S,I,U,D)=true,true,true,true  rls=true ⚠️ privilèges présents
+  coaches                      anon(S,I,U,D)=false,false,false,false  rls=true ✅ aucun
+  coach_invitations            anon(S,I,U,D)=false,false,false,false  rls=true ✅ aucun
+  plan_versions                anon(S,I,U,D)=true,true,true,true  rls=true ⚠️ privilèges présents
+  plan_commitments             anon(S,I,U,D)=true,true,true,true  rls=true ⚠️ privilèges présents
+
+  tables avec un privilège anon : 13/17
+  anon lit protocol_events              → 0 ligne(s) ✅
+  anon lit chat_messages                → 0 ligne(s) ✅
+  anon lit student_week_plans           → 0 ligne(s) ✅
+  anon lit student_safety_constraints   → 0 ligne(s) ✅
+  anon lit student_daily_checkins       → 0 ligne(s) ✅
+  anon lit planned_deviations           → 0 ligne(s) ✅
+  anon lit outbound_messages            → 0 ligne(s) ✅
+  anon lit coach_syntheses              → 0 ligne(s) ✅
+
+██████████████████████████████████████████████████████████████████████████
+3 — system_error_logs (30 dernières minutes)
+██████████████████████████████████████████████████████████████████████████
+[
+ "chat-inbound-v1 | error | Unauthorized",
+ "chat-inbound-v1 | error | Unauthorized",
+ "chat-inbound-v1 | error | Unauthorized",
+ "chat-inbound-v1 | error | Unauthorized",
+ "account-deletion-v1 | error | Unauthorized",
+ "account-deletion-v1 | error | Unauthorized",
+ "chat-inbound-v1 | error | Unauthorized",
+ "account-restore-v1 | error | Unauthorized",
+ "chat-inbound-v1 | error | Unauthorized",
+ "account-deletion-v1 | error | unknown_action",
+ "account-deletion-v1 | error | unknown_action",
+ "account-export-v1 | error | invalid_password",
+ "sophia-brain | warn | safety_band_medium",
+ "sophia-brain | warn | safety_band_medium",
+ "sophia-brain | warn | safety_band_medium",
+ "sophia-brain | warn | safety_band_medium",
+ "sophia-brain | warn | safety_band_medium",
+ "sophia-brain | warn | safety_band_medium",
+ "sophia-brain | warn | safety_band_medium",
+ "meal-photo-upload-v1 | error | No published plan: there is nothing to log this photo against yet.",
+ "meal-photo-upload-v1 | error | Invalid request body",
+ "meal-photo-upload-v1 | error | The uploaded bytes are not a JPEG, PNG or WebP image"
+]

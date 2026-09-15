@@ -1,0 +1,73 @@
+# FF-018 · PHASE A — cas nominal ×3 (assiette-poulet-riz-brocolis.png, 1848 Ko)
+
+
+▌ run 1  (HTTP 200, 24210 ms, user 24efdf98-fc59-4e64-a3fe-b017f09e288e)
+  lignes protocol_events : 1
+   · 8460c31a-c193-49ec-bbf9-8596bf696624 → src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+  analysis.status : analyzed
+  accusé          : I see grilled chicken breast, brown rice, broccoli. I can see "Protein at lunch" and "Vegetables at lunch" here, but one photo cannot settle which one it is - tell me which one to count and I will log it. The chicken may have been lightly oiled before grilling to prevent sticking. Tell me if that is wrong.
+  ✅ une seule ligne — 1
+  ✅ source=photo — photo
+  ✅ fait compté (disqualified_reason null) — null
+  ✅ evidence_weight = 1.0 — 1
+  ✅ quantity null — null
+  ✅ unit null — null
+  ✅ substance_ref null — null
+  ✅ media_path non vide — 24efdf98-fc59-4e64-a3fe-b017f09e288e/2026-08-08/0043a362-6714-4995-85bd-4540574b79e2.png
+  ✅ analyzed_at posé — 2026-08-08T10:34:40.92+00:00
+  ✅ portion_band ∈ {small,moderate,large,unclear} — moderate
+  ✅ aliments identifiés — ["grilled chicken breast","brown rice","broccoli"]
+  ✅ food_groups_present non vide — ["poultry","whole_grain","cruciferous_veg"]
+  ✅ subject_kind = eaten_meal — eaten_meal
+  ✅ accusé sans chiffre d'énergie/macro/% — []
+  ✅ recognized sans chiffre d'énergie/macro — []
+  ✅ accusé sans énergie en toutes lettres — []
+  ✅ recognized sans énergie en toutes lettres — []
+
+▌ run 2  (HTTP 200, 10329 ms, user 79951424-346d-4b71-a5ff-45d60ebab205)
+  lignes protocol_events : 1
+   · 7ebb8f70-cd34-4146-b250-74d420b31831 → src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+  analysis.status : analyzed
+  accusé          : I see grilled chicken breast, brown rice, broccoli. I can see "Protein at lunch" and "Vegetables at lunch" here, but one photo cannot settle which one it is - tell me which one to count and I will log it. The chicken may have been lightly oiled before grilling to prevent sticking. Tell me if that is wrong.
+  ✅ une seule ligne — 1
+  ✅ source=photo — photo
+  ✅ fait compté (disqualified_reason null) — null
+  ✅ evidence_weight = 1.0 — 1
+  ✅ quantity null — null
+  ✅ unit null — null
+  ✅ substance_ref null — null
+  ✅ media_path non vide — 79951424-346d-4b71-a5ff-45d60ebab205/2026-08-08/e5a344a3-8499-49c5-98bf-db0686dc95d8.png
+  ✅ analyzed_at posé — 2026-08-08T10:34:51.578+00:00
+  ✅ portion_band ∈ {small,moderate,large,unclear} — moderate
+  ✅ aliments identifiés — ["grilled chicken breast","brown rice","broccoli"]
+  ✅ food_groups_present non vide — ["poultry","whole_grain","cruciferous_veg"]
+  ✅ subject_kind = eaten_meal — eaten_meal
+  ✅ accusé sans chiffre d'énergie/macro/% — []
+  ✅ recognized sans chiffre d'énergie/macro — []
+  ✅ accusé sans énergie en toutes lettres — []
+  ✅ recognized sans énergie en toutes lettres — []
+
+▌ run 3  (HTTP 200, 11201 ms, user 9cac9c75-8f74-49a8-bf5e-dabb8ee25a84)
+  lignes protocol_events : 1
+   · d27fc46f-fbf0-4efc-b3ed-ec32f839fa54 → src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli florets] dropped=[]
+  analysis.status : analyzed
+  accusé          : I see grilled chicken breast, brown rice, broccoli florets. I can see "Protein at lunch" and "Vegetables at lunch" here, but one photo cannot settle which one it is - tell me which one to count and I will log it.
+  ✅ une seule ligne — 1
+  ✅ source=photo — photo
+  ✅ fait compté (disqualified_reason null) — null
+  ✅ evidence_weight = 1.0 — 1
+  ✅ quantity null — null
+  ✅ unit null — null
+  ✅ substance_ref null — null
+  ✅ media_path non vide — 9cac9c75-8f74-49a8-bf5e-dabb8ee25a84/2026-08-08/d5a295b7-4ef6-4d84-82e6-f4b370a9da69.png
+  ✅ analyzed_at posé — 2026-08-08T10:35:03.122+00:00
+  ✅ portion_band ∈ {small,moderate,large,unclear} — moderate
+  ✅ aliments identifiés — ["grilled chicken breast","brown rice","broccoli florets"]
+  ✅ food_groups_present non vide — ["poultry","whole_grain","cruciferous_veg"]
+  ✅ subject_kind = eaten_meal — eaten_meal
+  ✅ accusé sans chiffre d'énergie/macro/% — []
+  ✅ recognized sans chiffre d'énergie/macro — []
+  ✅ accusé sans énergie en toutes lettres — []
+  ✅ recognized sans énergie en toutes lettres — []
+
+nettoyage OK

@@ -1,0 +1,76 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "56ef36d4-8190-4179-a10e-7e6de5cd257e",
+      "status": "pending",
+      "scheduled_for": "2026-06-22T23:23:22.007+00:00",
+      "event_context": "one_shot_reminder:relire_ta_reponse",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: relire ta reponse.",
+        "parse_source": "payload",
+        "request_text": "Rappelle-moi dans 35 minutes de relire ta reponse",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: relire ta reponse.",
+        "source_message_id": null,
+        "reminder_instruction": "relire ta reponse"
+      },
+      "created_at": "2026-06-22T22:48:22.009168+00:00"
+    }
+  ],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je veux comprendre les ressources Sophia : une carte de defense, ca se retrouve ou ?",
+      "created_at": "2026-06-22T22:48:03.775051+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-postfix-local-20260623-r1-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui : tu la retrouves dans Dashboard > Ressources.\nSi elle est liée à une mission ou une habitude, tu peux aussi en voir un aperçu depuis Dashboard > Plan, puis la retrouver dans Ressources.",
+      "created_at": "2026-06-22T22:48:10.720931+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-postfix-local-20260623-r1-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Et une carte d attaque, je la retrouve au meme endroit ? Rappelle-moi dans 35 minutes de relire ta reponse.",
+      "created_at": "2026-06-22T22:48:19.450524+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-postfix-local-20260623-r1-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui : une carte d’attaque se retrouve dans Dashboard > Ressources. Si elle est liée à une mission ou une habitude, tu peux aussi la voir depuis Dashboard > Plan.\n\nEt je te rappelle de relire ma réponse mardi 23 juin à 01:23.",
+      "created_at": "2026-06-22T22:48:26.696879+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-postfix-local-20260623-r1-t02",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "c4813b6a-168e-4385-8324-700b7f801cdf",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-22T22:48:26.694308+00:00"
+  }
+}

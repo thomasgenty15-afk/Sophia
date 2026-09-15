@@ -1,0 +1,841 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-02-adjust-plan-whole-plan-adjust-plan-rule0-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je crois que le problème n’est pas une action précise : l’ordre de mon plan me fatigue. Je veux revoir la trajectoire, mais sans tout casser.",
+    "assistant": "Ce que je comprends : La demande ne vise pas une action isolée mais la lisibilité et le rythme de la trajectoire globale : l’ordre actuel fatigue, alors que l’intention n’est pas de réécrire le plan ni d’en changer la substance. Le vrai enjeu est de remettre de la cohérence dans la séquence sans casser les acquis ni les appuis déjà posés.\n\nMa recommandation : Je te conseille un diagnostic de réordonnancement partiel : clarifier comment la trajectoire peut être recentrée, alléger les passages trop exigeants à ce stade, et préserver les éléments déjà utiles. proposer une lecture d’ensemble avec options de séquence, pas une modification locale ni une refonte complète.\n\nPourquoi : La trajectoire actuelle semble avancer avec des étapes justes mais dans un ordre qui surcharge la personne ; une version mieux séquencée pourrait conserver le fond tout en rendant le parcours plus soutenable.\n\nÀ préserver :\n- L’objectif global du plan\n- Les éléments déjà stabilisateurs, notamment les missions de sécurité et de désamorçage\n- La logique de progression par étapes plutôt qu’un saut direct vers du plus exigeant\n- Le principe de ne pas tout casser ni repartir de zéro\n\nÀ éviter :\n- Éviter de proposer une suppression globale du plan\n- Éviter de traiter cela comme un simple ajustement d’habitude ou de contenu\n- Éviter de surcharger le prochain brouillon avec trop de modifications simultanées\n- Éviter de reposer des questions déjà implicites sur le fait qu’il s’agit bien d’un problème d’ordre et de trajectoire\n\nÀ reprendre dans Plan : dans la section Plan.\n- ouvre la section Plan\n- Ouvre la vue du plan global\n- Utilise cette recommandation comme brief de révision avant de changer la trajectoire\n\nIl ne te reste plus qu'à ouvrir Plan et reprendre cette version là-bas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "whole_plan_guidance_platform_handoff",
+      "operation_type": "adjust_plan_item",
+      "status": "handoff_delivered",
+      "operation_id": null,
+      "handoff_draft": {
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "scope": {
+          "kind": "whole_plan",
+          "target_summary": "le plan"
+        },
+        "user_goal_summary": "La demande ne vise pas une action isolée mais la lisibilité et le rythme de la trajectoire globale : l’ordre actuel fatigue, alors que l’intention n’est pas de réécrire le plan ni d’en changer la substance. Le vrai enjeu est de remettre de la cohérence dans la séquence sans casser les acquis ni les appuis déjà posés.",
+        "coaching_read": "La trajectoire actuelle semble avancer avec des étapes justes mais dans un ordre qui surcharge la personne ; une version mieux séquencée pourrait conserver le fond tout en rendant le parcours plus soutenable.",
+        "recommendation": {
+          "summary": "Je te conseille un diagnostic de réordonnancement partiel : clarifier comment la trajectoire peut être recentrée, alléger les passages trop exigeants à ce stade, et préserver les éléments déjà utiles. proposer une lecture d’ensemble avec options de séquence, pas une modification locale ni une refonte complète.",
+          "recommended_change": "Je te conseille un diagnostic de réordonnancement partiel : clarifier comment la trajectoire peut être recentrée, alléger les passages trop exigeants à ce stade, et préserver les éléments déjà utiles. proposer une lecture d’ensemble avec options de séquence, pas une modification locale ni une refonte complète.",
+          "preserve": [
+            "L’objectif global du plan.",
+            "Les éléments déjà stabilisateurs, notamment les missions de sécurité et de désamorçage.",
+            "La logique de progression par étapes plutôt qu’un saut direct vers du plus exigeant.",
+            "Le principe de ne pas tout casser ni repartir de zéro."
+          ],
+          "avoid": [
+            "Éviter de proposer une suppression globale du plan.",
+            "Éviter de traiter cela comme un simple ajustement d’habitude ou de contenu.",
+            "Éviter de surcharger le prochain brouillon avec trop de modifications simultanées.",
+            "Éviter de reposer des questions déjà implicites sur le fait qu’il s’agit bien d’un problème d’ordre et de trajectoire."
+          ],
+          "platform_destination": "dans la section Plan",
+          "platform_steps": [
+            "ouvre la section Plan",
+            "Ouvre la vue du plan global.",
+            "Utilise cette recommandation comme brief de révision avant de changer la trajectoire."
+          ]
+        },
+        "missing_decisions": []
+      },
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "whole_plan_guidance_platform_handoff",
+        "no_chat_mutation": true
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "start",
+        "reply": "Ce que je comprends : La demande ne vise pas une action isolée mais la lisibilité et le rythme de la trajectoire globale : l’ordre actuel fatigue, alors que l’intention n’est pas de réécrire le plan ni d’en changer la substance. Le vrai enjeu est de remettre de la cohérence dans la séquence sans casser les acquis ni les appuis déjà posés.\n\nMa recommandation : Je te conseille un diagnostic de réordonnancement partiel : clarifier comment la trajectoire peut être recentrée, alléger les passages trop exigeants à ce stade, et préserver les éléments déjà utiles. proposer une lecture d’ensemble avec options de séquence, pas une modification locale ni une refonte complète.\n\nPourquoi : La trajectoire actuelle semble avancer avec des étapes justes mais dans un ordre qui surcharge la personne ; une version mieux séquencée pourrait conserver le fond tout en rendant le parcours plus soutenable.\n\nÀ préserver :\n- L’objectif global du plan\n- Les éléments déjà stabilisateurs, notamment les missions de sécurité et de désamorçage\n- La logique de progression par étapes plutôt qu’un saut direct vers du plus exigeant\n- Le principe de ne pas tout casser ni repartir de zéro\n\nÀ éviter :\n- Éviter de proposer une suppression globale du plan\n- Éviter de traiter cela comme un simple ajustement d’habitude ou de contenu\n- Éviter de surcharger le prochain brouillon avec trop de modifications simultanées\n- Éviter de reposer des questions déjà implicites sur le fait qu’il s’agit bien d’un problème d’ordre et de trajectoire\n\nÀ reprendre dans Plan : dans la section Plan.\n- ouvre la section Plan\n- Ouvre la vue du plan global\n- Utilise cette recommandation comme brief de révision avant de changer la trajectoire\n\nIl ne te reste plus qu'à ouvrir Plan et reprendre cette version là-bas.",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "whole_plan_guidance_platform_handoff"
+        }
+      },
+      "coaching_guidance": {
+        "scope": "whole_plan",
+        "observation": "La demande ne vise pas une action isolée mais la lisibilité et le rythme de la trajectoire globale : l’ordre actuel fatigue, alors que l’intention n’est pas de réécrire le plan ni d’en changer la substance. Le vrai enjeu est de remettre de la cohérence dans la séquence sans casser les acquis ni les appuis déjà posés.",
+        "recommendation": "Orienter la réponse vers un diagnostic de réordonnancement partiel : clarifier comment la trajectoire peut être recentrée, alléger les passages trop exigeants à ce stade, et préserver les éléments déjà utiles. La bonne posture est de proposer une lecture d’ensemble avec options de séquence, pas une modification locale ni une refonte complète.",
+        "warnings": [
+          "Éviter de proposer une simple correction d’action, car le problème est structurel et concerne la trajectoire.",
+          "Éviter toute refonte totale du plan : le user a explicitement demandé à ne pas tout casser.",
+          "Éviter d’affirmer qu’un ordre unique est forcément le bon sans examiner la fatigue de charge et les transitions entre phases.",
+          "Éviter de déplacer le plan vers une autre logique de fond sans signal explicite de changement de direction."
+        ],
+        "options_to_discuss": [
+          "Réordonner certaines phases pour rendre la progression plus fluide tout en gardant le même objectif.",
+          "Insérer une étape-pont légère entre deux moments du plan si le passage actuel est trop abrupt.",
+          "Alléger temporairement le niveau de charge d’une phase sans modifier la trajectoire globale.",
+          "Conserver les missions déjà utiles mais les repositionner pour mieux soutenir le rythme actuel.",
+          "Tester une version plus compacte de la séquence avant de décider d’un réordonnancement plus large."
+        ],
+        "questions_to_clarify": [],
+        "preserve": [
+          "L’objectif global du plan.",
+          "Les éléments déjà stabilisateurs, notamment les missions de sécurité et de désamorçage.",
+          "La logique de progression par étapes plutôt qu’un saut direct vers du plus exigeant.",
+          "Le principe de ne pas tout casser ni repartir de zéro."
+        ],
+        "avoid": [
+          "Ne pas proposer une suppression globale du plan.",
+          "Ne pas traiter cela comme un simple ajustement d’habitude ou de contenu.",
+          "Ne pas surcharger le prochain brouillon avec trop de modifications simultanées.",
+          "Ne pas reposer des questions déjà implicites sur le fait qu’il s’agit bien d’un problème d’ordre et de trajectoire."
+        ],
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter la fatigue d’ordre comme un signal de séquençage, pas comme un rejet du fond.",
+          "Commencer par une lecture de trajectoire : ce qui précède, ce qui suit, et ce qui fait pont.",
+          "Préserver les appuis déjà installés avant d’envisager un déplacement des phases.",
+          "Privilégier un réordonnancement minimal et explicable plutôt qu’une reconstruction complète.",
+          "Distinguer clairement ce qui relève de la cohérence humaine du parcours et ce qui est seulement faisable techniquement.",
+          "Formuler des options graduées pour permettre au user de choisir le niveau de changement acceptable."
+        ],
+        "confidence": "high",
+        "change_family": "sequence_order_issue",
+        "candidate_operation": "reorder",
+        "readiness": "diagnose",
+        "must_not_execute_reason": "Il faut d’abord comprendre quelle séquence fatigue et où se situe le désalignement dans la trajectoire avant de proposer un réordonnancement concret.",
+        "trajectory_hypothesis": "La trajectoire actuelle semble avancer avec des étapes justes mais dans un ordre qui surcharge la personne ; une version mieux séquencée pourrait conserver le fond tout en rendant le parcours plus soutenable.",
+        "next_best_question": "Quels blocs ou quelles transitions te fatiguent le plus dans l’ordre actuel du plan ?"
+      },
+      "coaching_guidance_audit": {
+        "status": "generated",
+        "scope": "whole_plan",
+        "source": "runner"
+      }
+    },
+    "coaching_guidance_audit": {
+      "status": "generated",
+      "scope": "whole_plan",
+      "source": "runner"
+    },
+    "coaching_guidance": {
+      "scope": "whole_plan",
+      "observation": "La demande ne vise pas une action isolée mais la lisibilité et le rythme de la trajectoire globale : l’ordre actuel fatigue, alors que l’intention n’est pas de réécrire le plan ni d’en changer la substance. Le vrai enjeu est de remettre de la cohérence dans la séquence sans casser les acquis ni les appuis déjà posés.",
+      "recommendation": "Orienter la réponse vers un diagnostic de réordonnancement partiel : clarifier comment la trajectoire peut être recentrée, alléger les passages trop exigeants à ce stade, et préserver les éléments déjà utiles. La bonne posture est de proposer une lecture d’ensemble avec options de séquence, pas une modification locale ni une refonte complète.",
+      "warnings": [
+        "Éviter de proposer une simple correction d’action, car le problème est structurel et concerne la trajectoire.",
+        "Éviter toute refonte totale du plan : le user a explicitement demandé à ne pas tout casser.",
+        "Éviter d’affirmer qu’un ordre unique est forcément le bon sans examiner la fatigue de charge et les transitions entre phases.",
+        "Éviter de déplacer le plan vers une autre logique de fond sans signal explicite de changement de direction."
+      ],
+      "options_to_discuss": [
+        "Réordonner certaines phases pour rendre la progression plus fluide tout en gardant le même objectif.",
+        "Insérer une étape-pont légère entre deux moments du plan si le passage actuel est trop abrupt.",
+        "Alléger temporairement le niveau de charge d’une phase sans modifier la trajectoire globale.",
+        "Conserver les missions déjà utiles mais les repositionner pour mieux soutenir le rythme actuel.",
+        "Tester une version plus compacte de la séquence avant de décider d’un réordonnancement plus large."
+      ],
+      "questions_to_clarify": [],
+      "preserve": [
+        "L’objectif global du plan.",
+        "Les éléments déjà stabilisateurs, notamment les missions de sécurité et de désamorçage.",
+        "La logique de progression par étapes plutôt qu’un saut direct vers du plus exigeant.",
+        "Le principe de ne pas tout casser ni repartir de zéro."
+      ],
+      "avoid": [
+        "Ne pas proposer une suppression globale du plan.",
+        "Ne pas traiter cela comme un simple ajustement d’habitude ou de contenu.",
+        "Ne pas surcharger le prochain brouillon avec trop de modifications simultanées.",
+        "Ne pas reposer des questions déjà implicites sur le fait qu’il s’agit bien d’un problème d’ordre et de trajectoire."
+      ],
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter la fatigue d’ordre comme un signal de séquençage, pas comme un rejet du fond.",
+        "Commencer par une lecture de trajectoire : ce qui précède, ce qui suit, et ce qui fait pont.",
+        "Préserver les appuis déjà installés avant d’envisager un déplacement des phases.",
+        "Privilégier un réordonnancement minimal et explicable plutôt qu’une reconstruction complète.",
+        "Distinguer clairement ce qui relève de la cohérence humaine du parcours et ce qui est seulement faisable techniquement.",
+        "Formuler des options graduées pour permettre au user de choisir le niveau de changement acceptable."
+      ],
+      "confidence": "high",
+      "change_family": "sequence_order_issue",
+      "candidate_operation": "reorder",
+      "readiness": "diagnose",
+      "must_not_execute_reason": "Il faut d’abord comprendre quelle séquence fatigue et où se situe le désalignement dans la trajectoire avant de proposer un réordonnancement concret.",
+      "trajectory_hypothesis": "La trajectoire actuelle semble avancer avec des étapes justes mais dans un ordre qui surcharge la personne ; une version mieux séquencée pourrait conserver le fond tout en rendant le parcours plus soutenable.",
+      "next_best_question": "Quels blocs ou quelles transitions te fatiguent le plus dans l’ordre actuel du plan ?"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-02-adjust-plan-whole-plan-adjust-plan-rule0-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-02-adjust-plan-whole-plan-adjust-plan-rule0-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "En fait je crois que c’est surtout cette semaine qui me pèse. Je veux garder l’idée du signal de pause, mais le rendre moins lourd.",
+    "assistant": "Ce que je comprends : La demande ne vise pas une action isolée mais la lisibilité et le rythme de la trajectoire globale : l’ordre actuel fatigue, alors que l’intention n’est pas de réécrire le plan ni d’en changer la substance. Le vrai enjeu est de remettre de la cohérence dans la séquence sans casser les acquis ni les appuis déjà posés.\n\nMa recommandation : Rends la révision du plan plus prudente : je crois que c’est surtout cette semaine qui me pèse. Je veux garder l’idée du signal de pause, mais le rendre moins lourd. Dans Plan, utilise cette version comme un test ou un brief de révision avant de modifier durablement toute la trajectoire.\n\nPourquoi : La trajectoire actuelle semble avancer avec des étapes justes mais dans un ordre qui surcharge la personne ; une version mieux séquencée pourrait conserver le fond tout en rendant le parcours plus soutenable.\n\nÀ préserver :\n- L’objectif global du plan\n- Les éléments déjà stabilisateurs, notamment les missions de sécurité et de désamorçage\n- La logique de progression par étapes plutôt qu’un saut direct vers du plus exigeant\n- Le principe de ne pas tout casser ni repartir de zéro\n\nÀ éviter :\n- Éviter de proposer une suppression globale du plan\n- Éviter de traiter cela comme un simple ajustement d’habitude ou de contenu\n- Éviter de surcharger le prochain brouillon avec trop de modifications simultanées\n- Éviter de reposer des questions déjà implicites sur le fait qu’il s’agit bien d’un problème d’ordre et de trajectoire\n\nÀ reprendre dans Plan : dans la section Plan.\n- ouvre la section Plan\n- Ouvre la vue du plan global\n- Utilise cette recommandation comme brief de révision avant de changer la trajectoire\n\nIl ne te reste plus qu'à ouvrir Plan et reprendre cette version là-bas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "same_operation_signal_continues_active_handoff",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "tool_skill_intent_updates_active_handoff",
+      "operation_type": "adjust_plan_item",
+      "status": "revise_handoff",
+      "operation_id": null,
+      "handoff_draft": {
+        "mode": "platform_handoff",
+        "scope": {
+          "kind": "whole_plan",
+          "target_summary": "le plan"
+        },
+        "coaching_read": "La trajectoire actuelle semble avancer avec des étapes justes mais dans un ordre qui surcharge la personne ; une version mieux séquencée pourrait conserver le fond tout en rendant le parcours plus soutenable.",
+        "operation_type": "adjust_plan_item",
+        "recommendation": {
+          "avoid": [
+            "Éviter de proposer une suppression globale du plan.",
+            "Éviter de traiter cela comme un simple ajustement d’habitude ou de contenu.",
+            "Éviter de surcharger le prochain brouillon avec trop de modifications simultanées.",
+            "Éviter de reposer des questions déjà implicites sur le fait qu’il s’agit bien d’un problème d’ordre et de trajectoire."
+          ],
+          "summary": "Rends la révision du plan plus prudente : je crois que c’est surtout cette semaine qui me pèse. Je veux garder l’idée du signal de pause, mais le rendre moins lourd.",
+          "preserve": [
+            "L’objectif global du plan.",
+            "Les éléments déjà stabilisateurs, notamment les missions de sécurité et de désamorçage.",
+            "La logique de progression par étapes plutôt qu’un saut direct vers du plus exigeant.",
+            "Le principe de ne pas tout casser ni repartir de zéro."
+          ],
+          "platform_steps": [
+            "ouvre la section Plan",
+            "Ouvre la vue du plan global.",
+            "Utilise cette recommandation comme brief de révision avant de changer la trajectoire."
+          ],
+          "recommended_change": "Rends la révision du plan plus prudente : je crois que c’est surtout cette semaine qui me pèse. Je veux garder l’idée du signal de pause, mais le rendre moins lourd. Dans Plan, utilise cette version comme un test ou un brief de révision avant de modifier durablement toute la trajectoire.",
+          "platform_destination": "dans la section Plan"
+        },
+        "no_chat_mutation": true,
+        "missing_decisions": [],
+        "user_goal_summary": "La demande ne vise pas une action isolée mais la lisibilité et le rythme de la trajectoire globale : l’ordre actuel fatigue, alors que l’intention n’est pas de réécrire le plan ni d’en changer la substance. Le vrai enjeu est de remettre de la cohérence dans la séquence sans casser les acquis ni les appuis déjà posés.",
+        "executable_from_chat": false
+      },
+      "missing_slots": [],
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "tool_skill_intent_updates_active_handoff",
+        "no_chat_mutation": true
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "revise",
+        "reply": "Ce que je comprends : La demande ne vise pas une action isolée mais la lisibilité et le rythme de la trajectoire globale : l’ordre actuel fatigue, alors que l’intention n’est pas de réécrire le plan ni d’en changer la substance. Le vrai enjeu est de remettre de la cohérence dans la séquence sans casser les acquis ni les appuis déjà posés.\n\nMa recommandation : Rends la révision du plan plus prudente : je crois que c’est surtout cette semaine qui me pèse. Je veux garder l’idée du signal de pause, mais le rendre moins lourd. Dans Plan, utilise cette version comme un test ou un brief de révision avant de modifier durablement toute la trajectoire.\n\nPourquoi : La trajectoire actuelle semble avancer avec des étapes justes mais dans un ordre qui surcharge la personne ; une version mieux séquencée pourrait conserver le fond tout en rendant le parcours plus soutenable.\n\nÀ préserver :\n- L’objectif global du plan\n- Les éléments déjà stabilisateurs, notamment les missions de sécurité et de désamorçage\n- La logique de progression par étapes plutôt qu’un saut direct vers du plus exigeant\n- Le principe de ne pas tout casser ni repartir de zéro\n\nÀ éviter :\n- Éviter de proposer une suppression globale du plan\n- Éviter de traiter cela comme un simple ajustement d’habitude ou de contenu\n- Éviter de surcharger le prochain brouillon avec trop de modifications simultanées\n- Éviter de reposer des questions déjà implicites sur le fait qu’il s’agit bien d’un problème d’ordre et de trajectoire\n\nÀ reprendre dans Plan : dans la section Plan.\n- ouvre la section Plan\n- Ouvre la vue du plan global\n- Utilise cette recommandation comme brief de révision avant de changer la trajectoire\n\nIl ne te reste plus qu'à ouvrir Plan et reprendre cette version là-bas.",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "tool_skill_intent_updates_active_handoff"
+        }
+      }
+    },
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-02-adjust-plan-whole-plan-adjust-plan-rule0-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-06-02-adjust-plan-whole-plan-adjust-plan-rule0-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Ok vas-y applique ça pour cette semaine.",
+    "assistant": "Ce que je comprends : Le plan global n'est plus assez tenable dans le contexte actuel.\n\nMa recommandation : Convenir d'un signal de pause: À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.; Faire le point sur le signal de pause: À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nPourquoi : Le user demande de rendre la trajectoire globale plus progressive et cohérente.\n\nÀ préserver :\n- L’intention du signal de pause comme filet de sécurité\n- La logique globale du plan et sa progression par étapes\n- Le principe de ne pas tout casser\n- Les éléments déjà stabilisants du plan\n\nÀ éviter :\n- Éviter de proposer une refonte complète du plan\n- Éviter de demander de repartir de zéro\n- Éviter de transformer la demande en simple ajustement d’habitude\n- Éviter de surcharger la réponse avec plusieurs modifications simultanées\n\nÀ reprendre dans Plan : dans la section Plan.\n- ouvre la section Plan\n- Ouvre la vue du plan global\n- Utilise cette recommandation comme brief de révision avant de modifier la trajectoire\n\nIl ne te reste plus qu'à ouvrir Plan et reprendre cette version là-bas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_followup_stays_with_skill",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "platform_handoff_no_chat_mutation",
+      "operation_type": "adjust_plan_item",
+      "status": "handoff_delivered",
+      "operation_id": null,
+      "handoff_draft": {
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "scope": {
+          "kind": "whole_plan",
+          "target_summary": "plan global"
+        },
+        "user_goal_summary": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+        "coaching_read": "Le user demande de rendre la trajectoire globale plus progressive et cohérente.",
+        "recommendation": {
+          "summary": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+          "recommended_change": "Convenir d'un signal de pause: À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.; Faire le point sur le signal de pause: À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+          "preserve": [
+            "L’intention du signal de pause comme filet de sécurité.",
+            "La logique globale du plan et sa progression par étapes.",
+            "Le principe de ne pas tout casser.",
+            "Les éléments déjà stabilisants du plan."
+          ],
+          "avoid": [
+            "Éviter de proposer une refonte complète du plan.",
+            "Éviter de demander de repartir de zéro.",
+            "Éviter de transformer la demande en simple ajustement d’habitude.",
+            "Éviter de surcharger la réponse avec plusieurs modifications simultanées."
+          ],
+          "platform_destination": "dans la section Plan",
+          "platform_steps": [
+            "ouvre la section Plan",
+            "Ouvre la vue du plan global.",
+            "Utilise cette recommandation comme brief de révision avant de modifier la trajectoire."
+          ]
+        },
+        "missing_decisions": []
+      },
+      "missing_slots": [],
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "platform_handoff_no_chat_mutation",
+        "no_chat_mutation": true
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "start",
+        "reply": "Ce que je comprends : Le plan global n'est plus assez tenable dans le contexte actuel.\n\nMa recommandation : Convenir d'un signal de pause: À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.; Faire le point sur le signal de pause: À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nPourquoi : Le user demande de rendre la trajectoire globale plus progressive et cohérente.\n\nÀ préserver :\n- L’intention du signal de pause comme filet de sécurité\n- La logique globale du plan et sa progression par étapes\n- Le principe de ne pas tout casser\n- Les éléments déjà stabilisants du plan\n\nÀ éviter :\n- Éviter de proposer une refonte complète du plan\n- Éviter de demander de repartir de zéro\n- Éviter de transformer la demande en simple ajustement d’habitude\n- Éviter de surcharger la réponse avec plusieurs modifications simultanées\n\nÀ reprendre dans Plan : dans la section Plan.\n- ouvre la section Plan\n- Ouvre la vue du plan global\n- Utilise cette recommandation comme brief de révision avant de modifier la trajectoire\n\nIl ne te reste plus qu'à ouvrir Plan et reprendre cette version là-bas.",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "platform_handoff_no_chat_mutation"
+        }
+      },
+      "coaching_guidance": {
+        "scope": "whole_plan",
+        "observation": "La demande ne cherche plus à réécrire le fond du plan, mais à rendre la semaine en cours plus respirable sans casser la logique d’ensemble. Le signal important est une fatigue de séquence et de charge, avec une demande implicite de rendre la trajectoire plus légère tout en gardant le rôle du signal de pause.",
+        "recommendation": "Orienter la réponse vers une révision limitée et explicable de l’ordre de cette semaine, en priorisant la soutenabilité avant toute refonte globale. Le bon geste de coaching est de proposer un réordonnancement ou un allègement temporaire qui conserve le signal de pause comme appui central, plutôt que de toucher à la direction du plan ou d’élargir la modification à tout le parcours.",
+        "warnings": [
+          "Éviter de présenter cela comme une simple retouche d’action locale : le sujet est la charge de trajectoire, pas seulement le contenu d’une tâche.",
+          "Éviter de modifier tout le plan d’un coup alors que la demande porte surtout sur la semaine en cours.",
+          "Éviter de supprimer le signal de pause : il faut le préserver comme repère de sécurité.",
+          "Éviter d’imposer un nouvel ordre sans vérifier quels passages sont réellement lourds pour cette semaine."
+        ],
+        "options_to_discuss": [
+          "Réordonner les éléments de la semaine pour faire commencer par le plus simple ou le plus stabilisant.",
+          "Garder le signal de pause mais le rendre plus léger, plus court ou moins fréquent dans son usage cette semaine.",
+          "Insérer un pont plus doux entre les moments exigeants et les moments de consolidation.",
+          "Mettre en mode allégé les éléments qui ajoutent de la pression sans changer l’intention globale.",
+          "Tester une version temporaire de la semaine, puis réévaluer si la charge diminue réellement."
+        ],
+        "questions_to_clarify": [],
+        "preserve": [
+          "L’intention du signal de pause comme filet de sécurité.",
+          "La logique globale du plan et sa progression par étapes.",
+          "Le principe de ne pas tout casser.",
+          "Les éléments déjà stabilisants du plan."
+        ],
+        "avoid": [
+          "Ne pas proposer une refonte complète du plan.",
+          "Ne pas demander de repartir de zéro.",
+          "Ne pas transformer la demande en simple ajustement d’habitude.",
+          "Ne pas surcharger la réponse avec plusieurs modifications simultanées."
+        ],
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter la demande comme une décision de trajectoire à l’échelle de la semaine, pas comme un patch isolé.",
+          "Chercher d’abord à réduire la charge perçue avant d’optimiser la performance du plan.",
+          "Préserver explicitement le signal de pause comme élément structurant.",
+          "Proposer un changement minimal, lisible et temporaire si possible.",
+          "Distinguer ce qui est humainement soutenable de ce qui serait seulement techniquement faisable.",
+          "Ne pas modifier la nature du plan sans demande explicite.",
+          "Si un réordonnancement est proposé, l’expliquer par le rythme et les transitions, pas seulement par l’efficacité."
+        ],
+        "confidence": "high",
+        "change_family": "sequence_order_issue",
+        "candidate_operation": "reorder",
+        "readiness": "needs_confirmation",
+        "must_not_execute_reason": "Un brouillon de réorganisation existe déjà, mais il faut encore confirmer la version exacte à appliquer pour cette semaine et vérifier que le réordonnancement proposé est bien celui qui allège la charge sans dénaturer la trajectoire.",
+        "trajectory_hypothesis": "La trajectoire actuelle reste cohérente sur le fond, mais l’ordre et le poids de la semaine créent une surcharge ; une version mieux séquencée et plus légère peut conserver le même cap en le rendant tenable.",
+        "next_best_question": "Quels éléments de cette semaine veux-tu alléger ou déplacer en priorité pour garder le signal de pause sans trop de poids ?"
+      },
+      "coaching_guidance_audit": {
+        "status": "generated",
+        "scope": "whole_plan",
+        "source": "runner"
+      }
+    },
+    "coaching_guidance_audit": {
+      "status": "generated",
+      "scope": "whole_plan",
+      "source": "runner"
+    },
+    "coaching_guidance": {
+      "scope": "whole_plan",
+      "observation": "La demande ne cherche plus à réécrire le fond du plan, mais à rendre la semaine en cours plus respirable sans casser la logique d’ensemble. Le signal important est une fatigue de séquence et de charge, avec une demande implicite de rendre la trajectoire plus légère tout en gardant le rôle du signal de pause.",
+      "recommendation": "Orienter la réponse vers une révision limitée et explicable de l’ordre de cette semaine, en priorisant la soutenabilité avant toute refonte globale. Le bon geste de coaching est de proposer un réordonnancement ou un allègement temporaire qui conserve le signal de pause comme appui central, plutôt que de toucher à la direction du plan ou d’élargir la modification à tout le parcours.",
+      "warnings": [
+        "Éviter de présenter cela comme une simple retouche d’action locale : le sujet est la charge de trajectoire, pas seulement le contenu d’une tâche.",
+        "Éviter de modifier tout le plan d’un coup alors que la demande porte surtout sur la semaine en cours.",
+        "Éviter de supprimer le signal de pause : il faut le préserver comme repère de sécurité.",
+        "Éviter d’imposer un nouvel ordre sans vérifier quels passages sont réellement lourds pour cette semaine."
+      ],
+      "options_to_discuss": [
+        "Réordonner les éléments de la semaine pour faire commencer par le plus simple ou le plus stabilisant.",
+        "Garder le signal de pause mais le rendre plus léger, plus court ou moins fréquent dans son usage cette semaine.",
+        "Insérer un pont plus doux entre les moments exigeants et les moments de consolidation.",
+        "Mettre en mode allégé les éléments qui ajoutent de la pression sans changer l’intention globale.",
+        "Tester une version temporaire de la semaine, puis réévaluer si la charge diminue réellement."
+      ],
+      "questions_to_clarify": [],
+      "preserve": [
+        "L’intention du signal de pause comme filet de sécurité.",
+        "La logique globale du plan et sa progression par étapes.",
+        "Le principe de ne pas tout casser.",
+        "Les éléments déjà stabilisants du plan."
+      ],
+      "avoid": [
+        "Ne pas proposer une refonte complète du plan.",
+        "Ne pas demander de repartir de zéro.",
+        "Ne pas transformer la demande en simple ajustement d’habitude.",
+        "Ne pas surcharger la réponse avec plusieurs modifications simultanées."
+      ],
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter la demande comme une décision de trajectoire à l’échelle de la semaine, pas comme un patch isolé.",
+        "Chercher d’abord à réduire la charge perçue avant d’optimiser la performance du plan.",
+        "Préserver explicitement le signal de pause comme élément structurant.",
+        "Proposer un changement minimal, lisible et temporaire si possible.",
+        "Distinguer ce qui est humainement soutenable de ce qui serait seulement techniquement faisable.",
+        "Ne pas modifier la nature du plan sans demande explicite.",
+        "Si un réordonnancement est proposé, l’expliquer par le rythme et les transitions, pas seulement par l’efficacité."
+      ],
+      "confidence": "high",
+      "change_family": "sequence_order_issue",
+      "candidate_operation": "reorder",
+      "readiness": "needs_confirmation",
+      "must_not_execute_reason": "Un brouillon de réorganisation existe déjà, mais il faut encore confirmer la version exacte à appliquer pour cette semaine et vérifier que le réordonnancement proposé est bien celui qui allège la charge sans dénaturer la trajectoire.",
+      "trajectory_hypothesis": "La trajectoire actuelle reste cohérente sur le fond, mais l’ordre et le poids de la semaine créent une surcharge ; une version mieux séquencée et plus légère peut conserver le même cap en le rendant tenable.",
+      "next_best_question": "Quels éléments de cette semaine veux-tu alléger ou déplacer en priorité pour garder le signal de pause sans trop de poids ?"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-02-adjust-plan-whole-plan-adjust-plan-rule0-r1-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-06-02-adjust-plan-whole-plan-adjust-plan-rule0-r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Redis-moi exactement quoi faire dans Plan, juste la version courte.",
+    "assistant": "Plan: Le Plan est l'espace principal d'execution d'une transformation active. Il montre les niveaux, les semaines, les elements du plan et l'avancement.\n\nComment l'utiliser: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nCe que ca apporte:\n- Donne une vue claire de ce qui est a faire maintenant.\n- Evite de melanger les actions du moment avec toute la transformation. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_selected_handler": "product_help",
+    "route_reason_code": "product_help_inline_resume_active_tool_skill",
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-02-adjust-plan-whole-plan-adjust-plan-rule0-r1-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-06-02-adjust-plan-whole-plan-adjust-plan-rule0-r1-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Non, je veux dire : redis-moi la recommandation d’ajustement pour le signal de pause, pas l’aide générale sur Plan.",
+    "assistant": "Ce que je comprends : Le plan global n'est plus assez tenable dans le contexte actuel.\n\nMa recommandation : Rends la révision du plan plus prudente : Non, je veux dire: redis-moi la recommandation d’ajustement pour le signal de pause, pas l’aide générale sur Plan. Dans Plan, utilise cette version comme un test ou un brief de révision avant de modifier durablement toute la trajectoire.\n\nPourquoi : Le user demande de rendre la trajectoire globale plus progressive et cohérente.\n\nÀ préserver :\n- L’intention du signal de pause comme filet de sécurité\n- La logique globale du plan et sa progression par étapes\n- Le principe de ne pas tout casser\n- Les éléments déjà stabilisants du plan\n\nÀ éviter :\n- Éviter de proposer une refonte complète du plan\n- Éviter de demander de repartir de zéro\n- Éviter de transformer la demande en simple ajustement d’habitude\n- Éviter de surcharger la réponse avec plusieurs modifications simultanées\n\nÀ reprendre dans Plan : dans la section Plan.\n- ouvre la section Plan\n- Ouvre la vue du plan global\n- Utilise cette recommandation comme brief de révision avant de modifier la trajectoire\n\nIl ne te reste plus qu'à ouvrir Plan et reprendre cette version là-bas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "same_operation_signal_continues_active_handoff",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "tool_skill_intent_updates_active_handoff",
+      "operation_type": "adjust_plan_item",
+      "status": "revise_handoff",
+      "operation_id": null,
+      "handoff_draft": {
+        "mode": "platform_handoff",
+        "scope": {
+          "kind": "whole_plan",
+          "target_summary": "plan global"
+        },
+        "coaching_read": "Le user demande de rendre la trajectoire globale plus progressive et cohérente.",
+        "operation_type": "adjust_plan_item",
+        "recommendation": {
+          "avoid": [
+            "Éviter de proposer une refonte complète du plan.",
+            "Éviter de demander de repartir de zéro.",
+            "Éviter de transformer la demande en simple ajustement d’habitude.",
+            "Éviter de surcharger la réponse avec plusieurs modifications simultanées."
+          ],
+          "summary": "Rends la révision du plan plus prudente : Non, je veux dire: redis-moi la recommandation d’ajustement pour le signal de pause, pas l’aide générale sur Plan.",
+          "preserve": [
+            "L’intention du signal de pause comme filet de sécurité.",
+            "La logique globale du plan et sa progression par étapes.",
+            "Le principe de ne pas tout casser.",
+            "Les éléments déjà stabilisants du plan."
+          ],
+          "platform_steps": [
+            "ouvre la section Plan",
+            "Ouvre la vue du plan global.",
+            "Utilise cette recommandation comme brief de révision avant de modifier la trajectoire."
+          ],
+          "recommended_change": "Rends la révision du plan plus prudente : Non, je veux dire: redis-moi la recommandation d’ajustement pour le signal de pause, pas l’aide générale sur Plan. Dans Plan, utilise cette version comme un test ou un brief de révision avant de modifier durablement toute la trajectoire.",
+          "platform_destination": "dans la section Plan"
+        },
+        "no_chat_mutation": true,
+        "missing_decisions": [],
+        "user_goal_summary": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+        "executable_from_chat": false
+      },
+      "missing_slots": [],
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "tool_skill_intent_updates_active_handoff",
+        "no_chat_mutation": true
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "revise",
+        "reply": "Ce que je comprends : Le plan global n'est plus assez tenable dans le contexte actuel.\n\nMa recommandation : Rends la révision du plan plus prudente : Non, je veux dire: redis-moi la recommandation d’ajustement pour le signal de pause, pas l’aide générale sur Plan. Dans Plan, utilise cette version comme un test ou un brief de révision avant de modifier durablement toute la trajectoire.\n\nPourquoi : Le user demande de rendre la trajectoire globale plus progressive et cohérente.\n\nÀ préserver :\n- L’intention du signal de pause comme filet de sécurité\n- La logique globale du plan et sa progression par étapes\n- Le principe de ne pas tout casser\n- Les éléments déjà stabilisants du plan\n\nÀ éviter :\n- Éviter de proposer une refonte complète du plan\n- Éviter de demander de repartir de zéro\n- Éviter de transformer la demande en simple ajustement d’habitude\n- Éviter de surcharger la réponse avec plusieurs modifications simultanées\n\nÀ reprendre dans Plan : dans la section Plan.\n- ouvre la section Plan\n- Ouvre la vue du plan global\n- Utilise cette recommandation comme brief de révision avant de modifier la trajectoire\n\nIl ne te reste plus qu'à ouvrir Plan et reprendre cette version là-bas.",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "tool_skill_intent_updates_active_handoff"
+        }
+      }
+    },
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-02-adjust-plan-whole-plan-adjust-plan-rule0-r1-t05",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-06-02-adjust-plan-whole-plan-adjust-plan-rule0-r1-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Rends ça plus clair et plus chaleureux, comme une petite phrase que je peux reprendre dans Plan.",
+    "assistant": "Ce que je comprends : Le plan global n'est plus assez tenable dans le contexte actuel.\n\nMa recommandation : Convenir d'un signal de pause: À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.; Faire le point sur le signal de pause: À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nPourquoi : Le user demande de rendre la trajectoire globale plus progressive et cohérente.\n\nÀ préserver :\n- L’intention de garder le plan sans le casser\n- Le rôle structurant du signal de pause\n- La logique d’un ajustement temporaire et limité à cette semaine\n- Le cap global du plan et sa progression par étapes\n\nÀ éviter :\n- Éviter de proposer une formulation trop longue\n- Éviter de revenir à l’aide générale sur l’outil Plan\n- Éviter de redemander le problème de départ\n- Éviter de transformer la réponse en consigne d’exécution détaillée\n\nÀ reprendre dans Plan : dans la section Plan.\n- ouvre la section Plan\n- Ouvre la vue du plan global\n- Utilise cette recommandation comme brief de révision avant de modifier la trajectoire\n\nIl ne te reste plus qu'à ouvrir Plan et reprendre cette version là-bas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_followup_stays_with_skill",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "platform_handoff_no_chat_mutation",
+      "operation_type": "adjust_plan_item",
+      "status": "handoff_delivered",
+      "operation_id": null,
+      "handoff_draft": {
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "scope": {
+          "kind": "whole_plan",
+          "target_summary": "plan global"
+        },
+        "user_goal_summary": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+        "coaching_read": "Le user demande de rendre la trajectoire globale plus progressive et cohérente.",
+        "recommendation": {
+          "summary": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+          "recommended_change": "Convenir d'un signal de pause: À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.; Faire le point sur le signal de pause: À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+          "preserve": [
+            "L’intention de garder le plan sans le casser.",
+            "Le rôle structurant du signal de pause.",
+            "La logique d’un ajustement temporaire et limité à cette semaine.",
+            "Le cap global du plan et sa progression par étapes."
+          ],
+          "avoid": [
+            "Éviter de proposer une formulation trop longue.",
+            "Éviter de revenir à l’aide générale sur l’outil Plan.",
+            "Éviter de redemander le problème de départ.",
+            "Éviter de transformer la réponse en consigne d’exécution détaillée."
+          ],
+          "platform_destination": "dans la section Plan",
+          "platform_steps": [
+            "ouvre la section Plan",
+            "Ouvre la vue du plan global.",
+            "Utilise cette recommandation comme brief de révision avant de modifier la trajectoire."
+          ]
+        },
+        "missing_decisions": []
+      },
+      "missing_slots": [],
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "platform_handoff_no_chat_mutation",
+        "no_chat_mutation": true
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "start",
+        "reply": "Ce que je comprends : Le plan global n'est plus assez tenable dans le contexte actuel.\n\nMa recommandation : Convenir d'un signal de pause: À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.; Faire le point sur le signal de pause: À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nPourquoi : Le user demande de rendre la trajectoire globale plus progressive et cohérente.\n\nÀ préserver :\n- L’intention de garder le plan sans le casser\n- Le rôle structurant du signal de pause\n- La logique d’un ajustement temporaire et limité à cette semaine\n- Le cap global du plan et sa progression par étapes\n\nÀ éviter :\n- Éviter de proposer une formulation trop longue\n- Éviter de revenir à l’aide générale sur l’outil Plan\n- Éviter de redemander le problème de départ\n- Éviter de transformer la réponse en consigne d’exécution détaillée\n\nÀ reprendre dans Plan : dans la section Plan.\n- ouvre la section Plan\n- Ouvre la vue du plan global\n- Utilise cette recommandation comme brief de révision avant de modifier la trajectoire\n\nIl ne te reste plus qu'à ouvrir Plan et reprendre cette version là-bas.",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "platform_handoff_no_chat_mutation"
+        }
+      },
+      "coaching_guidance": {
+        "scope": "whole_plan",
+        "observation": "La demande ne porte pas sur une nouvelle décision de fond, mais sur la formulation de la recommandation déjà identifiée : il faut une phrase plus claire, plus chaleureuse et directement réutilisable dans Plan, tout en gardant l’idée centrale de réordonner la semaine sans casser la trajectoire.",
+        "recommendation": "Faire une reformulation courte, humaine et rassurante du réajustement de trajectoire : une seule phrase qui dit qu’on allège la semaine en gardant le signal de pause comme appui, sans entrer dans une explication technique ni multiplier les modifications.",
+        "warnings": [
+          "Éviter le jargon de diagnostic ou de trajectoire globale dans la phrase finale.",
+          "Éviter de présenter la mesure comme une refonte du plan ou un changement durable du fond.",
+          "Éviter d’ajouter plusieurs ajustements dans la même formulation : il faut une seule idée lisible.",
+          "Éviter un ton trop mécanique ou administratif, qui contredirait la demande de chaleur.",
+          "Éviter de supprimer ou banaliser le signal de pause : il doit rester visible comme repère de sécurité."
+        ],
+        "options_to_discuss": [
+          "Une phrase centrée sur l’allègement de cette semaine.",
+          "Une phrase centrée sur le maintien du signal de pause comme filet de sécurité.",
+          "Une phrase centrée sur un réordonnancement temporaire plutôt que sur une modification structurelle.",
+          "Une phrase plus douce et plus simple à reprendre telle quelle dans Plan.",
+          "Une version très courte, presque télégraphique, si l’objectif est surtout la réutilisation immédiate."
+        ],
+        "questions_to_clarify": [],
+        "preserve": [
+          "L’intention de garder le plan sans le casser.",
+          "Le rôle structurant du signal de pause.",
+          "La logique d’un ajustement temporaire et limité à cette semaine.",
+          "Le cap global du plan et sa progression par étapes."
+        ],
+        "avoid": [
+          "Ne pas proposer une formulation trop longue.",
+          "Ne pas revenir à l’aide générale sur l’outil Plan.",
+          "Ne pas redemander le problème de départ.",
+          "Ne pas transformer la réponse en consigne d’exécution détaillée."
+        ],
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Produire une phrase unique, chaleureuse et réutilisable telle quelle dans Plan.",
+          "Garder le sens coaching de soutenabilité avant performance.",
+          "Nommer l’allègement ou le réordonnancement de façon simple, sans technicité.",
+          "Préserver explicitement le signal de pause comme appui central.",
+          "Rester sur une tonalité de soutien, pas de correction.",
+          "Ne pas changer la nature du plan : seulement sa lisibilité et sa charge perçue."
+        ],
+        "confidence": "high",
+        "change_family": "sequence_order_issue",
+        "candidate_operation": "reorder",
+        "readiness": "needs_confirmation",
+        "must_not_execute_reason": "Il existe déjà une intention de réorganisation pour cette semaine, mais la formulation doit encore être rendue plus claire et plus chaleureuse avant d’être reprise comme version finale dans Plan.",
+        "trajectory_hypothesis": "La trajectoire actuelle reste valable sur le fond, mais la séquence de cette semaine fatigue ; une formulation plus simple peut rendre l’ajustement lisible sans changer le cap.",
+        "next_best_question": null
+      },
+      "coaching_guidance_audit": {
+        "status": "generated",
+        "scope": "whole_plan",
+        "source": "runner"
+      }
+    },
+    "coaching_guidance_audit": {
+      "status": "generated",
+      "scope": "whole_plan",
+      "source": "runner"
+    },
+    "coaching_guidance": {
+      "scope": "whole_plan",
+      "observation": "La demande ne porte pas sur une nouvelle décision de fond, mais sur la formulation de la recommandation déjà identifiée : il faut une phrase plus claire, plus chaleureuse et directement réutilisable dans Plan, tout en gardant l’idée centrale de réordonner la semaine sans casser la trajectoire.",
+      "recommendation": "Faire une reformulation courte, humaine et rassurante du réajustement de trajectoire : une seule phrase qui dit qu’on allège la semaine en gardant le signal de pause comme appui, sans entrer dans une explication technique ni multiplier les modifications.",
+      "warnings": [
+        "Éviter le jargon de diagnostic ou de trajectoire globale dans la phrase finale.",
+        "Éviter de présenter la mesure comme une refonte du plan ou un changement durable du fond.",
+        "Éviter d’ajouter plusieurs ajustements dans la même formulation : il faut une seule idée lisible.",
+        "Éviter un ton trop mécanique ou administratif, qui contredirait la demande de chaleur.",
+        "Éviter de supprimer ou banaliser le signal de pause : il doit rester visible comme repère de sécurité."
+      ],
+      "options_to_discuss": [
+        "Une phrase centrée sur l’allègement de cette semaine.",
+        "Une phrase centrée sur le maintien du signal de pause comme filet de sécurité.",
+        "Une phrase centrée sur un réordonnancement temporaire plutôt que sur une modification structurelle.",
+        "Une phrase plus douce et plus simple à reprendre telle quelle dans Plan.",
+        "Une version très courte, presque télégraphique, si l’objectif est surtout la réutilisation immédiate."
+      ],
+      "questions_to_clarify": [],
+      "preserve": [
+        "L’intention de garder le plan sans le casser.",
+        "Le rôle structurant du signal de pause.",
+        "La logique d’un ajustement temporaire et limité à cette semaine.",
+        "Le cap global du plan et sa progression par étapes."
+      ],
+      "avoid": [
+        "Ne pas proposer une formulation trop longue.",
+        "Ne pas revenir à l’aide générale sur l’outil Plan.",
+        "Ne pas redemander le problème de départ.",
+        "Ne pas transformer la réponse en consigne d’exécution détaillée."
+      ],
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Produire une phrase unique, chaleureuse et réutilisable telle quelle dans Plan.",
+        "Garder le sens coaching de soutenabilité avant performance.",
+        "Nommer l’allègement ou le réordonnancement de façon simple, sans technicité.",
+        "Préserver explicitement le signal de pause comme appui central.",
+        "Rester sur une tonalité de soutien, pas de correction.",
+        "Ne pas changer la nature du plan : seulement sa lisibilité et sa charge perçue."
+      ],
+      "confidence": "high",
+      "change_family": "sequence_order_issue",
+      "candidate_operation": "reorder",
+      "readiness": "needs_confirmation",
+      "must_not_execute_reason": "Il existe déjà une intention de réorganisation pour cette semaine, mais la formulation doit encore être rendue plus claire et plus chaleureuse avant d’être reprise comme version finale dans Plan.",
+      "trajectory_hypothesis": "La trajectoire actuelle reste valable sur le fond, mais la séquence de cette semaine fatigue ; une formulation plus simple peut rendre l’ajustement lisible sans changer le cap.",
+      "next_best_question": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-02-adjust-plan-whole-plan-adjust-plan-rule0-r1-t06",
+    "trace_error": null
+  }
+]

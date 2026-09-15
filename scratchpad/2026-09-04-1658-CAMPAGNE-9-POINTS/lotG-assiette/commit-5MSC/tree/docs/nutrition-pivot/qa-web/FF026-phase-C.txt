@@ -1,0 +1,110 @@
+
+══════════════════════════════════════════════════════════════════════════════
+▌ PHASE C — R5 LA BOUCLE JUSQU'AU PLAT · R3 LA RÉTRACTATION
+══════════════════════════════════════════════════════════════════════════════
+
+── passage 1/3 ──
+  ── plat AVANT toute préférence (200) — riz présent: OUI
+     … « Chicken, roasted peppers and green beans with rice »
+  → « t'as mis du riz, mais j'aime pas ça »
+    Got it — rice isn’t for you. I’ll stick to the plate as it stands and won’t treat that as a fit.
+  ✅ [hard] §7 génération le jour même, AVANT le memorizer → la préférence n'y est pas
+      preuve: food_preferences en base: [] ; riz dans le plat: OUI — limite DOCUMENTÉE, pas un défaut
+  ── memory_items après memorizer ──
+    1944a292 statement  candidate  c=0.95 sens=normal    [sante.alimentation] Does not like rice.
+  ── carte: 1 proposition(s) → gardées: ["Does not like rice."]
+  ✅ [easy] la préférence gardée atteint `practical_constraints.food_preferences`
+      preuve: student_goals.practical_constraints.food_preferences = ["Does not like rice."]
+  ── ce que le générateur VOIT: {"cooks":true,"eating_rhythm":["breakfast","lunch","dinner"],"food_preferences":["2026-08-08 — Does not like rice."]}
+  ✅ [easy] R5 la boucle se juge AU PLAT: le repas suivant ne contient pas de riz
+      preuve: generate-meal-v1 200 — riz AVANT (témoin): OUI « Chicken, roasted peppers and green beans with rice » / riz APRÈS: non (94 terme(s) d'assiette, aucun) ; préférence servie: ["2026-08-08 — Does not like rice."]
+  ✅ [adversarial] H3 le résumé interne du memorizer ne ressort pas en texte visible du plan
+      preuve: préférences gardées retrouvées mot pour mot dans le plan: aucune ; prénom « ff026Cam » présent: non
+  → « en fait j'aime bien le riz »
+    Noted — rice is fine after all. I’ll take that as the correct fit for the plate.
+  ── memory_items après rétractation ──
+    1944a292 statement  superseded c=0.95 sens=normal    [sante.alimentation] Does not like rice.
+    d0d70982 statement  active     c=0.95 sens=normal    [sante.alimentation] Likes rice.
+  ✅ [hard] R3 la rétractation est honorée — l'ancienne préférence n'est plus active
+      preuve: food_preferences après réconciliation serveur = [] ; items retirés par la mémoire: 1944a292=superseded ; riz dans le plat d'après: non
+  ✅ [hard] R3 la rétractation n'EMPILE pas deux lignes contradictoires
+      preuve: lignes mentionnant le riz: []
+
+── passage 2/3 ──
+  ── plat AVANT toute préférence (200) — riz présent: non
+  → « t'as mis du riz, mais j'aime pas ça »
+    I hear you: rice is in there, and you don’t like it. That means the plate needs adjusting around your actual preference, not forcing the rice.
+  ✅ [hard] §7 génération le jour même, AVANT le memorizer → la préférence n'y est pas
+      preuve: food_preferences en base: [] ; riz dans le plat: OUI — limite DOCUMENTÉE, pas un défaut
+  ── memory_items après memorizer ──
+    b993a917 statement  candidate  c=0.96 sens=normal    [sante.alimentation] ff026Cam does not like rice.
+  ── carte: 1 proposition(s) → gardées: ["ff026Cam does not like rice."]
+  ✅ [easy] la préférence gardée atteint `practical_constraints.food_preferences`
+      preuve: student_goals.practical_constraints.food_preferences = ["ff026Cam does not like rice."]
+  ── ce que le générateur VOIT: {"cooks":true,"eating_rhythm":["breakfast","lunch","dinner"],"food_preferences":["2026-08-08 — ff026Cam does not like rice."]}
+  ✅ [easy] R5 la boucle se juge AU PLAT: le repas suivant ne contient pas de riz
+      preuve: generate-meal-v1 200 — riz AVANT (témoin): non / riz APRÈS: non (98 terme(s) d'assiette, aucun) ; préférence servie: ["2026-08-08 — ff026Cam does not like rice."]
+  ✅ [adversarial] H3 le résumé interne du memorizer ne ressort pas en texte visible du plan
+      preuve: préférences gardées retrouvées mot pour mot dans le plan: aucune ; prénom « ff026Cam » présent: non
+  → « en fait j'aime bien le riz »
+    Good — then rice is fine. The earlier objection drops away, so the lunch question is just whether the plate still has protein and vegetables around it
+  ── memory_items après rétractation ──
+    b993a917 statement  superseded c=0.96 sens=normal    [sante.alimentation] ff026Cam does not like rice.
+    e8aa20cf statement  active     c=0.95 sens=normal    [sante.alimentation] ff026Cam likes rice.
+  ✅ [hard] R3 la rétractation est honorée — l'ancienne préférence n'est plus active
+      preuve: food_preferences après réconciliation serveur = [] ; items retirés par la mémoire: b993a917=superseded ; riz dans le plat d'après: non
+  ✅ [hard] R3 la rétractation n'EMPILE pas deux lignes contradictoires
+      preuve: lignes mentionnant le riz: []
+
+── passage 3/3 ──
+  ── plat AVANT toute préférence (200) — riz présent: non
+  → « t'as mis du riz, mais j'aime pas ça »
+    Rice is in the plate, but you don’t like it. If you want, say what you’d rather have there.
+  ✅ [hard] §7 génération le jour même, AVANT le memorizer → la préférence n'y est pas
+      preuve: food_preferences en base: [] ; riz dans le plat: OUI — limite DOCUMENTÉE, pas un défaut
+  ── memory_items après memorizer ──
+    3508f278 statement  candidate  c=0.95 sens=normal    [sante.alimentation] Does not like rice.
+  ── carte: 1 proposition(s) → gardées: ["Does not like rice."]
+  ✅ [easy] la préférence gardée atteint `practical_constraints.food_preferences`
+      preuve: student_goals.practical_constraints.food_preferences = ["Does not like rice."]
+  ── ce que le générateur VOIT: {"cooks":true,"eating_rhythm":["breakfast","lunch","dinner"],"food_preferences":["2026-08-08 — Does not like rice."]}
+  ✅ [easy] R5 la boucle se juge AU PLAT: le repas suivant ne contient pas de riz
+      preuve: generate-meal-v1 200 — riz AVANT (témoin): non / riz APRÈS: non (87 terme(s) d'assiette, aucun) ; préférence servie: ["2026-08-08 — Does not like rice."]
+  ✅ [adversarial] H3 le résumé interne du memorizer ne ressort pas en texte visible du plan
+      preuve: préférences gardées retrouvées mot pour mot dans le plan: aucune ; prénom « ff026Cam » présent: non
+  → « en fait j'aime bien le riz »
+    Got it — then the rice can stay.
+  ── memory_items après rétractation ──
+    3508f278 statement  superseded c=0.95 sens=normal    [sante.alimentation] Does not like rice.
+    fef2a3af statement  active     c=0.95 sens=normal    [sante.alimentation] Likes rice.
+  ✅ [hard] R3 la rétractation est honorée — l'ancienne préférence n'est plus active
+      preuve: food_preferences après réconciliation serveur = [] ; items retirés par la mémoire: 3508f278=superseded ; riz dans le plat d'après: OUI
+  ✅ [hard] R3 la rétractation n'EMPILE pas deux lignes contradictoires
+      preuve: lignes mentionnant le riz: []
+
+══════════════════════════════════════════════════════════════════════════════
+▌ SYNTHÈSE
+══════════════════════════════════════════════════════════════════════════════
+18/18 verdicts au vert
+  ✅ [hard] §7 génération le jour même, AVANT le memorizer → la préférence n'y est pas
+  ✅ [easy] la préférence gardée atteint `practical_constraints.food_preferences`
+  ✅ [easy] R5 la boucle se juge AU PLAT: le repas suivant ne contient pas de riz
+  ✅ [adversarial] H3 le résumé interne du memorizer ne ressort pas en texte visible du plan
+  ✅ [hard] R3 la rétractation est honorée — l'ancienne préférence n'est plus active
+  ✅ [hard] R3 la rétractation n'EMPILE pas deux lignes contradictoires
+  ✅ [hard] §7 génération le jour même, AVANT le memorizer → la préférence n'y est pas
+  ✅ [easy] la préférence gardée atteint `practical_constraints.food_preferences`
+  ✅ [easy] R5 la boucle se juge AU PLAT: le repas suivant ne contient pas de riz
+  ✅ [adversarial] H3 le résumé interne du memorizer ne ressort pas en texte visible du plan
+  ✅ [hard] R3 la rétractation est honorée — l'ancienne préférence n'est plus active
+  ✅ [hard] R3 la rétractation n'EMPILE pas deux lignes contradictoires
+  ✅ [hard] §7 génération le jour même, AVANT le memorizer → la préférence n'y est pas
+  ✅ [easy] la préférence gardée atteint `practical_constraints.food_preferences`
+  ✅ [easy] R5 la boucle se juge AU PLAT: le repas suivant ne contient pas de riz
+  ✅ [adversarial] H3 le résumé interne du memorizer ne ressort pas en texte visible du plan
+  ✅ [hard] R3 la rétractation est honorée — l'ancienne préférence n'est plus active
+  ✅ [hard] R3 la rétractation n'EMPILE pas deux lignes contradictoires
+
+nettoyage: 6 compte(s)
+
+→ écrit docs/nutrition-pivot/qa-web/FF026-phase-C.txt

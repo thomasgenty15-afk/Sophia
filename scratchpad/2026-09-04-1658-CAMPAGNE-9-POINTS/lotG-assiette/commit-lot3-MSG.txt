@@ -1,0 +1,22 @@
+les jours de cuisine déclarés placent les sessions et en fixent le nombre ; le style ne les déplace plus en silence
+
+Mesuré (campagne de mesure du 2026-09-05, M13, duo) : `cook_days = [dimanche]` déclaré, trois
+sessions posées dim/mar/jeu sans qu'une phrase le dise. `resolveCookingCapacity` remplaçait
+les jours déclarés par la dérivation style × courses (D2.4), sur la prémisse « l'écran écrit
+`[]` » — qui n'est plus vraie : `CookingCapacityCard` porte le champ « les jours où vous
+cuisinez ». Une contrainte documentée avait survécu à sa cause.
+
+Règle (`deriveCookingPlan`, entrée optionnelle `declaredCookDays`) : des jours déclarés qui
+tombent dans la fenêtre PLACENT les sessions et en fixent le nombre, borné par
+MAX_COOKING_SESSIONS et par les jours mangés (`cook_days_declared`) ; le style garde ses
+minutes et ses leviers ; les courses restent bornées par les sessions (LOT C). Des jours
+déclarés hors fenêtre sont nommés (`cook_days_out_of_window`) et la dérivation s'applique.
+Sans jour déclaré, la dérivation d'hier est rendue octet pour octet. La rationale dit le
+choix dans les deux langues (« Tu cuisines dimanche : le plan pose ses sessions ces
+jours-là, et pas ailleurs. »). Les deux lanes passent déjà `declared` au résolveur : aucun
+changement d'index.
+
+Tests : six cas cooking_plan + un cas rationale FR/EN ; mutation « ignorer les jours
+déclarés » : 5 rouges. Suite keel verte sur l'arbre matérialisé complet.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

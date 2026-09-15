@@ -1,0 +1,2069 @@
+[
+  {
+    "potion": "rappel",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r45_hard2_rappel_rappel",
+    "auth_user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+    "fixture": {
+      "cycle": {
+        "id": "c8e17a81-8487-4fbb-86e5-a9e1fec61ed7",
+        "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-21T16:09:48.32078+00:00",
+        "updated_at": "2026-05-21T16:09:48.32078+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "ad510de4-5011-4c28-b41b-87668fb7268a",
+        "cycle_id": "c8e17a81-8487-4fbb-86e5-a9e1fec61ed7",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Revenir aux petits gestes du soir",
+        "internal_summary": "Fixture QA pour tester la potion rappel.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "rappel",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-21T16:09:48.32505+00:00",
+        "updated_at": "2026-05-21T16:09:48.32505+00:00",
+        "activated_at": "2026-05-21T16:09:48.084+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "3e5b25ae-ae60-4cf9-a772-720333079a9f",
+        "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+        "cycle_id": "c8e17a81-8487-4fbb-86e5-a9e1fec61ed7",
+        "transformation_id": "ad510de4-5011-4c28-b41b-87668fb7268a",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA rappel",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-21T16:09:48.084+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-21T16:09:48.336604+00:00",
+        "updated_at": "2026-05-21T16:09:48.336604+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+        "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+        "cycle_id": "c8e17a81-8487-4fbb-86e5-a9e1fec61ed7",
+        "transformation_id": "ad510de4-5011-4c28-b41b-87668fb7268a",
+        "plan_id": "3e5b25ae-ae60-4cf9-a772-720333079a9f",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Marcher dix minutes puis ranger le bureau",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "thu"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "rappel"
+        },
+        "created_at": "2026-05-21T16:09:48.341041+00:00",
+        "updated_at": "2026-05-21T16:09:48.341041+00:00",
+        "activated_at": "2026-05-21T16:09:48.084+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t01-a1",
+        "user": "Je veux une potion de rappel, mais je suis pas tres clair: mes fins de journee partent en vrille.",
+        "assistant": "Je vois, tes fins de journée glissent. Et ça se passe comment concrètement, tu te laisses plutôt déborder par des imprévus ou c'est l'élan qui retombe ? 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t01-a1",
+          "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je vois, tes fins de journée glissent. Et ça se passe comment concrètement, tu te laisses plutôt déborder par des imprévus ou c'est l'élan qui retombe ? 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t01-a1",
+            "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+            "source_message_id": "d7d15bc9-a302-4b4f-9c93-d22268917193",
+            "ts": "2026-05-21T16:10:17.236+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8651,
+              "latency_ms": 4997,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 736,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "execution patterns for evening habit",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "habitudes.procrastination",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "evening friction patterns",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t01-a1",
+              "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "execution patterns for evening habit",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "habitudes.procrastination",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "evening friction patterns",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 0,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [],
+                "context_summary": null,
+                "previous_scores": [],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "d7d15bc9-a302-4b4f-9c93-d22268917193",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "potion de rappel",
+                  "user_intent": "create",
+                  "explicitness": "explicit",
+                  "operation_type": "select_state_potion",
+                  "confidence_band": "high",
+                  "operation_input": {
+                    "potion_type": {
+                      "value": "rappel",
+                      "status": "identified",
+                      "evidence": [
+                        "Je veux une potion de rappel"
+                      ],
+                      "confidence": "high"
+                    },
+                    "target_state": {
+                      "value": "clarifier les fins de journée",
+                      "status": "identified",
+                      "evidence": [
+                        "mes fins de journee partent en vrille"
+                      ],
+                      "confidence": "medium"
+                    }
+                  }
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "tool_skill_intent_start",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "status": "ask_question",
+              "reason_code": "tool_skill_intent_start",
+              "missing_slots": [
+                "potion_detail:drift_style"
+              ],
+              "selected_handler": "select_state_potion"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 28846,
+            "created_at": "2026-05-21T16:10:17.237229+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "tool_skill_intent_start",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t01-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t02-a1",
+        "user": "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau, sinon je reporte.",
+        "assistant": "Le moment où tu fermes l'ordinateur est celui où tout peut basculer vers le report. Pour t'aider à garder le cap sur ta marche ou le rangement du bureau, je peux t'envoyer un signe chaque soir à 18h00 pendant une semaine. C'est ce qu'il te faut pour marquer la transition ? 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t02-a1",
+          "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Le moment où tu fermes l'ordinateur est celui où tout peut basculer vers le report. Pour t'aider à garder le cap sur ta marche ou le rangement du bureau, je peux t'envoyer un signe chaque soir à 18h00 pendant une semaine. C'est ce qu'il te faut pour marquer la transition ? 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t02-a1",
+            "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+            "source_message_id": "e919131e-633b-4f92-8746-f4a41577f94b",
+            "ts": "2026-05-21T16:10:38.837+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 9612,
+              "latency_ms": 4303,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 593,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "execution patterns for walking and desk tidying",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t02-a1",
+              "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "execution patterns for walking and desk tidying",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 1,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": "0;decay=0.55;recovery=0",
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "e919131e-633b-4f92-8746-f4a41577f94b",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "conversation_or_other_tool_skill",
+                  "reason_code": "active_select_state_potion_in_progress"
+                }
+              ],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "reason_code": "active_tool_skill_continue",
+                "active_owner": "tool_skill",
+                "resume_policy": "none",
+                "selected_owner": "tool_skill"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "draft": {
+                "draft": {
+                  "title": "Le pivot de fin de journée",
+                  "follow_up": {
+                    "duration_days": 7,
+                    "schedule_plan": {
+                      "mode": "daily_series",
+                      "reason": "Un suivi quotidien sur une semaine permet d'ancrer le nouveau réflexe de transition.",
+                      "local_dates": [],
+                      "duration_days": 7,
+                      "scheduled_days": [],
+                      "local_time_hhmm": "18:00",
+                      "timing_relation": "daily"
+                    },
+                    "local_time_hhmm": "18:00",
+                    "reason_for_time": "L'heure correspond à la fin de journée de travail mentionnée par le contexte des gestes du soir.",
+                    "reminder_instruction": "Aider à marquer la transition entre le travail et le mouvement/rangement pour éviter le report."
+                  },
+                  "potion_type": "rappel",
+                  "opening_prompt": "Qu'est-ce qui rend la fermeture de l'ordi difficile aujourd'hui ?",
+                  "target_binding": {
+                    "kind": "plan_item",
+                    "label": "Marcher dix minutes puis ranger le bureau",
+                    "evidence": [
+                      "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau"
+                    ],
+                    "recurrence_hint": "quotidien",
+                    "date_or_window_hint": "au moment de fermer l'ordinateur",
+                    "target_plan_item_id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "related_plan_item_id": null,
+                    "target_action_family_key": null,
+                    "target_generated_temp_id": null
+                  },
+                  "why_this_potion": "Le user identifie un glissement précis au moment de fermer l'ordinateur, transformant une action simple en report systématique.",
+                  "expected_duration": "short",
+                  "potion_info_message": "Je vais t'accompagner chaque soir pour t'aider à faire ce petit pivot vers la marche ou le rangement, sans que la pression ne remonte.",
+                  "instant_support_message": "C'est normal de sentir l'élan retomber au moment de la transition. On va juste s'assurer que ce passage ne devienne pas un poids."
+                },
+                "output_schema": "potion_session_draft_v1",
+                "operation_type": "select_state_potion",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Le moment où tu fermes l'ordinateur est celui où tout peut basculer vers le report. Pour t'aider à garder le cap sur ta marche ou le rangement du bureau, je peux t'envoyer un signe chaque soir à 18h00 pendant une semaine. C'est ce qu'il te faut pour marquer la transition ?"
+              },
+              "status": "pending_confirmation",
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "operation_id": "df8dc926-88d3-4514-b3dd-a612a1423ffd",
+              "selected_handler": "select_state_potion"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 21540,
+            "created_at": "2026-05-21T16:10:38.838644+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t02-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t03-a1",
+        "user": "Je prefere que le rappel arrive avant que je me pose, vers 18h45. Le ton doit etre simple, pas scolaire.",
+        "assistant": "On décale à 18h45 pour attraper le moment juste avant que tu ne t'installes. Je t'enverrai un mot chaque soir pendant une semaine pour t'aider à basculer vers ta marche ou le rangement du bureau sans que ça devienne une corvée. C'est ce qu'il te faut pour garder l'élan ? 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t03-a1",
+          "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "On décale à 18h45 pour attraper le moment juste avant que tu ne t'installes. Je t'enverrai un mot chaque soir pendant une semaine pour t'aider à basculer vers ta marche ou le rangement du bureau sans que ça devienne une corvée. C'est ce qu'il te faut pour garder l'élan ? 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t03-a1",
+            "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+            "source_message_id": "abb26324-cddc-4e13-bf5e-b75b597b9c95",
+            "ts": "2026-05-21T16:11:04.668+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8968,
+              "latency_ms": 4900,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 675,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "habitude de fin de journée marche rangement",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t03-a1",
+              "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "habitude de fin de journée marche rangement",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 1.6,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "0,1;decay=0.55;recovery=0",
+                    "contribution": 0.6
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure",
+                  "previous_risk"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "abb26324-cddc-4e13-bf5e-b75b597b9c95",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "ton simple, pas scolaire",
+                  "user_intent": "update",
+                  "explicitness": "explicit",
+                  "operation_type": "update_coach_preferences",
+                  "confidence_band": "high",
+                  "operation_input": {
+                    "value": "simple, non-scolaire",
+                    "evidence": [
+                      "Le ton doit etre simple, pas scolaire"
+                    ],
+                    "preference_type": "tone"
+                  }
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "conversation_or_other_tool_skill",
+                  "reason_code": "active_select_state_potion_in_progress"
+                }
+              ],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "draft": {
+                "draft": {
+                  "title": "Le pivot de fin de journée",
+                  "follow_up": {
+                    "duration_days": 7,
+                    "schedule_plan": {
+                      "mode": "daily_series",
+                      "reason": "Un suivi quotidien à 18h45 permet d'intercepter le moment de transition avant le décrochage.",
+                      "local_dates": [],
+                      "duration_days": 7,
+                      "scheduled_days": [],
+                      "local_time_hhmm": "18:45",
+                      "timing_relation": "daily"
+                    },
+                    "local_time_hhmm": "18:45",
+                    "reason_for_time": "L'horaire de 18h45 est demandé par le user pour intervenir juste avant qu'il ne se pose.",
+                    "reminder_instruction": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report."
+                  },
+                  "potion_type": "rappel",
+                  "opening_prompt": "Qu'est-ce qui rend la fermeture de l'ordi difficile aujourd'hui ?",
+                  "target_binding": {
+                    "kind": "plan_item",
+                    "label": "Marcher dix minutes puis ranger le bureau",
+                    "evidence": [
+                      "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau"
+                    ],
+                    "recurrence_hint": "quotidien",
+                    "date_or_window_hint": "au moment de fermer l'ordinateur",
+                    "target_plan_item_id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "related_plan_item_id": null,
+                    "target_action_family_key": null,
+                    "target_generated_temp_id": null
+                  },
+                  "why_this_potion": "Le user veut protéger la transition entre le travail et ses gestes du soir à un horaire précis (18h45) pour éviter de s'installer et de reporter.",
+                  "expected_duration": "short",
+                  "potion_info_message": "Je vais t'accompagner chaque soir pour t'aider à faire ce petit pivot vers la marche ou le rangement, sans que la pression ne remonte.",
+                  "instant_support_message": "C'est normal de sentir l'élan retomber au moment de la transition. On va juste s'assurer que ce passage ne devienne pas un poids."
+                },
+                "output_schema": "potion_session_draft_v1",
+                "operation_type": "select_state_potion",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "On décale à 18h45 pour attraper le moment juste avant que tu ne t'installes. Je t'enverrai un mot chaque soir pendant une semaine pour t'aider à basculer vers ta marche ou le rangement du bureau sans que ça devienne une corvée. C'est ce qu'il te faut pour garder l'élan ?"
+              },
+              "status": "pending_confirmation_updated",
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "operation_id": "015a48ef-d03a-40ba-a2d4-11b678006c32",
+              "selected_handler": "select_state_potion",
+              "draft_review_decision": {
+                "decision": "revise",
+                "evidence": [
+                  "Le user demande une modification de l'horaire du rappel à 18h45 au lieu de 18h00.",
+                  "Le user demande aussi un ton simple, pas scolaire, ce qui impose une contrainte de formulation avant validation."
+                ],
+                "confidence": "high",
+                "generated_user_message": "D'accord, je peux ajuster le rappel pour qu'il arrive vers 18h45 et le formuler de façon simple, sans ton scolaire. Si tu veux, je te le reformule avec ces contraintes avant de valider."
+              },
+              "previous_operation_id": "df8dc926-88d3-4514-b3dd-a612a1423ffd"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 25776,
+            "created_at": "2026-05-21T16:11:04.66947+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t03-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t04-a1",
+        "user": "Oui, garde ce cadre: marche ou bureau, juste un repere doux.",
+        "assistant": "Je garde ce repère doux à 18h45 pour t'aider à fermer l'ordinateur et basculer vers ta marche ou le rangement du bureau. Je t'enverrai un mot chaque soir pendant une semaine pour protéger ce pivot sans ajouter de pression. Dis-moi si c'est bien ce qu'il te faut pour garder l'élan. 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t04-a1",
+          "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je garde ce repère doux à 18h45 pour t'aider à fermer l'ordinateur et basculer vers ta marche ou le rangement du bureau. Je t'enverrai un mot chaque soir pendant une semaine pour protéger ce pivot sans ajouter de pression. Dis-moi si c'est bien ce qu'il te faut pour garder l'élan. 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t04-a1",
+            "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+            "source_message_id": "ef2d14a2-4f5c-4473-a607-f3642756c291",
+            "ts": "2026-05-21T16:11:51.943+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 9067,
+              "latency_ms": 4063,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 594,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "contexte de l'action marche ou bureau",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t04-a1",
+              "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "contexte de l'action marche ou bureau",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 1,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": "0,1,1.6;decay=0.55;recovery=1.5",
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1,
+                  1.6
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "ef2d14a2-4f5c-4473-a607-f3642756c291",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "conversation_or_other_tool_skill",
+                  "reason_code": "active_select_state_potion_in_progress"
+                }
+              ],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "draft": {
+                "draft": {
+                  "title": "Le pivot de fin de journée",
+                  "follow_up": {
+                    "duration_days": 7,
+                    "schedule_plan": {
+                      "mode": "daily_series",
+                      "reason": "Un suivi quotidien à 18h45 permet d'intercepter le moment de transition avant le décrochage.",
+                      "local_dates": [],
+                      "duration_days": 7,
+                      "scheduled_days": [],
+                      "local_time_hhmm": "18:45",
+                      "timing_relation": "daily"
+                    },
+                    "local_time_hhmm": "18:45",
+                    "reason_for_time": "L'horaire de 18h45 est maintenu pour intervenir juste avant la transition de fin de journée.",
+                    "reminder_instruction": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report."
+                  },
+                  "potion_type": "rappel",
+                  "opening_prompt": "Qu'est-ce qui rend la fermeture de l'ordi difficile aujourd'hui ?",
+                  "target_binding": {
+                    "kind": "plan_item",
+                    "label": "Marcher dix minutes puis ranger le bureau",
+                    "evidence": [
+                      "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau",
+                      "Oui, garde ce cadre: marche ou bureau, juste un repere doux."
+                    ],
+                    "recurrence_hint": "quotidien",
+                    "date_or_window_hint": "au moment de fermer l'ordinateur",
+                    "target_plan_item_id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "related_plan_item_id": null,
+                    "target_action_family_key": null,
+                    "target_generated_temp_id": null
+                  },
+                  "why_this_potion": "Le user confirme vouloir un repère doux à 18h45 pour protéger la transition entre le travail et ses activités (marche ou rangement) sans pression.",
+                  "expected_duration": "short",
+                  "potion_info_message": "Je vais t'accompagner chaque soir pour t'aider à faire ce petit pivot vers la marche ou le rangement, sans que la pression ne remonte.",
+                  "instant_support_message": "C'est normal de sentir l'élan retomber au moment de la transition. On va juste s'assurer que ce passage ne devienne pas un poids."
+                },
+                "output_schema": "potion_session_draft_v1",
+                "operation_type": "select_state_potion",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je garde ce repère doux à 18h45 pour t'aider à fermer l'ordinateur et basculer vers ta marche ou le rangement du bureau. Je t'enverrai un mot chaque soir pendant une semaine pour protéger ce pivot sans ajouter de pression. Dis-moi si c'est bien ce qu'il te faut pour garder l'élan."
+              },
+              "status": "pending_confirmation_updated",
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "operation_id": "15d4bc62-4022-4edd-a558-963f3f981ef9",
+              "selected_handler": "select_state_potion",
+              "draft_review_decision": {
+                "decision": "revise",
+                "evidence": [
+                  "Le message demande de garder le cadre et d'ajuster le contenu du repère en le rendant doux.",
+                  "Il ne confirme pas l'activation maintenant de la potion proposée."
+                ],
+                "confidence": "high",
+                "generated_user_message": "Je garde ce cadre avec un repère doux, centré sur la marche ou le bureau. Je ne lance rien pour l’instant."
+              },
+              "previous_operation_id": "015a48ef-d03a-40ba-a2d4-11b678006c32"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 47219,
+            "created_at": "2026-05-21T16:11:51.944483+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t04-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t05-a1",
+        "user": "Oui, active cette potion de rappel.",
+        "assistant": "C'est normal de sentir l'élan retomber au moment de la transition. On va juste s'assurer que ce passage ne devienne pas un poids. 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t05-a1",
+          "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "C'est normal de sentir l'élan retomber au moment de la transition. On va juste s'assurer que ce passage ne devienne pas un poids. 🙂",
+            "additional_contents": [
+              "Je vais t'accompagner chaque soir pour t'aider à faire ce petit pivot vers la marche ou le rangement, sans que la pression ne remonte. 🙂"
+            ],
+            "mode": "companion",
+            "tool_execution": "success",
+            "executed_tools": [
+              "select_state_potion"
+            ]
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t05-a1",
+            "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+            "source_message_id": "9e6888d1-b1a9-43ac-a518-1435cfd6f3ed",
+            "ts": "2026-05-21T16:11:57.297+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 9179,
+              "latency_ms": 4013,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 644,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "contexte de l'action marcher et ranger le bureau",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t05-a1",
+              "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "contexte de l'action marcher et ranger le bureau",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 1,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": "0,1,1.6,1;decay=0.55;recovery=1.5",
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1,
+                  1.6,
+                  1
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "9e6888d1-b1a9-43ac-a518-1435cfd6f3ed",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "Oui, active cette potion de rappel.",
+                  "user_intent": "select",
+                  "explicitness": "explicit",
+                  "operation_type": "select_state_potion",
+                  "confidence_band": "high"
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "conversation_or_other_tool_skill",
+                  "reason_code": "active_select_state_potion_in_progress"
+                }
+              ],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [
+              {
+                "outcome": "success",
+                "tool_id": "select_state_potion"
+              }
+            ],
+            "skill_run": null,
+            "tool_skill_run": {
+              "status": "executed",
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "operation_id": "15d4bc62-4022-4edd-a558-963f3f981ef9",
+              "selected_handler": "select_state_potion",
+              "potion_session_id": "19a82edb-bb7b-4f68-9cd8-1e8a0407d04f",
+              "draft_review_decision": {
+                "decision": "approve",
+                "evidence": [
+                  "Le message utilisateur confirme explicitement l'activation maintenant de la potion déjà proposée.",
+                  "L'intention correspond à une validation claire de l'exécution, sans demande de modification ni de précision supplémentaire."
+                ],
+                "confidence": "high",
+                "generated_user_message": null
+              },
+              "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 5265,
+            "created_at": "2026-05-21T16:11:57.298508+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "select_state_potion"
+            }
+          ],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [
+            "select_state_potion"
+          ],
+          "tool_execution": "success",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t05-a1"
+        },
+        "durable_after": {
+          "sessions": [
+            {
+              "id": "19a82edb-bb7b-4f68-9cd8-1e8a0407d04f",
+              "potion_type": "rappel",
+              "status": "completed",
+              "source": "system",
+              "scope_kind": "out_of_plan",
+              "cycle_id": "c8e17a81-8487-4fbb-86e5-a9e1fec61ed7",
+              "transformation_id": null,
+              "content": {
+                "title": "Le pivot de fin de journée",
+                "target_binding": {
+                  "kind": "plan_item",
+                  "label": "Marcher dix minutes puis ranger le bureau",
+                  "evidence": [
+                    "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau",
+                    "Oui, garde ce cadre: marche ou bureau, juste un repere doux."
+                  ],
+                  "recurrence_hint": "quotidien",
+                  "date_or_window_hint": "au moment de fermer l'ordinateur",
+                  "target_plan_item_id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                  "related_plan_item_id": null,
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                },
+                "operation_draft": {
+                  "title": "Le pivot de fin de journée",
+                  "follow_up": {
+                    "duration_days": 7,
+                    "schedule_plan": {
+                      "mode": "daily_series",
+                      "reason": "Un suivi quotidien à 18h45 permet d'intercepter le moment de transition avant le décrochage.",
+                      "local_dates": [],
+                      "duration_days": 7,
+                      "scheduled_days": [],
+                      "local_time_hhmm": "18:45",
+                      "timing_relation": "daily"
+                    },
+                    "local_time_hhmm": "18:45",
+                    "reason_for_time": "L'horaire de 18h45 est maintenu pour intervenir juste avant la transition de fin de journée.",
+                    "reminder_instruction": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report."
+                  },
+                  "potion_type": "rappel",
+                  "opening_prompt": "Qu'est-ce qui rend la fermeture de l'ordi difficile aujourd'hui ?",
+                  "target_binding": {
+                    "kind": "plan_item",
+                    "label": "Marcher dix minutes puis ranger le bureau",
+                    "evidence": [
+                      "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau",
+                      "Oui, garde ce cadre: marche ou bureau, juste un repere doux."
+                    ],
+                    "recurrence_hint": "quotidien",
+                    "date_or_window_hint": "au moment de fermer l'ordinateur",
+                    "target_plan_item_id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                    "related_plan_item_id": null,
+                    "target_action_family_key": null,
+                    "target_generated_temp_id": null
+                  },
+                  "why_this_potion": "Le user confirme vouloir un repère doux à 18h45 pour protéger la transition entre le travail et ses activités (marche ou rangement) sans pression.",
+                  "expected_duration": "short",
+                  "potion_info_message": "Je vais t'accompagner chaque soir pour t'aider à faire ce petit pivot vers la marche ou le rangement, sans que la pression ne remonte.",
+                  "instant_support_message": "C'est normal de sentir l'élan retomber au moment de la transition. On va juste s'assurer que ce passage ne devienne pas un poids."
+                },
+                "why_this_potion": "Le user confirme vouloir un repère doux à 18h45 pour protéger la transition entre le travail et ses activités (marche ou rangement) sans pression.",
+                "potion_info_message": "Je vais t'accompagner chaque soir pour t'aider à faire ce petit pivot vers la marche ou le rangement, sans que la pression ne remonte.",
+                "instant_support_message": "C'est normal de sentir l'élan retomber au moment de la transition. On va juste s'assurer que ce passage ne devienne pas un poids."
+              },
+              "follow_up_strategy": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un suivi quotidien à 18h45 permet d'intercepter le moment de transition avant le décrochage.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "18:45",
+                  "timing_relation": "daily"
+                },
+                "target_binding": {
+                  "kind": "plan_item",
+                  "label": "Marcher dix minutes puis ranger le bureau",
+                  "evidence": [
+                    "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau",
+                    "Oui, garde ce cadre: marche ou bureau, juste un repere doux."
+                  ],
+                  "recurrence_hint": "quotidien",
+                  "date_or_window_hint": "au moment de fermer l'ordinateur",
+                  "target_plan_item_id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                  "related_plan_item_id": null,
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                },
+                "local_time_hhmm": "18:45",
+                "reason_for_time": "L'horaire de 18h45 est maintenu pour intervenir juste avant la transition de fin de journée.",
+                "reminder_instruction": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report."
+              },
+              "metadata": {
+                "source": "sophia_brain_tool_skill",
+                "request_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t05-a1",
+                "operation_id": "15d4bc62-4022-4edd-a558-963f3f981ef9",
+                "operation_type": "select_state_potion",
+                "source_message_id": "9e6888d1-b1a9-43ac-a518-1435cfd6f3ed"
+              },
+              "generated_at": "2026-05-21T16:11:57.265+00:00",
+              "last_updated_at": "2026-05-21T16:11:57.265+00:00"
+            }
+          ],
+          "reminders": [
+            {
+              "id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+              "message_instruction": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+              "rationale": "Un suivi quotidien à 18h45 permet d'intercepter le moment de transition avant le décrochage.",
+              "local_time_hhmm": "18:45",
+              "scheduled_days": [
+                "fri",
+                "sat",
+                "sun",
+                "mon",
+                "tue",
+                "wed",
+                "thu"
+              ],
+              "status": "active",
+              "initiative_kind": "potion_follow_up",
+              "source_kind": "potion_generated",
+              "source_potion_session_id": "19a82edb-bb7b-4f68-9cd8-1e8a0407d04f",
+              "initiative_metadata": {
+                "source": "sophia_brain_tool_skill",
+                "request_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t05-a1",
+                "operation_id": "15d4bc62-4022-4edd-a558-963f3f981ef9",
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un suivi quotidien à 18h45 permet d'intercepter le moment de transition avant le décrochage.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "18:45",
+                  "timing_relation": "daily"
+                },
+                "operation_type": "select_state_potion",
+                "target_binding": {
+                  "kind": "plan_item",
+                  "label": "Marcher dix minutes puis ranger le bureau",
+                  "evidence": [
+                    "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau",
+                    "Oui, garde ce cadre: marche ou bureau, juste un repere doux."
+                  ],
+                  "recurrence_hint": "quotidien",
+                  "date_or_window_hint": "au moment de fermer l'ordinateur",
+                  "target_plan_item_id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                  "related_plan_item_id": null,
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                }
+              },
+              "target_kind": "plan_item",
+              "target_plan_item_id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+              "target_action_family_key": null,
+              "target_binding_policy": "live_action",
+              "target_lifecycle_policy": "while_target_active",
+              "starts_at": "2026-05-21T16:11:57.265+00:00",
+              "created_at": "2026-05-21T16:11:57.273524+00:00",
+              "updated_at": "2026-05-21T16:11:57.273524+00:00"
+            }
+          ],
+          "checkins": [
+            {
+              "id": "bec44b43-5d2b-4db9-8383-b7bad5d8d3a6",
+              "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+              "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-22",
+              "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+              "scheduled_for": "2026-05-22T18:45:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:11:57.282033+00:00"
+            },
+            {
+              "id": "ec6429c5-3e54-4042-a50d-75c77c43ee7d",
+              "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+              "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-23",
+              "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+              "scheduled_for": "2026-05-23T18:45:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:11:57.282033+00:00"
+            },
+            {
+              "id": "00cdbe0a-042c-4c14-b956-fc7e8d856060",
+              "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+              "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-24",
+              "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+              "scheduled_for": "2026-05-24T18:45:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:11:57.282033+00:00"
+            },
+            {
+              "id": "c0166b3d-f1c9-43dd-88bd-f973e8f55ad0",
+              "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+              "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-25",
+              "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+              "scheduled_for": "2026-05-25T18:45:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:11:57.282033+00:00"
+            },
+            {
+              "id": "f1d56cdf-4a43-44bc-a8cd-52a806bb13f7",
+              "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+              "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-26",
+              "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+              "scheduled_for": "2026-05-26T18:45:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:11:57.282033+00:00"
+            },
+            {
+              "id": "3524aed5-3419-40b5-8e0e-a3e4a55ac267",
+              "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+              "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-27",
+              "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+              "scheduled_for": "2026-05-27T18:45:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:11:57.282033+00:00"
+            },
+            {
+              "id": "b5f59eb7-a71a-48d4-a9a9-badef03f2b9e",
+              "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+              "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-28",
+              "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+              "scheduled_for": "2026-05-28T18:45:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:11:57.282033+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

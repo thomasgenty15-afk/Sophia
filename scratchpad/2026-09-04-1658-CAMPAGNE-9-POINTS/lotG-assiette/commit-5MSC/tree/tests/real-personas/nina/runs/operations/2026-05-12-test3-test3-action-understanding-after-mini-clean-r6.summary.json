@@ -1,0 +1,40 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r6-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je suis un peu perdue là. Cette semaine je suis censée faire quoi exactement ? Et nettoyer mon environnement direct, c'est un truc à refaire tous les jours ou c'est autre chose ?",
+    "assistant": "Ah mince… je te remets ça au clair, et on simplifie. 😊\n\nCette semaine, tu as une seule chose au centre :\nDécoder ton envie de grignoter (clarifications + framework).\n\nEt pour “Nettoyer ton environnement direct” : c’est une action ponctuelle à faire une seule fois pour assainir l’espace. Ce n’est pas “tous les jours”.\n\nTu veux qu’on commence tout de suite par “Décoder ton envie de grignoter” et qu’on fixe la première mini-étape concrète (oui/non) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r6-t01",
+    "trace_error": null
+  }
+]

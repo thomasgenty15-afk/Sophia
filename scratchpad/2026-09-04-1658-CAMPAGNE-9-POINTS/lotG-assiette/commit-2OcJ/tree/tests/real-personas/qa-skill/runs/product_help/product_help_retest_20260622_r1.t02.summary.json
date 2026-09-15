@@ -1,0 +1,66 @@
+{
+  "run_id": "product_help_retest_20260622_r1",
+  "turn": 2,
+  "user_message": "Ok, si mon but c'est juste de me remettre en mouvement tout de suite sans changer le plan, tu m'orientes vers quoi ?",
+  "http_status": 200,
+  "ok": true,
+  "reply_content": "Plutôt une carte d’attaque si tu veux te remettre en mouvement sans toucher au plan. Mais pour te guider proprement : c’est quoi l’action qui te bloque ?",
+  "response_owner": "coaching_recommendation",
+  "selected_handler": "coaching_recommendation",
+  "reason_code": "coaching_recommendation_signal",
+  "direct_effects": [],
+  "skill_signals": {
+    "coaching_recommendation": {
+      "detected": true,
+      "confidence_band": "high",
+      "reason": "User asks which coaching lever to use to get moving now without changing the plan.",
+      "context": {
+        "coaching_type": "plan_action",
+        "confidence": 0.84,
+        "activation_checks": {
+          "is_coaching_need": true,
+          "is_about_plan_action": true,
+          "is_about_non_plan_action": false,
+          "is_about_emotional_state": false,
+          "has_concrete_plan_action": false,
+          "needs_type_confirmation": true
+        },
+        "action_context": {
+          "source": "plan",
+          "plan_item_id": null,
+          "action_title": null,
+          "plan_id": null,
+          "plan_title": null,
+          "action_type": "other"
+        },
+        "emotional_state_context": null,
+        "reason": "The user wants immediate movement without changing the plan, which is a plan-linked coaching need."
+      }
+    }
+  },
+  "skill_run": {
+    "selected_skill_id": "coaching_recommendation",
+    "reason_code": "coaching_recommendation_signal",
+    "status": "continue",
+    "latency_ms": 15774
+  },
+  "effect_ledger": {
+    "turn_id": "122b4838-39e1-4b52-b3b8-98fd8d3ed13f",
+    "counts": {
+      "requested": 0,
+      "allowed": 0,
+      "blocked": 0,
+      "committed": 0,
+      "failed": 0,
+      "proposed": 0,
+      "delivered": 0,
+      "cancelled": 0,
+      "superseded": 0,
+      "asked": 0,
+      "resolved": 0,
+      "topic_change": 0
+    },
+    "entries": []
+  },
+  "executed_tools": []
+}

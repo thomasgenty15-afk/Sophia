@@ -1,0 +1,635 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "0def4ca5-e937-48c3-94aa-b43aeb51ef3c",
+        "plan_item_id": null,
+        "status": "active",
+        "source": "system",
+        "scope_kind": "out_of_plan",
+        "transformation_id": null,
+        "cycle_id": "8db01557-6c1c-43bc-a2b9-31940eeeae20",
+        "content": {
+          "impulses": [
+            {
+              "label": "Scroll et snack",
+              "triggers": [
+                {
+                  "label": "Transition retour maison",
+                  "plan_b": "Si téléphone déjà en main : se lever, le charger dans l’entrée sans ouvrir d’appli, revenir avec un verre d’eau",
+                  "signal": "La pensée 'je mérite une pause' avec le téléphone en main",
+                  "situation": "Juste après avoir enlevé mes chaussures, avant de m’asseoir",
+                  "trigger_id": "f1f02bf3-a400-468a-9d3c-aa4a21fe0c6e",
+                  "illustration": null,
+                  "defense_response": "Poser le téléphone au chargeur dans l’entrée et prendre un verre d’eau",
+                  "difficulty_preview": "Casse la boucle scroll-snack en éloignant la source de distraction."
+                }
+              ],
+              "impulse_id": "a162a95c-1c6b-4114-85a5-500bd3683300",
+              "generic_defense": "Éloigner le téléphone"
+            }
+          ],
+          "difficulty_map_summary": null
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Transition retour maison",
+              "plan_b": "Si téléphone déjà en main : se lever, le charger dans l’entrée sans ouvrir d’appli, revenir avec un verre d’eau",
+              "signal": "La pensée 'je mérite une pause' avec le téléphone en main",
+              "trigger": "S'asseoir avec le téléphone",
+              "situation": "Juste après avoir enlevé mes chaussures, avant de m’asseoir",
+              "target_label": "Snacking automatique",
+              "why_it_helps": "Casse la boucle scroll-snack en éloignant la source de distraction.",
+              "fallback_plan": "Si téléphone déjà en main : se lever, le charger dans l’entrée sans ouvrir d’appli, revenir avec un verre d’eau",
+              "impulse_label": "Scroll et snack",
+              "risk_situation": "Juste après avoir enlevé mes chaussures, avant de m’asseoir",
+              "generic_defense": "Éloigner le téléphone",
+              "defense_response": "Poser le téléphone au chargeur dans l’entrée et prendre un verre d’eau"
+            },
+            "output_schema": "defense_card_draft_v1",
+            "operation_type": "prepare_defense_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ta carte de défense :\nLe moment : Juste après avoir enlevé mes chaussures, avant de m’asseoir\nLe piège : La pensée 'je mérite une pause' avec le téléphone en main\nMon geste : Poser le téléphone au chargeur dans l’entrée et prendre un verre d’eau\nPlan B : Si téléphone déjà en main : se lever, le charger dans l’entrée sans ouvrir d’appli, revenir avec un verre d’eau\nOn valide ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "attachment": {
+            "kind": "free_risk_context",
+            "title": "Retour à la maison et téléphone sur le canapé",
+            "plan_item_id": null
+          },
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t06",
+          "operation_id": "47478979-44fe-42d2-9675-f08aa52fff2d",
+          "operation_type": "prepare_defense_card",
+          "risk_situation": {
+            "label": "Transition canapé après retour maison",
+            "description": "L'utilisateur s'apprête à s'asseoir sur le canapé avec son téléphone juste après être rentré et avoir enlevé ses chaussures. La pensée 'je mérite une pause' l'embarque, puis les vidéos enchaînées rendent le snack automatique.",
+            "timing_hint": "juste après avoir enlevé mes chaussures, avant de m’asseoir",
+            "context_hint": "Assis sur le canapé, téléphone en main"
+          },
+          "source_message_id": "ad12d013-20c8-471d-9bb6-22fd91670f28"
+        },
+        "generated_at": "2026-05-15T18:52:28.702+00:00",
+        "last_updated_at": "2026-05-15T18:52:28.702+00:00"
+      },
+      {
+        "id": "643e623d-97ee-48cb-a970-6fcd32521873",
+        "plan_item_id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+        "status": "active",
+        "source": "system",
+        "scope_kind": "transformation",
+        "transformation_id": null,
+        "cycle_id": "8db01557-6c1c-43bc-a2b9-31940eeeae20",
+        "content": {
+          "impulses": [
+            {
+              "label": "Snack automatique",
+              "triggers": [
+                {
+                  "label": "Pause canapé sans scroll",
+                  "plan_b": "Si je l’ai déjà en main, je me lève, je le charge dans l’entrée, puis je reviens avec l’eau.",
+                  "signal": "La sensation de pause méritée et l'envie de scroller.",
+                  "situation": "Juste après avoir enlevé mes chaussures, en allant m’asseoir sur le canapé.",
+                  "trigger_id": "1688d93a-64a7-4f20-9b74-4e4b3cef9144",
+                  "illustration": null,
+                  "defense_response": "Téléphone au chargeur dans l’entrée avant de m’asseoir, verre d’eau au canapé.",
+                  "difficulty_preview": "Casser l'automatisme du scroll pour éviter le snack réflexe."
+                }
+              ],
+              "impulse_id": "bef1c1a5-628e-4d2b-9d96-5e961012a4cc",
+              "generic_defense": "Mettre le téléphone hors de portée."
+            }
+          ],
+          "difficulty_map_summary": null
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Pause canapé sans scroll",
+              "plan_b": "Si je l’ai déjà en main, je me lève, je le charge dans l’entrée, puis je reviens avec l’eau.",
+              "signal": "La sensation de pause méritée et l'envie de scroller.",
+              "trigger": "Pause méritée + scroll",
+              "situation": "Juste après avoir enlevé mes chaussures, en allant m’asseoir sur le canapé.",
+              "target_label": "Faire le choix du brut",
+              "why_it_helps": "Casser l'automatisme du scroll pour éviter le snack réflexe.",
+              "fallback_plan": "Si je l’ai déjà en main, je me lève, je le charge dans l’entrée, puis je reviens avec l’eau.",
+              "impulse_label": "Snack automatique",
+              "risk_situation": "Juste après avoir enlevé mes chaussures, en allant m’asseoir sur le canapé.",
+              "generic_defense": "Mettre le téléphone hors de portée.",
+              "defense_response": "Téléphone au chargeur dans l’entrée avant de m’asseoir, verre d’eau au canapé."
+            },
+            "output_schema": "defense_card_draft_v1",
+            "operation_type": "prepare_defense_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ta carte de défense :\nLe moment : Juste après avoir enlevé mes chaussures, en allant m’asseoir sur le canapé.\nLe piège : La sensation de pause méritée et l'envie de scroller.\nMon geste : Téléphone au chargeur dans l’entrée avant de m’asseoir, verre d’eau au canapé.\nPlan B : Si je l’ai déjà en main, je me lève, je le charge dans l’entrée, puis je reviens avec l’eau.\nOn valide ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le choix du brut",
+            "plan_item_id": "eb9df535-b6e9-40d9-af57-effafdc2f662"
+          },
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r5-t07",
+          "operation_id": "5ce33a5f-d5fe-4d50-8cad-f0946acd58d2",
+          "operation_type": "prepare_defense_card",
+          "risk_situation": {
+            "label": "Pause méritée + scroll",
+            "description": "S'asseoir sur le canapé juste après avoir enlevé ses chaussures, déclenchant l'automatisme du scroll et du snack.",
+            "timing_hint": "Juste après avoir enlevé les chaussures, en allant s'asseoir",
+            "context_hint": "Canapé / Entrée"
+          },
+          "source_message_id": "5029da01-4263-4fbe-b7bf-d022498a64b5"
+        },
+        "generated_at": "2026-05-15T18:07:14.335+00:00",
+        "last_updated_at": "2026-05-15T18:07:14.335+00:00"
+      }
+    ]
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+        "title": "Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Fais le tour de tes placards et de ton espace de travail. Retire ou cache les produits transformés qui te tentent le plus en cas de stress.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": "Action ponctuelle à réaliser une seule fois pour assainir l'espace.",
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-14T17:33:10.37736+00:00"
+      },
+      {
+        "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+        "title": "Faire le choix du brut",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "pending",
+        "cards_status": "ready",
+        "defense_card_id": "643e623d-97ee-48cb-a970-6fcd32521873",
+        "attack_card_id": null,
+        "description": "option brute décidée pendant la préparation du dimanche",
+        "target_reps": 6,
+        "current_reps": 0,
+        "cadence_label": "3 jours par semaine",
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-15T18:44:55.963941+00:00"
+      },
+      {
+        "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+        "title": "Décoder ton envie de grignoter",
+        "dimension": "clarifications",
+        "kind": "framework",
+        "status": "pending",
+        "cards_status": "not_required",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-15T18:44:55.955331+00:00"
+      },
+      {
+        "id": "23f34398-87ae-4388-80b4-786989faac97",
+        "title": "Préparer tes alternatives d'avance",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Fixé au dimanche à 16h, aucune préparation le soir.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-15T13:54:28.720386+00:00"
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "c2b0f41c-30e0-497a-91f7-8e2ec76bbe18",
+        "role": "user",
+        "content": "Petit constat du soir : quand je rentre et que je pose mon téléphone près du canapé, je perds vite dix minutes à scroller. Après ça, j’ai souvent envie de grignoter, alors qu’au départ je voulais juste souffler.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T18:47:49.825821+00:00"
+      },
+      {
+        "id": "91a0d800-cb10-4f50-b621-359f18d38dcf",
+        "role": "assistant",
+        "content": "Ah oui… c’est le combo parfait “arrivée + téléphone à portée + petite pause qui dérape” 😅 Et le grignotage arrive souvent comme un “je compense/je retarde le retour à la réalité”.\n\nOn peut poser un garde-fou simple pour ce moment précis, juste pour gagner ces 10 minutes sans te priver : tu veux qu’on prépare une Carte de defense pour “le moment du retour à la maison et risque de grignotage après scroll” ? 📵\n\n(Juste oui/non, et si oui je te la calibre pour chez toi.)",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T18:47:59.16287+00:00"
+      },
+      {
+        "id": "a15fa08f-1ed4-4a94-8004-396020b879f9",
+        "role": "user",
+        "content": "Oui, préparons une carte de défense. Je précise que ce n’est pas une action officielle du plan : c’est un contexte libre, le retour à la maison avec téléphone près du canapé.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T18:48:09.887358+00:00"
+      },
+      {
+        "id": "b829d1e3-c2c7-4712-a263-1ca39d3aa240",
+        "role": "assistant",
+        "content": "C'est noté pour le contexte libre. Pour bien cadrer la carte : quel est ton objectif ? Éviter de scroller en arrivant, ou plutôt bloquer l'envie de grignoter qui vient juste après ?",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "source": "recommendation_tool",
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "defense_response",
+                "needed": true,
+                "reason": "structured_ai_missing_defense_goal",
+                "status": "missing",
+                "question": "C'est noté pour le contexte libre. Pour bien cadrer la carte : quel est ton objectif ? Éviter de scroller en arrivant, ou plutôt bloquer l'envie de grignoter qui vient juste après ?",
+                "known_slots": {
+                  "attachment": {
+                    "kind": "free_risk_context",
+                    "title": "Retour à la maison et téléphone sur le canapé",
+                    "plan_item_id": null
+                  },
+                  "intake_state": {
+                    "trigger": {
+                      "type": "habit_loop",
+                      "status": "identified",
+                      "evidence": [
+                        "pose mon téléphone près du canapé, je perds vite dix minutes à scroller"
+                      ],
+                      "confidence": 0.9
+                    },
+                    "skill_id": "prepare_defense_card",
+                    "tool_fit": {
+                      "reason": "L'utilisateur confirme vouloir une carte de défense pour un contexte de risque identifié (retour à la maison).",
+                      "status": "defense",
+                      "evidence": [
+                        "Oui, préparons une carte de défense",
+                        "le retour à la maison avec téléphone près du canapé"
+                      ],
+                      "confidence": "high"
+                    },
+                    "attachment": {
+                      "kind": "free_risk_context",
+                      "title": "Retour à la maison et téléphone sur le canapé",
+                      "status": "identified",
+                      "evidence": [
+                        "ce n’est pas une action officielle du plan : c’est un contexte libre"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": null
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "response_design",
+                    "defense_goal": {
+                      "value": null,
+                      "status": "missing",
+                      "evidence": [],
+                      "confidence": "low"
+                    },
+                    "missing_slots": [
+                      "defense_goal"
+                    ],
+                    "risk_situation": {
+                      "label": "Retour à la maison, téléphone posé près du canapé et scroll",
+                      "status": "identified",
+                      "evidence": [
+                        "le retour à la maison avec téléphone près du canapé",
+                        "perds vite dix minutes à scroller. Après ça, j’ai souvent envie de grignoter"
+                      ],
+                      "confidence": "high",
+                      "description": "L'utilisateur rentre chez lui, pose son téléphone près du canapé, scrolle 10 minutes, ce qui déclenche une envie de grignoter.",
+                      "timing_hint": "Retour à la maison",
+                      "context_hint": "Canapé / Téléphone"
+                    },
+                    "defense_response_hint": {
+                      "value": null,
+                      "status": "missing",
+                      "evidence": [],
+                      "confidence": "low",
+                      "strategy_hint": null
+                    },
+                    "generated_user_message": "C'est noté pour le contexte libre. Pour bien cadrer la carte : quel est ton objectif ? Éviter de scroller en arrivant, ou plutôt bloquer l'envie de grignoter qui vient juste après ?"
+                  },
+                  "risk_situation": {
+                    "label": "Retour à la maison, téléphone posé près du canapé et scroll",
+                    "description": "L'utilisateur rentre chez lui, pose son téléphone près du canapé, scrolle 10 minutes, ce qui déclenche une envie de grignoter.",
+                    "timing_hint": "Retour à la maison",
+                    "context_hint": "Canapé / Téléphone"
+                  }
+                }
+              },
+              "missing_slots": [
+                "defense_goal"
+              ],
+              "selected_handler": "prepare_defense_card",
+              "recommendation_id": "dispatcher_opportunity:defense_card:qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t01"
+            }
+          }
+        },
+        "created_at": "2026-05-15T18:48:27.716667+00:00"
+      },
+      {
+        "id": "de240425-3f75-4c9b-b87f-f35e8fee480f",
+        "role": "user",
+        "content": "L’objectif principal c’est d’éviter que le scroll déclenche le snack. Le moment précis : juste après avoir enlevé mes chaussures, je m’assois deux minutes sur le canapé avec le téléphone en main.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T18:48:40.815074+00:00"
+      },
+      {
+        "id": "9463f746-c20f-44d9-be3a-204317963d01",
+        "role": "assistant",
+        "content": "Voici ta carte de défense :\nLe moment : Juste après avoir enlevé mes chaussures\nLe piège : Assis sur le canapé avec le téléphone\nMon geste : Poser le téléphone dans l'entrée\nPlan B : Boire un grand verre d'eau\nOn valide ?",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Retour maison sans snack",
+                  "plan_b": "Boire un grand verre d'eau",
+                  "signal": "Assis sur le canapé avec le téléphone",
+                  "trigger": "Scroll sur le téléphone",
+                  "situation": "Juste après avoir enlevé mes chaussures",
+                  "target_label": "Snack",
+                  "why_it_helps": "Casse la boucle automatique scroll-snack",
+                  "fallback_plan": "Respirer 2 minutes sans écran",
+                  "impulse_label": "Scroll et snack",
+                  "risk_situation": "Juste après avoir enlevé mes chaussures",
+                  "generic_defense": "Eloigner la tentation",
+                  "defense_response": "Poser le téléphone dans l'entrée"
+                },
+                "output_schema": "defense_card_draft_v1",
+                "operation_type": "prepare_defense_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici ta carte de défense :\nLe moment : Juste après avoir enlevé mes chaussures\nLe piège : Assis sur le canapé avec le téléphone\nMon geste : Poser le téléphone dans l'entrée\nPlan B : Boire un grand verre d'eau\nOn valide ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "2b72df43-8fcd-4d0a-9438-28b403371143",
+              "selected_handler": "prepare_defense_card"
+            }
+          }
+        },
+        "created_at": "2026-05-15T18:48:59.291285+00:00"
+      },
+      {
+        "id": "4da8155f-ec62-4d5d-ac39-0034801a0967",
+        "role": "user",
+        "content": "Le moment est bon, mais le piège doit dire la pensée qui m’embarque : “je mérite une pause”, puis les vidéos enchaînées rendent le snack automatique. Mon geste préféré : téléphone au chargeur dans l’entrée avant de m’asseoir, avec un verre d’eau au canapé.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T18:49:08.762512+00:00"
+      },
+      {
+        "id": "fa79ffbb-cec4-4fc4-8586-1b260b684d96",
+        "role": "assistant",
+        "content": "Voici ta carte de défense :\nLe moment : Retour a la maison et transition vers le canape\nLe piège : Pensee je merite une pause et debut du scroll\nMon geste : Telephone au chargeur dans l entree avant de m asseoir et verre d eau au canape\nPlan B : Boire le verre d eau et respirer 1 minute\nOn valide ?",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Retour maison sans snack",
+                  "plan_b": "Boire le verre d eau et respirer 1 minute",
+                  "signal": "Pensee je merite une pause et debut du scroll",
+                  "trigger": "Pensee je merite une pause",
+                  "situation": "Retour a la maison et transition vers le canape",
+                  "target_label": "Snack",
+                  "why_it_helps": "Casse la boucle du scroll qui mene au snack",
+                  "fallback_plan": "Boire de l eau",
+                  "impulse_label": "Grignotage",
+                  "risk_situation": "Retour a la maison et transition vers le canape",
+                  "generic_defense": "Eloigner le declencheur numerique",
+                  "defense_response": "Telephone au chargeur dans l entree avant de m asseoir et verre d eau au canape"
+                },
+                "output_schema": "defense_card_draft_v1",
+                "operation_type": "prepare_defense_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici ta carte de défense :\nLe moment : Retour a la maison et transition vers le canape\nLe piège : Pensee je merite une pause et debut du scroll\nMon geste : Telephone au chargeur dans l entree avant de m asseoir et verre d eau au canape\nPlan B : Boire le verre d eau et respirer 1 minute\nOn valide ?"
+              },
+              "status": "pending_confirmation_updated",
+              "operation_id": "4f6c8523-cef6-4f51-8f6b-d10aac9bc9d2",
+              "selected_handler": "prepare_defense_card",
+              "draft_review_decision": null,
+              "previous_operation_id": "2b72df43-8fcd-4d0a-9438-28b403371143"
+            }
+          }
+        },
+        "created_at": "2026-05-15T18:50:33.330893+00:00"
+      },
+      {
+        "id": "5e78fa5c-4180-4937-b528-6ed359d3e9f7",
+        "role": "user",
+        "content": "Pas encore : garde le moment exact “juste après avoir enlevé mes chaussures, avant de m’asseoir”. Et Plan B : si j’ai déjà le téléphone en main, je me lève, je le mets à charger dans l’entrée sans ouvrir d’appli, puis je reviens avec le verre d’eau.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T18:50:45.997972+00:00"
+      },
+      {
+        "id": "edb2b991-64a9-465e-b748-4769efa31eab",
+        "role": "assistant",
+        "content": "Voici ta carte de défense :\nLe moment : Juste après avoir enlevé mes chaussures, avant de m’asseoir\nLe piège : La pensée 'je mérite une pause' avec le téléphone en main\nMon geste : Poser le téléphone au chargeur dans l’entrée et prendre un verre d’eau\nPlan B : Si téléphone déjà en main : se lever, le charger dans l’entrée sans ouvrir d’appli, revenir avec un verre d’eau\nOn valide ?",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Transition retour maison",
+                  "plan_b": "Si téléphone déjà en main : se lever, le charger dans l’entrée sans ouvrir d’appli, revenir avec un verre d’eau",
+                  "signal": "La pensée 'je mérite une pause' avec le téléphone en main",
+                  "trigger": "S'asseoir avec le téléphone",
+                  "situation": "Juste après avoir enlevé mes chaussures, avant de m’asseoir",
+                  "target_label": "Snacking automatique",
+                  "why_it_helps": "Casse la boucle scroll-snack en éloignant la source de distraction.",
+                  "fallback_plan": "Si téléphone déjà en main : se lever, le charger dans l’entrée sans ouvrir d’appli, revenir avec un verre d’eau",
+                  "impulse_label": "Scroll et snack",
+                  "risk_situation": "Juste après avoir enlevé mes chaussures, avant de m’asseoir",
+                  "generic_defense": "Éloigner le téléphone",
+                  "defense_response": "Poser le téléphone au chargeur dans l’entrée et prendre un verre d’eau"
+                },
+                "output_schema": "defense_card_draft_v1",
+                "operation_type": "prepare_defense_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici ta carte de défense :\nLe moment : Juste après avoir enlevé mes chaussures, avant de m’asseoir\nLe piège : La pensée 'je mérite une pause' avec le téléphone en main\nMon geste : Poser le téléphone au chargeur dans l’entrée et prendre un verre d’eau\nPlan B : Si téléphone déjà en main : se lever, le charger dans l’entrée sans ouvrir d’appli, revenir avec un verre d’eau\nOn valide ?"
+              },
+              "status": "pending_confirmation_updated",
+              "operation_id": "47478979-44fe-42d2-9675-f08aa52fff2d",
+              "selected_handler": "prepare_defense_card",
+              "draft_review_decision": null,
+              "previous_operation_id": "4f6c8523-cef6-4f51-8f6b-d10aac9bc9d2"
+            }
+          }
+        },
+        "created_at": "2026-05-15T18:52:04.884789+00:00"
+      },
+      {
+        "id": "ad12d013-20c8-471d-9bb6-22fd91670f28",
+        "role": "user",
+        "content": "Oui, là c’est bon. Valide et crée cette carte de défense.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T18:52:15.763958+00:00"
+      },
+      {
+        "id": "c0eddb91-5a0d-4d51-aaf2-acad4f6d333e",
+        "role": "assistant",
+        "content": "C'est fait. J'ai créé la carte de défense \"Transition retour maison\" : Poser le téléphone au chargeur dans l’entrée et prendre un verre d’eau\n\nTu peux la retrouver dans Ressources > Cartes de defense pour la relire, l'utiliser et l'ajuster depuis la plateforme quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, je peux aussi en preparer une nouvelle version apres confirmation.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "executed",
+              "operation_id": "47478979-44fe-42d2-9675-f08aa52fff2d",
+              "defense_card_id": "0def4ca5-e937-48c3-94aa-b43aeb51ef3c",
+              "selected_handler": "prepare_defense_card"
+            }
+          }
+        },
+        "created_at": "2026-05-15T18:52:28.71089+00:00"
+      }
+    ]
+  }
+}

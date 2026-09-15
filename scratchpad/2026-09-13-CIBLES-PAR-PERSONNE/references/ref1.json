@@ -1,0 +1,444 @@
+{
+  "dishes": [
+    {
+      "name": "Bol skyr mon",
+      "title": "Skyr, avoine, myrtilles et amandes",
+      "slot": "breakfast",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "skyr",
+          "quantity": "300 g de skyr",
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "ref": "skyr"
+        },
+        {
+          "term": "avoine",
+          "quantity": "55 g de avoine",
+          "amount": 55,
+          "unit": "g",
+          "state": "raw",
+          "ref": "oats"
+        },
+        {
+          "term": "myrtilles",
+          "quantity": "90 g de myrtilles",
+          "amount": 90,
+          "unit": "g",
+          "state": "raw",
+          "ref": "blueberries"
+        },
+        {
+          "term": "amandes",
+          "quantity": "12 g de amandes",
+          "amount": 12,
+          "unit": "g",
+          "state": "raw",
+          "ref": "almonds"
+        }
+      ],
+      "method": "Verser le skyr dans un bol, ajouter l'avoine, les myrtilles et les amandes concassées.",
+      "why": "Un petit-déjeuner froid, riche en protéines, qui se monte en trois minutes.",
+      "density_check": 108,
+      "uses": [],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Assiette poulet mon",
+      "title": "Poulet, couscous complet, courgette et tomate",
+      "slot": "lunch",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "couscous complet",
+          "quantity": "95 g de couscous complet",
+          "amount": 95,
+          "unit": "g",
+          "state": "raw",
+          "ref": "couscous_wholemeal"
+        },
+        {
+          "term": "courgette",
+          "quantity": "180 g de courgette",
+          "amount": 180,
+          "unit": "g",
+          "state": "raw",
+          "ref": "courgette"
+        },
+        {
+          "term": "tomate",
+          "quantity": "90 g de tomate",
+          "amount": 90,
+          "unit": "g",
+          "state": "raw",
+          "ref": "tomato"
+        }
+      ],
+      "method": "Verser de l'eau bouillante sur le couscous, laisser gonfler cinq minutes. Ajouter la portion de poulet tiédie, la courgette poêlée et la tomate.",
+      "why": "Le poulet du lot devient un déjeuner complet sans nouvelle cuisson.",
+      "density_check": 115,
+      "uses": [
+        {
+          "preparation_id": "prep_poulet",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Saumon mon",
+      "title": "Saumon, pommes de terre et haricots verts",
+      "slot": "dinner",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "haricots verts",
+          "quantity": "150 g de haricots verts",
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "ref": "green_beans"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "8 g de huile d'olive",
+          "amount": 8,
+          "unit": "g",
+          "state": "raw",
+          "ref": "olive_oil"
+        }
+      ],
+      "method": "Réchauffer la portion de saumon et de pommes de terre, servir avec les haricots verts vapeur arrosés d'huile d'olive.",
+      "why": "Le lot du lundi donne deux dîners sans rallumer le four.",
+      "density_check": 163,
+      "uses": [
+        {
+          "preparation_id": "prep_saumon",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Bol skyr tue",
+      "title": "Skyr, avoine, myrtilles et amandes",
+      "slot": "breakfast",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "skyr",
+          "quantity": "300 g de skyr",
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "ref": "skyr"
+        },
+        {
+          "term": "avoine",
+          "quantity": "55 g de avoine",
+          "amount": 55,
+          "unit": "g",
+          "state": "raw",
+          "ref": "oats"
+        },
+        {
+          "term": "myrtilles",
+          "quantity": "90 g de myrtilles",
+          "amount": 90,
+          "unit": "g",
+          "state": "raw",
+          "ref": "blueberries"
+        },
+        {
+          "term": "amandes",
+          "quantity": "12 g de amandes",
+          "amount": 12,
+          "unit": "g",
+          "state": "raw",
+          "ref": "almonds"
+        }
+      ],
+      "method": "Verser le skyr dans un bol, ajouter l'avoine, les myrtilles et les amandes concassées.",
+      "why": "Un petit-déjeuner froid, riche en protéines, qui se monte en trois minutes.",
+      "density_check": 108,
+      "uses": [],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Assiette poulet tue",
+      "title": "Poulet, couscous complet, courgette et tomate",
+      "slot": "lunch",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "couscous complet",
+          "quantity": "95 g de couscous complet",
+          "amount": 95,
+          "unit": "g",
+          "state": "raw",
+          "ref": "couscous_wholemeal"
+        },
+        {
+          "term": "courgette",
+          "quantity": "180 g de courgette",
+          "amount": 180,
+          "unit": "g",
+          "state": "raw",
+          "ref": "courgette"
+        },
+        {
+          "term": "tomate",
+          "quantity": "90 g de tomate",
+          "amount": 90,
+          "unit": "g",
+          "state": "raw",
+          "ref": "tomato"
+        }
+      ],
+      "method": "Verser de l'eau bouillante sur le couscous, laisser gonfler cinq minutes. Ajouter la portion de poulet tiédie, la courgette poêlée et la tomate.",
+      "why": "Le poulet du lot devient un déjeuner complet sans nouvelle cuisson.",
+      "density_check": 115,
+      "uses": [
+        {
+          "preparation_id": "prep_poulet",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Saumon tue",
+      "title": "Saumon, pommes de terre et haricots verts",
+      "slot": "dinner",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "haricots verts",
+          "quantity": "150 g de haricots verts",
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "ref": "green_beans"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "8 g de huile d'olive",
+          "amount": 8,
+          "unit": "g",
+          "state": "raw",
+          "ref": "olive_oil"
+        }
+      ],
+      "method": "Réchauffer la portion de saumon et de pommes de terre, servir avec les haricots verts vapeur arrosés d'huile d'olive.",
+      "why": "Le lot du lundi donne deux dîners sans rallumer le four.",
+      "density_check": 163,
+      "uses": [
+        {
+          "preparation_id": "prep_saumon",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    }
+  ],
+  "preparations": [
+    {
+      "id": "prep_poulet",
+      "title": "Poulet rôti au citron",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "blanc de poulet",
+          "quantity": "760 g de blanc de poulet",
+          "amount": 760,
+          "unit": "g",
+          "state": "raw",
+          "ref": "chicken_breast"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "24 g de huile d'olive",
+          "amount": 24,
+          "unit": "g",
+          "state": "raw",
+          "ref": "olive_oil"
+        }
+      ],
+      "method": "Chauffer le four à 200 °C. Poser les blancs de poulet sur une plaque, les huiler, les rôtir 25 minutes. Laisser tiédir, puis répartir en deux portions au réfrigérateur.",
+      "active_minutes": 10,
+      "total_minutes": 35,
+      "cook_on": "mon"
+    },
+    {
+      "id": "prep_saumon",
+      "title": "Saumon rôti et pommes de terre",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "saumon",
+          "quantity": "780 g de saumon",
+          "amount": 780,
+          "unit": "g",
+          "state": "raw",
+          "ref": "salmon"
+        },
+        {
+          "term": "pomme de terre",
+          "quantity": "635 g de pomme de terre",
+          "amount": 635,
+          "unit": "g",
+          "state": "raw",
+          "ref": "potato"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "24 g de huile d'olive",
+          "amount": 24,
+          "unit": "g",
+          "state": "raw",
+          "ref": "olive_oil"
+        }
+      ],
+      "method": "Sur la même plaque, rôtir les pommes de terre 20 minutes, ajouter les pavés de saumon huilés et poursuivre 12 minutes. Laisser tiédir et répartir en deux portions.",
+      "active_minutes": 12,
+      "total_minutes": 40,
+      "cook_on": "mon"
+    }
+  ],
+  "cooking_sessions": [
+    {
+      "day": "mon",
+      "preparation_ids": [
+        "prep_poulet",
+        "prep_saumon"
+      ],
+      "total_minutes": 55,
+      "run_through": "Chauffer le four à 200 °C. Enfourner les pommes de terre, puis les blancs de poulet huilés sur une seconde plaque. Ajouter le saumon aux pommes de terre pour les douze dernières minutes. Laisser tiédir et ranger deux portions de chaque au réfrigérateur."
+    }
+  ],
+  "shopping_list": [
+    {
+      "term": "blanc de poulet",
+      "ref": "chicken_breast",
+      "quantity": "760 g",
+      "amount": 760,
+      "unit": "g",
+      "aisle": "protein"
+    },
+    {
+      "term": "huile d'olive",
+      "ref": "olive_oil",
+      "quantity": "64 g",
+      "amount": 64,
+      "unit": "g",
+      "aisle": "pantry"
+    },
+    {
+      "term": "saumon",
+      "ref": "salmon",
+      "quantity": "780 g",
+      "amount": 780,
+      "unit": "g",
+      "aisle": "protein"
+    },
+    {
+      "term": "pomme de terre",
+      "ref": "potato",
+      "quantity": "635 g",
+      "amount": 635,
+      "unit": "g",
+      "aisle": "produce"
+    },
+    {
+      "term": "skyr",
+      "ref": "skyr",
+      "quantity": "600 g",
+      "amount": 600,
+      "unit": "g",
+      "aisle": "dairy"
+    },
+    {
+      "term": "avoine",
+      "ref": "oats",
+      "quantity": "110 g",
+      "amount": 110,
+      "unit": "g",
+      "aisle": "grains"
+    },
+    {
+      "term": "myrtilles",
+      "ref": "blueberries",
+      "quantity": "180 g",
+      "amount": 180,
+      "unit": "g",
+      "aisle": "produce"
+    },
+    {
+      "term": "amandes",
+      "ref": "almonds",
+      "quantity": "24 g",
+      "amount": 24,
+      "unit": "g",
+      "aisle": "grains"
+    },
+    {
+      "term": "couscous complet",
+      "ref": "couscous_wholemeal",
+      "quantity": "190 g",
+      "amount": 190,
+      "unit": "g",
+      "aisle": "grains"
+    },
+    {
+      "term": "courgette",
+      "ref": "courgette",
+      "quantity": "360 g",
+      "amount": 360,
+      "unit": "g",
+      "aisle": "produce"
+    },
+    {
+      "term": "tomate",
+      "ref": "tomato",
+      "quantity": "180 g",
+      "amount": 180,
+      "unit": "g",
+      "aisle": "produce"
+    },
+    {
+      "term": "haricots verts",
+      "ref": "green_beans",
+      "quantity": "300 g",
+      "amount": 300,
+      "unit": "g",
+      "aisle": "produce"
+    }
+  ],
+  "explanation": [
+    "Deux cuissons le lundi soir donnent les quatre repas chauds de la fenêtre ; les deux petits-déjeuners se montent au bol."
+  ]
+}

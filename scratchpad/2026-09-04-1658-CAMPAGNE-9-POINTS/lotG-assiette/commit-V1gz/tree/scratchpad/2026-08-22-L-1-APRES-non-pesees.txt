@@ -1,0 +1,137 @@
+═══════════════════════════════════════════════════════════════════════════
+L-1 — LIGNES RÉSOLUES ET NON PESÉES · par lane et par génération de prompt
+exécuté le 2026-08-22 12:24:14 CEST · base supabase_db_Sophia_2
+═══════════════════════════════════════════════════════════════════════════
+
+── LE RÉFÉRENTIEL, EN DEUX NOMBRES ────────────────────────────────────────
+     unit_grams       94 / 923   ·   condiment_grams 17 / 923   ·   alias 2668
+
+── L-1 · #3 PAR LANE — RÉSOLU+PESÉ, après pliage ──────────────────────────
+   ⚠️ « hors convention » retire les condiments pesés par `condimentMassFor`:
+      c'est le nombre auquel un seuil « le modèle écrit ses quantités » se cale.
+     foyer  lignes  10483 · RÉSOLU  96.9 % · RÉSOLU+PESÉ  93.9 % · hors convention  86.0 %
+            RÉSOLUES ET NON PESÉES   322 / 10483 = 3.1 %
+     solo   lignes   5161 · RÉSOLU  94.6 % · RÉSOLU+PESÉ  36.6 % · hors convention  19.4 %
+            RÉSOLUES ET NON PESÉES  2994 /  5161 = 58.0 %
+     TOTAL  lignes  15644 · RÉSOLU+PESÉ 75.0 % · hors convention 64.0 %
+     ⛔ LE SEUIL DE L-1 — RÉSOLUES ET NON PESÉES : 3316 / 15644 = 21.2 %
+
+── L-1 · #3 PAR LANE **ET PAR GÉNÉRATION DE PROMPT** ──────────────────────
+   ⛔ Sans cette coupe, le renouvellement du corpus se confond avec le lot.
+     foyer  (aucun prompt_version)                                                       lignes   216 · +PESÉ  97.2 % · hors conv  93.1 % · NON PESÉES    6
+     foyer  meal.en.v10_same_day+household.v12_whose_dish_is_it                          lignes   205 · +PESÉ  92.2 % · hors conv  90.2 % · NON PESÉES   13
+     foyer  meal.en.v11_weighed_or_counted+household.v14_weigh_once_into_boxes           lignes   129 · +PESÉ  96.9 % · hors conv  95.3 % · NON PESÉES    1
+     foyer  meal.en.v11_weighed_or_counted+household.v15_one_box_each_and_a_number       lignes   644 · +PESÉ  96.9 % · hors conv  82.6 % · NON PESÉES    6
+     foyer  meal.en.v12_a_dish_has_a_name+household.v16_this_kitchen_and_a_meal_out      lignes   498 · +PESÉ  96.0 % · hors conv  89.6 % · NON PESÉES    6
+     foyer  meal.en.v13_what_they_can_actually_do+household.v17_what_each_mouth_already_has lignes   491 · +PESÉ  93.9 % · hors conv  87.6 % · NON PESÉES   29
+     foyer  meal.en.v14_what_outranks_what+household.v17_what_each_mouth_already_has     lignes  1119 · +PESÉ  95.4 % · hors conv  89.7 % · NON PESÉES   26
+     foyer  meal.en.v15_the_plan_never_names_it+household.v17_what_each_mouth_already_has lignes  2055 · +PESÉ  96.1 % · hors conv  91.3 % · NON PESÉES   11
+     foyer  meal.en.v16_the_model_declares_the_group+household.v19_a_why_names_no_ones_rule lignes    53 · +PESÉ  88.7 % · hors conv  83.0 % · NON PESÉES    6
+     foyer  meal.en.v18_one_box_per_group+household.v21_one_box_per_group                lignes   444 · +PESÉ  92.8 % · hors conv  81.8 % · NON PESÉES    0
+     foyer  meal.en.v8_distinct_health_direction+household.v2_presence                   lignes   412 · +PESÉ  92.2 % · hors conv  86.9 % · NON PESÉES   18
+     foyer  meal.en.v9_cooking_shape+household.v11_dietary_regime_at_the_table           lignes   190 · +PESÉ  86.8 % · hors conv  72.1 % · NON PESÉES    8
+     foyer  meal.en.v9_cooking_shape+household.v3_merge                                  lignes   518 · +PESÉ  93.6 % · hors conv  79.7 % · NON PESÉES   16
+     foyer  meal.en.v9_cooking_shape+household.v4_merge_budget                           lignes   399 · +PESÉ  94.0 % · hors conv  77.9 % · NON PESÉES   19
+     foyer  meal.en.v9_cooking_shape+household.v5_unmerge                                lignes   796 · +PESÉ  91.7 % · hors conv  82.8 % · NON PESÉES   38
+     foyer  meal.en.v9_cooking_shape+household.v6_voices                                 lignes  1002 · +PESÉ  91.5 % · hors conv  83.2 % · NON PESÉES   33
+     foyer  meal.en.v9_cooking_shape+household.v7_merge_anchor                           lignes    76 · +PESÉ  97.4 % · hors conv  93.4 % · NON PESÉES    2
+     foyer  meal.en.v9_cooking_shape+household.v8_plan_gaps                              lignes   439 · +PESÉ  95.0 % · hors conv  91.3 % · NON PESÉES   18
+     foyer  meal.en.v9_cooking_shape+household.v9_merge_dedicated_per_meal               lignes   797 · +PESÉ  89.1 % · hors conv  78.2 % · NON PESÉES   66
+     solo   (aucun prompt_version)                                                       lignes   293 · +PESÉ  94.5 % · hors conv  94.5 % · NON PESÉES   14
+     solo   meal.en.v1_doctrine                                                          lignes   233 · +PESÉ  18.5 % · hors conv   0.0 % · NON PESÉES  179
+     solo   meal.en.v12_a_dish_has_a_name                                                lignes   164 · +PESÉ  99.4 % · hors conv  81.7 % · NON PESÉES    0
+     solo   meal.en.v13_what_they_can_actually_do                                        lignes   217 · +PESÉ  74.2 % · hors conv  60.8 % · NON PESÉES    0
+     solo   meal.en.v14_what_outranks_what                                               lignes   107 · +PESÉ  97.2 % · hors conv  76.6 % · NON PESÉES    0
+     solo   meal.en.v2_batch                                                             lignes  1064 · +PESÉ  16.0 % · hors conv   0.0 % · NON PESÉES  849
+     solo   meal.en.v3_preparations                                                      lignes  2573 · +PESÉ  19.1 % · hors conv   0.0 % · NON PESÉES 1949
+     solo   meal.en.v9_cooking_shape                                                     lignes   510 · +PESÉ  93.9 % · hors conv  73.3 % · NON PESÉES    3
+
+── L-1 · LES CAUSES DE NON-PESÉE — ⛔ `unit_grams` N'EN RÉPARE QU'UNE ─────
+     foyer    322 lignes · sans_amount   277 · sans_unit     9 · unit_sans_poids     8 · state_manquant    28
+     solo    2994 lignes · sans_amount  2994 · sans_unit     0 · unit_sans_poids     0 · state_manquant     0
+     TOTAL  sans_amount 3271 · sans_unit 9 · unit_sans_poids 8 · state_manquant 28
+
+── L-1 · LES 40 TERMES QUI COÛTENT LE PLUS, ET LEUR CAUSE ────────────────
+   ⛔ La colonne `unit_sans_poids` est la SEULE que ce lot peut retourner.
+     olive oil                            246 · sans_amount  246 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     garlic                               172 · sans_amount  172 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     lemon                                143 · sans_amount  143 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     onion                                106 · sans_amount  103 · sans_unit   0 · unit_sans_poids    0 · state_manquant    3
+     greek yogurt                         103 · sans_amount  103 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     chicken thighs                        89 · sans_amount   89 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     rice                                  75 · sans_amount   75 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     cucumber                              71 · sans_amount   71 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     eggs                                  68 · sans_amount   68 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     red onion                             64 · sans_amount   64 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     rolled oats                           54 · sans_amount   54 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     wholemeal bread                       50 · sans_amount   50 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     carrot                                45 · sans_amount   45 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     kidney beans                          45 · sans_amount   45 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     banana                                43 · sans_amount   43 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     peanut butter                         41 · sans_amount   41 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     oil                                   41 · sans_amount   41 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     broccoli                              41 · sans_amount   41 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     spinach                               40 · sans_amount   40 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     basmati rice                          40 · sans_amount   40 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     apple                                 38 · sans_amount   38 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     carrots                               37 · sans_amount   37 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     lettuce                               36 · sans_amount   36 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     tomato                                35 · sans_amount   35 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     berries                               34 · sans_amount   34 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     salad leaves                          33 · sans_amount   33 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     soy sauce                             33 · sans_amount   33 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     garlic powder                         33 · sans_amount   33 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     turkey mince                          33 · sans_amount   33 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     roast chicken thighs                  30 · sans_amount   30 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     honey                                 29 · sans_amount   29 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     courgettes                            28 · sans_amount   22 · sans_unit   0 · unit_sans_poids    0 · state_manquant    6
+     cooked rice                           28 · sans_amount   28 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     tomatoes                              27 · sans_amount   27 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     chicken breast                        26 · sans_amount   26 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     chopped tomatoes                      26 · sans_amount   26 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     plain yogurt                          26 · sans_amount   26 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     mixed salad leaves                    25 · sans_amount   25 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     courgette                             25 · sans_amount   25 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+     tinned chopped tomatoes               23 · sans_amount   23 · sans_unit   0 · unit_sans_poids    0 · state_manquant    0
+
+── L-1 · JOURNÉES CALCULABLES — tout le corpus, puis les plans RÉCENTS ────
+   « récents » = created_at >= 2026-08-12 (la fenêtre de la fiche)
+     foyer  tout       93 /  332 = 28.0 %
+     foyer  récents    93 /  332 = 28.0 %
+     solo   tout       43 /  318 = 13.5 %
+     solo   récents    43 /  141 = 30.5 %
+
+── L-1 · JOURNÉES CALCULABLES **PAR GÉNÉRATION DE PROMPT** ───────────────
+   ⛔ C'est cette coupe, et elle seule, qui sépare le gain d'un lot du
+      renouvellement du corpus.
+     foyer  (aucun prompt_version)                                                          3 /   25 = 12.0 %
+     foyer  meal.en.v10_same_day+household.v12_whose_dish_is_it                             0 /    7 = 0.0 %
+     foyer  meal.en.v11_weighed_or_counted+household.v14_weigh_once_into_boxes              4 /    6 = 66.7 %
+     foyer  meal.en.v11_weighed_or_counted+household.v15_one_box_each_and_a_number          3 /   11 = 27.3 %
+     foyer  meal.en.v12_a_dish_has_a_name+household.v16_this_kitchen_and_a_meal_out         1 /    9 = 11.1 %
+     foyer  meal.en.v13_what_they_can_actually_do+household.v17_what_each_mouth_already_has    6 /   12 = 50.0 %
+     foyer  meal.en.v14_what_outranks_what+household.v17_what_each_mouth_already_has       13 /   34 = 38.2 %
+     foyer  meal.en.v15_the_plan_never_names_it+household.v17_what_each_mouth_already_has   31 /   53 = 58.5 %
+     foyer  meal.en.v16_the_model_declares_the_group+household.v19_a_why_names_no_ones_rule    0 /    1 = 0.0 %
+     foyer  meal.en.v18_one_box_per_group+household.v21_one_box_per_group                   0 /   13 = 0.0 %
+     foyer  meal.en.v8_distinct_health_direction+household.v2_presence                      3 /   14 = 21.4 %
+     foyer  meal.en.v9_cooking_shape+household.v11_dietary_regime_at_the_table              0 /    7 = 0.0 %
+     foyer  meal.en.v9_cooking_shape+household.v3_merge                                     8 /   20 = 40.0 %
+     foyer  meal.en.v9_cooking_shape+household.v4_merge_budget                              2 /   15 = 13.3 %
+     foyer  meal.en.v9_cooking_shape+household.v5_unmerge                                   2 /   26 = 7.7 %
+     foyer  meal.en.v9_cooking_shape+household.v6_voices                                    7 /   37 = 18.9 %
+     foyer  meal.en.v9_cooking_shape+household.v7_merge_anchor                              1 /    3 = 33.3 %
+     foyer  meal.en.v9_cooking_shape+household.v8_plan_gaps                                 8 /   15 = 53.3 %
+     foyer  meal.en.v9_cooking_shape+household.v9_merge_dedicated_per_meal                  1 /   24 = 4.2 %
+     solo   (aucun prompt_version)                                                         37 /  110 = 33.6 %
+     solo   meal.en.v1_doctrine                                                             0 /   24 = 0.0 %
+     solo   meal.en.v12_a_dish_has_a_name                                                   5 /    6 = 83.3 %
+     solo   meal.en.v13_what_they_can_actually_do                                           0 /    9 = 0.0 %
+     solo   meal.en.v14_what_outranks_what                                                  1 /    3 = 33.3 %
+     solo   meal.en.v2_batch                                                                0 /   61 = 0.0 %
+     solo   meal.en.v3_preparations                                                         0 /   91 = 0.0 %
+     solo   meal.en.v9_cooking_shape                                                        0 /   14 = 0.0 %
+
+═══════════════════════════════════════════════════════════════════════════
+FIN
+═══════════════════════════════════════════════════════════════════════════

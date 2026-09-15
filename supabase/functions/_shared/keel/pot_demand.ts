@@ -119,9 +119,15 @@ export function unmetDemand(
    * petit-déjeuner mangé à table, sans boîte pour personne, n'est la dette
    * d'aucun bac (mesuré sur FC4 : la cible de journée faisait lire 18/18
    * journées sous le besoin là où les bacs étaient à 85–92 % de leurs moments).
-   * Optionnel : sans lui, ces journées restent `not_anchored`, comme hier.
+   * ⛔ REQUIS DEPUIS LE 2026-09-12 (étape C5, `Z2` de `NON-BRANCHE.md`), et
+   * plus `= new Map()`. Le défaut faisait de « aucune journée de bac commun
+   * n'est estimable » la réponse SILENCIEUSE de tout appelant qui l'oublie —
+   * exactement la cicatrice `optional-gate-params-are-disarmed-gates`, et le
+   * jumeau de la note écrite en face pour `potShrink`. Passer `new Map()`
+   * reste permis, et deux cas du banc l'exercent: la différence est qu'on le
+   * fait EXPRÈS, à la vue du compilateur.
    */
-  tubServed: ReadonlyMap<string, { servedKcal: number | null; wantedKcal: number }> = new Map(),
+  tubServed: ReadonlyMap<string, { servedKcal: number | null; wantedKcal: number }>,
 ): UnmetDemand[] {
   const out: UnmetDemand[] = [];
   for (const day of days) {

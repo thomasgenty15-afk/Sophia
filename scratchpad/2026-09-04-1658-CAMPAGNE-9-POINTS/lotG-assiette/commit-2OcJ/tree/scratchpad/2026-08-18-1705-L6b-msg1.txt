@@ -1,0 +1,42 @@
+la tete de l'etape `table`: avec quoi on cuisine, puis qui est la le midi
+
+Deux cartes etaient ecrites et montees NULLE PART: `KitchenEquipmentCard`
+(L2-A, commitee ce matin) et `WorkLunchCard` (L3-A, commitee a 15h58). Ce
+composant est le porteur des deux, et il impose leur ordre.
+
+L'ordre n'est pas cosmetique: on demande AVEC QUOI on cuisine avant de demander
+QUAND, sinon on planifie des cuissons impossibles. Il est mesure sur le HTML
+RENDU (`indexOf(four) < indexOf(dejeuner)`), pas sur la lecture du fichier: un
+ordre qui ne tient que par l'oeil se defait au premier deplacement de bloc.
+
+Pourquoi un composant neuf plutot qu'un bloc dans `SetupPage`: brancher les deux
+cartes demande un etat de lecture, un etat d'ecriture et un rafraichissement,
+dans un fichier de 3 800 lignes que trois lanes se partagent aujourd'hui. Tout
+ce qui pouvait en sortir en est sorti.
+
+LE RAFRAICHISSEMENT APRES ECRITURE EST UNE GARDE, PAS UN CONFORT. La porte SQL
+`keel_household_set_member_work_lunch` re-applique son pre-remplissage a CHAQUE
+ecriture, meme identique (mesure par L3-B): elle retire puis reecrit les cinq
+midis « dehors ». Une ecriture identique n'est donc pas un no-op, elle
+RESSUSCITE le midi qu'on venait de decocher a la main dans la grille. La carte
+s'en garde en comparant a ce qui est ENREGISTRE, et « enregistre » ne redevient
+vrai que si on relit.
+
+`commitWorkLunch` vit dans son propre `.ts` pour deux raisons qui disent la meme
+chose: `renderToStaticMarkup` ne joue aucun effet et ne clique sur rien, donc
+une fermeture posee dans le JSX n'est atteignable par aucun test de ce depot;
+et `react-refresh/only-export-components` refuse au commit qu'un `.tsx` exporte
+autre chose qu'un composant. L'ordre `save -> reread -> onSaved` est mesure, et
+le refus ne relit RIEN: `not_adult` n'a rien change en base, et un motif remplace
+par un re-affichage muet est un bouton mort.
+
+AUCUNE ECRITURE AU MONTAGE: le seul `useEffect` du fichier LIT. Une `Map` vide
+et `null` ne se confondent pas — vide veut dire « lu, personne n'a repondu »,
+`null` veut dire « pas encore lu » —, et une lecture ratee reste `null` au lieu
+de retomber sur vide, sinon le premier clic ecrirait par-dessus la reponse de
+quelqu'un.
+
+Ce composant n'est encore monte nulle part: le cablage dans `SetupPage` suit,
+dans un commit separe, parce que ce fichier porte le travail d'une lane externe.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>

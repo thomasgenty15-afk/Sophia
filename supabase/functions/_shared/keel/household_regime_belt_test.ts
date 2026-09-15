@@ -256,6 +256,8 @@ Deno.test("CEINTURE — personne n'a déclaré: rien ne bouge, et le compteur le
     groups_declared: 0,
     groups_valid: 0,
     groups_refused: 0,
+    // ⟳ 2026-09-13 — aucune ligne ne porte de `ref`, donc rien à réconcilier.
+    groups_conflicting: 0,
     group_excluded: 0,
     group_plant_only: 0,
     group_undecided: 0,
@@ -623,6 +625,7 @@ function member(memberId: string, displayName: string): PortionMember {
     habits: [],
     habitNote: null,
     requiredDensity: null,
+    proteinBrief: null,
   };
 }
 
@@ -710,7 +713,9 @@ Deno.test("PROMPT — sans plat dédié, le bloc de régime est byte-identique",
     heldBy: ["Theodule"],
     freeNames: [],
     divergingNames: [],
-  });
+                                     dedicatedSectionSent: false,
+                                     boxChannelOpen: true,
+                                   });
   assertEquals(block.includes("never none"), false);
   assertEquals(block.includes("take no box"), false);
 });
@@ -725,7 +730,9 @@ Deno.test("PROMPT — sous plat dédié, l'exception est nommée LITTÉRALEMENT"
     heldBy: ["Theodule"],
     freeNames: [],
     divergingNames: ["Aurele", "Marceline", "Solveig"],
-  });
+                                     dedicatedSectionSent: true,
+                                     boxChannelOpen: true,
+                                   });
   assert(block.includes("Theodule take no box and no share"), block);
   // L'ÉCHAPPATOIRE, MOT POUR MOT — « sois cohérent » se fait satisfaire par une
   // paraphrase; la formule exacte du brief des boîtes, non.
@@ -741,7 +748,9 @@ Deno.test("PROMPT — aucun régime déclaré: pas un octet", () => {
       heldBy: ["Theodule"],
       freeNames: [],
       divergingNames: ["Aurele"],
-    }),
+                         dedicatedSectionSent: true,
+                         boxChannelOpen: true,
+                       }),
     "",
   );
 });

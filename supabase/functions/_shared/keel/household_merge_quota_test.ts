@@ -194,8 +194,10 @@ Deno.test("AUCUNE PORTE DE SORTIE ENTRE LA RÉCLAMATION ET LA DÉPENSE", async (
   // Le foyer perd des fusions sans rien recevoir, et personne ne peut le voir
   // — le compteur ne dit pas ce qu'il a payé.
   //
-  // La SEULE sortie autorisée entre les deux est le refus du plafond lui-même
-  // (la course perdue), et elle ne coûte rien puisqu'elle n'a rien réclamé.
+  // Deux sorties sont autorisées: le refus du plafond lui-même (la course
+  // perdue), puis l'adoption d'un brouillon. Cette dernière est structurellement
+  // exclusive de la fusion: `adoptingDraft` exige `operation === "compose"`,
+  // tandis que `merge` n'existe que pour `operation === "merge"`.
   const src = await source("generate-household-meal-v1/index.ts");
   const claim = src.indexOf("keel_household_claim_merge_quota");
   const model = src.indexOf("generateWithGemini(");
@@ -204,15 +206,23 @@ Deno.test("AUCUNE PORTE DE SORTIE ENTRE LA RÉCLAMATION ET LA DÉPENSE", async (
   const exits = between.split("return jsonResponse(").length - 1;
   assertEquals(
     exits,
-    1,
+    2,
     `il y a ${exits} sorties entre la réclamation et l'appel modèle, au lieu ` +
-      `d'une seule (le refus du plafond). Chaque sortie de plus consomme une ` +
+      `des deux admises (plafond + adoption exclusive). Chaque sortie de plus consomme une ` +
       `fusion et ne rend rien.`,
   );
   assert(
     between.includes(MERGE_QUOTA_EXHAUSTED),
-    "la seule sortie entre la réclamation et le modèle n'est plus le refus du " +
-      "plafond: elle consomme une fusion sans rien rendre.",
+    "le refus du plafond a disparu de la fenêtre contrôlée.",
+  );
+  assert(
+    between.includes("if (adoptingDraft)"),
+    "la seconde sortie n'est plus l'adoption explicitement gardée.",
+  );
+  assert(
+    src.includes('const adoptingDraft = operation === "compose"') &&
+      src.includes('if (operation === "merge")'),
+    "l'exclusion structurelle adoption/fusion a disparu: l'adoption pourrait consommer le quota.",
   );
 });
 

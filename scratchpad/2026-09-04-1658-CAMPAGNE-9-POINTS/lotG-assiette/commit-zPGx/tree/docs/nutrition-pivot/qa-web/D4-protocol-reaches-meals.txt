@@ -1,0 +1,95 @@
+coach     = 3fdf00e3-f736-4097-8b4a-f523af150d5b (Marlow)
+protocole = 0493a5d2-2094-4245-8603-0266a831b3e2
+amara     = fat_loss · nina = health
+
+══════════════════════════════════════════════════════════════════════════════
+▌ 1. LE MAPPING ARRIVE-T-IL DANS LE PROMPT ?
+══════════════════════════════════════════════════════════════════════════════
+keel.protocol.mapping {
+  coach_id: "3fdf00e3-f736-4097-8b4a-f523af150d5b",
+  protocol_id: "0493a5d2-2094-4245-8603-0266a831b3e2",
+  variant: "fat_loss",
+  rules_total: 6,
+  rules_kept: 6
+}
+keel.protocol.mapping {
+  coach_id: "3fdf00e3-f736-4097-8b4a-f523af150d5b",
+  protocol_id: "0493a5d2-2094-4245-8603-0266a831b3e2",
+  variant: "health",
+  rules_total: 6,
+  rules_kept: 5
+}
+
+--- BLOC SERVI À AMARA (fat_loss) ---
+== MARLOW'S FOOD MAPPING — WHAT HE BUILDS PLATES WITH ==
+
+This is this coach's METHOD, not a medical restriction. The student's hard constraints arrive separately and always win over anything here.
+
+-- REACH FOR THESE FIRST --
+- eggs — build with it, at least 1 portion a day
+- green volume — build with it, at least 1 portion a day (volume on the plate)
+
+-- HE STEERS AWAY FROM THESE — do not build a meal around one --
+- refined_grain — he steers away from it; swap it out when you can
+
+-- HE DOES NOT USE THESE — never put one in a meal you propose --
+- fried_food — he does not build with it at all
+- sweetened_beverage — he does not build with it at all
+
+-- HIS RULES ON FREQUENCY AND TIMING --
+- lean_protein — at every meal (the anchor)
+  ✅ le mapping est chargé et compilé pour l'élève — loaded, 6 règles
+  ✅ le MOT DU COACH porte le titre, pas le slug — green volume
+  ✅ le « pourquoi » du coach voyage avec la règle — le rationale permet d'expliquer au lieu d'asséner
+  ✅ les trois postures sont rendues séparément — encouragé / exclu / temporel
+
+══════════════════════════════════════════════════════════════════════════════
+▌ 2. LA PORTÉE PAR OBJECTIF MORD-ELLE ICI AUSSI ?
+══════════════════════════════════════════════════════════════════════════════
+  ✅ la règle ciblée fat_loss atteint amara — amara=true
+  ✅ et ne franchit PAS la frontière vers nina (health) — nina=false
+  ✅ le noyau du mapping atteint les deux — encouragés, exclus et règle temporelle communs
+
+══════════════════════════════════════════════════════════════════════════════
+▌ 3. LE MODÈLE S'EN SERT-IL ? — un vrai plat, généré
+══════════════════════════════════════════════════════════════════════════════
+
+[amara/fat_loss] HTTP 200 en 8594 ms
+  · Spinach feta omelet with tomatoes
+    eggs, baby spinach, tomatoes, feta, olive oil, salt, black pepper
+  · Chicken and broccoli rice bowl
+    chicken breast, broccoli, brown rice, soy sauce, garlic, olive oil, salt, black pepper
+  · Salmon salad with eggs
+    salmon fillet, eggs, mixed salad leaves, cucumber, cherry tomatoes, olive oil, lemon, salt, black pepper
+  · Turkey bean chili with greens
+    lean turkey mince, tinned kidney beans, tinned chopped tomatoes, onion, garlic, spinach, chili powder, cumin, olive oil, salt, black pepper
+
+[nina/health] HTTP 200 en 7159 ms
+  · Spinach mushroom omelet with toast
+    eggs, mushrooms, spinach, wholegrain bread, olive oil, salt, black pepper
+  · Chicken quinoa salad bowl
+    chicken breast, quinoa, mixed greens, cucumber, cherry tomatoes, lemon, olive oil, salt, black pepper
+  · Salmon with broccoli and rice
+    salmon fillet, broccoli, rice, olive oil, garlic, salt, black pepper
+  · Greek yogurt with boiled egg and cucumber
+    Greek yogurt, egg, cucumber, salt, black pepper
+
+  ✅ les deux générations ont RENDU des plats — des plats à examiner
+  ✅ aucun plat ne contient un groupe EXCLU par le coach — fried_food / sweetened_beverage absents des deux
+  ✅ les groupes ENCOURAGÉS se retrouvent dans les plats — amara=true nina=true
+
+══════════════════════════════════════════════════════════════════════════════
+▌ RÉSULTAT
+══════════════════════════════════════════════════════════════════════════════
+✅ le mapping est chargé et compilé pour l'élève
+✅ le MOT DU COACH porte le titre, pas le slug
+✅ le « pourquoi » du coach voyage avec la règle
+✅ les trois postures sont rendues séparément
+✅ la règle ciblée fat_loss atteint amara
+✅ et ne franchit PAS la frontière vers nina (health)
+✅ le noyau du mapping atteint les deux
+✅ les deux générations ont RENDU des plats
+✅ aucun plat ne contient un groupe EXCLU par le coach
+✅ les groupes ENCOURAGÉS se retrouvent dans les plats
+
+10/10 verts

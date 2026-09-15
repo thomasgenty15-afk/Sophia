@@ -1,0 +1,776 @@
+{
+    "scope": "several_days",
+    "dishes": [
+        {
+            "day": "wed",
+            "why": "A light but filling lunch that combines plant-based protein with vibrant, loud vegetables.",
+            "name": "Zesty Quinoa and Lentil Glow",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_lentils_shared",
+                    "servings": 1,
+                    "preparation_id": "prep_lentils"
+                },
+                {
+                    "box_id": "box_quinoa_shared",
+                    "servings": 1,
+                    "preparation_id": "prep_quinoa"
+                },
+                {
+                    "box_id": "box_veg_shared",
+                    "servings": 1,
+                    "preparation_id": "prep_veg"
+                }
+            ],
+            "title": "Red lentil stew with quinoa and rainbow vegetables",
+            "method": "Reheat the lentil and quinoa portions in a pan with a splash of water. Stir in the rainbow vegetables and fresh spinach until wilted. Finish with a squeeze of lemon.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "fresh spinach",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 30,
+                    "quantity": "30 g",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon juice",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable",
+                "name_the_plate_out_loud"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "A high-protein, gluten-free meal designed specifically for Roxane's midday energy needs.",
+            "name": "Savory Chicken and Rainbow Medley",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_chicken_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken"
+                },
+                {
+                    "box_id": "box_quinoa_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_quinoa"
+                },
+                {
+                    "box_id": "box_veg_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_veg"
+                }
+            ],
+            "title": "Pan-seared chicken with quinoa and sautéed vegetables",
+            "method": "Warm the chicken, quinoa, and vegetables in a pan. Toss with fresh spinach until the greens are just soft.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 8
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "fresh spinach",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 30,
+                    "quantity": "30 g",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "A comforting, warm vegan dinner that satisfies the need for something hearty after a long day.",
+            "name": "Golden Lentil Comfort Pot",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_lentils_shared",
+                    "servings": 1,
+                    "preparation_id": "prep_lentils"
+                },
+                {
+                    "box_id": "box_quinoa_shared",
+                    "servings": 1,
+                    "preparation_id": "prep_quinoa"
+                },
+                {
+                    "box_id": "box_veg_shared",
+                    "servings": 1,
+                    "preparation_id": "prep_veg"
+                }
+            ],
+            "title": "Warm spiced lentils with quinoa and broccoli",
+            "method": "Reheat the lentil stew and quinoa together until piping hot. Stir through the rainbow vegetables and serve warm.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "olive oil",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "A warm, structured meal for Roxane that prioritises her vegetable intake first.",
+            "name": "Thyme Chicken and Garden Quinoa",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_chicken_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken"
+                },
+                {
+                    "box_id": "box_quinoa_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_quinoa"
+                },
+                {
+                    "box_id": "box_veg_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_veg"
+                }
+            ],
+            "title": "Herbed chicken with quinoa and bright vegetables",
+            "method": "Heat the chicken and quinoa portions in a pan. Add the vegetables and a splash of water to keep it moist while warming.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "black pepper",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a pinch",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "A simple, reheating-friendly lunch that stays moist thanks to the coconut lentil base.",
+            "name": "Spiced Lentil and Quinoa Warmth",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_lentils_shared",
+                    "servings": 1,
+                    "preparation_id": "prep_lentils"
+                },
+                {
+                    "box_id": "box_quinoa_shared",
+                    "servings": 1,
+                    "preparation_id": "prep_quinoa"
+                },
+                {
+                    "box_id": "box_veg_shared",
+                    "servings": 1,
+                    "preparation_id": "prep_veg"
+                }
+            ],
+            "title": "Coconut lentils over quinoa with rainbow veg",
+            "method": "Combine the lentil, quinoa, and vegetable portions in a bowl and microwave or pan-heat until warm. Top with fresh coriander.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 6
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "fresh coriander",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a few sprigs",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "A quick, warm lunch for Roxane that avoids gluten and fits her portioning needs.",
+            "name": "Chicken and Quinoa Garden Bowl",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_chicken_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken"
+                },
+                {
+                    "box_id": "box_quinoa_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_quinoa"
+                },
+                {
+                    "box_id": "box_veg_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_veg"
+                }
+            ],
+            "title": "Lemon chicken with quinoa and sautéed broccoli",
+            "method": "Warm the chicken and quinoa. Toss with the vegetables and a dash of lemon to brighten the flavours for lunch.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 6
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "lemon juice",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "Osric insists on a warm element for dinner; pan-warming the grains provides texture and heat.",
+            "name": "Warm Sunset Grain Salad",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_lentils_shared",
+                    "servings": 1,
+                    "preparation_id": "prep_lentils"
+                },
+                {
+                    "box_id": "box_quinoa_shared",
+                    "servings": 1,
+                    "preparation_id": "prep_quinoa"
+                },
+                {
+                    "box_id": "box_veg_shared",
+                    "servings": 1,
+                    "preparation_id": "prep_veg"
+                }
+            ],
+            "title": "Tossed lentils, quinoa and peppers",
+            "method": "Pan-fry the quinoa and vegetables for 2 minutes to get them hot, then stir in the lentils to create a thick, warm salad.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "black pepper",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a pinch",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "A warm, comforting dinner for Roxane that is entirely gluten-free.",
+            "name": "Herbed Chicken and Quinoa Sauté",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_chicken_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken"
+                },
+                {
+                    "box_id": "box_quinoa_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_quinoa"
+                },
+                {
+                    "box_id": "box_veg_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_veg"
+                }
+            ],
+            "title": "Warm chicken and quinoa with rainbow vegetables",
+            "method": "Heat a teaspoon of oil in a pan. Sauté the chicken, quinoa, and vegetables together until hot and slightly toasted.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "olive oil",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        }
+    ],
+    "plan_id": "12bff160-8636-4463-bd66-e2dbedd5cd21",
+    "servings": 4,
+    "starts_on": "2026-08-19",
+    "created_at": "2026-08-19T04:00:16.160026+00:00",
+    "preparations": [
+        {
+            "id": "prep_lentils",
+            "boxes": [
+                {
+                    "id": "box_lentils_shared",
+                    "grams": 150,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                }
+            ],
+            "title": "Spiced Coconut Red Lentils",
+            "method": "Rinse lentils. Combine with water, coconut milk, and spices in a large pot. Bring to a boil, then simmer for 20 minutes until soft and thick.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "red lentils",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 400,
+                    "quantity": "400 g",
+                    "grams_raw": 400,
+                    "in_pantry": false
+                },
+                {
+                    "term": "coconut milk",
+                    "unit": "ml",
+                    "state": "raw",
+                    "amount": 400,
+                    "quantity": "400 ml",
+                    "grams_raw": 400,
+                    "in_pantry": false
+                },
+                {
+                    "term": "turmeric",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "ground cumin",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": "raw",
+                    "amount": 600,
+                    "quantity": "600 ml",
+                    "grams_raw": 600,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 8,
+            "total_minutes": 25,
+            "active_minutes": 5
+        },
+        {
+            "id": "prep_chicken",
+            "boxes": [
+                {
+                    "id": "box_chicken_roxane",
+                    "grams": 79,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_chicken_ivar",
+                    "grams": 145,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                }
+            ],
+            "title": "Pan-Fried Thyme Chicken Strips",
+            "method": "Slice chicken into strips. Heat oil in a large pan over medium-high heat. Season with thyme and salt. Fry chicken in batches until golden and cooked through.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "chicken thighs, boneless",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 900,
+                    "quantity": "900 g",
+                    "grams_raw": 900,
+                    "in_pantry": false
+                },
+                {
+                    "term": "dried thyme",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tbsp",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 6,
+            "total_minutes": 25,
+            "active_minutes": 15
+        },
+        {
+            "id": "prep_quinoa",
+            "boxes": [
+                {
+                    "id": "box_quinoa_shared",
+                    "grams": 130,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                },
+                {
+                    "id": "box_quinoa_roxane",
+                    "grams": 102,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_quinoa_ivar",
+                    "grams": 189,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                }
+            ],
+            "title": "Steamed Herbed Quinoa",
+            "method": "Rinse quinoa thoroughly. Bring water to a boil in a pot, add quinoa, cover and simmer for 15 minutes. Remove from heat and fluff with a fork.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "quinoa",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 600,
+                    "quantity": "600 g",
+                    "grams_raw": 600,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": "raw",
+                    "amount": 1200,
+                    "quantity": "1.2 l",
+                    "grams_raw": 1200,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 14,
+            "total_minutes": 20,
+            "active_minutes": 5
+        },
+        {
+            "id": "prep_veg",
+            "boxes": [
+                {
+                    "id": "box_veg_shared",
+                    "grams": 100,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                },
+                {
+                    "id": "box_veg_roxane",
+                    "grams": 79,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_veg_ivar",
+                    "grams": 145,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                }
+            ],
+            "title": "Sautéed Rainbow Vegetables",
+            "method": "Chop broccoli into florets, peppers into strips, and courgettes into half-moons. Heat oil in a large pan and sauté all vegetables until tender-crisp.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "broccoli heads",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 unit",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "bell peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 unit",
+                    "grams_raw": 600,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgettes",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 3,
+                    "quantity": "3 unit",
+                    "grams_raw": 600,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tbsp",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 14,
+            "total_minutes": 25,
+            "active_minutes": 15
+        }
+    ],
+    "duration_days": 2,
+    "shopping_list": [
+        {
+            "term": "red lentils",
+            "aisle": "grains",
+            "quantity": "500 g"
+        },
+        {
+            "term": "quinoa",
+            "aisle": "grains",
+            "quantity": "600 g"
+        },
+        {
+            "term": "chicken thighs, boneless",
+            "aisle": "protein",
+            "quantity": "900 g"
+        },
+        {
+            "term": "coconut milk",
+            "aisle": "pantry",
+            "quantity": "400 ml"
+        },
+        {
+            "term": "broccoli heads",
+            "aisle": "produce",
+            "quantity": "2"
+        },
+        {
+            "term": "bell peppers",
+            "aisle": "produce",
+            "quantity": "4"
+        },
+        {
+            "term": "courgettes",
+            "aisle": "produce",
+            "quantity": "3"
+        },
+        {
+            "term": "fresh spinach",
+            "aisle": "produce",
+            "quantity": "200 g"
+        },
+        {
+            "term": "lemons",
+            "aisle": "produce",
+            "quantity": "2"
+        },
+        {
+            "term": "olive oil",
+            "aisle": "pantry",
+            "quantity": "100 ml"
+        },
+        {
+            "term": "dried thyme",
+            "aisle": "pantry",
+            "quantity": "1 jar"
+        },
+        {
+            "term": "turmeric",
+            "aisle": "pantry",
+            "quantity": "1 jar"
+        },
+        {
+            "term": "ground cumin",
+            "aisle": "pantry",
+            "quantity": "1 jar"
+        }
+    ],
+    "member_portions": [
+        {
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "display_name": "Roxane",
+            "portion_note": "Serve the sautéed vegetables first, followed by the chicken and quinoa. — Pan-Fried Thyme Chicken Strips 79 g · Steamed Herbed Quinoa 102 g · Sautéed Rainbow Vegetables 79 g",
+            "preparation_shares": [
+                {
+                    "note": "One chicken box",
+                    "preparation_id": "prep_chicken"
+                },
+                {
+                    "note": "One quinoa box",
+                    "preparation_id": "prep_quinoa"
+                },
+                {
+                    "note": "One vegetable box",
+                    "preparation_id": "prep_veg"
+                }
+            ]
+        },
+        {
+            "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+            "display_name": "Zoe",
+            "portion_note": "Mix all components together on the plate. — Spiced Coconut Red Lentils 150 g · Steamed Herbed Quinoa 130 g · Sautéed Rainbow Vegetables 100 g",
+            "preparation_shares": [
+                {
+                    "note": "One lentil box",
+                    "preparation_id": "prep_lentils"
+                },
+                {
+                    "note": "One quinoa box",
+                    "preparation_id": "prep_quinoa"
+                },
+                {
+                    "note": "One vegetable box",
+                    "preparation_id": "prep_veg"
+                }
+            ]
+        },
+        {
+            "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+            "display_name": "Lubna",
+            "portion_note": "Mix all components together on the plate. — Spiced Coconut Red Lentils 150 g · Steamed Herbed Quinoa 130 g · Sautéed Rainbow Vegetables 100 g",
+            "preparation_shares": [
+                {
+                    "note": "One lentil box",
+                    "preparation_id": "prep_lentils"
+                },
+                {
+                    "note": "One quinoa box",
+                    "preparation_id": "prep_quinoa"
+                },
+                {
+                    "note": "One vegetable box",
+                    "preparation_id": "prep_veg"
+                }
+            ]
+        },
+        {
+            "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+            "display_name": "Ivar",
+            "portion_note": "Serve the chicken and quinoa first, with the vegetables on the side. — Pan-Fried Thyme Chicken Strips 145 g · Steamed Herbed Quinoa 189 g · Sautéed Rainbow Vegetables 145 g",
+            "preparation_shares": [
+                {
+                    "note": "One chicken box",
+                    "preparation_id": "prep_chicken"
+                },
+                {
+                    "note": "One quinoa box",
+                    "preparation_id": "prep_quinoa"
+                },
+                {
+                    "note": "One vegetable box",
+                    "preparation_id": "prep_veg"
+                }
+            ]
+        }
+    ],
+    "cooking_sessions": [
+        {
+            "day": "wed",
+            "run_through": "Start the quinoa and lentils simmering in separate pots. While they cook, chop the chicken and all vegetables. Sauté the vegetables in a large pan, remove, then fry the chicken strips in the same pan. Once everything is done, portion into the named boxes immediately.",
+            "total_minutes": 50,
+            "preparation_ids": [
+                "prep_lentils",
+                "prep_quinoa",
+                "prep_veg",
+                "prep_chicken"
+            ]
+        }
+    ]
+}

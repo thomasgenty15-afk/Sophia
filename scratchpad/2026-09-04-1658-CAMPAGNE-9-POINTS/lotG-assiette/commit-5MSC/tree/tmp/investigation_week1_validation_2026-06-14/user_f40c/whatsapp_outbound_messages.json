@@ -1,0 +1,2225 @@
+{
+  "ok": true,
+  "status": 200,
+  "count": "0-45/46",
+  "body": [
+    {
+      "id": "294b2943-e173-40e2-9fb1-d1d7a0046ac7",
+      "created_at": "2026-06-14T21:51:00.594071+00:00",
+      "updated_at": "2026-06-15T07:15:15.986+00:00",
+      "request_id": "336b43a1-bae5-4043-b28d-afa493e96c94",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzUxRkI2RDJEMzE0RTQ5QkQwQkYyRDFBNEU0N0U3QQA=",
+      "message_type": "text",
+      "content_preview": "Super ! Je termine de synchroniser ton plan personnalisé. Je te fais signe dès que tout est prêt pour qu'on commence, ça ne devrait pas être long.",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Super ! Je termine de synchroniser ton plan personnalisé. Je te fais signe dès que tout est prêt pour qu'on commence, ça ne devrait pas être long."
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBIyMEE1MUI2QjhGODRDNTMzQTEA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-14T21:51:01.167+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_onboarding_plan_wait",
+        "flow_action": "plan_not_ready_wait",
+        "plan_status": "missing",
+        "reason_code": "whatsapp_onboarding_plan_not_ready",
+        "is_proactive": false,
+        "visible_task": "plan_wait",
+        "reducer_status": "owned",
+        "whatsapp_state": "awaiting_plan_finalization",
+        "selected_handler": "whatsapp_onboarding",
+        "next_whatsapp_state": "awaiting_plan_finalization",
+        "allow_track_progress_plan_item": false
+      }
+    },
+    {
+      "id": "6ffc4674-3d49-4160-9bca-acc794a1d0ea",
+      "created_at": "2026-06-15T18:45:58.849859+00:00",
+      "updated_at": "2026-06-15T18:46:46.804+00:00",
+      "request_id": "adfd0e61-fde6-41ea-8912-95e8fd4d7ffc",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzcyRTM4QUI2QjE1OTVFQUE2NTc0QkQ4MUU0M0Q4NwA=",
+      "message_type": "text",
+      "content_preview": "Génial ! Ton plan pour dégager du temps pour ton projet entrepreneurial est prêt. 🚀\n\nJuste une petite question pour la suite : tu préfères que je sois plutôt douce, directe, ou un mix des deux ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Génial ! Ton plan pour dégager du temps pour ton projet entrepreneurial est prêt. 🚀\n\nJuste une petite question pour la suite : tu préfères que je sois plutôt douce, directe, ou un mix des deux ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI1RkQ2QjdFNzlGODZFMTM4NkMA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-15T18:45:59.5+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_onboarding_plan_ready_resume_preferences",
+        "flow_action": "plan_ready_resume_preferences",
+        "plan_status": "active",
+        "reason_code": "whatsapp_onboarding_plan_ready_resume_preferences",
+        "is_proactive": false,
+        "visible_task": "plan_ready_resume_preferences",
+        "reducer_status": "owned",
+        "whatsapp_state": "awaiting_plan_finalization",
+        "selected_handler": "whatsapp_onboarding",
+        "next_whatsapp_state": "onboarding_pref_tone",
+        "allow_track_progress_plan_item": false
+      }
+    },
+    {
+      "id": "66b94ced-5368-4592-b90c-9ff2fae2305e",
+      "created_at": "2026-06-15T18:47:26.54267+00:00",
+      "updated_at": "2026-06-15T18:47:28.928+00:00",
+      "request_id": "02660769-2f25-435c-8607-c3dd624ac849",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQ0YzQzY3OTNEN0NCMjQ0QUM3OTA1NDI5NzFDMzhGQgA=",
+      "message_type": "text",
+      "content_preview": "C'est noté pour le ton direct, on part là-dessus !\n\nDernière chose : quand tu décroches de tes objectifs, comment tu veux que je te challenge ? Plutôt léger, équilibré, ou carrément direct ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "C'est noté pour le ton direct, on part là-dessus !\n\nDernière chose : quand tu décroches de tes objectifs, comment tu veux que je te challenge ? Plutôt léger, équilibré, ou carrément direct ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBJFQ0YxNkFDQjRGODU2NDY1NEUA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-15T18:47:27.07+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_onboarding_preference_saved_next_challenge",
+        "flow_action": "answer_tone",
+        "plan_status": "active",
+        "reason_code": "whatsapp_onboarding_preference_saved",
+        "is_proactive": false,
+        "visible_task": "preference_saved_next_challenge",
+        "reducer_status": "owned",
+        "whatsapp_state": "onboarding_pref_tone",
+        "selected_handler": "whatsapp_onboarding",
+        "next_whatsapp_state": "onboarding_pref_challenge",
+        "allow_track_progress_plan_item": false
+      }
+    },
+    {
+      "id": "9a27adfe-d623-4b9a-a4ae-f2ec47e4be8b",
+      "created_at": "2026-06-16T06:18:07.817182+00:00",
+      "updated_at": "2026-06-16T07:24:04.504+00:00",
+      "request_id": "9302220c-0f80-4332-a806-854ee462734f",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "text",
+      "content_preview": "Hey ! Bonne journée à toi ce matin 🙂  \nJ’ai bien noté que tu veux un ton plutôt direct.  \nTu préfères que je te challenge léger, équilibré, ou carrément direct ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Hey ! Bonne journée à toi ce matin 🙂  \nJ’ai bien noté que tu veux un ton plutôt direct.  \nTu préfères que je te challenge léger, équilibré, ou carrément direct ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI1NEMzMkRDQ0M1REExMjc4MTgA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-16T06:18:08.836+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": true,
+        "template_name": null,
+        "unit_cost_eur": null,
+        "used_template": false,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": null,
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "188e276a-3d5b-4d57-999d-9c75c56b0cbb",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "980ff487-9428-47fb-b91e-f246fd09c7e8",
+      "created_at": "2026-06-16T07:24:40.318556+00:00",
+      "updated_at": "2026-06-16T07:24:43.501+00:00",
+      "request_id": "45432fea-9299-4e93-92b3-5ce7b527b581",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzU2QUM2RUYxMTRDNjNFODQ3QjEwQ0NGMUQ0MDdDNQA=",
+      "message_type": "text",
+      "content_preview": "Hello :) merci, ça me va ! Direct, c’est notre mode du moment, je te réponds clairement et sans tourner autour. 🙂",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Hello :) merci, ça me va ! Direct, c’est notre mode du moment, je te réponds clairement et sans tourner autour. 🙂"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI4MzZCRkEzRDBFREVCOTE1QUYA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-16T07:24:41.112+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "dfbd62c7-a288-45de-ba58-715d7991a828",
+      "created_at": "2026-06-16T07:25:04.518461+00:00",
+      "updated_at": "2026-06-16T07:27:57.601+00:00",
+      "request_id": "52091611-9d88-4901-8369-4e5a1cf019c9",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQ0ZBMjdFQjk0ODQxRDUyRThENkQ2MDMzMjQzRTdENwA=",
+      "message_type": "text",
+      "content_preview": "Oh bravo, je suis trop contente pour toi ! 😄 10 minutes d’exercices + 15 minutes de méditation, c’est exactement le genre de combo qui remet le corps et la tête d’équerre.",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Oh bravo, je suis trop contente pour toi ! 😄 10 minutes d’exercices + 15 minutes de méditation, c’est exactement le genre de combo qui remet le corps et la tête d’équerre."
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI3RkIxQkVBNEMyODk3Nzc4N0QA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-16T07:25:05.282+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "dd586c57-1ab1-453e-8e2d-9e124b7d587b",
+      "created_at": "2026-06-16T07:28:58.245944+00:00",
+      "updated_at": "2026-06-16T07:29:01.5+00:00",
+      "request_id": "fe38eb0b-ded2-4598-83d1-da6b05725319",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQ0JCRkMyOTk1MjVGQUZFOTBEQkYyMjY1QjBERjg3MQA=",
+      "message_type": "text",
+      "content_preview": "Oh bravo, je suis trop contente pour toi 😄 Ça a l’air vraiment aligné: finir la journée sur un sujet qui te porte, c’est du carburant en plus, pas juste “du travail”.\n\nTu veux que je te renvoie juste un point sur ce qui a marché (histoire de le refaire facilement) ou tu préfères qu’on parle de ce que ça t’a apporté émotionnellement ? 🌿",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Oh bravo, je suis trop contente pour toi 😄 Ça a l’air vraiment aligné: finir la journée sur un sujet qui te porte, c’est du carburant en plus, pas juste “du travail”.\n\nTu veux que je te renvoie juste un point sur ce qui a marché (histoire de le refaire facilement) ou tu préfères qu’on parle de ce que ça t’a apporté émotionnellement ? 🌿"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI0NEM5MzJBRkU5NkIyN0EzNDUA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-16T07:28:59.474+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "d0aa5ba3-7107-467e-9a3b-533b73026444",
+      "created_at": "2026-06-16T07:29:08.798961+00:00",
+      "updated_at": "2026-06-16T07:29:11.369+00:00",
+      "request_id": "b6473adf-e97e-4c7d-9887-d8c4a6aadc82",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzY3QjcyNjExNjQ5QTMwOUFENTUwQzQwMDMxRDM2NgA=",
+      "message_type": "text",
+      "content_preview": "Je te comprends, et c’est très beau comme logique : le soir, tu transforms “du temps” en “du sens” 😊 Si tu sens que ça te nourrit, garde-le comme repère plutôt que comme “tâche”.",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Je te comprends, et c’est très beau comme logique : le soir, tu transforms “du temps” en “du sens” 😊 Si tu sens que ça te nourrit, garde-le comme repère plutôt que comme “tâche”."
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBIwMzE3MDVFMEI4NjQzMkM0NDgA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-16T07:29:09.463+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "3e50ef56-86bf-4a5f-b0d7-e26069bb2439",
+      "created_at": "2026-06-16T07:30:01.053666+00:00",
+      "updated_at": "2026-06-16T07:30:03.84+00:00",
+      "request_id": "2c7a0e24-9a72-4396-899e-20fda0e185ba",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzM1N0FFOUNDRjNDNzkwQUQyQ0FENEVFQkRGOTIwRQA=",
+      "message_type": "text",
+      "content_preview": "J’adore : tu as mis des mots justes. Le soir, transformer “du temps” en “du sens”, c’est une façon intelligente de reprendre la main sur ta journée 😊",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "J’adore : tu as mis des mots justes. Le soir, transformer “du temps” en “du sens”, c’est une façon intelligente de reprendre la main sur ta journée 😊"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "sent",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBJENUQwMDlGQTNBMDEwNzZCQ0IA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-16T07:30:03.313+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "e4db9c16-9d54-4f7e-b320-081b6344cb07",
+      "created_at": "2026-06-16T07:30:53.985055+00:00",
+      "updated_at": "2026-06-16T07:30:57.821+00:00",
+      "request_id": "643f0703-f072-467e-a307-b5cbebf6e00c",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQ0NBQ0MzRjZENkVCOEVGQzYzMjIxODBCREMxODMxQQA=",
+      "message_type": "text",
+      "content_preview": "Top. Si tu vises 1 h le soir après dîner au moins 3 fois/semaine, tu te mets une routine “répétable” et assez dense pour que ça devienne automatique. ✅🙂",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Top. Si tu vises 1 h le soir après dîner au moins 3 fois/semaine, tu te mets une routine “répétable” et assez dense pour que ça devienne automatique. ✅🙂"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI5Q0M5REUxODJERkU3Njg4MjQA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-16T07:30:54.68+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "3a1d9098-a97d-4137-9cfe-4aeffb36c5b6",
+      "created_at": "2026-06-16T07:30:58.653165+00:00",
+      "updated_at": "2026-06-16T07:31:01.557+00:00",
+      "request_id": "f80f52fa-f26f-4fb9-81ea-ace10a5b9c59",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzNGMzg5ODlFQjZCNEYwNkI1MjE3MTAwOTgwRTU0QgA=",
+      "message_type": "text",
+      "content_preview": "Parfait, on commence. 😊  \nTu veux qu’on démarre par quoi exactement : ton “du temps” le soir (et comment lui donner du sens), ou autre chose ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Parfait, on commence. 😊  \nTu veux qu’on démarre par quoi exactement : ton “du temps” le soir (et comment lui donner du sens), ou autre chose ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI2QzZFNzQ0N0RCRERERDBFRTcA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-16T07:30:59.625+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "b652bf2d-aeaf-47c7-8e3b-461e64b8e477",
+      "created_at": "2026-06-16T07:51:04.743726+00:00",
+      "updated_at": "2026-06-16T07:51:19.318+00:00",
+      "request_id": "ecc88fca-78a8-47bb-8239-0068b28f56af",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "text",
+      "content_preview": "Il te reste a valider les actions de ta semaine sur la plateforme 🙂\n\nTu les trouveras dans le niveau 2 du plan, tout en haut de la semaine actuelle.\nCa me permet de partir sur les bons jours et les bonnes actions avec toi ✅",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Il te reste a valider les actions de ta semaine sur la plateforme 🙂\n\nTu les trouveras dans le niveau 2 du plan, tout en haut de la semaine actuelle.\nCa me permet de partir sur les bons jours et les bonnes actions avec toi ✅"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBIwQTI0RDU4ODM2NTIwMkM4N0UA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-16T07:51:05.663+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "source": "scheduled_checkin",
+        "plan_id": "f46e7ce4-2ffb-43b7-b35a-34a724b59fb0",
+        "purpose": "onboarding_week1_validation_prompt",
+        "proactive": false,
+        "event_context": "onboarding_week1_validation_prompt_v1",
+        "in_24h_window": true,
+        "template_name": null,
+        "unit_cost_eur": null,
+        "used_template": false,
+        "week_start_date": "2026-06-15",
+        "require_opted_in": true,
+        "template_language": null,
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "7fa836b3-24e3-461e-8550-cf59dfa1b062",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "d4b938ec-7711-4ef8-9a48-dc821a1fab54",
+      "created_at": "2026-06-16T07:52:03.991318+00:00",
+      "updated_at": "2026-06-16T07:52:07.541+00:00",
+      "request_id": "9881e45b-0507-4e2a-a682-a333dc260a81",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzk3NTk5QTU4QUQ1NjhFRjVBQzA3QTkwQTk3NjA3MAA=",
+      "message_type": "text",
+      "content_preview": "Top. 🙂 À l’heure du dej, valide tes actions de la semaine dans le niveau 2 du plan, puis reviens me dire juste “c’est fait” ou “j’ai besoin d’aide sur l’une d’elles”.",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Top. 🙂 À l’heure du dej, valide tes actions de la semaine dans le niveau 2 du plan, puis reviens me dire juste “c’est fait” ou “j’ai besoin d’aide sur l’une d’elles”."
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI4OTg2NDJCNERFNEE0QUE3NEQA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-16T07:52:04.816+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "c1e4772e-a689-4bf0-bf15-f5f6a2f3039b",
+      "created_at": "2026-06-16T07:52:04.447794+00:00",
+      "updated_at": "2026-06-16T07:52:07.69+00:00",
+      "request_id": "6f97d577-408f-49f5-98ec-54029f2ef1bb",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzU3OTA3QjIxMjY1MUM4QjI5M0I3REYzM0MyNjJBMwA=",
+      "message_type": "text",
+      "content_preview": "Avec plaisir 😊 Trop contente que tu aies enchaîné 10 minutes d’exercices + 15 minutes de méditation tout à l’heure.",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Avec plaisir 😊 Trop contente que tu aies enchaîné 10 minutes d’exercices + 15 minutes de méditation tout à l’heure."
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBJCRTU4RDczMkVBNjExOEYyNjgA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-16T07:52:05.144+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "69599964-e7be-4875-be6a-c4539ee669b7",
+      "created_at": "2026-06-16T08:12:04.990929+00:00",
+      "updated_at": "2026-06-16T10:27:24.095+00:00",
+      "request_id": "094a1ee8-60f3-4a27-9b9a-a8b058d0f95f",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "text",
+      "content_preview": "Je n'ai pas vu de validation du planning sur ton espace, donc j'ai pris la liberte de valider ta premiere semaine.\n\nResume du planning :\n- Créer ton sas de décompression : mercredi\n- Bloquer tes deux créneaux dans l'agenda : lundi\n- Faire une session de travail focus d'une heure : lundi\n\nTu peux toujours le modifier dans ton espace si tu veux l'ajuster.",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Je n'ai pas vu de validation du planning sur ton espace, donc j'ai pris la liberte de valider ta premiere semaine.\n\nResume du planning :\n- Créer ton sas de décompression : mercredi\n- Bloquer tes deux créneaux dans l'agenda : lundi\n- Faire une session de travail focus d'une heure : lundi\n\nTu peux toujours le modifier dans ton espace si tu veux l'ajuster."
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBIxRTcwRUU2NDMxOEQ5MTZBREYA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-16T08:12:06.016+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "source": "scheduled_checkin",
+        "plan_id": "f46e7ce4-2ffb-43b7-b35a-34a724b59fb0",
+        "purpose": "onboarding_week1_auto_validation",
+        "proactive": false,
+        "event_context": "onboarding_week1_auto_validation_v1",
+        "in_24h_window": true,
+        "template_name": null,
+        "unit_cost_eur": null,
+        "used_template": false,
+        "week_start_date": "2026-06-15",
+        "require_opted_in": true,
+        "template_language": null,
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "dffa32d3-b6bf-4046-b931-a2cb6f9aeffc",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "61df2161-1f54-4f3e-9dd5-20dfa720a3ad",
+      "created_at": "2026-06-17T06:21:07.747313+00:00",
+      "updated_at": "2026-06-17T06:21:48.247+00:00",
+      "request_id": "7c65efd7-3566-41a7-b5ec-31facfa51cc1",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "text",
+      "content_preview": "Coucou ! Aujourd’hui, pense juste à te créer ton “sas de décompression” : un petit moment simple pour couper et te remettre dans de bonnes conditions pour ton projet.  \nMême 5–10 minutes, ça compte.  \nTu veux le faire plutôt en fin de journée ou à un autre moment ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Coucou ! Aujourd’hui, pense juste à te créer ton “sas de décompression” : un petit moment simple pour couper et te remettre dans de bonnes conditions pour ton projet.  \nMême 5–10 minutes, ça compte.  \nTu veux le faire plutôt en fin de journée ou à un autre moment ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBJEMkVFODM3NzM3QkU3QzJGQTkA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-17T06:21:08.891+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "action_morning_encouragement",
+        "event_context": "action_morning_encouragement_v2",
+        "in_24h_window": true,
+        "template_name": null,
+        "unit_cost_eur": null,
+        "used_template": false,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": null,
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "9bff5f2d-ab3c-4c5c-9ca0-b59d5cf4bbd0",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "49edb367-5bd0-4ccb-88c4-f4084c2b27ee",
+      "created_at": "2026-06-17T11:26:22.018045+00:00",
+      "updated_at": "2026-06-17T11:29:31.4+00:00",
+      "request_id": "d1d8eb2f-4231-43f6-9879-61a7a76a23ec",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQ0JGRkZGOTBFNzA2OUEyRjUzM0I2RTkxNjMzNEU5QwA=",
+      "message_type": "text",
+      "content_preview": "Je suis trop contente que ta fin de journée soit parfaite 🎉 Là, profite sans te mettre la pression, et laisse ton cerveau redescendre doucement.",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Je suis trop contente que ta fin de journée soit parfaite 🎉 Là, profite sans te mettre la pression, et laisse ton cerveau redescendre doucement."
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI4RTIyQjgwNjQ2MEU4NjE3MzYA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-17T11:26:23.27+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "5e335aaa-73c0-4c61-93ad-6efb2d0caabb",
+      "created_at": "2026-06-17T11:30:13.292443+00:00",
+      "updated_at": "2026-06-17T11:30:20.218+00:00",
+      "request_id": "a0995513-4b5b-46e3-971f-0c4dd2828c33",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzkyRTVCN0ZCMkM4NzlCOEQ2REI2RTM1QzE3OUQ5OQA=",
+      "message_type": "text",
+      "content_preview": "Trop bien, ça c’est une vraie façon de démarrer la journée 💪🩵 Footing + juste 10 min de nage, c’est efficace et ça donne une belle énergie “ça y est, je suis lancé”.\n\nOn garde ça en pause, ou on revient à ton plan ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Trop bien, ça c’est une vraie façon de démarrer la journée 💪🩵 Footing + juste 10 min de nage, c’est efficace et ça donne une belle énergie “ça y est, je suis lancé”.\n\nOn garde ça en pause, ou on revient à ton plan ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI3NDExN0NCRDk2NjE3NEIzQkQA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-17T11:30:13.974+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "11c5ae46-450e-4e7f-9ebb-f9f08aaef7c3",
+      "created_at": "2026-06-17T19:12:06.088593+00:00",
+      "updated_at": "2026-06-18T08:14:51.289+00:00",
+      "request_id": "aa04dc72-976f-4c5a-be6f-1ff8bc9db7f2",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "text",
+      "content_preview": "Hey 🙂  \nJe repasse pour ton action du jour : “Créer ton sas de décompression”.  \nÇa a ressemblé à quoi pour toi en fin de journée ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Hey 🙂  \nJe repasse pour ton action du jour : “Créer ton sas de décompression”.  \nÇa a ressemblé à quoi pour toi en fin de journée ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI5RkQ2NURGOUIyRDVGNUU1QTAA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-17T19:12:07.106+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "action_evening_review",
+        "proactive": false,
+        "event_context": "action_evening_review_v2",
+        "in_24h_window": true,
+        "plan_item_ids": [
+          "cb90698e-d3ad-48af-bfd8-12631e0d62aa"
+        ],
+        "template_name": null,
+        "unit_cost_eur": null,
+        "used_template": false,
+        "occurrence_ids": [
+          "908c97d1-b5a2-4e3d-a784-ff3492ccd6d8"
+        ],
+        "require_opted_in": true,
+        "template_language": null,
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "41cfd478-6622-4eaf-83de-bed0469f71d7",
+        "template_policy_priority": null,
+        "already_resolved_occurrence_ids": []
+      }
+    },
+    {
+      "id": "edaf0aee-d215-4f3c-929c-4b05546623f6",
+      "created_at": "2026-06-18T07:48:06.8287+00:00",
+      "updated_at": "2026-06-18T08:14:51.298+00:00",
+      "request_id": "be0f4446-75cd-4d1f-9928-a4fa2923f296",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "text",
+      "content_preview": "Hello! Je repense à ton “sas de décompression” prévu en fin de journée hier.  \nTu as pu te garder ce petit moment pour couper et te remettre bien pour ton projet ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Hello! Je repense à ton “sas de décompression” prévu en fin de journée hier.  \nTu as pu te garder ce petit moment pour couper et te remettre bien pour ton projet ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBJCRDc4NzIxNjhCREM4RjFBOTgA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-18T07:48:07.915+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "action_morning_followup",
+        "event_context": "action_morning_followup_v2",
+        "in_24h_window": true,
+        "template_name": null,
+        "unit_cost_eur": null,
+        "used_template": false,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": null,
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "7630165c-edcd-4593-b714-2ec5247f6bfd",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_followup",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "b1d45bb8-8664-461d-bb29-dd0c7ebf24cc",
+      "created_at": "2026-06-18T08:16:09.841618+00:00",
+      "updated_at": "2026-06-18T08:16:13.049+00:00",
+      "request_id": "eaf7968d-b65d-4df1-9d07-0b1672bd3812",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "text",
+      "content_preview": "Quelle super journée, c'est génial que tu aies pu profiter du jardinage en famille et avancer sur ton projet ! Est-ce que ce moment ou une autre activité t'a servi de sas de décompression aujourd'hui ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Quelle super journée, c'est génial que tu aies pu profiter du jardinage en famille et avancer sur ton projet ! Est-ce que ce moment ou une autre activité t'a servi de sas de décompression aujourd'hui ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "sent",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBIxRjYzODNGNzREQzYxNEE0MTUA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-18T08:16:10.691+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "action_evening_review",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "6d42fd20-ba38-48f4-8b57-19dad424a2f4",
+      "created_at": "2026-06-18T12:13:46.689874+00:00",
+      "updated_at": "2026-06-18T12:13:50.515+00:00",
+      "request_id": "04b398ab-84c9-4ae3-8b7e-ba4109d5b2fd",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "text",
+      "content_preview": "Quelle journée intense à Paris entre ton rendez-vous avec Sarah pour vos conférences et cette summer party ! Est-ce que cette soirée ou un autre moment t'a permis de créer ton sas de décompression aujourd'hui ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Quelle journée intense à Paris entre ton rendez-vous avec Sarah pour vos conférences et cette summer party ! Est-ce que cette soirée ou un autre moment t'a permis de créer ton sas de décompression aujourd'hui ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBIzMDU5QjVBMjIzNDJBNTAyRkIA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-18T12:13:47.791+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "action_evening_review",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "7a36828e-32fb-4e09-941b-ea39fa00ec24",
+      "created_at": "2026-06-18T22:47:31.215306+00:00",
+      "updated_at": "2026-06-18T22:47:34.502+00:00",
+      "request_id": "b1933a9d-be11-44c6-8018-0b4092d810f4",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzM3OTg4RkIwQkMxRTYwNEMwN0EzNUE1RjJEOENFMAA=",
+      "message_type": "text",
+      "content_preview": "Parfait 🙂 Je suis avec toi. À l’heure du dej, tu valides tes actions—et après tu coupes et tu recharges.",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Parfait 🙂 Je suis avec toi. À l’heure du dej, tu valides tes actions—et après tu coupes et tu recharges."
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "sent",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBIzRkZEMjRGMjEwNkVCRDdGMDEA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-18T22:47:31.914+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "ce611b87-dfea-41ef-9464-88cbd29150c5",
+      "created_at": "2026-06-20T07:18:07.53152+00:00",
+      "updated_at": "2026-06-20T07:18:07.868+00:00",
+      "request_id": "8396c001-b265-40a3-95be-104adf4378ef",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "template",
+      "content_preview": "Coucou ! Je pensais à toi ce matin et je te souhaite une journée toute douce, avec de l’énergie mais sans pression.  \nJ’espère que tu arrives à garder un petit moment pour respirer au milieu de tout ça.  \nÇa ressemble à quoi ton programme aujourd’hui ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "type": "template",
+        "template": {
+          "name": "sophia_checkin_v2",
+          "language": {
+            "code": "fr"
+          },
+          "components": [
+            {
+              "type": "body",
+              "parameters": [
+                {
+                  "text": "Christèle ",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "messaging_product": "whatsapp"
+      },
+      "status": "cancelled",
+      "provider_message_id": null,
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-20T07:18:07.868+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": "132000",
+      "last_error_message": "unknown_non_retryable",
+      "last_error": {
+        "error": {
+          "code": 132000,
+          "type": "OAuthException",
+          "message": "(#132000) Number of parameters does not match the expected number of params",
+          "error_data": {
+            "details": "body: number of localizable_params (1) does not match the expected number of params (0)",
+            "messaging_product": "whatsapp"
+          },
+          "fbtrace_id": "AWC1XyHlXV3Sb0GWCmfZAZv"
+        }
+      },
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": false,
+        "template_name": "sophia_checkin_v2",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "d992f613-4084-4e34-b75f-1617f9134e29",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "2e2a26a8-8b74-484a-a7ab-95db284715ef",
+      "created_at": "2026-06-20T07:24:19.567582+00:00",
+      "updated_at": "2026-06-20T07:24:19.884+00:00",
+      "request_id": "ef9b61b5-b270-4494-90fd-fc2c0a50450a",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "template",
+      "content_preview": "Coucou ! J’espère que ta matinée démarre doucement et que tu te sens bien dans ton énergie du jour.  \nJe te souhaite une très belle journée, sans te mettre la pression.  \nComment tu te sens ce matin ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "type": "template",
+        "template": {
+          "name": "sophia_checkin_v2",
+          "language": {
+            "code": "fr"
+          },
+          "components": [
+            {
+              "type": "body",
+              "parameters": [
+                {
+                  "text": "Christèle ",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "messaging_product": "whatsapp"
+      },
+      "status": "cancelled",
+      "provider_message_id": null,
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-20T07:24:19.884+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": "132000",
+      "last_error_message": "unknown_non_retryable",
+      "last_error": {
+        "error": {
+          "code": 132000,
+          "type": "OAuthException",
+          "message": "(#132000) Number of parameters does not match the expected number of params",
+          "error_data": {
+            "details": "body: number of localizable_params (1) does not match the expected number of params (0)",
+            "messaging_product": "whatsapp"
+          },
+          "fbtrace_id": "APVySfjuLQ_gvyBnwRznXnp"
+        }
+      },
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": false,
+        "template_name": "sophia_checkin_v2",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "d992f613-4084-4e34-b75f-1617f9134e29",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "996096d2-6300-48fa-9c7b-63a5365f553d",
+      "created_at": "2026-06-20T07:57:07.534088+00:00",
+      "updated_at": "2026-06-20T07:57:08.29+00:00",
+      "request_id": "f3560252-ec59-4fa9-ab65-7da99070f6bd",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "template",
+      "content_preview": "Salut ! Je pense à toi ce matin et j’espère que ta journée démarre en douceur.  \nJe t’envoie plein de bonnes ondes pour ce samedi.  \nTu te sens comment là, tout de suite ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "type": "template",
+        "template": {
+          "name": "sophia_checkin_v2",
+          "language": {
+            "code": "fr"
+          },
+          "components": [
+            {
+              "type": "body",
+              "parameters": [
+                {
+                  "text": "Christèle ",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "messaging_product": "whatsapp"
+      },
+      "status": "cancelled",
+      "provider_message_id": null,
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-20T07:57:08.29+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": "132000",
+      "last_error_message": "unknown_non_retryable",
+      "last_error": {
+        "error": {
+          "code": 132000,
+          "type": "OAuthException",
+          "message": "(#132000) Number of parameters does not match the expected number of params",
+          "error_data": {
+            "details": "body: number of localizable_params (1) does not match the expected number of params (0)",
+            "messaging_product": "whatsapp"
+          },
+          "fbtrace_id": "Amv83fFRmJVWJ0qRI_RTuWN"
+        }
+      },
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": false,
+        "template_name": "sophia_checkin_v2",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "d992f613-4084-4e34-b75f-1617f9134e29",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "4b001df1-1deb-443f-be1c-afbddf1b6ed0",
+      "created_at": "2026-06-20T10:00:35.147515+00:00",
+      "updated_at": "2026-06-20T10:00:35.626+00:00",
+      "request_id": "4dd9b63e-330f-41d5-a412-fffb721f8dfd",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "template",
+      "content_preview": "Hello! Je pense à toi et je te souhaite une très belle journée de samedi ☀️  \nJ’espère que tu as une énergie douce et légère aujourd’hui.  \nTu te sens comment là, en ce moment ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "type": "template",
+        "template": {
+          "name": "sophia_checkin_v2",
+          "language": {
+            "code": "fr"
+          },
+          "components": [
+            {
+              "type": "body",
+              "parameters": [
+                {
+                  "text": "Christèle ",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "messaging_product": "whatsapp"
+      },
+      "status": "cancelled",
+      "provider_message_id": null,
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-20T10:00:35.626+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": "132000",
+      "last_error_message": "unknown_non_retryable",
+      "last_error": {
+        "error": {
+          "code": 132000,
+          "type": "OAuthException",
+          "message": "(#132000) Number of parameters does not match the expected number of params",
+          "error_data": {
+            "details": "body: number of localizable_params (1) does not match the expected number of params (0)",
+            "messaging_product": "whatsapp"
+          },
+          "fbtrace_id": "AosRzrl7nhokK58fSyItq39"
+        }
+      },
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": false,
+        "template_name": "sophia_checkin_v2",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "d992f613-4084-4e34-b75f-1617f9134e29",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "53a68994-3f6e-4ca4-8931-c8294ce54cc9",
+      "created_at": "2026-06-20T16:03:08.597847+00:00",
+      "updated_at": "2026-06-20T16:03:09.274+00:00",
+      "request_id": "94da8319-5074-4391-a5fd-405ae98c4721",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "template",
+      "content_preview": "Salut ! Je pense à toi et j’espère que ta journée se passe en douceur.  \nJe t’envoie un petit coucou, sans pression, juste pour te souhaiter une bonne soirée.",
+      "graph_payload": {
+        "to": "33621833190",
+        "type": "template",
+        "template": {
+          "name": "sophia_checkin_v2",
+          "language": {
+            "code": "fr"
+          },
+          "components": [
+            {
+              "type": "body",
+              "parameters": [
+                {
+                  "text": "Christèle ",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "messaging_product": "whatsapp"
+      },
+      "status": "cancelled",
+      "provider_message_id": null,
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-20T16:03:09.274+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": "132000",
+      "last_error_message": "unknown_non_retryable",
+      "last_error": {
+        "error": {
+          "code": 132000,
+          "type": "OAuthException",
+          "message": "(#132000) Number of parameters does not match the expected number of params",
+          "error_data": {
+            "details": "body: number of localizable_params (1) does not match the expected number of params (0)",
+            "messaging_product": "whatsapp"
+          },
+          "fbtrace_id": "AoBI0ho2jQICOlyDUGkzBfb"
+        }
+      },
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": false,
+        "template_name": "sophia_checkin_v2",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "d992f613-4084-4e34-b75f-1617f9134e29",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "5fb7fd05-7178-4cba-8369-cd5151484f7c",
+      "created_at": "2026-06-21T16:06:06.868304+00:00",
+      "updated_at": "2026-06-21T16:06:07.245+00:00",
+      "request_id": "55102982-bde5-4596-bd6c-78b726c838da",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "template",
+      "content_preview": "Salut ! Je pense à toi ce soir et j’espère que ta journée s’est passée en douceur.  \nJe t’envoie juste un petit coucou, prends soin de toi.  \nTu te sens comment là maintenant ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "type": "template",
+        "template": {
+          "name": "sophia_checkin_v2",
+          "language": {
+            "code": "fr"
+          },
+          "components": [
+            {
+              "type": "body",
+              "parameters": [
+                {
+                  "text": "Christèle ",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "messaging_product": "whatsapp"
+      },
+      "status": "cancelled",
+      "provider_message_id": null,
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-21T16:06:07.245+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": "132000",
+      "last_error_message": "unknown_non_retryable",
+      "last_error": {
+        "error": {
+          "code": 132000,
+          "type": "OAuthException",
+          "message": "(#132000) Number of parameters does not match the expected number of params",
+          "error_data": {
+            "details": "body: number of localizable_params (1) does not match the expected number of params (0)",
+            "messaging_product": "whatsapp"
+          },
+          "fbtrace_id": "AbnZRdH_86CMddYwGVl5c4i"
+        }
+      },
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": false,
+        "template_name": "sophia_checkin_v2",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "d992f613-4084-4e34-b75f-1617f9134e29",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "12084354-adec-4d1f-8a50-59cb9e3f2699",
+      "created_at": "2026-06-21T16:30:50.270404+00:00",
+      "updated_at": "2026-06-21T16:43:18.825+00:00",
+      "request_id": "78fddf7b-e2e8-4d87-a1ad-c0f437731060",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "template",
+      "content_preview": "Hello! C'est le moment de faire ton point de fin de semaine. Je suis ravie de voir que tu as bien avancé sur ton projet, notamment avec ta session focus et ton travail avec Sarah sur vos conférences. Comment est-ce que tu as vécu cette semaine dans l'ensemble ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "type": "template",
+        "template": {
+          "name": "global_reach_template",
+          "language": {
+            "code": "fr"
+          }
+        },
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBJCMDFCODVBODA4RTdBMTFBMjcA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-21T16:30:51.294+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "weekly_progress_review",
+        "proactive": true,
+        "done_count": 1,
+        "missed_count": 0,
+        "dashboard_url": "https://app.sophia.app/dashboard",
+        "event_context": "weekly_progress_review_v2",
+        "habit_verdict": "validated",
+        "in_24h_window": false,
+        "partial_count": 0,
+        "planned_count": 2,
+        "template_name": "global_reach_template",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "week_end_date": "2026-06-21",
+        "week_strategy": "advance",
+        "week_start_date": "2026-06-15",
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "d879d353-4f33-49f0-bd97-ed97204d039a",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "48fc174e-da91-40cd-acb3-4deafc584e01",
+      "created_at": "2026-06-21T16:43:25.836363+00:00",
+      "updated_at": "2026-06-21T16:43:28.382+00:00",
+      "request_id": "069390e8-0638-4008-9d1f-9168f1ea8f30",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "text",
+      "content_preview": "C'est le moment de faire ton point de fin de semaine. Je suis ravie de voir que tu as bien avancé sur ton projet, notamment avec ta session focus et ton travail avec Sarah sur vos conférences. Comment est-ce que tu as vécu cette semaine dans l'ensemble ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "C'est le moment de faire ton point de fin de semaine. Je suis ravie de voir que tu as bien avancé sur ton projet, notamment avec ta session focus et ton travail avec Sarah sur vos conférences. Comment est-ce que tu as vécu cette semaine dans l'ensemble ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI2REY5RUZEQjNGQjkwMDQxQzcA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-21T16:43:26.55+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "scheduled_checkin",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "4a01c7f1-4794-4e8a-b4ac-87f3945bdd3d",
+      "created_at": "2026-06-21T16:44:39.960459+00:00",
+      "updated_at": "2026-06-21T20:23:50.661+00:00",
+      "request_id": "519fdb1d-c392-4b88-a6eb-c207f4a80015",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQ0JENDZGREQ4OThENEFBODgyMTE3QzA1OEFBOUM1NwA=",
+      "message_type": "text",
+      "content_preview": "Je suis ravie de lire que tu as passé une si bonne semaine. Pour compléter ton bilan, qu'en est-il de la création de ton sas de décompression ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Je suis ravie de lire que tu as passé une si bonne semaine. Pour compléter ton bilan, qu'en est-il de la création de ton sas de décompression ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBJCOUQ5RkY3OEQyNEMyRDJDMjIA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-21T16:44:40.516+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "cbae2847-9d94-4d6f-833b-3429d4063805",
+      "created_at": "2026-06-22T16:09:07.707752+00:00",
+      "updated_at": "2026-06-22T20:42:06.707+00:00",
+      "request_id": "169e377f-755c-480c-b5be-de6f907347a5",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "text",
+      "content_preview": "Coucou ! Je pense à toi ce soir, j’espère que ta journée a été douce.  \nJe t’envoie juste un petit mot de présence.  \nTu profites bien ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Coucou ! Je pense à toi ce soir, j’espère que ta journée a été douce.  \nJe t’envoie juste un petit mot de présence.  \nTu profites bien ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBJBNzJFMkQ3NjkxRUE1MjUxQTkA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-22T16:09:08.873+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": true,
+        "template_name": null,
+        "unit_cost_eur": null,
+        "used_template": false,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": null,
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "d992f613-4084-4e34-b75f-1617f9134e29",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "d6033cb5-fc33-4ee3-8ca5-760a51aef09d",
+      "created_at": "2026-06-22T20:44:43.968354+00:00",
+      "updated_at": "2026-06-22T20:44:47.994+00:00",
+      "request_id": "3b7eb48d-bb7c-472c-b40c-4d7f6fb0750e",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzRENzQ3OTNGNDFGQzhGMEVFNDRDNUYzMjhGNUU4NwA=",
+      "message_type": "text",
+      "content_preview": "Je suis ravie de voir que ce sas de décompression fonctionne et que l'énergie est là pour ta conférence de mercredi. Est-ce que cette organisation entre tes pauses et tes sessions de travail te semble toujours la plus adaptée pour avancer ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Je suis ravie de voir que ce sas de décompression fonctionne et que l'énergie est là pour ta conférence de mercredi. Est-ce que cette organisation entre tes pauses et tes sessions de travail te semble toujours la plus adaptée pour avancer ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBJBODdBM0M4MjdGQkZGQTU5RDQA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-22T20:44:44.99+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "b5ca86ff-f4be-4a06-a283-a760bfff9fca",
+      "created_at": "2026-06-22T20:45:21.35833+00:00",
+      "updated_at": "2026-06-22T20:45:24.144+00:00",
+      "request_id": "306fda78-3ca3-4857-b70e-e810da18778d",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzk1QTc0MDA2QzM1RUI0RDIyN0VBNjAzMjdERkY2NwA=",
+      "message_type": "text",
+      "content_preview": "C'est un beau projet pour mercredi ! Pour t'aider à structurer ton intervention sur la connaissance de soi et la rendre percutante pour des élèves de seconde, je te propose d'explorer une carte d'attaque. On fait ce détour avant de reprendre ton bilan ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "C'est un beau projet pour mercredi ! Pour t'aider à structurer ton intervention sur la connaissance de soi et la rendre percutante pour des élèves de seconde, je te propose d'explorer une carte d'attaque. On fait ce détour avant de reprendre ton bilan ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "sent",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI2ODhFRTE5MDdCNkZFRkRGM0EA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-22T20:45:21.916+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "bb2663d9-8666-4945-8b91-34b8326c1092",
+      "created_at": "2026-06-22T20:46:16.635833+00:00",
+      "updated_at": "2026-06-22T20:46:31.08+00:00",
+      "request_id": "e1f432b6-dbe0-42ed-a9e7-75fb37840d46",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzQxQzZBMDI2NTREQjJCMTdEQTlFM0VBOEVDRjU0MwA=",
+      "message_type": "text",
+      "content_preview": "Je suis ravie de voir que tu as identifié ton créneau idéal en fin de journée. Pour t'aider à maximiser cette session pour ta conférence de mercredi, on pourrait explorer une carte d'attaque ensemble. Ce détour nous permettra de booster ta préparation avant de terminer ton bilan hebdomadaire. Est-ce que tu veux voir comment cela pourrait t'aider ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Je suis ravie de voir que tu as identifié ton créneau idéal en fin de journée. Pour t'aider à maximiser cette session pour ta conférence de mercredi, on pourrait explorer une carte d'attaque ensemble. Ce détour nous permettra de booster ta préparation avant de terminer ton bilan hebdomadaire. Est-ce que tu veux voir comment cela pourrait t'aider ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI1Njk5NThBRDlERDlFNDc1NDIA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-22T20:46:17.499+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "63b26949-c384-429e-8f5c-badf51883459",
+      "created_at": "2026-06-22T20:47:42.526358+00:00",
+      "updated_at": "2026-06-22T20:48:00.592+00:00",
+      "request_id": "65fbefe3-83f6-4092-a66b-76105df4b524",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQzg3NEU3OENEMkQzRDY1NjM0MzUxM0Y2RDdCMUU1RAA=",
+      "message_type": "text",
+      "content_preview": "C'est entendu pour ta préparation de conférence sur la connaissance de soi. D'après toi, quel est le piège ou l'obstacle qui risque de te faire dérailler quand tu t'y mettras en fin de journée ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "C'est entendu pour ta préparation de conférence sur la connaissance de soi. D'après toi, quel est le piège ou l'obstacle qui risque de te faire dérailler quand tu t'y mettras en fin de journée ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBIyQzZEQzYyNThDMjRENDIwNzQA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-22T20:47:43.267+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "6e623033-c478-4461-8280-ee5b9d88172d",
+      "created_at": "2026-06-22T20:49:08.692507+00:00",
+      "updated_at": "2026-06-22T20:49:11.286+00:00",
+      "request_id": "2a80a6d4-7df4-4c4f-a1db-4feed045d558",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQ0Y5OTU0NjU0NkYyMjI4MzVENzUzREU2NDE4QkMxQwA=",
+      "message_type": "text",
+      "content_preview": "Pour la préparation de ta conférence sur la connaissance de soi, est-ce que ton plus gros risque est d'attendre d'être au pied du mur la veille au soir pour enfin t'y mettre ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Pour la préparation de ta conférence sur la connaissance de soi, est-ce que ton plus gros risque est d'attendre d'être au pied du mur la veille au soir pour enfin t'y mettre ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI3NUU4ODRBODU3MUVDOEUxREMA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-22T20:49:09.199+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "d4ade39f-be62-473e-8a6f-d4ce20e9d7dd",
+      "created_at": "2026-06-22T20:49:21.926768+00:00",
+      "updated_at": "2026-06-22T20:49:24.401+00:00",
+      "request_id": "7164a13b-036b-48ce-976e-70fefd7a7aee",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQ0Y1QzhCRTY3MkU4REI0MTQxMTMzNEEwRkEwMDY1NQA=",
+      "message_type": "text",
+      "content_preview": "Même si l'échéance approche pour ta conférence sur la connaissance de soi, qu'est-ce qui risque de te freiner au moment de passer à l'action : la fatigue ou la pression ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "Même si l'échéance approche pour ta conférence sur la connaissance de soi, qu'est-ce qui risque de te freiner au moment de passer à l'action : la fatigue ou la pression ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBJGNTBBQjc2QUMzNzA4RjYxMjUA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-22T20:49:22.418+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "b6014597-c442-4f62-9dd6-d006b3125734",
+      "created_at": "2026-06-22T20:51:43.45746+00:00",
+      "updated_at": "2026-06-22T21:38:38.567+00:00",
+      "request_id": "e70c5e60-dbae-442c-9140-244b3f43833b",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": "wamid.HBgLMzM2MjE4MzMxOTAVAgASGCBBQ0U3MkRCMzA0RDIzRjI2RkFCMkQ1MjU0MTFCODRFMQA=",
+      "message_type": "text",
+      "content_preview": "C'est vrai que l'échéance de demain pour ta conférence sur la connaissance de soi aide à se mobiliser, mais je suis consciente que réfléchir par 40 degrés est un vrai défi. Qu'est-ce qui risque de te faire dérailler ou de te couper dans ton élan avec cette chaleur ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "text": {
+          "body": "C'est vrai que l'échéance de demain pour ta conférence sur la connaissance de soi aide à se mobiliser, mais je suis consciente que réfléchir par 40 degrés est un vrai défi. Qu'est-ce qui risque de te faire dérailler ou de te couper dans ton élan avec cette chaleur ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      },
+      "status": "read",
+      "provider_message_id": "wamid.HBgLMzM2MjE4MzMxOTAVAgARGBI0QTY4QUMzOTExM0RDMjlBOEQA",
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-22T20:51:44.086+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": null,
+      "last_error_message": null,
+      "last_error": null,
+      "metadata": {
+        "purpose": "whatsapp_default_brain_reply",
+        "is_proactive": false
+      }
+    },
+    {
+      "id": "d1d657f0-7a4a-4ada-8250-415f9a06ca97",
+      "created_at": "2026-06-24T06:33:06.490892+00:00",
+      "updated_at": "2026-06-24T06:33:07.446+00:00",
+      "request_id": "b2e4ee9e-c043-405c-bc3d-f919b42b0132",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "template",
+      "content_preview": "Hey ! Avec 40° annoncés, j’espère que tu peux te ménager un peu ce matin et garder de l’énergie pour la suite.  \nJe suis là si tu as besoin d’un petit coup de pouce pour rester au clair malgré la chaleur.  \nTu te sens plutôt en forme là, maintenant ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "type": "template",
+        "template": {
+          "name": "sophia_checkin_v2",
+          "language": {
+            "code": "fr"
+          },
+          "components": [
+            {
+              "type": "body",
+              "parameters": [
+                {
+                  "text": "Christèle ",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "messaging_product": "whatsapp"
+      },
+      "status": "cancelled",
+      "provider_message_id": null,
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-24T06:33:07.446+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": "132000",
+      "last_error_message": "unknown_non_retryable",
+      "last_error": {
+        "error": {
+          "code": 132000,
+          "type": "OAuthException",
+          "message": "(#132000) Number of parameters does not match the expected number of params",
+          "error_data": {
+            "details": "body: number of localizable_params (1) does not match the expected number of params (0)",
+            "messaging_product": "whatsapp"
+          },
+          "fbtrace_id": "AUhLnGBiIrewbwv_2pzpsou"
+        }
+      },
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": false,
+        "template_name": "sophia_checkin_v2",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "c15fb273-4877-4a6e-b722-6f8c6f402ba3",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "3d6b0e34-cede-4c6f-9984-bd4b1fde3f32",
+      "created_at": "2026-06-24T06:39:04.045063+00:00",
+      "updated_at": "2026-06-24T06:39:04.526+00:00",
+      "request_id": "4e4081a2-b443-4afe-a230-3cba16e53bd3",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "template",
+      "content_preview": "Salut ! Avec 40 degrés, je te souhaite une journée la plus douce possible et plein de clarté dans ta tête.  \nTu sens que tu peux t’aménager un petit coin frais aujourd’hui ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "type": "template",
+        "template": {
+          "name": "sophia_checkin_v2",
+          "language": {
+            "code": "fr"
+          },
+          "components": [
+            {
+              "type": "body",
+              "parameters": [
+                {
+                  "text": "Christèle ",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "messaging_product": "whatsapp"
+      },
+      "status": "cancelled",
+      "provider_message_id": null,
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-24T06:39:04.526+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": "132000",
+      "last_error_message": "unknown_non_retryable",
+      "last_error": {
+        "error": {
+          "code": 132000,
+          "type": "OAuthException",
+          "message": "(#132000) Number of parameters does not match the expected number of params",
+          "error_data": {
+            "details": "body: number of localizable_params (1) does not match the expected number of params (0)",
+            "messaging_product": "whatsapp"
+          },
+          "fbtrace_id": "AAsjlIlhKCmTLpIKgN5udbD"
+        }
+      },
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": false,
+        "template_name": "sophia_checkin_v2",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "c15fb273-4877-4a6e-b722-6f8c6f402ba3",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "3a29c4bd-976c-4596-9f26-9667db403bfc",
+      "created_at": "2026-06-24T07:12:06.619621+00:00",
+      "updated_at": "2026-06-24T07:12:07.189+00:00",
+      "request_id": "e297ac1a-0114-402c-918a-c292ac819ab1",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "template",
+      "content_preview": "Coucou ! Avec 40 degrés, je pense à toi : j’espère que tu arrives à garder un peu de fraîcheur et d’énergie ce matin.  \nTu veux que je te propose une micro-astuce toute simple pour préserver ta concentration malgré la chaleur ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "type": "template",
+        "template": {
+          "name": "sophia_checkin_v2",
+          "language": {
+            "code": "fr"
+          },
+          "components": [
+            {
+              "type": "body",
+              "parameters": [
+                {
+                  "text": "Christèle ",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "messaging_product": "whatsapp"
+      },
+      "status": "cancelled",
+      "provider_message_id": null,
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-24T07:12:07.189+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": "132000",
+      "last_error_message": "unknown_non_retryable",
+      "last_error": {
+        "error": {
+          "code": 132000,
+          "type": "OAuthException",
+          "message": "(#132000) Number of parameters does not match the expected number of params",
+          "error_data": {
+            "details": "body: number of localizable_params (1) does not match the expected number of params (0)",
+            "messaging_product": "whatsapp"
+          },
+          "fbtrace_id": "AahCd2kg2TnKUfgZzQuF7hH"
+        }
+      },
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": false,
+        "template_name": "sophia_checkin_v2",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "c15fb273-4877-4a6e-b722-6f8c6f402ba3",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "2b461c64-ee44-4898-9eae-a299d46b753e",
+      "created_at": "2026-06-24T09:15:11.042462+00:00",
+      "updated_at": "2026-06-24T09:15:11.411+00:00",
+      "request_id": "1238a7e5-578f-441a-bf9b-3f1cc965b02e",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "template",
+      "content_preview": "Coucou ! Avec 40 degrés, je te souhaite une journée la plus légère possible et douce pour toi.  \nJe pense à toi pour mercredi et je t’envoie un petit boost.  \nTu as déjà repéré une astuce qui t’aide à garder de l’énergie malgré la chaleur ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "type": "template",
+        "template": {
+          "name": "sophia_checkin_v2",
+          "language": {
+            "code": "fr"
+          },
+          "components": [
+            {
+              "type": "body",
+              "parameters": [
+                {
+                  "text": "Christèle ",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "messaging_product": "whatsapp"
+      },
+      "status": "cancelled",
+      "provider_message_id": null,
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-24T09:15:11.411+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": "132000",
+      "last_error_message": "unknown_non_retryable",
+      "last_error": {
+        "error": {
+          "code": 132000,
+          "type": "OAuthException",
+          "message": "(#132000) Number of parameters does not match the expected number of params",
+          "error_data": {
+            "details": "body: number of localizable_params (1) does not match the expected number of params (0)",
+            "messaging_product": "whatsapp"
+          },
+          "fbtrace_id": "ArnKFCtQqIhc00zK3svz1oW"
+        }
+      },
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": false,
+        "template_name": "sophia_checkin_v2",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "c15fb273-4877-4a6e-b722-6f8c6f402ba3",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "c26b9f3a-4b5a-4886-86f9-519f218ca9e8",
+      "created_at": "2026-06-24T15:18:06.223576+00:00",
+      "updated_at": "2026-06-24T15:18:06.774+00:00",
+      "request_id": "82bc72b1-7f46-44bf-8607-956a5e7aca41",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "template",
+      "content_preview": "Salut ! Avec 40 degrés, j’espère que tu arrives quand même à garder un peu de fraîcheur et d’énergie cet aprèm.  \nJe pense à toi et je t’envoie un petit boost pour la suite.  \nTu arrives à te ménager un moment au calme aujourd’hui ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "type": "template",
+        "template": {
+          "name": "sophia_checkin_v2",
+          "language": {
+            "code": "fr"
+          },
+          "components": [
+            {
+              "type": "body",
+              "parameters": [
+                {
+                  "text": "Christèle ",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "messaging_product": "whatsapp"
+      },
+      "status": "cancelled",
+      "provider_message_id": null,
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-24T15:18:06.774+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": "132000",
+      "last_error_message": "unknown_non_retryable",
+      "last_error": {
+        "error": {
+          "code": 132000,
+          "type": "OAuthException",
+          "message": "(#132000) Number of parameters does not match the expected number of params",
+          "error_data": {
+            "details": "body: number of localizable_params (1) does not match the expected number of params (0)",
+            "messaging_product": "whatsapp"
+          },
+          "fbtrace_id": "AQ6EwAZSKD_HuxrIeU3e6eI"
+        }
+      },
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": false,
+        "template_name": "sophia_checkin_v2",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "c15fb273-4877-4a6e-b722-6f8c6f402ba3",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    },
+    {
+      "id": "0211e331-dfb0-49b3-bdb8-198045b7ffa8",
+      "created_at": "2026-06-25T15:21:05.866823+00:00",
+      "updated_at": "2026-06-25T15:21:06.331+00:00",
+      "request_id": "99b0b6a4-7dee-4983-b8a3-93b13971c21a",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "to_e164": "+33621833190",
+      "reply_to_wamid_in": null,
+      "message_type": "template",
+      "content_preview": "Coucou ! La chaleur à 40° peut vraiment plomber l’énergie, je comprends…  \nJe pense à toi et je te souhaite une journée la plus légère possible.  \nTu as réussi à te ménager un petit moment au frais pour souffler ?",
+      "graph_payload": {
+        "to": "33621833190",
+        "type": "template",
+        "template": {
+          "name": "sophia_checkin_v2",
+          "language": {
+            "code": "fr"
+          },
+          "components": [
+            {
+              "type": "body",
+              "parameters": [
+                {
+                  "text": "Christèle ",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "messaging_product": "whatsapp"
+      },
+      "status": "cancelled",
+      "provider_message_id": null,
+      "attempt_count": 1,
+      "max_attempts": 8,
+      "last_attempt_at": "2026-06-25T15:21:06.331+00:00",
+      "next_retry_at": null,
+      "locked_at": null,
+      "locked_by": null,
+      "last_error_code": "132000",
+      "last_error_message": "unknown_non_retryable",
+      "last_error": {
+        "error": {
+          "code": 132000,
+          "type": "OAuthException",
+          "message": "(#132000) Number of parameters does not match the expected number of params",
+          "error_data": {
+            "details": "body: number of localizable_params (1) does not match the expected number of params (0)",
+            "messaging_product": "whatsapp"
+          },
+          "fbtrace_id": "A7J3Zs8Su_3LmPo2_Zz8yIF"
+        }
+      },
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "scheduled_checkin",
+        "proactive": true,
+        "checkin_kind": "morning_light_greeting",
+        "event_context": "morning_light_greeting_v2",
+        "in_24h_window": false,
+        "template_name": "sophia_checkin_v2",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "c15fb273-4877-4a6e-b722-6f8c6f402ba3",
+        "recurring_reminder_id": null,
+        "scheduled_checkin_origin": "action_morning",
+        "template_policy_priority": null
+      }
+    }
+  ]
+}

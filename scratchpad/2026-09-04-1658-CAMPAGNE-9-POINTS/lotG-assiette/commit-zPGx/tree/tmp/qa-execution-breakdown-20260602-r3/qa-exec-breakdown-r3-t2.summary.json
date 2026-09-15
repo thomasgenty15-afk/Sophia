@@ -1,0 +1,20 @@
+{
+  "http_status": 200,
+  "ok": true,
+  "request_id": "qa-exec-breakdown-r3-t2",
+  "user_id": "62df97ee-a966-4db1-96f6-dd07d1afbf15",
+  "scope": "qa-execution-breakdown-20260602-r3",
+  "content": "Je veux le découper maintenant, pas déplacer mon plan. Aide-moi à trouver la toute première mini-étape concrète.",
+  "assistant": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste. 🙂",
+  "response_owner": "conversation_handler",
+  "selected_handler": null,
+  "route_reason": null,
+  "safety": null,
+  "operation": null,
+  "pending_confirmation": null,
+  "executed_tools": [],
+  "direct_effects": [],
+  "memory_plan": null,
+  "trace_error": null,
+  "raw_path": "tmp/qa-execution-breakdown-20260602-r3/qa-exec-breakdown-r3-t2.raw.json"
+}

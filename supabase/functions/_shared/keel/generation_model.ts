@@ -311,6 +311,26 @@ export const PLAN_REQUEST_BUDGET_MS = 380_000;
 export const PLAN_TAIL_RESERVE_MS = 30_000;
 
 /**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-14 · BÊTA 2B — LA MARGE DU VERROU DE COMPOSITION
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `household_generation_lock` périme après `PLAN_REQUEST_BUDGET_MS` + ceci.
+ *
+ * ⛔ ELLE DOIT COUVRIR CE QUI VIT APRÈS LE MUR, pas le mur lui-même. Une
+ * requête qui atteint son budget rend la main d'elle-même (le `catch` ou la
+ * réponse libère); ce que la péremption rattrape est le worker TUÉ, qui
+ * n'exécute plus rien. 60 s au-dessus du budget: assez pour qu'une requête
+ * vivante ne se fasse jamais voler son verrou, assez court pour qu'un foyer
+ * bloqué par un worker mort reparte en moins de huit minutes.
+ *
+ * ⚠️ ELLE N'EST PAS ÉCRITE EN SQL, et c'est la règle de `maxFridgeDays` et de
+ * `p_local_date`: deux copies d'un même délai divergent, et c'est celle qu'on
+ * relit le moins qui décide.
+ */
+export const GENERATION_LOCK_MARGIN_MS = 60_000;
+
+/**
  * LE TEMPS MINIMUM POUR OSER LANCER UN RATTRAPAGE.
  *
  * ⛔ UN APPEL LANCÉ TROP TARD EST PIRE QU'UN APPEL NON LANCÉ: il fait générer

@@ -1,0 +1,1399 @@
+{
+  "request_id": "e020000b-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000002",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T00:10:40.013Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "24c040f8-4ee8-4ce2-ac5e-019e2b4ae641",
+      "status": "breaker_skip",
+      "created_at": "2026-08-19T00:08:29.652048+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 14902,
+    "user_message_truncated": false,
+    "user_message_written_chars": 14902,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 14902
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "192644d2-4a9a-41ec-817c-60061395ab28",
+    "created_at": "2026-08-19T00:10:39.375046+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 2,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Berry Yogurt Bowl\",\n      \"title\": \"Greek yogurt with fresh berries and honey toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Mixed berries\", \"quantity\": \"50 g\", \"amount\": 50, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Honey\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Bread\", \"quantity\": \"2 slices\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Toast the bread. Top the yogurt with fresh berries and a drizzle of honey. Serve the toast on the side.\",\n      \"why\": \"A quick, high-protein start to the muscle gain stretch with berries as the loud vegetable.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Golden Oregano Chicken & Grains\",\n      \"title\": \"Lemon and oregano chicken with bulgur and green beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Fresh parsley\", \"quantity\": \"1 tsp\", \"amount\": 1, \"unit\": \"tsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Reheat the chicken, bulgur, and green bean portions in a wide pan with a splash of water until steaming. Top with fresh parsley.\",\n      \"why\": \"Starch follows the training session to fuel muscle growth, using the first batch of the week.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken_wed\", \"servings\": 1, \"box_id\": \"box_chicken_wed_odalric\" },\n        { \"preparation_id\": \"prep_bulgur_wed\", \"servings\": 1, \"box_id\": \"box_bulgur_wed_odalric\" },\n        { \"preparation_id\": \"prep_beans_wed_lunch\", \"servings\": 1, \"box_id\": \"box_beans_wed_l_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\", \"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Pan-Seared Cod & Braised Beans\",\n      \"title\": \"Seared white fish with tomato-braised green beans\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Cod fillets\", \"quantity\": \"4 units\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Lemon\", \"quantity\": \"0.5 unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Season the cod and sear in a hot pan with oil for 3-4 minutes per side. Reheat the braised beans in a separate pan and serve alongside with a squeeze of lemon.\",\n      \"why\": \"A warm element is essential for dinner; the white fish is safe for Peregrine's colour preferences.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_beans_wed_dinner\", \"servings\": 1, \"box_id\": \"box_beans_wed_d_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 15 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Savoury Mushroom Scramble\",\n      \"title\": \"Scrambled eggs with garlicky mushrooms on toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Eggs\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Chestnut mushrooms\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Garlic clove\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Bread\", \"quantity\": \"2 slices\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Sauté sliced mushrooms and garlic in butter. Scramble the eggs in the same pan. Serve on toast, which can be eaten easily while the kitchen is being painted.\",\n      \"why\": \"Mushrooms provide the loud vegetable element without using colours Peregrine avoids.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Lemon Chicken Grain Bowl\",\n      \"title\": \"Cold lemon chicken with bulgur and green beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Lemon juice\", \"quantity\": \"1 tsp\", \"amount\": 1, \"unit\": \"tsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Since the kitchen table is covered, this can be eaten cold as a hearty grain bowl or gently warmed in a pan if space allows. Mix the chicken, bulgur, and beans together.\",\n      \"why\": \"A portable, bowl-based meal for a day when the kitchen is under dust sheets.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken_thu\", \"servings\": 1, \"box_id\": \"box_chicken_thu_odalric\" },\n        { \"preparation_id\": \"prep_bulgur_thu\", \"servings\": 1, \"box_id\": \"box_bulgur_thu_odalric\" },\n        { \"preparation_id\": \"prep_beans_thu_lunch\", \"servings\": 1, \"box_id\": \"box_beans_thu_l_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Spinach & Red Lentil Broth\",\n      \"title\": \"Hearty lentil soup with wilted spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Black pepper\", \"quantity\": \"1 pinch\" }\n      ],\n      \"method\": \"Reheat the lentil and spinach soup in a pot until bubbling. Serve in deep bowls with plenty of black pepper.\",\n      \"why\": \"A warm, comforting bowl-food dinner that doesn't require a dining table.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_soup_thu\", \"servings\": 1, \"box_id\": \"box_soup_thu_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 8 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Morning Berry & Yogurt Pot\",\n      \"title\": \"Greek yogurt with berries and honeyed toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Mixed berries\", \"quantity\": \"50 g\", \"amount\": 50, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Honey\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Bread\", \"quantity\": \"2 slices\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Toast the bread. Assemble the yogurt pot by topping with berries and honey. Serve immediately.\",\n      \"why\": \"Consistency in the breakfast routine helps maintain the muscle gain volume.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Warming Lentil & Spinach Soup\",\n      \"title\": \"Red lentil soup with spinach and leeks\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Bread\", \"quantity\": \"1 slice\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Reheat the soup in a small pan. Serve with a slice of bread for extra starch.\",\n      \"why\": \"Utilises the final portion of the lentil batch for a quick, high-fibre lunch.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_soup_fri\", \"servings\": 1, \"box_id\": \"box_soup_fri_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 8 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Beef & Broccoli Stir-Fry\",\n      \"title\": \"Sizzling beef strips with ginger and broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Beef stir-fry strips\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Broccoli florets\", \"quantity\": \"2 heads\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Garlic clove\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Stir-fry the beef strips in oil over high heat until browned. Add the broccoli florets and garlic with a splash of water, cover for 2 minutes to steam-fry until the broccoli is bright green.\",\n      \"why\": \"Broccoli is the loud vegetable here; the ingredients for Sunday's traybake are now in your pantry.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 15 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_wed\",\n      \"title\": \"Lemon and Oregano Roast Chicken (Part 1)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Chicken thighs, bone-in\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Lemon\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Dried oregano\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Rub chicken with oil, oregano, and lemon zest. Roast at 200°C for 35-40 minutes until golden and cooked through.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_wed_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 110 },\n        { \"id\": \"box_chicken_wed_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 110 },\n        { \"id\": \"box_chicken_wed_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 110 },\n        { \"id\": \"box_chicken_wed_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 110 }\n      ]\n    },\n    {\n      \"id\": \"prep_chicken_thu\",\n      \"title\": \"Lemon and Oregano Roast Chicken (Part 2)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Chicken thighs, bone-in\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Lemon\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Dried oregano\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cooked in the same tray as Part 1. Roast at 200°C for 35-40 minutes.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_thu_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 110 },\n        { \"id\": \"box_chicken_thu_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 110 },\n        { \"id\": \"box_chicken_thu_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 110 },\n        { \"id\": \"box_chicken_thu_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 110 }\n      ]\n    },\n    {\n      \"id\": \"prep_bulgur_wed\",\n      \"title\": \"Herby Bulgur Wheat (Part 1)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Bulgur wheat\", \"quantity\": \"250 g\", \"amount\": 250, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Vegetable stock\", \"quantity\": \"500 ml\", \"amount\": 500, \"unit\": \"ml\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Simmer bulgur in stock for 10-12 minutes until water is absorbed. Fluff with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_bulgur_wed_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 150 },\n        { \"id\": \"box_bulgur_wed_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 150 },\n        { \"id\": \"box_bulgur_wed_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 150 },\n        { \"id\": \"box_bulgur_wed_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 150 }\n      ]\n    },\n    {\n      \"id\": \"prep_bulgur_thu\",\n      \"title\": \"Herby Bulgur Wheat (Part 2)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Bulgur wheat\", \"quantity\": \"250 g\", \"amount\": 250, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Vegetable stock\", \"quantity\": \"500 ml\", \"amount\": 500, \"unit\": \"ml\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cooked in the same pot as Part 1. Simmer until absorbed.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_bulgur_thu_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 150 },\n        { \"id\": \"box_bulgur_thu_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 150 },\n        { \"id\": \"box_bulgur_thu_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 150 },\n        { \"id\": \"box_bulgur_thu_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 150 }\n      ]\n    },\n    {\n      \"id\": \"prep_beans_wed_lunch\",\n      \"title\": \"Tomato Braised Green Beans (Part 1)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Green beans\", \"quantity\": \"350 g\", \"amount\": 350, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Tinned chopped tomatoes\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Onion\", \"quantity\": \"0.3 unit\", \"amount\": 0.3, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Garlic clove\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Sauté onion and garlic. Add beans and tomatoes. Simmer for 20 minutes until beans are tender.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_beans_wed_l_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 120 },\n        { \"id\": \"box_beans_wed_l_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 120 },\n        { \"id\": \"box_beans_wed_l_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 120 },\n        { \"id\": \"box_beans_wed_l_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 120 }\n      ]\n    },\n    {\n      \"id\": \"prep_beans_wed_dinner\",\n      \"title\": \"Tomato Braised Green Beans (Part 2)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Green beans\", \"quantity\": \"350 g\", \"amount\": 350, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Tinned chopped tomatoes\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cooked as part of the same batch as Part 1.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_beans_wed_d_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 120 },\n        { \"id\": \"box_beans_wed_d_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 120 },\n        { \"id\": \"box_beans_wed_d_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 120 },\n        { \"id\": \"box_beans_wed_d_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 120 }\n      ]\n    },\n    {\n      \"id\": \"prep_beans_thu_lunch\",\n      \"title\": \"Tomato Braised Green Beans (Part 3)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Green beans\", \"quantity\": \"300 g\", \"amount\": 300, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Tinned chopped tomatoes\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cooked as part of the same batch as Part 1.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_beans_thu_l_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 120 },\n        { \"id\": \"box_beans_thu_l_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 120 },\n        { \"id\": \"box_beans_thu_l_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 120 },\n        { \"id\": \"box_beans_thu_l_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 120 }\n      ]\n    },\n    {\n      \"id\": \"prep_soup_thu\",\n      \"title\": \"Spinach & Red Lentil Soup (Part 1)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Red lentils\", \"quantity\": \"200 g\", \"amount\": 200, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Fresh spinach\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Leek\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Vegetable stock\", \"quantity\": \"1000 ml\", \"amount\": 1000, \"unit\": \"ml\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Sauté sliced leeks. Add lentils and stock. Simmer for 20 minutes. Stir in spinach at the end until wilted.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_soup_thu_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 300 },\n        { \"id\": \"box_soup_thu_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 300 },\n        { \"id\": \"box_soup_thu_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 300 },\n        { \"id\": \"box_soup_thu_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 300 }\n      ]\n    },\n    {\n      \"id\": \"prep_soup_fri\",\n      \"title\": \"Spinach & Red Lentil Soup (Part 2)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Red lentils\", \"quantity\": \"200 g\", \"amount\": 200, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Fresh spinach\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cooked as part of the same batch as Part 1.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_soup_fri_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 300 },\n        { \"id\": \"box_soup_fri_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 300 },\n        { \"id\": \"box_soup_fri_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 300 },\n        { \"id\": \"box_soup_fri_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 300 }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken_wed\",\n        \"prep_chicken_thu\",\n        \"prep_bulgur_wed\",\n        \"prep_bulgur_thu\",\n        \"prep_beans_wed_lunch\",\n        \"prep_beans_wed_dinner\",\n        \"prep_beans_thu_lunch\",\n        \"prep_soup_thu\",\n        \"prep_soup_fri\"\n      ],\n      \"total_minutes\": 55,\n      \"run_through\": \"Oven on for the chicken trays. While they roast, start the large pot of bulgur and the large pot for the green bean braise. Once the beans are simmering, start the lentil soup in a third pot. While everything simmers, chop the spinach and parsley. Box all portions as soon as they are cooked to clear the kitchen.\"\n    }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"Chicken thighs, bone-in\", \"quantity\": \"1.2 kg\", \"aisle\": \"protein\" },\n    { \"term\": \"Cod fillets\", \"quantity\": \"4 units\", \"aisle\": \"protein\" },\n    { \"term\": \"Beef stir-fry strips\", \"quantity\": \"600 g\", \"aisle\": \"protein\" },\n    { \"term\": \"Eggs\", \"quantity\": \"6 units\", \"aisle\": \"protein\" },\n    { \"term\": \"Greek yogurt\", \"quantity\": \"1 kg\", \"aisle\": \"dairy\" },\n    { \"term\": \"Butter\", \"quantity\": \"250 g\", \"aisle\": \"dairy\" },\n    { \"term\": \"Bulgur wheat\", \"quantity\": \"500 g\", \"aisle\": \"grains\" },\n    { \"term\": \"Bread\", \"quantity\": \"2 loaves\", \"aisle\": \"grains\" },\n    { \"term\": \"Red lentils\", \"quantity\": \"400 g\", \"aisle\": \"grains\" },\n    { \"term\": \"Green beans\", \"quantity\": \"1 kg\", \"aisle\": \"produce\" },\n    { \"term\": \"Fresh spinach\", \"quantity\": \"200 g\", \"aisle\": \"produce\" },\n    { \"term\": \"Broccoli\", \"quantity\": \"2 heads\", \"aisle\": \"produce\" },\n    { \"term\": \"Mixed berries\", \"quantity\": \"400 g\", \"aisle\": \"produce\" },\n    { \"term\": \"Chestnut mushrooms\", \"quantity\": \"200 g\", \"aisle\": \"produce\" },\n    { \"term\": \"Leek\", \"quantity\": \"1 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"Onion\", \"quantity\": \"1 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"Garlic\", \"quantity\": \"1 bulb\", \"aisle\": \"produce\" },\n    { \"term\": \"Lemons\", \"quantity\": \"4 units\", \"aisle\": \"produce\" },\n    { \"term\": \"Fresh parsley\", \"quantity\": \"1 bunch\", \"aisle\": \"produce\" },\n    { \"term\": \"Tinned chopped tomatoes\", \"quantity\": \"400 g\", \"aisle\": \"pantry\" },\n    { \"term\": \"Vegetable stock cubes\", \"quantity\": \"1 pack\", \"aisle\": \"pantry\" },\n    { \"term\": \"Honey\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"Blackcurrant jam\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"Hot sauce\", \"quantity\": \"1 bottle\", \"aisle\": \"pantry\" },\n    { \"term\": \"Dried oregano\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"Olive oil\", \"quantity\": \"250 ml\", \"aisle\": \"pantry\" },\n    { \"term\": \"Poppy seeds\", \"quantity\": \"1 packet\", \"aisle\": \"pantry\" },\n    { \"term\": \"Plain flour\", \"quantity\": \"500 g\", \"aisle\": \"pantry\" },\n    { \"term\": \"Caster sugar\", \"quantity\": \"500 g\", \"aisle\": \"pantry\" }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Larger protein and starch share; add a spoonful of blackcurrant jam to your breakfast toast.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_wed\", \"note\": \"Full box plus extra chicken from the tray\" },\n        { \"preparation_id\": \"prep_bulgur_wed\", \"note\": \"Full box plus extra bulgur\" }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Child-size share; always cut the crusts off the bread before serving.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_wed\", \"note\": \"Half of the box contents\" }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Larger protein and starch share; ensure no carrots or orange-coloured foods are on the plate.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_wed\", \"note\": \"Full box plus extra chicken\" },\n        { \"preparation_id\": \"prep_bulgur_wed\", \"note\": \"Full box plus extra bulgur\" }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Child-size share; provide the bottle of hot sauce for every meal.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_wed\", \"note\": \"Half of the box contents\" }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Zesty Berry Yogurt Bowl",
+          "title": "Greek yogurt with fresh berries and honey toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Mixed berries",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Honey",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "Bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the bread. Top the yogurt with fresh berries and a drizzle of honey. Serve the toast on the side.",
+          "why": "A quick, high-protein start to the muscle gain stretch with berries as the loud vegetable.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Golden Oregano Chicken & Grains",
+          "title": "Lemon and oregano chicken with bulgur and green beans",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Fresh parsley",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the chicken, bulgur, and green bean portions in a wide pan with a splash of water until steaming. Top with fresh parsley.",
+          "why": "Starch follows the training session to fuel muscle growth, using the first batch of the week.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_wed",
+              "servings": 1,
+              "box_id": "box_chicken_wed_odalric"
+            },
+            {
+              "preparation_id": "prep_bulgur_wed",
+              "servings": 1,
+              "box_id": "box_bulgur_wed_odalric"
+            },
+            {
+              "preparation_id": "prep_beans_wed_lunch",
+              "servings": 1,
+              "box_id": "box_beans_wed_l_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Pan-Seared Cod & Braised Beans",
+          "title": "Seared white fish with tomato-braised green beans",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Cod fillets",
+              "quantity": "4 units",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "Lemon",
+              "quantity": "0.5 unit",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Season the cod and sear in a hot pan with oil for 3-4 minutes per side. Reheat the braised beans in a separate pan and serve alongside with a squeeze of lemon.",
+          "why": "A warm element is essential for dinner; the white fish is safe for Peregrine's colour preferences.",
+          "uses": [
+            {
+              "preparation_id": "prep_beans_wed_dinner",
+              "servings": 1,
+              "box_id": "box_beans_wed_d_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Savoury Mushroom Scramble",
+          "title": "Scrambled eggs with garlicky mushrooms on toast",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Eggs",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Chestnut mushrooms",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Garlic clove",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "Bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Sauté sliced mushrooms and garlic in butter. Scramble the eggs in the same pan. Serve on toast, which can be eaten easily while the kitchen is being painted.",
+          "why": "Mushrooms provide the loud vegetable element without using colours Peregrine avoids.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Lemon Chicken Grain Bowl",
+          "title": "Cold lemon chicken with bulgur and green beans",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Lemon juice",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Since the kitchen table is covered, this can be eaten cold as a hearty grain bowl or gently warmed in a pan if space allows. Mix the chicken, bulgur, and beans together.",
+          "why": "A portable, bowl-based meal for a day when the kitchen is under dust sheets.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_thu",
+              "servings": 1,
+              "box_id": "box_chicken_thu_odalric"
+            },
+            {
+              "preparation_id": "prep_bulgur_thu",
+              "servings": 1,
+              "box_id": "box_bulgur_thu_odalric"
+            },
+            {
+              "preparation_id": "prep_beans_thu_lunch",
+              "servings": 1,
+              "box_id": "box_beans_thu_l_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Spinach & Red Lentil Broth",
+          "title": "Hearty lentil soup with wilted spinach",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Black pepper",
+              "quantity": "1 pinch"
+            }
+          ],
+          "method": "Reheat the lentil and spinach soup in a pot until bubbling. Serve in deep bowls with plenty of black pepper.",
+          "why": "A warm, comforting bowl-food dinner that doesn't require a dining table.",
+          "uses": [
+            {
+              "preparation_id": "prep_soup_thu",
+              "servings": 1,
+              "box_id": "box_soup_thu_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Morning Berry & Yogurt Pot",
+          "title": "Greek yogurt with berries and honeyed toast",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Mixed berries",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Honey",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "Bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the bread. Assemble the yogurt pot by topping with berries and honey. Serve immediately.",
+          "why": "Consistency in the breakfast routine helps maintain the muscle gain volume.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Warming Lentil & Spinach Soup",
+          "title": "Red lentil soup with spinach and leeks",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Bread",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the soup in a small pan. Serve with a slice of bread for extra starch.",
+          "why": "Utilises the final portion of the lentil batch for a quick, high-fibre lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_soup_fri",
+              "servings": 1,
+              "box_id": "box_soup_fri_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Beef & Broccoli Stir-Fry",
+          "title": "Sizzling beef strips with ginger and broccoli",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Beef stir-fry strips",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Broccoli florets",
+              "quantity": "2 heads",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Garlic clove",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Stir-fry the beef strips in oil over high heat until browned. Add the broccoli florets and garlic with a splash of water, cover for 2 minutes to steam-fry until the broccoli is bright green.",
+          "why": "Broccoli is the loud vegetable here; the ingredients for Sunday's traybake are now in your pantry.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken_wed",
+          "title": "Lemon and Oregano Roast Chicken (Part 1)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "Chicken thighs, bone-in",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Lemon",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Dried oregano",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Rub chicken with oil, oregano, and lemon zest. Roast at 200°C for 35-40 minutes until golden and cooked through.",
+          "active_minutes": 10,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_wed_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 110
+            },
+            {
+              "id": "box_chicken_wed_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 110
+            },
+            {
+              "id": "box_chicken_wed_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 110
+            },
+            {
+              "id": "box_chicken_wed_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 110
+            }
+          ]
+        },
+        {
+          "id": "prep_chicken_thu",
+          "title": "Lemon and Oregano Roast Chicken (Part 2)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "Chicken thighs, bone-in",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Lemon",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Dried oregano",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Cooked in the same tray as Part 1. Roast at 200°C for 35-40 minutes.",
+          "active_minutes": 5,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_thu_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 110
+            },
+            {
+              "id": "box_chicken_thu_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 110
+            },
+            {
+              "id": "box_chicken_thu_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 110
+            },
+            {
+              "id": "box_chicken_thu_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 110
+            }
+          ]
+        },
+        {
+          "id": "prep_bulgur_wed",
+          "title": "Herby Bulgur Wheat (Part 1)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "Bulgur wheat",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Vegetable stock",
+              "quantity": "500 ml",
+              "amount": 500,
+              "unit": "ml",
+              "state": "raw"
+            }
+          ],
+          "method": "Simmer bulgur in stock for 10-12 minutes until water is absorbed. Fluff with a fork.",
+          "active_minutes": 5,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_bulgur_wed_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_bulgur_wed_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_bulgur_wed_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_bulgur_wed_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_bulgur_thu",
+          "title": "Herby Bulgur Wheat (Part 2)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "Bulgur wheat",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Vegetable stock",
+              "quantity": "500 ml",
+              "amount": 500,
+              "unit": "ml",
+              "state": "raw"
+            }
+          ],
+          "method": "Cooked in the same pot as Part 1. Simmer until absorbed.",
+          "active_minutes": 2,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_bulgur_thu_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_bulgur_thu_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_bulgur_thu_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_bulgur_thu_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_beans_wed_lunch",
+          "title": "Tomato Braised Green Beans (Part 1)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "Green beans",
+              "quantity": "350 g",
+              "amount": 350,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Tinned chopped tomatoes",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Onion",
+              "quantity": "0.3 unit",
+              "amount": 0.3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Garlic clove",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Sauté onion and garlic. Add beans and tomatoes. Simmer for 20 minutes until beans are tender.",
+          "active_minutes": 10,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beans_wed_l_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_beans_wed_l_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_beans_wed_l_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_beans_wed_l_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 120
+            }
+          ]
+        },
+        {
+          "id": "prep_beans_wed_dinner",
+          "title": "Tomato Braised Green Beans (Part 2)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "Green beans",
+              "quantity": "350 g",
+              "amount": 350,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Tinned chopped tomatoes",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Cooked as part of the same batch as Part 1.",
+          "active_minutes": 2,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beans_wed_d_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_beans_wed_d_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_beans_wed_d_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_beans_wed_d_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 120
+            }
+          ]
+        },
+        {
+          "id": "prep_beans_thu_lunch",
+          "title": "Tomato Braised Green Beans (Part 3)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "Green beans",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Tinned chopped tomatoes",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Cooked as part of the same batch as Part 1.",
+          "active_minutes": 2,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beans_thu_l_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_beans_thu_l_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_beans_thu_l_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_beans_thu_l_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 120
+            }
+          ]
+        },
+        {
+          "id": "prep_soup_thu",
+          "title": "Spinach & Red Lentil Soup (Part 1)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "Red lentils",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Fresh spinach",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Leek",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Vegetable stock",
+              "quantity": "1000 ml",
+              "amount": 1000,
+              "unit": "ml",
+              "state": "raw"
+            }
+          ],
+          "method": "Sauté sliced leeks. Add lentils and stock. Simmer for 20 minutes. Stir in spinach at the end until wilted.",
+          "active_minutes": 10,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_soup_thu_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_soup_thu_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_soup_thu_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_soup_thu_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_soup_fri",
+          "title": "Spinach & Red Lentil Soup (Part 2)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "Red lentils",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Fresh spinach",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Cooked as part of the same batch as Part 1.",
+          "active_minutes": 2,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_soup_fri_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_soup_fri_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_soup_fri_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_soup_fri_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 300
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken_wed",
+            "prep_chicken_thu",
+            "prep_bulgur_wed",
+            "prep_bulgur_thu",
+            "prep_beans_wed_lunch",
+            "prep_beans_wed_dinner",
+            "prep_beans_thu_lunch",
+            "prep_soup_thu",
+            "prep_soup_fri"
+          ],
+          "total_minutes": 55,
+          "run_through": "Oven on for the chicken trays. While they roast, start the large pot of bulgur and the large pot for the green bean braise. Once the beans are simmering, start the lentil soup in a third pot. While everything simmers, chop the spinach and parsley. Box all portions as soon as they are cooked to clear the kitchen."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "Chicken thighs, bone-in",
+          "quantity": "1.2 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "Cod fillets",
+          "quantity": "4 units",
+          "aisle": "protein"
+        },
+        {
+          "term": "Beef stir-fry strips",
+          "quantity": "600 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "Eggs",
+          "quantity": "6 units",
+          "aisle": "protein"
+        },
+        {
+          "term": "Greek yogurt",
+          "quantity": "1 kg",
+          "aisle": "dairy"
+        },
+        {
+          "term": "Butter",
+          "quantity": "250 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "Bulgur wheat",
+          "quantity": "500 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "Bread",
+          "quantity": "2 loaves",
+          "aisle": "grains"
+        },
+        {
+          "term": "Red lentils",
+          "quantity": "400 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "Green beans",
+          "quantity": "1 kg",
+          "aisle": "produce"
+        },
+        {
+          "term": "Fresh spinach",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Broccoli",
+          "quantity": "2 heads",
+          "aisle": "produce"
+        },
+        {
+          "term": "Mixed berries",
+          "quantity": "400 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Chestnut mushrooms",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Leek",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "Onion",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "Garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "Lemons",
+          "quantity": "4 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "Fresh parsley",
+          "quantity": "1 bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "Tinned chopped tomatoes",
+          "quantity": "400 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Vegetable stock cubes",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Honey",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Blackcurrant jam",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Hot sauce",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Dried oregano",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Olive oil",
+          "quantity": "250 ml",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Poppy seeds",
+          "quantity": "1 packet",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Plain flour",
+          "quantity": "500 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Caster sugar",
+          "quantity": "500 g",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+          "portion_note": "Larger protein and starch share; add a spoonful of blackcurrant jam to your breakfast toast.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_wed",
+              "note": "Full box plus extra chicken from the tray"
+            },
+            {
+              "preparation_id": "prep_bulgur_wed",
+              "note": "Full box plus extra bulgur"
+            }
+          ]
+        },
+        {
+          "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+          "portion_note": "Child-size share; always cut the crusts off the bread before serving.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_wed",
+              "note": "Half of the box contents"
+            }
+          ]
+        },
+        {
+          "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+          "portion_note": "Larger protein and starch share; ensure no carrots or orange-coloured foods are on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_wed",
+              "note": "Full box plus extra chicken"
+            },
+            {
+              "preparation_id": "prep_bulgur_wed",
+              "note": "Full box plus extra bulgur"
+            }
+          ]
+        },
+        {
+          "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+          "portion_note": "Child-size share; provide the bottle of hot sauce for every meal.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_wed",
+              "note": "Half of the box contents"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Berry Yogurt Bowl\",\n      \"title\": \"Greek yogurt with fresh berries and honey toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Mixed berries\", \"quantity\": \"50 g\", \"amount\": 50, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Honey\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Bread\", \"quantity\": \"2 slices\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Toast the bread. Top the yogurt with fresh berries and a drizzle of honey. Serve the toast on the side.\",\n      \"why\": \"A quick, high-protein start to the muscle gain stretch with berries as the loud vegetable.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Golden Oregano Chicken & Grains\",\n      \"title\": \"Lemon and oregano chicken with bulgur and green beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Fresh parsley\", \"quantity\": \"1 tsp\", \"amount\": 1, \"unit\": \"tsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Reheat the chicken, bulgur, and green bean portions in a wide pan with a splash of water until steaming. Top with fresh parsley.\",\n      \"why\": \"Starch follows the training session to fuel muscle growth, using the first batch of the week.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken_wed\", \"servings\": 1, \"box_id\": \"box_chicken_wed_odalric\" },\n        { \"preparation_id\": \"prep_bulgur_wed\", \"servings\": 1, \"box_id\": \"box_bulgur_wed_odalric\" },\n        { \"preparation_id\": \"prep_beans_wed_lunch\", \"servings\": 1, \"box_id\": \"box_beans_wed_l_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\", \"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Pan-Seared Cod & Braised Beans\",\n      \"title\": \"Seared white fish with tomato-braised green beans\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Cod fillets\", \"quantity\": \"4 units\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Lemon\", \"quantity\": \"0.5 unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Season the cod and sear in a hot pan with oil for 3-4 minutes per side. Reheat the braised beans in a separate pan and serve alongside with a squeeze of lemon.\",\n      \"why\": \"A warm element is essential for dinner; the white fish is safe for Peregrine's colour preferences.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_beans_wed_dinner\", \"servings\": 1, \"box_id\": \"box_beans_wed_d_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 15 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Savoury Mushroom Scramble\",\n      \"title\": \"Scrambled eggs with garlicky mushrooms on toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Eggs\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Chestnut mushrooms\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Garlic clove\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Bread\", \"quantity\": \"2 slices\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Sauté sliced mushrooms and garlic in butter. Scramble the eggs in the same pan. Serve on toast, which can be eaten easily while the kitchen is being painted.\",\n      \"why\": \"Mushrooms provide the loud vegetable element without using colours Peregrine avoids.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Lemon Chicken Grain Bowl\",\n      \"title\": \"Cold lemon chicken with bulgur and green beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Lemon juice\", \"quantity\": \"1 tsp\", \"amount\": 1, \"unit\": \"tsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Since the kitchen table is covered, this can be eaten cold as a hearty grain bowl or gently warmed in a pan if space allows. Mix the chicken, bulgur, and beans together.\",\n      \"why\": \"A portable, bowl-based meal for a day when the kitchen is under dust sheets.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken_thu\", \"servings\": 1, \"box_id\": \"box_chicken_thu_odalric\" },\n        { \"preparation_id\": \"prep_bulgur_thu\", \"servings\": 1, \"box_id\": \"box_bulgur_thu_odalric\" },\n        { \"preparation_id\": \"prep_beans_thu_lunch\", \"servings\": 1, \"box_id\": \"box_beans_thu_l_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Spinach & Red Lentil Broth\",\n      \"title\": \"Hearty lentil soup with wilted spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Black pepper\", \"quantity\": \"1 pinch\" }\n      ],\n      \"method\": \"Reheat the lentil and spinach soup in a pot until bubbling. Serve in deep bowls with plenty of black pepper.\",\n      \"why\": \"A warm, comforting bowl-food dinner that doesn't require a dining table.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_soup_thu\", \"servings\": 1, \"box_id\": \"box_soup_thu_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 8 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Morning Berry & Yogurt Pot\",\n      \"title\": \"Greek yogurt with berries and honeyed toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Mixed berries\", \"quantity\": \"50 g\", \"amount\": 50, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Honey\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Bread\", \"quantity\": \"2 slices\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Toast the bread. Assemble the yogurt pot by topping with berries and honey. Serve immediately.\",\n      \"why\": \"Consistency in the breakfast routine helps maintain the muscle gain volume.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Warming Lentil & Spinach Soup\",\n      \"title\": \"Red lentil soup with spinach and leeks\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Bread\", \"quantity\": \"1 slice\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Reheat the soup in a small pan. Serve with a slice of bread for extra starch.\",\n      \"why\": \"Utilises the final portion of the lentil batch for a quick, high-fibre lunch.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_soup_fri\", \"servings\": 1, \"box_id\": \"box_soup_fri_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 8 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Beef & Broccoli Stir-Fry\",\n      \"title\": \"Sizzling beef strips with ginger and broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Beef stir-fry strips\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Broccoli florets\", \"quantity\": \"2 heads\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Garlic clove\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Stir-fry the beef strips in oil over high heat until browned. Add the broccoli florets and garlic with a splash of water, cover for 2 minutes to steam-fry until the broccoli is bright green.\",\n      \"why\": \"Broccoli is the loud vegetable here; the ingredients for Sunday's traybake are now in your pantry.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 15 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_wed\",\n      \"title\": \"Lemon and Oregano Roast Chicken (Part 1)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Chicken thighs, bone-in\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Lemon\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Dried oregano\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Rub chicken with oil, oregano, and lemon zest. Roast at 200°C for 35-40 minutes until golden and cooked through.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_wed_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 110 },\n        { \"id\": \"box_chicken_wed_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 110 },\n        { \"id\": \"box_chicken_wed_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 110 },\n        { \"id\": \"box_chicken_wed_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 110 }\n      ]\n    },\n    {\n      \"id\": \"prep_chicken_thu\",\n      \"title\": \"Lemon and Oregano Roast Chicken (Part 2)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Chicken thighs, bone-in\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Lemon\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Dried oregano\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cooked in the same tray as Part 1. Roast at 200°C for 35-40 minutes.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_thu_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 110 },\n        { \"id\": \"box_chicken_thu_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 110 },\n        { \"id\": \"box_chicken_thu_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 110 },\n        { \"id\": \"box_chicken_thu_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 110 }\n      ]\n    },\n    {\n      \"id\": \"prep_bulgur_wed\",\n      \"title\": \"Herby Bulgur Wheat (Part 1)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Bulgur wheat\", \"quantity\": \"250 g\", \"amount\": 250, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Vegetable stock\", \"quantity\": \"500 ml\", \"amount\": 500, \"unit\": \"ml\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Simmer bulgur in stock for 10-12 minutes until water is absorbed. Fluff with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_bulgur_wed_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 150 },\n        { \"id\": \"box_bulgur_wed_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 150 },\n        { \"id\": \"box_bulgur_wed_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 150 },\n        { \"id\": \"box_bulgur_wed_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 150 }\n      ]\n    },\n    {\n      \"id\": \"prep_bulgur_thu\",\n      \"title\": \"Herby Bulgur Wheat (Part 2)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Bulgur wheat\", \"quantity\": \"250 g\", \"amount\": 250, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Vegetable stock\", \"quantity\": \"500 ml\", \"amount\": 500, \"unit\": \"ml\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cooked in the same pot as Part 1. Simmer until absorbed.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_bulgur_thu_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 150 },\n        { \"id\": \"box_bulgur_thu_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 150 },\n        { \"id\": \"box_bulgur_thu_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 150 },\n        { \"id\": \"box_bulgur_thu_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 150 }\n      ]\n    },\n    {\n      \"id\": \"prep_beans_wed_lunch\",\n      \"title\": \"Tomato Braised Green Beans (Part 1)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Green beans\", \"quantity\": \"350 g\", \"amount\": 350, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Tinned chopped tomatoes\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Onion\", \"quantity\": \"0.3 unit\", \"amount\": 0.3, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Garlic clove\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Sauté onion and garlic. Add beans and tomatoes. Simmer for 20 minutes until beans are tender.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_beans_wed_l_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 120 },\n        { \"id\": \"box_beans_wed_l_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 120 },\n        { \"id\": \"box_beans_wed_l_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 120 },\n        { \"id\": \"box_beans_wed_l_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 120 }\n      ]\n    },\n    {\n      \"id\": \"prep_beans_wed_dinner\",\n      \"title\": \"Tomato Braised Green Beans (Part 2)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Green beans\", \"quantity\": \"350 g\", \"amount\": 350, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Tinned chopped tomatoes\", \"quantity\": \"150 g\", \"amount\": 150, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cooked as part of the same batch as Part 1.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_beans_wed_d_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 120 },\n        { \"id\": \"box_beans_wed_d_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 120 },\n        { \"id\": \"box_beans_wed_d_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 120 },\n        { \"id\": \"box_beans_wed_d_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 120 }\n      ]\n    },\n    {\n      \"id\": \"prep_beans_thu_lunch\",\n      \"title\": \"Tomato Braised Green Beans (Part 3)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Green beans\", \"quantity\": \"300 g\", \"amount\": 300, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Tinned chopped tomatoes\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cooked as part of the same batch as Part 1.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_beans_thu_l_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 120 },\n        { \"id\": \"box_beans_thu_l_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 120 },\n        { \"id\": \"box_beans_thu_l_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 120 },\n        { \"id\": \"box_beans_thu_l_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 120 }\n      ]\n    },\n    {\n      \"id\": \"prep_soup_thu\",\n      \"title\": \"Spinach & Red Lentil Soup (Part 1)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Red lentils\", \"quantity\": \"200 g\", \"amount\": 200, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Fresh spinach\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Leek\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Vegetable stock\", \"quantity\": \"1000 ml\", \"amount\": 1000, \"unit\": \"ml\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Sauté sliced leeks. Add lentils and stock. Simmer for 20 minutes. Stir in spinach at the end until wilted.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_soup_thu_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 300 },\n        { \"id\": \"box_soup_thu_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 300 },\n        { \"id\": \"box_soup_thu_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 300 },\n        { \"id\": \"box_soup_thu_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 300 }\n      ]\n    },\n    {\n      \"id\": \"prep_soup_fri\",\n      \"title\": \"Spinach & Red Lentil Soup (Part 2)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        { \"term\": \"Red lentils\", \"quantity\": \"200 g\", \"amount\": 200, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Fresh spinach\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cooked as part of the same batch as Part 1.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_soup_fri_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 300 },\n        { \"id\": \"box_soup_fri_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 300 },\n        { \"id\": \"box_soup_fri_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 300 },\n        { \"id\": \"box_soup_fri_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 300 }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken_wed\",\n        \"prep_chicken_thu\",\n        \"prep_bulgur_wed\",\n        \"prep_bulgur_thu\",\n        \"prep_beans_wed_lunch\",\n        \"prep_beans_wed_dinner\",\n        \"prep_beans_thu_lunch\",\n        \"prep_soup_thu\",\n        \"prep_soup_fri\"\n      ],\n      \"total_minutes\": 55,\n      \"run_through\": \"Oven on for the chicken trays. While they roast, start the large pot of bulgur and the large pot for the green bean braise. Once the beans are simmering, start the lentil soup in a third pot. While everything simmers, chop the spinach and parsley. Box all portions as soon as they are cooked to clear the kitchen.\"\n    }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"Chicken thighs, bone-in\", \"quantity\": \"1.2 kg\", \"aisle\": \"protein\" },\n    { \"term\": \"Cod fillets\", \"quantity\": \"4 units\", \"aisle\": \"protein\" },\n    { \"term\": \"Beef stir-fry strips\", \"quantity\": \"600 g\", \"aisle\": \"protein\" },\n    { \"term\": \"Eggs\", \"quantity\": \"6 units\", \"aisle\": \"protein\" },\n    { \"term\": \"Greek yogurt\", \"quantity\": \"1 kg\", \"aisle\": \"dairy\" },\n    { \"term\": \"Butter\", \"quantity\": \"250 g\", \"aisle\": \"dairy\" },\n    { \"term\": \"Bulgur wheat\", \"quantity\": \"500 g\", \"aisle\": \"grains\" },\n    { \"term\": \"Bread\", \"quantity\": \"2 loaves\", \"aisle\": \"grains\" },\n    { \"term\": \"Red lentils\", \"quantity\": \"400 g\", \"aisle\": \"grains\" },\n    { \"term\": \"Green beans\", \"quantity\": \"1 kg\", \"aisle\": \"produce\" },\n    { \"term\": \"Fresh spinach\", \"quantity\": \"200 g\", \"aisle\": \"produce\" },\n    { \"term\": \"Broccoli\", \"quantity\": \"2 heads\", \"aisle\": \"produce\" },\n    { \"term\": \"Mixed berries\", \"quantity\": \"400 g\", \"aisle\": \"produce\" },\n    { \"term\": \"Chestnut mushrooms\", \"quantity\": \"200 g\", \"aisle\": \"produce\" },\n    { \"term\": \"Leek\", \"quantity\": \"1 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"Onion\", \"quantity\": \"1 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"Garlic\", \"quantity\": \"1 bulb\", \"aisle\": \"produce\" },\n    { \"term\": \"Lemons\", \"quantity\": \"4 units\", \"aisle\": \"produce\" },\n    { \"term\": \"Fresh parsley\", \"quantity\": \"1 bunch\", \"aisle\": \"produce\" },\n    { \"term\": \"Tinned chopped tomatoes\", \"quantity\": \"400 g\", \"aisle\": \"pantry\" },\n    { \"term\": \"Vegetable stock cubes\", \"quantity\": \"1 pack\", \"aisle\": \"pantry\" },\n    { \"term\": \"Honey\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"Blackcurrant jam\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"Hot sauce\", \"quantity\": \"1 bottle\", \"aisle\": \"pantry\" },\n    { \"term\": \"Dried oregano\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"Olive oil\", \"quantity\": \"250 ml\", \"aisle\": \"pantry\" },\n    { \"term\": \"Poppy seeds\", \"quantity\": \"1 packet\", \"aisle\": \"pantry\" },\n    { \"term\": \"Plain flour\", \"quantity\": \"500 g\", \"aisle\": \"pantry\" },\n    { \"term\": \"Caster sugar\", \"quantity\": \"500 g\", \"aisle\": \"pantry\" }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Larger protein and starch share; add a spoonful of blackcurrant jam to your breakfast toast.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_wed\", \"note\": \"Full box plus extra chicken from the tray\" },\n        { \"preparation_id\": \"prep_bulgur_wed\", \"note\": \"Full box plus extra bulgur\" }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Child-size share; always cut the crusts off the bread before serving.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_wed\", \"note\": \"Half of the box contents\" }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Larger protein and starch share; ensure no carrots or orange-coloured foods are on the plate.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_wed\", \"note\": \"Full box plus extra chicken\" },\n        { \"preparation_id\": \"prep_bulgur_wed\", \"note\": \"Full box plus extra bulgur\" }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Child-size share; provide the bottle of hot sauce for every meal.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_wed\", \"note\": \"Half of the box contents\" }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "RfSEapfBJ4--vdIP--7cwQo",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 23230,
+        "promptTokenCount": 7786,
+        "cacheTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4047
+          }
+        ],
+        "thoughtsTokenCount": 6647,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 7786
+          }
+        ],
+        "candidatesTokenCount": 8797,
+        "cachedContentTokenCount": 4047
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T00:08:29.652048+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:08:29.658158+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:08:29.660243+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:08:29.663275+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:09:29.69076+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:09:29.709622+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:09:30.211747+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:09:35.718069+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:09:36.195935+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:09:41.332302+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:09:41.353765+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:09:41.369425+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:10:39.375046+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

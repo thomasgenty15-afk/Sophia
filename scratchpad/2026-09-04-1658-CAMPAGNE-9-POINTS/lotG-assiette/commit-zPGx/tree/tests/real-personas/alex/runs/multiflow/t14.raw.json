@@ -1,0 +1,206 @@
+{
+  "ok": true,
+  "request_id": "6fdc6bdd-807d-4685-b4d0-56a7150618b5",
+  "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "channel": "web",
+  "scope": "web",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Oui, je t’ai répondu trop affirmativement tout à l’heure — là, je ne peux pas le confirmer depuis ici.\n\nPose juste ça de côté et va dormir. Le reste attendra demain 😴",
+    "mode": "companion",
+    "delivery": {
+      "mode": "text_reply"
+    },
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "6fdc6bdd-807d-4685-b4d0-56a7150618b5",
+        "source_message_id": "2237365d-6d5f-4c6f-8fff-65b47a03883e",
+        "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "direct_effect_time_context": {
+          "now_utc": "2026-07-10T21:05:14.204Z",
+          "user_timezone": "Europe/Paris",
+          "user_locale": "fr-FR",
+          "user_local_datetime": "2026-07-10T23:05:14",
+          "user_local_human": "vendredi 10 juillet 2026 à 23:05"
+        },
+        "note_information": null,
+        "skill_signals": {},
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "reassure_and_close",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "taxonomy_first",
+          "plan_confidence": 0.7
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "normal_reply",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "normal_reply_default",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none"
+      },
+      "effect_ledger": {
+        "turn_id": "6fdc6bdd-807d-4685-b4d0-56a7150618b5",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "normal_reply"
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "6fdc6bdd-807d-4685-b4d0-56a7150618b5",
+      "source_message_id": "2237365d-6d5f-4c6f-8fff-65b47a03883e",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "direct_effect_time_context": {
+        "now_utc": "2026-07-10T21:05:14.204Z",
+        "user_timezone": "Europe/Paris",
+        "user_locale": "fr-FR",
+        "user_local_datetime": "2026-07-10T23:05:14",
+        "user_local_human": "vendredi 10 juillet 2026 à 23:05"
+      },
+      "note_information": null,
+      "skill_signals": {},
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "reassure_and_close",
+        "reasoning_complexity": "low",
+        "context_need": "minimal",
+        "memory_mode": "none",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "tiny",
+        "targets": [],
+        "retrieval_policy": "taxonomy_first",
+        "plan_confidence": 0.7
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "normal_reply",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "normal_reply_default",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none"
+    },
+    "effect_ledger": {
+      "turn_id": "6fdc6bdd-807d-4685-b4d0-56a7150618b5",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "normal_reply"
+  },
+  "trace_error": null
+}

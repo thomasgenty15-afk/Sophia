@@ -1,0 +1,260 @@
+{
+  "ok": true,
+  "source": "local",
+  "user_id": "654e2eb0-74d7-41de-a4f6-39c0665d010b",
+  "scope": "web",
+  "since": null,
+  "until": null,
+  "request_ids": [
+    "planrealign-r1-t1",
+    "planrealign-r1-t2",
+    "planrealign-r1-t3",
+    "planrealign-r1-t4",
+    "planrealign-r1-t5"
+  ],
+  "counts": {
+    "chat_messages": 10,
+    "conversation_eval_events": 0,
+    "system_error_logs": 0,
+    "llm_usage_events": 2
+  },
+  "chat_messages": [
+    {
+      "id": "b1370018-443d-49da-9d98-9cf3153d4d28",
+      "user_id": "654e2eb0-74d7-41de-a4f6-39c0665d010b",
+      "role": "user",
+      "content": "J'ai complètement décroché de mon plan cette semaine. J'ai pris du retard partout et je ne sais pas si je dois tout rattraper ou revoir le plan.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r1-t1",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:04:25.19538+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "ba789cbf-2685-4345-af66-3ed1703a2524",
+      "user_id": "654e2eb0-74d7-41de-a4f6-39c0665d010b",
+      "role": "assistant",
+      "content": "Ça arrive, et tu n’as pas à tout rattraper d’un coup. Le plus utile là, c’est de repartir sur un plan réaliste : va dans Dashboard > Plan pour revoir ta semaine et réaligner tes actions depuis l’interface.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r1-t1",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 4413,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 5254,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:04:34.981962+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "edc7c753-a3f7-46f5-b111-65099a8a856a",
+      "user_id": "654e2eb0-74d7-41de-a4f6-39c0665d010b",
+      "role": "user",
+      "content": "Ok, tu peux me le réorganiser directement ici ? Genre alléger ma semaine toi-même.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r1-t2",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:05:02.614876+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "a96272ce-030e-4cd8-91f3-cfaed0b0152d",
+      "user_id": "654e2eb0-74d7-41de-a4f6-39c0665d010b",
+      "role": "assistant",
+      "content": "Non, je ne peux pas le faire ici. Le réalignement se fait dans Dashboard > Plan : ouvre ton plan, puis allège, décale ou repriorise tes actions depuis l’interface.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r1-t2",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 5852,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:05:08.505137+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "02ed8a11-2dce-4134-bdd1-f8800fb95223",
+      "user_id": "654e2eb0-74d7-41de-a4f6-39c0665d010b",
+      "role": "user",
+      "content": "Je vais où exactement dans Sophia pour faire ça ? Je ne connais pas trop l’interface.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r1-t3",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:05:29.32886+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "ac2fb7b8-7a27-4a03-83f0-12b651e8856e",
+      "user_id": "654e2eb0-74d7-41de-a4f6-39c0665d010b",
+      "role": "assistant",
+      "content": "Va dans Dashboard > Plan. C’est là que tu peux revoir ta semaine et, si besoin, alléger, déplacer ou reprioriser tes actions depuis l’interface. Le plan sert justement à te réaligner quand tu as décroché.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r1-t3",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 4930,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:05:34.281271+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "d1ce9ebc-a4d7-4d1d-b753-8399fbcbc8aa",
+      "user_id": "654e2eb0-74d7-41de-a4f6-39c0665d010b",
+      "role": "user",
+      "content": "Mais comment je choisis quoi alléger ? J’ai peur de juste supprimer les trucs importants parce que je panique.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r1-t4",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:05:54.646936+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "2a355401-289a-4375-90a3-e1a7aee31ee3",
+      "user_id": "654e2eb0-74d7-41de-a4f6-39c0665d010b",
+      "role": "assistant",
+      "content": "Le plus sûr, c’est de ne rien supprimer dans la panique. Dans Dashboard > Plan, garde d’abord ce qui est vraiment urgent ou indispensable, puis allège le reste en décalant ou en retirant les tâches les moins critiques.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r1-t4",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 6067,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:06:00.763624+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "2233bfcc-7fef-4d10-b3da-587262daa5cb",
+      "user_id": "654e2eb0-74d7-41de-a4f6-39c0665d010b",
+      "role": "user",
+      "content": "En fait ce n’est peut-être pas toute la semaine : c’est surtout le mail à Camille, je bloque dès que j’ouvre le brouillon. Là tu m’aiderais comment ?",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r1-t5",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:06:19.579711+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "de8f2e35-6549-4c30-b7f1-b9e4979c1f1d",
+      "user_id": "654e2eb0-74d7-41de-a4f6-39c0665d010b",
+      "role": "assistant",
+      "content": "Je partirais sur une carte d’attaque, technique texte magique : une phrase courte pour casser le blocage au moment où tu ouvres le brouillon et te remettre dans le geste sans te prendre la tête. Tu la prépares depuis l’action « mail à Camille » dans le Plan.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r1-t5",
+        "route_owner": "coaching_recommendation",
+        "agent_latency_ms": 16638,
+        "selected_handler": "coaching_recommendation",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:06:44.589099+00:00",
+      "scope": "web"
+    }
+  ],
+  "conversation_eval_events": [],
+  "system_error_logs": [],
+  "llm_usage_events": [
+    {
+      "id": "6813a91d-e5aa-418f-9b68-39fedcd85f00",
+      "created_at": "2026-06-30T20:04:30.534146+00:00",
+      "request_id": "planrealign-r1-t1",
+      "source": "dispatcher-v2-llm",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "kind": "generate",
+      "prompt_tokens": 5640,
+      "output_tokens": 328,
+      "total_tokens": 5968,
+      "cost_usd": 0.005706,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "openai_api": "responses",
+        "toolChoice": "auto",
+        "openai_response_id": "resp_04eb1cbbaa772f3c006a44214abbf0819e832d9440584cabd2",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "654e2eb0-74d7-41de-a4f6-39c0665d010b",
+      "operation_family": "dispatcher",
+      "operation_name": "dispatcher-v2-llm",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 5234,
+      "provider_request_id": null,
+      "pricing_version": "openai_2026_06_12_standard",
+      "input_price_per_1k_tokens_usd": 0.00075,
+      "output_price_per_1k_tokens_usd": 0.0045,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "70232af6-1840-4847-af51-098410390bf0",
+      "created_at": "2026-06-30T20:06:27.925084+00:00",
+      "request_id": "planrealign-r1-t5",
+      "source": "dispatcher-v2-llm",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "kind": "generate",
+      "prompt_tokens": 6418,
+      "output_tokens": 390,
+      "total_tokens": 6808,
+      "cost_usd": 0.0065685,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "openai_api": "responses",
+        "toolChoice": "auto",
+        "openai_response_id": "resp_0203d4b7b355b710006a4421c10c54819ea75fa47d8d61010d",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "654e2eb0-74d7-41de-a4f6-39c0665d010b",
+      "operation_family": "dispatcher",
+      "operation_name": "dispatcher-v2-llm",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 3167,
+      "provider_request_id": null,
+      "pricing_version": "openai_2026_06_12_standard",
+      "input_price_per_1k_tokens_usd": 0.00075,
+      "output_price_per_1k_tokens_usd": 0.0045,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    }
+  ]
+}

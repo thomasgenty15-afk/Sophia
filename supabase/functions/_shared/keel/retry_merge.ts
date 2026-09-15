@@ -46,9 +46,49 @@ import type {
   MealPreparation,
   ShoppingItem,
 } from "./meal_generation.ts";
-import { normalizePantryTerm } from "./meal_generation.ts";
 import { readQuantityFromProse } from "./quantity_from_prose.ts";
 import type { MealsDelivered } from "./meals_delivered.ts";
+import type { CompositionIndex } from "./food_composition.ts";
+import {
+  claimedIdentities,
+  emptyShoppingSortCounts,
+  foodIdentityOf,
+  type ShoppingSortCounts,
+  sortShoppingLines,
+} from "./shopping_identity.ts";
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-12 · ÉTAPE C3 — LES COURSES NE SE DÉCIDENT PLUS PAR LE LIBELLÉ
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LE DÉFAUT, MESURÉ SUR UN RUN DU BANC DU 2026-09-11. Les cinq points de
+ * filtrage de ce fichier comparaient `normalizePantryTerm(ligne.term)` aux
+ * termes des ingrédients. « citrons » ≠ « citron » ⇒ **la ligne disparaît**,
+ * et le message disait pourtant « kept, not guessed ». **6 lignes sur 26**
+ * perdues (`oignons`, `carottes`, `tomates`, `citrons`, `pommes de terre`,
+ * `pitas complètes`), `splice.shopping_pruned: 6` — puis l'audit du lot E les
+ * rattrapait en 5 `ingredient_not_bought`. Même racine que les 8 faux positifs
+ * du matin, un cran plus grave : là on signalait à tort, ici on SUPPRIME.
+ *
+ * ⛔ DEUX CHANGEMENTS, ET LE SECOND COMPTE AUTANT QUE LE PREMIER.
+ *   ① l'appariement passe par l'IDENTITÉ (`resolveCompositionLine`, lot A) :
+ *      « citrons » et « citron » atteignent le slug `lemon` par les alias du
+ *      référentiel, et plus aucune chaîne n'est comparée ;
+ *   ② le RETRAIT ne se fait plus par défaut. Une ligne ne part que si son
+ *      identité appartient à une unité RÉELLEMENT RETIRÉE du plan — la règle
+ *      des trois sorts que le parseur tient depuis le 2026-08-12 et qui
+ *      n'avait jamais été rejouée sur un plan fusionné. Le doute ne retire
+ *      rien, il se COMPTE.
+ *
+ * ⚠️ POURQUOI ② SEUL SUFFIRAIT DÉJÀ : sans référentiel (`index: null`), les
+ * six lignes au pluriel ne se rattachent ni au gardé ni au retiré, donc elles
+ * restent. L'identité rend le verdict JUSTE ; les trois sorts le rendent SÛR.
+ *
+ * ⚠️ L'INDEX EST UN ARGUMENT, PAS UNE LECTURE. Ce module reste PUR : on lui
+ * passe le contexte résolu, il ne fait ni I/O ni second résolveur. C'est la
+ * consigne du plan mot pour mot.
+ */
 
 export interface MergeOutcome {
   readonly meal: GeneratedMeal;
@@ -94,6 +134,15 @@ export interface MergeOutcome {
    * compte en conflit, comme avant.
    */
   readonly shoppingSummed: number;
+  /**
+   * ⟳ 2026-09-12 · C3 — LES TROIS SORTS, CHIFFRÉS.
+   *
+   * ⛔ `unattributed` EST LE COMPTEUR DU LOT. Non nul, il dit qu'une ligne de
+   * courses ne rejoint aucune identité du plan fusionné — donc qu'on achète
+   * peut-être pour rien. Il ne dit JAMAIS qu'on a supprimé quelque chose :
+   * ces lignes-là RESTENT. C'est exactement l'inverse du filtre qu'il remplace.
+   */
+  readonly shoppingSorts: ShoppingSortCounts;
 }
 
 /**
@@ -161,6 +210,8 @@ export function mergeRetryByCell(args: {
   retry: GeneratedMeal;
   before: MealsDelivered;
   after: MealsDelivered;
+  /** ⟳ C3 — le référentiel, PASSÉ. `null` = on s'abstient d'identifier. */
+  index: CompositionIndex | null;
 }): MergeOutcome {
   // ⟳ 2026-09-06 — UNE CELLULE OÙ MOINS DE BOUCHES MANQUENT EST PRISE, même si
   // quelqu'un y manque encore. Mesuré (FD2): le lundi soir manquait à QUATRE
@@ -175,7 +226,12 @@ export function mergeRetryByCell(args: {
     .filter(([c, n]) => retryCells.has(c) && (after.get(c) ?? 0) < n)
     .map(([c]) => c)
     .sort();
-  return mergeRetryCells({ base: args.base, retry: args.retry, cells });
+  return mergeRetryCells({
+    base: args.base,
+    retry: args.retry,
+    cells,
+    index: args.index,
+  });
 }
 
 /**
@@ -188,6 +244,8 @@ export function mergeRetryCells(args: {
   base: GeneratedMeal;
   retry: GeneratedMeal;
   cells: readonly string[];
+  /** ⟳ C3 — le référentiel, PASSÉ. `null` = on s'abstient d'identifier. */
+  index: CompositionIndex | null;
 }): MergeOutcome {
   const retryCells = new Set(args.retry.dishes.map(cellKey));
   const cells = [...new Set(args.cells)].filter((c) => retryCells.has(c)).sort();
@@ -204,8 +262,11 @@ export function mergeRetryCells(args: {
       shoppingPruned: 0,
       shoppingConflicts: 0,
       shoppingSummed: 0,
+      shoppingSorts: emptyShoppingSortCounts(),
     };
   }
+  const identityOf = (line: { term: string; ref?: string | null; refRefused?: boolean }) =>
+    foodIdentityOf(args.index, line).identity;
   const taken = new Set(cells);
   const meal: GeneratedMeal = structuredClone(args.base);
   const retry: GeneratedMeal = structuredClone(args.retry);
@@ -213,6 +274,14 @@ export function mergeRetryCells(args: {
   // ── LES PLATS: ceux de base sortent des cellules prises, ceux de la relance entrent ──
   const keptDishes = meal.dishes.filter((d) => !taken.has(cellKey(d)));
   const importedDishes: GeneratedDish[] = retry.dishes.filter((d) => taken.has(cellKey(d)));
+  // ⟳ 2026-09-12 · C3 — CE QUI SORT DU PLAN, NOMMÉ AVANT DE SORTIR. C'est la
+  // moitié du correctif: un retrait de courses n'est légitime que s'il peut
+  // citer l'unité disparue. Les plats remplacés d'abord; les casseroles
+  // orphelines s'y ajoutent plus bas, une fois l'élagage décidé.
+  const removedIdentities = claimedIdentities(
+    args.index,
+    meal.dishes.filter((d) => taken.has(cellKey(d))),
+  );
 
   // ── LES CASSEROLES CITÉES: réutilisées, importées, ou renommées ──────────
   const baseById = new Map(meal.preparations.map((p) => [p.id, p]));
@@ -265,6 +334,11 @@ export function mergeRetryCells(args: {
     .map((p) => p.id);
   if (preparationsPruned.length > 0) {
     const gone = new Set(preparationsPruned);
+    // ⟳ C3 — une casserole qui sort emporte le DROIT de retirer ses lignes de
+    // courses, et rien de plus: son identité rejoint la liste des retirées.
+    for (const id of removedIdsOf(args.index, meal.preparations, gone)) {
+      removedIdentities.add(id);
+    }
     meal.preparations = meal.preparations.filter((p) => !gone.has(p.id));
     for (const id of preparationsPruned) baseById.delete(id);
     for (const s of meal.cooking_sessions) {
@@ -293,15 +367,16 @@ export function mergeRetryCells(args: {
   const sessionsDropped = sessionsBefore - meal.cooking_sessions.length;
 
   // ── LES COURSES: les lignes de la relance que les plats importés réclament ──
-  const claimed = new Set<string>();
-  for (const d of importedDishes) for (const ing of d.ingredients) claimed.add(normalizePantryTerm(ing.term));
-  for (const id of importedPreparations) for (const ing of baseById.get(id)!.ingredients) claimed.add(normalizePantryTerm(ing.term));
-  const already = new Map(meal.shopping_list.map((l) => [normalizePantryTerm(l.term), l]));
+  const claimed = claimedIdentities(args.index, [
+    ...importedDishes,
+    ...importedPreparations.map((id) => baseById.get(id)!),
+  ]);
+  const already = new Map(meal.shopping_list.map((l) => [identityOf(l), l]));
   let shoppingAdded = 0;
   let shoppingConflicts = 0;
   let shoppingSummed = 0;
   for (const line of retry.shopping_list) {
-    const key = normalizePantryTerm(line.term);
+    const key = identityOf(line);
     if (!claimed.has(key)) continue;
     const present = already.get(key);
     if (present) {
@@ -326,12 +401,21 @@ export function mergeRetryCells(args: {
   // La même règle que le parseur (« bought for a dish that is not in the
   // plan »), rejouée sur le plan FUSIONNÉ: le poulet du plat remplacé n'est
   // plus à acheter.
-  const claimedAll = new Set<string>();
-  for (const d of meal.dishes) for (const ing of d.ingredients) claimedAll.add(normalizePantryTerm(ing.term));
-  for (const p of meal.preparations) for (const ing of p.ingredients) claimedAll.add(normalizePantryTerm(ing.term));
-  const shoppingBefore = meal.shopping_list.length;
-  meal.shopping_list = meal.shopping_list.filter((l) => claimedAll.has(normalizePantryTerm(l.term)));
-  const shoppingPruned = shoppingBefore - meal.shopping_list.length;
+  //
+  // ⟳ 2026-09-12 · C3 — ET C'EST TOUJOURS LA MÊME RÈGLE, PAS UNE PLUS MOLLE.
+  // Le poulet du plat remplacé part exactement comme avant: son identité est
+  // dans `removedIdentities`. Ce qui change, c'est la ligne que la règle NE
+  // NOMME PAS — « citrons » face à « citron » — qui reste au lieu de
+  // disparaître. Le cas qui mord devient plus étroit et le cas qui passe le
+  // reste.
+  const claimedAll = claimedIdentities(args.index, [...meal.dishes, ...meal.preparations]);
+  const sorted = sortShoppingLines({
+    index: args.index,
+    lines: meal.shopping_list,
+    claimed: claimedAll,
+    removed: removedIdentities,
+  });
+  meal.shopping_list = sorted.kept;
   return {
     meal,
     cells,
@@ -341,10 +425,25 @@ export function mergeRetryCells(args: {
     sessionsImported,
     preparationsPruned,
     sessionsDropped,
-    shoppingPruned,
+    shoppingPruned: sorted.counts.removed,
     shoppingConflicts,
     shoppingSummed,
+    shoppingSorts: sorted.counts,
   };
+}
+
+/**
+ * LES IDENTITÉS DES CASSEROLES QUI VIENNENT D'ÊTRE RETIRÉES — ⟳ C3.
+ *
+ * ⚠️ LUE AVANT LE FILTRE, sur la liste encore intacte: après, les lignes ont
+ * disparu et leurs ingrédients avec elles.
+ */
+function removedIdsOf(
+  index: CompositionIndex | null,
+  preparations: readonly MealPreparation[],
+  gone: ReadonlySet<string>,
+): Set<string> {
+  return claimedIdentities(index, preparations.filter((p) => gone.has(p.id)));
 }
 
 /**
@@ -516,6 +615,8 @@ export function appendDedicatedDishes(args: {
    * cartésien ment sur ce qu'on attendait.
    */
   asks: readonly { cell: string; memberId: string }[];
+  /** ⟳ C3 — le référentiel, PASSÉ. `null` = on s'abstient d'identifier. */
+  index: CompositionIndex | null;
 }): {
   meal: GeneratedMeal;
   added: { cell: string; memberId: string }[];
@@ -549,7 +650,9 @@ export function appendDedicatedDishes(args: {
     // seulement ici, que le drapeau s'écrit. Le porteur garde le plat de la
     // table ; le moteur partage son assiette entre les deux.
     meal.dishes.push({ ...structuredClone(d), complementsShared: true });
-    for (const ing of d.ingredients) claimed.add(normalizePantryTerm(ing.term));
+    // ⟳ C3 — par IDENTITÉ: « pains pita complets » de la relance et
+    // « pita complète » du plat ajouté atteignent le même slug.
+    for (const ing of d.ingredients) claimed.add(foodIdentityOf(args.index, ing).identity);
     added.push({ cell, memberId: owner });
   }
   // ⟳ 2026-09-09 — L'ENTRÉE S'ACHÈTE. Même règle que `spliceReworkableUnits` :
@@ -557,9 +660,11 @@ export function appendDedicatedDishes(args: {
   // manque à la base entre ; rien d'autre n'est lu. Sans ça, le pain-fromage
   // ajouté n'était sur aucune liste (`lines_unattributed`).
   let shoppingAdded = 0;
-  const already = new Set(meal.shopping_list.map((l) => normalizePantryTerm(l.term)));
+  const already = new Set(
+    meal.shopping_list.map((l) => foodIdentityOf(args.index, l).identity),
+  );
   for (const line of args.retry.shopping_list) {
-    const key = normalizePantryTerm(line.term);
+    const key = foodIdentityOf(args.index, line).identity;
     if (!claimed.has(key) || already.has(key)) continue;
     meal.shopping_list.push(structuredClone(line) as ShoppingItem);
     already.add(key);
@@ -657,6 +762,11 @@ export function spliceReworkableUnits(args: {
     freshReworkable: boolean;
     reworkablePotIds: readonly string[];
   }[];
+  /**
+   * ⟳ C3 — LE RÉFÉRENTIEL, PASSÉ. C'est ICI qu'on a mesuré les 6 lignes
+   * perdues : `splice.shopping_pruned: 6` sur un run du banc du 2026-09-11.
+   */
+  index: CompositionIndex | null;
 }): {
   meal: GeneratedMeal;
   dishesSpliced: number[];
@@ -667,6 +777,14 @@ export function spliceReworkableUnits(args: {
     pot_missing: number;
     shopping_added: number;
     shopping_pruned: number;
+    /**
+     * ⟳ 2026-09-12 · C3 — LES LIGNES QUI NE SE RATTACHENT À RIEN, ET QUI
+     * RESTENT. C'est le compteur des six lignes au pluriel: avant ce lot elles
+     * comptaient dans `shopping_pruned`, c'est-à-dire qu'elles étaient
+     * SUPPRIMÉES. Non nul, il dit « on achète peut-être pour rien »; il ne dit
+     * jamais « on a retiré quelque chose ».
+     */
+    shopping_unattributed: number;
     /**
      * ⛔ LES CASES REFUSÉES PARCE QUE LE PLAT RENDU PUISE AILLEURS. Non nul, il
      * dit que le modèle a déplacé un plat d'une case à l'autre — et que le
@@ -693,11 +811,21 @@ export function spliceReworkableUnits(args: {
     pot_missing: 0,
     shopping_added: 0,
     shopping_pruned: 0,
+    shopping_unattributed: 0,
     uses_mismatch: 0,
     density_checks_cleared: 0,
   };
   const dishesSpliced: number[] = [];
   const claimed = new Set<string>();
+  /**
+   * ⟳ 2026-09-12 · C3 — CE QUE L'ÉPISSAGE REMPLACE, RELEVÉ AVANT DE COLLER.
+   *
+   * ⛔ C'EST LA LISTE QUI AUTORISE UN RETRAIT. Une ligne de courses ne part que
+   * si son identité était portée par un frais ou une casserole que cette
+   * réparation vient de RÉÉCRIRE. Tout le reste — y compris les six lignes au
+   * pluriel qui ne se rattachaient à rien — RESTE.
+   */
+  const replaced = new Set<string>();
   const retryPotById = new Map(args.retry.preparations.map((p) => [String(p.id), p]));
   const potsDone = new Set<string>();
   for (const ask of args.asks) {
@@ -717,10 +845,15 @@ export function spliceReworkableUnits(args: {
       // lentilles. Le plat rendu doit puiser les MÊMES casseroles que la base.
       else if (usesKeyOf(back) !== usesKeyOf(base)) counts.uses_mismatch++;
       else {
+        for (const ing of base.ingredients) {
+          replaced.add(foodIdentityOf(args.index, ing).identity);
+        }
         base.ingredients = structuredClone(back.ingredients);
         if (String(back.title ?? "").trim()) base.title = back.title;
         if (String(back.method ?? "").trim()) base.method = back.method;
-        for (const ing of base.ingredients) claimed.add(normalizePantryTerm(ing.term));
+        for (const ing of base.ingredients) {
+          claimed.add(foodIdentityOf(args.index, ing).identity);
+        }
         counts.fresh_spliced++;
         touched = true;
       }
@@ -730,8 +863,13 @@ export function spliceReworkableUnits(args: {
       const fresh = retryPotById.get(id);
       const target = meal.preparations.find((p) => String(p.id) === id);
       if (!fresh || !target) { counts.pot_missing++; continue; }
+      for (const ing of target.ingredients) {
+        replaced.add(foodIdentityOf(args.index, ing).identity);
+      }
       target.ingredients = structuredClone(fresh.ingredients);
-      for (const ing of target.ingredients) claimed.add(normalizePantryTerm(ing.term));
+      for (const ing of target.ingredients) {
+        claimed.add(foodIdentityOf(args.index, ing).identity);
+      }
       potsDone.add(id);
       counts.pots_spliced++;
       touched = true;
@@ -761,19 +899,34 @@ export function spliceReworkableUnits(args: {
       counts.density_checks_cleared++;
     }
   }
-  const already = new Map(meal.shopping_list.map((l) => [normalizePantryTerm(l.term), l]));
+  const already = new Map(
+    meal.shopping_list.map((l) => [foodIdentityOf(args.index, l).identity, l]),
+  );
   for (const line of args.retry.shopping_list) {
-    const key = normalizePantryTerm(line.term);
+    const key = foodIdentityOf(args.index, line).identity;
     if (!claimed.has(key) || already.has(key)) continue;
     meal.shopping_list.push(line as ShoppingItem);
     already.set(key, line as ShoppingItem);
     counts.shopping_added++;
   }
-  const claimedAll = new Set<string>();
-  for (const d of meal.dishes) for (const ing of d.ingredients) claimedAll.add(normalizePantryTerm(ing.term));
-  for (const p of meal.preparations) for (const ing of p.ingredients) claimedAll.add(normalizePantryTerm(ing.term));
-  const before = meal.shopping_list.length;
-  meal.shopping_list = meal.shopping_list.filter((l) => claimedAll.has(normalizePantryTerm(l.term)));
-  counts.shopping_pruned = before - meal.shopping_list.length;
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · C3 — LE FILTRE QUI A JETÉ SIX LIGNES, REMPLACÉ
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ CE QU'IL FAISAIT : `claimedAll.has(normalizePantryTerm(l.term))`, une
+  // ÉGALITÉ DE CHAÎNES, et un retrait par DÉFAUT. Mesuré : 6 lignes sur 26.
+  // ⛔ CE QU'IL FAIT : une identité alimentaire, et un retrait NOMMÉ — une
+  // ligne ne part que si un frais ou une casserole RÉÉCRIT par cette
+  // réparation la portait.
+  const claimedAll = claimedIdentities(args.index, [...meal.dishes, ...meal.preparations]);
+  const sorted = sortShoppingLines({
+    index: args.index,
+    lines: meal.shopping_list,
+    claimed: claimedAll,
+    removed: replaced,
+  });
+  meal.shopping_list = sorted.kept;
+  counts.shopping_pruned = sorted.counts.removed;
+  counts.shopping_unattributed = sorted.counts.unattributed;
   return { meal, dishesSpliced, counts };
 }

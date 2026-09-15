@@ -1,0 +1,39 @@
+diff --git a/supabase/functions/_shared/keel/energy_target.ts b/supabase/functions/_shared/keel/energy_target.ts
+index 6f254136..80ca8c80 100644
+--- a/supabase/functions/_shared/keel/energy_target.ts
++++ b/supabase/functions/_shared/keel/energy_target.ts
+@@ -49,6 +98,33 @@
+  * lisibles sont posés à l'inscription (`ACTIVITY_LEVELS`), et le trou nommé
+  * par la fiche est fermé.
+  *
++ * ⚠️ CETTE PHRASE A ÉTÉ FAUSSE PENDANT UNE DEMI-JOURNÉE, ET LE DIRE EST LA
++ * MOITIÉ UTILE DU PARAGRAPHE. Le matin du 2026-08-18, les colonnes, le CHECK,
++ * les facteurs et cette fourchette-ci existaient — et RIEN N'ÉCRIVAIT LA
++ * COLONNE. `activity_level` n'apparaissait pas une seule fois dans
++ * `frontend/src`. Un lecteur sans écrivain rend `null` à tout le monde, et
++ * `null` est ici exactement le comportement d'avant: le lot ressemblait donc,
++ * de bout en bout, à un lot qui marche. Ce qui rend la phrase vraie est le
++ * lot L0 de l'après-midi, et il tient en trois endroits nommables:
++ *
++ *   · `frontend/src/keel/api/onboarding.ts` — `own_activity_level` et
++ *     `member_activity_level` dans `FUNNEL_QUESTIONS` (étape « people », à
++ *     côté de taille/poids/sexe), et les deux écritures `saveOwnProfile` /
++ *     `saveMouthBody`;
++ *   · `frontend/src/keel/pages/SetupPage.tsx` — `ActivityTiles`, quatre
++ *     tuiles et jamais un nombre, montées sur ma fiche et sur celle de chaque
++ *     autre bouche;
++ *   · `supabase/migrations/20260818160000_the_funnel_writes_the_activity_level.sql`
++ *     — `keel_household_set_member_body` gagne `p_activity_level` (la bouche
++ *     sans compte n'a pas d'autre porte), et `keel_household_member_bodies`
++ *     le rend pour que l'écran puisse montrer la réponse déjà donnée.
++ *
++ * ⚠️ ET CE QUI RESTE VRAI SI TU LIS CECI PLUS TARD: le cran n'est pas EXIGÉ.
++ * `canGenerate` ne refuse aucune composition pour son absence, parce que
++ * « personne n'est obligé de répondre » (`tokens.ts`) et qu'un cinquième jeton
++ * d'ignorance est refusé. La majorité des lignes de la base porteront `null`
++ * longtemps, et c'est le cas nominal — pas une migration en retard.
++ *
+  * Ce qui change, et ce qui ne change PAS:
+  *
+  *   · Ce qui ne change pas — le chemin SANS réponse. `activityLevel: null`
+

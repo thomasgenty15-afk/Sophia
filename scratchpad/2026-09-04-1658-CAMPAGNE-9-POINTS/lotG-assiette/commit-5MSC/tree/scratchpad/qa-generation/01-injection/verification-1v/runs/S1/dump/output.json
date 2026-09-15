@@ -1,0 +1,861 @@
+{
+  "request_id": "50100001-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000001",
+  "source": "generate-meal-v1",
+  "exported_at": "2026-08-18T22:37:49.926Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "5499d1b3-28e6-4c84-9c3e-21dd29309cf8",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T22:35:14.946599+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 14382,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 14382,
+    "user_message_chars": 9443,
+    "user_message_truncated": false,
+    "user_message_written_chars": 9443,
+    "independent_counters": {
+      "system_prompt_chars": 14382,
+      "prompt_chars": 9443
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "fd9400d5-b69f-479f-b249-7d866c5e0323",
+    "created_at": "2026-08-18T22:37:43.360758+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-sol",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Paprika mushroom egg mug\",\n      \"title\": \"Eggs, mushrooms, cottage cheese and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"3 eggs\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"mushrooms, sliced\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cottage cheese\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread without added sweetener\",\n          \"quantity\": \"2 slices (80 g)\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Put the mushrooms in a large microwave-safe mug or bowl and microwave for 3 minutes. Drain any liquid, stir in the eggs and smoked paprika, then microwave in short bursts until set. Add the cottage cheese and serve with toast.\",\n      \"why\": \"This large, warm breakfast is quick before a sitting-heavy day, with mushrooms as the loud vegetable.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Cool courgette cottage crunch\",\n      \"title\": \"Cottage cheese, courgette ribbons and oatcakes\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"cottage cheese\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette, shaved into ribbons\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain oatcakes without added sweetener\",\n          \"quantity\": \"3 oatcakes\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Pile the courgette ribbons beside the cottage cheese, season, add the measured olive oil and eat with the oatcakes.\",\n      \"why\": \"It is a small, crisp lunch that needs no cooking before the added Wednesday kitchen session.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Crackling paprika tofu tray\",\n      \"title\": \"Paprika-crusted tofu, potato wedges, courgettes and mushrooms\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain Greek yoghurt\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"During the added Wednesday cooking session, bake all three preparations together. Plate one serving of each while hot and spoon over the yoghurt; cool and refrigerate the remaining portions promptly.\",\n      \"why\": \"The smoky crust answers this week's craving while the hot tray provides a proper dinner without using a hob.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_paprika_tofu\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roast_vegetables\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_potato_wedges\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 25\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Savoury yoghurt oat bowl\",\n      \"title\": \"Greek yoghurt, oats, courgette and walnuts\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain Greek yoghurt\",\n          \"quantity\": \"350 g\",\n          \"amount\": 350,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"70 g\",\n          \"amount\": 70,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette, coarsely grated\",\n          \"quantity\": \"180 g\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"walnuts\",\n          \"quantity\": \"15 g\",\n          \"amount\": 15,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"dried chives\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Stir the oats, grated courgette and chives into the yoghurt, season with pepper and scatter over the walnuts.\",\n      \"why\": \"This substantial breakfast assembles quickly and keeps the crisp courgette unmistakable on the plate.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky tofu ribbon wrap\",\n      \"title\": \"Paprika tofu, roasted courgettes and mushrooms in a wrap\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain wholemeal wrap without added sweetener\",\n          \"quantity\": \"1 wrap\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"plain Greek yoghurt\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Lay one cold serving of tofu and one serving of roasted vegetables across the wrap, add the yoghurt and roll tightly.\",\n      \"why\": \"The small lunch travels cleanly for a driving week and makes Wednesday's tofu feel like a different meal.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_paprika_tofu\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roast_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Hot tofu toast stack\",\n      \"title\": \"Warm tofu, courgettes, mushrooms and cottage cheese on toast\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread without added sweetener\",\n          \"quantity\": \"2 slices (80 g)\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cottage cheese\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the tofu, roasted vegetables and potato wedges in the microwave until piping hot. Toast the bread, pile on the tofu and vegetables, add the cottage cheese and serve the wedges alongside.\",\n      \"why\": \"A warm, smoky toast stack avoids a plain cold dinner and uses the batch in a visibly different form.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_paprika_tofu\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roast_vegetables\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_potato_wedges\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Golden mushroom breakfast bake\",\n      \"title\": \"Paprika egg bake, yoghurt and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain Greek yoghurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread without added sweetener\",\n          \"quantity\": \"2 slices (80 g)\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        }\n      ],\n      \"method\": \"Make the egg bake in Friday's morning cooking session. Eat one hot serving with the yoghurt and toast, then cool and refrigerate the second serving promptly for lunch.\",\n      \"why\": \"Cooking this before the night run protects Friday evening while still giving breakfast a crisp paprika top.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_egg_bake\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 25\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Paprika bake lunch box\",\n      \"title\": \"Egg, cottage cheese, mushrooms, courgette and oatcakes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain oatcakes without added sweetener\",\n          \"quantity\": \"2 oatcakes\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        }\n      ],\n      \"method\": \"Pack the chilled second serving of egg bake with the oatcakes. Eat it cold or reheat it at the depot if a microwave is available.\",\n      \"why\": \"This compact lunch is ready before the night shift and leaves Friday dinner correctly unplanned.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_egg_bake\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_paprika_tofu\",\n      \"title\": \"Paprika-crusted tofu\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"extra-firm tofu, pressed and torn\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cornflour\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"2 tsp\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss the torn tofu with the cornflour, smoked paprika, oil, salt and pepper. Spread it on one section of a large lined oven tray and roast at 230°C until browned with crisp edges.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_roast_vegetables\",\n      \"title\": \"Roasted courgettes and mushrooms\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"courgettes, cut into thick half-moons\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"mushrooms, halved\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss the courgettes and mushrooms with the smoked paprika, oil, salt and pepper. Spread them beside the tofu and roast at 230°C, turning once if convenient.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_potato_wedges\",\n      \"title\": \"Smoked paprika potato wedges\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"potatoes, cut into slim wedges\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Microwave the wedges in a covered microwave-safe bowl for 5 minutes. Toss with smoked paprika, oil, salt and pepper, then spread on the hot tray and roast until crusted.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_egg_bake\",\n      \"title\": \"Crusted paprika egg and mushroom bake\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"4 eggs\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cottage cheese\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"mushrooms, finely sliced\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette, coarsely grated\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain oatcakes without added sweetener, crushed\",\n          \"quantity\": \"4 oatcakes\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Heat the oven to 230°C. Mix the eggs, cottage cheese, mushrooms, courgette, smoked paprika, salt and pepper in a small lined baking dish. Mix the crushed oatcakes with the oil, scatter them over the top and bake until set with a golden crust.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"fri\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_paprika_tofu\",\n        \"prep_roast_vegetables\",\n        \"prep_potato_wedges\"\n      ],\n      \"total_minutes\": 25,\n      \"run_through\": \"Heat the oven to 230°C and put a large lined tray inside. Cut the potatoes first and microwave them for 5 minutes. While they soften, tear and coat the tofu, then cut and season the courgettes and mushrooms. Add everything to separate sections of the hot tray and roast for about 15 minutes. Plate dinner, then cool and refrigerate the Thursday portions promptly.\"\n    },\n    {\n      \"day\": \"fri\",\n      \"preparation_ids\": [\n        \"prep_egg_bake\"\n      ],\n      \"total_minutes\": 25,\n      \"run_through\": \"Before the night run, heat the oven to 230°C. Slice the mushrooms and grate the courgette while it heats, mix the egg-bake base directly in its lined dish, then crush and oil the oatcake topping. Bake until set, eat one serving for breakfast and cool the lunch serving promptly.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"mushrooms\",\n      \"quantity\": \"900 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"potatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"7 eggs\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"extra-firm tofu\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"cottage cheese\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"plain Greek yoghurt\",\n      \"quantity\": \"650 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"wholemeal bread without added sweetener\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"plain wholemeal wrap without added sweetener\",\n      \"quantity\": \"1 wrap\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"plain oatcakes without added sweetener\",\n      \"quantity\": \"9 oatcakes\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"70 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"walnuts\",\n      \"quantity\": \"15 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"cornflour\",\n      \"quantity\": \"20 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"5 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"dried chives\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"4 tbsp\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Paprika mushroom egg mug",
+          "title": "Eggs, mushrooms, cottage cheese and toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "3 eggs",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "mushrooms, sliced",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "cottage cheese",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread without added sweetener",
+              "quantity": "2 slices (80 g)",
+              "amount": 80,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Put the mushrooms in a large microwave-safe mug or bowl and microwave for 3 minutes. Drain any liquid, stir in the eggs and smoked paprika, then microwave in short bursts until set. Add the cottage cheese and serve with toast.",
+          "why": "This large, warm breakfast is quick before a sitting-heavy day, with mushrooms as the loud vegetable.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Cool courgette cottage crunch",
+          "title": "Cottage cheese, courgette ribbons and oatcakes",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "cottage cheese",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgette, shaved into ribbons",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "plain oatcakes without added sweetener",
+              "quantity": "3 oatcakes",
+              "amount": 3,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Pile the courgette ribbons beside the cottage cheese, season, add the measured olive oil and eat with the oatcakes.",
+          "why": "It is a small, crisp lunch that needs no cooking before the added Wednesday kitchen session.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Crackling paprika tofu tray",
+          "title": "Paprika-crusted tofu, potato wedges, courgettes and mushrooms",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "plain Greek yoghurt",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "During the added Wednesday cooking session, bake all three preparations together. Plate one serving of each while hot and spoon over the yoghurt; cool and refrigerate the remaining portions promptly.",
+          "why": "The smoky crust answers this week's craving while the hot tray provides a proper dinner without using a hob.",
+          "uses": [
+            {
+              "preparation_id": "prep_paprika_tofu",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_roast_vegetables",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_potato_wedges",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 25
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Savoury yoghurt oat bowl",
+          "title": "Greek yoghurt, oats, courgette and walnuts",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "plain Greek yoghurt",
+              "quantity": "350 g",
+              "amount": 350,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "70 g",
+              "amount": 70,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgette, coarsely grated",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "walnuts",
+              "quantity": "15 g",
+              "amount": 15,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "dried chives",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Stir the oats, grated courgette and chives into the yoghurt, season with pepper and scatter over the walnuts.",
+          "why": "This substantial breakfast assembles quickly and keeps the crisp courgette unmistakable on the plate.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Smoky tofu ribbon wrap",
+          "title": "Paprika tofu, roasted courgettes and mushrooms in a wrap",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "plain wholemeal wrap without added sweetener",
+              "quantity": "1 wrap",
+              "amount": 1,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "plain Greek yoghurt",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Lay one cold serving of tofu and one serving of roasted vegetables across the wrap, add the yoghurt and roll tightly.",
+          "why": "The small lunch travels cleanly for a driving week and makes Wednesday's tofu feel like a different meal.",
+          "uses": [
+            {
+              "preparation_id": "prep_paprika_tofu",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_roast_vegetables",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 4
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Hot tofu toast stack",
+          "title": "Warm tofu, courgettes, mushrooms and cottage cheese on toast",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "wholemeal bread without added sweetener",
+              "quantity": "2 slices (80 g)",
+              "amount": 80,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cottage cheese",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the tofu, roasted vegetables and potato wedges in the microwave until piping hot. Toast the bread, pile on the tofu and vegetables, add the cottage cheese and serve the wedges alongside.",
+          "why": "A warm, smoky toast stack avoids a plain cold dinner and uses the batch in a visibly different form.",
+          "uses": [
+            {
+              "preparation_id": "prep_paprika_tofu",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_roast_vegetables",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_potato_wedges",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Golden mushroom breakfast bake",
+          "title": "Paprika egg bake, yoghurt and toast",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "plain Greek yoghurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread without added sweetener",
+              "quantity": "2 slices (80 g)",
+              "amount": 80,
+              "unit": "g",
+              "state": "cooked"
+            }
+          ],
+          "method": "Make the egg bake in Friday's morning cooking session. Eat one hot serving with the yoghurt and toast, then cool and refrigerate the second serving promptly for lunch.",
+          "why": "Cooking this before the night run protects Friday evening while still giving breakfast a crisp paprika top.",
+          "uses": [
+            {
+              "preparation_id": "prep_egg_bake",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 25
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Paprika bake lunch box",
+          "title": "Egg, cottage cheese, mushrooms, courgette and oatcakes",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "plain oatcakes without added sweetener",
+              "quantity": "2 oatcakes",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked"
+            }
+          ],
+          "method": "Pack the chilled second serving of egg bake with the oatcakes. Eat it cold or reheat it at the depot if a microwave is available.",
+          "why": "This compact lunch is ready before the night shift and leaves Friday dinner correctly unplanned.",
+          "uses": [
+            {
+              "preparation_id": "prep_egg_bake",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_paprika_tofu",
+          "title": "Paprika-crusted tofu",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "extra-firm tofu, pressed and torn",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "cornflour",
+              "quantity": "20 g",
+              "amount": 20,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Toss the torn tofu with the cornflour, smoked paprika, oil, salt and pepper. Spread it on one section of a large lined oven tray and roast at 230°C until browned with crisp edges.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_roast_vegetables",
+          "title": "Roasted courgettes and mushrooms",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "courgettes, cut into thick half-moons",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "mushrooms, halved",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Toss the courgettes and mushrooms with the smoked paprika, oil, salt and pepper. Spread them beside the tofu and roast at 230°C, turning once if convenient.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_potato_wedges",
+          "title": "Smoked paprika potato wedges",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "potatoes, cut into slim wedges",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Microwave the wedges in a covered microwave-safe bowl for 5 minutes. Toss with smoked paprika, oil, salt and pepper, then spread on the hot tray and roast until crusted.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_egg_bake",
+          "title": "Crusted paprika egg and mushroom bake",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "4 eggs",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "cottage cheese",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "mushrooms, finely sliced",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgette, coarsely grated",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "plain oatcakes without added sweetener, crushed",
+              "quantity": "4 oatcakes",
+              "amount": 4,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Heat the oven to 230°C. Mix the eggs, cottage cheese, mushrooms, courgette, smoked paprika, salt and pepper in a small lined baking dish. Mix the crushed oatcakes with the oil, scatter them over the top and bake until set with a golden crust.",
+          "active_minutes": 10,
+          "total_minutes": 25,
+          "cook_on": "fri"
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_paprika_tofu",
+            "prep_roast_vegetables",
+            "prep_potato_wedges"
+          ],
+          "total_minutes": 25,
+          "run_through": "Heat the oven to 230°C and put a large lined tray inside. Cut the potatoes first and microwave them for 5 minutes. While they soften, tear and coat the tofu, then cut and season the courgettes and mushrooms. Add everything to separate sections of the hot tray and roast for about 15 minutes. Plate dinner, then cool and refrigerate the Thursday portions promptly."
+        },
+        {
+          "day": "fri",
+          "preparation_ids": [
+            "prep_egg_bake"
+          ],
+          "total_minutes": 25,
+          "run_through": "Before the night run, heat the oven to 230°C. Slice the mushrooms and grate the courgette while it heats, mix the egg-bake base directly in its lined dish, then crush and oil the oatcake topping. Bake until set, eat one serving for breakfast and cool the lunch serving promptly."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "mushrooms",
+          "quantity": "900 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "1 kg",
+          "aisle": "produce"
+        },
+        {
+          "term": "potatoes",
+          "quantity": "400 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "eggs",
+          "quantity": "7 eggs",
+          "aisle": "protein"
+        },
+        {
+          "term": "extra-firm tofu",
+          "quantity": "450 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "cottage cheese",
+          "quantity": "600 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "plain Greek yoghurt",
+          "quantity": "650 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "wholemeal bread without added sweetener",
+          "quantity": "1 loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "plain wholemeal wrap without added sweetener",
+          "quantity": "1 wrap",
+          "aisle": "grains"
+        },
+        {
+          "term": "plain oatcakes without added sweetener",
+          "quantity": "9 oatcakes",
+          "aisle": "grains"
+        },
+        {
+          "term": "rolled oats",
+          "quantity": "70 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "walnuts",
+          "quantity": "15 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "cornflour",
+          "quantity": "20 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "5 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "dried chives",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "4 tbsp",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_031df6baa58e985b006a84de237d8087d2b109ef509a0682d5",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 5866,
+        "total_tokens": 14583,
+        "output_tokens": 8717,
+        "input_tokens_details": {
+          "cached_tokens": 3615,
+          "cache_write_tokens": 2248
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 4042
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_031df6baa58e985b006a84de24f70487d286bcaa0ada5a8569",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN62k_F463tiZHCrus8tg6CISra1RVXq_XKXN_J_GDttV-zlB33GHAx8X8CQ1fpZ4KnTBiXnfV-fPvxH6_C_pVAxJ06EXYosdpWd2ud_CwjjgLyw0rg6Y8QBUG77j_TZ6H8dzJZ9-YYVZ4lZjH3YWwVWFNujLGyy_di2mYjXOmDc04i2fDO0eIZA9tSxG9te1YDoGdyCqeFx_PlPy66-Q-I7RRt5NYKCFqOLQInDW5grHayKG2ajJuptwK0s0kYwRbBmAk49Ab40ZzP9lShgmDoluVo1XcGPtjmMWt-3uvlJjeBl2RCPIiYowEIZKBIucMrmvY-nL7lAFuftdYGVv4VNffyx6wrTdt9DH7Qy5mHl7s9lYG5pc1DoPwUTCkYPKhWhHg9Vdjx15jq9IWDP9N0aEtowNKkxz6XqLE5lGGLltyJJHCTw510fly4O8eUmr9AB7AZgLbuiucs0Z6LIngsHpJE0H5QAJrA1OYfSs7BmK6MqFlcBqTexXxUukmTbh5yUhhi6tOjAHrVlDoUYtU7SR93ZX4ywL3oNXZw7wp5F3lVRXY8SeooDSfpft9NWvDmnp7gGOcfIOoHa_AsTDk4aUlVx8xZU_lfwjxl0lSn1U8Pk0kH5f8mhbqH67xNUzL99TX7qPAd1V2BBm0BC-dhU2hPKZJ7d3V7lu8ZYF7YQUIliuADLjkX5RLXJaIZ9Kish-MVmyvWScFc5ogjhWQCTYhQPwD4ESQLHPKurUbPffkkd264zyp5Ym1m_2OZaQt2tvvKEEzKVagVO9PiySssGxVpDBy4xjG7JhfLD9erGxmsJ2w_bqYNrXkmTVh0axkQC-8964pz9zhAXMbkVg0styDBhkLaPCcm3JjAYLGDf1kla6DbiYif_W6nLqFpYp_AE16M_v88R4UzJR9j8jI0V_ueVdQ1xvFc6Bj6O9giZsJ2IpLA59eVOEjsJ3N-yx2cyXS-WgregQVhCFKnpdIP274tP485Qe19PHmLHPzv4yiFqzuX8praoLzTK82yZbCg9v1cdXoJoZP9fUbrObBzBDaWH2ZCW092Ol2Vqc8mbqM7riHRGBmyHmOlxtjy4HZgYWxZ-kWJEBp5ai6Jt0yyeMHJvH5Ipavj6oEliVNeO5iVBr15n74fWJeuMCk6Dp_yXkmUewJHS_4448ShKOBdatWE3IxgIsBjny4TSyUouE6-TbQ0NOlflsVQk6YapXYbZB1O5i7Wv-RSNh9rveV8Aa62E7EH3cKPduNpvA2ZCWBAfmMEuT07oCVi9D6wJshr3NuGWl9I4o2zsLaCIIrUOb8Df-eoTSKosF3FUQkVQoWsxy5tg8OCZYB5iinJ6EXW1h0DpUKh2mLmIDceUyVuUyyysY73F-a5kgsFPNXyFKFvf9Jmb0U2Yj5AqiDstbQDq-PfRmYYIpmNGfxZ3ZFC67ipkPwnldDhZoruvv3_pj3pQaptauIUJqLHxpIJq1HB_9RgnXIZZyA3C8_gnM3isoffGpAPiMdnqKrQUpzPWMw05nY6NVL3h7V8oy7INKH-qA8AE6va_cPkIwHohKZHJUg6GAEvJAVYwRYdlWiwxa5Qf_8DRr17oPYH5DS-u5UHgENPPzTdeZUxSzlMuJvJNFrzeZorfus2SN5yhqwoQ_IOjovpDMJuWyc6JqB4YgneiZUozTWf9a7UTDtvUzowb1WcIMS7oF_wv12zsLWZSutPFU_HDEEFQn_Zgh_iIxdUfT_3LpZ4lQhJgEJgXO0dRRzdiroeaceoBjn7I7Kn-7kSX1UKMoDLXK3WFFENhCf6UP33QwuRl_Uva8iMKpp5uGyN7q9COWvxA8oub7sTiQBaEwHCjz9EU-tFGKYtL_FQ80aKI5rKBVfDFZBIOW_VKfBlSdvBdy6kO2DQ9BHz0U15r2nTNrL7jxGUt3hROVrjMFVA412Mx-b4cP-c_rF6tsPZWPjCprbIRod9--k1QiF4ZGRy5KExhTG-BwLR6acyOOlxGiM4S52g-7jK0e2Grhpt_t71HAiCkpGv6VbabquvYZ72u-0pbum1zSMbP35u13Astd1-6U69KbIGAdHCq3mr7xoosrJbnRS03011Wu5GojG9g-t1Sf6aJkpKyiSuWo6WmAV40LnsfBp2GR2hiLipJkt-4w9Uu7MxPhev2xmTxZKbprlZemzvDMj7xv4gvbbJJA8kVdPszMn8IcGuJv4tOp6FBuFn5JJcUQjagWw3QliPM4i3YS8v7edbkZYUv3dUBwwlWbLBj-ssccxv5HsQ2UIMwhud2JaFT7PLhIa912KcO6qtRw8vYjVZgW-OARbH0pmbHDPh-SlHRKsrf3kmoMPZSpZO12HuQ5soM1UnLhnQmjnjPxziAgfE8SDWrziM7_cUT8ceD-Uq1IQ_io5jeYavpprh7iS0ksC-tS3dAkZBGKZ6vS1ioMv_kBtsHci7BHZHjDJCf7D23P000U4FEPMsQUiU7oGON2oIhwmTWXMzTzyd7JgcVo13QY1_2i56VozUeeDQ-wnZFBTW1W4xP_dS1XRKzu8wgQY0f5adsHvvJbatAhEo1GB6B6Ut_AcwaIcafs3ZenAPOIsx6Dykf2WhACZvcKez591qBNw9NP7zVngl7VlZEXh5323p1uA0chMaZpw23t7HFgYcvgjyzxf3B5s0sdldfR32Jip9xjNLa2sRGb8_Z51Km2-LanfLSKDlvLFq5UT5lmIh0WchOEl1s2S_odFn7TA7UFlN7Taa5XCtCw9DAPU3POLgbCN5yBxFUNH1H_fEJmwbkVDpewmMMceVx4H9HwoAkJPgvw-dKUrrmrEPcG8eCR26HLVul15w2BCeOuW_kDkzQc_VAYTEbtURmPpkni-JWmsgYtwVKrnHtBIFl9badW49E86poaLI0I259rThGy7rEFOYbfx_VIHKcoorEFcTQ_AxBJxIRSxyRGfdVFRShTCG82QGVUnE4ERJ1aKjKOgK2AAraXIUJqj45q0VYwGqtvmbMaAkRK1L1Q5lDmEst4gg22eeTUjFXvAzG--wEfjXyYA3K4hxft7XwTAdJYfe4ScnGAWR9KIBRstK3A0sG4o32SUmHYa2zOogXb8E2SCEUMrgx9Yvo2HiyWCYB1vCUnNjud6xxp7dUTTZc_nDceJl5ex6GhgDuRuchAbHH5PkG8KsKOlatJn2LqvTN3Y0SUTGkmXptFUy2DUZ7QhjPhbsR8k3vunI29isJUhrW8g-HyjuwliIJw0srdiwcw3JCiDoA_G5Ep2JoTjB7QbOj6iV7Zv5TWHvhjvZ9xAwFZuX63Hwg6syasPukqkqTwrt4pD11fjlQfIUkVaglL-FA_7N-dAlqsMsaFFFX8rHOBCLDckSxcYn6kP8C8SKwglI4-uH3z81uLv2mxZmZnSpL8UZbgWe0GxA0pQixYjPpwdR9vNBUIwABXgSz3MnJqUkAnfFqohUHwQkhW-wfA4IQwkTj4J5fGP0hElDK68M30bdJB1TFJRh-GYnyT4JG9X9xCJS3KV36o6eJ_WQrPQKDXtNwcAzYMAEQj24sXD7rfosU52CEFt8uIHjP5Wabf1oWJx3GYkOHGxWurpBtnLk12dyZXaXwMNHmeqBMA7xD7UhSGk9ldyGc1mziwm5R5zBTuc_eQjPyax8tqjwj8HSnuzUQo80azPDnXPwOaI5ky47HBY9D0RFuQklGgGRr0ExXYaoM8UDoHikSD2ffGKCdkvp5Piwr_2sqQtc7_IwvKwAFRka4ao7NKnpkOcOYLBaGXAeWb01Ws6nRj5Bk1flcg3RDHe5M0xAJ7HHzTiQ0RYb-FPwIdv_j84vA9m6vzNRQjUgNZyHIGTc7Y2UCIcF8S-Oy1ymrAiu3GjaUr_PVGkSuR6ZcxWNJhaDvc-kxVR6sZ6EZURXCGit6a4ggAwONaVCCbOjqkE1_9uyuIomxIvTXHaWsFw93n1U5CqIjHqqIvhxBGWVFUO3uwk5ETKpqn6LyewnM6pBNnGtnJHWm70MKgvM64pTxf8VtpyY-UpIGeo3hBAYi81kNv6MAUW6G29-c-LwkFU4IPJHdNHIeYNFt2Fqpy3JhemiahvPnSB8AY8-2l3oC9YLHU7YNEFbHundvLyVwbc39n-RsZesQ26qeodtYwIHxKZ_QvR2J9wwO4I0LyKMjA80joW06NzjH0RhOnHKk4lsuBT7PIYivTmDvDI-dCknoEwl0vC4CIWFRRmYMso9Rbxx1UVK3yYTayT8uln0p0qF8l30SLZ7zkhh8ec08z_aSTLSUWwaHPZbbu3iUE3ksOzPdGGGCVxwPxKgrBpdNk5n5Lni5jBd2lVXJGQ9EEH_8UhrzUTOE_Gs3F--zLrSW-bJ3pvnF96V9qUyF4DVL5MKyqqmvy5AZL8HhU_5FlVvRkCYVPIJ58vouzeCErNDnN4yPbYsZI3E0YzmdxTDyjEgFsCapTEc8pXL-J7Psx6lhDqueIGhbSvE1tKRjQY3PpgmBedXWxrdlA48s"
+        },
+        {
+          "id": "rs_031df6baa58e985b006a84de2fe88c87d29897e283bdad508d",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN62-NBqR9MFQWD2NRkyuIL_XHvv5w9bKayuDB9yPPrq9cBoJDGqEtPocWNBDseojpDVxYUVd6mENnc9q4mWGU_m_phRJgWFZYHALVQJclG6-udM3uh-MyoW-9ObGov69lEgzufP43gTO5-FW-fXMSaAyxn_k7ZT7U1ubyEDNWeQloEZ7jYGL4XKdNRkXbtuBuzFmzLHckhMDkMErhHJuaEIJuh9mNn9ZjIy0gzXH1WkOoISSwWzqQB08yqtJ5MDSyLoDyHbnLNyrrQ95ihAAfHgpw1F0SYIkAAVdQyGYlQWiFT9OiXEhnyOR0gRUsdk3DKazwxfWZukaib4OnuExaI3_PGRidhPZ9mWOSpWfPyo57GzPvEcJPRBKWXJ1hj9y-Kt7NPW8WCBIm-Qantm9YobKLH4jyyBUFEZy_CiaWf-Qs3bplrhVWQeMqh78I6Dpw-0dYznsJy-BceWVvX5LBKV6SAKKG1ArqtTX33N1S50JxQxmX6xPgiDwR0gkmRxG2BNDRnZerdSKNO9_Qrx4adty0nYaOzKplyC5nyxKkg_hr16WFys-qRcfV9ap2vMZ9Y2hs3sJ0ePgGVq-nPrK5ED4XEWMrj55c2KNfC0vFYaf3cU_AK5RFra6kvObnVI-FD4yq4gXGHXuTK3SkgxqkGCfe6enYlY85VaXpbvRkonunubVOaR0bNAWfJ3BFevODECT6b0BXDzmg0B1anohS1xRONsj-sK1QnjfmSNj8Oovf8eqTjiKMrM-IEWAOXdFFRtI4w9ac8AXKojqTV81KW4UMLk7Mig8yoivkDkeqWl9uMhy88GqG5CGqlJ-Jz8zeOcWIRxQx9IT2KYfpCUy_ooEGmxMY_cmy8u1b2VLaZIE079FJRtgp2BxbAHkPK2wC6QHCGyDr7cFksBQiMv2vbfKfNnRgYmoH8VOfgH4v71WaC_et0CwbcAwSN1HuZctT2a0YdCNyO_NTcjCy63JKPWH-0AyO-LqDtZaT60ctggHfuvQfUAjza0rVnrQpYl8jbCFhBzepCekZxaocVNs_pLsey_oNsvVGqptWH_g9n3EUjfBx4CVTG1Y5LJn_ahL7z9VlwJXk96mPgJPEP6LZUt-DZg40sMWjtLRvdfFrmOHA6xo5ocJ1iHmxzRxuW2uLte_kzf5kOoIfht1F7k4pHk8MmDBxEdYYObvQy0me_SU_3f1cAEX8Cy_77U2XlZ3PCcXQs_qQ7nyCjJpsFpkrCQscgPJ79gPx3suEs1jPOSjmd3wcaAwNqIFKfhzPBeaDaA5xKSK3Se1xz5ayRm8nlwi6AG8Vbal26rQmpqsNwbyNKO15cXR-nDkjqXsCrE1LYesZDCs0tl9TnFApgEh_Jmhrtn0Qbvc1TfFxR1wUMJ0H_GrBRRJOGC2gdGCe9jgLDNXexIpmvWAdVPGNt8l1nrLcCMqOKciEFoRyZzbGpu-g1PBcSF33tSNmjdP6Xr51503AXUm0Gzl6UKdhOpRvzytcJwEVZzJaCaih_3QWehYNDZ3z5Yk3xCvTJGVaFfsTZst1T3Q7gUXPe1wYDk-m9XhqsBwxnsLBO3PPD1EyQmS5QeW4vd0JKq90t1CKA2rPzT_Po5leS8ANVqYCNq1dDGORVI_DFFj6MxNcXzlQqOm958NkQnsEDYIHfvAqBOzs7tGgWUxa-qQW0f-U-7wEfxDoZyOpJu2zmkNYuFaBB7M9J5kNYlIy1KuQW-pk1HoeiLwdr3cVtt2x29sY8avcHeIMXv842yEo6Vt1N8BuLLNtu5DALHQd_dsaITH9QLCJRAph47NX_YhJUQShmcBkVjqpdCl8e1TZYqqCerTkflPiyE8XnA6zESK5ZTlC6ITTp4IPzy0_zNLQyWUvPS_PEBNwNLz9aTD9rO4sT52-0BC0sLEQvshcm57lI-zupuQrGaFAtgCsEGImgqxmZyJujyj80NQkx4V8o6Y-lsnzeWdHc4mJN5D58TVo4H6D5JJxmzo8mRjAVOrF3nDD-ubIdc_OdmV9dUISwDTSRvSntp8RJfAk18PiwIJ9reDG8e1oQbsFHYqFWkbIPAjRQSp0FI7reBRgdS8B9gKQs5Q61oSEGexrBfu3IUjYjPdC0xIZfy0IDAtpwcwawQzcAneDPQRR-AiPzcD1yJxBFYGMk0fn3DmgWcOBfqdiFqG39G96lmSlgJ9ZY0ttQ3UelaPb5jXaN8qFydp8xM_l3S7SzWUI3bkeQ8y3Syu2gs5qTTqdrqoB29sfNRE2zowSX1oOzsvflilUZwPcYWUkuFHCT_oEemGaCsPbRFkVTf996PQLd0dqlH5bekrp5BVtKJtkVeXEF51ylRBy5iXAYsjMySww4OMVPNCeUh3LqDMrhS0zBFURHqLa9p_V-Plm0V837iDaa9_tWVsGwO8ROEVADgWESS9LVQiHlKAvlLdVub6sQFcFwIdndzcZo9yrAVhj0Hw4fARCkXtGMApqI5lKm0ymt0AbLuQZTGjCQrZFn0hgzWzFAyE0kqv4O1Wo7pl1fhHjWf4Egvv4XIWY3Zlmtj8L8chbtJLvFx6VnMsx6RwYuC6Ka2A6Rw4BP2TfDgFFhC_jFxqMUc3zp0KOMNSY5kQQnOMdQdanwUubI4qfpLmt2mGm8X2iE_ytFQJSpi9oB1ue1b12UjXRIN2Q5F9EBqQcAPB0Z70vLm_64JGvwMSAS1kXOLBYFVTvqz1KDx7-m5aQCc7LsYVXH3stVNasWzLR_vRTtQP-tAf_lKYnqrZKFxCPNdWTeOp8ivUJaxqAiMdYuzWQj3OJDdrvc0KNnjneA4pfu7aWPS3eMCwHC3YPhWp0FUrWYAljSJBxjAcNqxNcs7cvgcz2-j4l-6dyvqqzsdTQNa1uDaw2e9ZlkNOzqt6BrEWUt90DZiUyupez0oj2izghIuF_AjoNscWRsCjfWmzzT7To3BiUmlRBm4rI-DgcekMyvdr-BZZW-__dGvogGxosxUR3YPvNxTLp7hW9xTXfr5Pwbn2SCcyR6lNyQ9lk0CNjFFC41xyexMdmZXRrQ_MUGLPZbHkzXE2ylEwi-GUnoe-43msF61MkQ8MssDrwBhaJdEC-Nlo-fpdX5WAsnpo8-rUM8qbk2ejtXRGhdF7_gxSeNnEzZVeKOOakHPvDb8ZBUOk6f56xATyKHw9xTED3qfFuLRqEcPvhrIThJzTTYEkRHGBYVToRqO9CjwIbPlh9IwrsLNqoht3b1Ky-8P-DbFgis92_ywK4dwkIov72gFG2eZ_-eSqEUHmZW0-0jOVQJGCC-cyGrH-ihGkB5eBK1hgoaG2Z6R0AzvsmBEMqI6NihVHhK7hwxFY9LhvYi1hCWNe2rRTxg5qL5oLMpJ2EpuOZwoEBDWD66X3pwiUBnsayqtjF2AYzByi0UEi2H29J7MXcs2Rkd7N-Ik8RFLwglw-rUDVzakygjL-WoepWuooAtNWlYMMr_wVbhnygr5V6XTLZ1MMMsZGLteXKklTqHJMUSetz89Zo5nar26H9I2kS-CEIPCCuqdM2yQOE1VjmxaEWaalmMU8hPywZQedZK383x1p4Sh_aCDTP8--X61oi8LPov14TznBQHLRCMANHioSYgQ0uXU6sQXbjJho7vip3CAwfVoWvIG30ys80l1vB-zArHM0ErfDGopijGbLUyY0f0u48uTeZ-rt5901c29BE_UEFrSXTEHSAIyUGCMduRUfpWlN0Y4bMJSRUkR39zlrOVHF9xxlkBVQTRp_t0_xLANJ9U_-oPRH8UBujBkcxjbNF5bmIdvy28i3cFxvzcAdjqVIXgnpoxVy-qIRhuZfq4MQf9QORQAcByNqlZq197IL9hoB6sYQs-LN0NY6W9q0eYWj3FVBNnmRU6vvpw0FJX8kWAU64ExczFYCzP1kTAb_07o1d5X_f9bsEjKkBPasWSeRx4DkzPlYlBVRhxNgg11amcoCgEkH1o0KCaO41TPu3Y9429y2cTjnyIRvE856vuyfCHXr9temF0zwDrmvhmRpwZI0eiMzLgId_ljPHNFnHOPasYJ2evSPx_HKpB6Q8pqKSxAdmNBkOmR6DL6enHq1GGMv3GlAUc4Jvv-m8OiG6jcbAmbcD2nXsJQ88gOVUuRscPLxjf1-fn64YgLpS74p3NViTGBEuHdMBIgN_sGI8-FeDmvuFxXxlQHKVrdYiFd94Ny8XwOujCmq_rhFNZOdVFgggQCIh0By1uz51GL1qAiFQZoqS0tUr_0BkkBRykAS9VAjbW4CNwo25mXkEShIncJtYH8IdI="
+        },
+        {
+          "id": "rs_031df6baa58e985b006a84de3bb8f487d2868259f076ebec51",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN62OGv-HxQNgz3cyCNOIBIDJXTxavE8gqqC5c7yJQCf3CNw1Sj8WiQ6xRtOidzmqC-HFN1X2LHMTUZF7VSsq-gKc9WGoha0tuW7YQuJq5VWLdMCGdzpHQ9YJIdeWf9FHmm3KEcELeRUQjnYn5kyA1s-SpBE6F5yKJkFu0RdfTC1oDKisOt_B0MwLBP1BtsJpQ9jEdkKvgiF-AYtNHM8pHxHM5Yd7Yg-M0I8AIFNDQoZzMfIodkfn7ANak7t-QZWQxA2gouI8en98RqBlDEBYty0EEvrc1F2A0pPp9v_vFweumEoC95JfI0GtxjqEUMLBc0FGnoVIQbjSQVN0Xx_w5xypFPcf6S3EecaFbqYtBOD0KgunOZDSoh99-Xc5wTuHvyyzhEmeatQLbxWA8leQwjB-ZIIIos5-qpG-VXLenoMdYuUw3Nrzza8mdEdIlCrDVxfcq_QK5GH_EkuSuW3qQ7eL6TG2b75AJK8kKJbadDml-iWBri_OG--6q0YXCKMJ4ZbUyEZ9XSQVBgPLiuRodThlSDT6QSDcGDWdEYaJM5sOkF1pJtOSpeNz-h2_SXyW4_X8DbCEtoxtNFzSgTbnAqYMLRNeTfXDwzfLbW-wFsXXzUAAe57hwc3Q_Bum5KtqBTLr0g1DSW-dZPVpNxyYYnq67E8Ig5puBn1kFvBMBwot2HLonWbQOH_xg_d0b0u6LzbPcT_OUcQURE8b7irMSzFrAToZN1AezuCNMegegxJFPZ6WeFTsgaLY6zfG3vhZe83im6tD-wNq-YDdrukewJ8fhTqMQb98Y9uOs-6DdT6ctK1FVroc38qhD6qFluUWi8JvjSOEtm2VHF4xC6qCWbN5Nc-hBjVbg3GILWLzC2nD_I9-Qk4GiNlMUtWYqqy2SL-xGj8FhTXUReds8o5h8uKK1Jqw0KUAJxz4hnpdlUTpClW47Do_2gXO1unctt7ZRVaw_ODx3QDlWnD__4dbpZIba2NgRNWCTx1fFtGCGdCmcS4hK2SZuX9LrYKrZT5A5fpvXvJ89BJMkURnpCfsC6Ch5jCSaMhVv2NO-nBRrntdGIulowmXWVeCtfBoGNwaa1pKnJ_Aq40-1ZZhs2IlYemEDIctpe_JcGgRd1Qn3a_dqumJPGraHAVM1mUnDn1hxUfFBJi4glyqjU9PPB14pj2DEMiSyScYonjOR781kM89y5FGvbYVYq1rnqFH7lmbOeTgxxX5GyKYJzKsvhwLgVaT5q2FuZzudlAGkvtf_g0IkUcFTnva708TeSODLyi6daJHCIOXVSnFGZMHJzWxdOFvi-xlgyEdyLMYEylEK3LRl7OjmdkA_OeZTza7H4hB5JwxtLQgffqjqylwrQuwFpCA8WgFYzudpvTS2HoRhTkcXRixwNnzW9E-qVUPemqlEGOt27jZLBzlhftkkRaV6diRXnQUv2GShKwa3RS77tLdzvQVIUYQXGhy_WqYW_YbVIInClbEC2UCsQrzW-jewthUfgDOnkVdYeCl_MZo_3WdbVzeh3y8W8Vc7PeDzsBGVoMuxnFgRwRsh87VZ0UgSPgAXQPP_bvBZg6_HrEkcIzmXq_0qAKp6v6gbvrZRTb1Zui6ZFwhb-imP8MLXz2h0BfQ-o2EZ3EtiRsxK_okve-8xphiucpNIUaNRvxsrtqxHsX2K-ktx2S3lbI-PwO5HilGBwcDD8EU52uRu-kwgGpFbtW2N9lOzo8TZthzfrDVhRoa4iqdH-_tWExb7PClQr9qELBsxOSMjqGVIhdjBxaUgfHEVZVQTg3lfPjsp-LrQi9rzEIEWr0lmCKpG1lDai-CY_O1dlEgZYc8woxRKy4LnR7-0W2eCdSVKGoL4uMLnhDIDpjx0goBROfAwLZ0TtJWhnLNNDAvX60aYEybnf5M_WFDFbi8lQOC2g5JMNMzwo4yFiigvbxjCF3MNsSR7p7B45WNoDdyeoGCfdIwjuNpIyuGboKUwUyErVHpz6l3aUBll5GdIVr7Sr6KMXe35JjSoEX9ILmqV-b82K-ieswHgeD1CB17a1Gej8ncAyQ8EBtPRxa-R8W27hTiXOfFsGKF7QnYhtEzAHUuCsCg2jY7EBhddgNmL31vHJTn1_iXnNUMY4eQ8cFtbRM_OLJu8Q0yLp8HJqqPZb63DaO03XonrbZV4KcbTcRvSQz79M1i3D8lvfh6r7yLstaCdzKNHPZIKYc4kPu_Lf_QMBH_Vlzq_1_tA9gzuAsX1ZxfdcY_-f5-UtME_cBfuTdyDsK8VqG4gKwHB1kiPphZ0U403_9RHelLEoik0wEV8bF-vNdijpc_8T2TB0_71Gdhdaino3POkSyyAPyCnv0FZoBbdcZAg46K1Kyy7UfE7b1n4TraRNPLJRBUFoARKhJBrJQ2aQIvns4WO-pZr_KnSYlbVmGmgfOfeUXeokbAB6g0IXZn-BqqNcUrkSmd6Pm7PizeCWolKCER676lMwCtxgoueoR-LtVXwprDPaPyObkixux1EBqnGzOMYpCkUN06LZDsUrWqwrOtoGrQnAdunfOs3AmYBp80HKYcuQfqVGQ5ah6zMd4cPkJqq2k08_ENYC1K546oO2jnO_V8iNZ79up9Kkr9dzkVij9MH9YB9glpqdQTE2eWWZ4Wpc34UliFJPD9asOFv29Xl_dTdr2yBDgyL3cqS-PpVMGt7gUKMPOOzsjOx6xmuo0ztFQehWYg_O82EfZHbGdYGixfCWkEcoHQ0DBaL-rK8P1bNyh8FwNHH0uav1w_SHsxzkYuyQRoEIVC2P8z2jh9VK1ZFo3RD7TJNlHSJTTCd4dUgM5-4uWur0Mj2EpaR1sUX9gR_zVSmWbIDKWqMsF8f41HX2A5P_jnEd7vqymLEcFfvk8A1rkJ7m0rhsrQsoEuYmUqiKibJDMpyGGEkiI414g28LWs-_1Vs9LIKq3C4-Kr3PH1pfGyU-r6kN_GtQwtkibZIgTc36dYXjRjgHmElm7HnAG8SWeI35l8dTYPqeWK3v4VsI30QWLKpgz19KwNMlg9ZR__wGNTy_wtbt0Cyz34hg3lDBWQ3IwWKYqLU3GIS1INYXFnOs7jSVM-ykRaCIm__JfL-b9LoFuW9NtGeCJ8vgndTFqyjJSGqTBz24VwALaTfZ7ysHSUifXXCfpCUuj9GGkjODUEhe4Xl71hy9EML-potPE0pGoDl2m883b76KdMTsHVbobh2DlhgMarKLGyu_d26rgqpK4iXENUV6XVp_V8qofDDTSkqLSY4dRkmVRLDclxS8fFmL0N5SFfkuFWOxFf1my76mKR30-ClM8qcK8ooU1-f5rCKzJbVoE8cMYoRDJ_bHIUZe3ttlGEpskR3wfpPtDz2E0zL_djxn3MVid6dtOIOEkXLsxcWUoiISA61m0jTvqT9sQkG6bLKvbotp2GOfm-RHWO-SY9VCKKD2RTnEQJe_BNAATtFy83vfgN0uEEyqlm05VK_oK525Sml5w0C2ZdISYuC0yJPDis77yTjR1AAePXGntoOUnxoFfiAh4KlBv3frN8KUZ6kia5lCasvktuRSLp3AHHVMfMlwVZdexRxoC7bPyefOGrReJNah-4RDdcvZXGsfnejQpbLJyEEH_lS2wNGyyyLGHUo-p1uMOWEz2EIdmIcgNwHFDBDhryJHZcNHbEQs7G3Ez5LTyEMvxxPjBdcTiZxriAC6_iOJz52qx5yNVYw-6m9lgDxC-WVgrBNE0CMcblbLKGJR-vEEJlJxWACaTkdiCnzM3YjDc9KBOHODQl-OtjdNx4VO0PKGafTrfn1TD_ixzwKVLdCgNKyYSTWJN6fQsPSN8frBKdqGSFeLyJ-aiTrH_VeNG__J8zktLD2bqMz9rUqiRDvzGbdkH0I7vo18mLjfojjI7-bMG7u5I1XPFp5Cfo2ERfIoyw86Q6oNH4CHi5xh7EPfQkcuB5yk1Nt9BnsSMpEaG_qO0Gx4Fouw05wSGJsAyUEAVq9oHmxjiZ5wgb1HXjSujnVPxQHBOg8iIbJQ3kDTSEEiql0x9xTHZ3Ouvor-f_76Zz4Bvd8msRKYAzUGz3D5NKpPHHMsJcNYI-HEwYsuo9MMS3_5m71wQldYICYf5p1mZdwuM70PzphuGynXg7RfmverLp8LCIFogDnvtqu432y9BRQVFClOgoq7d0f8sT-Y4oEA4_6oX7fRRtNtRA-7XSeLWWXbk2CTp6coreH4UYzzx9L9u5izJZFk7EcqEXEw50TpSA6x3nL0qRHr7NnyFJttQRh1P8Sv9TVIV835Xm8WfXWEeBfUo7msuznApUm_bfoyF0Ok_Cl4ZCAMnMKM9qabcottVbEtHa8zyCFIkp5XtZWbmXrfO3XWa_sY74oH6kKLm"
+        },
+        {
+          "id": "rs_031df6baa58e985b006a84de48e6bc87d2bbef4e47935614a0",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN62E3B8sP7d-OIckWFifu-1BCM2F_XSMbGyhRw0t4goVv3WRo8nLaAvyuJBw6eHdsZ2nxJfzeFNByclXW27ayXwLY-cMoIzvZo_mbRZgz1fW2r9dbaBmSeSnucFWs_LJl_AB8V8iEtCbU4Oi7kPCSS90Zy9RwusrJLJVo3tpran2nMWX-dCICTExEB4Y0SLg5Qp0qtT1WQl105VVKjgGpg2yR8GZmPISUzoxhvnDj-QwvM7KU3kzz26Jk6wfaTqR78O9e__LnT8i0LC-2jRyA1yf2rSYzE70CkmHfXM-IbyNTAO3ZXvEoy3H-1hOsoOCMeOD9Qld_c6qoXi-GpAk3Kaxcn8vRDCzcq48OTSmY-dj2w0-jJoIrJzU1rkjUzENT5XgQOqIxUqXHaWxYoKbJrwfy-z-yimp2x03141NesxRhDcJa58V80OgiDK6209mMCXbJvDmEqf02sLZJmpIVCfGKXmqUw8xIM1unHTEpHVAG-U65yqrpKisOgiEqzgfOC3Z5rNRxgtyGWe1eCOXxol0M95hx9zB4rYvJ1WxSjgsAwulR0tcKjOEfIpOEdK940f6ERGoA_2EytmUGdzKCXPvJImp4BdWiiTE6IZDobu2BDW2Jw6tC9RXasILE-xVTTwaGA-pLP89ag45A4cop8Xr-eKOignCi0N8JOJEVuNY7gZ-J3udPr2dnJDR-RBn94bR789P8vura38sLuSgZVNwSa60ZxKrYNX7PE4Y2rBnLkqxA5AnGZVJA4E5NtCz1N_wjHWB0BmICh72opAbIPIOTNCXcNQRwWAqEsGUjX_E91KsNtr1u7vcm2foDBmAfd3P3OO8KSBRL1Y012dzrQXB-BX34I6gobs3f3pQJjm3JK6BeLN5Xn6dcqa3Tv7HuDp1vAt8qKrpQx13F6YsFUdETAhIFKzYgu1oJuayePv9Ws3wqcJ2jFt37o5rX9WQayVlPsL1vkF3gjgz538ScM2QIff1n_-829zgXLI7IJaNXAdMTuqos-xJgPCBmDWOMomBrS8Iwp49-fnWNKzTBbq3MFEYrD3jpGh7eaxyveydswsYKgCT5LnY14rtXmE0KIo0tYM9j2clHihSpxy4yyBLpqnQae8mBJgYaDvWW8jHjM5rk7sOEcpD2bsBbrzfCkWYhZo9iXd_-Fb56chFIKi_nbLNtzy_OwzrJ4-ma-IJJQAhXVSRPLGnK58im8YRuSGFVMdyOPGY62zoRRw32l_oetiA9SzxK6auJCtJSWmpkiqhSk-6tI8USungTRk7g31mXWPLesYCKsmWBCytMPeoug1WSBZ2r-jlQoilZsbX08eIayao8E-cr_wDKbS-g6rXsUSN_xPhLGK8vrGR4JSveWU1YDMgzR7ANZFUZFFKGoIPL9C1Eh7FbkssoDscKNr9xA-GSQyHnLUtlwASl36vMDT_6IH45Pecx2SAFtPsTZ0Rc0-mmJAJ7pbBByB_DLn3o2lNwGLSrQ6N4GfBFMMCtSmvnPxYT0S8JoMq8K4Z9QqigupMdeLFmp-mZaYJb0EcZbXxZiCT4sXLY2Ts05A9vlTIY7YQNVvn35ngc26UTVzd8ZLaE9wJPybvarfqEbCxCbMQ0FUTuNCpI9w9jDE8MhLWjNgENs_mxTMWAgKCjnBYyiLYTsN-yg3LjLNcsE-vJMA7QQ4SNZezK3f34zujhI80E4mdcfPnJBqHRhSi1y8VHq6Bu6eUsEmv3bovhUuwmL4LNglfbAWKqhc9epvb1CbblswxWvSNKwA5HuCLz8L-hXtQ9ccb2xxSc94an6mtuGmWejLHIop23aB6RQTVAXWhOZw85WI9s4Jm8PjrwXyA8eQ7QsPZmftnSBaW8Z97BtVgnoOCeGL8pjXt7ZaNYO_iQThDG4vTOBvNSsBiWmboVobDk3gq1oXMN2AU3yd7SvBfWhaeAkxQMwdHpRKOUEQ_FW-u9Oju5jyG3dgNe9scO6hbMRke_Nx8z5qMUymV5CNfOj6lbXVzPzAlqHhletENh6wwotmRDEdwb1JpREqKohNZuH3Ytsrnr1yWQI4-t41X64uYcugf8NTNBhcx6qKHMY47NYduyxzXerv8AQfBh2o1CxvwvDrzwtYAlPUcDwEr4TLBoqF7Vr17Th8PY7xtbTvVCSaRBdPr0A0cfC3gA1a_jdIArz5R3E0awZCHKBQILl64P5tqr8MYJtaPL0kosTQCGgGgp_euJtYBjijUNM09SPwpMd-94MNgdBfA0SU62BEFraUOLHcm2pcePIE0guwMw5fyMsgWo6z3aBtSPL5iLMu0Z9av3hqYioYEhT5h4nJ92obCVIIyUFnuUhimXbNlFY_jwB3nQ0Ogua2hUqyUJDGCBRFVadZGJ8mCaa57d_b89d6ezVpbnAqHb0AViI9SyUxiowxM_gRgbWGua3x2hEe0w95l4dxsNXLgdvIeFynMj0FRCSUvm9uCww_pzKAd5WFVpAzDGQiGfEYI6Ru7iu58omsmRyPqvJ5a_bQPCWTHkoqXeTr1FTbVTq5atA-O7VKWp92x3IHHI4IHanXOW9wrc1L2lf-ly3KqHrwUw0rZtUiKSFG-GHnFr5KubH6vOfJY2uFPY08eUU4k_9gjD6pa5TZ4efEvdgdLHIf4xw-RBQFZKr-JRw6ug7yRbYS7WipZqetFbMeCLW_9qssE7bJNnb5c122J75L2mIeVMRTjKX0v-RSaey7Fwt8wivCKSYnVmwzPcV5ZxOtHogcmA4_y5AvNINO2pzY35bwNCNl6FyHGFavH3zQmWyWkY05j3iaXlSsxNIaDNr-A8e87CjeghAq6RXTBiq17-NcCpYoSf2JnE5MnGUv-CYogE1JiTPPOEDp_0JHsCS39Xq4Ok48EPu2RJgklmmThNJ_kzSOf5-Bpgz5rM_ELOFDKqrizoWQIZUG5vaK2wkhDCULkOdnrk_HLIcgueCf53sDoKddSYPRYwN3OBNotLLw20CErqTUBH0KRoF6aZR8zQEKmzNDKsP3IxZH09ADZYPSpH_Mtte1bov_Hto4kTqQFbY6yKcNcSDO7SHnTlwgn6jYDejRBftoFEl5CyyfmNhH1-MK-EUu_iXP5Aou5-XqabWy9aTeADh-sb7gjfrR47i-4hvZJPXyeeUkyuXy64Jg257kfNILmAEDInEIBq00OAe6yPkSMKPSZJScPkxKKkGNdUsSV9IVkim4YfdbB4kTRO24arV626On4z9CXqrTM5U00SCI8cIaPtLKao-acytKjKdPMPAyQ_w-FzzpT3bzM9B7RnW5_YdrMQlwvxL3Q9FW8VV_E6wYK9Rln2WkkBSdL2-4xzskB038aDJPS19IyGQKfnarJbrep9sJUTZkCdkbX4bSbXqgyFSLa51MpAX5hRu09Cnt_eyIpoIbuH2NXRlu3frhI9YhYnk8vKahOZH9Vj3u123IQVAfN4o93vp_vMxXPEqgmHVeT_kApgoajxoKBgH9NA6peshLpkUBdkbBWzuYbTZZw2Myp_B2Us4R82FfJNtvsq5clN0XmAGyzDmnHdGWTGEyXrZk57B07eLSyibEnOYmOzICuX8aaN3eS8aXaF2ZC5vS6wb2ooewEMdJtadnV5m1sWdP_QsY5UKnLofdctDFJy83-B-JXSmwer54PPxRzlnituSyld3inZo46owjpPYCHeWb1TjeVSU5H_B4GiTyNAzcgtFmAc2jEaZSEjTg7l0kMFw4VMSi7g4suUbqCXU3J-JILP8PWi1KXrhRtS7FFf-QHQT3gelQvzfF9rC2VqnLvexrtqOKXH_hyqH5WO_Y3GWHt8KS0oMObyuKserEX-6JcCU5W-wqCSQM6ZIxNmWZ4RJM5GYbzSMkwLpYZBs-WMDdhg3qGb4vx7gNtCiDsdINSXSAtUOKOkdbxovnPuAa2VimyWb7u9L4VOr0574ddz1iyypMK4E0NMSpt-k8cARRAoVdUylEhTx9THc1sJWxrmgXHboHLqxC0cIStBouUaq00MGYfgjpjUQ5xZBBam-Grmt3iRfexXS-ZTfqrmzTFE1hIzW7tEcjzooRfBRmvi8xc7Yz_6X2fFhPJqdwFBbUmu6x3wXUJcd8rAX2h0nfJal7GiCs8xQu4UFWJW-4kX2vNZQLFeLyMjjv4B-AhGrcgE6_7CL2-NTK6vOZzDiL6vabANYH4Dfz5pZxl_c8P7meEGl0gZm1_RTwgpR1OUhEs_U="
+        },
+        {
+          "id": "rs_031df6baa58e985b006a84de54fd0087d2ad1f90d1d48f1344",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN62eTGNSp8F2SrABjVRj1fd0jb1cN6L4LOnCIC89cE7Wxq-2dcwO2cFHZk6rN9gtHa9BNbJiDRNhaxXnC3ZsmGf5iTmEqAFyYW6OdyR2QiLhfpqLzZjJxDbFLpShpb3CHNr0I3GHZe7pvnSRLNE4gl5g43nDhJQ3m-4q7lhmVbkoMQ922lYwZrnIF83mKy2tV2G4et8yO3q-Uh_5Xusxs5NqFfH6nsAzGscwpWvPni1V919W3BNTnZ1CReTK2bR3paT0Z7d5OgPLzwLaHCzPmKIwiHukg3swByffWAyepj2n3knoUYy95RMTnN1Ezro6ws1p6bVuL6qET9LrBrbL0VEN_UKQ9wbbfdHdnmyXisjqxXHAaz86oOwWlyXDOPaTc-h-KkGujk_svOPPoRSwHFD5f-ZP1snjucGvo1FYzTusRO0tAogFD7joBLCho6a0vBG4P5tb_qeWnQ3-cQkIV35xOWYf6UDYkXSj4eoQu9cDIgiLi44epNEmgwEHneys69kYuWhPlUxUSB59McO7Wo9CS5GWjwaUI_np9dg3dp5WRL5F0kyQKi8ksxb9qtV9fwDzRKbDlsSrwGC_Q6jgNoSFtoo1ct1w5tnEOQbZjyoFhTIibjeutyGVIFY7fevwfIqGycrUM7-q3vubozgJsizdGgtC4MPFNvaWhLXFqheJ4B8SkE832pYn5EuntGOmtfVy3lFA7ONnKSKe44TqMdu_xt7KxKY4EhrU7yCasgWnIGKhcwz3vh99IPMfDZAp21Q_hhqfRIedxoBRW01MzD-aypLxGRs7YPTd0yhZvl7PGaLGPIZb8kW7Vd2-t-FI1FwqIkFUU-3V22qTP5Yp6a3RfcD9kq59mlgO5fiIBg9EuIp-K6ahJc-AImA_UivGu5E6fP-Bhaql3xdUwLjNXxDW7unyUc3c5heCFrF019gbtJP3VATeo2Yn2oTw29yBRHAUvPiPf6W4VxZU65V4z3M7ikocq4lSBBZ534gPhCCgUSwdggFbpfTElOKJuo7hLa3GBWnjE3xHkHv_CGU1I9sSa-ViJtdLklx5y6TRThtP7WHXdZXLiFcp-3dKKJAzw5fcnsxBibbkdXIIwhGmy7J7doY5zzfbxrUV1X9cUWC-5Zsfamw9m0vdNsrghiooMnvZ1u1pI_txgz_FfKvWcbARaZuDSGWR3FAp-y2KLjtkB3oifQRMpoNCWcZhMFFAC2cPVYvXfGiJpmzIuBlBtd1mrityOr49io4hWYqQfv-3kplE6zcV-ZzKgCStolgCdnTpPWOrzD5TT7qMDjuOnuYnKqIH8AFGy7YtENV_5V8VgFRtMmdHZxUFA12wqZ5cYZnm5QN-xZ549q9HSv0Av6qHkD-zrFbMkXm850toRBlABLdY7BCBDXNjXTGeOYt8M04Fbl-n5GghxbNsHr8NzioqgNczWhUdOLW9EMIDaydl8kudh3ymnkcqXTOayv9LcPX0Ue4ykXaAxScU4gDiaDRAtjeLjmqS5oGCgEff8cmhgSBmXvxh846Lhjy47y7Cfw-3K7b1Z_8AsKnYfmYVe6eSQYx_dztnieA9iy4EBBTiKNrCNrtTs7t2Dow_zTl18KpUGmfUEulx8Xc6esRfj8m8nZv_kxP-cflzwFHVORhWhA_ehP-fOBwRjXpEs_NT1W9MV146R73xloVLxVxjSMxswTJ0gcsHUmqjWCN33Sc3bavZWwMehd_M7UCj8g7Sxnq3K8XTFcvz7jlrVCFWfJrFfCoc74hxFp5bc07IwqKUBY7GkLgX3liKhWHQXKyrSaNwIQapjm_CD2bcv0eNsbnwy6DWlcOLiBAr2Pw5i2X9XN3sBbS2OgQ36mU-KD5JXUo2t-IAANX67z1qsbKvNgTXarYbf_QJR1Pm86RsTXctEIcc_YLr06_Y4SYVrGuZphlpj1VJtjny6EecjF_HbfmB-ZOUgrr2zKodyWKS9or00PL32X7vtNso1QodOkeRRZ_oUcsn0RXrbyafHvKh_RI7KmAn2uVEa8S01qmRTXP3sNNDcfyFx2pVbjiJ-DGj7mvCSFKXlAHwjmi5jdoqXmuLlI7pgqza50P8runG6aYjq0rP_GrDp7kxRC-0YO1bqbrDt_oJB2kk-Ym2FbED468ckLTLXe9snxda0sDlhxA4LpCIvROIFhvaFodJd85RhsJfyPGLSAjVoYPD1nWznEOjwCxQeEyQt5St5sM_oUn30j4XQjFGKlV8ZbDm_ZpS6cfh8nQYz9Bap-NcA_55blZ0jtR7dUIZxdgqvxcYqMj4-qTYxY53iyUWsxqUNrtNw3EEfQbEICFsSJCQnEEyqxSGHNxzf3_5Hjam4ABPHdek4r_RCOFrJUPvZ76DJYgMw74Bj4KeyCP61JErWP1ZHL2PVi77TlLmiMzdRCPuw2XSj7e6J_CfKXuPlS40VC_YZUJa1ZH4icoAED_Q_MJ8jPVwmlTq_yZok2g85q2XraxPre32V7tYLaDsGCAPvqFcmBhD97D5lp4qdShskm1Z3cp_V92MASCEsF1AOgE1bBp4WcSXVUFkrggedcD6zE8qKtRa3NWcCeIYZ8Q-FVwngDFNoJz-mgnChHdmbNkNHCXxMGDZ7G0cJexCNRzeoLYGYAFMxYqeuhMlVT2Az92OorMSQocfOaXgRTTnPT7i98NuReX0e2UfrK67m6i2-3JOGJUhMeNXHn1EwQEEJI3LWIRvm-qHykJIc_M-X6D2zMq4TwWgpWIiSlF3-ynqmi2dAbZrrGmu8E-nREZFsAelqI4uDcPLmnU7OOMGEppgEdvSlqllvGl6C_oyWBNTSiGGNeyQki_DEj0A6rm8Pwt-BrucM0tAsgnF9LWEZmVFtiTiRAZk5XD3uFngPA_va4xSLrB9L6kwOD7EVpbAo8dtGBAlfuXNMaVjpUYkLdVXc57hjDHslEwXLZiIWGDLZU5fy3OsZWzdp8CMRi6iQqVWZN_gs0AVGAFFya8RK4mIDK3nuf0enNmjzrtVStZYUT5uYMbVPMwJMyZNxkzqYydekY6YXPN8bXahhZ52OFE0lK5zNIVwDefoSX0KEa0bGOk-_pBXFv4l1awPzzSTMc7Sx6K1mH7Khkv93KI9fknsRvVnrhun5BKUIuo5V3yBWPHj7jxc5L6Xc-B9t84D9LXCkmEZ26LAzHeGeERk9ycHDX3j1v2pA3gI9PNmyVh6LezlErzOSeMBMKrYeibN-omGZ1EB23Q7oOeErGto5tv9MFkvbEeEfkAQUioM95WPr-Pdj2QAhUgS98Al6anW5mB-4N94jVC1CM3AjA68c7vFGZ5hvh4qka1WbU63X4CZvFgPBRjgeU5KlMpYmyiVEJqX4AdfvanbwbUmi0rjVfGB3YfGTEHBGcLkfzuVaiXO2yPkL5YtTtXN-gci2y44lyYK5Nx58-WtHrDktItC3KPJ4xi96BSIri8kVwGEm9V7PQ8v8C7lDEtWisTEFignOt0Np5MZIkmFRhr_ZOCJvMKuisIGMJuLj_Qz57wlg74Uw7Q17h24xKDRITZwrxTLRctaHhjrdbEYCauRvMDkL_RrSdDzR_vqwE8Eg6tslOZ9eyPFDupj-SLx2D7LjzJInjzukjAwV3wKJkx7ndXDj35aPs5MD1I4529-RvMSzWOmtTT1I_p1IO19WqzpMbEL74pxb2T9lBfkYJKWXNVby5Ahk_bw19n9OrJlZQbIuCmCbH4jFu3hD4-fnM8RZQ1NoZZnsLcxrakke1JeGZAYUrw8TrTDTTBzlqlaioMx9VuKiuyK02P0IlJlOUURHfH2f5iDEE5lZBy9t7vEmn3llA1p7PC9y0="
+        },
+        {
+          "id": "rs_031df6baa58e985b006a84de61335487d2b9b26e918f5fd47e",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN62nroGTJ7ysvkStWTS4g0QxrZgvMQTI_BtnoCZMKpL5a2wutL-3uqqwvc0VRl9kCUJGqhtlbARAIeoatVhj1fSBTvQkaFwMI1X9qZPYP7e6okUKRT9HgOntXo5gQCk4QhePaMONVDwAMHF1yl9A2Sg9jTKzn-aWcXul1-Qo3Kdm1355uB06de5tWPT7LmsN8iRCtnwZp0hCCRZi0YDuTJGa8he5wcyUOBdC_7BzIIKYyTdI4sFDDsYNMxJgREpedLHQpeLDWUmG6sMP7BbYMN0GnX6XuEOlsUdsdZB8xw1dHxNor4IJ1RRyvvDOe3h_vejiHA89NFzn058qXWhv0_ZBmLcNb0-5gpSxJ7LGzxlvJPxzR1UCMZLUoWjKFCdGm2gqrTkP9cPGVoB7XS7ziLjzSR30FkFAmeWCoSdJ5lRDEq5NzWLgrAyr4pOq--NhTcLs_Ohs37n_KwAxuw7c003tv_Dk9s4GbyDENcFYOyzRXs60cwnfu285QunmSgEHz5RBtELadTEn7Gz_avs5Lss1PIJYnxwCxykYlxUZwstZZXoo1b_pXuUCSHsTDIh0h__mgDzzlBg5U2aFV2QQ_OpSQnq_5AyKp5YzWxVEhRyWppeXFcld3WEXyfGV9bJAZyOH7fk_JPyRIRNgqGTsp8eioRQQOhhugpmRl4cyOGqtErJ4K64chDhphXwMXZfIivT745OwBWBtxLiPyK9GDpTPEhKgLpZJHrbhGj35TDsvUFr7uTbZAD0NPWzjv2UsbaQJgmWqqNwoWXbNsluLdLU1FDrzyikXnk0zy09gPkzawBZrGHPAUMGdnUHmL8SdshZ7dCBo7YNTD9U2gyNZ-E05L3gPo8s--B2kgk5Z4vZt_EpbjtkaDfj9NBpkkeefAoOQKfLNwOpKRtkuxWQbLY-4D0SWpRoQJBEtvOxtMbqwCOldWsCz2w_aBQ-7buaUGyywO8lZpxB9TTsu2bhAyJ28QqbTTmK2lL-ua3Vtn35u_fHlY51g7vsARGDqsdVwz2SgY7YPgWsPCUpFi35OmAHVCZo0Gd4F3979PFTyqRrmL4k6Ynfh1oRF__TWn0eiOpSHVl2yZaZwOs7S_-dg83Hc5A7n8mkauOBIFsCrgT9EcGr15fXvJbPfi4wkAl6invJDM8whakaVeK4J34SCjsmeExx3W_BSjEMD9DHq0zBsot-Vq00oezPsCcEVJc-KT8Oj8XzCeDQM7x_-ZhVoDpjRHEPmZrAwsKJYOlhFLpFlYexzbKmj71lh2NpxCXVQO4SA7vNLYfJIR8PSqsBuqUmp-b70j9FIzRbUARa6f7WsFK5ZFYAgI708QVpy0226caVPOEWSRqVDqlh_wFvIaexWToNx4rKIU-EjdUhWfHXcybKQdCfufVbAR4BGXr87juXxt7kPEIK6RpYAmj5CkavD9KWodIVW5wv0G-IloWyJ0KEgwtqY16yHOngqVgZtdSz2tjZm3_K9hsybS122u8FkOkYSGsCdpVwDrTwQCEi8vs9GKKly-ZN7xKJHBc_yT5yJMEF-IO8VQVYXu-if4w-vUU4jfUXV-WCMPCC84igwxVTY8jsxe4dC_nefIyuL-F0KgKPtwTskHTj_mVlbgmaMqi_f3aQwkFDb9z20c3G2kcUPXWV_f4ims_H7wfaXcBUf5VwgEFlYTbdIfd-k4GfM6fEIzRBnqJ2aBHkgTdKo3iY8KLTMpw7sC7XgiUxKHsHy7U3K7dYTMZkslt6DhcufkFF031G3WvcZe-lUPpZB-KSuLc5awbOgp_89DvmqdGzPayC-9O0dsOR7SOExOqEElpPNj7kOEfs5UnUyaF8sKdLy04xYWjwwKuY9TiEfc8KPheXBkKFJy4uzzduApocedjgc6DmbU_x8qGA7ExBvr_j3QXbzYgh7MW6tfaId5kwPGpKtFQAhtmDNMWSMx3TEmZ8J05w3CT3FAB1zGBEC1sp9NZD5f9_pH4vDaMP5kVhFMkGUw2rJva8xjLSVVKDJSKAh_-EN0yoBBonyA5HLpWs94H3UwDWG9ieuPDztNpqNa3kRMacrbrnxP4jFt6zkeWinYLtymQWiDz9NxiMCJaUWfOjo2mzsLlUImIn8THbKAKsxvkqXoqiTox_Y2FAe75iQ6mmRdKKxQ-JhykMc1Lc5CD86t_m2-N5wzWXyIBvQsAyzG-K66FAbmjh1tMpDRtVUwyqcD_ntcZSwZJhxjVMsjQtu49RAJhvYfA7tvcId7a0_TX7BO0GCl_f3uqCy9JkiBZdC_4W4M7aKkeMMeMDTLENkQi5WAmGT6ykmCDteUxHLpHlWHWdSGD3zcyoYIML_NLOPnqIxGugvxQ1QFPAhvYLDw68-kkdEMkjn7BLrvWeNzV-Pyg_MH6dEK_cSe7xxbsA_n6Vd6UhB0bKvnx6dvCL-lUodWJAHrM_u2Cku8ZgGq33o1m4ViwxTGq6i5VQVGo4zCh6NM_Fln2a5h0rLUBrNiHwQuHTckC61H0Egj-nNH277Rx6TOazylFg87qcol4b4xJr_osF9kltacA0MahlPFycYOmSvMAtCNAFZtLkt_JxwOr0lAO7HuaU4a3Y2SV4UukbhSLTobbZrfgWF3dPYhk3FYTeBmVhbNSsbR2v2m3h-QR3iWwRqdflY8xo_8T4DskOMJrnpzP7AJ-3j9A_z-J9dypjU7c5Eves6ol6FbNLObAzRjRK46ZjHZMhrBDqVh107mPp11VCsducfGqYxGtmaw2e2wSVgh3FC0w-KVPCG2vykcLeVudAmM7YpMvUCFLkJ73EQHJL6oAWvl0E36_cR7OSlR4x8H-gUnAWXjzaFBASYCeFFJ5iJor_mfr5Z0oYueYz66di3b86Oi-bnjRsClYWa4E0tz2ceQ2SVh65OqBZWJk0D1p0tfyCW6C5ggz_XQQ9m3EAUryiSHyjiBGvkM0i8qekTjPIqj_gghXjOuYraTYYi8GJ90hOt_FR05TjZwcscZjjbmnYIMH1oj-xfg7oqM1bIPSnqNZoKdiGay_2vmGYeJ8FIEsbYwl6M1MDc7ZQq1tPOjVwvgGDoow715W_kfajRRnDIQFhnpKrgPniePC0foLgn8T7T2hSqa5Dec4CMPndg0JGCUgSqxvOH19UXOzIqVbS0vMq0rIy8QLWGIof9OTqWsa2uGfzxBPz7lrV-08l38XVBnLkf2JqZhgs4pIDnsorufeP0vgiCq6CYpHxVttRguHWuT7WX4AZqK7Vfp4LDMjbLvkVhIzBLopth4RxJN9KH2Jz9cru-HnbpPNRjkSSpEfdnOqMU_m10HNBO2pic0FuPORrd1Xv-uHt9vQpjspyDVkWVGeCwqYyPATdDo2t3a7diZdRt7NCjJ2lAltKn1B9zm6yA-Hfxqo9830K28XQPjr_OH-K_NJ32rvI8nwi5YXBc8iwGVSsK1lUXaKR0pOxSL54YcT275FqIIGY4KDSemQiGpMv22VxlXBGvN9-VrZ-cBOkxOe0Nl9ejDPk4VE_57G7bfDdYwIo8wB2TL8pnVWduyRLMYJqukYBIBJEjRkPEoxGvH8QhOlXRxICl3tuLFcbVlMv1_D0QiZdWYDB4WnB6E_CqylT40tjzPqv4PFwOL5XU7yVszcpVwfcqEPl4t9L4uGA-eNFuqByaDUKbA_rE2eYe7TgT2r8bPMvCAkKYjYS-b7zUUwPOay-hJUBzL8HMdYtkevKAiTWKua84v-6RlOCtE4_yJASL0-pRqrYtZERtZB9fiOonfHTdwfnrDvNUPWI99x6mGhb3sAQaTz2pwfRX4e3dUPIhNtxDq5NImUYWO4jOCLfZ9NZzxslxsJEa2FB0--JaCDoEyrPa3ZeufsgSvXizoKUnci0F1eJ5dYSfreFJ3ouSJHr_Th7Oxd_xYlorRnOjbW6uQTCnLKRw1P14srRYBPaOmTrIvLoys2_STik3xLyQfRA90z-Pe5McRxNRoVxIHhssRBB6ICyz4tRa4hWJepHFG6OCulGN4dExQN8Yy7T-WTjs0QAqyfm2sVwhsneT7B5m9pz"
+        },
+        {
+          "id": "rs_031df6baa58e985b006a84de6ccb3487d2a4dbbe92045fdf22",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN62lgqoiRHLcvaEN97YH4IgxoWY5JKvBcAbK0GpKrgxQRH6UQi8wSHpzJDYBJPLlGIlUIHbRi3o9qjzc_OaSTZmLehtUSC3ojc3l7oZV-QanSwhYBJbJmy9ti-ag7fKASg3DRae6iDpHzIw2HUuN5ydvmQQxyl45H9aTB8zvc-e8DULz_0Sq9JfV7RX_mCQiOaEK2vPjOEs6qKrDIx0G1Quq6jy7tIOjsvs3qH686V5rkrclyL-OtH8w8s6MHx2RFqjmNv_RpVF33guiS2lYlShj_MsGB5lehswko-pFuqlZSEZJSsD2aIVx-HHQaxQuLvB6a8IoxFzWzvI1VV_UMZpsq2c74fv9GIEsT8tzBrGp8KhEtKy7kvxMPoJxZeeQ_xWpVF_G5X58Ll8kzlV-I1EPjaetdI_H3OGn9_k4T4EtHs5b6VPApBkK_99Lc7aKKBppY2nIYAM2Oci7iOaDM2bxFNubBfF3daxs44AhTWlhDNDgoOLWU0HtaoXItFg9DIzfDVpMVixt7yGRPS9l7tRPe0zEJv4I6BO94s5CWYUplj9IroJjTX7fj7gHPRVIEjnWIkfRdPZYPfDsQENCAmeDznDdph9b8N0vDraUtDw4R_k-AQTfvKVb-dg4PcLmJnTDxsG35sYDko8p9WalkQnbKCWftBpkaSXZ09lBVII69TcXjFi9h4hg2JuK99-y1RAAjeA27GMvD-154N1TxD7YCU9si6MKgIURTgeaQaCdwVdlZP6w3KURFyp4A2BvIfEzJf5rmn_vq5moy666xnVi8FZvaVNnIOPxbCvDrwj4ZRShHv9JjqR-sLVa-sN23QsZkcucFzZCrKYJtYHbIUWAkDW0y2KDPAnOPEemArrQeHum8ccdK6XADBCjr8XQJOEKVDxlzQva8ssp0Xe2b4rkyQ9iXSviepnlhwj5Hyhu-xS4nShFD2HsfBR3a2n4TSftB7eiwv5p69dBpeJ-dekcEcuXAR_VW27fc74KBlds2V-jvqOrBJ9X1wenZVY-_ngG5Pr5Ts5S59T22gGCpu8mDf9e191bavIzDZjP_rnzC8bcH-pd7eaTAzwCdvRQXQFz9U58aY2NmRDkZkWSg9ovAj6BQAAvHKDPL-iOb-6xJpI-RlDapehFbGVs44cdQAKWiUnJs0S5BZiIhhoXyk72WD2m0f2tTiml62Qq-6ol8BKypk5UOlXUw2Lcpt2PZTR2CgsXSI_HM7lOx2W8p5xP_lIgFuBs8Mt2zr-pfMLVczM0ZKg72TMVXQPxbW7dJbCp0XX1pzjdcalbpQDsQrRW2eYZmF2BmgLLCkYb26A5bYrP6LyONMVKX3aaHQIdPi42MtV_dzUJ2L_1paos9QgbtlnoGMV6SeNirHDDzorBh8a-IwZOol5njWf2idmJGOxtx8aBLQ_utuI1qBrBXxhclorMCxKHQMma8pFW9dKr5U9wZ-S4tnJme9xD0tHhEDWny9wC8vwV2TDrO3R1RXX8r6140c7dpXtVygJR3HraEubd6w6slh6hEtdAfq0vZxx9GjE85rNw-vJ_a7CeCTW4didSxl4zc71d3ot1nUfAldOPb8pY7I0RYLOJLUW1NYIC2Hs2BYOebq56D7uuvp5r8l33pYhc3CVFOIhXNq9MkfmNYhlNHPb1FoQZLIaQosxmDj4XidmLMaVxPuO1aQJW-RcSByV5AH3SpxemkUkUlEbPqruYBBWBKN6WJxtVtCJ6uGVizIW3SM9RnV7YihMWXd5V6gojhYma0ZTAMlu4WERzZ8cxoA36Jl1gkZQ2TLoJUVreJFQkinEQ1_wRt32LLeQbUE3mLjbq9TxBcpYq8rNaD3lzzvlBmHgWjhdSN83VUcmAiPQ4rj_I3wcc7gf8c1LmT5FO9ESk_irMnOIIAopoJYpvmOAPD1k4iCFcSWI10suND7PK2VSYHNd86YP9HXfvOe9jBo-CwGVI-nDquxxLiGtSYfMx3dHNUHbX3QHFO3UlR9u0AeMcWRYmFI7CBdQMI2Xb43cjhcLSIA26WoR9Lt0qMMtLRDsLcPrOx18CyWJqvg25hrfjivTllv4utA9gnKb9RkdvohXknoU6Tx0CZ0OYXgWsXY7BZS-wc5zrk-4NANm9JmhMDjBiJL_g14X4qGHYBxKRNl3k9OQe1xBlZ8apT9QwLTpj9aMuqXyjPrAaKShAzURAYVoIFHGSXDZ3Ol0Vi23XHcyGsHv3kumj12dRqv3eEkOssu9t6HTKtHcMP5_7RoYPNkueeZUearQyWXeEmlQwKji8Ray2ATi3I7Z_pot-YCwsj3k_JCfZSN2t5GgxKWBFbjBWyRLkWv2uhBXob-Xb0X01AcyWmaVO4IIqEsbfCnx_9tanZ69mB0dKRQT5iTaeGDxfJMb6q5_SzZ2gYC45FAgPdM6KO8qfzVxrd2kUd3bMLyWEiHTP93Aw5CrIwv868tdGKMq7rGya2qRtMYRHl85XgBBQ_x8_3XVtclDn9M4yLmUD6axWtm2b4RYUFjZdDUsKshK3b3VcNN6NyBzq3W0CulScc27idygM8EJuTYRZgoDQ5i3sIoK5xHVjfpCHYo4Bi9Tg37YpDohbE0p3wG834gzl0Y5_-csOvdSZ0F1Yjkt6FQ970IPcHGhyRl_OXd5EQfbUn4HR7Ka3GUKL2MsMnYSKkwzCJh7O-Mx3mMiVo3EBATmuxX14wHQeSjiE_jrGrBFXMsiVqaJkQU6LZStfp6hVlKPyUfGm69jgGrU9nLFUksrFOo49aQqGJC4yV5fWYt8ldgZZ8e8ef0g3Rc7IV482cN6c6ao17V8hcR7quploHHOsxlcDUpu1CkVhBmsy8AOe0ZyzD9RP7Jx0dEZQLiogEHy2VFOnfM4GEOSuyvxFLVLqzhtyYjnzv4Gs_EmxcvweTecO8u5Wagm_MX93A0qPo20iASeYJAuRzi0qqzRe4N5BTGrYpOHQQjamOF7QbORphDjmP5uZAQAMGaozEYM2bqdvOsKXf69jFUqMVyXeqOd05FPH94nEeJStqAtsS10hqCjKtpBMfARoBIK4IJJwfnMqBcPzruCg1N7Z8EkNF8-sgpbhEBsZsDlT7OnLWFM7IXsHju-avyvlPJed1WYQe4miF7uNDYVwKtY49m6-nUO3PzQPraEHpBP0_cM89iWlhQpgHaCIQUVGGMuuj84AVrNFVYReaQjp8zxWDbrNGhwh6nxHcSXH-y74an8PGxaKDeE-g6-SCt58BKBCpp_nRwWnlx8GsuU7lhGj0NpD4TSCkxEFXlHAd0f3LYzBLvnI1RktN_kXRsfrpoTHesPwIMZL96ld1OL-PqZGUP00Y4oxdXS2ZRil6BHCZ6YpJxazgEZimx5BbdL1jArwABh0_yQ4wzdoCt3xnhkqX18C8STT0vGc58ou1DOSsOhH7uY-0ty9idNARGFKqJRpyahH7yxVNuhaVrbe2fSjTG_IJPkxaYBq1W_HSmumGCGwnDE0NDNqKq2EEThF0N7-7L-VP1mM81dLAZlYB8aSDf7YGeTSpTfKGE_sHH3HGOY_u3pKZDw15wtaoMY9enNOgYNiUhT_Zb9hqsQtpvJ9lYq6K_C3pFNST4A4scVpxKuXBVE39cYPjmnlEbdVcCuXDgadf-E2-r_47tCAgiGVeK32vZGUync2Y6cmzr8vmYeGx7bfrC5YFeKofjM5nW3UJDxpwf1AGAaYT0Jclr06GWAXs9Q1tslwe5P_R-UuDhYeQYNNW6K4dIKYmpp0Zpb5qtLf-oIDx4ObM9l_l8d6a3PA8fDPHmN6_S-C2-krG7v-WYTM61P-0yvOQdBMTIKh9132swc_r8aO7wyz__xbWtQHDwXzKMalj2TiwjswzlFBVPzb-F10WgPL6BAKE3bZvRb7IQOoihZ6ZSBAeExtq_OMmjEN-4r64XssOJUF4Gu6nEsQmYDXQt-Ph3hlW8e_GIAAdsppEZYbcUs550FhlbdnPmx-lDpvH_G_nfQr3POHEqVhJJzQPm848Gv5eWBdCYXADvrlzieWCznr0_KLF03pziHw8_6E2uxmIpmM3E3xPfed6TekNNjUn09IDaTq3J1z-sV5u1QNiVvMrZu8X-pifTg1B0whiXXOP4DAbW73tpcdK3bVRf-7i8byOrnGRtegHDq5qaWAPDe5HagszGLC_pw2SM-027ubFF8g3yQJ8UNdw=="
+        },
+        {
+          "id": "rs_031df6baa58e985b006a84de7a138087d2a4e70d971e9929b3",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN62kVQJtYuVUIZDhDK5L-S_y-fw4aMn9VGBS2Y8J6Z3Q5FU23QL5_l45J4ouHpk-anf1pEu39CClGQiph6aMcuyBF8qmS33Efe5foZtvR5OBTLyOIeUh4-Xg6_aX5majyt72OcrLy0llAgMv6IrzL7u_z5dehPgtYy5bUbpyApxpKTKV15M9lpUjWFeckRxwL9YISG3YVTEw-hoC6mGQujgw6GS1wM_3-mexjg76nTUU7xPc7bXtECQ6B1aLWQtoPVmHMtabnUzhxDSsJPS3nUhn5uFD7xsm06TkLsiO-zfEJcpgJSDkt1rfCHdsKbv6hJIzpAXMGNdTBYYJqvXuqrfMLm2t70m6dm2GOrhHWqSGjrNEDLTU2WMbkNEKDo7EV8H19s1dMvx8kxpEt4c_nrCYHnBWKB23iLR3EjaEr6xyeaMI3hV50g5yeZTUt3iM8YohEMXiNBL4vxkn0D_lAHe1mOKuiGbbZAkAa5Eurl6X2XwXJKe0lAzUQeLwsFZ22xsvfXjPV9eyFsjFICWhsn8KXF4IQDkyOlzD7cIAU-QWY4LMuFJgm2JbH2sWuf6dkEZimWDB6Fmz0XNYFgbom_GlDN_MCxSMq8jtUPOJe0WqOcX-lun7HDOvVDr2WsU7ZmmymZ_INtREExw9RYRPLDd2OBUUbszUHeC5XEdtACU8BVpmTy9nyRBmFOW4l3U-qcpaGTmciCVGRwjwfQAo4Fm6TR7DVbPmD5WpQkpUaPC6CVFddRIqoEWcbu-QyFc_AnmJ3JOXb8BJgPeM9IsruSc6SKGIVacDXSsFwOQ4O-N4qvQF7XxQjgH8T5haxYYPQGFrgdNdv2gzwCaE6FFb0R2WszuA2qdcewRW1ERXa8vOn_HDxtTYYudJHRz9gmfLjqfI0UepQAYVHT8aST8AiXYUmUqXeoiDKeBYWCPrEyRfJ6Et-6nn5F0tI0Tn4KLG0O9MTBdezdT2vqm3HwOiqCTa6uBvlY4uEpXNj0t7y1XEKxtcHupo1bayWNQz7WA13guqCULgL5tkxxMkFDJk3RIOYjbgWdaQ1RRQsjf95ylM3ryAe_2Ejn9FajhaIBCah4oMUZbgMmzeGWFnQKGPowUjivAAOIuZEVTqbM-ewJ6AM7m7SXcJ6r-UWLAwYMyZgoo0KWQAFZqQeySi8guIlNv5IelFJaSDlRmE0emFREbT_KuQ6bJ7zQeen-_V7LEIyoAEDK5gaPeDMK12Vj4lUCJ8jA5JBy5OVoWtpX67ZbKYX7m2w_Lot3zGJxNzmEBxl4Wd3NND01vx_z--kltgfD0aWPPKpEZi1aTBfGTEv0iSZmgEb2JfR254rOEW5q29ZpnzrV-PNcvXTL9U3u4afDJi4NdSjmuUphAnJ3EfHlltmRoht0xzMvBvEnRz3OvPCghpd1L9zlskOx5a5J-oR0FmSadhfU3dIGtshI-8vpWF2hy2xywgIhu93eM_kewCP51ocyQAcreCDtVNLSaupTCd0Iu8ntJ83sBDUGHiNMwBHNAV7xitvqPMS2wPrWrVrvMKTjEnKoSSyWHn8eeXKm7wVEa6AGyenb4qmUIf4Fg1H3Y99VH5kjkEM309f6z6laRrecZWjscyVbALUjJuEbuFoHO8x_K_i1T93e8_ZfZRrjMyTMsJrGv5Iwcfoa3cqlkqd_E_i22SK-BLRqKFJC9L3MTqQl58gIYoaW8GAqd7W-SNIcRSezWoET8tD8dYQCZcOt-t1GzwutP1vWCspr_KuL1z0TsHUWOU2AuiDJty0emO-W2WspbL1tDyNYTLAuN2fjUQmy2WleL1H-LVZYugOMJ5LXeIz5tqats79-SOAB5sfqLebU_7q2E7CImJQ23UUUvR1SaE0KGxC8uQvcbb0h9kolZpG7hwngVZtta0dLaIl2fMHBmFmKShD9HYy16zcRt9ipMu3WiRxc-S4qoGX72dVLKMU5bQN21R-JoVeF9l4MYx8bPGapPc33hYSMfMIVfkb3Hsgm0Z88GbuJbEWWsz8uw6iTh7QJ06cvA53kTZN2lZ07fN7qdzEKRboGcouGMJjg-G-kA9MO2ZK4_yGrMh_6MliSJq96l-zHBK6qfyVIaC0B3J0A-A3i52M0Bv0EeSZDJ5MeYukxoFLxRcyExO_XvjOXzR4WDZik68JswD4kMLauTInASDEGLOvschXsZpYxFVpwSp-eGwud8IT4fxbDtpppoNet1ZTSz3nivYS9LsFJhwpbi_Z05sTzTlsqL5idbxxP-lT8ZDUqGeGKzbjRT8S3L-A5II6_FtYc0BtNBbf_BFu8WsZFDAymsWYISk6zez9tneG_F-oodDrGKmp-_YuhM-v-76AnLh5fV-YuyLg4EQh0TGgWGw6yzg4ML6x1Y6Fzu40KfRX83G35C_k81Xv1KR__sMaQ9LXSCueWF6xCI1CWxUKOmlER47TamJia-FWBzR8mKvEv0eX68bea7xJfTqvguBWtqbQE2VAa7K_J2JRIAJUf-D7l4eFr9Cfb1OacoUiqdYHj_LuNgkyPlGW9kkmUE687F5gTzxiD_RUEdxB4LEio-eegUV_sfOFEGgKUTP8jXUIzj-Y0LBvKRA9qxBrPtU5uqKHln8zL5txn1clkfynPvziNKKfjHNzE0xmAKw-0Ee_nBPUne50NY2BOH8wu7mHUFKuLGGcIZZW5z7EdcguYytkZDudIgoKLp_zmEqOUQ6nQ6Z-Ytn5l5ai7Pqf2dMJzDMSFBZVS6vlUISpcg2WH1jGyHoyCmBsd7lPm8kK4-dhKJJEvb1JnOOb0KAtFnTm9-RQQXgiCdGl5MOH3ApdmW1KhPgs8IMnAopEwYLUHLBcaWNxVeyqmCRJElZzLNqh8BfDg3tjy70daVWHzteXhT2LZdkssnhOJ3xWNNT4VoDVETIc1OmGqnpeKrm2geYqzWkbtsSlE9E_DvlnE-Kiq_lrPXh66YnLV31OWWWHxEHM2GleTAeJ3nZAQON1Y_COCxYIDazsxiZOV4vvaky3gqAqnoGgERVxgK_gSCjPStQN1jC8_nQ31s5yM3w7gP5eC8GNecLunFRd-SlopHOjMYrDhWTQaVxWj8jBUvgxx3v65CLAwZWjLGkXUBWe6MAnQmZRqS0uhGscCRukyKsNWB-DfTAjH5R5WaC-qzUB09R-qzkykT636i4t90DdHDOUKUi9UmwWnxduAcjedzNf7rJwL3LuqjKiVdh_ujeq-eLMoixlz8lFELDoU1QHDKJnS9ahUbKn9PY43sAQ6qNtdjTFDHuCXxv7Gt2hEFnnMwJ3Rqw2EvJFWJ3oPthBSbfCvc6Nf5DLyyO5LSEwwI3ufoa1nTEUA2T2_hm0NMmZwwIs34Yqy-iQliMM41qLdwt2wSXVM="
+        },
+        {
+          "id": "msg_031df6baa58e985b006a84de83090487d2a08d78ecdd37eb38",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Paprika mushroom egg mug\",\n      \"title\": \"Eggs, mushrooms, cottage cheese and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"3 eggs\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"mushrooms, sliced\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cottage cheese\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread without added sweetener\",\n          \"quantity\": \"2 slices (80 g)\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Put the mushrooms in a large microwave-safe mug or bowl and microwave for 3 minutes. Drain any liquid, stir in the eggs and smoked paprika, then microwave in short bursts until set. Add the cottage cheese and serve with toast.\",\n      \"why\": \"This large, warm breakfast is quick before a sitting-heavy day, with mushrooms as the loud vegetable.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Cool courgette cottage crunch\",\n      \"title\": \"Cottage cheese, courgette ribbons and oatcakes\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"cottage cheese\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette, shaved into ribbons\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain oatcakes without added sweetener\",\n          \"quantity\": \"3 oatcakes\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Pile the courgette ribbons beside the cottage cheese, season, add the measured olive oil and eat with the oatcakes.\",\n      \"why\": \"It is a small, crisp lunch that needs no cooking before the added Wednesday kitchen session.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Crackling paprika tofu tray\",\n      \"title\": \"Paprika-crusted tofu, potato wedges, courgettes and mushrooms\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain Greek yoghurt\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"During the added Wednesday cooking session, bake all three preparations together. Plate one serving of each while hot and spoon over the yoghurt; cool and refrigerate the remaining portions promptly.\",\n      \"why\": \"The smoky crust answers this week's craving while the hot tray provides a proper dinner without using a hob.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_paprika_tofu\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roast_vegetables\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_potato_wedges\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 25\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Savoury yoghurt oat bowl\",\n      \"title\": \"Greek yoghurt, oats, courgette and walnuts\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain Greek yoghurt\",\n          \"quantity\": \"350 g\",\n          \"amount\": 350,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"70 g\",\n          \"amount\": 70,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette, coarsely grated\",\n          \"quantity\": \"180 g\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"walnuts\",\n          \"quantity\": \"15 g\",\n          \"amount\": 15,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"dried chives\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Stir the oats, grated courgette and chives into the yoghurt, season with pepper and scatter over the walnuts.\",\n      \"why\": \"This substantial breakfast assembles quickly and keeps the crisp courgette unmistakable on the plate.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky tofu ribbon wrap\",\n      \"title\": \"Paprika tofu, roasted courgettes and mushrooms in a wrap\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain wholemeal wrap without added sweetener\",\n          \"quantity\": \"1 wrap\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"plain Greek yoghurt\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Lay one cold serving of tofu and one serving of roasted vegetables across the wrap, add the yoghurt and roll tightly.\",\n      \"why\": \"The small lunch travels cleanly for a driving week and makes Wednesday's tofu feel like a different meal.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_paprika_tofu\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roast_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Hot tofu toast stack\",\n      \"title\": \"Warm tofu, courgettes, mushrooms and cottage cheese on toast\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread without added sweetener\",\n          \"quantity\": \"2 slices (80 g)\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cottage cheese\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the tofu, roasted vegetables and potato wedges in the microwave until piping hot. Toast the bread, pile on the tofu and vegetables, add the cottage cheese and serve the wedges alongside.\",\n      \"why\": \"A warm, smoky toast stack avoids a plain cold dinner and uses the batch in a visibly different form.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_paprika_tofu\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roast_vegetables\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_potato_wedges\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Golden mushroom breakfast bake\",\n      \"title\": \"Paprika egg bake, yoghurt and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain Greek yoghurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread without added sweetener\",\n          \"quantity\": \"2 slices (80 g)\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        }\n      ],\n      \"method\": \"Make the egg bake in Friday's morning cooking session. Eat one hot serving with the yoghurt and toast, then cool and refrigerate the second serving promptly for lunch.\",\n      \"why\": \"Cooking this before the night run protects Friday evening while still giving breakfast a crisp paprika top.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_egg_bake\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 25\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Paprika bake lunch box\",\n      \"title\": \"Egg, cottage cheese, mushrooms, courgette and oatcakes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain oatcakes without added sweetener\",\n          \"quantity\": \"2 oatcakes\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        }\n      ],\n      \"method\": \"Pack the chilled second serving of egg bake with the oatcakes. Eat it cold or reheat it at the depot if a microwave is available.\",\n      \"why\": \"This compact lunch is ready before the night shift and leaves Friday dinner correctly unplanned.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_egg_bake\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_paprika_tofu\",\n      \"title\": \"Paprika-crusted tofu\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"extra-firm tofu, pressed and torn\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cornflour\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"2 tsp\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss the torn tofu with the cornflour, smoked paprika, oil, salt and pepper. Spread it on one section of a large lined oven tray and roast at 230°C until browned with crisp edges.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_roast_vegetables\",\n      \"title\": \"Roasted courgettes and mushrooms\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"courgettes, cut into thick half-moons\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"mushrooms, halved\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss the courgettes and mushrooms with the smoked paprika, oil, salt and pepper. Spread them beside the tofu and roast at 230°C, turning once if convenient.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_potato_wedges\",\n      \"title\": \"Smoked paprika potato wedges\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"potatoes, cut into slim wedges\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Microwave the wedges in a covered microwave-safe bowl for 5 minutes. Toss with smoked paprika, oil, salt and pepper, then spread on the hot tray and roast until crusted.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_egg_bake\",\n      \"title\": \"Crusted paprika egg and mushroom bake\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"4 eggs\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cottage cheese\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"mushrooms, finely sliced\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette, coarsely grated\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain oatcakes without added sweetener, crushed\",\n          \"quantity\": \"4 oatcakes\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Heat the oven to 230°C. Mix the eggs, cottage cheese, mushrooms, courgette, smoked paprika, salt and pepper in a small lined baking dish. Mix the crushed oatcakes with the oil, scatter them over the top and bake until set with a golden crust.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"fri\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_paprika_tofu\",\n        \"prep_roast_vegetables\",\n        \"prep_potato_wedges\"\n      ],\n      \"total_minutes\": 25,\n      \"run_through\": \"Heat the oven to 230°C and put a large lined tray inside. Cut the potatoes first and microwave them for 5 minutes. While they soften, tear and coat the tofu, then cut and season the courgettes and mushrooms. Add everything to separate sections of the hot tray and roast for about 15 minutes. Plate dinner, then cool and refrigerate the Thursday portions promptly.\"\n    },\n    {\n      \"day\": \"fri\",\n      \"preparation_ids\": [\n        \"prep_egg_bake\"\n      ],\n      \"total_minutes\": 25,\n      \"run_through\": \"Before the night run, heat the oven to 230°C. Slice the mushrooms and grate the courgette while it heats, mix the egg-bake base directly in its lined dish, then crush and oil the oatcake topping. Bake until set, eat one serving for breakfast and cool the lunch serving promptly.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"mushrooms\",\n      \"quantity\": \"900 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"potatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"7 eggs\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"extra-firm tofu\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"cottage cheese\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"plain Greek yoghurt\",\n      \"quantity\": \"650 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"wholemeal bread without added sweetener\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"plain wholemeal wrap without added sweetener\",\n      \"quantity\": \"1 wrap\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"plain oatcakes without added sweetener\",\n      \"quantity\": \"9 oatcakes\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"70 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"walnuts\",\n      \"quantity\": \"15 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"cornflour\",\n      \"quantity\": \"20 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"5 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"dried chives\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"4 tbsp\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-meal-v1",
+        "user_id": "1e000000-0000-4000-8000-000000000001",
+        "request_id": "50100001-0000-4000-8000-000000000001"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787092515,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787092662,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T22:35:14.946599+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T22:37:43.360758+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

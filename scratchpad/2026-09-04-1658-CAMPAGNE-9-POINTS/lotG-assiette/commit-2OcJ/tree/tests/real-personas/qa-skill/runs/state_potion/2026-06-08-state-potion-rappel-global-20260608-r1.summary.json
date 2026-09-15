@@ -1,0 +1,24 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-state-potion-rappel-global-20260608-r1-t01",
+    "status": 401,
+    "ok": null,
+    "user": "J'aimerais bien avoir une potion, mais je ne sais pas laquelle. Je sais que je veux ouvrir mon carnet le matin, mais je laisse filer et je repousse après le café.",
+    "assistant": "",
+    "empty_response": true,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason": null,
+    "safety_pregate": null,
+    "direct_effects": null,
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": null,
+    "operation_flow_run": null,
+    "trace_id": "qa-state-potion-rappel-global-20260608-r1-t01",
+    "trace_error": null
+  }
+]

@@ -1,0 +1,1219 @@
+{
+  "request_id": "2a000000-3100-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "2a000000-0000-4000-8000-000000000003",
+  "source": "generate-meal-v1",
+  "exported_at": "2026-08-18T23:19:41.075Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "05f403bb-442c-4895-99f5-18f448ebf396",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:06:09.506863+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 14382,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 14382,
+    "user_message_chars": 9441,
+    "user_message_truncated": false,
+    "user_message_written_chars": 9441,
+    "independent_counters": {
+      "system_prompt_chars": 14382,
+      "prompt_chars": 9441
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "30598741-dda8-45a6-8da8-082c2b9edf90",
+    "created_at": "2026-08-18T23:14:54.254134+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-sol",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\"dishes\":[{\"name\":\"Apple Skyr Porridge\",\"title\":\"Warm oats, skyr and apple\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"rolled oats\",\"quantity\":\"30 g\",\"amount\":30,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"semi-skimmed milk\",\"quantity\":\"100 ml\",\"amount\":100,\"unit\":\"ml\",\"state\":null},{\"term\":\"skyr\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":null},{\"term\":\"apple\",\"quantity\":\"1 small apple\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"ground cinnamon\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Microwave the oats and milk for 2 minutes, stir, then microwave for 1 minute more. Spoon over the skyr and diced apple, and finish with cinnamon.\",\"why\":\"This is a small breakfast with skyr as its protein anchor, made fresh before your usual Thursday cooking day.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":5},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Garden Cottage Cheese Sandwich\",\"title\":\"Cottage cheese, tomato and cucumber sandwich\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cottage cheese\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":null},{\"term\":\"tomato\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"cucumber\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"English mustard\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Spread the bread with mustard and cottage cheese, add sliced tomato and cucumber, season with pepper and close the sandwich.\",\"why\":\"This medium lunch needs no batch and keeps cottage cheese firmly at the centre of the plate.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Peanut Lime Noodle Bowl\",\"title\":\"Warm noodles, edamame, cabbage and carrot\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"plain ready-cooked noodles labelled sesame-free\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"shelled frozen edamame\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"red cabbage\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"carrot\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"smooth peanut butter labelled sesame-free\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"lime\",\"quantity\":\"half a lime\",\"amount\":0.5,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"water\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"chilli flakes\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Microwave the noodles and edamame until piping hot. Loosen the peanut butter with the lime juice and water, then toss with the warm noodles, edamame, finely sliced cabbage and grated carrot.\",\"why\":\"I cannot honour the requested tahini and sesame because of your medical allergy, or the cold-only dinner request because Bertrande requires a warm anchor, so this uses hot edamame noodles with a clearly labelled safe peanut-lime dressing instead.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":8},\"honours_belief_keys\":[\"a_warm_anchor_every_evening\",\"the_basket_decides_the_week\"]},{\"name\":\"Banana Cottage Porridge\",\"title\":\"Warm oats, cottage cheese and banana\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"rolled oats\",\"quantity\":\"30 g\",\"amount\":30,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"semi-skimmed milk\",\"quantity\":\"100 ml\",\"amount\":100,\"unit\":\"ml\",\"state\":null},{\"term\":\"cottage cheese\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":null},{\"term\":\"banana\",\"quantity\":\"1 small banana\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"ground cinnamon\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Microwave the oats and milk for 3 minutes, stirring halfway. Top with cottage cheese, sliced banana and cinnamon.\",\"why\":\"Cottage cheese anchors this compact breakfast while the warm oats make it easy to eat.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":5},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Smoky Tofu Crunch Wrap\",\"title\":\"Roast tofu and vegetables in a wholemeal wrap\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"wholemeal wrap\",\"quantity\":\"1 wrap (60 g)\",\"amount\":60,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"plain Greek yoghurt\",\"quantity\":\"40 g\",\"amount\":40,\"unit\":\"g\",\"state\":null},{\"term\":\"lettuce\",\"quantity\":\"50 g\",\"amount\":50,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"cucumber\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"lime\",\"quantity\":\"half a lime\",\"amount\":0.5,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Spread the wrap with yoghurt, add one cooled portion of roast tofu and vegetables, lettuce and sliced cucumber, squeeze over the lime and roll tightly.\",\"why\":\"The Wednesday tofu preparation becomes a crisp, portable lunch rather than repeating the traybake as the same plate.\",\"uses\":[{\"preparation_id\":\"prep_roast_tofu_vegetables\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Smoky Pulse Supper\",\"title\":\"Warm chickpea and lentil braise with bread and yoghurt\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"60 g\",\"amount\":60,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"plain Greek yoghurt\",\"quantity\":\"50 g\",\"amount\":50,\"unit\":\"g\",\"state\":null}],\"method\":\"Spoon one hot portion of the freshly cooked braise into a bowl. Add the yoghurt and serve with the bread.\",\"why\":\"I cannot honour the requested cold salad dinner because Bertrande requires a warm anchor, so the chickpea and lentil braise provides it without making the whole meal heavy.\",\"uses\":[{\"preparation_id\":\"prep_pulse_braise\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":3},\"honours_belief_keys\":[\"a_warm_anchor_every_evening\",\"the_basket_decides_the_week\"]},{\"name\":\"Berry Walnut Yoghurt Pot\",\"title\":\"Greek yoghurt, oats, berries and walnuts\",\"slot\":\"breakfast\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"plain Greek yoghurt\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":null},{\"term\":\"rolled oats\",\"quantity\":\"35 g\",\"amount\":35,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"British berries\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"walnuts\",\"quantity\":\"15 g\",\"amount\":15,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Spoon the yoghurt into a bowl and top with the oats, berries and walnuts.\",\"why\":\"This is a quick small breakfast with yoghurt as the protein anchor on a day when your friend is staying.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":3},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Lemony Pulse Pitta\",\"title\":\"Chickpea and lentil pitta with cucumber and yoghurt\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"wholemeal pitta\",\"quantity\":\"1 pitta (70 g)\",\"amount\":70,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cucumber\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"plain Greek yoghurt\",\"quantity\":\"40 g\",\"amount\":40,\"unit\":\"g\",\"state\":null},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":0.5,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Fill the pitta with one cold portion of chickpea and lentil braise, diced cucumber and yoghurt. Squeeze over the lemon and add black pepper.\",\"why\":\"The braise becomes a fresh, portable medium lunch rather than another bowl of Thursday's supper.\",\"uses\":[{\"preparation_id\":\"prep_pulse_braise\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Golden Tofu Tomato Curry\",\"title\":\"Warm tofu, vegetables, spinach and brown rice\",\"slot\":\"dinner\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"passata\",\"quantity\":\"150 ml\",\"amount\":150,\"unit\":\"ml\",\"state\":null},{\"term\":\"spinach\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"ready-cooked brown rice\",\"quantity\":\"125 g\",\"amount\":125,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"mild curry powder labelled sesame-free\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"water\",\"quantity\":\"50 ml\",\"amount\":50,\"unit\":\"ml\",\"state\":null}],\"method\":\"Put the remaining tofu and roast vegetables in a frying pan with the passata, curry powder and water. Simmer for 7 minutes, fold in the spinach until wilted, and microwave the rice until piping hot before serving together.\",\"why\":\"I cannot provide the requested roast chicken because you are vegetarian, or a cold-only dinner because Bertrande requires a warm anchor, so this substantial Friday plate turns roast tofu into a hot tomato curry for your evening with your friend.\",\"uses\":[{\"preparation_id\":\"prep_roast_tofu_vegetables\",\"servings\":1}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":12},\"honours_belief_keys\":[\"a_warm_anchor_every_evening\",\"the_basket_decides_the_week\"]}],\"preparations\":[{\"id\":\"prep_roast_tofu_vegetables\",\"title\":\"Smoky roast tofu and vegetables\",\"servings_made\":2,\"ingredients\":[{\"term\":\"firm tofu\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgette\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"red pepper\",\"quantity\":\"1 pepper\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"red onion\",\"quantity\":\"1 onion\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"cornflour\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"smoked paprika\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"salt\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Heat the oven to 220°C, or 200°C fan. Pat the tofu dry and cut it into cubes; chop the courgette, pepper and onion. Toss everything with the oil, cornflour, paprika, salt and pepper. Spread over a tray and roast for 25 minutes, turning once. Cool promptly and refrigerate as two portions.\",\"active_minutes\":10,\"total_minutes\":35,\"cook_on\":\"wed\"},{\"id\":\"prep_pulse_braise\",\"title\":\"Smoky chickpea and lentil braise\",\"servings_made\":2,\"ingredients\":[{\"term\":\"tinned chickpeas, drained\",\"quantity\":\"240 g\",\"amount\":240,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tinned green lentils, drained\",\"quantity\":\"240 g\",\"amount\":240,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"passata\",\"quantity\":\"300 ml\",\"amount\":300,\"unit\":\"ml\",\"state\":null},{\"term\":\"brown onion\",\"quantity\":\"1 onion\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"carrots\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"2 cloves\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"ground cumin\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"smoked paprika\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"water\",\"quantity\":\"150 ml\",\"amount\":150,\"unit\":\"ml\",\"state\":null},{\"term\":\"salt\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Dice the onion and carrots and finely chop the garlic. Soften them in the oil for 8 minutes. Add the cumin and paprika for 30 seconds, then stir in the chickpeas, lentils, passata and water. Simmer for 15 minutes, season, and divide into two portions; serve one hot and refrigerate the other promptly.\",\"active_minutes\":15,\"total_minutes\":30,\"cook_on\":\"thu\"}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_roast_tofu_vegetables\"],\"total_minutes\":35,\"run_through\":\"This is the extra cooking day before your usual Thursday session. Put the oven on first, press and chop the tofu while it heats, chop the vegetables, season the tray and roast it. Turn everything once, then cool and box two portions.\"},{\"day\":\"thu\",\"preparation_ids\":[\"prep_pulse_braise\"],\"total_minutes\":30,\"run_through\":\"Chop the onion, carrots and garlic first. Soften them while draining the chickpeas and lentils, add the spices, then add the pulses, passata and water. Let the pan simmer, serve one portion hot for dinner and cool the Friday portion promptly.\"}],\"shopping_list\":[{\"term\":\"rolled oats\",\"quantity\":\"95 g\",\"aisle\":\"grains\"},{\"term\":\"semi-skimmed milk\",\"quantity\":\"200 ml\",\"aisle\":\"dairy\"},{\"term\":\"skyr\",\"quantity\":\"100 g\",\"aisle\":\"dairy\"},{\"term\":\"cottage cheese\",\"quantity\":\"250 g\",\"aisle\":\"dairy\"},{\"term\":\"plain Greek yoghurt\",\"quantity\":\"280 g\",\"aisle\":\"dairy\"},{\"term\":\"firm tofu\",\"quantity\":\"300 g\",\"aisle\":\"protein\"},{\"term\":\"shelled frozen edamame\",\"quantity\":\"100 g\",\"aisle\":\"frozen\"},{\"term\":\"tinned chickpeas\",\"quantity\":\"1 x 400 g tin\",\"aisle\":\"pantry\"},{\"term\":\"tinned green lentils\",\"quantity\":\"1 x 400 g tin\",\"aisle\":\"pantry\"},{\"term\":\"plain ready-cooked noodles labelled sesame-free\",\"quantity\":\"150 g\",\"aisle\":\"grains\"},{\"term\":\"ready-cooked brown rice\",\"quantity\":\"125 g\",\"aisle\":\"grains\"},{\"term\":\"wholemeal bread\",\"quantity\":\"140 g\",\"aisle\":\"grains\"},{\"term\":\"wholemeal wrap\",\"quantity\":\"1 wrap\",\"aisle\":\"grains\"},{\"term\":\"wholemeal pitta\",\"quantity\":\"1 pitta\",\"aisle\":\"grains\"},{\"term\":\"apple\",\"quantity\":\"1 small apple\",\"aisle\":\"produce\"},{\"term\":\"banana\",\"quantity\":\"1 small banana\",\"aisle\":\"produce\"},{\"term\":\"British berries\",\"quantity\":\"100 g\",\"aisle\":\"produce\"},{\"term\":\"tomato\",\"quantity\":\"120 g\",\"aisle\":\"produce\"},{\"term\":\"cucumber\",\"quantity\":\"380 g\",\"aisle\":\"produce\"},{\"term\":\"red cabbage\",\"quantity\":\"80 g\",\"aisle\":\"produce\"},{\"term\":\"carrots\",\"quantity\":\"240 g\",\"aisle\":\"produce\"},{\"term\":\"lettuce\",\"quantity\":\"50 g\",\"aisle\":\"produce\"},{\"term\":\"courgette\",\"quantity\":\"200 g\",\"aisle\":\"produce\"},{\"term\":\"red pepper\",\"quantity\":\"1 pepper\",\"aisle\":\"produce\"},{\"term\":\"red onion\",\"quantity\":\"1 onion\",\"aisle\":\"produce\"},{\"term\":\"brown onion\",\"quantity\":\"1 onion\",\"aisle\":\"produce\"},{\"term\":\"garlic\",\"quantity\":\"2 cloves\",\"aisle\":\"produce\"},{\"term\":\"spinach\",\"quantity\":\"100 g\",\"aisle\":\"produce\"},{\"term\":\"limes\",\"quantity\":\"1 lime\",\"aisle\":\"produce\"},{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"aisle\":\"produce\"},{\"term\":\"passata\",\"quantity\":\"450 ml\",\"aisle\":\"pantry\"},{\"term\":\"smooth peanut butter labelled sesame-free\",\"quantity\":\"1 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"walnuts\",\"quantity\":\"15 g\",\"aisle\":\"pantry\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"cornflour\",\"quantity\":\"1 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"English mustard\",\"quantity\":\"1 tsp\",\"aisle\":\"pantry\"},{\"term\":\"ground cinnamon\",\"quantity\":\"a pinch\",\"aisle\":\"pantry\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"ground cumin\",\"quantity\":\"1 tsp\",\"aisle\":\"pantry\"},{\"term\":\"mild curry powder labelled sesame-free\",\"quantity\":\"1 tsp\",\"aisle\":\"pantry\"},{\"term\":\"chilli flakes\",\"quantity\":\"a pinch\",\"aisle\":\"pantry\"},{\"term\":\"salt\",\"quantity\":\"a small amount\",\"aisle\":\"pantry\"},{\"term\":\"black pepper\",\"quantity\":\"a small amount\",\"aisle\":\"pantry\"}]}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Apple Skyr Porridge",
+          "title": "Warm oats, skyr and apple",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "rolled oats",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "semi-skimmed milk",
+              "quantity": "100 ml",
+              "amount": 100,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "skyr",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "apple",
+              "quantity": "1 small apple",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "ground cinnamon",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Microwave the oats and milk for 2 minutes, stir, then microwave for 1 minute more. Spoon over the skyr and diced apple, and finish with cinnamon.",
+          "why": "This is a small breakfast with skyr as its protein anchor, made fresh before your usual Thursday cooking day.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Garden Cottage Cheese Sandwich",
+          "title": "Cottage cheese, tomato and cucumber sandwich",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cottage cheese",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "tomato",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "English mustard",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Spread the bread with mustard and cottage cheese, add sliced tomato and cucumber, season with pepper and close the sandwich.",
+          "why": "This medium lunch needs no batch and keeps cottage cheese firmly at the centre of the plate.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Peanut Lime Noodle Bowl",
+          "title": "Warm noodles, edamame, cabbage and carrot",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "plain ready-cooked noodles labelled sesame-free",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "shelled frozen edamame",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "red cabbage",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "carrot",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "smooth peanut butter labelled sesame-free",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "lime",
+              "quantity": "half a lime",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "chilli flakes",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Microwave the noodles and edamame until piping hot. Loosen the peanut butter with the lime juice and water, then toss with the warm noodles, edamame, finely sliced cabbage and grated carrot.",
+          "why": "I cannot honour the requested tahini and sesame because of your medical allergy, or the cold-only dinner request because Bertrande requires a warm anchor, so this uses hot edamame noodles with a clearly labelled safe peanut-lime dressing instead.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Banana Cottage Porridge",
+          "title": "Warm oats, cottage cheese and banana",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "rolled oats",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "semi-skimmed milk",
+              "quantity": "100 ml",
+              "amount": 100,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "cottage cheese",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "banana",
+              "quantity": "1 small banana",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "ground cinnamon",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Microwave the oats and milk for 3 minutes, stirring halfway. Top with cottage cheese, sliced banana and cinnamon.",
+          "why": "Cottage cheese anchors this compact breakfast while the warm oats make it easy to eat.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Smoky Tofu Crunch Wrap",
+          "title": "Roast tofu and vegetables in a wholemeal wrap",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "wholemeal wrap",
+              "quantity": "1 wrap (60 g)",
+              "amount": 60,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "plain Greek yoghurt",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "lettuce",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lime",
+              "quantity": "half a lime",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Spread the wrap with yoghurt, add one cooled portion of roast tofu and vegetables, lettuce and sliced cucumber, squeeze over the lime and roll tightly.",
+          "why": "The Wednesday tofu preparation becomes a crisp, portable lunch rather than repeating the traybake as the same plate.",
+          "uses": [
+            {
+              "preparation_id": "prep_roast_tofu_vegetables",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Smoky Pulse Supper",
+          "title": "Warm chickpea and lentil braise with bread and yoghurt",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "60 g",
+              "amount": 60,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "plain Greek yoghurt",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Spoon one hot portion of the freshly cooked braise into a bowl. Add the yoghurt and serve with the bread.",
+          "why": "I cannot honour the requested cold salad dinner because Bertrande requires a warm anchor, so the chickpea and lentil braise provides it without making the whole meal heavy.",
+          "uses": [
+            {
+              "preparation_id": "prep_pulse_braise",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Berry Walnut Yoghurt Pot",
+          "title": "Greek yoghurt, oats, berries and walnuts",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "plain Greek yoghurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "35 g",
+              "amount": 35,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "British berries",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "walnuts",
+              "quantity": "15 g",
+              "amount": 15,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Spoon the yoghurt into a bowl and top with the oats, berries and walnuts.",
+          "why": "This is a quick small breakfast with yoghurt as the protein anchor on a day when your friend is staying.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Lemony Pulse Pitta",
+          "title": "Chickpea and lentil pitta with cucumber and yoghurt",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "wholemeal pitta",
+              "quantity": "1 pitta (70 g)",
+              "amount": 70,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "plain Greek yoghurt",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Fill the pitta with one cold portion of chickpea and lentil braise, diced cucumber and yoghurt. Squeeze over the lemon and add black pepper.",
+          "why": "The braise becomes a fresh, portable medium lunch rather than another bowl of Thursday's supper.",
+          "uses": [
+            {
+              "preparation_id": "prep_pulse_braise",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Golden Tofu Tomato Curry",
+          "title": "Warm tofu, vegetables, spinach and brown rice",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "passata",
+              "quantity": "150 ml",
+              "amount": 150,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "spinach",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "ready-cooked brown rice",
+              "quantity": "125 g",
+              "amount": 125,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "mild curry powder labelled sesame-free",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "water",
+              "quantity": "50 ml",
+              "amount": 50,
+              "unit": "ml",
+              "state": null
+            }
+          ],
+          "method": "Put the remaining tofu and roast vegetables in a frying pan with the passata, curry powder and water. Simmer for 7 minutes, fold in the spinach until wilted, and microwave the rice until piping hot before serving together.",
+          "why": "I cannot provide the requested roast chicken because you are vegetarian, or a cold-only dinner because Bertrande requires a warm anchor, so this substantial Friday plate turns roast tofu into a hot tomato curry for your evening with your friend.",
+          "uses": [
+            {
+              "preparation_id": "prep_roast_tofu_vegetables",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_roast_tofu_vegetables",
+          "title": "Smoky roast tofu and vegetables",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "firm tofu",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgette",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red pepper",
+              "quantity": "1 pepper",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red onion",
+              "quantity": "1 onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "cornflour",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Heat the oven to 220°C, or 200°C fan. Pat the tofu dry and cut it into cubes; chop the courgette, pepper and onion. Toss everything with the oil, cornflour, paprika, salt and pepper. Spread over a tray and roast for 25 minutes, turning once. Cool promptly and refrigerate as two portions.",
+          "active_minutes": 10,
+          "total_minutes": 35,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_pulse_braise",
+          "title": "Smoky chickpea and lentil braise",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "tinned chickpeas, drained",
+              "quantity": "240 g",
+              "amount": 240,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned green lentils, drained",
+              "quantity": "240 g",
+              "amount": 240,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "passata",
+              "quantity": "300 ml",
+              "amount": 300,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "brown onion",
+              "quantity": "1 onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "carrots",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "2 cloves",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "ground cumin",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "water",
+              "quantity": "150 ml",
+              "amount": 150,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Dice the onion and carrots and finely chop the garlic. Soften them in the oil for 8 minutes. Add the cumin and paprika for 30 seconds, then stir in the chickpeas, lentils, passata and water. Simmer for 15 minutes, season, and divide into two portions; serve one hot and refrigerate the other promptly.",
+          "active_minutes": 15,
+          "total_minutes": 30,
+          "cook_on": "thu"
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_roast_tofu_vegetables"
+          ],
+          "total_minutes": 35,
+          "run_through": "This is the extra cooking day before your usual Thursday session. Put the oven on first, press and chop the tofu while it heats, chop the vegetables, season the tray and roast it. Turn everything once, then cool and box two portions."
+        },
+        {
+          "day": "thu",
+          "preparation_ids": [
+            "prep_pulse_braise"
+          ],
+          "total_minutes": 30,
+          "run_through": "Chop the onion, carrots and garlic first. Soften them while draining the chickpeas and lentils, add the spices, then add the pulses, passata and water. Let the pan simmer, serve one portion hot for dinner and cool the Friday portion promptly."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "rolled oats",
+          "quantity": "95 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "semi-skimmed milk",
+          "quantity": "200 ml",
+          "aisle": "dairy"
+        },
+        {
+          "term": "skyr",
+          "quantity": "100 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "cottage cheese",
+          "quantity": "250 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "plain Greek yoghurt",
+          "quantity": "280 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "firm tofu",
+          "quantity": "300 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "shelled frozen edamame",
+          "quantity": "100 g",
+          "aisle": "frozen"
+        },
+        {
+          "term": "tinned chickpeas",
+          "quantity": "1 x 400 g tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned green lentils",
+          "quantity": "1 x 400 g tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "plain ready-cooked noodles labelled sesame-free",
+          "quantity": "150 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "ready-cooked brown rice",
+          "quantity": "125 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "wholemeal bread",
+          "quantity": "140 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "wholemeal wrap",
+          "quantity": "1 wrap",
+          "aisle": "grains"
+        },
+        {
+          "term": "wholemeal pitta",
+          "quantity": "1 pitta",
+          "aisle": "grains"
+        },
+        {
+          "term": "apple",
+          "quantity": "1 small apple",
+          "aisle": "produce"
+        },
+        {
+          "term": "banana",
+          "quantity": "1 small banana",
+          "aisle": "produce"
+        },
+        {
+          "term": "British berries",
+          "quantity": "100 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "tomato",
+          "quantity": "120 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "cucumber",
+          "quantity": "380 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "red cabbage",
+          "quantity": "80 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "carrots",
+          "quantity": "240 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "lettuce",
+          "quantity": "50 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgette",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "red pepper",
+          "quantity": "1 pepper",
+          "aisle": "produce"
+        },
+        {
+          "term": "red onion",
+          "quantity": "1 onion",
+          "aisle": "produce"
+        },
+        {
+          "term": "brown onion",
+          "quantity": "1 onion",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "2 cloves",
+          "aisle": "produce"
+        },
+        {
+          "term": "spinach",
+          "quantity": "100 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "limes",
+          "quantity": "1 lime",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemon",
+          "quantity": "1 lemon",
+          "aisle": "produce"
+        },
+        {
+          "term": "passata",
+          "quantity": "450 ml",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smooth peanut butter labelled sesame-free",
+          "quantity": "1 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "walnuts",
+          "quantity": "15 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "2 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "cornflour",
+          "quantity": "1 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "English mustard",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "ground cinnamon",
+          "quantity": "a pinch",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "2 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "ground cumin",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "mild curry powder labelled sesame-free",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chilli flakes",
+          "quantity": "a pinch",
+          "aisle": "pantry"
+        },
+        {
+          "term": "salt",
+          "quantity": "a small amount",
+          "aisle": "pantry"
+        },
+        {
+          "term": "black pepper",
+          "quantity": "a small amount",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_02c0b9c3d584f184006a84e6e6b3808191a7cf7847d1b2534c",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 5894,
+        "total_tokens": 13359,
+        "output_tokens": 7465,
+        "input_tokens_details": {
+          "cached_tokens": 5891,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 3541
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_02c0b9c3d584f184006a84e6e7690c8191b1d420cfecc6edf1",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOdtPcfZYTbhPdzxrDwDzlos9cd4KYSYDbwRHVEm4Xadz7Vtn5D5C9YU3VksSrH6Hbq0oy8pCnM3RVPc9ZeNv8HlDK49uXRie7sQ99RJiunWRuM8QQ9d3-fuEwErHxbvrLiZ_su1Tq60lLQV0-QPznzEf2FbmzhrCjckmX6-cBuzyGnlzTxJgl6bwgCgBcz06S7udDfmH1hvEsh9bPfUiKrmamSjWQmtzxa5Pm7Ifk5c-5jWLXxgnBdq6PT9WkzIFpAPmJzBf-oD0dGTfRxvvbKQFIY6Fc4liTh0KWId7TlA2NWMV3X4KAdgVU573OA0iH4AlC8c0Ati430kfrsUoN_BuDjtUIWTu_qFXnAe44uTa3jB6yWwGaPeMHHoBGjQXfHGa54wZ0qTIS0k5d7A8Tf3EXMtOt-BI1NSVTx-TtHC-_e3kiLmq1bUG3bi-RKVzKuUjiX4rQ6j4WIX09Vx0nj_iehvGC0jSFTchUm8e7ncpwT-JKGoCqAdESqIujgK0GvWr3Z41fSi0zlilkjytzL62LRtEbzWNxaYDETRLu2zUZA6YjNZ3BsN3YWbj8cBGwLEIpv9v1L5bqaB0nysRmRQ3W_FOhRc6jw-BKnZTHHvnWTY6Rb8AMCTRwOLLHp6LZCVStopzsRIBzSYim3uDHAC4LVF2JjIWT1YuMyV9_ost_3q7sG1fx9bKEnjOLW28loT5Uy2QcAyL7TJrKewOBxhRZlgtIEerLX0HFzGsA8vAPIikYqN6XgMMQtzzPpA-MtCbrX1JBG_a8HDLcyeoX_sj6ymUtxqU9qChr4P5lIqreFzmADN_sa-5u_1EzhkaDLOMW2_qpTBnB4XMJ9uf0E8eYvcFfjwP3dWI2DpO5_Wa9knMjeVCWmIWU_yYJAfwz6yVimjoW9tFTjxMa7wDOn8ueC1m4bTzM01AOes7fAKEigVnIfjFGRkNqE1EBG0pkK2TbVpG5tUtpQ2eoeKFbByTSntTrKaui17e6kSzopqckNJppvmFxMl0EuolUL9DVbHN1lhAbuGRSNu6Yt1VO7qtDUkf6Nn9quNZz0fUkXtsZeQ5pIIVEALOzzgfd9xpQ8iM23VCyaCnomSfQGz9ZfkKJvYjhriwCc0OUPls3kZBUhuWQvfPMCf9t8ApsSwAoyEaswnVu7bNqPh7bV8yN9oCUJnZPrRoEmWnmh1G6f0xAfSQrIZxp6XKfy7fbYXAgwAk28oSwLjnS7vrvoQsPqvT0k4jsI4VLbm3EjW3czu-Pr5112urLSQUFsSGnbwzgiEt2fxMHumNK2bof5DRwBTj7nq4WjG1bAORJISEpSwjLjwOJ3M5aRdk6OYu-dArTrM4rHTpJahyyMurM5txaYpd6L1lfXrWpxGr2tIKRbS5Nb4-45qCxRuGcakvKPlKpaz3fa3E-5atoF5dniE6641coi5mwNrVtA6shV0JOpvgG4KGD-9_lOO5SRymEHXoetZ3JWVl8U2FqFxyhR6B9Sw2yO_baz55d9LlsaViRN9trK_yl7WBpET0fUmEzUP-511YKRVyKQDcUyBWjxIzqPfN2xJIckCNMXwVTZq2hNsIX_cBf_vH2yEKzL_liFiEtag5woBHco0et5gNP31QEdrDC1TXAE8nJWVEFaSDnFN33bTFNbrXkNPHnwzPoUYQcnl-6nw-2X2BYyIxut9KNerOk8_caxpSxEIqiTHoCRAGmpn1OXh7TwgbMOBJfalU4P4nwNFMDKsN6WoRvjHnJIeSzMrfQ8l9zVC93XYXBAlFW73vTludqjIscmznianRrqt5a7siU-RD-rzTi6NPAEfUJvG1u_1sshftMO491bM9R7UhjlXvZjacrcZM8ba7MFp-3xWok7buFmQJeHbMVbPfZWuM_Si4jZPpX2Fpw70pSccVyVlFjAA4pWm7zYT6CZjuUPCfg-c0y1grrsAJ4OTTYE9-UbOAvfzATYwkfEkfBo5RV8CT2BGWjY0jm090OGlGiI6n1FJvpg9ZiJ_l0y8uWZAh051K4UodvD7Q_DWXcXmBK0Rz_dUahQmSFQXc-dvAjfT-G8maRGAFGeqxE_Mc2b5cDBw3t47I3cHCGlGwBP5lGu9kBArf9T4OMnid9f333sJZtGuEOsu7Sw1TAwoDfHSLGsZUv0K1qqs-G2vdU4eEHKVQkwMX5IckNeQ4xaDSITTMHjGDd7Umg1PTmXWMPN9V-lDfBf0ry7Qyr08TsOGsEWzqWA08LogyEHt4VPPUcy2EW14afNsrlGUtyUPxDD7XF8gH1NwzAYDBUA0BT82A37PJVbyFnbtdkrqQjUmM4WkzFCITsqQJYBdoxHYbwEjkwohTj1dN1d9Pwoo8HgfT1VtE6Ywv5H02anaXqEInOLZFgYw3rwNgipI5uo--GAcTPfrffCDvWXAuytaQnBPa4AVmkzrFqW7OePZLVEAIKf1hVUMTBNpzeWs0zoH0PDkRJNzBZcWyUp1YxtGYbgEEDzB_63qkSaikZi4DC10O5x_t-voPb8keFZWd3Ml2X_XJGWUySvqoHD-f9_BfLOIdwrJtTIHx_8C_03uMvaewdGFtnU-Grn42JsgfRbIxUdV9PJDcgwHT6g4Jw1Px01C4irRzHrrDlkwxW5gFU50Zls3GvkrhX5ijddrWgIS94FeJr7bEBd5xcW5rnDXhG7h_fdq8D78BNTUhhglLF6TZZdCwOGC2XqXoQSLp7AM9l2-k3BhMomXAUwDrnCSX2k3PwHk9ccCPbF7vLwVEw-i-IMsxeE8Ys32oTcvBe48qZOsyPoch0L_QZP_moEbD1NQs455aMBwKlsuhhWJAKGL2ks2pAU4KCgEyZqVU7hb7xnXCBSSYohzb0BIIX7TQiMIc3rJb1Pjgu915MOjEgbgHyBka2ACehRrJpdspEZMzj_CM1Aut0NdeTqYq1IWlSdjXblqNyAJ6YgSUCSwqhLO8Vo2JjZWqA8oq-TYdSIWFJVDdSxpsW0xrEHs5PYbYJMiHMrC3TQRkQOvLfaoPo2Pt7-G1l9xeEP1RU1zfBe1e3rgXJvfORrLG9oP_bJUHS6JE531l9aIQe6TU1dRBDWJXUTpgZ6TTNHul0Wjj1uen_TU2TY3vnHt_IlnDA7wP8OyZlFYaAwcxEzf1kASFRYWAIhwxtfljdk7u1pFPLVGN0IKZ-mk0OxzoqbDpcei8D6xm8RqLzlkxVgcpr2MwSLaxWUbLXql5EtWlhzwteGxZz1aEnLfc_EAQ_sGZJQS1cGPpBrvskkoV2GBh-sn9wzGSYxX95XAlnOv1uhEgK4fVKyd2wkPDDaLOXXVBoS3SS7vx0cwA9DAFFLfJevhJU84l4d4BksAccrwBTH4_VQGiEYiv5VY_0ZBOzzB50bn9TBiWOth3LlyTtBTY3mbxP2kTCRg4wwILl96yuf8W6r0fDYT1Jk4naKJBkYnFTRZUp7gXxQ5v3yh5iG4Y0Zbpo5gljI-l_eih17ha0qh7h1nsBGmA19Wy2Z9rNykxESky-caRivgUPuzgFk95Zip2Z_8Z1KJ-vpY_j9jZbrTgwf8AGkpAOr9pgAE9u_m7CxUNrt_eq-Fff1YZNZTWxl_HMSZc0--sgasK7WvAXGND3gAJqzgPZ3Es1KdhLmvW988Y6QQfyth2wc--SNigEO5bhYzmI91YUIBnzIeIeLh85ZT5iOw5IMrDc8tisbOkRy_GPjKEitQC7EyB81ANONf7JDcqtyT0LqNvSXHmJtcCBHMHuJggjYzdviiRQKDYUpn8VVCDsieG_lKDJxMD-L5Nmd0Aw4jAusxaWxwdTVrMXNs0sX81vGRWAIJkPxoXV_sM-iDcXMVAiPWe68xVvbDKYh0dU0CdzsQWZlLKIc7rHZfAKx1_ftXFzHFOAsEA66v6vkIqvFQcf32Rd8YOSJFWd470g06aPPG4uGDBK0QEMmugr9-_RYRMrOgEPdeV-Hnfk9aWfCXqTQ4RnoFT_cG3RB-LYN-__fP1S6mr_zFPL6Io85jFceHfPqlzHvc4SHo3dJLGpPrZrxVtWZfCVN9jisrp0UKjHwpmXhxqY7PMmNCeBAKYriG8BaMvctd1rJJVpCT6SxL-_b_vKPBblVtC5CCgIgdkFa3_VV3Hwsgnrbxx43YlxOLsSkl1iBz8-Jotku9NME3LLUYQfk8SjbHryAmhfTeBUNiKK10d82DojxJ3XOSQXbcNIQ032znxF-pnY30Kyg-PDK35fH1Nio7E9jWz1BFrmldABHld3mbfgEmVEihy-JnV1p2O5kDc9BWrI_oCtk7xzT5mQcPaJ-s0spwT6J7Jsi8z7ZWfbs23Ttsxq5WgZYIJ21FbOf_9fHSalo7IXY2c41zDyNVSHTc3CN68gvSd2h8hf1bJSjn6ajmJ4jFeBZ9s6XPANEWhaf24pQB7DHUxBUpURwltq4tFg8d_oh3uyEfQrXhRXBtmbLbKhNXv6FmSmQT9iigeNPPIE1uuluPrl8nyBJU2c_1ogUE18qWCs9NsPA4nCQFX7KwRmn0-7ew1E8OVvGvbUDbH5_QZ_BF6MN4zLKuM_XY9Iv05D6RN-qB-TcPJCaz5E2ThMGYhvdR7HB9-Nz8tLdJHwA="
+        },
+        {
+          "id": "rs_02c0b9c3d584f184006a84e6f432908191bd59fd35f93df77f",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOdtIJP2S-0-lQleNvAZi1pWcByGCrEuPv6Bk_U1x0d4h6gYJCdLHpLRhK5yZf0cEKFVXIeRsNt4kgOqnuqmJy4mgDjFUrxSfK3OkEGo9QL1QvabKkgbS096LlwV1jzbj8iLM9DVSOdiNyFXD7OZzxKAPLETvhrUfwxweqlNMEs0GN0TSikGVQk1JsE0O1bZUzlv3yhA2DR_OY4qpoScM9qUMfQgBguCBZlAkSe3JnW7wE3J6-HWdMSxn4H1i3sy8hQRabt3qIXShbG-FTQxSi0egLO6RisjreYhTZVxvwOiKsKod_Ky27EufDmMdInUL5kM_togAXk_CT6Hemk-onaxXZwsKTusYJ6OFAtHfW1k399rHBXcDbrKEPRKz4z2pPkt_t-trO4QRtqwE2UK-qCN-iCl0JUTWk7u3zh6I-UBDv1BMwOVc1gTP3TP2ChCrTer8jYlFnYFfTqGdycQOptqu0GjV868uXnIXeFd1eJiXkEtB2GuyBg6SLQy1XQs7xePm8CMbv70TiAMTQQ1aoBZLDFw2MA8GIEWSQO_WGuNr-SRgWeQO4kiRKYbnGvY5_hy8z-efCb5IGhNuf6Gql-TSBAuERszb-GhMxh03xaxFLeNSnQPkLCMyGGLh8ebTGVqhTrrNl37nRDh7D_ifDPUQb5tZxqFJ3fteiyiunxi1fHPm4l4TTMTaNE0UHqQ7H60QV1r3mwAkK669Lgh7VFlwNAD4eolM9w3uB-u0KyQYPz1_wC2Wo0dkawN9svCfP3-aG2i0DXywn_r3vaEfrn7pq0Ms6fZARsQ7rJ_dybVLX__9pethnxh2gCRjhA2B0aDTuGWmJE70A4NZZCP09lGwR73CrJgAnqhxjicmXpzpWVXQQcN0GowKUwM_t4SMJyd1nwWuM41hBLP3-MunIwME4Jhr_y0W10Lx7vXHSKOULqPSiIjMsipBKVuypfb3yYq8G_9gR5ELhXdsyOoP8WKC39qHbyd0RL6bN3qoDIGD3dIusl8zVdAQ-5gnk3bCS4tJ1vNaT2jMulSf6Xxghu1n9sbEJlg23QY6gf6Fpw50no_-LVOxYwUFBVPG94zK0Lm_mjmwHs9J3Eiv1T1_C3hFEI1nV7VcRr7XQyigG2srrfscsF-nY2hLREuA9zHiwKPO_QGkXsEbquaE1VgbDRNOsVnrHygUNFLLMdPwLtdo0ehURwLAiQURruX18xpSGUlfS_DVf55FY9jR8KsrmVPGnm5lc2CblnM2RrOn2kZK7VLROZk1ebSAgsvqhMJVn7FIJ7K-46MKxB5xMeLeE05DwCsF0nOOcAyC_Rb3Cp6o19AMwACdh4oHoFGioOmkSt4b65nrDmpWadHlswsTN47KED2I5YtEqGrpsDyZwIwWv49y0wpsG_060sWOMwtGzbaLUMw3cZtHuxwddt1VCj-netxhSvlUSmkEY6O58b6_11v0Y7Hk8GPuOSebf7qz3br5AVpoBbKAp9qCiABXWMIxy1t5k2MhED5IvAS7HAaKh21AkqLFtcyW3QEutacjeeyyLshVfH6Kq5aDiEj8OYsjMKwqw_JYOnbh4Pt7YysC4XPCWxP6XHUZNfRUyyo49vygjvYeCbvOi_cpTlbJ37H0n7ijPcFaG6MU61YR3vXfIWTPoMAg1W1YHD2135rE5t7Kcs9N9CGE-pWbCZd3PRY0KcAVI8MTg5BpWKgTRW8DEVl4vf6WWHR2v0-l_PF6MZdcrLxb5xG4jLezKkF_4mNVWJuKoenEmiewKuGnAcF4hu24c_OHN48WK2E9X1IHLvBcCJmuh9mb5wcsoR4qvuhiZf2_xI5lWAyfreWy1oq76Z8xoB7SiztLEjg5CpigtepzmxqiOu5togcdo3nGR5H6vFKDDB1d18fFs1fxxOpUe5OjO1v0g5wfTVfaL7N0UBQZUt0TrhmdtXbpNFquSN0sUBe6-GlaHVyDWmuvBYyiloUvh2zQifQkxN6DJExgY7Kg6jbroUT5eq66cOxm-TSVpxFW3qbcFbj7Hza_GwDJ_UimqU6iBwV-suLVFypyvsyM6cJUXIRJHgTnMiCOWjHUAfvWUc89_lxB1ReZ5uhjlZAhM04buALoMNYs56aWOBbip7oAckmZPH6XKamq1UiAQt7TrZc5qjb5M43bVQ2BztpafEun0sxYyWDIqr7OyJ_gJDDWrJMvoRCCDQB2MJwIMP8JXeVM_PBmce8VYkZbgLDZ2GPuQvNWNvC_RErpUcrlW5sq5CR4DuVa--nVkLHZJ3EfCsVhHCgiiRfxzNK8LW8--r0N0yjADojOkh8Z4-2ayQt2cb-2-vqbYX89XJR2CmRW6zoW0N4FwPoVWPDjoAJkuFXS_Ow3X8tWDETmyR3jvnRXitOjc6Rqg0C0vhbGto97iDXvR_qnfROClC0mwKjOxIAl3Jj2ux-ovckqgOUYvwA7ou5LPTi-gZgaFr0TUD6H2Hai65kQWFp2VvgSJzGjnoISESycv486RJMbkENjtNzwqkRJQ_2AoKoXoO51HVVhyZbkVaLHKEzsixzwSsUliJkT127b5fW_QPlNGdPlYS0lApwTDqcCw62IUfEJl1h9UYNxRV7Q_dDi1YT3hyhMnvIH4hgwkqZq90nDl_ymbII9s_ZpGOzCWB47c4jUkaAJMS7ci2-RmHPJpPVPnwN13OuS5A_kKiKUfVT0t7SvJ4pZReFzIofoAAjtzcHjCuyK1_AcUYr_dMVO35eG6cB49rXgKWGaUNIJacrpVjEc-7PP36RdZSaNn7z0C4ybGGX2BEEmuqQM60vKB7raj6tFpPifJJQOoVLX7TnjijxCU2tb_wSsoWJHrLFWYJXiATmXIgfuIHO9DSjFGsdVSNlg-GHWqM707wwlg1r_MTuAE7nyyA1HSsf2mdWiqKYB3oUvJ99gHq3WaiTWX4-92h9wtVy9Z4bHzRVWrCKPRGYp9L2Gw7rn5zHtS77KYksygZa7DdJBNmgNjrSwvYVqUr2PKmWDDUxYPrHtt41PHXePeYjvG0KBOLammVDCZC-lBy0wb6ak9vFPqPgYf2QF_dtGj0uPH6pQK7TB-amuS1KUbS7wUaGQPCu3tsPBnEQ_6e426ndSXzf-SJFvbn0u8oYsldI0VnXMDsZdQC4mAEHgW2ySlHlLJViMQoBBALOKigNg7okpTD048Hh8cqrVWPVwHYwtdcSkuIEHb9w1bDy892Hrqw0d8ukE1pKpA2nj1lVneqVKJPZkpjR1wNJ3RRVpGE4Xci4wmcMSrbBGA5ORozK1xpHnvHBWT9XBiyMV8664W0EYFLftL7gi4YBRQTXkvb7WA0a-tQ81SjdXcL6JChMst8OIKXNSp3BcgNj-FTJyhrz5gQoVXqvrPMP1Lqzsn4LpNrWQOoBjfiVn0pw9RGE3je7g_AFKIvCgI7H_1w_FYGfv4nFAm-LiBPEDYTTd_pZpib7vdn-rixaVKBSyUlFxDIcXLM5Q8ZLZ2OYslkq2XuB_Jyxat7u970XirriE805frnM7UEFLqYy_zcBNZ4yvn9jaj9z_VFACe5qWNApImBPHA6crELjoKYLr9lLzezGDFr6JJumjwH_ep6aDbzHBRH8h-GeTmsknhMnVws4b1YS8yliLF9IMVaY-TQAJ6nykf_XHf1BNM5II9WyGtnXxQ5UUbW5kCZT7AVBI7hWP8FRv2s97ZWFHF4iFNLova_AYVL_N3omgvtkxR0gzleOgho6JVTNuEc9gKl0wclzhbebTA_m3FjtmFZ1IZm00D4SEpPFhSlyzKOv3mCUXK_oXVet0ruWkNG8GN4mgV2NFGWgGidT8opaYMUGkwc9QFN00s3d3ItYnvQdOvypcPlF7n9dpYIiBvk-C1NZjhRQo1H6dKb1Rikygg5qIGzBQ_8sryzhx8AMZyHnzIjCKV4XxfzPTl8s0LcRMkg0OGYg8zQNqJkdU3InW25IsTuP3DCocL7bvzCjuIbZ6zWb1MfyY77FBF0h90ioaNJ67hAr4HlDT1MwU4nXIf1vBM8ykYGheRRzwMZQ68REgjxCGAQvhO-baAtL_hPQBM3JmiotBsgfhH7gwBky48u8kNX22zQMakW25AhoOtO2B17Lo4j9v9mSUMVvIkF4KaOr61ir8UQEkqZkuS6yMFWKIbMZ6FdfInP5yXkSeinTk_2u4PejYLWJM1Ekp4A7cia6zXVcv8NIukWMp0F6gv8IUEkIumLHy1l9LYJoisqNCwD9cL4rhCA4wuGmKnKNxEq2nYiDOX-21-EFKmkAdMlYicOSmSFLfDAl09-DJRbsohCTtsYbiEWIRBom7Mjarqt6Sp2ZAN_ztd0IMkM68Y7DLk_YvkEDvqYOvUOpTIBclhsTzF9x2OO9TU6eOCHrbFKrjnppQ3bvxRw7pvv61MjXyzn7eMq8oSA88VIkHRMwzWBxz2mNBzxscmg7wIcJBdNgIcb5FS11QmjVhERucvGwNv4="
+        },
+        {
+          "id": "rs_02c0b9c3d584f184006a84e702d1c08191aa27871c5cbf140c",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOdt39wCoNEpVHT48NTzjJ_TZWBMG5Bi2NpBGPxyuaTf8OUjs_lbHvDJVztlB_g5XHwvwtBl7h6oOXlYK3bZLn4Fq8GF-WdS6vCgIk2bD9UHIq7mVrgCLT9CHZWoHIO5mH7ZQMO319DlSUApJynnKkVvJItez0RM7QmoykXILBq0pw6ku9MmF7gvYVWZcpk7Lh0nHBfFxITQ5imlRa9eptAYOqSczxsrEX2Sq8Eyy5n5Q7LVgsg2uSM6tSE5jqR3WEUCe8JJiVcvFe1SAUkmzSzls5XfbTFouIBrXL9au2sBv6JZgEm2hjBfDv2k9E3lpGtUio5g33vHEUcTItwUZ-cx4y7yKPwpz2rwznQyKvzHD_BNyiQ0LIifR6oqHyH3lRlxSEOpR3FtNC51z1WovJTBawWfveBfr5RbsGq0Z0jHp5RPSawlUcFUyES3Mcsn7JfrIpfIqa_U7RQvZd0nTMfoTc-qCyJbMwMFB_PAdC-bk9Z655v39F-7m2D14EYxo6oaxKyV7ibUzbFry1vG1GDIkmsgPgEr9K927RJJV4_WcckvhT0mpsaJ8OEFrjJW5KGQlyY13MM8mA6Rs5BE6mZo7Fzb8bmU9HZgnqBRkyBBNUkMe9nl1WEyDvYc6T-bFG8yyGnS5sY6jpB5xLPMr6nop0KiLiCHRVezEW-H0pOhdgcxH4jt7lcZIhdKV851qTC30WK7xWy_CKJhy_u6PjBfQkMOVSbhPB7xWgi92TeEnWBgRJjviMtRPpzOoAm1ngXy30QpaeJh1X0WRduVw5GTwCXHRUUTVFZrpwKuHm5eTa1FtvSKPFXGrmDj7_PM7d1X0rCWaDFQlrbNEDBGbj4yVNkBFPr3bX8DVQ_o1V1WGl5rUzEEl08VmYHiju7eB9vcpE--gTlbyaMcv3hcsE6zlBZWJW6-8hjPk-_B6f-awUiVdDcWtm3ZNUgdVTq_B3JRzdmFfNGBza1ymKtYdIZbIq3LervvI_ytMNz6_6IesySE4D9r9dYXm_7HrfrDPrL08VwYFKkja93AUMA5YF7b5T3VnlQSX9q29exAzFEskHi3vFooh3WFHTqeZ1h13b8MwWMziq0BVD3jD19AwEmvCWe5D7KoWv2tqz4Auf-cByISmKmU1lEKOkCLYwb7GZV3wWYR_0m9dp6wjR3RMG4wWFAGfHp-u4sHWxUUaEYycMFoxIv1LXOFfQrSSnH8XhjKoWZOt4wnDhlP2dt2f_WDzqYUWsQfSpX7ojcQ3g-VQ4dhL0QHdbZLIHysvf2o4X12h2umoJ18_IfQQrSPLSi2G_hEaDwsFfagxnHadtC06UTMiY1aEMHG9QikfNB4V1lNamwQoIByrc_hYdgLIsCIEZFuVc-_zxpnaVlqNbMjM1TS7p9ct6u-tuHtT5ueVqhqZvfi51EZU4FdaTKrBWRJl2bPr27y4oQ9HQi9bZ0GK22oRfbIPso9dqryJJsOO_jH8C136F1NhuI9bJcs_5I8qVjOGhW6Mb4sjUrrGFMszLZx-eh4iCK8fJQDmxdQAL5-XIMdb8dK3_P2cI7MZKI2x_Kyo2RQYdfu2cFfaFDFO7xyed1wPFG0CSD17kWgE3InNq2nd9jZO89nkFZLXaOE4P6antXc4HW3743EC-P9KMWdpFmXID1DGqswY-nwygS2wp2CDsy2AIN-HJc9pb-1bBiXeiO7Z6Lu31TofoOCI60nplqOC6BrcZ6kKN1bLfPtmAXGATzdRR35wXsVzySXw1_zOu92Un2H9LRCAxtrjBowB9NW2X42WNhvq2cCIAxF8vQ5r9Wp1GvXe4Cca_RmyLPSI401qbjNgHWBcW8iiThx0X54tiKkfQp5ACgWUPKkDgjGucoolSr7oUPCjkCpJ8vzvxXgHuwn5tFLVq3aH0wI4k7pNtqCuiu_Dk9u5-2BRFtXs9OK7h_9J991GiyKHZY_AMffZb3uo3NU2rmg6wOP4WwZONSkc77O4rRHd8duXC9AlRsjHdBvMqlRaJcn3DCMWbL91eYys9G5ZL6Fo-JOGLWEwpgUw3DtBIArxJq-tlTRWMnqK33WDKJNS4kCK299IB3yinJwpWGtilT1O5ZpUjpR-2qsMEYIzVenpYXyqfrwLLf4y1k0d7UPqjEQiGk27TFN7FkTbudrgTW2Kw43som1cjcKofKcr5xJE5xk_7Hxr2NVm-QvdZWNGQ3JJPYMoZKKrlKf7thWbNqv7iAN3qa_HaJ5XZL0LYvbN3rYKnxJ3o3HCITZkHYL-rzulWMeEP3D0E-oG2npVVA-TIfCSybeKCY2p_G6OfyLxKYnglU9LYp72-iBYrPjyg_ynothAbv0FBjAK38y4Q0_7iRMpBfqijco9ZCrsBPhkDP2xubuf8ILhDBdr0MoVnbg4gL9VPZ4t04QPeXXIoltBRfU8wKXJ0VP64GXfQKM7ZbXpL4XGBJjKrdhp_zbGA4aUkIj1LSzWGdaesbRZpdXD9mbs1iPbpU4p3BqrIyub505_a8ooktzGqFjwczcKjXZG3DMdf6IS7Fy3LkBUU2_JFNxCWX3tEnCufyUSSTDZbKP5x6qud1bBxc-fHPKI_3-Lyu8ow_PpFU15tj-Ju6UQXWoNEv9L15tR2vjptN0VknbxrS7mmJTjlTnveRX7Df9DYV3hHh5YbYs64hqw37h9dsUmyfcsuFbArc4i6bdHlklFdirskHsbsUCNdDjkbdLkF_WDq-Z3eoIdSWb6LrHlCmPBzX2cPEwHDczqR7mVxNt1E8qA5H_kYkDKj4kR1FRJZYJyVod6BM79tIXfu9-o39YjrZ05LmxZVORz-KCA9QIWvXmQR8o7t9eORATkklBWZKPsYYFyjUdJZNj2ytgnaEaj_LvTkSZwOXmOWmP9aQrHMhQIE0g5R2M0q98WxuEkku1_M7HbFVihJzf1RgcSTcH54_wRUSsg3WMdzltn3nApkC53VrRDd24LVokq87xbsq_FLfTpjQ8bOkQZJjEX_bJJRky2ar9NXU2HKZh5mEl_hAWS287enOOj4LbUyoWoJBwsIz8U-KklJ3RxOz91yYPAG8surSowqBm-uLpuaByTOh0PM7LD3SOlNami9kUhp3x1jzl1xAu8v6f1RRn2emXZrr_uO6xCW7cHVVp9ga-fgt--pCMbu8dnzzNse-L4-dd12kT1orOwWMbJtRus-rTYThomBq5677HBz2OeqEJbs3uTdHaadWwdaTOQbF5dtkd2NLoyOeb80n804liBPlJhqw89FpsZIffmF1tYOGSeEwxhxptAYUjJ03OTAp6T8O1Jg9kRNz2q_BJhOgxbmIjw68_LaFyEVevp2YBEt1ykfBL3h8zd73LZWBO8vklJ4-lfEYrp3dspb1_YpIWxjT5TaZKbhCcLVn8XjgV09A-EOeaOMx5BHA-fM4_s14sF4s1rN3vAXIduo2IY_y84gHzKFEmuiJ2tdofBMZuTlUiXqzY1W-QKXSdVbnaYn9OAnzf9vntAI5EJathY7OtWRRD9IdIdhcd8eavfPVhqM7abKIGIhtpRFt6B9b2PAdtvXgHjVegy9tkHWmdQgaPCLfdWGm4XJSFZPXuZDE8JYqqwBX2vOm0PnRCW4t7CReRszamHHGCk8SX3gy_UgCxtE88D_wtIj0aeJpoTqkjGFTbOTE2QnlIFsuj32AaCnbE6UjB1kH_jwEjcAHCfWdH3No5E6BUu9Is9xSIM8MpdZdamrJ9iXGi4UkR0x9XzeOOoY7gKl6Hl9lrm6hg1GyUkGB1soylJ9K94RbXor7ms8S1FYqdEM5vvfE9oTQlCUuc06SIr-0V9C_XIr_3-ZqrNii6pReAPVVh6YujD9sV18R6mtsy4b3T8nenH1bRw8r2Mjp1-9bCrGyDOPVqmLgaVsIEXEmrvJ4SWBq_7iPXgaX7biLDPi4WQb-udRTVmHXVTMrVMK8809vBBLxUJZivkdrQHMzZHoM8F6bbkvNrulKzpbUcpkwxkt7_Ch4Fs9uUsIW-Rwa2kxU0fBQWmdHw5KUR1RphczuzUPfYJhuxHMf1OVQ1cCKJLXi5Y3SwzAx9rijddNqnXDRWUkgP41kMcTE19JprMwQ_KdpZirvl4ubWzosX-8zT52CnRSeFn4WOjDp7J4jQ-swu4IYy9EWO05MIEfcQad3_b_rZftS4M80SlDGZUx5wZZwOIrn_7gvAc1_TjGdCf4LKbGdh_sFZrAaEqOi3uo7MIuNHxmTCl0Fam07ul6cMKFe-ueyK3SzUecYHeDDyjXO5yKMjX0wtlAhvThd2ij32806SCufzAhuve9fC4fhMEHoaTnsZEXEF_Jw91uNEteMhvnqFB1rYvo9PODJjoTTIq3lzRUirystIp8sPO2e_jyoepARCFsheQQ=="
+        },
+        {
+          "id": "rs_02c0b9c3d584f184006a84e70f29c881919fc28a86decb01fa",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOdtXRPBDCflCRCQTqT-1-35RBNzoEvDUk5poeZ9-8y52QKy92CXCZ3Esm75j3iafGMU9q14BEdiM6TNXIYRRDaOPiyTSMrYZfK5e9B8F_wpp1-g0rJ2G2n82aeiPAuNBmmnOzFUdJaSNqjctpWjbMjFULHMCG7OQtcnm82TrlwFOdwXLmMEpX6zvrZ71zkcFsDjdk-_-m4nLnQonimCcoqfOycTJTw7Ls-8F93sb4syXfaQ5hwQAV4gxdOkTRKqSJMiAez1MCBf6udfwaj8nxGUhM1yz01_LkCsx99zor70FEtDA1u37rceBiVtmMMvl8nD4VGdtUYoOM_pvndyWn4RyirKYd9YOG7zPmShx-hYSUP--3PV4bu0sb41fvSVQ0pkSGQnMQyJVNsVSiPPy7WOe-75SeNmsKMX83fuzTglTKblfb1YmvNNBG9UT4YqItfJQt3Zjn75fMFLpVHeCoivgStsElhXZjdY7Wx1KscgIkswoXIamMNgXs5T48hyzE6stwdPTLlnxc5zoFFtqWOJG2JdIVKaJbb5zjjo_qZvixka9FbCz09GhprmgYyIDbARlfXHVlQlP0boNl6CEcCjYbv2abnZ6ZyqRupscNd6LEp4ERzO6SBm_nmcgIwP7KuPO7ISgSglHladjVTIdTJVbwN1o9VmzHJGfR5J9HIKMdfNhdgG1NIw5gN_EVTRkBxzSI7am6lOKZTcpNE3UxI3QF9Cxbsy7-0bBJC6W5NJmRl7AhP6qOoe-zxbl9K8Y8QjuBTb8lVpc-lNxQyVXDOmYoKhAgJEFyNPZCLqtR9-ARjFhrBdJKLwxv5EarbOqn2YVUDg_T0onOcD3GOKDaVCxXkOOHoes9sCse1_JjKDqJJf4DcPPBw6sps7BIU1lZcIu83hkT5-cgbv0ywTsiLrC5ZFZSdNmyub726LiSxFXUY5tFuKBwdHUCL85krIzksFV6QBBTTNum7xHmVLvWH-TkQH3wXdFGS8WqFqEhVB7AOTEt3wlCR0sVmO0EEJamWMU0OLy0Pe6EUUHa9ah6FZWejf-r1nNrpBMSKjHuoTJTaMHy7bANxczp9Z_Qnbm5oVudXtOY5roFq-Fel_P5FUONBQFj-8gDeZvy-haElF7eiglY2OkD9OdFpNXePs5aAdufubjNVz_rIrlNM_XsZDaG_FDIW2gCzgHESBg5Adt68cGQGXXY4Vw6Wcy0IC__mRP1MislMnzsje7Sm0_8mca-MPa_uHFssanbZaRaQXRkjtaMvnEGUTa2Bdb1btDiy_MKz0WHTmnh1Y95J3C4vEQgRqJJtC4vB4Y5vmxVfrFZvM59RoZcT1wmlkvm51nvwYB_4aFQ6lPlGFZduLy19aWuMp9kR3GYo3ApjbnSwBJB_R3Zhj4GnBR-tu1nvIV3280itEyErgDmbC9yg11ndWm818oO_cix7wGzqrNkhR0D22BQNQRFmZBir0wiwmS5MSjWmFC2o7tjfEMx91nR7MLrjqLqpeoBqfizZPbHheVCFCitNCEuNrK1JvOnnRlTmFQBWA8nhVY1q5v1fwnmSXqTaWOIolwEKjVv_OKQnE0jsle1R-SM_B1d9jBUxPrslH1ay3EKim49lSvVRGh_6SNMvaMzmuvLGop191iIcIlfrl8awP_jVLdd6LQlRvZCA8D1ACAwzCsPSRwNSclCMMx7hXzzbQ5uwqfVosS0gOn4Oy5f5wIdfKpi64TFf8BdnXjBATNNBOX-3OzOZb9HjBfviGItYV6ZOTdJoqbUFupyEFPaqmkzxKCPpmTsmZzcbq5nM5feqzYnIGKSRYjnaGVcnT6KBtXmWMMH7R3THkKnjPAiGKf-H7tF3KsB8UZL6RN1gzIm6O17UTjfxBQF6C8lpZpmh1tNuB_nGFdikrENhhG76VkQHAZp4Bgz3eNE7RSVKhsD_FdQvvzVX2CdJHjo4jb0sd24C8jLW215XwE-TAuuOmmGyk2QBculg8uQKmZPxnhI8H9HBkNLFMwdWxo10ZuBaeySAu_gOZ-X3pAWWTTPDmMjB2q269YlkyDyjczUTLpi_Rb-r8oePnyQH9z2ArHSChshJFeJQSCB_Yvdco7Ut1RLLdJrvMn9-hUUJEgrF1PyL4Bqs40bYzSIXqVoCn2EhRpadfk5O9yUacLV3Y3NUVJMWY-fjtClKL0DSFledmnlGehUbSKPlU3-cH_UMTeiINoV6wHH9SIS5MnxsZtnQ_664BvENnvDAtHFvRdLYDQv1vciCmpBgBtpkezUv802Ig4eAsXokSgS-nX0r03W5g8XulZeUEUD9pwG3WVanjPhWGHmQwiXcs4NWuqb0uQbFq10kYEqXpoE4-UICs0YPWwMkfniUHLiZ5nYLss_gWmQL8N4AZl8ghOJyKs3o7frN0kU6Is7iFZflPqhFN_jvbw_I-wOg17sl0i45qxEMfWVlP5MKJtsCj-mT7rqYIQbGKdNxMQk4Ng_2jbQ6jhvoarR9VooNywPDpoweDElm6Th_CXw-3eflTcNRMPSdXe_tg7TIApPBtGyMuBBNPCvt9PgzeGrG_1PkXEHgmJ3rnHId_3bn-I9IFNA_zEUWIzPHVY3zvWcOIAiV41nZVUm3HBarJBaxeEEnVCmat-xegpxV2c4t9D6x6V1G4RBY5V8V0Y_mn-Az2qPIcJnPUfhHwjfPFiHKGwQNB44qNXwy3FEZToUoZsUsNGMdKEDgVJLVXd-jY4v6NJPSJDU3vCqMawswZ5fgQxgDRwR_nVgHB3JIOm02cdjk90fyLyjtBlfNIRlmRwBX9RPRhtXyXEkPPxSHGLrFgnPiyOzKipC1bPt5G5YGM9qMDLI8K3uZBKtso7pq2H8m_pMVIVeL_9DOOGZCpbP9PTDz0Y-_yrrL1C7UBCnUZNcwODTNv5sgQ8g_jF-uyjlSRDJERGN68bY0c_MXmqYvmIDPJkA4bW5sCcAbsIVskB7KVN6NkJzV93SZRKckT7_T0tDQrjsi1OEmfrhIneT72ErbMgzUh0LznjlRJS2q9q5ZoxgYLsbUWPTRg7GCoGC3KNj1XycGqZ3dWSvn8NlcZiTEEpisdOyAfPqNqHE03NabZMQ2KVueMu3OApeBVxSCWXWxPFtjutX-1UskNZhnLuYHy368HUAHCibhWedfnYNm83Dmmt8fMPjwf8jVzUZYYBhnnpRUwdKe4nc5G7XGlN38R7MyZbhIqKsRY91UVth98mTU9un6FIi2m--c2fPqdb9wdwWObslYqsQXYlvk4u6Wyt1zQrdWc3B6wcLqa6VPgdynZ8P6fNy-FcvX1FG599oUBTBi_i0PCrWz-fx39EoMhdtCCToIcxdPuaTltwgENFBXRqQJ8JoMeE_MJBU-b8LnIkrimV_HbdLD0tuSHmAGnPeFGKRPistktSwf3xFs9LsselQ76ySx2FXKnCJrIbSNh3sIJg72Aa3jHAP7Ehbf_k1ctuzAtxgtTO5QxVCrJLmEUCx01X_B-TBU9sWhL6e2as_1s5xrBqTEswtOmnzzo4PlicLS9FcJ0RZSgdbXKdnQjcwNJ7k_k2OnQj5MnSMzPsXQvT8nDdfVW3z4GR23zYA-53K1wpoPTHXbexMQRoK7jW9yq_pFDibd02BHspPLAXYzyKYC04925YNpYwI-QkcK3RIKIb-pLZhdMQl9ZO3Aj-mfUzEwv4Yadt1eOdBH_T4jhuKfpoWdzp0VU5Fx2Y0MQuoKEc5RTcMDtvSaR3-sRpoEP_glYoxQdQH2w9Z-YXYnhYk15w2J4w5DRgD6MgkczS6z9YJvif8_bYkptsxAC7XIlUEcsy9uZ_c70ggArroSb5VpBRTLd2oQ6EncWFWtPEtMjY4nCTVCXPR7FFaNklkTrDhmv3b9ETB5dGI1XydsNTalBiZ1YYpbxSvCu_l8tf5YAoeA81RlPOVBhTX0WDbb7zx-X4g-oCfbkxmQMlDIHg0cixjmFJaPBcsJX6DQB6ricgrfiSbVPvUeaVRVUbJ6WBmkkSTpmI6y0r8cL4jSisEuBTyLH-ia9cBsdTDppSo1OsElIgl8jx6mDIlZLHVfe0xeNEcmDpXtFFRsegy1jujhBsVShVEVyqR25eE2RtckGzsNgnYiq6MSDhaIMod-HtRykbjE18EVoty_EwuFEh_bZpSM3kO-W_qYf7GpYJHj-9NqGAL8vyRkw6m78aQ=="
+        },
+        {
+          "id": "rs_02c0b9c3d584f184006a84e71bfbd8819198b5bd234c6d5e59",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOdtriu1hWicFs5Y1oNM3-kpUFb2SSZgB_uTSTIqzw0ydZ33WQJWukomGZHib7kqiB3NATmSlexG8cQZYhWkx76xKhYQqxmA7I6fTJ5AmDQDccmgOja-SOxTx3mGE9sagS4AfNO8AL0lSJsXM5ewtYZQP7iWm1LpBvuREOF6ku9Q9f4REpT_28Z8Oupr8s9Kk4hh9OZLq_d2n1iCmJuX1UgnfhzLXqIIExZmu9oDEx6L-eZ5rOnEQL4SKqY_ZbUW4dDyJ15dbTf9wgISj6qxhTObnM-tsq4VMaio5iofemmsthRT5yFxsen9Yr6sg4qlISLcYVDEpUVUrF5edDZ_4UWcjL2frJ_ouJ9RXHzHX2IJjD2_qG9ZHr7DwWKxloiELTSbvxHYEUpuyDhucBnqbx7gixj_zLW0TRZrRfNSStUgjNjVU20OIeyglrPhF00I0wEXMU640t88JXrmu_B8zCj6zPpBxdalb_qI6Uh7l4oQNtp55zkvWYdV934kuAXWRXWSmEc6G4OrfG7zPXMpBLMIxLaxQ06Ru35sH0SGw5a_9Ojgui-d90oD4W2kVCrzx9rle545y8nqpHF_eLqRyehFSl77SoSRPGkpGZ7ooLYETJ7v6XwmrECqgUjuFzs7hM1tlr-z3ZHEZw-hB0rTqP2ZNJmDxcLNjZELMDjqlmkLepMnitFaVD2BoMCv8zD7T-XTZUqzwIDyTjSsyxgPuV9mWUo-Xmq3FMYG-u9wdxh2V4mlFGquPRiE8bFjndFaXd0f9zEhEKUZNtop5-YlSzTwq2oDfB8qEr4tpn6rmx6oLA_aRUPWXUH-uDcc9QGJ4TrvW_wzi-SpEHW2dHEllrXYvVPK9AvMzqvHSVlDYrU_ET4sYRXefD18H2MwhwOj7htvsbRP6uMff5yqt9D8ARIiSgXIzPWOO-RVvpVWs53dS98SBwSK57CB0MbtLJWE0CsLLq7Oa2NVd80-WsW7dJGYvR_r6cON4OJYgp1wNTpQxEjM_qTDYniP4GgAPL1h277uofIVTZ2IqZ3R8FUxinBooQAqGlFG-_OeMKZsLUFFDYKw7rZkGQZaQcFQb3msFcfbchDhlb-Yojh4MrKLpKFvC568aqehq8kPiNmTupsYYpnzlhr4k_RTrNwY-Os-bABcqG0aZBxh9_bZ2ppWHmGqiDRMAp6WNCFiCeorCHi3AqkEeZoSxq3RjRqPrH6qTF2yVk4K7yjgUCjMysoOtMRvBMNev6GdRCwnE5inx-tECoagCFy-lGZ371MRd6wrDoR0UQZo_kUR6JDRP-Me1M2VOe8UFAr4CzgUhMhhRp2xT033z5AWuXzWNlpVy-aQz1Atetk1VP5PswinBGd8G54hGLG-E27Vk0Dzu8z0yu_JdYHCiWbaIrGMAjDwHEroUAbKgXeVCwBWsuOe0ymtPwsQD84G5o0Rs-p9o4mTtBnvQbTUKfsAI8epQLIByyct-z42iUjczY8qr75-LFOohYSyXqTk8MsI4wzMAyD7i3ACxBN3iV4pFQSZmAZEE3QDwkKJGB3qRZGTHW2wrmWD5J0VyCt6jyFhATsjqCXmIz7Q-vJ1zyYvmFjVPgQF_0LCn5Z_ZrtbuKEcg9JAdsvr3L-6LM-A6hcHulsw76N7ScKQEtCj-cXMFHsseVyC8ThR36A3-xpXgytOOJHgVGCuiFYYBXFNCq4eHw2Lud8ld3be92FUDRr7GhdtSK8U6QoFGJqKpPHU59pqK-YaeN5lQdaMtEm18Cz8GAkFCQQkymssePqRVWReu2SP28wlN_wOMmOsQ_IQFcl8Dd5SWI70hl8akzRqkLvsD5l55ZsKv-AQZKCPkdw_fe0QASxzBC1iBpi0TppmY9SC3YKw8aejf7zHxHxUcJcpZyepvG2A4oIR67bVTq4860SQYVMLWeIViK5kDUujFgs7DhPWM1jsNPyX4ez-BfBroOohPGRivs-c6I29Ei0dLzg8oKVzBdqu9hUS-iLa45eXIgXsdZreLuBquvNCiPI9D0Wk3lFUePUjlshOWhz4xJ7Dd5tE3P4wQovEXrWfZWuaOGX-lMAzrAK4HH4fXnojw7zHOl9C1d6dZtTw78XxQ2zIVk38a54izMmOmhWIf_t77VX8R-17UeuhLVhqiQXZ6gvzjvFWKX4TxpDSIPsuYhjMlY5DnnyShDTTqR5inDw6KmzB9fj0kdNbFtPYpmD2gOSj4Kd3XI-gV8_AR7baOwEQV7TvWIfdCfXcj4n4DSdgCa3xpA-rnU9xFOOfS9N5mB6Of2r0PGKwVI4lkTRzbhGoXZBc2CFYbVjAq3EbvZkR2vftHfx8HoDcKa02VektFRXgmUBJ4kxM7d_r4KglhD2UDBhXbn1ijfDm9EGv-V_9ny20lXhQ0YBhsydqVYXYjPxaIl8hEnp138ohra8twsRTmSN5wlL7LMsXwHxTuPNipmUA4ZTNr5E30OE2rxB9_88veyPJqoABi-UlRlp8dTJViAxY02hBHoj0iYEk4PZAl8oOgV-xIXbeTiCDG3wiLxuD3loeXzR0kHFQEIPMAfu5xWYOQK6svKLipSQEsMl6mkayis_Ef1fN3pCGqJV3bVFyBP3Iu5OXnS8hMEqVJEdVPX-MGQp6BLnLMyawMbDJwYmttC5JEZUIynzpZoHIWPui5UvG_xUroLARA4P4QOjeC8wJoS8UpXhzXH_Q2r4n1OuL8jxh_z94uzPrn5hUy_LzB15HuX5ciK3fIooh6bMfsJ4S1NlrpUbcrJuwpqYidfno-trCkqKbxNUMqRplTcoc8IS7DV0d7Sgfo_tXNPZMam7R9hcnhJVvw5Pf53O3Xm22PcuUJWbESLiBeTGqIo6HW9OB6WwiEPI5_4t6v1-9K9B-tbAoT_IJs4VaJiwK6LVKFNqxYTo7DGwjrw4AirL1cCp7OB-5KoCU3OjmrtX8nxJ3O2F4vW9ZX4JA7e7PV8Agt6QYEu20pmK1VFjOntaz2LH5QnaGyzrMgEmHYTL1cl7DKstn7DmxOusz4KnQUeQgeQAT2OAAanWkRzsAeVHijWSxb44iCdoDqgaoH7YcN-iORlbgoj5q1cj0-BUSrWYjlf1U_O4hfNyq2w_HdLZxrpkWcqBRywgTS30zfn5TsBI59AsYL-4nRWd84fXQ2leN9kj73PyI5oBQug7UPfRy6rQhpk5I8O_l_lX92Fnb3D34F8F-hPEt99nWhCSpooBdb8V-Z3E6lK7dLr7ThVjH7d2SVIknUJB9RGmsdTQci7M8Z6uynKSY_l28PBYOfE9JWKLK9gfwHSrT_XeRI03X54AojihmKFWCQVqfg8jiKS-7pePOfkm43GSMNoTM9GAFROw0HtmyZN3m48dp50Aexom0S98WWtztP-cPmUkOgfbr-1zxcZtF9dVFiUf24pphIipsRl7itPp5xX-tUnX0kD4IzbDL7RY53PVtzlfMV2Kh3b00_03KQF9fdB1gb5HiVwo2XptxMpDhqiHns8jPw715l1ZYig04vsVr-Yjsn8F2YQMuul08PIAfd6uKprdLYpKL1TSA7OOa0J7nmR0mPH-qgVr8g-di8K6MmGb4QC0ZP4Z2a7GgFEs8ruaSzxumQhYzvIEPCtLUGyeC3y05Aem6P-cVxZM6FKZ7hCHOszM7oe0IglTNKQUn5a_FSu8zTtfpo3MxS8dOY-1kBvbqsfwxpGDvJYYvYzm8YqgDTJK33E1IYa5nM5VqBEsmqD3Jf7ALetr00YiKC98RHWDQ5H7rKEwSVfaFYHOV1hVJgM5uWFDAwoy4FhoiFAYBVk03QbGR6idPscm_h_ihibty01S1j6SsTeuX8H2LlpYKR_ANZNbkPY97O6o9KMnyJJ295dLOsjl95YcSlx6TaePqolkkWYd-gx3mrq6u6IVY4xLogZA-gwPcgFX3GkwvwMcUjwRT0LqpLdI1Z73TU1l-goeGu96VePwPFmfkY5MwDUcpeomRzkGBfu_tDQBOL2ovaq_7tllhxcBh0mQMzVeoQvEFyrLu9HsgVvAWV9wI8taLyohSc0_Zq0qBVscEF_8eccsBS6I2dx_PlffDjTX9Q3sVxURV1uz7cWYqL-zEZBicDi0hDcYdPwa3sCOmKO58A3-s0tpKkh5nvM0RDJRUOpm3HB3ijSHBfNQC4xXFwJGruGtnKup8YrxcLuFhnERvinFLbmn8IGs4QFX0bdm3ndaCY7Sgr7jGQ6Mh4uajm6ZAkr4j6Imb00N6QsaZx6tvAB8bCiL-O5vIeooZ6diA4hCjRQmMrNa7dQzrB8eLg7LswpAA5_CGfK0_lPMWhKGLqOC_xNnhJOrTDn7AOtfca4qneLiX_PmaFkJ_DM4zPdRcAlmRraweENVwqjlPrpxaYE2ZA0Fn1AOkk0dveRCxS9_Y8_Er3BN7yKE5PsePWssW0NeyBLlRUDwKfYRCM2N8IDm_pjqIw1TuimjuoRf2ZrQjbP0pw_tnPA1rQNIN5Mj3LyKuDH1arOsi7rQQ47fxAoLUS2Qa93i_wauJoz5yrAnF601fKnaCC4rXhp7AbmOSNLtJPaa59jDJhp7YNf7kayHij4g0rQ=="
+        },
+        {
+          "id": "rs_02c0b9c3d584f184006a84e7293a848191a87faeacdb9aa9ee",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOdthd1T0Fh-H34I-hV3ijoxRYnqlfpXPiIYvCpOOh9Z-uyFJV-K7hS8RP0_-IXt6cnrb8830i_-pRC0SgK7PSib140-D70jqj4tmvRjNM49Tb5fLOYwgfZnzIn3QiffSF7RwgJPSpTNtCN8_7R11hBwpZTM9Udf2k9SLYlYJorK17Fd2h9KZTJOGDGfBBC_FHHKaIbcn6VhIDHmA1AfHlV9gpKgH1NK6_JKgOEHC88Ma-rbsXkS2sYDepjYPXUVe8tofEEfyT5Z7k8y7wGG30iJzuznWn2KEZ_Hx2s2Rq4DF-tlZupQoQPdzxzyA4aKLGbLk65ElpzPgfLy9c0H4wTp1M20vcW4xHElg-fZE_JuHY5y_A8hZRyaZd24duX9Sczs6oMjTHk8hduJQ7bY-f9OBzjL4P85iAsedoksEomzZ_rPylcF4tv5Sw7wWiygXyh6Mw_cI-nvuBF-WQU4bCBly1ic4wC7_J8usc4e1Ve8E6pm9L_adSqfzVMgbcoV1AMh33I_Ryt-SKceic-jURQKn05taHggtjfqSVVjMDJeG_MjebUwQ1jkaKP2wC1Olph8Tb7Vi91rpJ4zPdMt1nrf11c7-Foz4tdfUxySYYP5zTDMMZK1gRkGWSlmVd-WkgCpfulqxXl2LJJBY_uiwGKg4RDKjvQGCGpKTRr9vkYfv0FOnHlsKOEjCEV_2NnggXE7UvSevsINtqeNBoRSjGzqdX3IAhHN496ibzIsJ550XlLwVMEErlWBZGljNxSnK6e1rPO44reZ6spSQKF3ddV0j0niplGtvib13SE06u8DAPJbbJRYuwLL-sUUiCwQM9TCZ2yQ97FrrnRek3mfYjj-enlyoPNmt0CsYRwj016pTfpKBqfwx1sIx5r6rBc6G8sZkpXu19Kzd4fYcUlLlhgabm4iLgGaU302MqteFBmrViaWXt6OgIolDpE-Eurr_nDwXBKBcdrNWs_BYIWuyAQ_djXZIGGPGovL9SbxxI4qh58rynpttBr1eFeX0u-bpt4-GBzJVVOkoxKJ8ETinmifMn1PkGMBt9GrOat1gZmkQz6aCP3U0J49-kqvq8qiuyvyK0g8ZR4O63VBpvQFDMJH-Ruu8wo0xY78Smj_w2SCdB6Qs59S64wCJY2Gk3vxErCWEEqbwSHGPyRAnBLQ-R7C34SVkGQA8zagntuuOQl6ArdDgf_RfsqazA1f-jbrU6dJrZywOjr4tqfFtie6Dgs-SZBgxKJQas8IZsUF5qpW7XzJNAgFlN1OmSVYstJ-N7hPBg3fJ7JzGI8P69ep7MDp0rM4r2oNdQIgsQzSL6rp96n_rkK54jdq8xaCsY55doWyl0fe17klpYGUwNLQlsK28Hj4IRPc1cbG4nNWaKBwJr8B7EeUF6UGxtT1XE6giaeGEUt6gcrsNWd2sMg6CnX9VuWtTjQO-Cz6MwqPUqvWGYmo6mBgY2nSLtXmu655PFB6BNrPR1GNFWbM1T6xsts2sa5Js32SA9XKJejFcv77rTlyNUEejiCKE7DLK3i6Q1Tt5cm7FAFHmQQGHT2hgPZlkUxpkN8fXi7SKstKki9iIfNjNOwq_hRveFHQLXGIspGPTXNLV4Cu7g2F9Io7xmYwV0PT4NYs1Db8L5iVLqhtSZ_gAxRA9uL9_mvCJiT4HpdoMoIQyrQti1gj4GaN1WJrBpkfqN433qhCkaFoFQ75KobHjKQTdaiCJeb3-cWz-WK7omUxxi8tMZxoIf0zGqUxaZKKQmKnNqx95fzcPm-gD2T2Tk_UphmDqp6_6BIShrRQ-kmFXK9dDqFda3wypzVJwTMg_A8WvGmEMSCuAz1d_Aojpn6r1QemcvBdrf_wy13U7PfJpft6f1D31WRRTC1DCDkISdPPThXaNuOwMtZg0jIP-uprl092fONFy9GbYOo1G2vO8f78A100TeyrOFxGSzPTAsl-2eP7QcJwfaUrXvonTJ48VZNsrIgmYHTniU_TFwiFW6xQPjpLWgWkMe7dVI6pMzeCUIu2a8k0bShiz41TUGUOqdsSc3HElQf5S5cEmDFy112MHWG1alsAnGf7WLm9odbaVXgsxEDdfKzb0LBcHSUNb2CWjfk0W6YP-bo6otNTbrkBqyt-PvasGSOG_Jcxd-qdYRyI08674q5uuK6sVWjeTZic_-vqMq1307kiHkIE61DHlwHptl3v7MrKuB4WwgoHg-NFKJEUs5KEb7CRT0wjT8hQk8ky6oUCr7kTMdcsgM35S6L_Vm2fzYcf-_qGv4C3NHQIRBZEWZR7u7cwfC1s8lDunvUoZb1T7oROTezN4ESY-S3HuXHqvLTneU3EmPBwDt7Gx5A-9XolsRsYx8sanTcBoRGNIroWrGnC1uksd_F2EnKI21MmVcZeOJvcTvKLCqbjoLJY2CKr2xx3jh66qypwLx1fJqv3ZNCdYLXlOpWTEdBXRlLjDy7U-QJ9t2k0CPsrGLM4KhJAwB1VWuBQEl3ZHngR4wFsWKAApT7YOGWWSDienWEFWQ_FA2HWMyeHDve674vJCYR6ZJ-EhtFHv6JJsDl2VkhJs9l_rNsymvk0KjBLq_ViJhP7zlElx1D27WuXkv_S3aig3AtdLhUv3b_eEalSkRAozeQcSTI7E8nOwXdDMSqXKPz7gP9hxl9wLVbfj6ca2fK-GtVBR2vNi01JBFKZCC0LfanocNSrPz9yWRPscfEBpdbidBGoXJuNg89zDSwf6ga3-z_WtvM6zkYN7TMq-aeGeby_4lKh0YT2o2s4Go-ALqtDGNdvtOBEKCPKeMAYhncCuVMAcRkuNrQkWNRGvGfivynXtYNJl86u8E5F_Kwx7vAJuWQUd5Vd5YFbJW8YaT7ttu9Cw-5C_UtdU2YXpVJEaXmWBxOwOvQXj41WEJqw2sdr1lXG4My9W3UibDgtfmhw8XCNP5Ku0Pb2j17V0jD_7JxYTdK26wRL8Yl65OI2eRakIbF4t7vd2ZLe_NmId96Namk2yZhsp3k_MhJnS3vZa2VOpTdEM_j8U0222zrveFxzzHLpBlvUFugGcoy18tYzcxrCFEppJqTr1ulHGUscKXvntOexZiCFves7vNSWqUb-l6ctOGNplTSBFfF5dg92cvE4GTMY1o-nDFEx8YIhxyScrsMPai7S8rINWys2B7kE1GEmPLeOJSO53piVndZ3U_mObaN6f4qFYsoEVnmw-QO6LuCTpCqDT8i_78aCOBa2RDqz-wgBYiL6h2QKwtzt53c-F9z7ZhyDXYMP9v0hojQrCbvGpahTbIbo5a9O_uEpUsar072fsgyZvrfsLafxnbqJSSwyZH7A3dxbP45j4phDRZ1wZ-p45CQyllRuHw9QM4E2Wlt7B_97MDbEWx7OZyW1pjCzLgE_FCO1D-RntSvry3arEvB0CNlGOBpLQtYAnK37XBGUvY4XKYrbHy0tuBfiSKFbnHSbsOQoBvGcCN6Mv6WGtSYFJyeUkE9xn22O8RH0qJ_Rp85fSt9zsEbT-oEK0n4arO0893ACLFbQ5LcM"
+        },
+        {
+          "id": "rs_02c0b9c3d584f184006a84e7358460819194d837fbdc82ba01",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOdtJtqacEuA0JLsBYDU08vN9eojd5FpTXdIjSKoDGE0FKRiMJ45NaMgYLTrc-6xMP2CJcfCOiSfJOjavovdUSQqeBXgbBxJHSjtGJvQ2GNhOkuRqHyEo3MJABimDz70cmSz2TGBU2EM3ymdvKWRCjTSTgQPVNJKUhdCKm-SZkSmhCPbMUn3ZljDtPleUCHK5fZnmWYrD3_Vc6xcRlW3ov6hQizShRGu_3h0JrwPbVv-EtcqUpgoMhGNfyumYeZlH7zwJkg3B93EzsKEl8a6pRqDaYvrG8FTCElIkmLjoYGiY-94gPtq1SEI1iv9SSY56MGDs7imK1RrsH-AXX1zT3R3RaW6eMbLHBbdeyWVBGIIanBaGv0PoELUpMjDx77cA9XlRf1gvH7QHmNEXLBefXNsHPUNS-bmW5OEv7JthWqOAQnJv16zTQHkyVKPUCJt5TBoWJf3meL_g-YzAQ3ToQ5XD0UHrDdCD_eYh2hhBkho01-zNGGXjrvTvm4K-22fTGw5dM31JgnWaghhqtHS-bS4hvT5IwW1MHwSWA2W35DyNPN3MSnwGJnZUK56mUBC4j-U_0xIMMSxvMvnjLSBJvdwjBN8R2F-gnddP_5ZkA2xjxpOlRvZbUx68RJD09pRos2uKENUq-qbtjuIkYSF5g9G3tbNVYpN8gT7V3h8HxQaq6hxKu8z5BeVH2vhtLBW5JES4TYsCWp-4P29Wy4g4FqfWKvDlMtfNo0tYLmNlyreWLYXkTwgAVfvBtio6LWNMctKu4SxELkRzAuJr58g0EhdQH76GCTuqGPjopPiamr5zS7uOjkcitt08XKcqeA7RSkmMC9eQi1XS8Ls7UHYNcc67KdR_3AsyudRP_ex68LW_t4gANzxWeWq4PRWIFxlNRVAU-6HnxIzV9iG1hniqO3wbRAVZ_2A7KyQiSMzZ4WLcx6vje528pvQSnowQRn48gcc-lDTb3RJIH37fhW-f5m_iWEta-_62XhRIHeXku7YsIwsqgJP_KvaRJkkjhPvUTkbIFfPxQ89PcEXg5H4jn8OdqSoRUWKuBtoXV33eU_cfjGRIIn_DwDhxb5SsQubZ6YcBwoLhjdvC7x5OtzAz9jYXO-h0cCrHfp5QPSSLhQhnpBJSw8IVfTc4IiAGieW0SmPbz-WYT0bI70R1vxPhdZK1RL_N_OvzO5htkWKWXSKbEO0_Cv8-C6W1pGnxNZRmhsZIuu0Met-_gUVX5VzY7kgapw5Amb7R___Jrocx9mccmITl-TSZua_s0C5Op34v2JM8BaJJ19Xtb902G0_e5D2E-LYr9oP594X6xJTbZHSyOAKCz9Pa2T8z5UDaAm7Z_XaUhjojSw-Xr2Chvu1hsgwJJFg20VHj5zNwc1usqd5l1KMbHvxItiXOv7otPt2HbQL2JQe9TPTRPIXOZ6RSW_8udiGUOk3IQGVgiojFRCuYbZSDQagwydIBJmexyp2A19CMxlOvQgNRdj_UoH4hCiwZqZDhu2ob94hfJ58q9LURVpTTkSEwNxTMNGRiZrZ8jhJJ6-qgAK3IQZeHhookClwyw92wd8Z1ANamMVfxiHA9ITQQ3cBW9lcw7We9981G3yN6IzkF9CyPbvd8FYoqsxoiuGl-OVdGhiLp9tWnT0ScQoBucj7L_gZcUomuHct6BYXRy9C7BsExZhk9tet0iq8P0bQLAZfTLpOdzZ2E79APW4pRa_vw36VPpexlrb3y2VhxbIzzDQwt3jBZrbZ9q49UiUrJYkEBMBNQ7sZ_SiRJuHogJJlzcg4mv8J5ye2CB8DYZyMRRo3oSV83P-SPJGII4YJeGoMkaIWAfh3OuD-fm6y-YLb-FFJZdTSAs_bvWuU4Nxx20WQbM56pPh4gYVxdkoVljuCLyfxOuyfsCTNKrgh9vQW90FoWLJveXGUrAKxLfJ2pcjmf4hphtxK05atkWJsrPqzzR7HNs4KWLJfnysEXD3DRDMEcogzwcOw2iaHE1oNl8ASa1gdeQxzMivf8bSXgHow4HJVBtqjnVtyn6CQkDa_arSoPELIoqroNHkyqvwQxGGODjHhx_MyWvAu6VT1MM2t4yZNTDz66KPpz9LTbILpXB17DmjTb5Q9kudDg8rrO83kYsBLVQ1OWDMMnlIhcQS6lJ__iVSLBS-Vy_7VvCISudyqbvbOCdaH90U6jYJqy3ixLbddP5q0gja6-wmu0ot0QpdDkXgLp483bl-0WUKFcma2IPAinjxzJUOu_v_yqu-9s-o1IIti-lJYiQZerMCBsoGsopPSnP6PRFy2Ge2Pgj_jeCZJY33wPvUb6Gt2wROGF0HM7dGemrPIElF6km6tKiFT_ijm0XnUw_l98QfO-_aAjPqKeb-i1JSyzihWxJ7PcMGthDABHuftja5EQqhfb1Uz8SdNha3Hzj0KYyl4kDLqB1m2eGXD5asMYaRgpmLL25m4tpYMouQXXjvnugtMNTM63NYuoDP7jJ7eY_yfV1qmG8iN3HwlhvzJmPSlvQbhA63f8gm2bqpH8bNYhjR2tOlQUDIIK7-jax5AlJSsnB_wL1Zb238AYsOxGFHRk9NyLJafUKaYTwdvA605eFznNCCKAVzyco5hf14_EEob-dWKvzRkuqMf1Dk4w61HaUOyiVfrwX3d4DvHforVM56lQLlv0nCbztNer-0mFftjwHmi30g-p_KcLveAvjbKniGxPejlYup22Op4IJjNHJMvRq_hv2QXjcVGXdGs4wA5BiUnw_DbEhy_zjNNF2SAFGlome0R0hIu2eYaAj_BKsftxAbkABgwmRTUHbxDtGU7Y3sYLTQQ1s9WcQTghRcjZRYBDdE-3Cui2X4EGOIvg7e02Ktaa7CBozY4dYR86QfqA2JQlyyQ7szIzGf9T5KtQF0gJGk_SAKB8A115jyuK_tEMA7tt0RCST6EutjkszsKEt2Ex2nyiEOWvWEguqbJ_GTMzhZrrrU8H2iJyiV9JxqiaeCSUhD4Th-Hhzvk_VTTB198SE_nJRM2lMqccrdyzXeBR1dk5YWa65QNN2bI0kfyI9QIm3GiUK0-qFFoUKGKaPKOr4kxXFcaP3J3najKOxMW_9T0WjZFjlbSkPAhNNrgm7d1ocavyunX497rVgCOfZxaqk7DTJhkFoFhLSmd8rpjkFl_LwkW3vmJamQMwxD9KsNgFNTRpOvLMlVysYeJCfpQx5VKoqqVGOxXh4rOtvcJ89_axlhLP1QvH_LCZinb_w6p76voi0w83PL5QvQvvkT38jzYDi0VL7BFdvfL_U7_Z27lDaIi7DlZIxHUgGVn2lg1fIK-QjII6fbcdWfFpl2GtP36OQvKLwOzihYFPU43VqpfTg_kTTjxa6BhDrUZtx9tWsTLJFnKdJC-LTSH4RIZ1CAd7780NXEEdpQFUTCI-JWpBrJmSdI3j5aTGdx9boK6qYxPiF-WU6c4TRt6-yYVCLUTImnWY8lw7QUziMu-7tV6p4cvJkfjI_u8wU9-IHsVzl5X1y4Pqeg9yzItFJQH7Vb4MAon6HBSjDuTuGdIn-9fVQM1vDBu9JX-fRqkrTRLGDcxzHX9FSr5u36a_LKChGpXvNyeXtHd-_tbI_z1QLQ-ScehSRzIfQAI_kd9Rg3s4orQ9H3bwq2iwFKAm9ML0P4lRbjaNSPjYZ7mNqQ6nJ50lqaUyob6YQ=="
+        },
+        {
+          "id": "msg_02c0b9c3d584f184006a84e73df43c8191a16f58f161e931e8",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\"dishes\":[{\"name\":\"Apple Skyr Porridge\",\"title\":\"Warm oats, skyr and apple\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"rolled oats\",\"quantity\":\"30 g\",\"amount\":30,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"semi-skimmed milk\",\"quantity\":\"100 ml\",\"amount\":100,\"unit\":\"ml\",\"state\":null},{\"term\":\"skyr\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":null},{\"term\":\"apple\",\"quantity\":\"1 small apple\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"ground cinnamon\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Microwave the oats and milk for 2 minutes, stir, then microwave for 1 minute more. Spoon over the skyr and diced apple, and finish with cinnamon.\",\"why\":\"This is a small breakfast with skyr as its protein anchor, made fresh before your usual Thursday cooking day.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":5},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Garden Cottage Cheese Sandwich\",\"title\":\"Cottage cheese, tomato and cucumber sandwich\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cottage cheese\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":null},{\"term\":\"tomato\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"cucumber\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"English mustard\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Spread the bread with mustard and cottage cheese, add sliced tomato and cucumber, season with pepper and close the sandwich.\",\"why\":\"This medium lunch needs no batch and keeps cottage cheese firmly at the centre of the plate.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Peanut Lime Noodle Bowl\",\"title\":\"Warm noodles, edamame, cabbage and carrot\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"plain ready-cooked noodles labelled sesame-free\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"shelled frozen edamame\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"red cabbage\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"carrot\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"smooth peanut butter labelled sesame-free\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"lime\",\"quantity\":\"half a lime\",\"amount\":0.5,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"water\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"chilli flakes\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Microwave the noodles and edamame until piping hot. Loosen the peanut butter with the lime juice and water, then toss with the warm noodles, edamame, finely sliced cabbage and grated carrot.\",\"why\":\"I cannot honour the requested tahini and sesame because of your medical allergy, or the cold-only dinner request because Bertrande requires a warm anchor, so this uses hot edamame noodles with a clearly labelled safe peanut-lime dressing instead.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":8},\"honours_belief_keys\":[\"a_warm_anchor_every_evening\",\"the_basket_decides_the_week\"]},{\"name\":\"Banana Cottage Porridge\",\"title\":\"Warm oats, cottage cheese and banana\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"rolled oats\",\"quantity\":\"30 g\",\"amount\":30,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"semi-skimmed milk\",\"quantity\":\"100 ml\",\"amount\":100,\"unit\":\"ml\",\"state\":null},{\"term\":\"cottage cheese\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":null},{\"term\":\"banana\",\"quantity\":\"1 small banana\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"ground cinnamon\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Microwave the oats and milk for 3 minutes, stirring halfway. Top with cottage cheese, sliced banana and cinnamon.\",\"why\":\"Cottage cheese anchors this compact breakfast while the warm oats make it easy to eat.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":5},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Smoky Tofu Crunch Wrap\",\"title\":\"Roast tofu and vegetables in a wholemeal wrap\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"wholemeal wrap\",\"quantity\":\"1 wrap (60 g)\",\"amount\":60,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"plain Greek yoghurt\",\"quantity\":\"40 g\",\"amount\":40,\"unit\":\"g\",\"state\":null},{\"term\":\"lettuce\",\"quantity\":\"50 g\",\"amount\":50,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"cucumber\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"lime\",\"quantity\":\"half a lime\",\"amount\":0.5,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Spread the wrap with yoghurt, add one cooled portion of roast tofu and vegetables, lettuce and sliced cucumber, squeeze over the lime and roll tightly.\",\"why\":\"The Wednesday tofu preparation becomes a crisp, portable lunch rather than repeating the traybake as the same plate.\",\"uses\":[{\"preparation_id\":\"prep_roast_tofu_vegetables\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Smoky Pulse Supper\",\"title\":\"Warm chickpea and lentil braise with bread and yoghurt\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"60 g\",\"amount\":60,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"plain Greek yoghurt\",\"quantity\":\"50 g\",\"amount\":50,\"unit\":\"g\",\"state\":null}],\"method\":\"Spoon one hot portion of the freshly cooked braise into a bowl. Add the yoghurt and serve with the bread.\",\"why\":\"I cannot honour the requested cold salad dinner because Bertrande requires a warm anchor, so the chickpea and lentil braise provides it without making the whole meal heavy.\",\"uses\":[{\"preparation_id\":\"prep_pulse_braise\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":3},\"honours_belief_keys\":[\"a_warm_anchor_every_evening\",\"the_basket_decides_the_week\"]},{\"name\":\"Berry Walnut Yoghurt Pot\",\"title\":\"Greek yoghurt, oats, berries and walnuts\",\"slot\":\"breakfast\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"plain Greek yoghurt\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":null},{\"term\":\"rolled oats\",\"quantity\":\"35 g\",\"amount\":35,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"British berries\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"walnuts\",\"quantity\":\"15 g\",\"amount\":15,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Spoon the yoghurt into a bowl and top with the oats, berries and walnuts.\",\"why\":\"This is a quick small breakfast with yoghurt as the protein anchor on a day when your friend is staying.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":3},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Lemony Pulse Pitta\",\"title\":\"Chickpea and lentil pitta with cucumber and yoghurt\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"wholemeal pitta\",\"quantity\":\"1 pitta (70 g)\",\"amount\":70,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cucumber\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"plain Greek yoghurt\",\"quantity\":\"40 g\",\"amount\":40,\"unit\":\"g\",\"state\":null},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":0.5,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Fill the pitta with one cold portion of chickpea and lentil braise, diced cucumber and yoghurt. Squeeze over the lemon and add black pepper.\",\"why\":\"The braise becomes a fresh, portable medium lunch rather than another bowl of Thursday's supper.\",\"uses\":[{\"preparation_id\":\"prep_pulse_braise\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Golden Tofu Tomato Curry\",\"title\":\"Warm tofu, vegetables, spinach and brown rice\",\"slot\":\"dinner\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"passata\",\"quantity\":\"150 ml\",\"amount\":150,\"unit\":\"ml\",\"state\":null},{\"term\":\"spinach\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"ready-cooked brown rice\",\"quantity\":\"125 g\",\"amount\":125,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"mild curry powder labelled sesame-free\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"water\",\"quantity\":\"50 ml\",\"amount\":50,\"unit\":\"ml\",\"state\":null}],\"method\":\"Put the remaining tofu and roast vegetables in a frying pan with the passata, curry powder and water. Simmer for 7 minutes, fold in the spinach until wilted, and microwave the rice until piping hot before serving together.\",\"why\":\"I cannot provide the requested roast chicken because you are vegetarian, or a cold-only dinner because Bertrande requires a warm anchor, so this substantial Friday plate turns roast tofu into a hot tomato curry for your evening with your friend.\",\"uses\":[{\"preparation_id\":\"prep_roast_tofu_vegetables\",\"servings\":1}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":12},\"honours_belief_keys\":[\"a_warm_anchor_every_evening\",\"the_basket_decides_the_week\"]}],\"preparations\":[{\"id\":\"prep_roast_tofu_vegetables\",\"title\":\"Smoky roast tofu and vegetables\",\"servings_made\":2,\"ingredients\":[{\"term\":\"firm tofu\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgette\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"red pepper\",\"quantity\":\"1 pepper\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"red onion\",\"quantity\":\"1 onion\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"cornflour\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"smoked paprika\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"salt\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Heat the oven to 220°C, or 200°C fan. Pat the tofu dry and cut it into cubes; chop the courgette, pepper and onion. Toss everything with the oil, cornflour, paprika, salt and pepper. Spread over a tray and roast for 25 minutes, turning once. Cool promptly and refrigerate as two portions.\",\"active_minutes\":10,\"total_minutes\":35,\"cook_on\":\"wed\"},{\"id\":\"prep_pulse_braise\",\"title\":\"Smoky chickpea and lentil braise\",\"servings_made\":2,\"ingredients\":[{\"term\":\"tinned chickpeas, drained\",\"quantity\":\"240 g\",\"amount\":240,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tinned green lentils, drained\",\"quantity\":\"240 g\",\"amount\":240,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"passata\",\"quantity\":\"300 ml\",\"amount\":300,\"unit\":\"ml\",\"state\":null},{\"term\":\"brown onion\",\"quantity\":\"1 onion\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"carrots\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"2 cloves\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"ground cumin\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"smoked paprika\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"water\",\"quantity\":\"150 ml\",\"amount\":150,\"unit\":\"ml\",\"state\":null},{\"term\":\"salt\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Dice the onion and carrots and finely chop the garlic. Soften them in the oil for 8 minutes. Add the cumin and paprika for 30 seconds, then stir in the chickpeas, lentils, passata and water. Simmer for 15 minutes, season, and divide into two portions; serve one hot and refrigerate the other promptly.\",\"active_minutes\":15,\"total_minutes\":30,\"cook_on\":\"thu\"}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_roast_tofu_vegetables\"],\"total_minutes\":35,\"run_through\":\"This is the extra cooking day before your usual Thursday session. Put the oven on first, press and chop the tofu while it heats, chop the vegetables, season the tray and roast it. Turn everything once, then cool and box two portions.\"},{\"day\":\"thu\",\"preparation_ids\":[\"prep_pulse_braise\"],\"total_minutes\":30,\"run_through\":\"Chop the onion, carrots and garlic first. Soften them while draining the chickpeas and lentils, add the spices, then add the pulses, passata and water. Let the pan simmer, serve one portion hot for dinner and cool the Friday portion promptly.\"}],\"shopping_list\":[{\"term\":\"rolled oats\",\"quantity\":\"95 g\",\"aisle\":\"grains\"},{\"term\":\"semi-skimmed milk\",\"quantity\":\"200 ml\",\"aisle\":\"dairy\"},{\"term\":\"skyr\",\"quantity\":\"100 g\",\"aisle\":\"dairy\"},{\"term\":\"cottage cheese\",\"quantity\":\"250 g\",\"aisle\":\"dairy\"},{\"term\":\"plain Greek yoghurt\",\"quantity\":\"280 g\",\"aisle\":\"dairy\"},{\"term\":\"firm tofu\",\"quantity\":\"300 g\",\"aisle\":\"protein\"},{\"term\":\"shelled frozen edamame\",\"quantity\":\"100 g\",\"aisle\":\"frozen\"},{\"term\":\"tinned chickpeas\",\"quantity\":\"1 x 400 g tin\",\"aisle\":\"pantry\"},{\"term\":\"tinned green lentils\",\"quantity\":\"1 x 400 g tin\",\"aisle\":\"pantry\"},{\"term\":\"plain ready-cooked noodles labelled sesame-free\",\"quantity\":\"150 g\",\"aisle\":\"grains\"},{\"term\":\"ready-cooked brown rice\",\"quantity\":\"125 g\",\"aisle\":\"grains\"},{\"term\":\"wholemeal bread\",\"quantity\":\"140 g\",\"aisle\":\"grains\"},{\"term\":\"wholemeal wrap\",\"quantity\":\"1 wrap\",\"aisle\":\"grains\"},{\"term\":\"wholemeal pitta\",\"quantity\":\"1 pitta\",\"aisle\":\"grains\"},{\"term\":\"apple\",\"quantity\":\"1 small apple\",\"aisle\":\"produce\"},{\"term\":\"banana\",\"quantity\":\"1 small banana\",\"aisle\":\"produce\"},{\"term\":\"British berries\",\"quantity\":\"100 g\",\"aisle\":\"produce\"},{\"term\":\"tomato\",\"quantity\":\"120 g\",\"aisle\":\"produce\"},{\"term\":\"cucumber\",\"quantity\":\"380 g\",\"aisle\":\"produce\"},{\"term\":\"red cabbage\",\"quantity\":\"80 g\",\"aisle\":\"produce\"},{\"term\":\"carrots\",\"quantity\":\"240 g\",\"aisle\":\"produce\"},{\"term\":\"lettuce\",\"quantity\":\"50 g\",\"aisle\":\"produce\"},{\"term\":\"courgette\",\"quantity\":\"200 g\",\"aisle\":\"produce\"},{\"term\":\"red pepper\",\"quantity\":\"1 pepper\",\"aisle\":\"produce\"},{\"term\":\"red onion\",\"quantity\":\"1 onion\",\"aisle\":\"produce\"},{\"term\":\"brown onion\",\"quantity\":\"1 onion\",\"aisle\":\"produce\"},{\"term\":\"garlic\",\"quantity\":\"2 cloves\",\"aisle\":\"produce\"},{\"term\":\"spinach\",\"quantity\":\"100 g\",\"aisle\":\"produce\"},{\"term\":\"limes\",\"quantity\":\"1 lime\",\"aisle\":\"produce\"},{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"aisle\":\"produce\"},{\"term\":\"passata\",\"quantity\":\"450 ml\",\"aisle\":\"pantry\"},{\"term\":\"smooth peanut butter labelled sesame-free\",\"quantity\":\"1 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"walnuts\",\"quantity\":\"15 g\",\"aisle\":\"pantry\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"cornflour\",\"quantity\":\"1 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"English mustard\",\"quantity\":\"1 tsp\",\"aisle\":\"pantry\"},{\"term\":\"ground cinnamon\",\"quantity\":\"a pinch\",\"aisle\":\"pantry\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"ground cumin\",\"quantity\":\"1 tsp\",\"aisle\":\"pantry\"},{\"term\":\"mild curry powder labelled sesame-free\",\"quantity\":\"1 tsp\",\"aisle\":\"pantry\"},{\"term\":\"chilli flakes\",\"quantity\":\"a pinch\",\"aisle\":\"pantry\"},{\"term\":\"salt\",\"quantity\":\"a small amount\",\"aisle\":\"pantry\"},{\"term\":\"black pepper\",\"quantity\":\"a small amount\",\"aisle\":\"pantry\"}]}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-meal-v1",
+        "user_id": "2a000000-0000-4000-8000-000000000003",
+        "request_id": "2a000000-3100-4000-8000-000000000001"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787094758,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787094893,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:06:09.506863+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:07:16.233902+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:07:48.151652+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:08:38.929877+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:09:34.724131+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:10:04.31242+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:11:02.678436+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:12:38.340852+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:14:54.254134+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

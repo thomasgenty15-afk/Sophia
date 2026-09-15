@@ -1,0 +1,548 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-defense-tool-opportunity-r2-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Ce soir, au moment de faire le sas de déchargement, je sens que je vais rester collé à mon téléphone et zapper le carnet.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-defense-tool-opportunity-r2-t01",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "scope": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-defense-tool-opportunity-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah, je vois le piège venir 😅 En gros tu sais déjà exactement à quel moment ça va dérailler.\n\nOn va te protéger “au SAS” (pas plus tard) avec un mini plan tout simple :\n1) Mets le téléphone hors de portée avant de commencer (même juste dans une autre pièce, ou face cachée + volume coupé).\n2) Ouvre le carnet en premier, stylé “1 page seulement” (zéro perfection, juste une trace).\n3) Lance une règle : 10 minutes d’écriture sans téléphone, puis tu reviens si tu veux (mais après).\n\nLà, dis-moi juste : tu utilises ton téléphone pour quoi exactement à ce moment-là (scroll, messages, musique, autre) ? 📵",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "0": {
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "tool_skill_opportunity": {
+                "type": "defense_card",
+                "operation_type": "prepare_defense_card",
+                "surface_id": "defense_card",
+                "confidence_band": "high",
+                "should_offer": true,
+                "prop_reason": "user_anticipates_risk_of_derailing_into_phone_scrolling",
+                "source_span": "je sens que je vais rester collé à mon téléphone et zapper le carnet",
+                "target_hint": "sas de déchargement",
+                "target_status": "identified",
+                "suggested_question_intent": "offer_defense_card",
+                "offer_timing": "now",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null,
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": true,
+                "status": "identified",
+                "plan_item_id": null,
+                "action_title": "sas de déchargement",
+                "action_family_key": null,
+                "action_type": "habit",
+                "expansion_policy": "exact_then_action_family_recent",
+                "reason": "user_mentions_specific_habit_from_plan_context"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": null
+              },
+              "memory_plan": {
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "action",
+                    "key": "sas_de_dechargement",
+                    "query_hint": "sas de déchargement carnet",
+                    "retrieval_policy": "semantic_first",
+                    "priority": "high",
+                    "entity_type": null
+                  },
+                  {
+                    "type": "domain_key",
+                    "key": "habitudes.procrastination",
+                    "query_hint": "phone scrolling instead of habit",
+                    "retrieval_policy": "taxonomy_first",
+                    "priority": "medium",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first"
+              }
+            },
+            "turn_id": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-defense-tool-opportunity-r2-t01",
+            "source_message_id": "2120b0fa-e57c-4019-9439-a7339ae77f21",
+            "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [
+                "immediacy_tonight"
+              ],
+              "evidence": [
+                "Ce soir"
+              ]
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            }
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "normal_reply"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "normal_reply",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "normal_reply_default"
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-defense-tool-opportunity-r2-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "0": {
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "defense_card",
+              "operation_type": "prepare_defense_card",
+              "surface_id": "defense_card",
+              "confidence_band": "high",
+              "should_offer": true,
+              "prop_reason": "user_anticipates_risk_of_derailing_into_phone_scrolling",
+              "source_span": "je sens que je vais rester collé à mon téléphone et zapper le carnet",
+              "target_hint": "sas de déchargement",
+              "target_status": "identified",
+              "suggested_question_intent": "offer_defense_card",
+              "offer_timing": "now",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null,
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": true,
+              "status": "identified",
+              "plan_item_id": null,
+              "action_title": "sas de déchargement",
+              "action_family_key": null,
+              "action_type": "habit",
+              "expansion_policy": "exact_then_action_family_recent",
+              "reason": "user_mentions_specific_habit_from_plan_context"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": null
+            },
+            "memory_plan": {
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "sas_de_dechargement",
+                  "query_hint": "sas de déchargement carnet",
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "habitudes.procrastination",
+                  "query_hint": "phone scrolling instead of habit",
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first"
+            }
+          },
+          "turn_id": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-defense-tool-opportunity-r2-t01",
+          "source_message_id": "2120b0fa-e57c-4019-9439-a7339ae77f21",
+          "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tonight"
+            ],
+            "evidence": [
+              "Ce soir"
+            ]
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": null
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          }
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "normal_reply"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "normal_reply",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "normal_reply_default"
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-defense-tool-opportunity-r2-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "normal_reply"
+      },
+      "trace_error": null
+    }
+  }
+]

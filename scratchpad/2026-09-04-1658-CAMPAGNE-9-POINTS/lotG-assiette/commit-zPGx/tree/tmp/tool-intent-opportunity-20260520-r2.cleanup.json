@@ -1,0 +1,56 @@
+{
+  "user_id": "34eddb8d-66ba-4c5d-a46e-dded03883923",
+  "cleaned_at": "2026-05-20T11:49:39.287Z",
+  "results": [
+    {
+      "name": "memory_item_sources",
+      "status": 204,
+      "body": ""
+    },
+    {
+      "name": "memory_item_entities",
+      "status": 204,
+      "body": ""
+    },
+    {
+      "name": "memory_item_topics",
+      "status": 204,
+      "body": ""
+    },
+    {
+      "name": "memory_item_actions",
+      "status": 204,
+      "body": ""
+    },
+    {
+      "name": "memory_items",
+      "status": 204,
+      "body": ""
+    },
+    {
+      "name": "user_topic_memories",
+      "status": 204,
+      "body": ""
+    },
+    {
+      "name": "chat_messages",
+      "status": 204,
+      "body": ""
+    },
+    {
+      "name": "scheduled_checkins",
+      "status": 204,
+      "body": ""
+    },
+    {
+      "name": "user_chat_states",
+      "status": 204,
+      "body": ""
+    },
+    {
+      "name": "auth_user_delete",
+      "status": 200,
+      "body": "{}"
+    }
+  ]
+}

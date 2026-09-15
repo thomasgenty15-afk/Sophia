@@ -1,0 +1,48 @@
+coachA=53b40a69-95fa-4c3c-8579-6cd563af4930 élèveA=13628278-ebda-4fa1-8e65-4d3266fb898c
+coachB=c565909b-cbc5-41e6-94c1-94ceefaa36d0 élèveB=a6e154bd-ae04-4e41-812c-bd5e6dd282a6
+
+██████████████████████████████████████████████████████████████████████████
+1 — TENANCY (sous le JWT de chaque coach)
+██████████████████████████████████████████████████████████████████████████
+  coach A · coach_student_directory  → 1 élève(s) ✅ voit le sien ✅ ne voit pas l'autre
+  coach A · coach_student_events     → 4 élève(s) 🔴 ne voit PAS le sien ✅ ne voit pas l'autre
+  coach A · coached_student_ids() → ["13628278-ebda-4fa1-8e65-4d3266fb898c"] ✅
+  coach B · coach_student_directory  → 1 élève(s) ✅ voit le sien ✅ ne voit pas l'autre
+  coach B · coach_student_events     → 0 élève(s) 🔴 ne voit PAS le sien ✅ ne voit pas l'autre
+  coach B · coached_student_ids() → ["a6e154bd-ae04-4e41-812c-bd5e6dd282a6"] ✅
+
+██████████████████████████████████████████████████████████████████████████
+2 — LES CHIFFRES DE LA FICHE, RECALCULÉS
+██████████████████████████████████████████████████████████████████████████
+  VÉRITÉ SQL : {"joursActifs":3,"photosComptees":2,"photosDisqualifiees":1,"checkins":2}
+  distribution des portions : ["large=1","moderate=2","small=1"]
+
+  coach_student_directory (ligne de l'élève A) :
+  {"id":"13628278-ebda-4fa1-8e65-4d3266fb898c","full_name":"Anna Alpha","avatar_url":"","timezone":"Europe/London","locale":"fr-FR","age_years":null}
+
+  coach_student_events → 4 ligne(s)
+  colonnes : ["id","user_id","occurred_at","local_date","slot_key","source","recognized","recognition_confidence","quantity","unit","substance_ref","food_group_ref","content_locale","evidence_weight","has_media","created_at","portion_band"]
+  dont disqualifiées visibles : 0
+  🔎 les photos disqualifiées ne doivent pas COMPTER dans l'activité: à vérifier écran
+
+██████████████████████████████████████████████████████████████████████████
+3 — SYNTHÈSE COACH (P0-5: « 0 of 7 days » pour un élève actif)
+██████████████████████████████████████████████████████████████████████████
+  cron → {"ok":true,"as_of_local_date":"2026-08-04","coaches_scanned":154,"syntheses_written":145,"coaches_without_students":9,"exhausted":true,"next_after_coach_id":null,"failures":[],"request_id":"25ef697e-b650-4d09-affe-c20409f6399a"}
+  synthèse du coach A :
+  {"id":"1f41f9a9-7502-4ada-878a-47561e2d5042","coach_id":"53b40a69-95fa-4c3c-8579-6cd563af4930","cohort_id":null,"kind":"weekly","period_start":"2026-07-27","period_end":"2026-08-02","metrics":{"silent": 1, "planned": 0, "portions": {"large": 0, "small": 0, "total": 1, "unclear": 0, "moderate": 1, "decidable": 1}, "slipping": 0, "livability": {"hard": 0, "unknown": 1, "strained": 0, "sustainable": 0}, "responsive": 0, "flagged_count": 1, "student_count": 1, "with_adherence": 0, "mean_core_adherence_pct": null, "flagged_total_before_cap": 1},"flagged_students":[{"evidence": {"logged_days": 0, "evaluable_days": 0, "adherence_gated": true, "core_adherence_pct": null, "hours_since_contact": null}, "risk_band": "disengaged", "reason_code": "silent_5d", "contact_state": "silent", "student_user_id": "13628278-ebda-4fa1-8e65-4d3266fb898c"}],"narrative":"1 student this week: 0 in touch, 0 slipping, 1 silent.\nNobody checked in enough this week to say how it felt.\nNo adherence figure this week: nobody logged at least 4 of 7 days.\n1 plate seen: 0 small, 1 moderate, 0 large.\n\nTo catch up:\n- Anna Alpha: has never replied since being added.","content_locale":"en","generated_at":"2026-08-04T21:17:59.94372+00:00","delivered_at":null,"delivery_channel":null,"created_at":"2026-08-04T21:17:59.94372+00:00"}
+
+██████████████████████████████████████████████████████████████████████████
+4 — log_coach_student_access
+██████████████████████████████████████████████████████████████████████████
+  appel → ERREUR Could not find the function public.log_coach_student_access(p_student_id) in the schema cache
+  lignes : ["<psql: ERROR:  relation \"coach_student_access_log\" does not exist\nLINE 1: ...h_id::text || ' → ' || student_user_id::text from coach_stud...\n                                                             ^\n>"]
+  contre-factuel (coach B sur élève A) → ✅ refusé: Could not find the function public.log_coach_student_access(p_student_id) in the schema ca
+
+██████████████████████████████████████████████████████████████████████████
+5 — ÉTATS VIDES
+██████████████████████████████████████████████████████████████████████████
+  coach sans élève · coach_student_directory  → 0 ligne(s) ✅
+  coach sans élève · coach_student_events     → 0 ligne(s) ✅
+
+→ écrit

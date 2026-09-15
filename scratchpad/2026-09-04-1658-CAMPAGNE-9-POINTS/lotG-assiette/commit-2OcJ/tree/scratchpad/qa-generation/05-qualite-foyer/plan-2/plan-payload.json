@@ -1,0 +1,795 @@
+{
+    "scope": "several_days",
+    "dishes": [
+        {
+            "day": "wed",
+            "why": "A fresh, protein-rich vegan lunch that requires no cooking, keeping the small hob free for later.",
+            "name": "Zesty Chickpea and Avocado Bowls",
+            "slot": "lunch",
+            "uses": [
+            ],
+            "title": "Chickpea and avocado salad with lemon and fresh greens",
+            "method": "Toss the chickpeas with the salad leaves in a large bowl. Top with the sliced avocado, then drizzle with lemon juice and olive oil. Season with salt and pepper.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "tinned chickpeas, drained",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 240,
+                    "quantity": "240 g",
+                    "grams_raw": 240,
+                    "in_pantry": false
+                },
+                {
+                    "term": "avocado, sliced",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 unit",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "mixed salad leaves",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon juice",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable",
+                "name_the_plate_out_loud"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "A quick, high-protein lunch for Roxane that avoids the shared vegan pot as requested.",
+            "name": "Tuna and Avocado Protein Plate",
+            "slot": "lunch",
+            "uses": [
+            ],
+            "title": "Tinned tuna and avocado salad with lemon and greens",
+            "method": "Arrange the tuna and avocado over the salad leaves. Drizzle with olive oil and lemon juice.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 10
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "tinned tuna in brine, drained",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 120,
+                    "quantity": "120 g",
+                    "grams_raw": 120,
+                    "in_pantry": false
+                },
+                {
+                    "term": "avocado, sliced",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "0.5 unit",
+                    "grams_raw": 50,
+                    "in_pantry": false
+                },
+                {
+                    "term": "mixed salad leaves",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 50,
+                    "quantity": "50 g",
+                    "grams_raw": 50,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon juice",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "0.5 tbsp",
+                    "grams_raw": 7.5,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "A warm, comforting vegan meal that meets the household's request for something that reheats well.",
+            "name": "Comforting Sweet Potato Dahl",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_dahl_zoe_1",
+                    "servings": 1,
+                    "preparation_id": "prep_dahl"
+                },
+                {
+                    "box_id": "box_rice_zoe_1",
+                    "servings": 1,
+                    "preparation_id": "prep_rice"
+                }
+            ],
+            "title": "Red lentil and sweet potato dahl with spinach rice",
+            "method": "Serve a portion of the freshly made dahl alongside the spinach rice. Serve warm.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": null,
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable",
+                "name_the_plate_out_loud"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "A dedicated protein dish for Roxane that fits the Osric Thelwall method of naming the plate.",
+            "name": "Golden Thyme Chicken Bowls",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_chicken_roxane_1",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken"
+                },
+                {
+                    "box_id": "box_rice_roxane_1",
+                    "servings": 1,
+                    "preparation_id": "prep_rice"
+                }
+            ],
+            "title": "Pan-seared thyme chicken with spinach rice",
+            "method": "Plate a portion of the warm seared chicken with the spinach rice.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "A warm and comforting lunch that is easy to reheat at work as requested.",
+            "name": "Warming Dahl Lunch",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_dahl_zoe_2",
+                    "servings": 1,
+                    "preparation_id": "prep_dahl"
+                },
+                {
+                    "box_id": "box_rice_zoe_2",
+                    "servings": 1,
+                    "preparation_id": "prep_rice"
+                }
+            ],
+            "title": "Reheated sweet potato dahl with spinach rice",
+            "method": "Reheat the dahl and rice portions in a microwave or pan until piping hot.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "A simple, reheating-friendly lunch for Roxane.",
+            "name": "Savoury Chicken and Rice Lunch",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_chicken_roxane_2",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken"
+                },
+                {
+                    "box_id": "box_rice_roxane_2",
+                    "servings": 1,
+                    "preparation_id": "prep_rice"
+                }
+            ],
+            "title": "Reheated thyme chicken with spinach rice",
+            "method": "Reheat the chicken and rice until hot. Serve with a squeeze of fresh lemon if available.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "Finishing the batch of comforting dahl for a quick Thursday dinner.",
+            "name": "Evening Sweet Potato Dahl",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_dahl_zoe_3",
+                    "servings": 1,
+                    "preparation_id": "prep_dahl"
+                },
+                {
+                    "box_id": "box_rice_zoe_3",
+                    "servings": 1,
+                    "preparation_id": "prep_rice"
+                }
+            ],
+            "title": "Sweet potato dahl with spinach rice",
+            "method": "Reheat the final portions of dahl and rice until hot throughout.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "Roxane's final portion of the thyme chicken batch.",
+            "name": "Thyme Chicken Dinner",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_chicken_roxane_3",
+                    "servings": 1,
+                    "preparation_id": "prep_chicken"
+                },
+                {
+                    "box_id": "box_rice_roxane_3",
+                    "servings": 1,
+                    "preparation_id": "prep_rice"
+                }
+            ],
+            "title": "Pan-seared thyme chicken with spinach rice",
+            "method": "Reheat the chicken and rice portions together.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        }
+    ],
+    "plan_id": "a47099e3-54d5-4965-91c6-8baa22f86599",
+    "servings": 4,
+    "starts_on": "2026-08-19",
+    "created_at": "2026-08-19T03:50:17.869037+00:00",
+    "preparations": [
+        {
+            "id": "prep_dahl",
+            "boxes": [
+                {
+                    "id": "box_dahl_zoe_1",
+                    "grams": 172,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_dahl_zoe_2",
+                    "grams": 172,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_dahl_zoe_3",
+                    "grams": 172,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_dahl_lubna_1",
+                    "grams": 192,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                },
+                {
+                    "id": "box_dahl_lubna_2",
+                    "grams": 192,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                },
+                {
+                    "id": "box_dahl_lubna_3",
+                    "grams": 192,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                }
+            ],
+            "title": "Sweet Potato and Red Lentil Dahl",
+            "method": "Sauté onion and garlic in oil. Add spices and sweet potato, then lentils and coconut milk with 400ml water. Simmer for 25 minutes until lentils are soft and potato is tender.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "red lentils",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 300,
+                    "quantity": "300 g",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "sweet potatoes, cubed",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 400,
+                    "quantity": "400 g",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "coconut milk",
+                    "unit": "ml",
+                    "state": "raw",
+                    "amount": 400,
+                    "quantity": "400 ml",
+                    "grams_raw": 400,
+                    "in_pantry": false
+                },
+                {
+                    "term": "onion, diced",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 unit",
+                    "grams_raw": 110,
+                    "in_pantry": false
+                },
+                {
+                    "term": "garlic cloves, minced",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 3,
+                    "quantity": "3 unit",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "ground turmeric",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "ground cumin",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 6,
+            "total_minutes": 35,
+            "active_minutes": 10
+        },
+        {
+            "id": "prep_chicken",
+            "boxes": [
+                {
+                    "id": "box_chicken_roxane_1",
+                    "grams": 94,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_chicken_roxane_2",
+                    "grams": 94,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_chicken_roxane_3",
+                    "grams": 94,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_chicken_ivar_1",
+                    "grams": 174,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                },
+                {
+                    "id": "box_chicken_ivar_2",
+                    "grams": 174,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                }
+            ],
+            "title": "Pan-Seared Thyme Chicken Thighs",
+            "method": "Season chicken. Heat oil in a pan and sear chicken with thyme for 6-8 minutes per side until cooked through and golden.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "chicken thighs, boneless/skinless",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 750,
+                    "quantity": "750 g",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "fresh thyme",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 sprigs",
+                    "grams_raw": 4,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tbsp",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 5,
+            "total_minutes": 20,
+            "active_minutes": 10
+        },
+        {
+            "id": "prep_rice",
+            "boxes": [
+                {
+                    "id": "box_rice_roxane_1",
+                    "grams": 118,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_rice_roxane_2",
+                    "grams": 118,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_rice_roxane_3",
+                    "grams": 118,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_rice_ivar_1",
+                    "grams": 218,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                },
+                {
+                    "id": "box_rice_ivar_2",
+                    "grams": 218,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                },
+                {
+                    "id": "box_rice_zoe_1",
+                    "grams": 103,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_rice_zoe_2",
+                    "grams": 103,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_rice_zoe_3",
+                    "grams": 103,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_rice_lubna_1",
+                    "grams": 115,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                },
+                {
+                    "id": "box_rice_lubna_2",
+                    "grams": 115,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                },
+                {
+                    "id": "box_rice_lubna_3",
+                    "grams": 115,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                }
+            ],
+            "title": "Brown Rice with Wilted Spinach",
+            "method": "Boil rice in salted water until tender (approx 25 mins). Drain and immediately stir in the spinach so it wilts in the residual heat.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "brown rice",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 550,
+                    "quantity": "550 g",
+                    "grams_raw": 550,
+                    "in_pantry": false
+                },
+                {
+                    "term": "fresh spinach",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 300,
+                    "quantity": "300 g",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 11,
+            "total_minutes": 30,
+            "active_minutes": 5
+        }
+    ],
+    "duration_days": 2,
+    "shopping_list": [
+        {
+            "term": "chicken thighs, boneless/skinless",
+            "aisle": "protein",
+            "quantity": "750 g"
+        },
+        {
+            "term": "tinned tuna in brine",
+            "aisle": "protein",
+            "quantity": "120 g"
+        },
+        {
+            "term": "tinned chickpeas",
+            "aisle": "pantry",
+            "quantity": "400 g"
+        },
+        {
+            "term": "red lentils",
+            "aisle": "grains",
+            "quantity": "300 g"
+        },
+        {
+            "term": "brown rice",
+            "aisle": "grains",
+            "quantity": "1 kg"
+        },
+        {
+            "term": "sweet potatoes",
+            "aisle": "produce",
+            "quantity": "2 unit"
+        },
+        {
+            "term": "fresh spinach",
+            "aisle": "produce",
+            "quantity": "300 g"
+        },
+        {
+            "term": "mixed salad leaves",
+            "aisle": "produce",
+            "quantity": "200 g"
+        },
+        {
+            "term": "avocados",
+            "aisle": "produce",
+            "quantity": "2 unit"
+        },
+        {
+            "term": "onions",
+            "aisle": "produce",
+            "quantity": "2 unit"
+        },
+        {
+            "term": "garlic",
+            "aisle": "produce",
+            "quantity": "1 bulb"
+        },
+        {
+            "term": "lemon",
+            "aisle": "produce",
+            "quantity": "1 unit"
+        },
+        {
+            "term": "coconut milk",
+            "aisle": "pantry",
+            "quantity": "400 ml"
+        },
+        {
+            "term": "fresh thyme",
+            "aisle": "produce",
+            "quantity": "1 bunch"
+        },
+        {
+            "term": "ground turmeric",
+            "aisle": "pantry",
+            "quantity": "1 jar"
+        },
+        {
+            "term": "ground cumin",
+            "aisle": "pantry",
+            "quantity": "1 jar"
+        },
+        {
+            "term": "olive oil",
+            "aisle": "pantry",
+            "quantity": "250 ml"
+        }
+    ],
+    "member_portions": [
+        {
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "display_name": "Roxane",
+            "portion_note": "Serve the spinach and rice first, followed by the thyme chicken. — Pan-Seared Thyme Chicken Thighs 94 g · Brown Rice with Wilted Spinach 118 g",
+            "preparation_shares": [
+                {
+                    "note": "one box per meal",
+                    "preparation_id": "prep_chicken"
+                },
+                {
+                    "note": "one box per meal",
+                    "preparation_id": "prep_rice"
+                }
+            ]
+        },
+        {
+            "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+            "display_name": "Zoe",
+            "portion_note": "Mix the dahl and spinach rice together on the plate. — Sweet Potato and Red Lentil Dahl 172 g · Brown Rice with Wilted Spinach 103 g",
+            "preparation_shares": [
+                {
+                    "note": "one box per meal",
+                    "preparation_id": "prep_dahl"
+                },
+                {
+                    "note": "one box per meal",
+                    "preparation_id": "prep_rice"
+                }
+            ]
+        },
+        {
+            "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+            "display_name": "Lubna",
+            "portion_note": "All components served together; ensure use of the dahl and rice which are safe from the foods on your medical list. — Sweet Potato and Red Lentil Dahl 192 g · Brown Rice with Wilted Spinach 115 g",
+            "preparation_shares": [
+                {
+                    "note": "one box per meal",
+                    "preparation_id": "prep_dahl"
+                },
+                {
+                    "note": "one box per meal",
+                    "preparation_id": "prep_rice"
+                }
+            ]
+        },
+        {
+            "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+            "display_name": "Ivar",
+            "portion_note": "Serve the chicken and rice first; on Wednesday evening, take an extra portion of rice from the pot if needed for recovery. — Pan-Seared Thyme Chicken Thighs 174 g · Brown Rice with Wilted Spinach 218 g",
+            "preparation_shares": [
+                {
+                    "note": "one box per meal",
+                    "preparation_id": "prep_chicken"
+                },
+                {
+                    "note": "one box per meal",
+                    "preparation_id": "prep_rice"
+                }
+            ]
+        }
+    ],
+    "cooking_sessions": [
+        {
+            "day": "wed",
+            "run_through": "Get the brown rice boiling first as it takes the longest. While it simmers, start the dahl in a large pot. Use the second hob ring to sear the chicken thighs with thyme. Once the rice is done, drain and stir in the spinach. Box all portions immediately for the next two days.",
+            "total_minutes": 45,
+            "preparation_ids": [
+                "prep_dahl",
+                "prep_chicken",
+                "prep_rice"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,221 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages_count": 3,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je bloque sur mon dossier de relance client depuis ce matin; quel type d’aide Sophia tu recommanderais pour m’y remettre ?",
+      "created_at": "2026-06-24T20:39:30.112601+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_red_rerun_20260624_r1_coaching-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Tu veux te débloquer par rapport à quoi exactement : ce dossier, ou autre chose autour ?",
+      "created_at": "2026-06-24T20:40:00.943364+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_red_rerun_20260624_r1_coaching-t01",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "C’est bien ce dossier de relance client. Rappelle-moi dans 28 minutes d’ouvrir le premier email, et dis-moi juste quel levier utiliser.",
+      "created_at": "2026-06-24T20:40:18.127094+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_red_rerun_20260624_r1_coaching-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "08121442-3fae-4e22-a46d-e23a2fbe960c",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T20:40:00.917Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T20:40:00.917Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "understand_need",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Bloquage sur un dossier de relance client depuis ce matin, mais statut plan/hors plan inconnu.",
+              "target_kind": "unclear",
+              "action_title": "dossier de relance client",
+              "action_source": "ambiguous"
+            },
+            "turn_count": 1,
+            "coaching_type": "unclear",
+            "cause_analysis": {
+              "confidence": "high",
+              "missing_info": [
+                "Relation au plan",
+                "Existence d'une action planifiée correspondante"
+              ],
+              "primary_cause": "unclear",
+              "why_it_exists": "Le message exprime un blocage, mais ne précise pas si l'action appartient au plan en cours ou à un besoin hors plan."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user dit bloquer sur un dossier de relance client, mais on ne sait pas si c'est une action du plan en cours ou un cas hors plan.",
+            "candidate_features": [],
+            "last_answer_summary": "Le user dit bloquer sur un dossier de relance client, mais on ne sait pas si c'est une action du plan en cours ou un cas hors plan.",
+            "parent_return_focus": null,
+            "pending_type_change": {
+              "reason": "Le besoin est réel, mais la relation au plan n'est pas établie.",
+              "candidate_coaching_type": "unclear"
+            },
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks which coaching lever Sophia should recommend for getting unstuck on a work file, but the relation to an active plan action is not established."
+            ],
+            "current_recommendation": null,
+            "last_visible_task_kind": "change_confirm_coaching_type",
+            "recommendation_decision": {
+              "why_primary": null,
+              "why_not_others": {},
+              "primary_feature": null,
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": null,
+                "surface_hint": null,
+                "user_facing_destination": null
+              },
+              "user_facing_next_step": null
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks which coaching lever Sophia should recommend for getting unstuck on a work file, but the relation to an active plan action is not established.",
+              "confidence": 0.79,
+              "coaching_type": "ambiguous",
+              "action_context": {
+                "source": "ambiguous",
+                "plan_id": null,
+                "plan_title": null,
+                "action_type": "other",
+                "action_title": "dossier de relance client",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": true,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": false
+              },
+              "emotional_state_context": {
+                "intensity": "medium",
+                "state_hint": null
+              }
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T20:40:00.917Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T20:40:00.917Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "understand_need",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Bloquage sur un dossier de relance client depuis ce matin, mais statut plan/hors plan inconnu.",
+              "target_kind": "unclear",
+              "action_title": "dossier de relance client",
+              "action_source": "ambiguous"
+            },
+            "turn_count": 1,
+            "coaching_type": "unclear",
+            "cause_analysis": {
+              "confidence": "high",
+              "missing_info": [
+                "Relation au plan",
+                "Existence d'une action planifiée correspondante"
+              ],
+              "primary_cause": "unclear",
+              "why_it_exists": "Le message exprime un blocage, mais ne précise pas si l'action appartient au plan en cours ou à un besoin hors plan."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user dit bloquer sur un dossier de relance client, mais on ne sait pas si c'est une action du plan en cours ou un cas hors plan.",
+            "candidate_features": [],
+            "last_answer_summary": "Le user dit bloquer sur un dossier de relance client, mais on ne sait pas si c'est une action du plan en cours ou un cas hors plan.",
+            "parent_return_focus": null,
+            "pending_type_change": {
+              "reason": "Le besoin est réel, mais la relation au plan n'est pas établie.",
+              "candidate_coaching_type": "unclear"
+            },
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks which coaching lever Sophia should recommend for getting unstuck on a work file, but the relation to an active plan action is not established."
+            ],
+            "current_recommendation": null,
+            "last_visible_task_kind": "change_confirm_coaching_type",
+            "recommendation_decision": {
+              "why_primary": null,
+              "why_not_others": {},
+              "primary_feature": null,
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": null,
+                "surface_hint": null,
+                "user_facing_destination": null
+              },
+              "user_facing_next_step": null
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks which coaching lever Sophia should recommend for getting unstuck on a work file, but the relation to an active plan action is not established.",
+              "confidence": 0.79,
+              "coaching_type": "ambiguous",
+              "action_context": {
+                "source": "ambiguous",
+                "plan_id": null,
+                "plan_title": null,
+                "action_type": "other",
+                "action_title": "dossier de relance client",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": true,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": false
+              },
+              "emotional_state_context": {
+                "intensity": "medium",
+                "state_hint": null
+              }
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T20:40:00.932839+00:00"
+  }
+}

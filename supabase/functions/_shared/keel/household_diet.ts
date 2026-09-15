@@ -43,6 +43,10 @@ import {
 import { PROTEIN_SOURCES } from "./tokens.ts";
 import {
   type AxisDemand,
+  // ⟳ 2026-09-13 — LA FORME D'UN ITEM DE CONTENANT, ÉCRITE UNE SEULE FOIS.
+  // Voir la constante: ce bloc-ci ORDONNE une boîte même quand la moitié schéma
+  // (`boxSchemaBlock`) n'est pas servie, et la clé doit voyager avec l'ordre.
+  boxItemSchemaLines,
   SERVING_AXES,
   SERVING_DEMANDS,
   type ServingAxisDemands,
@@ -327,8 +331,16 @@ export function dietServingConflicts(
 /**
  * R5 — CETTE BOUCHE DOIT-ELLE RECEVOIR SON PLAT À ELLE ?
  *
- * DEUX PRÉMISSES, ET LES DEUX SONT ARMÉES:
+ * TROIS PRÉMISSES, ET LES TROIS SONT ARMÉES:
  *
+ *   ⓪ LA BASE N'EST PAS MANGEABLE PAR CETTE BOUCHE. `regimeCovers(base, own)`
+ *      — et c'est la seule prémisse qui n'a rien à voir avec une part. Elle
+ *      existe parce que les régimes ne sont PAS tous emboîtés depuis
+ *      `gluten_free`: une base végane peut porter du blé, et le cœliaque de la
+ *      table la mangerait. `household_cells.ts` portait déjà cette ligne depuis
+ *      le 2026-09-08; elle manquait ICI, c'est-à-dire à l'endroit qui décide ce
+ *      que le PROMPT promet. Deux prédicats pour une même question, et c'est
+ *      celui qui atteint le modèle qui avait l'ancien monde.
  *   ① LE PLUS STRICT DE LA TABLE EST PLUS STRICT QUE LE SIEN. Une personne qui
  *      porte elle-même le régime le plus strict n'est privée de rien: le plat
  *      commun EST son plat. Sans cette prémisse, une table entièrement végane
@@ -339,11 +351,59 @@ export function dietServingConflicts(
  *      régime: un omnivore sans objectif à une table végane mange le plat
  *      végane, comme avant, et personne ne cuisine deux fois.
  *
+ * ⚠️ L'ORDRE DES TROIS EST LA RÈGLE PRODUIT, PAS UN DÉTAIL. ⓪ passe devant ①
+ * parce que « la base n'est pas mangeable » ne se rattrape par aucune part;
+ * ① passe devant ② parce qu'un plat végane de plus à côté d'un plat végane
+ * n'est pas une variante, c'est une cuisson payée pour rien.
+ *
+ * ⛔ ET LE CAS NOMINAL EST « NON ». Une recette commune compatible suffit dès
+ * que la base couvre la bouche et que son contrat sort de la casserole: un
+ * foyer de quatre omnivores et d'une végane où personne ne demande plus de
+ * protéine que `full` ne paie AUCUN second plat.
+ *
  * ⚠️ LE TEMPS N'EST PAS ICI, ET IL NE DOIT PAS Y ÊTRE. `timeAllowsASecondDish`
  * plafonne DÉJÀ, une seule fois, chez l'appelant (G5). Le relire ici ferait deux
  * endroits qui décident du même second plat, et le jour où le seuil bouge, un
  * seul des deux le saurait.
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-14 · BÊTA 1A — LA BASE PARTAGÉE EST-ELLE MANGEABLE PAR CETTE
+ *                BOUCHE ? La prémisse ⓪ de `dietDiverges`, SEULE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ POURQUOI ELLE EXISTE À PART, ET LE DÉFAUT EST MESURÉ. `dietDiverges` rend
+ * `true` pour DEUX raisons qui n'ont pas la même dureté:
+ *
+ *   ⓪ la base N'EST PAS MANGEABLE par cette bouche (un plat végane et une
+ *     bouche sans gluten: les deux axes ne se rencontrent jamais). C'est une
+ *     IMPOSSIBILITÉ — sans plat à elle, cette personne n'a rien à manger;
+ *   ② la base est mangeable, mais la DIRECTION DE SERVICE de cette bouche
+ *     réclame autre chose que ce que la casserole descendue au plus strict
+ *     peut donner (« plus de protéine que la table »). C'est une demande de
+ *     COMPOSITION, et ce qui la mesure à l'arrivée est le plancher protéique.
+ *
+ * ⛔ LES CONFONDRE A ÉTÉ MESURÉ LE 2026-09-14. La première écriture de
+ * `dedicated_dish_missing` refusait sur `dietDiverges` tout entier: rejouée
+ * sur la référence N=2 (`ref2.json`, végane + omnivore), elle a rendu **6
+ * refus bloquants** sur un plan dont le plancher protéique est tenu
+ * (`protein_floor_short: 0`, `protein_days: 4`). L'omnivore mangeait la
+ * casserole végane, et il était correctement nourri.
+ *
+ * ⚠️ ELLE EST LA MÊME LIGNE QUE LA PRÉMISSE ⓪ DE `dietDiverges`, appelée — pas
+ * recopiée. Deux écritures de « peut-elle manger là » divergeraient, et c'est
+ * la garde finale qui aurait tort.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function dietBaseEdible(args: {
+  strictest: DietaryRegime | null;
+  own: DietaryRegime | null;
+}): boolean {
+  if (args.strictest === null) return true;
+  return regimeCovers(args.strictest, args.own);
+}
+
 export function dietDiverges(args: {
   strictest: DietaryRegime | null;
   /** Le régime de CETTE bouche, déjà résolu par le roster. */
@@ -352,6 +412,9 @@ export function dietDiverges(args: {
 }): boolean {
   const { strictest, own, demands } = args;
   if (strictest === null) return false;
+  // ⓪ — voir le pavé. `regimeCovers` échoue FERMÉ: un couple non comparable
+  // rend « cette bouche a besoin de son plat », jamais « elle peut manger là ».
+  if (!regimeCovers(strictest, own)) return true;
   // ⟳ 2026-09-08 — ÉTAIT UN COMPTE (`ownCount >= exclusionCount(strictest)`).
   // La question posée est « cette bouche est-elle DÉJÀ au moins aussi
   // restrictive que la casserole ? », et un compte n'y répond que sur un axe
@@ -413,6 +476,59 @@ export function householdDietBlock(args: {
    * pas: un foyer entièrement végétarien ne paie pas une seconde boîte.
    */
   freeNames: readonly string[];
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-13 — LA SECTION EST-ELLE RÉELLEMENT ENVOYÉE ? REQUIS.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE DÉFAUT, LU SUR LE PROMPT RÉELLEMENT TRANSMIS (tir réel N=2 du
+   * 2026-09-13, `gain-lot3r2-…prompts.txt`) :
+   *
+   *     "see A DISH OF THEIR OWN"   → 1 occurrence
+   *     "A DISH OF THEIR OWN"       → 1 occurrence  (c'est LA MÊME)
+   *     "for_member_id"             → 0 occurrence
+   *
+   * Le bloc renvoyait à une section **que le message ne contient pas**, dont la
+   * clé n'est nommée nulle part. `household_prompt_v34.ts:405` garde le sien
+   * derrière `anyDedicated` ; celui-ci ne gardait rien.
+   *
+   * La cause est en amont : `divergingNames` vient de `dishBearingMembers` (la
+   * règle R4/R5) pendant que `dishBearers` — qui décide de l'ÉMISSION de la
+   * section — vient de `v34DishBearers` (la grille) sous v34. Deux listes qui,
+   * d'après le commentaire de leur propre site d'appel, « ne doivent pas être
+   * un troisième calcul ».
+   *
+   * ⚠️ CE PARAMÈTRE NE TRANCHE PAS L'ARBITRAGE. Ouvrir un plat dédié à qui la
+   * grille n'en donne pas rouvrirait le budget du second plat, qui est une
+   * décision produit. Il ferme seulement le mensonge : on ne renvoie pas à ce
+   * qu'on n'envoie pas.
+   *
+   * ⛔ REQUIS, jamais `?` — un défaut à `true` remettrait le renvoi mort chez
+   * tout appelant qui l'oublie.
+   */
+  dedicatedSectionSent: boolean;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-14 · BÊTA 1A ④ — LE CANAL DES BOÎTES EXISTE-T-IL ENCORE ?
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ CE BLOC ORDONNAIT UN PARTAGE PAR BOÎTES QUE LE MOTEUR NE LIT PLUS.
+   * Sous `portion_v1`, `household_meal_generation.ts` retire le schéma des
+   * contenants du prompt (« le moteur les autore ») et `applySizing` écrit
+   * les boîtes lui-même, par-dessus celles du modèle. L'ordre « the one
+   * component that line refuses is served PER BOX » partait quand même, sans
+   * condition: le modèle composait la séparation demandée, et elle
+   * disparaissait. C'est le point ① de la clôture du 2026-09-14, et c'est
+   * l'exemple parfait de « deux modes dont un détruit les ingrédients
+   * silencieusement ».
+   *
+   * `false` ⇒ la séparation passe par le PLAT À PART, qui est le canal
+   * réellement servi sur ce chemin. On ne demande pas une sortie qu'on jette.
+   *
+   * ⛔ REQUIS, jamais `?`. Un défaut à `true` remettrait l'ordre mort chez
+   * tout appelant qui l'oublie — c'est-à-dire exactement l'état d'avant.
+   */
+  boxChannelOpen: boolean;
   /** Les prénoms des bouches qui reçoivent leur plat à elles (R5). */
   divergingNames: readonly string[];
 }): string {
@@ -468,12 +584,62 @@ export function householdDietBlock(args: {
         "the whole table follow one person's line.",
       ]
       : []),
-    "The one component that line refuses is served PER BOX: a second entry in",
-    "that dish's \"boxes\", with its own \"items\" -- never a portion_note, never a",
-    "dish of its own. One box for the people that line binds, carrying a",
-    "replacement of the same role (a plant protein where the others have meat,",
-    "poultry or fish); one box for everyone else with the original. When nobody",
-    "at this table is bound differently, one box.",
+    ...(args.boxChannelOpen
+      ? [
+        "The one component that line refuses is served PER BOX: a second entry in",
+        "that dish's \"boxes\", with its own \"items\" -- never a portion_note, never a",
+        "dish of its own. One box for the people that line binds, carrying a",
+        "replacement of the same role (a plant protein where the others have meat,",
+        "poultry or fish); one box for everyone else with the original. When nobody",
+        "at this table is bound differently, one box.",
+      ]
+      : [
+        // ⛔ LE MÊME ORDRE, SUR LE CANAL QUI EXISTE. Voir `boxChannelOpen`.
+        // La forme change, la règle ne change pas: la base reste commune, et
+        // ce que cette ligne refuse est cuit à part pour qui n'est pas lié.
+        "The one component that line refuses is served in a DISH OF THEIR OWN,",
+        "cooked apart, with its own recipe and its own \"for_member_id\" -- never a",
+        "portion_note, never a second helping written into the shared dish. The",
+        "shared dish stays exactly as the line above requires, and everyone eats",
+        "it; the people that line does NOT bind get that extra dish on top. When",
+        "nobody at this table is bound differently, there is no extra dish.",
+      ]),
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-13 — LA CLÉ DE L'ITEM, COLLÉE À L'ORDRE QUI LE RÉCLAME.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE DÉFAUT QUE CES QUATRE LIGNES FERMENT, MESURÉ AU CARACTÈRE. Cet ordre
+    // part SANS CONDITION. La moitié schéma des contenants, elle, ne part pas
+    // sous `sizingPath === "portion_v1"` (`household_meal_generation.ts`) — et
+    // c'était le SEUL endroit du prompt qui nommait la clé `grams`. Tir réel N=2
+    // du 2026-09-13: `grep -n "grams" appel1.input.txt` ne rend aucune ligne
+    // décrivant un item de contenant, et `== OUTPUT JSON SCHEMA ==` ne porte pas
+    // la clé `boxes`. Le modèle a donc composé le partage demandé — jambon pour
+    // l'un, tofu pour l'autre, sur quatre repas — dans la seule forme d'item
+    // qu'on lui enseignait, celle d'un INGRÉDIENT (`amount`/`unit`/`ref`).
+    //
+    // ⛔ ET C'EST LA CICATRICE `promise-and-schema-key-must-be-adjacent`, dans sa
+    // forme la plus dure: la clé était nommée, sa FORME ne l'était plus. Un
+    // « comme plus haut » ne traverse pas la frontière système↔utilisateur — et
+    // ici il n'y avait même pas de « plus haut » à citer.
+    //
+    // ⚠️ LES TROIS LIGNES DE FORME VIENNENT DE `household_portions.ts`, pas
+    // d'une recopie: `boxSchemaBlock` les rend aussi, et deux écritures de la
+    // même clé divergeraient au premier changement.
+    // ⚠️ LA FORME DE L'ITEM NE PART QUE SI LE CANAL EXISTE. C'est la cicatrice
+    // `promise-and-schema-key-must-be-adjacent` prise par l'autre bout: nommer
+    // la clé d'une sortie qu'on jette ne la sauve pas, ça apprend au modèle à
+    // remplir une case morte.
+    ...(args.boxChannelOpen
+      ? [
+        'Each item of such a box is written like this, and "grams" is the key that',
+        "carries the amount:",
+        ...boxItemSchemaLines("  "),
+        "Those grams are what goes IN the container once cooked, not the raw weight",
+        "of the shopping; preparation_id is null when that item is added fresh on",
+        "the day.",
+      ]
+      : []),
   ];
   if (held.length > 0) {
     // LE FAIT, PAS LE REPROCHE — et il sert à quelque chose: sans le nom, le
@@ -486,10 +652,30 @@ export function householdDietBlock(args: {
     );
   }
   if (args.divergingNames.length > 0) {
+    // ⛔ ON NE RENVOIE QU'À CE QU'ON ENVOIE. Voir le pavé de
+    // `dedicatedSectionSent`. Sans la section, la phrase garde ce qu'elle a de
+    // vrai — ces bouches ne sont pas liées par la ligne du dessus — et pointe
+    // le canal qui existe réellement : la boîte.
     lines.push(
-      `${args.divergingNames.join(", ")} eat a dish of their OWN at some meals`,
-      "(see A DISH OF THEIR OWN): that dish is not bound by the sentence above,",
-      "and may use what the shared base leaves out.",
+      ...(args.dedicatedSectionSent
+        ? [
+          `${args.divergingNames.join(", ")} eat a dish of their OWN at some meals`,
+          "(see A DISH OF THEIR OWN): that dish is not bound by the sentence above,",
+          "and may use what the shared base leaves out.",
+        ]
+        : args.boxChannelOpen
+        ? [
+          `${args.divergingNames.join(", ")} are NOT bound by the sentence above:`,
+          "what they eat may use what the shared base leaves out. Serve it in",
+          "their own box of the dish, as described just above.",
+        ]
+        // ⛔ NI SECTION NI BOÎTE: ON NE RENVOIE À AUCUN CANAL. Le fait reste
+        // vrai et utile (ces bouches ne sont pas liées), et il n'invente pas
+        // une mécanique qui n'existe pas sur ce chemin.
+        : [
+          `${args.divergingNames.join(", ")} are NOT bound by the sentence above:`,
+          "what they eat may use what the shared base leaves out.",
+        ]),
     );
     // ══ L'EXCEPTION À « NEVER NONE », NOMMÉE — ET ELLE EST LA CAUSE ═══════
     //
@@ -518,9 +704,20 @@ export function householdDietBlock(args: {
     // régresse en réel » est la phrase fondatrice du verrou voisin.
     if (held.length > 0) {
       lines.push(
-        `${held.join(", ")} take no box and no share of those own dishes: on a`,
-        "preparation that breaks the line above they are left out on purpose,",
-        'and the other names still get theirs -- the one exception to "never none".',
+        ...(args.boxChannelOpen
+          ? [
+            `${held.join(", ")} take no box and no share of those own dishes: on a`,
+            "preparation that breaks the line above they are left out on purpose,",
+            'and the other names still get theirs -- the one exception to "never none".',
+          ]
+          // ⚠️ SANS LE CANAL DES BOÎTES, L'EXCEPTION N'A PLUS DE « never none »
+          // à excepter: le brief des contenants ne part pas. Ce qui reste est
+          // la seule moitié qui compte encore — ces bouches ne mangent pas de
+          // ces plats-là.
+          : [
+            `${held.join(", ")} eat none of those own dishes: a preparation that`,
+            "breaks the line above is not for them, and that is on purpose.",
+          ]),
       );
     }
   }

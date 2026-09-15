@@ -1,0 +1,35 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "J ai deux minutes, explique-moi vite ou se trouvent les cartes d attaque dans Sophia.",
+      "created_at": "2026-06-22T19:09:58.63292+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-antifp-20260622-r2-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Les cartes d’attaque sont dans Dashboard > Ressources. Tu peux aussi les voir depuis Dashboard > Plan, sur la mission ou l’habitude concernée. La carte est rangée par niveau.",
+      "created_at": "2026-06-22T19:10:03.87492+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-antifp-20260622-r2-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "7ddbc32d-e76e-47dd-bc31-c111c08d8909",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-22T19:10:03.871478+00:00"
+  }
+}

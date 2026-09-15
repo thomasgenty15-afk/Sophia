@@ -1,0 +1,317 @@
+{
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+        "title": "Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "description": "Fais le tour de tes placards et de ton espace de travail. Retire ou cache les produits transformés qui te tentent le plus en cas de stress.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-001"
+          },
+          "operation_adjustments": [
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "adjustment_type": "reduce",
+                "proposed_change": "reduire l'action a une version minimale",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:21:15.647Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+              "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+            }
+          ],
+          "active_operation_adjustment": {
+            "draft": {
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "title": "Ajustement - Nettoyer ton environnement direct",
+              "scope_label": "Nettoyer ton environnement direct",
+              "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+              "adjustment_type": "reduce",
+              "proposed_change": "reduire l'action a une version minimale",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused"
+              ]
+            },
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "applied_at": "2026-05-12T21:21:15.647Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+            "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+            "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+            "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+          }
+        },
+        "updated_at": "2026-05-12T21:21:15.651633+00:00"
+      },
+      {
+        "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+        "title": "Faire le choix du brut",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "description": "Si tu as faim entre les repas, choisis un aliment brut (fruit, poignée d'amandes) au lieu d'un produit transformé. Si tu n'as pas faim, ne prends rien.",
+        "target_reps": 6,
+        "current_reps": 0,
+        "cadence_label": "6 jours / semaine",
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-habits-001"
+          }
+        },
+        "updated_at": "2026-05-06T14:12:26.926+00:00"
+      },
+      {
+        "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+        "title": "Décoder ton envie de grignoter",
+        "dimension": "clarifications",
+        "kind": "framework",
+        "status": "pending",
+        "description": "Prends 2 minutes lors d'une forte envie de sucre ou de gras pour identifier ce qui se joue vraiment (stress, fatigue, ennui).",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_required",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-clarifications-001"
+          },
+          "clarification_details": {
+            "type": "one_shot",
+            "intro": "La prochaine fois que l'envie de grignoter te prend, fais une pause avant d'agir. L'objectif est de comprendre le déclencheur.",
+            "sections": [
+              {
+                "id": "trigger_emotion",
+                "label": "Que ressens-tu juste avant cette envie ?",
+                "input_type": "list",
+                "helper_text": "Note les émotions ou sensations physiques dominantes.",
+                "placeholder": "Fatigue, stress du travail, ennui..."
+              },
+              {
+                "id": "real_need",
+                "label": "De quoi as-tu réellement besoin à cet instant ?",
+                "input_type": "text",
+                "helper_text": "Souvent, le sucre masque un autre besoin.",
+                "placeholder": "Faire une pause, souffler, m'étirer..."
+              }
+            ],
+            "save_label": "Enregistrer l'observation"
+          }
+        },
+        "updated_at": "2026-05-06T14:12:26.926+00:00"
+      },
+      {
+        "id": "23f34398-87ae-4388-80b4-786989faac97",
+        "title": "Préparer tes alternatives d'avance",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "description": "Achète et prépare des collations saines (fruits lavés, oléagineux en petits pots) pour qu'elles soient plus faciles à attraper que les produits industriels.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-002"
+          }
+        },
+        "updated_at": "2026-05-06T14:12:26.926+00:00"
+      }
+    ]
+  },
+  "system_runtime_snapshots": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "9abed960-9ebe-4ae4-8a4a-da0da8b018fd",
+        "role": "user",
+        "content": "Nettoyer tous mes placards, c'est trop gros, je veux rendre cette action beaucoup plus petite.",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-12T21:20:35.905358+00:00"
+      },
+      {
+        "id": "b4bb6322-828f-4bda-8afe-8841b2b4b757",
+        "role": "assistant",
+        "content": "Je peux l'ajuster, mais il me manque la cible exacte. Donne-moi le nom de l'action du plan à clarifier.",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "operation_runtime": {
+              "status": "ask_question",
+              "missing_slots": [
+                "scope"
+              ],
+              "selected_handler": "adjust_plan_item"
+            }
+          }
+        },
+        "created_at": "2026-05-12T21:20:42.959861+00:00"
+      },
+      {
+        "id": "db4f5f81-db36-4344-9657-4d444afa46eb",
+        "role": "user",
+        "content": "L'action exacte, c'est Nettoyer ton environnement direct. Je veux la réduire, pas l'abandonner : juste une version beaucoup plus petite.",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-12T21:20:57.295094+00:00"
+      },
+      {
+        "id": "ebb7af31-1d46-4799-a9b3-0a7688d61eca",
+        "role": "assistant",
+        "content": "Je te propose d'ajuster Nettoyer ton environnement direct: reduire l'action a une version minimale. Tu veux que je l'applique ?",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "operation_runtime": {
+              "draft": {
+                "draft": {
+                  "patch": {
+                    "difficulty": "low",
+                    "duration_minutes": 5
+                  },
+                  "title": "Ajustement - Nettoyer ton environnement direct",
+                  "scope_label": "Nettoyer ton environnement direct",
+                  "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                  "adjustment_type": "reduce",
+                  "proposed_change": "reduire l'action a une version minimale",
+                  "allowed_patch_fields": [
+                    "difficulty",
+                    "duration_minutes",
+                    "instruction",
+                    "paused"
+                  ]
+                },
+                "output_schema": "plan_adjustment_draft_v1",
+                "operation_type": "adjust_plan_item",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je te propose d'ajuster Nettoyer ton environnement direct: reduire l'action a une version minimale. Tu veux que je l'applique ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "selected_handler": "adjust_plan_item"
+            }
+          }
+        },
+        "created_at": "2026-05-12T21:20:59.473861+00:00"
+      },
+      {
+        "id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d",
+        "role": "user",
+        "content": "oui allege-la, mais pas en mode ridicule",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-12T21:21:10.040236+00:00"
+      },
+      {
+        "id": "68525025-7826-4722-a257-ff4524b28196",
+        "role": "assistant",
+        "content": "C'est fait : j'ai réduit \"Nettoyer ton environnement direct\" pour ce soir. Version légère : 5 minutes, difficulté basse. On vise juste de rester dans le mouvement.",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "operation_runtime": {
+              "status": "executed",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+              "selected_handler": "adjust_plan_item"
+            }
+          }
+        },
+        "created_at": "2026-05-12T21:21:15.659243+00:00"
+      }
+    ]
+  }
+}

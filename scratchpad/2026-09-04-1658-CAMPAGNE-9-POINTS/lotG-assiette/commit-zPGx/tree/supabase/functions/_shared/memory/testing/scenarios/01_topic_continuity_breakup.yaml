@@ -1,0 +1,68 @@
+{
+  "id": "01_topic_continuity_breakup",
+  "description": "Sticky continuation on a breakup topic without false objective facts.",
+  "scenario_version": 1,
+  "initial_state": {
+    "topics": [
+      {
+        "slug": "rupture_couple",
+        "title": "Rupture couple",
+        "lifecycle_stage": "durable",
+      },
+    ],
+  },
+  "turns": [
+    {
+      "user": "Depuis la rupture avec Lina je dors mal.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "topic_decision": "stay",
+        "active_topic_slug": "rupture_couple",
+        "created_items": [
+          {
+            "kind": "statement",
+            "contains": ["rupture", "dors mal"],
+            "domain_keys_any_of": ["relations.couple"],
+            "sensitivity_level": "sensitive",
+            "linked_topic_slug": "rupture_couple",
+          },
+        ],
+        "forbidden_items": [{ "kind": "fact", "contains": ["incapable"] }],
+      },
+    },
+    {
+      "user": "Ce matin j'ai relu ses messages et ca m'a remis dedans.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "topic_decision": "stay",
+        "active_topic_slug": "rupture_couple",
+        "created_items": [
+          {
+            "kind": "event",
+            "contains": ["relu ses messages"],
+            "domain_keys_any_of": ["relations.couple"],
+            "sensitivity_level": "sensitive",
+            "linked_topic_slug": "rupture_couple",
+          },
+        ],
+        "payload_contains": [
+          {
+            "kind": "statement",
+            "contains": "dors mal",
+            "topic_slug": "rupture_couple",
+          },
+        ],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

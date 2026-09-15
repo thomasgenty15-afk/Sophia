@@ -1,0 +1,120 @@
+# mesure L18b — 2026-08-22 14:10:51 CEST
+# commande: bash scripts/keel_l18b_sas_et_repli_20260822.sh
+
+═══════════════════════════════════════════════════════════════════════════
+L18b — LE SAS, ET LE REPLI QUI CESSE D'ÊTRE MORT
+         2026-08-22T12:10:53.443Z · 182 plans · 923 lignes de référentiel
+         ⛔ MODÈLE MUET dans les deux passes · MÊME instantané, MÊME processus
+═══════════════════════════════════════════════════════════════════════════
+
+① LE SAS — `food_composition_pending`
+   niveau: 5 ligne(s)
+   par statut: pending 5
+   par source: model 4 · group_bounds 1
+   promouvables MAINTENANT (pending · model · sightings ≥ 3): 0
+   la liste littérale, avec `first_seen_at` — c'est elle qui porte le DELTA:
+     · figues               other_fruit    model         vu  2× pending       depuis 2026-08-21T21:52:37Z
+     · ciboulette           leafy_greens   model         vu  1× pending       depuis 2026-08-21T21:52:37Z
+     · jus de citron vert   citrus         group_bounds  vu  1× pending       depuis 2026-08-22T02:27:16Z
+     · tofu soyeux          tofu_tempeh    model         vu  1× pending       depuis 2026-08-22T02:27:16Z
+     · yaourt de soja       tofu_tempeh    model         vu  1× pending       depuis 2026-08-21T21:52:37Z
+   plans en base: 182 · MESURÉS (composition_unknowns non nul): 2
+
+② `composition_fill_weekly` — le seul chiffre qui dise si le lot 18 réussit
+   2026-08-17 · household  plans   2 · unknowns_median      3 · max   3 · table 0.924 · promoted 0.000 · model 0.076 · group_bounds 0.000
+   ⚠️ La DIRECTION du lot — « unknowns_median BAISSE semaine après semaine » — demande DEUX semaines.
+   Semaines disponibles: 1. ⇒ NON MESURABLE aujourd'hui, EN ATTENTE du run groupé.
+
+③ LE CRON DE PROMOTION — vérifié, jamais cru sur parole
+   crons en base: 22
+   crons citant `promote_pending_food_compositions`: 0
+   crons citant `composition` (au sens large): 0
+   ⇒ ⛔ AUCUN APPELANT. La promotion ne se lance qu'à la main.
+
+④ LE REPLI PAR BORNES, MODÈLE MUET — [A] CORPUS ENTIER
+   foyer  plans 104 · termes inconnus  121
+          bornés   AVANT    0  →  APRÈS    5   (delta +5)
+          no_group AVANT  121  →  APRÈS  116   (delta -5)
+   solo   plans  78 · termes inconnus  139
+          bornés   AVANT    0  →  APRÈS    0   (delta +0)
+          no_group AVANT  139  →  APRÈS  139   (delta +0)
+
+④ LE REPLI PAR BORNES, MODÈLE MUET — [B] PROMPT VIVANT
+   foyer  plans   2 · termes inconnus    5
+          bornés   AVANT    0  →  APRÈS    5   (delta +5)
+          no_group AVANT    5  →  APRÈS    0   (delta -5)
+   solo   plans   0 · termes inconnus    0
+          bornés   AVANT    0  →  APRÈS    0   (delta +0)
+          no_group AVANT    0  →  APRÈS    0   (delta +0)
+
+⑤ PLATS ENTIÈREMENT RÉSOLUS ET JOURNÉES CALCULABLES — [A] CORPUS ENTIER
+   foyer  plats    AVANT  672/1099 61.1 %  →  APRÈS  693/1099 63.1 %   (delta +21)
+          journées AVANT   98/ 332 29.5 %  →  APRÈS  107/ 332 32.2 %   (delta +9)
+   solo   plats    AVANT   94/ 786 12.0 %  →  APRÈS   94/ 786 12.0 %   (delta +0)
+          journées AVANT   43/ 318 13.5 %  →  APRÈS   43/ 318 13.5 %   (delta +0)
+
+⑤ PLATS ENTIÈREMENT RÉSOLUS ET JOURNÉES CALCULABLES — [B] PROMPT VIVANT
+   foyer  plats    AVANT   37/  64 57.8 %  →  APRÈS   58/  64 90.6 %   (delta +21)
+          journées AVANT    0/  13 0.0 %  →  APRÈS    9/  13 69.2 %   (delta +9)
+   solo   plats    AVANT    0/   0   n/a  →  APRÈS    0/   0   n/a   (delta +0)
+          journées AVANT    0/   0   n/a  →  APRÈS    0/   0   n/a   (delta +0)
+   population EXCLUE, nommée et comptée:
+     ·  35 plan(s) — solo · «aucun prompt_version»
+     ·  28 plan(s) — foyer · meal.en.v15_the_plan_never_names_it+household.v17_what_each_mouth_already_has
+     ·  17 plan(s) — solo · meal.en.v3_preparations
+     ·  12 plan(s) — solo · meal.en.v2_batch
+     ·  11 plan(s) — foyer · meal.en.v14_what_outranks_what+household.v17_what_each_mouth_already_has
+     ·   8 plan(s) — foyer · «aucun prompt_version»
+     ·   8 plan(s) — foyer · meal.en.v9_cooking_shape+household.v5_unmerge
+     ·   8 plan(s) — foyer · meal.en.v9_cooking_shape+household.v6_voices
+     ·   6 plan(s) — foyer · meal.en.v8_distinct_health_direction+household.v2_presence
+     ·   6 plan(s) — foyer · meal.en.v9_cooking_shape+household.v9_merge_dedicated_per_meal
+     ·   5 plan(s) — foyer · meal.en.v9_cooking_shape+household.v8_plan_gaps
+     ·   4 plan(s) — solo · meal.en.v1_doctrine
+     ·   4 plan(s) — foyer · meal.en.v9_cooking_shape+household.v3_merge
+     ·   4 plan(s) — solo · meal.en.v9_cooking_shape
+     ·   4 plan(s) — foyer · meal.en.v12_a_dish_has_a_name+household.v16_this_kitchen_and_a_meal_out
+     ·   3 plan(s) — foyer · meal.en.v9_cooking_shape+household.v4_merge_budget
+     ·   3 plan(s) — foyer · meal.en.v11_weighed_or_counted+household.v15_one_box_each_and_a_number
+     ·   3 plan(s) — foyer · meal.en.v13_what_they_can_actually_do+household.v17_what_each_mouth_already_has
+     ·   3 plan(s) — solo · meal.en.v13_what_they_can_actually_do
+     ·   2 plan(s) — solo · meal.en.v12_a_dish_has_a_name
+     ·   1 plan(s) — foyer · meal.en.v9_cooking_shape+household.v7_merge_anchor
+     ·   1 plan(s) — foyer · meal.en.v9_cooking_shape+household.v11_dietary_regime_at_the_table
+     ·   1 plan(s) — foyer · meal.en.v10_same_day+household.v12_whose_dish_is_it
+     ·   1 plan(s) — foyer · meal.en.v11_weighed_or_counted+household.v14_weigh_once_into_boxes
+     ·   1 plan(s) — solo · meal.en.v14_what_outranks_what
+     ·   1 plan(s) — foyer · meal.en.v16_the_model_declares_the_group+household.v19_a_why_names_no_ones_rule
+
+⑥ LA LANGUE DU SAS — à quoi sert le lot 18, mesuré
+   les 5 termes du sas, par locale DÉCLARÉE des plans qui les portent: fr-FR 6
+
+⑦ ⛔ LE SEUIL DU SAS — EN ATTENTE DU RUN GROUPÉ, ni atteint ni manqué
+   Il se lit en DELTA, pas en niveau: le sas porte DÉJÀ des lignes, et un lot
+   entièrement désarmé serait déclaré réussi par un seuil de niveau (§⑨ n° 50).
+   Seuil: le sas gagne AU MOINS 3 TERMES NEUFS pendant le run groupé.
+
+   ── LA REQUÊTE, LITTÉRALE, À COLLER APRÈS LE RUN ──────────────────────
+   -- ⚠️ REMPLACER `<T0>` par l'horodatage UTC de LANCEMENT du run groupé.
+   select
+     (select count(*) from public.food_composition_pending) as niveau_apres,
+     (select count(*) from public.food_composition_pending
+       where first_seen_at < timestamptz '<T0>') as niveau_avant,
+     (select count(*) from public.food_composition_pending
+       where first_seen_at >= timestamptz '<T0>') as delta_termes_neufs;
+
+   -- LA LISTE LITTÉRALE DES TERMES NEUFS — un compte ne suffit pas.
+   select term, food_group_ref, fill_source, sightings, status, first_seen_at
+   from public.food_composition_pending
+   where first_seen_at >= timestamptz '<T0>'
+   order by first_seen_at, term;
+
+   -- LA DIRECTION (`unknowns_median` en BAISSE sur deux semaines).
+   select week, plan_kind, plans, unknowns_median, unknowns_max,
+          share_table, share_promoted, share_model, share_group_bounds
+   from public.composition_fill_weekly order by week desc, plan_kind;
+
+   niveau AVANT ce lot, mesuré ici: 5
+
+═══════════════════════════════════════════════════════════════════════════
+FIN — 9 sections rendues

@@ -1,0 +1,22 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r6-t01",
+    "status": 200,
+    "ok": true,
+    "user": "fais moi un truc d'attaque pour le machin du soir avec le carnet, j'ai pas d'idée de technique et j'ai pas envie d'un pavé",
+    "assistant": "Ok — version attaque, rapide et sans technique compliquée 😄\n\n1) Ouvre ton carnet et écris juste la date + “Machin du soir : ____”  \n2) Fais 3 puces max :  \n- Ce que j’ai fait (même petit)  \n- Ce que je garde pour demain  \n- La seule chose à finir/faire si j’ai 10 min  \n3) Sors-toi en une phrase : “Ce soir je vise : ____” (un truc concret)\n\nTu me dis juste: c’est “machin du soir” = travail, ménage, sport, ou écriture ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

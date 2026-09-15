@@ -45,6 +45,7 @@ const DAD: PortionMember = {
   habits: [],
   habitNote: null,
   requiredDensity: null,
+  proteinBrief: null,
 };
 const SON: PortionMember = {
   memberId: "m-son", displayName: "Tom", goal: "muscle_gain", ageState: "adult",
@@ -54,6 +55,7 @@ const SON: PortionMember = {
   habits: [],
   habitNote: null,
   requiredDensity: null,
+  proteinBrief: null,
 };
 const KID: PortionMember = {
   memberId: "m-kid", displayName: "Léa", goal: null, ageState: "minor",
@@ -63,6 +65,7 @@ const KID: PortionMember = {
   habits: [],
   habitNote: null,
   requiredDensity: null,
+  proteinBrief: null,
 };
 
 Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
@@ -1445,7 +1448,9 @@ Deno.test("SANS RÉGIME, LE PROMPT EST CELUI D'AVANT v11, À L'OCTET PRÈS", () 
       heldBy: ["Christèle"],
       freeNames: [],
       divergingNames: [],
-    }),
+                                    dedicatedSectionSent: false,
+                                    boxChannelOpen: true,
+                                  }),
   });
   assert(declared.userSuffix.includes("WHAT THE SHARED BASE MUST RESPECT"));
   assert(declared.userSuffix.length > silent.userSuffix.length);
@@ -1483,7 +1488,9 @@ Deno.test("le régime passe AVANT les règles de maison, qui restent DERNIÈRES"
       heldBy: ["Christèle"],
       freeNames: [],
       divergingNames: [],
-    }),
+                                    dedicatedSectionSent: false,
+                                    boxChannelOpen: true,
+                                  }),
   });
   const diet = userSuffix.indexOf("WHAT THE SHARED BASE MUST RESPECT");
   const envy = userSuffix.indexOf("bœuf bourguignon");

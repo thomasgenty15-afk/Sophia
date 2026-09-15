@@ -1,0 +1,12 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r20-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je sens que le bloc du soir sur les grignotages est trop chargé pour moi. Je ne veux pas toucher à toute la trajectoire, juste l'alléger maintenant pour que ce soit tenable.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

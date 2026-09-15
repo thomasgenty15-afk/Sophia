@@ -1,0 +1,453 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "f7416df2-1226-4c8f-b092-1032932c8986",
+        "role": "user",
+        "content": "Je veux préparer une carte de défense libre, sans rien créer depuis le chat. Besoin : éviter le scroll après les mails du soir. Moment : quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué. Signal : j'ouvre YouTube en me disant juste cinq minutes. Geste : poser le téléphone dans l'entrée et aller préparer une tisane.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-field-aware-r1",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-field-aware-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T14:34:57.618477+00:00"
+      },
+      {
+        "id": "aa8ebf04-3995-4d97-a353-0e6009ebf8df",
+        "role": "assistant",
+        "content": "Cible à protéger : éviter le scroll après les mails du soir\nRisque identifié : Quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué - signal : J'ouvre YouTube en me disant juste cinq minutes\nOù aller : dans Ressources / Défense / Cartes de défense libres / Ajouter une carte\n- Ouvre Ressources / Défense.\n- Dans Cartes de défense libres, clique sur Ajouter une carte.\n- Renseigne les réponses ci-dessous dans les champs de la plateforme.\nChamps à remplir :\n1. Besoin libre\nRéponse : Éviter le scroll après les mails du soir\n\n2. À quel moment précis ça arrive, et dans quel contexte ?\nRéponse : Quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué\n\n3. Quel est le premier signal qui montre que ça bascule ?\nRéponse : J'ouvre YouTube en me disant juste cinq minutes\n\n4. Quel geste simple et réaliste pourrait couper ça tout de suite ?\nRéponse : Poser le téléphone dans l'entrée et aller préparer une tisane\nJe ne crée pas la carte depuis le chat. Utilise ces réponses pour remplir la carte dans la plateforme. 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-field-aware-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-field-aware-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": null,
+              "reason": "draft_only_platform_handoff",
+              "status": "handoff_ready",
+              "reason_code": "draft_only_platform_handoff",
+              "user_intent": "draft_only",
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "platform_fields": {
+                "fields": [
+                  {
+                    "status": "locked",
+                    "evidence": [
+                      "éviter le scroll après les mails du soir"
+                    ],
+                    "field_id": "entry_need",
+                    "required": true,
+                    "locked_value": "Éviter le scroll après les mails du soir",
+                    "user_evidence": [
+                      "éviter le scroll après les mails du soir"
+                    ],
+                    "proposed_value": null,
+                    "question_label": "Besoin libre",
+                    "needs_user_confirmation": false
+                  },
+                  {
+                    "status": "locked",
+                    "evidence": [
+                      "quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué"
+                    ],
+                    "field_id": "risk_moment",
+                    "required": true,
+                    "locked_value": "Quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué",
+                    "user_evidence": [
+                      "quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué"
+                    ],
+                    "proposed_value": null,
+                    "question_label": "À quel moment précis ça arrive, et dans quel contexte ?",
+                    "needs_user_confirmation": false
+                  },
+                  {
+                    "status": "locked",
+                    "evidence": [
+                      "j'ouvre YouTube en me disant juste cinq minutes"
+                    ],
+                    "field_id": "first_signal",
+                    "required": true,
+                    "locked_value": "J'ouvre YouTube en me disant juste cinq minutes",
+                    "user_evidence": [
+                      "j'ouvre YouTube en me disant juste cinq minutes"
+                    ],
+                    "proposed_value": null,
+                    "question_label": "Quel est le premier signal qui montre que ça bascule ?",
+                    "needs_user_confirmation": false
+                  },
+                  {
+                    "status": "locked",
+                    "evidence": [
+                      "poser le téléphone dans l'entrée et aller préparer une tisane"
+                    ],
+                    "field_id": "defense_response",
+                    "required": true,
+                    "locked_value": "Poser le téléphone dans l'entrée et aller préparer une tisane",
+                    "user_evidence": [
+                      "poser le téléphone dans l'entrée et aller préparer une tisane"
+                    ],
+                    "proposed_value": null,
+                    "question_label": "Quel geste simple et réaliste pourrait couper ça tout de suite ?",
+                    "needs_user_confirmation": false
+                  },
+                  {
+                    "status": "missing",
+                    "evidence": [],
+                    "field_id": "fallback_plan",
+                    "required": false,
+                    "locked_value": null,
+                    "user_evidence": [],
+                    "proposed_value": null,
+                    "question_label": "Plan B",
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "complete",
+                "route_kind": "free_card",
+                "missing_field_ids": []
+              },
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "Quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué - signal : J'ouvre YouTube en me disant juste cinq minutes",
+                  "platform_flow": {
+                    "entry_need": {
+                      "value": "Éviter le scroll après les mails du soir",
+                      "status": "locked",
+                      "question_label": "Besoin libre"
+                    },
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": [
+                      {
+                        "value": "Quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué",
+                        "status": "locked",
+                        "field_id": "risk_moment",
+                        "question_label": "À quel moment précis ça arrive, et dans quel contexte ?"
+                      },
+                      {
+                        "value": "J'ouvre YouTube en me disant juste cinq minutes",
+                        "status": "locked",
+                        "field_id": "first_signal",
+                        "question_label": "Quel est le premier signal qui montre que ça bascule ?"
+                      },
+                      {
+                        "value": "Poser le téléphone dans l'entrée et aller préparer une tisane",
+                        "status": "locked",
+                        "field_id": "defense_response",
+                        "question_label": "Quel geste simple et réaliste pourrait couper ça tout de suite ?"
+                      }
+                    ]
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "Ouvre Ressources / Défense.",
+                      "Dans Cartes de défense libres, clique sur Ajouter une carte.",
+                      "Renseigne les réponses ci-dessous dans les champs de la plateforme."
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres / Ajouter une carte"
+                  },
+                  "target_summary": "éviter le scroll après les mails du soir",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "éviter le scroll après les mails du soir"
+                        ],
+                        "field_id": "entry_need",
+                        "required": true,
+                        "locked_value": "Éviter le scroll après les mails du soir",
+                        "user_evidence": [
+                          "éviter le scroll après les mails du soir"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Besoin libre",
+                        "needs_user_confirmation": false
+                      },
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué"
+                        ],
+                        "field_id": "risk_moment",
+                        "required": true,
+                        "locked_value": "Quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué",
+                        "user_evidence": [
+                          "quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "À quel moment précis ça arrive, et dans quel contexte ?",
+                        "needs_user_confirmation": false
+                      },
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "j'ouvre YouTube en me disant juste cinq minutes"
+                        ],
+                        "field_id": "first_signal",
+                        "required": true,
+                        "locked_value": "J'ouvre YouTube en me disant juste cinq minutes",
+                        "user_evidence": [
+                          "j'ouvre YouTube en me disant juste cinq minutes"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Quel est le premier signal qui montre que ça bascule ?",
+                        "needs_user_confirmation": false
+                      },
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "poser le téléphone dans l'entrée et aller préparer une tisane"
+                        ],
+                        "field_id": "defense_response",
+                        "required": true,
+                        "locked_value": "Poser le téléphone dans l'entrée et aller préparer une tisane",
+                        "user_evidence": [
+                          "poser le téléphone dans l'entrée et aller préparer une tisane"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Quel geste simple et réaliste pourrait couper ça tout de suite ?",
+                        "needs_user_confirmation": false
+                      },
+                      {
+                        "status": "missing",
+                        "evidence": [],
+                        "field_id": "fallback_plan",
+                        "required": false,
+                        "locked_value": null,
+                        "user_evidence": [],
+                        "proposed_value": null,
+                        "question_label": "Plan B",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "handoff_ready",
+                "surface_id": "defense_cards",
+                "operation_type": "prepare_defense_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T14:35:20.682284+00:00"
+      },
+      {
+        "id": "70044f5e-521f-4714-91c6-26cbb9b56f21",
+        "role": "user",
+        "content": "Ok crée-la alors.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-field-aware-r1",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-field-aware-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T14:35:35.888119+00:00"
+      },
+      {
+        "id": "66fdc69d-3a59-4b07-9915-80b5fcbe4b04",
+        "role": "assistant",
+        "content": "Cible à protéger : éviter le scroll après les mails du soir\nRisque identifié : Quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué - signal : J'ouvre YouTube en me disant juste cinq minutes\nOù aller : dans Ressources / Défense / Cartes de défense libres / Ajouter une carte\n- Ouvre Ressources / Défense.\n- Dans Cartes de défense libres, clique sur Ajouter une carte.\n- Renseigne les réponses ci-dessous dans les champs de la plateforme.\nChamps à remplir :\n1. Besoin libre\nRéponse : Éviter le scroll après les mails du soir\n\n2. À quel moment précis ça arrive, et dans quel contexte ?\nRéponse : Quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué\n\n3. Quel est le premier signal qui montre que ça bascule ?\nRéponse : J'ouvre YouTube en me disant juste cinq minutes\n\n4. Quel geste simple et réaliste pourrait couper ça tout de suite ?\nRéponse : Poser le téléphone dans l'entrée et aller préparer une tisane\nJe ne crée pas la carte depuis le chat. Utilise ces réponses pour remplir la carte dans la plateforme. 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-field-aware-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-field-aware-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "reason": "chat_apply_attempt_redirected_to_platform",
+              "status": "apply_attempt",
+              "reason_code": "chat_apply_attempt_redirected_to_platform",
+              "user_intent": "create",
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "Quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué - signal : J'ouvre YouTube en me disant juste cinq minutes",
+                  "platform_flow": {
+                    "entry_need": {
+                      "value": "Éviter le scroll après les mails du soir",
+                      "status": "locked",
+                      "question_label": "Besoin libre"
+                    },
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": [
+                      {
+                        "value": "Quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué",
+                        "status": "locked",
+                        "field_id": "risk_moment",
+                        "question_label": "À quel moment précis ça arrive, et dans quel contexte ?"
+                      },
+                      {
+                        "value": "J'ouvre YouTube en me disant juste cinq minutes",
+                        "status": "locked",
+                        "field_id": "first_signal",
+                        "question_label": "Quel est le premier signal qui montre que ça bascule ?"
+                      },
+                      {
+                        "value": "Poser le téléphone dans l'entrée et aller préparer une tisane",
+                        "status": "locked",
+                        "field_id": "defense_response",
+                        "question_label": "Quel geste simple et réaliste pourrait couper ça tout de suite ?"
+                      }
+                    ]
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "Ouvre Ressources / Défense.",
+                      "Dans Cartes de défense libres, clique sur Ajouter une carte.",
+                      "Renseigne les réponses ci-dessous dans les champs de la plateforme."
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres / Ajouter une carte"
+                  },
+                  "target_summary": "éviter le scroll après les mails du soir",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "éviter le scroll après les mails du soir"
+                        ],
+                        "field_id": "entry_need",
+                        "required": true,
+                        "locked_value": "Éviter le scroll après les mails du soir",
+                        "user_evidence": [
+                          "éviter le scroll après les mails du soir"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Besoin libre",
+                        "needs_user_confirmation": false
+                      },
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué"
+                        ],
+                        "field_id": "risk_moment",
+                        "required": true,
+                        "locked_value": "Quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué",
+                        "user_evidence": [
+                          "quand je ferme l'ordi vers 22h30 et que je suis déjà fatigué"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "À quel moment précis ça arrive, et dans quel contexte ?",
+                        "needs_user_confirmation": false
+                      },
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "j'ouvre YouTube en me disant juste cinq minutes"
+                        ],
+                        "field_id": "first_signal",
+                        "required": true,
+                        "locked_value": "J'ouvre YouTube en me disant juste cinq minutes",
+                        "user_evidence": [
+                          "j'ouvre YouTube en me disant juste cinq minutes"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Quel est le premier signal qui montre que ça bascule ?",
+                        "needs_user_confirmation": false
+                      },
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "poser le téléphone dans l'entrée et aller préparer une tisane"
+                        ],
+                        "field_id": "defense_response",
+                        "required": true,
+                        "locked_value": "Poser le téléphone dans l'entrée et aller préparer une tisane",
+                        "user_evidence": [
+                          "poser le téléphone dans l'entrée et aller préparer une tisane"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Quel geste simple et réaliste pourrait couper ça tout de suite ?",
+                        "needs_user_confirmation": false
+                      },
+                      {
+                        "status": "missing",
+                        "evidence": [],
+                        "field_id": "fallback_plan",
+                        "required": false,
+                        "locked_value": null,
+                        "user_evidence": [],
+                        "proposed_value": null,
+                        "question_label": "Plan B",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "apply_attempt",
+                "surface_id": "defense_cards",
+                "operation_type": "prepare_defense_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T14:35:45.162573+00:00"
+      }
+    ]
+  }
+}

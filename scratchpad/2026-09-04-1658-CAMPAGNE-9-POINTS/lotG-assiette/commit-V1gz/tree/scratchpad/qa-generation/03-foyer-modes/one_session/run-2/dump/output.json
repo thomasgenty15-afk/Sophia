@@ -1,0 +1,351 @@
+{
+  "request_id": "3a020001-0000-4000-8000-000000020001",
+  "resolved_by": "--request-id",
+  "user_id": "3a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T02:01:20.038Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "e6d38dbf-a166-4501-a0fa-542182c0d157",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T01:57:51.364714+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16183,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16183,
+    "user_message_chars": 17574,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17574,
+    "independent_counters": {
+      "system_prompt_chars": 16183,
+      "prompt_chars": 17574
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "537a57b7-329c-466b-b8f4-8a3babd3cd7a",
+    "created_at": "2026-08-19T02:01:19.466488+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 3,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Harvest Bean Bowl\",\n      \"title\": \"Smoky black beans with peppers, spinach and brown rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Place the cooked rice and smoky beans in a pan with a splash of water. Heat through until steaming, then stir in the fresh spinach until just wilted. Serve immediately.\",\n      \"why\": \"This vegan dish uses smoky chipotle and roasted peppers to meet the household's craving for deep, slow-cooked flavours.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Roasted Chicken & Rice\",\n      \"title\": \"Roasted chicken thighs with peppers, spinach and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the chicken, peppers and rice in a pan. Once hot, toss through the spinach until it wilts. Plate up according to the serving order.\",\n      \"why\": \"Aurele's individual dish includes protein-rich chicken thighs roasted with smoky spices to align with the house theme.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Roasted Chicken & Rice\",\n      \"title\": \"Roasted chicken thighs with peppers, spinach and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the chicken, peppers and rice in a pan. Once hot, toss through the spinach until it wilts. Plate up according to the serving order.\",\n      \"why\": \"This dish provides Marceline with a warm, smoky meal while strictly avoiding fennel as requested.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Roasted Chicken & Rice\",\n      \"title\": \"Roasted chicken thighs with peppers, spinach and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the chicken, peppers and rice in a pan. Once hot, toss through the spinach until it wilts. Plate up according to the serving order.\",\n      \"why\": \"Solveig's portion is prepared without any sesame products to ensure total medical safety.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Bean & Avocado Salad\",\n      \"title\": \"Warm smoky beans with rice, avocado and tomato\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"half\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the beans and rice in a pan until piping hot. Slice the avocado and tomato fresh. Serve the warm base topped with the cool, fresh vegetables.\",\n      \"why\": \"The combination of warm, smoky beans and fresh avocado provides a satisfying, fat-loss friendly dinner for Theodule.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Chicken & Avocado Bowl\",\n      \"title\": \"Roasted smoky chicken with rice, avocado and tomato\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"half\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chicken, peppers and rice in a pan or the oven. Top with sliced avocado and tomato just before serving.\",\n      \"why\": \"Aurele's dinner is built around high-quality protein and loud vegetables, adhering to the coach's principles.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Chicken & Avocado Bowl\",\n      \"title\": \"Roasted smoky chicken with rice, avocado and tomato\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"half\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chicken, peppers and rice in a pan or the oven. Top with sliced avocado and tomato just before serving.\",\n      \"why\": \"This meal provides a warm element for Marceline's dinner, ensuring she stays satisfied through the evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Chicken & Avocado Bowl\",\n      \"title\": \"Roasted smoky chicken with rice, avocado and tomato\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"half\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chicken, peppers and rice in a pan or the oven. Top with sliced avocado and tomato just before serving.\",\n      \"why\": \"Solveig's dish uses fresh summer produce like avocado and tomato, which are in peak season in the UK in August.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_solveig\"\n\"        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Roasted Smoky Chicken and Peppers\",\n      \"servings_made\": 6,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs, skinless and boneless\",\n          \"quantity\": \"6 large\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"mixed bell peppers\",\n          \"quantity\": \"3 large\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Preheat the oven to 200C. Slice the peppers and onions into thick strips. Toss the chicken, peppers, and onions in olive oil and smoked paprika on a large baking tray. Roast for 35-40 minutes until the chicken is cooked through and the vegetables are charred and soft.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 50,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 0\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beans\",\n      \"title\": \"Smoky Chipotle Black Beans\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned black beans\",\n          \"quantity\": \"2 tins (400g each)\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"1 tin (400g)\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell pepper\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Finely dice the onion and pepper. Sauté in olive oil until soft. Add the chipotle paste, black beans (with their liquid), and tomatoes. Simmer on a low heat for 25-30 minutes until thick and smoky.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 0\n        },\n        {\n          \"id\": \"box_beans_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 0\n        },\n        {\n          \"id\": \"box_beans_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 0\n        },\n        {\n          \"id\": \"box_beans_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Brown Rice\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"brown rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice and place in a pot with double the volume of water. Bring to a boil, then reduce to a very low simmer, cover, and cook for 25 minutes until all water is absorbed and rice is tender.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_rice_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_rice_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_rice_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 100\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken\",\n        \"prep_beans\",\n        \"prep_rice\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start by prepping the chicken and peppers and getting them into the oven on a single tray. While the chicken roasts, start the rice on the hob. Use the remaining space on the hob to sauté the vegetables for the bean stew and let it simmer. By the time the chicken is roasted, the rice and beans will be ready to portion into boxes.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"chicken thighs, skinless and boneless\",\n      \"quantity\": \"6 large\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned black beans\",\n      \"quantity\": \"2 tins (400g)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"brown rice\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"mixed bell peppers\",\n      \"quantity\": \"4 large\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onions\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh spinach\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"avocados\",\n      \"quantity\": \"4\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tomatoes\",\n      \"quantity\": \"8\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tinned chopped tomatoes\",\n      \"quantity\": \"1 tin (400g)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chipotle paste\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Plate the fresh spinach, tomatoes, and roasted peppers first, followed by the chicken thighs, with the rice on the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"one portion of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Serve the chicken and rice first, then add the fresh vegetables to the side of the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"one portion of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve the chicken and rice first, then add the fresh vegetables to the side of the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"one portion of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Mix the rice and beans together in a bowl and top with the fresh vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans\",\n          \"note\": \"one portion of smoky beans\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": null,
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Harvest Bean Bowl\",\n      \"title\": \"Smoky black beans with peppers, spinach and brown rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Place the cooked rice and smoky beans in a pan with a splash of water. Heat through until steaming, then stir in the fresh spinach until just wilted. Serve immediately.\",\n      \"why\": \"This vegan dish uses smoky chipotle and roasted peppers to meet the household's craving for deep, slow-cooked flavours.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Roasted Chicken & Rice\",\n      \"title\": \"Roasted chicken thighs with peppers, spinach and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the chicken, peppers and rice in a pan. Once hot, toss through the spinach until it wilts. Plate up according to the serving order.\",\n      \"why\": \"Aurele's individual dish includes protein-rich chicken thighs roasted with smoky spices to align with the house theme.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Roasted Chicken & Rice\",\n      \"title\": \"Roasted chicken thighs with peppers, spinach and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the chicken, peppers and rice in a pan. Once hot, toss through the spinach until it wilts. Plate up according to the serving order.\",\n      \"why\": \"This dish provides Marceline with a warm, smoky meal while strictly avoiding fennel as requested.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Roasted Chicken & Rice\",\n      \"title\": \"Roasted chicken thighs with peppers, spinach and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the chicken, peppers and rice in a pan. Once hot, toss through the spinach until it wilts. Plate up according to the serving order.\",\n      \"why\": \"Solveig's portion is prepared without any sesame products to ensure total medical safety.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Bean & Avocado Salad\",\n      \"title\": \"Warm smoky beans with rice, avocado and tomato\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"half\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the beans and rice in a pan until piping hot. Slice the avocado and tomato fresh. Serve the warm base topped with the cool, fresh vegetables.\",\n      \"why\": \"The combination of warm, smoky beans and fresh avocado provides a satisfying, fat-loss friendly dinner for Theodule.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Chicken & Avocado Bowl\",\n      \"title\": \"Roasted smoky chicken with rice, avocado and tomato\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"half\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chicken, peppers and rice in a pan or the oven. Top with sliced avocado and tomato just before serving.\",\n      \"why\": \"Aurele's dinner is built around high-quality protein and loud vegetables, adhering to the coach's principles.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Chicken & Avocado Bowl\",\n      \"title\": \"Roasted smoky chicken with rice, avocado and tomato\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"half\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chicken, peppers and rice in a pan or the oven. Top with sliced avocado and tomato just before serving.\",\n      \"why\": \"This meal provides a warm element for Marceline's dinner, ensuring she stays satisfied through the evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Chicken & Avocado Bowl\",\n      \"title\": \"Roasted smoky chicken with rice, avocado and tomato\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"half\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chicken, peppers and rice in a pan or the oven. Top with sliced avocado and tomato just before serving.\",\n      \"why\": \"Solveig's dish uses fresh summer produce like avocado and tomato, which are in peak season in the UK in August.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_solveig\"\n\"        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Roasted Smoky Chicken and Peppers\",\n      \"servings_made\": 6,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs, skinless and boneless\",\n          \"quantity\": \"6 large\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"mixed bell peppers\",\n          \"quantity\": \"3 large\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Preheat the oven to 200C. Slice the peppers and onions into thick strips. Toss the chicken, peppers, and onions in olive oil and smoked paprika on a large baking tray. Roast for 35-40 minutes until the chicken is cooked through and the vegetables are charred and soft.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 50,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 0\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beans\",\n      \"title\": \"Smoky Chipotle Black Beans\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned black beans\",\n          \"quantity\": \"2 tins (400g each)\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"1 tin (400g)\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell pepper\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Finely dice the onion and pepper. Sauté in olive oil until soft. Add the chipotle paste, black beans (with their liquid), and tomatoes. Simmer on a low heat for 25-30 minutes until thick and smoky.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 0\n        },\n        {\n          \"id\": \"box_beans_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 0\n        },\n        {\n          \"id\": \"box_beans_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 0\n        },\n        {\n          \"id\": \"box_beans_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Brown Rice\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"brown rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice and place in a pot with double the volume of water. Bring to a boil, then reduce to a very low simmer, cover, and cook for 25 minutes until all water is absorbed and rice is tender.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_rice_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_rice_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_rice_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 100\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken\",\n        \"prep_beans\",\n        \"prep_rice\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start by prepping the chicken and peppers and getting them into the oven on a single tray. While the chicken roasts, start the rice on the hob. Use the remaining space on the hob to sauté the vegetables for the bean stew and let it simmer. By the time the chicken is roasted, the rice and beans will be ready to portion into boxes.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"chicken thighs, skinless and boneless\",\n      \"quantity\": \"6 large\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned black beans\",\n      \"quantity\": \"2 tins (400g)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"brown rice\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"mixed bell peppers\",\n      \"quantity\": \"4 large\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onions\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh spinach\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"avocados\",\n      \"quantity\": \"4\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tomatoes\",\n      \"quantity\": \"8\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tinned chopped tomatoes\",\n      \"quantity\": \"1 tin (400g)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chipotle paste\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Plate the fresh spinach, tomatoes, and roasted peppers first, followed by the chicken thighs, with the rice on the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"one portion of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Serve the chicken and rice first, then add the fresh vegetables to the side of the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"one portion of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve the chicken and rice first, then add the fresh vegetables to the side of the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"one portion of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Mix the rice and beans together in a bowl and top with the fresh vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans\",\n          \"note\": \"one portion of smoky beans\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "NQ6FatKkD_i0xN8Pof3qiAQ",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 21488,
+        "promptTokenCount": 8815,
+        "thoughtsTokenCount": 6485,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8815
+          }
+        ],
+        "candidatesTokenCount": 6188
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T01:57:51.364714+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:57:52.376787+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:57:56.071021+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:57:56.085364+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:57:56.094572+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:58:56.140108+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:58:56.162834+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:58:56.711985+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:59:02.271443+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:59:02.715094+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:59:07.892372+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:59:07.89669+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:59:07.900198+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:00:07.915+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:00:07.928021+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:00:08.408484+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:00:15.112077+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:00:15.767459+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:00:21.117155+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:00:21.131183+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:00:21.138801+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:01:19.466488+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

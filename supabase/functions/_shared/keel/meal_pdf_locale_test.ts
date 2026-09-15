@@ -91,7 +91,22 @@ function dish(over: Partial<GeneratedDish> = {}): GeneratedDish {
 function item(over: Partial<ShoppingItem> = {}): ShoppingItem {
   // ⟳ `L0-a` — `food_group` est REQUIS sur `ShoppingItem`: il porte la fenêtre
   // crue, donc la date de courses. `null` ici, le PDF ne le lit pas.
-  return { term: "poulet", quantity: "600 g", aisle: "protein", food_group: null, ...over };
+  // ⟳ 2026-09-12 · C3 — `ref`, `amount`, `unit`, `state` et `purchasable` sont
+  // REQUIS eux aussi: ils portent l'identité et la quantité structurée, sans
+  // lesquelles une ligne se décidait par son libellé. Le PDF ne les lit pas
+  // non plus, et c'est pour ça qu'ils sont neutres ici.
+  return {
+    term: "poulet",
+    quantity: "600 g",
+    aisle: "protein",
+    food_group: null,
+    ref: null,
+    amount: null,
+    unit: null,
+    state: null,
+    purchasable: true,
+    ...over,
+  };
 }
 
 function input(over: Record<string, unknown> = {}) {

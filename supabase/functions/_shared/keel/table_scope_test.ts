@@ -385,6 +385,7 @@ const MOUTH_A: PortionMember = {
   habits: [],
   habitNote: null,
   requiredDensity: null,
+  proteinBrief: null,
 };
 const MOUTH_B: PortionMember = {
   memberId: LUBNA,
@@ -397,6 +398,7 @@ const MOUTH_B: PortionMember = {
   habits: [],
   habitNote: null,
   requiredDensity: null,
+  proteinBrief: null,
 };
 
 const NOBODY_AWAY = resolveWindowPresence({

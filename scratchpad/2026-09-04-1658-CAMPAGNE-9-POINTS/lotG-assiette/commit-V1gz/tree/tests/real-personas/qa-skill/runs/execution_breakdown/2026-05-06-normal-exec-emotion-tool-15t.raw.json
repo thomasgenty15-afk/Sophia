@@ -1,0 +1,115 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-t01",
+    "user": "salut, j'ai un point assez simple a preparer aujourd'hui",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-t01",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Salut ! Vas-y, pose les grandes lignes ici, on va plier ça rapidement pour que tu sois tranquille ☕",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-t02",
+    "user": "je dois faire une intro de presentation client pour jeudi, rien de dramatique",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-t02",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Top, on garde ça léger et direct alors. Jette tes idées en vrac ou l'objectif principal de la prez ici, je te structure une petite accroche propre dans la foulée 🚀",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-t03",
+    "user": "je veux juste en parler deux minutes avant de m'y mettre",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-t03",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Pas de souci, on se pose deux minutes. C'est quoi qui te fait cogiter sur cette intro ? Le profil du client, le message à faire passer, ou t'as juste besoin de te chauffer un peu à l'oral ? ☕",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-t04",
+    "user": "en fait je bloque sur le premier paragraphe, je veux que ce soit parfait et je n'ose pas commencer",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-t04",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah, le classique piège de la première phrase parfaite 😅 \n\nLe meilleur moyen de débloquer ça, c'est de t'autoriser à écrire la pire version possible au brouillon, juste pour salir la page et faire redescendre la pression.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-t05",
+    "user": "je voudrais juste trouver une premiere version moche en 10 minutes",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

@@ -209,6 +209,20 @@ async function runHouseholdLane(house: BenchHousehold): Promise<BenchRun> {
         : "";
 
       switch (name) {
+        case "rpc:keel_household_claim_generation":
+          return json({
+            ok: true,
+            request_id: "11111111-1111-4111-8111-111111111111",
+            lease_token: "22222222-2222-4222-8222-222222222222",
+          });
+        case "rpc:keel_household_release_generation":
+          return json({ ok: true, released: 1 });
+        case "student_meal_drafts":
+          // Le chemin `draft` journalise désormais AVANT l'appel modèle et
+          // refuse fermé si cette ligne ne peut pas être ouverte.
+          return String(init?.method ?? "GET").toUpperCase() === "POST"
+            ? json({ id: "33333333-3333-4333-8333-333333333333" })
+            : json([]);
         case "household_members":
           return json([{ household_id: "h-bench", role: "owner" }]);
         case "rpc:keel_household_is_covered":
@@ -305,9 +319,12 @@ async function runHouseholdLane(house: BenchHousehold): Promise<BenchRun> {
         body: JSON.stringify({ intent: "draft", window: { kind: "days", count: 2 } }),
       }),
     );
-    await res.text();
+    const responseBody = await res.text();
 
-    assert(prompts.length > 0, "aucun appel modèle: le prompt n'a jamais été composé");
+    assert(
+      prompts.length > 0,
+      `aucun appel modèle: le prompt n'a jamais été composé (HTTP ${res.status}: ${responseBody})`,
+    );
     const first = JSON.parse(prompts[0]) as {
       input?: string;
       instructions?: string;
@@ -601,6 +618,7 @@ function w7Blocks(over: {
         habits: [],
         habitNote: null,
         requiredDensity: null,
+        proteinBrief: null,
       },
       {
         memberId: "m-kid",
@@ -613,6 +631,7 @@ function w7Blocks(over: {
         habits: [],
         habitNote: null,
         requiredDensity: null,
+        proteinBrief: null,
       },
     ],
     envyLine: null,

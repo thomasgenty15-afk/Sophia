@@ -1,0 +1,79 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Ce soir je vais essayer de préparer la zone de déchargement, mais je sens que je risque de repousser parce que ça a l’air bête à faire et je vais me dire “je le ferai plus tard”.",
+    "assistant": "Ouais je vois le piège : quand c’est “bête”, ton cerveau le range dans “plus tard” direct… alors que c’est justement ça qui te fait gagner du temps après. 😄\n\nJe te propose qu’on mette “Préparer ta zone de déchargement” dans une Carte d’attaque (juste pour rendre le démarrage plus simple, sans que tu aies à réfléchir au moment où t’es fatigué). Tu veux qu’on l’utilise ? ✅",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "Ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, préparons une carte d’attaque pour cette action du plan, mais pas encore en mode validation. Je veux qu’elle m’aide surtout au moment où je repousse en me disant que je le ferai plus tard.",
+    "assistant": "Parfait. On va la viser pile sur ton déclencheur “c’est bête → je le fais plus tard”. 😄\n\nCarte d’attaque (version anti-report)\n- Quand je me dis “je le ferai plus tard”, je fais 2 minutes, pas plus.\n- Je prépare ma zone de déchargement pendant le temps d’un “petit lancement” :\n  1) je sors juste ce qu’il faut pour que ça soit prêt\n  2) je vide/pose une première catégorie (même imparfaite)\n- Objectif de succès = “j’ai commencé”, pas “c’est fini”.\n- Si je veux repousser encore : je repasse à “2 minutes” une fois, puis je choisis d’arrêter ou continuer.\n\nPour que la carte colle à TA situation : tu repousse plutôt parce que c’est “trop petit et pas motivant”, ou parce que “ça me prendra trop de temps” ? 😅",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "reason_code": "tool_skill_intent_start",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1-t02",
+    "trace_error": null
+  }
+]

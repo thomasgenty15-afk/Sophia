@@ -564,6 +564,18 @@ export const PAGE_NAMESPACES: Readonly<
     "app",
     "meals",
     "common",
+    // ⟳ 2026-09-12 · ÉTAPE C5 — LE BLOC D'ÉCARTS DE L'APERÇU DE PLAN.
+    // `PlanDraftDialog` monte `PlanValidationNotice`, qui nomme le repas
+    // concerné: « Dimanche, Dîner ». Les deux vocabulaires sont des ATOMES
+    // partagés, déjà entièrement écrits en français (le type l'impose), donc
+    // les déclarer n'ajoute AUCUNE dette de traduction — ça rend seulement
+    // atteignable ce que la page atteint vraiment.
+    // ⚠️ `api/labels.ts` A ÉTÉ ÉVITÉ EXPRÈS pour ces deux-là: son `labelIn`
+    // construit ses clés dynamiquement sur NEUF vocabulaires, et l'importer
+    // aurait traîné `when`, `amount`, `sentence` et `question` jusqu'ici —
+    // quatre namespaces de plus pour un seul libellé de moment.
+    "day",
+    "slot",
   ],
   // `/app/household` — qui mange ici, ce dont chacun a envie, et ce que la
   // maison ne sert pas à qui. ELLE REVIENT DANS CETTE TABLE, d'où le lot 3

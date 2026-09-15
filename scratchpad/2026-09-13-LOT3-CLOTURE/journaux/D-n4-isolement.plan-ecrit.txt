@@ -1,0 +1,44 @@
+── PLAN RELU EN BASE 3232b1a9-0e77-430f-9fbc-a3d6cadd2993 ─────────────────────────────────
+   fenêtre 2026-09-14 → 2026-09-15 · retired_at=null · validated_at=null · updated_at=2026-09-13T21:53:26.174295+00:00
+
+── ① CASSEROLES · SESSIONS ───────────────────────────────────
+   prep_tofu_table           4 part(s) · cook_on=mon  · session(s) S1(mon)
+   prep_tofu_table_iso       2 part(s) · cook_on=mon  · session(s) S1(mon)
+
+── ② PRÉLÈVEMENTS PAR CASSEROLE ──────────────────────────────
+   prep_tofu_table          produit 4 · prélevé 4 · reste 0.00
+        ← mon lunch     1 part(s) · table « Tofu doré, graines de courge et couscous com »
+        ← mon dinner    1 part(s) · table « Tofu doré, edamame et tomate »
+        ← tue lunch     1 part(s) · table « Tofu doré, graines de courge et couscous com »
+        ← tue dinner    1 part(s) · table « Tofu doré, edamame et tomate »
+   prep_tofu_table_iso      produit 2 · prélevé 2 · reste 0.00
+        ← mon lunch     1 part(s) · DÉDIÉ f725dfb0 « Tofu doré du lot commun et graines de courge »
+        ← tue lunch     1 part(s) · DÉDIÉ f725dfb0 « Tofu doré du lot commun et graines de courge »
+
+── ③ ACHATS : BESOIN CONTRE LISTE ────────────────────────────
+   courgette              besoin    324 g · acheté    324 g  ✅
+   couscous_wholemeal     besoin     54 g · acheté     54 g  ✅
+   edamame                besoin   1338 g · acheté   1338 g  ✅
+   oats                   besoin      8 g · acheté      8 g  ✅
+   olive_oil              besoin     38 g · acheté     38 g  ✅
+   pumpkin_seeds          besoin   1593 g · acheté   1593 g  ✅
+   soy_sauce              besoin    135 g · acheté    135 g  ✅
+   soy_yogurt             besoin    238 g · acheté    238 g  ✅
+   spinach                besoin    206 g · acheté    206 g  ✅
+   tofu                   besoin   6175 g · acheté   6175 g  ✅
+   tomato                 besoin     90 g · acheté     90 g  ✅
+   wholemeal_bread        besoin     62 g · acheté     62 g  ✅
+
+── ④ CASES · DENSITÉ SERVIE ET PART DE CHACUN ────────────────
+   mon breakfast table           ρ= 195.4 · lots — · boîtes 06ce0d2e | 0aa41cf6 | 8c5f5d6a
+   mon lunch     table           ρ= 238.2 · lots prep_tofu_table · boîtes 06ce0d2e | 0aa41cf6 | 8c5f5d6a
+   mon dinner    table           ρ= 221.6 · lots prep_tofu_table · boîtes 06ce0d2e | 0aa41cf6 | 8c5f5d6a | f725dfb0
+   mon breakfast DÉDIÉ f725dfb0  ρ= 114.7 · lots — · boîtes f725dfb0
+   mon lunch     DÉDIÉ f725dfb0  ρ= 178.6 · lots prep_tofu_table_iso · boîtes f725dfb0
+   tue breakfast table           ρ= 195.4 · lots — · boîtes 06ce0d2e | 0aa41cf6 | 8c5f5d6a
+   tue lunch     table           ρ= 238.2 · lots prep_tofu_table · boîtes 06ce0d2e | 0aa41cf6 | 8c5f5d6a
+   tue dinner    table           ρ= 221.6 · lots prep_tofu_table · boîtes 06ce0d2e | 0aa41cf6 | 8c5f5d6a | f725dfb0
+   tue breakfast DÉDIÉ f725dfb0  ρ= 114.7 · lots — · boîtes f725dfb0
+   tue lunch     DÉDIÉ f725dfb0  ρ= 178.6 · lots prep_tofu_table_iso · boîtes f725dfb0
+
+✅ AUCUNE INCOHÉRENCE sur le plan écrit.

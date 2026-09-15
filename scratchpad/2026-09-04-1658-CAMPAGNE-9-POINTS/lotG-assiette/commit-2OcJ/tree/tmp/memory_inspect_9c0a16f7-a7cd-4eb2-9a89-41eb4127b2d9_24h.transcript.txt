@@ -1,0 +1,72 @@
+[2026-05-05T17:03:58.338062+00:00] [web] user (request_id=c97f85dd-32dc-47a8-952d-bbe27eef9fd1):
+Tu peux me dire ce qu’il y a dans mon plan en ce moment ?
+
+[2026-05-05T17:04:09.885389+00:00] [web] assistant (request_id=c97f85dd-32dc-47a8-952d-bbe27eef9fd1):
+Voici ce qui est actif dans ton plan en ce moment :
+
+- Préparer la présentation de cadrage client
+- Envoyer la version client jeudi soir pour revue interne
+- Ton bloc focus de 25 minutes sur le cadrage
+
+C'est un programme bien ciblé sur ton projet en cours 🎯
+
+[2026-05-05T17:04:15.474411+00:00] [web] user (request_id=52d27bc5-a9d5-482d-8433-fb9c1f5b03bd):
+Je bloque sur la présentation de cadrage client, je sais pas par où commencer.
+
+[2026-05-05T17:04:28.922827+00:00] [web] assistant (request_id=52d27bc5-a9d5-482d-8433-fb9c1f5b03bd):
+Classique le coup de la page blanche, t'inquiète pas. On va débloquer ça ensemble. 
+
+Si tu devais juste m'écrire ici l'idée principale que ton client doit retenir à la toute fin de ta présentation, en une seule phrase, tu dirais quoi ? 🎯
+
+[2026-05-05T17:04:34.504286+00:00] [web] user (request_id=8e0aafe4-5d00-4e3a-bd60-df63427248cf):
+Est-ce que ça correspond à une action de mon plan ou c’est un truc à part ?
+
+[2026-05-05T17:04:47.754457+00:00] [web] assistant (request_id=8e0aafe4-5d00-4e3a-bd60-df63427248cf):
+C'est complètement dans ton plan. Ça correspond direct à ta mission "Préparer la présentation de cadrage client". 
+
+Te demander juste une phrase, c'est ma petite astuce pour te débloquer et t'aider à lancer la machine en douceur 🚀
+
+[2026-05-05T17:04:53.329301+00:00] [web] user (request_id=0015330d-8c1c-444c-a298-97fe576732f7):
+Ok, ajuste cette action : elle est trop vague pour moi.
+
+[2026-05-05T17:04:56.919362+00:00] [web] assistant (request_id=0015330d-8c1c-444c-a298-97fe576732f7):
+Ok, je garde la cible existante: Preparer la presentation de cadrage client. Pour la clarifier sans creer de nouvelle action, je la ramenerais a: resultat attendu, format livrable, critere "c'est fini", et prochaine etape minimale. Dis-moi juste le role principal de cette presentation: aligner, convaincre, ou obtenir un feu vert ?
+
+[2026-05-05T17:05:02.50297+00:00] [web] user (request_id=0fff7ea6-4ddb-4f1d-9d99-4f7c194d017a):
+Non je ne veux pas une nouvelle action, je veux clarifier celle de la présentation de cadrage client.
+
+[2026-05-05T17:05:21.953728+00:00] [web] assistant (request_id=0fff7ea6-4ddb-4f1d-9d99-4f7c194d017a):
+On est 100% d'accord, on ne crée rien de nouveau, on garde exactement cette action-là. Dès qu'on aura trouvé la bonne formulation, tu pourras simplement aller modifier son texte dans ton tableau de bord 📝
+
+Pour t'aider à la rendre moins vague : quelle est la toute première étape concrète que tu dois faire pour cette présentation ?
+
+[2026-05-05T17:05:27.983942+00:00] [web] user (request_id=7bab3b93-2822-4eff-a7e4-d760cb314b51):
+Et l’envoi jeudi soir pour revue interne, c’est déjà dans mon plan ou pas ?
+
+[2026-05-05T17:05:40.60808+00:00] [web] assistant (request_id=7bab3b93-2822-4eff-a7e4-d760cb314b51):
+Oui, c'est bien dedans ! C'est déjà listé dans tes missions actuelles. Concentre-toi juste sur le début de la présentation pour l'instant, on gérera l'envoi après 👌
+
+[2026-05-05T17:05:46.192006+00:00] [web] user (request_id=8a21146b-ba98-4d48-a88c-a3d1f57f9074):
+Fais-moi une carte d’attaque pour démarrer la présentation sans la refaire de zéro.
+
+[2026-05-05T17:05:49.745978+00:00] [web] assistant (request_id=8a21146b-ba98-4d48-a88c-a3d1f57f9074):
+Je te propose de creer une carte d'attaque courte pour Preparer la presentation de cadrage client: Fais la version 4 minutes de "Preparer la presentation de cadrage client", assez petite pour ne pas negocier. Tu veux que je la cree ?
+
+[2026-05-05T17:05:55.341397+00:00] [web] user (request_id=789371e4-797b-429e-986f-723f4c8d02c5):
+Ok fais-le.
+
+[2026-05-05T17:05:58.921552+00:00] [web] assistant (request_id=789371e4-797b-429e-986f-723f4c8d02c5):
+C'est fait. J'ai créé la carte d'attaque "Carte d'attaque - Preparer la presentation de cadrage client" : Fais la version 4 minutes de "Preparer la presentation de cadrage client", assez petite pour ne pas negocier.
+
+[2026-05-05T17:06:04.492158+00:00] [web] user (request_id=cb81fa51-4f2b-44e7-b72d-cc156f480bd7):
+Résume-moi ce qui existe déjà dans mon plan et ce qu’on a ajusté ou préparé, sans inventer d’action.
+
+[2026-05-05T17:06:23.325996+00:00] [web] assistant (request_id=cb81fa51-4f2b-44e7-b72d-cc156f480bd7):
+Voici exactement ce qui est dans ton plan :
+
+- Préparer la présentation de cadrage client : la mission est toujours là, et on vient de lui greffer une carte d'attaque de 4 minutes pour te débloquer.
+- Envoyer la version client jeudi soir pour revue interne.
+- Ton bloc focus de 25 minutes sur le cadrage.
+
+Rien de plus, rien de moins. Tu te sens prêt à lancer tes 4 premières minutes maintenant ? ⏱️
+

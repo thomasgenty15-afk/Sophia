@@ -1,0 +1,6 @@
+{
+  "connection_name": "update_coach_stateful_20260615_r1",
+  "user_id": "8c68168c-2da4-494f-aa6d-e5f5ee827cf5",
+  "cleanup_status": "complete",
+  "command": "scripts/qa-cleanup-run-connection.sh qa-skill update_coach_stateful_20260615_r1"
+}

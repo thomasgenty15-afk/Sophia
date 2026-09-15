@@ -6,6 +6,7 @@ import {
   EATING_OCCASIONS,
   MEAL_SLOTS,
   occasionList,
+  householdGridSlots,
   parseEatingRhythm,
   parseGeneratedMeal,
 } from "./meal_generation.ts";
@@ -330,4 +331,122 @@ Deno.test("la TAILLE d'un moment arrive jusqu'à la consigne", () => {
   // poserait une contrainte que l'élève n'a pas exprimée — et le modèle la
   // respecterait, ce qui est bien le problème.
   assert(!userMessage.includes("(medium for them)"), userMessage);
+});
+
+// ===========================================================================
+// ⟳ 2026-09-13 · LOT 2 — LA GRILLE D'UN FOYER: LA MAISON, PUIS LES AJOUTS
+//
+// ⛔ LE DÉFAUT MESURÉ. La lane calculait l'union NUE des rythmes déclarés. Une
+// bouche à `null` n'apporte AUCUN moment, et le repli ne répond qu'à une union
+// VIDE: un maître silencieux plus UNE bouche qui déclare `lunch, dinner`
+// rendait une grille de deux moments. Mesuré au banc (`lot2v1`): 4 cases sur 6,
+// les DEUX petits-déjeuners du foyer perdus POUR LES QUATRE BOUCHES parce
+// qu'une bouche secondaire avait rempli sa carte.
+//
+// ⚠️ LA RÈGLE EXTRAITE DE `index.ts`, ET C'EST LA MOITIÉ QUI COMPTE. Elle y
+// vivait en ligne, dans 18 000 lignes: sa seule preuve était un tir au banc,
+// que le prochain remaniement aurait défait en silence.
+// ===========================================================================
+
+Deno.test("① le silence du maître ne laisse pas une bouche décider pour tous", () => {
+  // Le cas exact du banc: maître muet, une seule bouche déclare.
+  const g = householdGridSlots({
+    ownerRhythm: [],
+    memberSlots: ["lunch", "dinner"],
+  });
+  // ⛔ LA BASE EST LA MAISON, pas ce qu'Iris a écrit.
+  assertEquals([...g.base], ["breakfast", "lunch", "dinner"]);
+  assertEquals([...g.union], ["breakfast", "lunch", "dinner"]);
+  assertEquals(g.baseIsDefault, true);
+  assertEquals([...g.addedByMembers], []);
+});
+
+Deno.test("① bis — une bouche AJOUTE un moment, elle n'en retire jamais", () => {
+  const g = householdGridSlots({
+    ownerRhythm: [],
+    // « Tom prend un goûter » — un moment de plus pour la grille du plan.
+    memberSlots: ["snack_pm"],
+  });
+  // ⚠️ L'ORDRE EST CELUI DE LA JOURNÉE — `snack_pm` tombe ENTRE le déjeuner
+  // et le dîner, pas à la fin du tableau reçu.
+  assertEquals([...g.union], ["breakfast", "lunch", "snack_pm", "dinner"]);
+  assertEquals([...g.addedByMembers], ["snack_pm"]);
+  // ⚠️ ET L'ORDRE EST CELUI DE LA JOURNÉE, pas celui de la saisie.
+  assertEquals(
+    g.union.indexOf("lunch") < g.union.indexOf("snack_pm") &&
+      g.union.indexOf("snack_pm") < g.union.indexOf("dinner"),
+    true,
+    JSON.stringify(g.union),
+  );
+});
+
+Deno.test("② LE CAS QUI PASSE: un maître qui déclare garde EXACTEMENT sa grille", () => {
+  // ⛔ C'est le cas solo, et il ne doit pas changer d'un créneau. Une garde
+  // sans cas qui passe bloque tout et ressemble à une garde qui marche.
+  const g = householdGridSlots({
+    ownerRhythm: [{ slot: "lunch", size: "large" }, { slot: "dinner", size: null }],
+    memberSlots: [],
+  });
+  assertEquals([...g.base], ["lunch", "dinner"]);
+  assertEquals([...g.union], ["lunch", "dinner"]);
+  assertEquals(g.baseIsDefault, false);
+  // ⛔ SURTOUT PAS le petit-déjeuner du repli: le maître a parlé.
+  assertEquals(g.union.includes("breakfast"), false);
+});
+
+Deno.test("② bis — le maître parle, une bouche ajoute: les deux comptent", () => {
+  const g = householdGridSlots({
+    ownerRhythm: ["lunch", "dinner"],
+    memberSlots: ["breakfast", "dinner"],
+  });
+  assertEquals([...g.base], ["lunch", "dinner"]);
+  assertEquals([...g.union], ["breakfast", "lunch", "dinner"]);
+  assertEquals([...g.addedByMembers], ["breakfast"]);
+});
+
+Deno.test("③ un rythme ILLISIBLE se lit comme un silence, jamais comme une grille vide", () => {
+  // ⚠️ `parseEatingRhythm` est défensif dans UNE direction: ce qu'il ne
+  // reconnaît pas est laissé de côté. Une journée vide n'est jamais une
+  // réponse — on retombe sur la maison.
+  for (const brut of [null, "lunch", 42, [{ slot: "brunch" }], [{}]]) {
+    const g = householdGridSlots({ ownerRhythm: brut, memberSlots: [] });
+    assertEquals(
+      [...g.union],
+      ["breakfast", "lunch", "dinner"],
+      JSON.stringify(brut),
+    );
+    assertEquals(g.baseIsDefault, true, JSON.stringify(brut));
+  }
+});
+
+Deno.test("③ bis — une bouche seule ne peut pas VIDER la grille du foyer", () => {
+  // ⛔ LE CŒUR DU DÉFAUT, ÉCRIT COMME UNE INVARIANTE. Quoi que déclarent les
+  // bouches, la grille du plan CONTIENT toujours celle de la maison.
+  const cas: readonly unknown[][] = [
+    [],
+    ["dinner"],
+    ["lunch", "dinner"],
+    ["snack_am"],
+    ["before_bed", "lunch"],
+  ];
+  for (const memberSlots of cas) {
+    for (const ownerRhythm of [[], ["lunch", "dinner"], ["breakfast"]]) {
+      const g = householdGridSlots({ ownerRhythm, memberSlots });
+      for (const s of g.base) {
+        assertEquals(
+          g.union.includes(s),
+          true,
+          `${JSON.stringify(ownerRhythm)} + ${JSON.stringify(memberSlots)} a perdu ${s}`,
+        );
+      }
+    }
+  }
+});
+
+Deno.test("④ la base du repli EST `DEFAULT_EATING_RHYTHM`, pas une copie qui dérivera", () => {
+  // ⛔ UN SECOND LITTÉRAL DIVERGERAIT AU PREMIER CHANGEMENT DE REPLI.
+  assertEquals(
+    [...householdGridSlots({ ownerRhythm: [], memberSlots: [] }).base],
+    DEFAULT_EATING_RHYTHM.map((o) => o.slot),
+  );
 });

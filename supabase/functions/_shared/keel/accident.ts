@@ -410,6 +410,12 @@ export function parseAccidentPlan(
       food_group: i?.food_group === null || i?.food_group === undefined
         ? null
         : String(i.food_group),
+      // ⟳ 2026-09-12 · FERMETURE LOT 2 — QUATRIÈME SITE, ET LE COMPILATEUR L'A
+      // RECENSÉ. `WaveItem.ref` est requis depuis que la conservation se lit sur
+      // l'IDENTIFIANT et plus sur le rayon: sans lui, une boîte de thon
+      // replacée par la cascade d'accident retomberait sur la fenêtre du
+      // poisson frais — un jour — et la garde refuserait le plan décalé.
+      ref: i?.ref === null || i?.ref === undefined ? null : String(i.ref),
     }));
 
   return {

@@ -1,0 +1,82 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r13-t01-e88b2609-35c5-45fa-abbb-33718832be6e",
+    "status": 200,
+    "ok": true,
+    "user": "Je crois que le bloc grignotage me bloque surtout le soir. Ce n’est pas une action en particulier, c’est le niveau entier qui me donne l’impression d’avoir trop de petites décisions quand je suis déjà crevée.",
+    "assistant": "C'est très clair : la fatigue du soir transforme les petites décisions en obstacles insurmontables. Pour alléger ce bloc, est-ce que tu préfères qu'on simplifie le contenu des actions pour limiter les choix à faire, ou qu'on en déplace certaines à un moment de la journée où tu as plus d'énergie ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "turn_frame_tool_skill_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "bloc grignotage",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high",
+        "operation_input": {
+          "scope": {
+            "kind": "current_level",
+            "label": "bloc grignotage",
+            "status": "identified",
+            "evidence": [
+              "le bloc grignotage me bloque surtout le soir"
+            ]
+          },
+          "target_granularity": {
+            "value": "current_level",
+            "status": "identified",
+            "evidence": [
+              "Ce n’est pas une action en particulier, c’est le niveau entier"
+            ],
+            "confidence": "high",
+            "negative_evidence": []
+          }
+        },
+        "adjust_plan_scope": "current_level"
+      }
+    ],
+    "trace_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r13-t01-e88b2609-35c5-45fa-abbb-33718832be6e",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r13-t02-c3062727-7e12-4e56-8b6a-7c57bfcf871e",
+    "status": 500,
+    "ok": null,
+    "user": "Les deux un peu : déplacer la décision avant, et simplifier ce qui reste le soir. Je veux garder le niveau et ne pas réduire la fréquence.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "tool_skill_run": null,
+    "pending_tool_skill_confirmation": null,
+    "turn_frame_tool_skill_intents": null,
+    "trace_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r13-t02-c3062727-7e12-4e56-8b6a-7c57bfcf871e",
+    "trace_error": null
+  }
+]

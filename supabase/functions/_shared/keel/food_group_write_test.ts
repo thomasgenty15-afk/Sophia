@@ -112,7 +112,7 @@ function rowsOf(carriers: ReadonlyArray<Record<string, unknown>>, at: number) {
   return rows as ReadonlyArray<unknown>;
 }
 
-const NOTHING_DECLARED = { groups_declared: 0, groups_valid: 0, groups_refused: 0 };
+const NOTHING_DECLARED = { groups_declared: 0, groups_valid: 0, groups_refused: 0, groups_conflicting: 0 };
 const EMPTY = { dishes: [], preparations: [] } as const;
 
 // ---------------------------------------------------------------------------
@@ -124,13 +124,14 @@ const EMPTY = { dishes: [], preparations: [] } as const;
 
 Deno.test("L17-0 — un groupe valide écrit sur la ligne est COMPTÉ persisté", () => {
   const counts = foodGroupWriteCounts(
-    { groups_declared: 1, groups_valid: 1, groups_refused: 0 },
+    { groups_declared: 1, groups_valid: 1, groups_refused: 0, groups_conflicting: 0 },
     { dishes: [carrier(writtenRow("legumes"))], preparations: [] },
   );
   assertEquals(counts, {
     declared: 1,
     valid: 1,
     refused: 0,
+    conflicting: 0,
     persisted: 1,
     lines: 1,
   });
@@ -160,7 +161,7 @@ Deno.test("⛔ L17-0 — la clé absente du payload ouvre l'écart en grand", ()
   // C'est l'état exact de la base au 2026-08-22: le modèle avait déclaré, la
   // ceinture avait compté, et la ligne écrite ne portait pas la clé.
   const counts = foodGroupWriteCounts(
-    { groups_declared: 25, groups_valid: 25, groups_refused: 0 },
+    { groups_declared: 25, groups_valid: 25, groups_refused: 0, groups_conflicting: 0 },
     { dishes: [carrier(writtenRow(undefined), writtenRow(undefined))], preparations: [] },
   );
   assertEquals(counts.persisted, 0);
@@ -174,7 +175,7 @@ Deno.test("⛔ L17-0 — une clé VIDE ne vaut pas un groupe", () => {
   // lot désarmé identique à un lot qui marche.
   for (const empty of ["", "   "]) {
     const counts = foodGroupWriteCounts(
-      { groups_declared: 1, groups_valid: 1, groups_refused: 0 },
+      { groups_declared: 1, groups_valid: 1, groups_refused: 0, groups_conflicting: 0 },
       { dishes: [carrier(writtenRow(empty))], preparations: [] },
     );
     assertEquals(counts.persisted, 0, `« ${empty} » ne doit pas compter`);
@@ -193,7 +194,7 @@ Deno.test("⛔ L17-0 — un slug inventé n'est JAMAIS compté persisté", () =>
     assertEquals(persistedGroupOf(writtenRow(invented)), null, invented);
   }
   const counts = foodGroupWriteCounts(
-    { groups_declared: 2, groups_valid: 1, groups_refused: 1 },
+    { groups_declared: 2, groups_valid: 1, groups_refused: 1, groups_conflicting: 0 },
     { dishes: [carrier(writtenRow("legumes"), writtenRow("meat"))], preparations: [] },
   );
   assertEquals(counts.persisted, 1);
@@ -231,7 +232,7 @@ Deno.test("⛔ L17-0 — un groupe déclaré dans une PRÉPARATION est compté",
   // préparation. Un compteur qui ne lirait que `dishes` sous-compterait d'un
   // tiers, silencieusement, et le seuil du lot serait faux dans le bon sens.
   const counts = foodGroupWriteCounts(
-    { groups_declared: 2, groups_valid: 2, groups_refused: 0 },
+    { groups_declared: 2, groups_valid: 2, groups_refused: 0, groups_conflicting: 0 },
     {
       dishes: [carrier(writtenRow("leafy_greens"))],
       preparations: [carrier(writtenRow("legumes"))],
@@ -243,7 +244,7 @@ Deno.test("⛔ L17-0 — un groupe déclaré dans une PRÉPARATION est compté",
 
   // ⛔ ET LA MOITIÉ SEULE NE SUFFIT PAS: sans les préparations, 1 sur 2.
   const dishesOnly = foodGroupWriteCounts(
-    { groups_declared: 2, groups_valid: 2, groups_refused: 0 },
+    { groups_declared: 2, groups_valid: 2, groups_refused: 0, groups_conflicting: 0 },
     { dishes: [carrier(writtenRow("leafy_greens"))], preparations: [] },
   );
   assertEquals(dishesOnly.persisted, 1);
@@ -260,7 +261,7 @@ Deno.test("⛔ L17-0 — une ligne comptée puis JETÉE ouvre l'écart, et c'est
   // ⛔ SI `persisted` ÉTAIT CLOUÉ À `valid`, ce cas rendrait zéro et le
   // compteur ne mesurerait plus rien — c'est la mutation que ce test tue.
   const counts = foodGroupWriteCounts(
-    { groups_declared: 3, groups_valid: 3, groups_refused: 0 },
+    { groups_declared: 3, groups_valid: 3, groups_refused: 0, groups_conflicting: 0 },
     { dishes: [carrier(writtenRow("legumes"))], preparations: [] },
   );
   assertEquals(counts.valid, 3);
@@ -394,7 +395,14 @@ Deno.test("⛔ L17-0 — la clé est écrite même quand le modèle n'a rien dé
   }
 
   const counts = foodGroupWriteCounts(meal.regime_belt, { dishes, preparations });
-  assertEquals(counts, { declared: 0, valid: 0, refused: 0, persisted: 0, lines: 4 });
+  assertEquals(counts, {
+    declared: 0,
+    valid: 0,
+    refused: 0,
+    conflicting: 0,
+    persisted: 0,
+    lines: 4,
+  });
 });
 
 Deno.test("⛔ L17-0 — un slug inventé est compté refusé et n'atteint pas la ligne", () => {

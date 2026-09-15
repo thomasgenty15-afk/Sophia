@@ -41,7 +41,11 @@ const SRC = stripComments(await Deno.readTextFile(new URL(REL, FUNCTIONS_DIR)));
 
 const FINAL = "const quantityFinal = finalizeQuantityProse(";
 const SIZING = "const applied = applySizing({";
-const SHOPPING = "const scaled = scaleShoppingList([line], f);";
+// ⟳ 2026-09-12 · C3 — L'ANCRE DES COURSES A CHANGÉ DE NATURE. La liste ne
+// suit plus un FACTEUR (`scaleShoppingList([line], f)`), qui exigeait deux
+// classifications de prose d'accord entre elles: elle est RECONSTRUITE depuis
+// le plan final arrondi, par identité alimentaire.
+const SHOPPING = "const rebuilt = rebuildShoppingQuantities({";
 const RELINK = "const sizedByBox = new Map<string, number[]>();";
 const PREPS_WRITTEN = "const preparationsWritten = mealPreparationsPayload(meal);";
 
@@ -74,11 +78,24 @@ Deno.test("CÂBLAGE ③ elle vient AVANT le recollage de la charge `dishes`", ()
   assert(f < p, "`preparations` est resérialisé après, depuis `meal`");
 });
 
-Deno.test("CÂBLAGE ④ le recollage porte bien les trois champs de quantité", () => {
+Deno.test("CÂBLAGE ④ le recollage porte bien les quatre champs de quantité", () => {
   // ⛔ SANS CE RECOLLAGE, LE LOT S'ARRÊTE AUX CASSEROLES. `preparations` est
   // resérialisé depuis `meal`; `dishes` est un instantané, et c'est lui qui
   // part en base ET dans la réponse.
-  for (const champ of ["entry.quantity = line.quantity;", "entry.amount = line.amount;", "entry.grams_raw = line.gramsRaw;"]) {
+  //
+  // ⟳ 2026-09-12 · C2 — `unit` A REJOINT LA LISTE. Ce test en exigeait TROIS,
+  // parce que `unit` était alors une déclaration que rien ne mutait après le
+  // parseur. L'arrondi la mute (cuillère → ml, pièce → g): un test qui
+  // continuerait d'en exiger trois resterait vert sur une charge portant
+  // `amount: 12` sous `unit: "tbsp"` — quinze fois la quantité calculée.
+  for (
+    const champ of [
+      "entry.quantity = line.quantity;",
+      "entry.amount = line.amount;",
+      "entry.unit = line.unit;",
+      "entry.grams_raw = line.gramsRaw;",
+    ]
+  ) {
     assert(SRC.includes(champ), `le recollage n'écrit pas \`${champ}\``);
   }
   // Et il se compte: un recollage silencieux qui cesse de fonctionner

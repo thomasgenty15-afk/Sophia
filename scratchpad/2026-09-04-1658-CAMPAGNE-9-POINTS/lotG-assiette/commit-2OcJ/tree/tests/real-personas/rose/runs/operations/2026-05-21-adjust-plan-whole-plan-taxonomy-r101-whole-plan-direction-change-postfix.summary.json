@@ -1,0 +1,882 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r101-whole-plan-direction-change-postfix-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je me rends compte que le plan cherche surtout a reduire les disputes, mais je crois que ce n'est plus exactement la direction que je veux. J'aimerais que la suite serve davantage a retrouver de la complicite et du plaisir simple ensemble, pas seulement a eviter les tensions. Tu peux regarder si la trajectoire globale devrait changer ?",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réoriente l'accent du plan, avec un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "prioriser_complicite_et_plaisir_simple",
+              "ne_pas_reduire_le_plan_a_l_evitation_des_tensions",
+              "whole_plan_change_family:direction_change",
+              "whole_plan_candidate_operation:change_emphasis",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "direction_axis:complicity_and_simple_pleasure",
+              "coach_observation:La demande ne porte pas sur un détail d'exécution, mais sur un recentrage de trajectoire : le plan est perçu comme trop orienté vers la prévention des disputes, alors que le besoin humain exprimé est de recréer de la complicité, du plaisir simple et une dynamique relationnelle plus vivante. Le cœur du changement est donc conceptuel et global, pas seulement tactique.",
+              "coach_recommendation:Orienter le prochain cadrage vers un changement d'emphase du plan entier : conserver la sécurité comme base, mais requalifier la suite pour qu'elle serve d'abord la connexion, la légèreté et les moments agréables partagés. Le sous-skill devrait préparer un brouillon de trajectoire globale qui garde les acquis anti-escalade sans laisser l'objectif principal se réduire à l'évitement du conflit.",
+              "coach_warning:Éviter de proposer seulement des ajustements locaux sur une action isolée : cela ne répondrait pas à la réorientation demandée.",
+              "coach_warning:Éviter de supprimer la partie sécurité/tensions : elle reste probablement un socle utile, mais ne doit plus être la finalité affichée.",
+              "coach_warning:Éviter de reformuler la demande comme un simple problème de rythme ou de méthode ; le besoin est d'abord une question de direction.",
+              "coach_warning:Éviter de promettre une transformation immédiate de la relation : il faut préserver une progression réaliste entre apaisement et complicité.",
+              "coach_preserve:La base de sécurité déjà construite, car elle reste un prérequis relationnel utile.",
+              "coach_preserve:Les apprentissages sur la désescalade et les signaux de pause, s'ils servent de fondation et non de destination finale.",
+              "coach_preserve:L'intention de faire un plan concret et praticable, sans surcharge.",
+              "coach_preserve:Le rythme progressif du plan, pour éviter un saut trop brusque vers une exigence émotionnelle plus élevée.",
+              "coach_avoid:Ne pas proposer un plan qui ne traite que les disputes ou la gestion des conflits.",
+              "coach_avoid:Ne pas présenter la complicité comme un bonus facultatif si la base est terminée ; c'est désormais une direction centrale.",
+              "coach_avoid:Ne pas surcharger le plan avec trop d'actions sociales ou romantiques d'un coup.",
+              "coach_avoid:Ne pas effacer les étapes de sécurité au motif qu'elles paraissent moins désirées.",
+              "coach_avoid:Ne pas proposer une conversion directe de tous les outils actuels sans recontextualisation du but.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Rôle de l'action: si une action de sécurité est conservée, la présenter comme un moyen au service de la connexion, pas comme l'objectif final.",
+              "coach_guideline:Intention préservée: garder l'apaisement et la capacité à se parler, mais réattribuer la priorité à la complicité et au plaisir simple.",
+              "coach_guideline:Pont mini si besoin: faire le lien explicite entre moins de tension et plus de disponibilité pour des moments agréables.",
+              "coach_guideline:Pas de changement de nature sans demande explicite: ne pas transformer la relation en programme thérapeutique lourd ou en plan de performance affective.",
+              "coach_guideline:Whole plan: vérifier la cohérence globale, l'ordre des phases et les critères de réussite pour qu'ils reflètent la nouvelle direction.",
+              "coach_guideline:Whole plan: préserver les prérequis de sécurité, mais ajouter ou valoriser une phase de reconnexion si la trajectoire actuelle n'y mène pas.",
+              "coach_guideline:Whole plan: si la sécurité reste en première partie, annoncer clairement la transition vers une phase de complicité et de plaisir partagé.",
+              "coach_guideline:Whole plan: les objectifs et questionnaires déjà utiles doivent être relus à l'aune du nouveau cap, sans rupture brutale.",
+              "whole_plan_change_family:direction_change",
+              "whole_plan_candidate_operation:change_emphasis",
+              "whole_plan_readiness:draft_ready",
+              "coach_trajectory_hypothesis:La trajectoire actuelle privilégie surtout la réduction des tensions ; la trajectoire possible conserve cette base mais la re-centre sur la complicité, la légèreté et le plaisir simple partagé.",
+              "whole_plan_change_family:direction_change",
+              "whole_plan_candidate_operation:change_emphasis",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause",
+              "affected_item:Partager un point positif"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user demande un changement d'axe global, pas seulement un allègement.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user demande un changement d'axe global, pas seulement un allègement.",
+          "decision_basis": {
+            "evidence": [
+              "Je me rends compte que le plan cherche surtout a reduire les disputes, mais je crois que ce n'est plus exactement la direction que je veux. J'aimerais que la suite serve davantage a retrouver de la complicite et du plaisir simple ensemble, pas seulement a eviter les tensions. Tu peux regarder si la trajectoire globale devrait changer ?",
+              "la suite",
+              "trajectoire globale",
+              "retrouver de la complicité et du plaisir simple ensemble",
+              "pas seulement à éviter les tensions",
+              "deterministic whole-plan fit/complexity signal",
+              "surtout à réduire les disputes",
+              "plus exactement la direction que je veux",
+              "retrouver de la complicité",
+              "du plaisir simple ensemble"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je réoriente l'accent du plan: Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le plan garde l'apaisement comme base, mais la suite ne vise plus seulement à éviter les disputes: elle ajoute clairement un axe de complicité et de plaisir simple.",
+            "expected_mechanism": "Le user demande un changement d'axe global, pas seulement un allègement."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Le plan suivait son axe initial, mais cet axe ne correspond plus assez à la direction voulue.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user demande un changement d'axe global, pas seulement un allègement."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je réoriente l'accent du plan: Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande un changement d'axe global, pas seulement un allègement.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande un changement d'axe global, pas seulement un allègement.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde l'apaisement comme base, mais la suite ne vise plus seulement à éviter les disputes: elle ajoute clairement un axe de complicité et de plaisir simple.",
+                "before": "Le plan suivait son axe initial, mais cet axe ne correspond plus assez à la direction voulue.",
+                "inserted_step": "Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+                "coaching_reason": "Le user demande un changement d'axe global, pas seulement un allègement.",
+                "reordered_steps": [
+                  "Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+                  "Construire les prochains blocs autour du nouvel axe"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je réoriente l'accent du plan: Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+            "user_message_detailed": "je réoriente l'accent du plan: Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde l'apaisement comme base, mais la suite ne vise plus seulement à éviter les disputes: elle ajoute clairement un axe de complicité et de plaisir simple.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réoriente l'accent du plan, avec un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+      },
+      "status": "draft_review",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "c19f691e-cb2c-4f50-b30c-84c0a382c255",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer un plan qui ne traite que les disputes ou la gestion des conflits.",
+          "Ne pas présenter la complicité comme un bonus facultatif si la base est terminée ; c'est désormais une direction centrale.",
+          "Ne pas surcharger le plan avec trop d'actions sociales ou romantiques d'un coup.",
+          "Ne pas effacer les étapes de sécurité au motif qu'elles paraissent moins désirées.",
+          "Ne pas proposer une conversion directe de tous les outils actuels sans recontextualisation du but."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "La base de sécurité déjà construite, car elle reste un prérequis relationnel utile.",
+          "Les apprentissages sur la désescalade et les signaux de pause, s'ils servent de fondation et non de destination finale.",
+          "L'intention de faire un plan concret et praticable, sans surcharge.",
+          "Le rythme progressif du plan, pour éviter un saut trop brusque vers une exigence émotionnelle plus élevée."
+        ],
+        "warnings": [
+          "Éviter de proposer seulement des ajustements locaux sur une action isolée : cela ne répondrait pas à la réorientation demandée.",
+          "Éviter de supprimer la partie sécurité/tensions : elle reste probablement un socle utile, mais ne doit plus être la finalité affichée.",
+          "Éviter de reformuler la demande comme un simple problème de rythme ou de méthode ; le besoin est d'abord une question de direction.",
+          "Éviter de promettre une transformation immédiate de la relation : il faut préserver une progression réaliste entre apaisement et complicité."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Rôle de l'action: si une action de sécurité est conservée, la présenter comme un moyen au service de la connexion, pas comme l'objectif final.",
+          "Intention préservée: garder l'apaisement et la capacité à se parler, mais réattribuer la priorité à la complicité et au plaisir simple.",
+          "Pont mini si besoin: faire le lien explicite entre moins de tension et plus de disponibilité pour des moments agréables.",
+          "Pas de changement de nature sans demande explicite: ne pas transformer la relation en programme thérapeutique lourd ou en plan de performance affective.",
+          "Whole plan: vérifier la cohérence globale, l'ordre des phases et les critères de réussite pour qu'ils reflètent la nouvelle direction.",
+          "Whole plan: préserver les prérequis de sécurité, mais ajouter ou valoriser une phase de reconnexion si la trajectoire actuelle n'y mène pas.",
+          "Whole plan: si la sécurité reste en première partie, annoncer clairement la transition vers une phase de complicité et de plaisir partagé.",
+          "Whole plan: les objectifs et questionnaires déjà utiles doivent être relus à l'aune du nouveau cap, sans rupture brutale."
+        ],
+        "observation": "La demande ne porte pas sur un détail d'exécution, mais sur un recentrage de trajectoire : le plan est perçu comme trop orienté vers la prévention des disputes, alors que le besoin humain exprimé est de recréer de la complicité, du plaisir simple et une dynamique relationnelle plus vivante. Le cœur du changement est donc conceptuel et global, pas seulement tactique.",
+        "change_family": "direction_change",
+        "recommendation": "Orienter le prochain cadrage vers un changement d'emphase du plan entier : conserver la sécurité comme base, mais requalifier la suite pour qu'elle serve d'abord la connexion, la légèreté et les moments agréables partagés. Le sous-skill devrait préparer un brouillon de trajectoire globale qui garde les acquis anti-escalade sans laisser l'objectif principal se réduire à l'évitement du conflit.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Garder les éléments actuels de désamorçage, mais les relier explicitement à un objectif supérieur de disponibilité affective et de moments agréables.",
+          "Ajouter une phase ou un sous-objectif centré sur la complicité : petits plaisirs, rituels légers, micro-moments de connexion.",
+          "Reformuler la réussite du plan : non seulement moins de disputes, mais plus de fluidité, de chaleur et d'instants simples partagés.",
+          "Réorganiser l'ordre des phases pour passer plus tôt d'une logique de sécurité à une logique de reconnexion.",
+          "Créer un pont entre les outils de régulation des tensions et des actions orientées vers le plaisir commun."
+        ],
+        "candidate_operation": "change_emphasis",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle privilégie surtout la réduction des tensions ; la trajectoire possible conserve cette base mais la re-centre sur la complicité, la légèreté et le plaisir simple partagé.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer un plan qui ne traite que les disputes ou la gestion des conflits.",
+        "Ne pas présenter la complicité comme un bonus facultatif si la base est terminée ; c'est désormais une direction centrale.",
+        "Ne pas surcharger le plan avec trop d'actions sociales ou romantiques d'un coup.",
+        "Ne pas effacer les étapes de sécurité au motif qu'elles paraissent moins désirées.",
+        "Ne pas proposer une conversion directe de tous les outils actuels sans recontextualisation du but."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "La base de sécurité déjà construite, car elle reste un prérequis relationnel utile.",
+        "Les apprentissages sur la désescalade et les signaux de pause, s'ils servent de fondation et non de destination finale.",
+        "L'intention de faire un plan concret et praticable, sans surcharge.",
+        "Le rythme progressif du plan, pour éviter un saut trop brusque vers une exigence émotionnelle plus élevée."
+      ],
+      "warnings": [
+        "Éviter de proposer seulement des ajustements locaux sur une action isolée : cela ne répondrait pas à la réorientation demandée.",
+        "Éviter de supprimer la partie sécurité/tensions : elle reste probablement un socle utile, mais ne doit plus être la finalité affichée.",
+        "Éviter de reformuler la demande comme un simple problème de rythme ou de méthode ; le besoin est d'abord une question de direction.",
+        "Éviter de promettre une transformation immédiate de la relation : il faut préserver une progression réaliste entre apaisement et complicité."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Rôle de l'action: si une action de sécurité est conservée, la présenter comme un moyen au service de la connexion, pas comme l'objectif final.",
+        "Intention préservée: garder l'apaisement et la capacité à se parler, mais réattribuer la priorité à la complicité et au plaisir simple.",
+        "Pont mini si besoin: faire le lien explicite entre moins de tension et plus de disponibilité pour des moments agréables.",
+        "Pas de changement de nature sans demande explicite: ne pas transformer la relation en programme thérapeutique lourd ou en plan de performance affective.",
+        "Whole plan: vérifier la cohérence globale, l'ordre des phases et les critères de réussite pour qu'ils reflètent la nouvelle direction.",
+        "Whole plan: préserver les prérequis de sécurité, mais ajouter ou valoriser une phase de reconnexion si la trajectoire actuelle n'y mène pas.",
+        "Whole plan: si la sécurité reste en première partie, annoncer clairement la transition vers une phase de complicité et de plaisir partagé.",
+        "Whole plan: les objectifs et questionnaires déjà utiles doivent être relus à l'aune du nouveau cap, sans rupture brutale."
+      ],
+      "observation": "La demande ne porte pas sur un détail d'exécution, mais sur un recentrage de trajectoire : le plan est perçu comme trop orienté vers la prévention des disputes, alors que le besoin humain exprimé est de recréer de la complicité, du plaisir simple et une dynamique relationnelle plus vivante. Le cœur du changement est donc conceptuel et global, pas seulement tactique.",
+      "change_family": "direction_change",
+      "recommendation": "Orienter le prochain cadrage vers un changement d'emphase du plan entier : conserver la sécurité comme base, mais requalifier la suite pour qu'elle serve d'abord la connexion, la légèreté et les moments agréables partagés. Le sous-skill devrait préparer un brouillon de trajectoire globale qui garde les acquis anti-escalade sans laisser l'objectif principal se réduire à l'évitement du conflit.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Garder les éléments actuels de désamorçage, mais les relier explicitement à un objectif supérieur de disponibilité affective et de moments agréables.",
+        "Ajouter une phase ou un sous-objectif centré sur la complicité : petits plaisirs, rituels légers, micro-moments de connexion.",
+        "Reformuler la réussite du plan : non seulement moins de disputes, mais plus de fluidité, de chaleur et d'instants simples partagés.",
+        "Réorganiser l'ordre des phases pour passer plus tôt d'une logique de sécurité à une logique de reconnexion.",
+        "Créer un pont entre les outils de régulation des tensions et des actions orientées vers le plaisir commun."
+      ],
+      "candidate_operation": "change_emphasis",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle privilégie surtout la réduction des tensions ; la trajectoire possible conserve cette base mais la re-centre sur la complicité, la légèreté et le plaisir simple partagé.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r101-whole-plan-direction-change-postfix-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r101-whole-plan-direction-change-postfix-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui c'est beaucoup plus juste. Par contre je ne veux pas que la securite disparaisse : garde le signal de pause comme socle, mais fais apparaitre l'axe complicite comme un vrai deuxieme fil conducteur. Ne l'applique pas encore.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réoriente l'accent du plan, avec un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "whole_plan_change_family:direction_change",
+              "whole_plan_candidate_operation:change_emphasis",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "direction_axis:complicity_and_simple_pleasure",
+              "coach_observation:La demande précise désormais une hiérarchie de trajectoire : la sécurité ne doit pas disparaître, elle reste le socle, mais l'axe de complicité doit devenir un deuxième fil conducteur explicite et durable. Humainement, il ne s'agit plus seulement de réorienter le cap; il faut éviter que la reconversion du plan soit lue comme un abandon du cadre de sécurité.",
+              "coach_recommendation:Maintenir la base anti-escalade comme prérequis stable, puis reformuler le plan pour qu'il affiche clairement deux axes complémentaires: 1) sécurité / signal de pause, 2) complicité / plaisir simple. Le prochain brouillon devrait montrer ce double fil directeur sans appliquer de modification tant qu'il n'y a pas validation explicite.",
+              "coach_warning:Éviter de faire disparaître le signal de pause sous prétexte que la complicité devient prioritaire.",
+              "coach_warning:Éviter de transformer la sécurité en simple détail technique: elle doit rester un socle lisible du plan.",
+              "coach_warning:Éviter de présenter la complicité comme un objectif vague ou décoratif; elle doit apparaître comme un fil conducteur structurant.",
+              "coach_warning:Éviter de réorganiser trop agressivement le plan sans pont explicite entre apaisement et reconnexion.",
+              "coach_warning:Éviter de promettre une bascule immédiate vers plus de complicité sans préserver la progression réaliste.",
+              "coach_preserve:Le signal de pause comme base stable et non négociée à ce stade.",
+              "coach_preserve:Le rythme progressif du plan, sans saut brutal vers des attentes relationnelles plus exigeantes.",
+              "coach_preserve:L'intention de rester praticable et non surchargeante.",
+              "coach_preserve:Les acquis de désescalade comme fondation utile au lien.",
+              "coach_preserve:La cohérence globale du plan et son cadre déjà construit.",
+              "coach_avoid:Ne pas proposer d'enlever ou d'affaiblir le signal de pause.",
+              "coach_avoid:Ne pas réduire la suite à une simple prévention des disputes.",
+              "coach_avoid:Ne pas appliquer le changement avant validation explicite.",
+              "coach_avoid:Ne pas présenter la complicité comme une option secondaire ou facultative.",
+              "coach_avoid:Ne pas surcharger le plan avec trop de nouveautés simultanées.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Traiter cette demande comme une reformulation de trajectoire du whole plan, pas comme un patch local.",
+              "coach_guideline:Conserver explicitement le socle de sécurité et le nommer comme tel.",
+              "coach_guideline:Faire apparaître la complicité comme un fil directeur structurel, pas comme un bonus.",
+              "coach_guideline:Raisonner en architecture: socle, transition, puis axe de reconnexion.",
+              "coach_guideline:Préserver la progression: la sécurité prépare la disponibilité à la complicité.",
+              "coach_guideline:Si une phase de sécurité reste en première position, annoncer clairement sa fonction au service du lien.",
+              "coach_guideline:Ne pas appliquer ni régénérer le plan tant que la validation explicite n'est pas donnée.",
+              "coach_guideline:Vérifier que les titres, objectifs et critères de réussite reflètent bien le double cap sécurité + complicité.",
+              "whole_plan_change_family:direction_change",
+              "whole_plan_candidate_operation:insert_phase",
+              "whole_plan_readiness:needs_confirmation",
+              "coach_must_not_execute:Un brouillon de réorientation existe déjà, mais le user demande explicitement de ne pas l'appliquer encore. Il faut donc rester au stade de préparation/validation et ne pas modifier le plan maintenant.",
+              "coach_trajectory_hypothesis:La trajectoire actuelle protège d'abord la relation contre les tensions; la trajectoire ajustée garderait cette base mais ajouterait un fil conducteur de complicité pour faire évoluer le plan vers plus de lien vivant.",
+              "whole_plan_change_family:direction_change",
+              "whole_plan_candidate_operation:change_emphasis",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user demande un changement d'axe global, pas seulement un allègement.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user demande un changement d'axe global, pas seulement un allègement.",
+          "decision_basis": {
+            "evidence": [
+              "Oui c'est beaucoup plus juste. Par contre je ne veux pas que la securite disparaisse : garde le signal de pause comme socle, mais fais apparaitre l'axe complicite comme un vrai deuxieme fil conducteur. Ne l'applique pas encore.",
+              "la suite",
+              "trajectoire globale",
+              "rebalance",
+              "deterministic whole-plan fit/complexity signal",
+              "surtout à réduire les disputes",
+              "plus exactement la direction que je veux",
+              "retrouver de la complicité",
+              "du plaisir simple ensemble"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je réoriente l'accent du plan: Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le plan garde l'apaisement comme base, mais la suite ne vise plus seulement à éviter les disputes: elle ajoute clairement un axe de complicité et de plaisir simple.",
+            "expected_mechanism": "Le user demande un changement d'axe global, pas seulement un allègement."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Le plan suivait son axe initial, mais cet axe ne correspond plus assez à la direction voulue.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user demande un changement d'axe global, pas seulement un allègement."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je réoriente l'accent du plan: Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande un changement d'axe global, pas seulement un allègement.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande un changement d'axe global, pas seulement un allègement.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde l'apaisement comme base, mais la suite ne vise plus seulement à éviter les disputes: elle ajoute clairement un axe de complicité et de plaisir simple.",
+                "before": "Le plan suivait son axe initial, mais cet axe ne correspond plus assez à la direction voulue.",
+                "inserted_step": "Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+                "coaching_reason": "Le user demande un changement d'axe global, pas seulement un allègement.",
+                "reordered_steps": [
+                  "Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+                  "Construire les prochains blocs autour du nouvel axe"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je réoriente l'accent du plan: Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.",
+            "user_message_detailed": "je réoriente l'accent du plan: Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde l'apaisement comme base, mais la suite ne vise plus seulement à éviter les disputes: elle ajoute clairement un axe de complicité et de plaisir simple.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réoriente l'accent du plan, avec un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+      },
+      "status": "draft_review_updated",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "0946c06b-4f8e-4468-9d5d-3731c918ce72",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer d'enlever ou d'affaiblir le signal de pause.",
+          "Ne pas réduire la suite à une simple prévention des disputes.",
+          "Ne pas appliquer le changement avant validation explicite.",
+          "Ne pas présenter la complicité comme une option secondaire ou facultative.",
+          "Ne pas surcharger le plan avec trop de nouveautés simultanées."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "Le signal de pause comme base stable et non négociée à ce stade.",
+          "Le rythme progressif du plan, sans saut brutal vers des attentes relationnelles plus exigeantes.",
+          "L'intention de rester praticable et non surchargeante.",
+          "Les acquis de désescalade comme fondation utile au lien.",
+          "La cohérence globale du plan et son cadre déjà construit."
+        ],
+        "warnings": [
+          "Éviter de faire disparaître le signal de pause sous prétexte que la complicité devient prioritaire.",
+          "Éviter de transformer la sécurité en simple détail technique: elle doit rester un socle lisible du plan.",
+          "Éviter de présenter la complicité comme un objectif vague ou décoratif; elle doit apparaître comme un fil conducteur structurant.",
+          "Éviter de réorganiser trop agressivement le plan sans pont explicite entre apaisement et reconnexion.",
+          "Éviter de promettre une bascule immédiate vers plus de complicité sans préserver la progression réaliste."
+        ],
+        "readiness": "needs_confirmation",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter cette demande comme une reformulation de trajectoire du whole plan, pas comme un patch local.",
+          "Conserver explicitement le socle de sécurité et le nommer comme tel.",
+          "Faire apparaître la complicité comme un fil directeur structurel, pas comme un bonus.",
+          "Raisonner en architecture: socle, transition, puis axe de reconnexion.",
+          "Préserver la progression: la sécurité prépare la disponibilité à la complicité.",
+          "Si une phase de sécurité reste en première position, annoncer clairement sa fonction au service du lien.",
+          "Ne pas appliquer ni régénérer le plan tant que la validation explicite n'est pas donnée.",
+          "Vérifier que les titres, objectifs et critères de réussite reflètent bien le double cap sécurité + complicité."
+        ],
+        "observation": "La demande précise désormais une hiérarchie de trajectoire : la sécurité ne doit pas disparaître, elle reste le socle, mais l'axe de complicité doit devenir un deuxième fil conducteur explicite et durable. Humainement, il ne s'agit plus seulement de réorienter le cap; il faut éviter que la reconversion du plan soit lue comme un abandon du cadre de sécurité.",
+        "change_family": "direction_change",
+        "recommendation": "Maintenir la base anti-escalade comme prérequis stable, puis reformuler le plan pour qu'il affiche clairement deux axes complémentaires: 1) sécurité / signal de pause, 2) complicité / plaisir simple. Le prochain brouillon devrait montrer ce double fil directeur sans appliquer de modification tant qu'il n'y a pas validation explicite.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Garder la phase sécurité telle quelle, mais lui ajouter une fonction explicite de support à la reconnexion.",
+          "Insérer une phase de complicité après la sécurité pour rendre visible la transition du plan.",
+          "Reformuler les titres et descriptions existants pour montrer que la sécurité sert la disponibilité au lien.",
+          "Conserver les outils de pause et de régulation, mais leur attribuer un rôle de socle plutôt que de destination.",
+          "Faire apparaître un objectif de réussite double: moins de débordement et plus de moments simples partagés."
+        ],
+        "candidate_operation": "insert_phase",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle protège d'abord la relation contre les tensions; la trajectoire ajustée garderait cette base mais ajouterait un fil conducteur de complicité pour faire évoluer le plan vers plus de lien vivant.",
+        "must_not_execute_reason": "Un brouillon de réorientation existe déjà, mais le user demande explicitement de ne pas l'appliquer encore. Il faut donc rester au stade de préparation/validation et ne pas modifier le plan maintenant."
+      },
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "pre_validation_concrete_constraint_requires_revision"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "previous_operation_id": "c19f691e-cb2c-4f50-b30c-84c0a382c255",
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer d'enlever ou d'affaiblir le signal de pause.",
+        "Ne pas réduire la suite à une simple prévention des disputes.",
+        "Ne pas appliquer le changement avant validation explicite.",
+        "Ne pas présenter la complicité comme une option secondaire ou facultative.",
+        "Ne pas surcharger le plan avec trop de nouveautés simultanées."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "Le signal de pause comme base stable et non négociée à ce stade.",
+        "Le rythme progressif du plan, sans saut brutal vers des attentes relationnelles plus exigeantes.",
+        "L'intention de rester praticable et non surchargeante.",
+        "Les acquis de désescalade comme fondation utile au lien.",
+        "La cohérence globale du plan et son cadre déjà construit."
+      ],
+      "warnings": [
+        "Éviter de faire disparaître le signal de pause sous prétexte que la complicité devient prioritaire.",
+        "Éviter de transformer la sécurité en simple détail technique: elle doit rester un socle lisible du plan.",
+        "Éviter de présenter la complicité comme un objectif vague ou décoratif; elle doit apparaître comme un fil conducteur structurant.",
+        "Éviter de réorganiser trop agressivement le plan sans pont explicite entre apaisement et reconnexion.",
+        "Éviter de promettre une bascule immédiate vers plus de complicité sans préserver la progression réaliste."
+      ],
+      "readiness": "needs_confirmation",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter cette demande comme une reformulation de trajectoire du whole plan, pas comme un patch local.",
+        "Conserver explicitement le socle de sécurité et le nommer comme tel.",
+        "Faire apparaître la complicité comme un fil directeur structurel, pas comme un bonus.",
+        "Raisonner en architecture: socle, transition, puis axe de reconnexion.",
+        "Préserver la progression: la sécurité prépare la disponibilité à la complicité.",
+        "Si une phase de sécurité reste en première position, annoncer clairement sa fonction au service du lien.",
+        "Ne pas appliquer ni régénérer le plan tant que la validation explicite n'est pas donnée.",
+        "Vérifier que les titres, objectifs et critères de réussite reflètent bien le double cap sécurité + complicité."
+      ],
+      "observation": "La demande précise désormais une hiérarchie de trajectoire : la sécurité ne doit pas disparaître, elle reste le socle, mais l'axe de complicité doit devenir un deuxième fil conducteur explicite et durable. Humainement, il ne s'agit plus seulement de réorienter le cap; il faut éviter que la reconversion du plan soit lue comme un abandon du cadre de sécurité.",
+      "change_family": "direction_change",
+      "recommendation": "Maintenir la base anti-escalade comme prérequis stable, puis reformuler le plan pour qu'il affiche clairement deux axes complémentaires: 1) sécurité / signal de pause, 2) complicité / plaisir simple. Le prochain brouillon devrait montrer ce double fil directeur sans appliquer de modification tant qu'il n'y a pas validation explicite.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Garder la phase sécurité telle quelle, mais lui ajouter une fonction explicite de support à la reconnexion.",
+        "Insérer une phase de complicité après la sécurité pour rendre visible la transition du plan.",
+        "Reformuler les titres et descriptions existants pour montrer que la sécurité sert la disponibilité au lien.",
+        "Conserver les outils de pause et de régulation, mais leur attribuer un rôle de socle plutôt que de destination.",
+        "Faire apparaître un objectif de réussite double: moins de débordement et plus de moments simples partagés."
+      ],
+      "candidate_operation": "insert_phase",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle protège d'abord la relation contre les tensions; la trajectoire ajustée garderait cette base mais ajouterait un fil conducteur de complicité pour faire évoluer le plan vers plus de lien vivant.",
+      "must_not_execute_reason": "Un brouillon de réorientation existe déjà, mais le user demande explicitement de ne pas l'appliquer encore. Il faut donc rester au stade de préparation/validation et ne pas modifier le plan maintenant."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r101-whole-plan-direction-change-postfix-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r101-whole-plan-direction-change-postfix-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Avant que je valide, confirme-moi juste que ca ne veut pas dire supprimer les discussions difficiles, mais les preparer avec plus de lien positif avant.",
+    "assistant": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde l'apaisement comme base, mais la suite ne vise plus seulement à éviter les disputes: elle ajoute clairement un axe de complicité et de plaisir simple. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_intents": [],
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "executed",
+      "reason_code": "normal_reply_default",
+      "operation_id": "0946c06b-4f8e-4468-9d5d-3731c918ce72",
+      "plan_patch_id": "4abdcb88-bce5-420f-9550-6f6f84d5dfed",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer d'enlever ou d'affaiblir le signal de pause.",
+          "Ne pas réduire la suite à une simple prévention des disputes.",
+          "Ne pas appliquer le changement avant validation explicite.",
+          "Ne pas présenter la complicité comme une option secondaire ou facultative.",
+          "Ne pas surcharger le plan avec trop de nouveautés simultanées."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "Le signal de pause comme base stable et non négociée à ce stade.",
+          "Le rythme progressif du plan, sans saut brutal vers des attentes relationnelles plus exigeantes.",
+          "L'intention de rester praticable et non surchargeante.",
+          "Les acquis de désescalade comme fondation utile au lien.",
+          "La cohérence globale du plan et son cadre déjà construit."
+        ],
+        "warnings": [
+          "Éviter de faire disparaître le signal de pause sous prétexte que la complicité devient prioritaire.",
+          "Éviter de transformer la sécurité en simple détail technique: elle doit rester un socle lisible du plan.",
+          "Éviter de présenter la complicité comme un objectif vague ou décoratif; elle doit apparaître comme un fil conducteur structurant.",
+          "Éviter de réorganiser trop agressivement le plan sans pont explicite entre apaisement et reconnexion.",
+          "Éviter de promettre une bascule immédiate vers plus de complicité sans préserver la progression réaliste."
+        ],
+        "readiness": "needs_confirmation",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter cette demande comme une reformulation de trajectoire du whole plan, pas comme un patch local.",
+          "Conserver explicitement le socle de sécurité et le nommer comme tel.",
+          "Faire apparaître la complicité comme un fil directeur structurel, pas comme un bonus.",
+          "Raisonner en architecture: socle, transition, puis axe de reconnexion.",
+          "Préserver la progression: la sécurité prépare la disponibilité à la complicité.",
+          "Si une phase de sécurité reste en première position, annoncer clairement sa fonction au service du lien.",
+          "Ne pas appliquer ni régénérer le plan tant que la validation explicite n'est pas donnée.",
+          "Vérifier que les titres, objectifs et critères de réussite reflètent bien le double cap sécurité + complicité."
+        ],
+        "observation": "La demande précise désormais une hiérarchie de trajectoire : la sécurité ne doit pas disparaître, elle reste le socle, mais l'axe de complicité doit devenir un deuxième fil conducteur explicite et durable. Humainement, il ne s'agit plus seulement de réorienter le cap; il faut éviter que la reconversion du plan soit lue comme un abandon du cadre de sécurité.",
+        "change_family": "direction_change",
+        "recommendation": "Maintenir la base anti-escalade comme prérequis stable, puis reformuler le plan pour qu'il affiche clairement deux axes complémentaires: 1) sécurité / signal de pause, 2) complicité / plaisir simple. Le prochain brouillon devrait montrer ce double fil directeur sans appliquer de modification tant qu'il n'y a pas validation explicite.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Garder la phase sécurité telle quelle, mais lui ajouter une fonction explicite de support à la reconnexion.",
+          "Insérer une phase de complicité après la sécurité pour rendre visible la transition du plan.",
+          "Reformuler les titres et descriptions existants pour montrer que la sécurité sert la disponibilité au lien.",
+          "Conserver les outils de pause et de régulation, mais leur attribuer un rôle de socle plutôt que de destination.",
+          "Faire apparaître un objectif de réussite double: moins de débordement et plus de moments simples partagés."
+        ],
+        "candidate_operation": "insert_phase",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle protège d'abord la relation contre les tensions; la trajectoire ajustée garderait cette base mais ajouterait un fil conducteur de complicité pour faire évoluer le plan vers plus de lien vivant.",
+        "must_not_execute_reason": "Un brouillon de réorientation existe déjà, mais le user demande explicitement de ne pas l'appliquer encore. Il faut donc rester au stade de préparation/validation et ne pas modifier le plan maintenant."
+      },
+      "bridge_plan_item_id": null,
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer d'enlever ou d'affaiblir le signal de pause.",
+        "Ne pas réduire la suite à une simple prévention des disputes.",
+        "Ne pas appliquer le changement avant validation explicite.",
+        "Ne pas présenter la complicité comme une option secondaire ou facultative.",
+        "Ne pas surcharger le plan avec trop de nouveautés simultanées."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "Le signal de pause comme base stable et non négociée à ce stade.",
+        "Le rythme progressif du plan, sans saut brutal vers des attentes relationnelles plus exigeantes.",
+        "L'intention de rester praticable et non surchargeante.",
+        "Les acquis de désescalade comme fondation utile au lien.",
+        "La cohérence globale du plan et son cadre déjà construit."
+      ],
+      "warnings": [
+        "Éviter de faire disparaître le signal de pause sous prétexte que la complicité devient prioritaire.",
+        "Éviter de transformer la sécurité en simple détail technique: elle doit rester un socle lisible du plan.",
+        "Éviter de présenter la complicité comme un objectif vague ou décoratif; elle doit apparaître comme un fil conducteur structurant.",
+        "Éviter de réorganiser trop agressivement le plan sans pont explicite entre apaisement et reconnexion.",
+        "Éviter de promettre une bascule immédiate vers plus de complicité sans préserver la progression réaliste."
+      ],
+      "readiness": "needs_confirmation",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter cette demande comme une reformulation de trajectoire du whole plan, pas comme un patch local.",
+        "Conserver explicitement le socle de sécurité et le nommer comme tel.",
+        "Faire apparaître la complicité comme un fil directeur structurel, pas comme un bonus.",
+        "Raisonner en architecture: socle, transition, puis axe de reconnexion.",
+        "Préserver la progression: la sécurité prépare la disponibilité à la complicité.",
+        "Si une phase de sécurité reste en première position, annoncer clairement sa fonction au service du lien.",
+        "Ne pas appliquer ni régénérer le plan tant que la validation explicite n'est pas donnée.",
+        "Vérifier que les titres, objectifs et critères de réussite reflètent bien le double cap sécurité + complicité."
+      ],
+      "observation": "La demande précise désormais une hiérarchie de trajectoire : la sécurité ne doit pas disparaître, elle reste le socle, mais l'axe de complicité doit devenir un deuxième fil conducteur explicite et durable. Humainement, il ne s'agit plus seulement de réorienter le cap; il faut éviter que la reconversion du plan soit lue comme un abandon du cadre de sécurité.",
+      "change_family": "direction_change",
+      "recommendation": "Maintenir la base anti-escalade comme prérequis stable, puis reformuler le plan pour qu'il affiche clairement deux axes complémentaires: 1) sécurité / signal de pause, 2) complicité / plaisir simple. Le prochain brouillon devrait montrer ce double fil directeur sans appliquer de modification tant qu'il n'y a pas validation explicite.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Garder la phase sécurité telle quelle, mais lui ajouter une fonction explicite de support à la reconnexion.",
+        "Insérer une phase de complicité après la sécurité pour rendre visible la transition du plan.",
+        "Reformuler les titres et descriptions existants pour montrer que la sécurité sert la disponibilité au lien.",
+        "Conserver les outils de pause et de régulation, mais leur attribuer un rôle de socle plutôt que de destination.",
+        "Faire apparaître un objectif de réussite double: moins de débordement et plus de moments simples partagés."
+      ],
+      "candidate_operation": "insert_phase",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle protège d'abord la relation contre les tensions; la trajectoire ajustée garderait cette base mais ajouterait un fil conducteur de complicité pour faire évoluer le plan vers plus de lien vivant.",
+      "must_not_execute_reason": "Un brouillon de réorientation existe déjà, mais le user demande explicitement de ne pas l'appliquer encore. Il faut donc rester au stade de préparation/validation et ne pas modifier le plan maintenant."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r101-whole-plan-direction-change-postfix-t03",
+    "trace_error": null
+  }
+]

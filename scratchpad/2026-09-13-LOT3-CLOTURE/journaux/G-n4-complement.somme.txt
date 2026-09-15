@@ -1,0 +1,16 @@
+── ① LES CONTENANTS ÉCRITS, MESURÉS PAR `boxNutrition` ───────
+
+   c5a15577 mon/dinner — 2 contenant(s)
+      part commune   218 g ·   545.4 kcal « Tofu doré, edamame et tomate »
+      COMPLÉMENT       9 g ·     2.0 kcal « Petite assiette en plus »
+      ── ÉGALITÉ ① : part commune 545.4 kcal + complément 2.0 kcal = 547.4 kcal servies · assiette 227 g
+
+   c5a15577 tue/dinner — 2 contenant(s)
+      part commune   218 g ·   545.4 kcal « Tofu doré, edamame et tomate »
+      COMPLÉMENT       9 g ·     2.0 kcal « Petite assiette en plus »
+      ── ÉGALITÉ ① : part commune 545.4 kcal + complément 2.0 kcal = 547.4 kcal servies · assiette 227 g
+
+── ② PRÉLÈVEMENT DU LOT COMMUN ───────────────────────────────
+   prep_tofu_table          produit   5463 g cru · 6 part(s) pour 6 prélèvement(s) · somme des parts SERVIES   5442 g
+
+✅ AUCUN DOUBLE COMPTE sur le plan écrit.

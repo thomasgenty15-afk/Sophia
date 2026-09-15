@@ -1,0 +1,3169 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-clarification-local-clarif_state_qa_20260615_r2b-t01",
+    "auth_method": "refresh_token",
+    "user": "Je veux créer une carte d'attaque et une carte de défense pour demain matin, mais je ne sais pas par laquelle commencer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t01",
+      "user_id": "049859f6-9bb0-4952-94bd-6f6dfe328f70",
+      "channel": "web",
+      "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "On commence par laquelle pour demain : la carte d'attaque ou la carte de défense ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t01",
+            "source_message_id": "b8835109-83a2-42e6-88b2-143f8c7f0766",
+            "user_id": "049859f6-9bb0-4952-94bd-6f6dfe328f70",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "clarification",
+              "handoff_context_for_next_dispatcher": "User wants to create both an attack card and a defense card for tomorrow morning but is unsure which one to start with. Both intents are valid and explicit.",
+              "user_words": [
+                "créer une carte d'attaque",
+                "une carte de défense",
+                "ne sais pas par laquelle commencer"
+              ],
+              "structured_context": {
+                "primary_signal_path": "tool_skill_intents",
+                "candidate_signals": [
+                  "prepare_attack_card",
+                  "prepare_defense_card"
+                ],
+                "user_goal": "create both cards for tomorrow morning",
+                "ambiguity_type": "sequencing_choice",
+                "recommended_next_focus": "Ask the user which card they want to define first or help them distinguish the targets for each."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "runtime_snapshot",
+                  "key": "daily_conversation_pulse:current_week",
+                  "query_hint": "recent actions or risks mentioned this week",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.1,
+            "normal_reply_fit_evidence": [
+              "User explicitly asks to create two platform tools (attack and defense cards) and expresses hesitation on the sequence."
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "orientation_clarification",
+            "selected_handler": "orientation_clarification",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_router",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "product_help",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "operation_runtime_pipeline",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "direct_effects",
+                "reason_code": "clarification_required"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "clarification_required",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "normal_reply_default",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "orientation_clarification"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t01",
+          "source_message_id": "b8835109-83a2-42e6-88b2-143f8c7f0766",
+          "user_id": "049859f6-9bb0-4952-94bd-6f6dfe328f70",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "clarification",
+            "handoff_context_for_next_dispatcher": "User wants to create both an attack card and a defense card for tomorrow morning but is unsure which one to start with. Both intents are valid and explicit.",
+            "user_words": [
+              "créer une carte d'attaque",
+              "une carte de défense",
+              "ne sais pas par laquelle commencer"
+            ],
+            "structured_context": {
+              "primary_signal_path": "tool_skill_intents",
+              "candidate_signals": [
+                "prepare_attack_card",
+                "prepare_defense_card"
+              ],
+              "user_goal": "create both cards for tomorrow morning",
+              "ambiguity_type": "sequencing_choice",
+              "recommended_next_focus": "Ask the user which card they want to define first or help them distinguish the targets for each."
+            },
+            "confidence": "high"
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "runtime_snapshot",
+                "key": "daily_conversation_pulse:current_week",
+                "query_hint": "recent actions or risks mentioned this week",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "normal_reply_fit_score": 0.1,
+          "normal_reply_fit_evidence": [
+            "User explicitly asks to create two platform tools (attack and defense cards) and expresses hesitation on the sequence."
+          ],
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "orientation_clarification",
+          "selected_handler": "orientation_clarification",
+          "blocked_paths": [
+            {
+              "path": "tool_skill_router",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "product_help",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "operation_runtime_pipeline",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "direct_effects",
+              "reason_code": "clarification_required"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "clarification_required",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 0,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "normal_reply_default",
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "orientation_clarification"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-clarification-local-clarif_state_qa_20260615_r2b-t02",
+    "auth_method": "refresh_token",
+    "user": "Je ne sais pas trop, les deux me semblent utiles, mais le téléphone me fait vraiment perdre du temps.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t02",
+      "user_id": "049859f6-9bb0-4952-94bd-6f6dfe328f70",
+      "channel": "web",
+      "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "On commence par laquelle : la carte d'attaque ou la carte de défense ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t02",
+            "source_message_id": "7251444a-ef21-426c-a79a-2ec9f1bb6f8b",
+            "user_id": "049859f6-9bb0-4952-94bd-6f6dfe328f70",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "clarification",
+              "handoff_context_for_next_dispatcher": "User confirmed wanting both cards but identified the phone as the primary problem. Route to clarify which one to build first or if they should be linked.",
+              "user_words": [
+                "les deux me semblent utiles",
+                "le téléphone me fait vraiment perdre du temps",
+                "Je ne sais pas trop, les deux me semblent utiles, mais le téléphone me fait vraiment perdre du temps."
+              ],
+              "structured_context": {
+                "primary_signal_path": "tool_skill_intents",
+                "candidate_signals": [
+                  "prepare_attack_card",
+                  "prepare_defense_card"
+                ],
+                "evidence": [
+                  "Je veux créer une carte d'attaque et une carte de défense",
+                  "le téléphone me fait vraiment perdre du temps"
+                ],
+                "recommended_next_focus": "Acknowledge the phone issue as a defense card trigger and ask if we start there to protect the morning attack."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "topic",
+                  "key": "addictions.ecrans",
+                  "query_hint": "usage du téléphone et perte de temps",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.15,
+            "normal_reply_fit_evidence": [
+              "User is responding to a clarification request about which tool to start with.",
+              "The message contains a specific problem (phone time wasting) linked to the choice."
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "orientation_clarification",
+            "selected_handler": "orientation_clarification",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_router",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "product_help",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "operation_runtime_pipeline",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "direct_effects",
+                "reason_code": "clarification_required"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "clarification_required",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 7,
+                    "flow_keys": [
+                      "__active_topic_state_v2",
+                      "__clarification_flow_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 7,
+                    "flow_keys": [
+                      "__active_topic_state_v2",
+                      "__clarification_flow_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 7,
+                    "flow_keys": [
+                      "__active_topic_state_v2",
+                      "__clarification_flow_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 7,
+                    "flow_keys": [
+                      "__active_topic_state_v2",
+                      "__clarification_flow_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 7,
+                    "flow_keys": [
+                      "__active_topic_state_v2",
+                      "__clarification_flow_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 7,
+                    "flow_keys": [
+                      "__active_topic_state_v2",
+                      "__clarification_flow_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "tool_skill_intent_start",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "orientation_clarification"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t02",
+          "source_message_id": "7251444a-ef21-426c-a79a-2ec9f1bb6f8b",
+          "user_id": "049859f6-9bb0-4952-94bd-6f6dfe328f70",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "clarification",
+            "handoff_context_for_next_dispatcher": "User confirmed wanting both cards but identified the phone as the primary problem. Route to clarify which one to build first or if they should be linked.",
+            "user_words": [
+              "les deux me semblent utiles",
+              "le téléphone me fait vraiment perdre du temps",
+              "Je ne sais pas trop, les deux me semblent utiles, mais le téléphone me fait vraiment perdre du temps."
+            ],
+            "structured_context": {
+              "primary_signal_path": "tool_skill_intents",
+              "candidate_signals": [
+                "prepare_attack_card",
+                "prepare_defense_card"
+              ],
+              "evidence": [
+                "Je veux créer une carte d'attaque et une carte de défense",
+                "le téléphone me fait vraiment perdre du temps"
+              ],
+              "recommended_next_focus": "Acknowledge the phone issue as a defense card trigger and ask if we start there to protect the morning attack."
+            },
+            "confidence": "high"
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "topic",
+                "key": "addictions.ecrans",
+                "query_hint": "usage du téléphone et perte de temps",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "normal_reply_fit_score": 0.15,
+          "normal_reply_fit_evidence": [
+            "User is responding to a clarification request about which tool to start with.",
+            "The message contains a specific problem (phone time wasting) linked to the choice."
+          ],
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "orientation_clarification",
+          "selected_handler": "orientation_clarification",
+          "blocked_paths": [
+            {
+              "path": "tool_skill_router",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "product_help",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "operation_runtime_pipeline",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "direct_effects",
+              "reason_code": "clarification_required"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "clarification_required",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 7,
+                  "flow_keys": [
+                    "__active_topic_state_v2",
+                    "__clarification_flow_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 7,
+                  "flow_keys": [
+                    "__active_topic_state_v2",
+                    "__clarification_flow_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 7,
+                  "flow_keys": [
+                    "__active_topic_state_v2",
+                    "__clarification_flow_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 7,
+                  "flow_keys": [
+                    "__active_topic_state_v2",
+                    "__clarification_flow_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 7,
+                  "flow_keys": [
+                    "__active_topic_state_v2",
+                    "__clarification_flow_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 7,
+                  "flow_keys": [
+                    "__active_topic_state_v2",
+                    "__clarification_flow_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "tool_skill_intent_start",
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "orientation_clarification"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-clarification-local-clarif_state_qa_20260615_r2b-t03",
+    "auth_method": "refresh_token",
+    "user": "Carte de défense, je veux gérer le réflexe téléphone au réveil.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t03",
+      "user_id": "049859f6-9bb0-4952-94bd-6f6dfe328f70",
+      "channel": "web",
+      "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est une excellente idée de s'attaquer à ce réflexe. Quel est le tout premier signal ou l'élément déclencheur qui te pousse à attraper ton téléphone dès le réveil ?",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t03",
+            "source_message_id": "9a1743e5-ffe7-45a6-99f5-80e2a34a7d22",
+            "user_id": "049859f6-9bb0-4952-94bd-6f6dfe328f70",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0,
+                0
+              ],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "prepare_defense_card",
+              "handoff_context_for_next_dispatcher": "User explicitly selected 'Carte de défense' to address the 'phone reflex upon waking up'. This follows a clarification loop where the user hesitated between attack and defense.",
+              "user_words": [
+                "Carte de défense",
+                "gérer le réflexe téléphone au réveil",
+                "Carte de défense, je veux gérer le réflexe téléphone au réveil."
+              ],
+              "structured_context": {
+                "primary_signal_path": "tool_skill_intents[0]",
+                "target_kind": "tool_skill",
+                "target_flow": "prepare_defense_card",
+                "confidence_band": "high",
+                "evidence": [
+                  "Carte de défense",
+                  "réflexe téléphone au réveil"
+                ],
+                "recommended_next_focus": "Run the local dispatcher for prepare_defense_card with the identified target."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "addictions.ecrans",
+                  "query_hint": "téléphone réveil",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.1,
+            "normal_reply_fit_evidence": [
+              "User explicitly chooses one of the proposed tool options to start a concrete preparation."
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [
+              {
+                "path": "direct_effects",
+                "reason_code": "orientation_clarification_resolved_tool_skill"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "orientation_clarification_resolved_tool_skill",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "prepare_defense_card",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 7,
+                    "flow_keys": [
+                      "__active_topic_state_v2",
+                      "__clarification_flow_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 7,
+                    "flow_keys": [
+                      "__active_topic_state_v2",
+                      "__clarification_flow_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 7,
+                    "flow_keys": [
+                      "__active_topic_state_v2",
+                      "__clarification_flow_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 7,
+                    "flow_keys": [
+                      "__active_topic_state_v2",
+                      "__clarification_flow_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 7,
+                    "flow_keys": [
+                      "__active_topic_state_v2",
+                      "__clarification_flow_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 7,
+                    "flow_keys": [
+                      "__active_topic_state_v2",
+                      "__clarification_flow_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "tool_skill_intent_start",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            },
+            "note_information": {
+              "source_flow_id": "clarification",
+              "handoff_reason": "clarification_resolved",
+              "target_dispatcher": "prepare_defense_card",
+              "handoff_context_for_next_dispatcher": "L'utilisateur souhaite créer une carte de défense spécifiquement pour gérer le réflexe du téléphone au réveil.",
+              "user_words": [
+                "Carte de défense",
+                "réflexe téléphone au réveil"
+              ],
+              "structured_context": {
+                "clarification_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t01:dispatcher_clarification",
+                "clarification_task_kind": "resolved_transition",
+                "selected_candidate_id": "prepare_defense_card",
+                "selected_candidate_label": "préparer une carte de défense",
+                "resolved_candidate": {
+                  "candidate_id": "prepare_defense_card",
+                  "label": "préparer une carte de défense",
+                  "target_dispatcher": "prepare_defense_card",
+                  "operation_type": "prepare_defense_card",
+                  "surface_id": null,
+                  "confidence": "medium",
+                  "why_plausible": "turn_frame.tool_skill_intents",
+                  "structured_payload_hint": {}
+                },
+                "rejected_candidates": [
+                  {
+                    "candidate_id": "prepare_attack_card",
+                    "label": "préparer une carte d'attaque",
+                    "target_dispatcher": "prepare_attack_card",
+                    "operation_type": "prepare_attack_card",
+                    "surface_id": null,
+                    "confidence": "medium",
+                    "why_plausible": "turn_frame.tool_skill_intents",
+                    "structured_payload_hint": {}
+                  }
+                ],
+                "original_conflict_summary": "L'utilisateur a choisi de commencer par la carte de défense pour gérer le réflexe téléphone au réveil.",
+                "ambiguity_axes": [
+                  "intent"
+                ],
+                "user_words": [
+                  "Carte de défense",
+                  "réflexe téléphone au réveil"
+                ],
+                "selected_candidate_payload_hint": {},
+                "candidate_signals": [
+                  {
+                    "candidate_id": "prepare_attack_card",
+                    "label": "préparer une carte d'attaque",
+                    "target_dispatcher": "prepare_attack_card",
+                    "operation_type": "prepare_attack_card",
+                    "surface_id": null,
+                    "confidence": "medium",
+                    "why_plausible": "turn_frame.tool_skill_intents",
+                    "structured_payload_hint": {}
+                  },
+                  {
+                    "candidate_id": "prepare_defense_card",
+                    "label": "préparer une carte de défense",
+                    "target_dispatcher": "prepare_defense_card",
+                    "operation_type": "prepare_defense_card",
+                    "surface_id": null,
+                    "confidence": "medium",
+                    "why_plausible": "turn_frame.tool_skill_intents",
+                    "structured_payload_hint": {}
+                  }
+                ],
+                "clarification_context_pack": {
+                  "limits": {
+                    "max_items_per_category": 8
+                  },
+                  "version": "clarification_context_pack_v1",
+                  "projections": {
+                    "attack_cards": [],
+                    "defense_cards": [],
+                    "active_plan_items": [],
+                    "recurring_reminders": []
+                  },
+                  "retrieval_notes": [
+                    "defense_cards:error",
+                    "attack_cards:error"
+                  ],
+                  "loaded_for_candidate_operations": [
+                    "prepare_attack_card",
+                    "prepare_defense_card"
+                  ]
+                },
+                "context_evidence_used": [],
+                "missing_for_target_dispatcher": [],
+                "dispatcher_structured_context": {
+                  "selected_candidate_id": "prepare_defense_card",
+                  "user_intent": "create_defense_card",
+                  "target_behavior": "réflexe téléphone au réveil",
+                  "clarification_summary": "Arbitrage terminé entre attaque et défense; priorité donnée à la défense."
+                }
+              },
+              "confidence": "high"
+            },
+            "orientation_clarification_note_information": {
+              "source_flow_id": "clarification",
+              "handoff_reason": "clarification_resolved",
+              "target_dispatcher": "prepare_defense_card",
+              "handoff_context_for_next_dispatcher": "L'utilisateur souhaite créer une carte de défense spécifiquement pour gérer le réflexe du téléphone au réveil.",
+              "user_words": [
+                "Carte de défense",
+                "réflexe téléphone au réveil"
+              ],
+              "structured_context": {
+                "clarification_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t01:dispatcher_clarification",
+                "clarification_task_kind": "resolved_transition",
+                "selected_candidate_id": "prepare_defense_card",
+                "selected_candidate_label": "préparer une carte de défense",
+                "resolved_candidate": {
+                  "candidate_id": "prepare_defense_card",
+                  "label": "préparer une carte de défense",
+                  "target_dispatcher": "prepare_defense_card",
+                  "operation_type": "prepare_defense_card",
+                  "surface_id": null,
+                  "confidence": "medium",
+                  "why_plausible": "turn_frame.tool_skill_intents",
+                  "structured_payload_hint": {}
+                },
+                "rejected_candidates": [
+                  {
+                    "candidate_id": "prepare_attack_card",
+                    "label": "préparer une carte d'attaque",
+                    "target_dispatcher": "prepare_attack_card",
+                    "operation_type": "prepare_attack_card",
+                    "surface_id": null,
+                    "confidence": "medium",
+                    "why_plausible": "turn_frame.tool_skill_intents",
+                    "structured_payload_hint": {}
+                  }
+                ],
+                "original_conflict_summary": "L'utilisateur a choisi de commencer par la carte de défense pour gérer le réflexe téléphone au réveil.",
+                "ambiguity_axes": [
+                  "intent"
+                ],
+                "user_words": [
+                  "Carte de défense",
+                  "réflexe téléphone au réveil"
+                ],
+                "selected_candidate_payload_hint": {},
+                "candidate_signals": [
+                  {
+                    "candidate_id": "prepare_attack_card",
+                    "label": "préparer une carte d'attaque",
+                    "target_dispatcher": "prepare_attack_card",
+                    "operation_type": "prepare_attack_card",
+                    "surface_id": null,
+                    "confidence": "medium",
+                    "why_plausible": "turn_frame.tool_skill_intents",
+                    "structured_payload_hint": {}
+                  },
+                  {
+                    "candidate_id": "prepare_defense_card",
+                    "label": "préparer une carte de défense",
+                    "target_dispatcher": "prepare_defense_card",
+                    "operation_type": "prepare_defense_card",
+                    "surface_id": null,
+                    "confidence": "medium",
+                    "why_plausible": "turn_frame.tool_skill_intents",
+                    "structured_payload_hint": {}
+                  }
+                ],
+                "clarification_context_pack": {
+                  "limits": {
+                    "max_items_per_category": 8
+                  },
+                  "version": "clarification_context_pack_v1",
+                  "projections": {
+                    "attack_cards": [],
+                    "defense_cards": [],
+                    "active_plan_items": [],
+                    "recurring_reminders": []
+                  },
+                  "retrieval_notes": [
+                    "defense_cards:error",
+                    "attack_cards:error"
+                  ],
+                  "loaded_for_candidate_operations": [
+                    "prepare_attack_card",
+                    "prepare_defense_card"
+                  ]
+                },
+                "context_evidence_used": [],
+                "missing_for_target_dispatcher": [],
+                "dispatcher_structured_context": {
+                  "selected_candidate_id": "prepare_defense_card",
+                  "user_intent": "create_defense_card",
+                  "target_behavior": "réflexe téléphone au réveil",
+                  "clarification_summary": "Arbitrage terminé entre attaque et défense; priorité donnée à la défense."
+                }
+              },
+              "confidence": "high"
+            }
+          },
+          "tool_skill_run": {
+            "selected_handler": "prepare_defense_card",
+            "reason_code": "prepare_defense_card_local_collecting",
+            "operation_type": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "executable_from_chat": false,
+            "status": "collecting",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "pending_confirmation": null,
+            "handoff_state": {
+              "skill_id": "prepare_defense_card",
+              "mode": "platform_handoff",
+              "status": "collecting",
+              "draft": null,
+              "local_state": {
+                "flow_id": "prepare_defense_card",
+                "route_kind": "free_card",
+                "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+                "tool_fit_state": {
+                  "status": "defense",
+                  "reason": "L'utilisateur veut gérer un réflexe automatique (téléphone au réveil), ce qui correspond à une protection contre une impulsion.",
+                  "needs_user_confirmation": false,
+                  "why_status": "Choix explicite de l'utilisateur après clarification."
+                },
+                "attachment_state": {
+                  "status": "missing",
+                  "kind": "unknown",
+                  "plan_item_id": null,
+                  "candidate_value": null,
+                  "locked_value": null,
+                  "candidate_options": [],
+                  "needs_user_confirmation": false,
+                  "why_status": "Attache manquante."
+                },
+                "risk_state": {
+                  "status": "proposed",
+                  "label": "réflexe téléphone au réveil",
+                  "description": "L'automatisme de prendre son téléphone dès le matin.",
+                  "timing_hint": "réveil",
+                  "context_hint": "matin",
+                  "needs_user_confirmation": true,
+                  "why_status": "Situation de risque identifiée dans le message."
+                },
+                "trigger_state": {
+                  "status": "proposed",
+                  "type": null,
+                  "candidate_value": "ouvrir les yeux / être au lit le matin",
+                  "locked_value": null,
+                  "needs_user_confirmation": true,
+                  "why_status": "Signal déclencheur probable."
+                },
+                "defense_goal_state": {
+                  "status": "proposed",
+                  "value": "interrupt_impulse",
+                  "candidate_value": "ne pas scroller dès le réveil",
+                  "locked_value": null,
+                  "needs_user_confirmation": true,
+                  "why_status": "Objectif déduit du besoin de 'gérer le réflexe'."
+                },
+                "defense_response_hint_state": {
+                  "status": "missing",
+                  "strategy_hint": null,
+                  "candidate_value": null,
+                  "locked_value": null,
+                  "needs_user_confirmation": false,
+                  "why_status": "Réponse défensive non fournie."
+                },
+                "support_need_state": {
+                  "field_id": "support_need",
+                  "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                  "status": "missing",
+                  "candidate_value": null,
+                  "locked_value": null,
+                  "previous_value": null,
+                  "needs_user_confirmation": false,
+                  "why_status": "Champ support_need manquant."
+                },
+                "last_visible_task": "ask_trigger_or_signal",
+                "last_handoff_delivered": false,
+                "subskill_history": []
+              },
+              "turn_count": 1,
+              "max_turns": 8,
+              "created_at": "2026-06-15T20:06:20.262Z",
+              "updated_at": "2026-06-15T20:06:20.262Z",
+              "executable_from_chat": false
+            },
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "state_mutation_audit": {
+              "server_owned_fields": [
+                "route_kind",
+                "platform_destination",
+                "tool_fit_state",
+                "attachment_state",
+                "risk_state",
+                "trigger_state",
+                "defense_goal_state",
+                "defense_response_hint_state",
+                "support_need_state",
+                "last_visible_task",
+                "last_handoff_delivered",
+                "subskill_history"
+              ],
+              "modified_fields_declared": [
+                "tool_fit",
+                "risk_state"
+              ],
+              "clear_fields_declared": [],
+              "applied_fields": [
+                "tool_fit_state",
+                "risk_state",
+                "trigger_state",
+                "defense_goal_state"
+              ],
+              "preserved_fields": [
+                "route_kind",
+                "platform_destination"
+              ],
+              "restored_fields": [],
+              "cleared_fields": [],
+              "rejected_changes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "active flow entry",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "missing",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "state_mutation_audit": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher called",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "missing",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "state_mutation_audit": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "note_information_consumed",
+                "note_information": {
+                  "source_flow_id": "global_dispatcher",
+                  "handoff_reason": "explicit_user_request",
+                  "target_dispatcher": "prepare_defense_card",
+                  "handoff_context_for_next_dispatcher": "User explicitly selected 'Carte de défense' to address the 'phone reflex upon waking up'. This follows a clarification loop where the user hesitated between attack and defense.",
+                  "user_words": [
+                    "Carte de défense",
+                    "gérer le réflexe téléphone au réveil",
+                    "Carte de défense, je veux gérer le réflexe téléphone au réveil."
+                  ],
+                  "structured_context": {
+                    "primary_signal_path": "tool_skill_intents[0]",
+                    "target_kind": "tool_skill",
+                    "target_flow": "prepare_defense_card",
+                    "confidence_band": "high",
+                    "evidence": [
+                      "Carte de défense",
+                      "réflexe téléphone au réveil"
+                    ],
+                    "recommended_next_focus": "Run the local dispatcher for prepare_defense_card with the identified target."
+                  },
+                  "confidence": "high"
+                },
+                "source_flow_id": "global_dispatcher",
+                "target_dispatcher": "prepare_defense_card",
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher decision",
+                "flow_action": "answer_current_field",
+                "visible_task_kind": "ask_trigger_or_signal",
+                "tool_fit": "defense",
+                "support_need_status": "missing",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit",
+                  "risk_state"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "state_mutation_audit": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "reducer reduced",
+                "flow_action": "answer_current_field",
+                "visible_task_kind": "ask_trigger_or_signal",
+                "tool_fit": "defense",
+                "support_need_status": "missing",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit",
+                  "attachment",
+                  "risk_situation",
+                  "trigger",
+                  "defense_goal"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "state_mutation_audit": {
+                  "server_owned_fields": [
+                    "route_kind",
+                    "platform_destination",
+                    "tool_fit_state",
+                    "attachment_state",
+                    "risk_state",
+                    "trigger_state",
+                    "defense_goal_state",
+                    "defense_response_hint_state",
+                    "support_need_state",
+                    "last_visible_task",
+                    "last_handoff_delivered",
+                    "subskill_history"
+                  ],
+                  "modified_fields_declared": [
+                    "tool_fit",
+                    "risk_state"
+                  ],
+                  "clear_fields_declared": [],
+                  "applied_fields": [
+                    "tool_fit_state",
+                    "risk_state",
+                    "trigger_state",
+                    "defense_goal_state"
+                  ],
+                  "preserved_fields": [
+                    "route_kind",
+                    "platform_destination"
+                  ],
+                  "restored_fields": [],
+                  "cleared_fields": [],
+                  "rejected_changes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "visible_prompt called",
+                "flow_action": "answer_current_field",
+                "visible_task_kind": "ask_trigger_or_signal",
+                "tool_fit": "defense",
+                "support_need_status": "missing",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit",
+                  "attachment",
+                  "risk_situation",
+                  "trigger",
+                  "defense_goal"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "state_mutation_audit": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.visible_agent",
+                "stage": "ask_trigger_or_signal",
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "visible_prompt complete",
+                "flow_action": "answer_current_field",
+                "visible_task_kind": "ask_trigger_or_signal",
+                "tool_fit": "defense",
+                "support_need_status": "missing",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit",
+                  "attachment",
+                  "risk_situation",
+                  "trigger",
+                  "defense_goal"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 2,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "state_mutation_audit": null,
+                "selected_handler": "prepare_defense_card"
+              }
+            ],
+            "ai_call_count": 2
+          },
+          "effect_ledger": {
+            "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t03",
+          "source_message_id": "9a1743e5-ffe7-45a6-99f5-80e2a34a7d22",
+          "user_id": "049859f6-9bb0-4952-94bd-6f6dfe328f70",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0,
+              0
+            ],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "prepare_defense_card",
+            "handoff_context_for_next_dispatcher": "User explicitly selected 'Carte de défense' to address the 'phone reflex upon waking up'. This follows a clarification loop where the user hesitated between attack and defense.",
+            "user_words": [
+              "Carte de défense",
+              "gérer le réflexe téléphone au réveil",
+              "Carte de défense, je veux gérer le réflexe téléphone au réveil."
+            ],
+            "structured_context": {
+              "primary_signal_path": "tool_skill_intents[0]",
+              "target_kind": "tool_skill",
+              "target_flow": "prepare_defense_card",
+              "confidence_band": "high",
+              "evidence": [
+                "Carte de défense",
+                "réflexe téléphone au réveil"
+              ],
+              "recommended_next_focus": "Run the local dispatcher for prepare_defense_card with the identified target."
+            },
+            "confidence": "high"
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "addictions.ecrans",
+                "query_hint": "téléphone réveil",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "normal_reply_fit_score": 0.1,
+          "normal_reply_fit_evidence": [
+            "User explicitly chooses one of the proposed tool options to start a concrete preparation."
+          ],
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [
+            {
+              "path": "direct_effects",
+              "reason_code": "orientation_clarification_resolved_tool_skill"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "orientation_clarification_resolved_tool_skill",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "prepare_defense_card",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 7,
+                  "flow_keys": [
+                    "__active_topic_state_v2",
+                    "__clarification_flow_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 7,
+                  "flow_keys": [
+                    "__active_topic_state_v2",
+                    "__clarification_flow_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 7,
+                  "flow_keys": [
+                    "__active_topic_state_v2",
+                    "__clarification_flow_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 7,
+                  "flow_keys": [
+                    "__active_topic_state_v2",
+                    "__clarification_flow_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 7,
+                  "flow_keys": [
+                    "__active_topic_state_v2",
+                    "__clarification_flow_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-clarification-local-2026-06-15-clarif_state_qa_20260615_r2b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 7,
+                  "flow_keys": [
+                    "__active_topic_state_v2",
+                    "__clarification_flow_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "tool_skill_intent_start",
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          },
+          "note_information": {
+            "source_flow_id": "clarification",
+            "handoff_reason": "clarification_resolved",
+            "target_dispatcher": "prepare_defense_card",
+            "handoff_context_for_next_dispatcher": "L'utilisateur souhaite créer une carte de défense spécifiquement pour gérer le réflexe du téléphone au réveil.",
+            "user_words": [
+              "Carte de défense",
+              "réflexe téléphone au réveil"
+            ],
+            "structured_context": {
+              "clarification_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t01:dispatcher_clarification",
+              "clarification_task_kind": "resolved_transition",
+              "selected_candidate_id": "prepare_defense_card",
+              "selected_candidate_label": "préparer une carte de défense",
+              "resolved_candidate": {
+                "candidate_id": "prepare_defense_card",
+                "label": "préparer une carte de défense",
+                "target_dispatcher": "prepare_defense_card",
+                "operation_type": "prepare_defense_card",
+                "surface_id": null,
+                "confidence": "medium",
+                "why_plausible": "turn_frame.tool_skill_intents",
+                "structured_payload_hint": {}
+              },
+              "rejected_candidates": [
+                {
+                  "candidate_id": "prepare_attack_card",
+                  "label": "préparer une carte d'attaque",
+                  "target_dispatcher": "prepare_attack_card",
+                  "operation_type": "prepare_attack_card",
+                  "surface_id": null,
+                  "confidence": "medium",
+                  "why_plausible": "turn_frame.tool_skill_intents",
+                  "structured_payload_hint": {}
+                }
+              ],
+              "original_conflict_summary": "L'utilisateur a choisi de commencer par la carte de défense pour gérer le réflexe téléphone au réveil.",
+              "ambiguity_axes": [
+                "intent"
+              ],
+              "user_words": [
+                "Carte de défense",
+                "réflexe téléphone au réveil"
+              ],
+              "selected_candidate_payload_hint": {},
+              "candidate_signals": [
+                {
+                  "candidate_id": "prepare_attack_card",
+                  "label": "préparer une carte d'attaque",
+                  "target_dispatcher": "prepare_attack_card",
+                  "operation_type": "prepare_attack_card",
+                  "surface_id": null,
+                  "confidence": "medium",
+                  "why_plausible": "turn_frame.tool_skill_intents",
+                  "structured_payload_hint": {}
+                },
+                {
+                  "candidate_id": "prepare_defense_card",
+                  "label": "préparer une carte de défense",
+                  "target_dispatcher": "prepare_defense_card",
+                  "operation_type": "prepare_defense_card",
+                  "surface_id": null,
+                  "confidence": "medium",
+                  "why_plausible": "turn_frame.tool_skill_intents",
+                  "structured_payload_hint": {}
+                }
+              ],
+              "clarification_context_pack": {
+                "limits": {
+                  "max_items_per_category": 8
+                },
+                "version": "clarification_context_pack_v1",
+                "projections": {
+                  "attack_cards": [],
+                  "defense_cards": [],
+                  "active_plan_items": [],
+                  "recurring_reminders": []
+                },
+                "retrieval_notes": [
+                  "defense_cards:error",
+                  "attack_cards:error"
+                ],
+                "loaded_for_candidate_operations": [
+                  "prepare_attack_card",
+                  "prepare_defense_card"
+                ]
+              },
+              "context_evidence_used": [],
+              "missing_for_target_dispatcher": [],
+              "dispatcher_structured_context": {
+                "selected_candidate_id": "prepare_defense_card",
+                "user_intent": "create_defense_card",
+                "target_behavior": "réflexe téléphone au réveil",
+                "clarification_summary": "Arbitrage terminé entre attaque et défense; priorité donnée à la défense."
+              }
+            },
+            "confidence": "high"
+          },
+          "orientation_clarification_note_information": {
+            "source_flow_id": "clarification",
+            "handoff_reason": "clarification_resolved",
+            "target_dispatcher": "prepare_defense_card",
+            "handoff_context_for_next_dispatcher": "L'utilisateur souhaite créer une carte de défense spécifiquement pour gérer le réflexe du téléphone au réveil.",
+            "user_words": [
+              "Carte de défense",
+              "réflexe téléphone au réveil"
+            ],
+            "structured_context": {
+              "clarification_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t01:dispatcher_clarification",
+              "clarification_task_kind": "resolved_transition",
+              "selected_candidate_id": "prepare_defense_card",
+              "selected_candidate_label": "préparer une carte de défense",
+              "resolved_candidate": {
+                "candidate_id": "prepare_defense_card",
+                "label": "préparer une carte de défense",
+                "target_dispatcher": "prepare_defense_card",
+                "operation_type": "prepare_defense_card",
+                "surface_id": null,
+                "confidence": "medium",
+                "why_plausible": "turn_frame.tool_skill_intents",
+                "structured_payload_hint": {}
+              },
+              "rejected_candidates": [
+                {
+                  "candidate_id": "prepare_attack_card",
+                  "label": "préparer une carte d'attaque",
+                  "target_dispatcher": "prepare_attack_card",
+                  "operation_type": "prepare_attack_card",
+                  "surface_id": null,
+                  "confidence": "medium",
+                  "why_plausible": "turn_frame.tool_skill_intents",
+                  "structured_payload_hint": {}
+                }
+              ],
+              "original_conflict_summary": "L'utilisateur a choisi de commencer par la carte de défense pour gérer le réflexe téléphone au réveil.",
+              "ambiguity_axes": [
+                "intent"
+              ],
+              "user_words": [
+                "Carte de défense",
+                "réflexe téléphone au réveil"
+              ],
+              "selected_candidate_payload_hint": {},
+              "candidate_signals": [
+                {
+                  "candidate_id": "prepare_attack_card",
+                  "label": "préparer une carte d'attaque",
+                  "target_dispatcher": "prepare_attack_card",
+                  "operation_type": "prepare_attack_card",
+                  "surface_id": null,
+                  "confidence": "medium",
+                  "why_plausible": "turn_frame.tool_skill_intents",
+                  "structured_payload_hint": {}
+                },
+                {
+                  "candidate_id": "prepare_defense_card",
+                  "label": "préparer une carte de défense",
+                  "target_dispatcher": "prepare_defense_card",
+                  "operation_type": "prepare_defense_card",
+                  "surface_id": null,
+                  "confidence": "medium",
+                  "why_plausible": "turn_frame.tool_skill_intents",
+                  "structured_payload_hint": {}
+                }
+              ],
+              "clarification_context_pack": {
+                "limits": {
+                  "max_items_per_category": 8
+                },
+                "version": "clarification_context_pack_v1",
+                "projections": {
+                  "attack_cards": [],
+                  "defense_cards": [],
+                  "active_plan_items": [],
+                  "recurring_reminders": []
+                },
+                "retrieval_notes": [
+                  "defense_cards:error",
+                  "attack_cards:error"
+                ],
+                "loaded_for_candidate_operations": [
+                  "prepare_attack_card",
+                  "prepare_defense_card"
+                ]
+              },
+              "context_evidence_used": [],
+              "missing_for_target_dispatcher": [],
+              "dispatcher_structured_context": {
+                "selected_candidate_id": "prepare_defense_card",
+                "user_intent": "create_defense_card",
+                "target_behavior": "réflexe téléphone au réveil",
+                "clarification_summary": "Arbitrage terminé entre attaque et défense; priorité donnée à la défense."
+              }
+            },
+            "confidence": "high"
+          }
+        },
+        "tool_skill_run": {
+          "selected_handler": "prepare_defense_card",
+          "reason_code": "prepare_defense_card_local_collecting",
+          "operation_type": "prepare_defense_card",
+          "mode": "platform_handoff",
+          "executable_from_chat": false,
+          "status": "collecting",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "pending_confirmation": null,
+          "handoff_state": {
+            "skill_id": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "status": "collecting",
+            "draft": null,
+            "local_state": {
+              "flow_id": "prepare_defense_card",
+              "route_kind": "free_card",
+              "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+              "tool_fit_state": {
+                "status": "defense",
+                "reason": "L'utilisateur veut gérer un réflexe automatique (téléphone au réveil), ce qui correspond à une protection contre une impulsion.",
+                "needs_user_confirmation": false,
+                "why_status": "Choix explicite de l'utilisateur après clarification."
+              },
+              "attachment_state": {
+                "status": "missing",
+                "kind": "unknown",
+                "plan_item_id": null,
+                "candidate_value": null,
+                "locked_value": null,
+                "candidate_options": [],
+                "needs_user_confirmation": false,
+                "why_status": "Attache manquante."
+              },
+              "risk_state": {
+                "status": "proposed",
+                "label": "réflexe téléphone au réveil",
+                "description": "L'automatisme de prendre son téléphone dès le matin.",
+                "timing_hint": "réveil",
+                "context_hint": "matin",
+                "needs_user_confirmation": true,
+                "why_status": "Situation de risque identifiée dans le message."
+              },
+              "trigger_state": {
+                "status": "proposed",
+                "type": null,
+                "candidate_value": "ouvrir les yeux / être au lit le matin",
+                "locked_value": null,
+                "needs_user_confirmation": true,
+                "why_status": "Signal déclencheur probable."
+              },
+              "defense_goal_state": {
+                "status": "proposed",
+                "value": "interrupt_impulse",
+                "candidate_value": "ne pas scroller dès le réveil",
+                "locked_value": null,
+                "needs_user_confirmation": true,
+                "why_status": "Objectif déduit du besoin de 'gérer le réflexe'."
+              },
+              "defense_response_hint_state": {
+                "status": "missing",
+                "strategy_hint": null,
+                "candidate_value": null,
+                "locked_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "Réponse défensive non fournie."
+              },
+              "support_need_state": {
+                "field_id": "support_need",
+                "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                "status": "missing",
+                "candidate_value": null,
+                "locked_value": null,
+                "previous_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "Champ support_need manquant."
+              },
+              "last_visible_task": "ask_trigger_or_signal",
+              "last_handoff_delivered": false,
+              "subskill_history": []
+            },
+            "turn_count": 1,
+            "max_turns": 8,
+            "created_at": "2026-06-15T20:06:20.262Z",
+            "updated_at": "2026-06-15T20:06:20.262Z",
+            "executable_from_chat": false
+          },
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "state_mutation_audit": {
+            "server_owned_fields": [
+              "route_kind",
+              "platform_destination",
+              "tool_fit_state",
+              "attachment_state",
+              "risk_state",
+              "trigger_state",
+              "defense_goal_state",
+              "defense_response_hint_state",
+              "support_need_state",
+              "last_visible_task",
+              "last_handoff_delivered",
+              "subskill_history"
+            ],
+            "modified_fields_declared": [
+              "tool_fit",
+              "risk_state"
+            ],
+            "clear_fields_declared": [],
+            "applied_fields": [
+              "tool_fit_state",
+              "risk_state",
+              "trigger_state",
+              "defense_goal_state"
+            ],
+            "preserved_fields": [
+              "route_kind",
+              "platform_destination"
+            ],
+            "restored_fields": [],
+            "cleared_fields": [],
+            "rejected_changes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "active flow entry",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "missing",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "state_mutation_audit": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher called",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "missing",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "state_mutation_audit": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "note_information_consumed",
+              "note_information": {
+                "source_flow_id": "global_dispatcher",
+                "handoff_reason": "explicit_user_request",
+                "target_dispatcher": "prepare_defense_card",
+                "handoff_context_for_next_dispatcher": "User explicitly selected 'Carte de défense' to address the 'phone reflex upon waking up'. This follows a clarification loop where the user hesitated between attack and defense.",
+                "user_words": [
+                  "Carte de défense",
+                  "gérer le réflexe téléphone au réveil",
+                  "Carte de défense, je veux gérer le réflexe téléphone au réveil."
+                ],
+                "structured_context": {
+                  "primary_signal_path": "tool_skill_intents[0]",
+                  "target_kind": "tool_skill",
+                  "target_flow": "prepare_defense_card",
+                  "confidence_band": "high",
+                  "evidence": [
+                    "Carte de défense",
+                    "réflexe téléphone au réveil"
+                  ],
+                  "recommended_next_focus": "Run the local dispatcher for prepare_defense_card with the identified target."
+                },
+                "confidence": "high"
+              },
+              "source_flow_id": "global_dispatcher",
+              "target_dispatcher": "prepare_defense_card",
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher decision",
+              "flow_action": "answer_current_field",
+              "visible_task_kind": "ask_trigger_or_signal",
+              "tool_fit": "defense",
+              "support_need_status": "missing",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit",
+                "risk_state"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "state_mutation_audit": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "reducer reduced",
+              "flow_action": "answer_current_field",
+              "visible_task_kind": "ask_trigger_or_signal",
+              "tool_fit": "defense",
+              "support_need_status": "missing",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit",
+                "attachment",
+                "risk_situation",
+                "trigger",
+                "defense_goal"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "route_kind",
+                  "platform_destination",
+                  "tool_fit_state",
+                  "attachment_state",
+                  "risk_state",
+                  "trigger_state",
+                  "defense_goal_state",
+                  "defense_response_hint_state",
+                  "support_need_state",
+                  "last_visible_task",
+                  "last_handoff_delivered",
+                  "subskill_history"
+                ],
+                "modified_fields_declared": [
+                  "tool_fit",
+                  "risk_state"
+                ],
+                "clear_fields_declared": [],
+                "applied_fields": [
+                  "tool_fit_state",
+                  "risk_state",
+                  "trigger_state",
+                  "defense_goal_state"
+                ],
+                "preserved_fields": [
+                  "route_kind",
+                  "platform_destination"
+                ],
+                "restored_fields": [],
+                "cleared_fields": [],
+                "rejected_changes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "visible_prompt called",
+              "flow_action": "answer_current_field",
+              "visible_task_kind": "ask_trigger_or_signal",
+              "tool_fit": "defense",
+              "support_need_status": "missing",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit",
+                "attachment",
+                "risk_situation",
+                "trigger",
+                "defense_goal"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "state_mutation_audit": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.visible_agent",
+              "stage": "ask_trigger_or_signal",
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "visible_prompt complete",
+              "flow_action": "answer_current_field",
+              "visible_task_kind": "ask_trigger_or_signal",
+              "tool_fit": "defense",
+              "support_need_status": "missing",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit",
+                "attachment",
+                "risk_situation",
+                "trigger",
+                "defense_goal"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 2,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "state_mutation_audit": null,
+              "selected_handler": "prepare_defense_card"
+            }
+          ],
+          "ai_call_count": 2
+        },
+        "effect_ledger": {
+          "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  }
+]

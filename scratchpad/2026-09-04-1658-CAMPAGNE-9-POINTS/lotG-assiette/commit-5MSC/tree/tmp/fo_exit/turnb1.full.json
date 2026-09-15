@@ -1,0 +1,244 @@
+{
+  "ok": true,
+  "request_id": "cbc137ad-9034-4d5a-9ccb-b572ac2957ff",
+  "user_id": "d93db839-7302-41f9-8239-b90fefe3d672",
+  "channel": "web",
+  "scope": "web",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Ça ressemble à une bonne opportunité pour des initiatives : un message récurrent chaque dimanche soir pour te rappeler de préparer tes affaires de semaine. Si tu veux, je peux t’aider à formuler le quoi dire et le bon moment.",
+    "mode": "companion",
+    "delivery": null,
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "cbc137ad-9034-4d5a-9ccb-b572ac2957ff",
+        "source_message_id": "c168be40-0d58-47ee-bb63-7b7701668563",
+        "user_id": "d93db839-7302-41f9-8239-b90fefe3d672",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "direct_effect_time_context": {
+          "now_utc": "2026-07-02T14:05:40.495Z",
+          "user_timezone": "Europe/Paris",
+          "user_locale": "fr-FR",
+          "user_local_datetime": "2026-07-02T16:05:40",
+          "user_local_human": "jeudi 2 juillet 2026 à 16:05"
+        },
+        "note_information": null,
+        "skill_signals": {
+          "feature_opportunity": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "initiative_opportunity",
+            "context": {
+              "feature": "initiatives",
+              "opportunity_kind": "recurring_context",
+              "trigger_context": "tous les dimanches soir",
+              "user_problem_summary": "User forgets to prepare weekly belongings every Sunday evening and wants something recurring to help remember it each time.",
+              "priority_reason": "Repeated context and request for ongoing support fit initiatives."
+            }
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "feature_opportunity_initiatives",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "taxonomy_first",
+          "plan_confidence": 0.78
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "feature_opportunity",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "feature_opportunity_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "selected_handler": "feature_opportunity"
+      },
+      "effect_ledger": {
+        "turn_id": "cbc137ad-9034-4d5a-9ccb-b572ac2957ff",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "feature_opportunity",
+      "skill_run": {
+        "selected_skill_id": "feature_opportunity",
+        "reason_code": "feature_opportunity_signal",
+        "status": "continue",
+        "latency_ms": 4341
+      }
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "cbc137ad-9034-4d5a-9ccb-b572ac2957ff",
+      "source_message_id": "c168be40-0d58-47ee-bb63-7b7701668563",
+      "user_id": "d93db839-7302-41f9-8239-b90fefe3d672",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "direct_effect_time_context": {
+        "now_utc": "2026-07-02T14:05:40.495Z",
+        "user_timezone": "Europe/Paris",
+        "user_locale": "fr-FR",
+        "user_local_datetime": "2026-07-02T16:05:40",
+        "user_local_human": "jeudi 2 juillet 2026 à 16:05"
+      },
+      "note_information": null,
+      "skill_signals": {
+        "feature_opportunity": {
+          "detected": true,
+          "confidence_band": "high",
+          "reason": "initiative_opportunity",
+          "context": {
+            "feature": "initiatives",
+            "opportunity_kind": "recurring_context",
+            "trigger_context": "tous les dimanches soir",
+            "user_problem_summary": "User forgets to prepare weekly belongings every Sunday evening and wants something recurring to help remember it each time.",
+            "priority_reason": "Repeated context and request for ongoing support fit initiatives."
+          }
+        }
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "feature_opportunity_initiatives",
+        "reasoning_complexity": "low",
+        "context_need": "minimal",
+        "memory_mode": "none",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "tiny",
+        "targets": [],
+        "retrieval_policy": "taxonomy_first",
+        "plan_confidence": 0.78
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "feature_opportunity",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "feature_opportunity_signal",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "selected_handler": "feature_opportunity"
+    },
+    "effect_ledger": {
+      "turn_id": "cbc137ad-9034-4d5a-9ccb-b572ac2957ff",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "feature_opportunity",
+    "skill_run": {
+      "selected_skill_id": "feature_opportunity",
+      "reason_code": "feature_opportunity_signal",
+      "status": "continue",
+      "latency_ms": 4341
+    }
+  },
+  "trace_error": null
+}

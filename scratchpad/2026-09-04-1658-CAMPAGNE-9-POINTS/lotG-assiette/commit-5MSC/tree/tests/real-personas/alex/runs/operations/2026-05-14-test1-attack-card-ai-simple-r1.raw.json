@@ -1,0 +1,56 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "J'aimerais préparer une carte d'attaque pour m'aider à faire mon sas de déchargement ce soir.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r1-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "whatsapp",
+      "scope": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est noté pour le sas de déchargement. Quelle approche préfères-tu pour t'aider ce soir ?\n\n1. Un mot de bascule (à m'envoyer si tu sens que tu vas esquiver)\n2. Un texte magique (à relire si tu commences à négocier)\n3. Préparer le terrain (pour rendre le démarrage immédiat)",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r1-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Le texte magique je pense. Le souci c'est surtout que je commence à négocier avec moi-même et je repousse.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r1-t02",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "whatsapp",
+      "scope": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Voici ton brouillon pour 'Le texte magique'. Il est conçu pour stopper net la négociation intérieure quand tu dois faire ton sas de déchargement. Est-ce que ce texte te convient pour ta carte d'attaque ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  }
+]

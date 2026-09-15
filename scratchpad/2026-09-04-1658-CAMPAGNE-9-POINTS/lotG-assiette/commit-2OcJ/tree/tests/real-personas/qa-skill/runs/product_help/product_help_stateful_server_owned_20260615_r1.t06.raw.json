@@ -1,0 +1,1150 @@
+{
+  "requestId": "qa-product_help_stateful_server_owned_20260615_r1-t06",
+  "http_status": 200,
+  "ok": true,
+  "user": "Oui, ça me convient. Garde ce premier geste de trois papiers, et surtout pas plus.",
+  "body": {
+    "ok": true,
+    "request_id": "qa-product_help_stateful_server_owned_20260615_r1-t06",
+    "user_id": "31427658-4bed-43e9-b80e-41f69ed763d0",
+    "channel": "web",
+    "scope": "qa-product_help_stateful_server_owned_20260615_r1",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "logged_message_id": null,
+    "latest_message_id": null,
+    "response": {
+      "content": "C'est entendu pour les trois papiers. Pour que tout soit fluide, qu'est-ce qui devrait déjà être prêt autour de toi quand le moment sera venu ?",
+      "additional_contents": [],
+      "mode": "companion",
+      "tool_execution": "blocked",
+      "executed_tools": [],
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-product_help_stateful_server_owned_20260615_r1-t06",
+          "source_message_id": "ce83d3d8-8f68-4aea-b348-a6ec3881e86a",
+          "user_id": "31427658-4bed-43e9-b80e-41f69ed763d0",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0,
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "prepare_attack_card",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_prepare_attack_card_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_prepare_attack_card_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "prepare_attack_card",
+          "reason_code": "prepare_attack_card_local_ask_platform_field",
+          "operation_type": "prepare_attack_card",
+          "mode": "platform_handoff",
+          "executable_from_chat": false,
+          "status": "clarifying",
+          "flow_action": "confirm_technique_proposal",
+          "visible_task": "ask_platform_field",
+          "visible_task_context": {
+            "state_summary": "Technique 'Préparer le terrain' et premier geste verrouillés. Reste l'environnement.",
+            "user_words": [
+              "Oui, ça me convient",
+              "Garde ce premier geste de trois papiers"
+            ],
+            "field_or_stage": "ready_environment",
+            "known_values": {
+              "target": {
+                "status": "locked",
+                "kind": "personal_action",
+                "plan_item_id": null,
+                "candidate_value": null,
+                "locked_value": "ranger mes papiers demain matin (version 10 minutes)",
+                "needs_user_confirmation": false,
+                "why_status": "previously locked"
+              },
+              "blocker": {
+                "status": "locked",
+                "blocker_type": null,
+                "candidate_value": null,
+                "locked_value": "vouloir tout trier parfaitement et ça va me bloquer dès la première pile",
+                "needs_user_confirmation": false,
+                "why_status": "previously locked"
+              },
+              "technique": {
+                "status": "locked",
+                "technique_key": "preparer_terrain",
+                "technique_label": "Preparer le terrain",
+                "explicitly_requested": false,
+                "candidate_options": [],
+                "fit_warning": null,
+                "needs_user_confirmation": false,
+                "why_status": "user confirmed the proposal"
+              },
+              "current_field": {
+                "field_id": "ready_environment",
+                "technique_key": "preparer_terrain",
+                "field_label": "Quand le moment arrive, qu'est-ce qui devrait deja etre pret autour de toi ?",
+                "status": "missing",
+                "candidate_value": null,
+                "locked_value": null,
+                "previous_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "not yet discussed"
+              },
+              "activation_keyword": {
+                "status": "not_applicable",
+                "candidate_value": null,
+                "locked_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "not pre_engagement"
+              }
+            },
+            "missing_or_weak_values": [
+              "ready_environment"
+            ],
+            "selected_candidate": {
+              "candidate_options": [],
+              "allowed_technique_labels": [],
+              "recommended_technique": null,
+              "previous_value": "ranger mes papiers"
+            },
+            "handoff_data": {
+              "operation_name": "prepare_attack_card",
+              "surface_label": "Cartes d'attaque",
+              "platform_destination": "",
+              "platform_steps": [],
+              "flow_kind": "free_attack_card",
+              "technique_label": "Preparer le terrain",
+              "target_value": "ranger mes papiers demain matin (version 10 minutes)",
+              "blocker_value": "vouloir tout trier parfaitement et ça va me bloquer dès la première pile",
+              "locked_fields": [
+                {
+                  "field_id": "action_to_simplify",
+                  "field_label": "Par rapport a quelle action tu veux te rendre la vie plus simple ?",
+                  "field_value": "ranger mes papiers"
+                },
+                {
+                  "field_id": "prep_in_advance",
+                  "field_label": "Qu'est-ce que tu pourrais preparer en avance pour enlever de la friction ?",
+                  "field_value": "poser trois papiers sur la table, pas plus"
+                }
+              ],
+              "missing_fields": [
+                "ready_environment"
+              ],
+              "activation_keyword": null
+            },
+            "tone_constraints": [],
+            "do_not_say": [
+              "c'est cree",
+              "je l'ai creee",
+              "je l'ai ajoutee",
+              "c'est active",
+              "dis oui et je la cree",
+              "c'est créé",
+              "c'est enregistré"
+            ],
+            "context_summary": "L'utilisateur valide la technique et le geste concret. Je demande maintenant comment préparer l'environnement.",
+            "evidence_used": [
+              "Oui, ça me convient",
+              "Garde ce premier geste de trois papiers"
+            ]
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "handoff_state": {
+            "skill_id": "prepare_attack_card",
+            "mode": "platform_handoff",
+            "status": "collecting",
+            "draft": {
+              "mode": "platform_handoff",
+              "operation_type": "prepare_attack_card",
+              "recommendation": {
+                "avoid": [],
+                "preserve": [],
+                "platform_steps": [
+                  "ouvre la section Cartes",
+                  "choisis Carte d’attaque",
+                  "reprends le brouillon proposé"
+                ],
+                "technique_label": "",
+                "card_draft_summary": "",
+                "why_this_technique": "La technique sera choisie après identification du bloqueur.",
+                "platform_destination": "dans la section Cartes d’attaque"
+              },
+              "target_summary": "ranger mes papiers demain matin (version 10 minutes)",
+              "blocker_summary": "",
+              "missing_decisions": [],
+              "executable_from_chat": false
+            },
+            "source_draft": null,
+            "local_state": {
+              "flow_id": "prepare_attack_card",
+              "flow_kind": "free_attack_card",
+              "platform_destination": "dans la section Cartes d’attaque",
+              "target_state": {
+                "status": "locked",
+                "kind": "personal_action",
+                "plan_item_id": null,
+                "candidate_value": null,
+                "locked_value": "ranger mes papiers demain matin (version 10 minutes)",
+                "needs_user_confirmation": false,
+                "why_status": "previously locked"
+              },
+              "blocker_state": {
+                "status": "locked",
+                "blocker_type": null,
+                "candidate_value": null,
+                "locked_value": "vouloir tout trier parfaitement et ça va me bloquer dès la première pile",
+                "needs_user_confirmation": false,
+                "why_status": "previously locked"
+              },
+              "technique_state": {
+                "status": "locked",
+                "technique_key": "preparer_terrain",
+                "technique_label": "Preparer le terrain",
+                "explicitly_requested": false,
+                "candidate_options": [],
+                "fit_warning": null,
+                "needs_user_confirmation": false,
+                "why_status": "user confirmed the proposal"
+              },
+              "platform_field_order": [
+                "action_to_simplify",
+                "prep_in_advance",
+                "ready_environment"
+              ],
+              "platform_field_states": {
+                "action_to_simplify": {
+                  "field_id": "action_to_simplify",
+                  "technique_key": "preparer_terrain",
+                  "field_label": "Par rapport a quelle action tu veux te rendre la vie plus simple ?",
+                  "status": "locked",
+                  "candidate_value": null,
+                  "locked_value": "ranger mes papiers",
+                  "previous_value": "ranger mes papiers",
+                  "needs_user_confirmation": false,
+                  "why_status": "confirmed via technique validation"
+                },
+                "prep_in_advance": {
+                  "field_id": "prep_in_advance",
+                  "technique_key": "preparer_terrain",
+                  "field_label": "Qu'est-ce que tu pourrais preparer en avance pour enlever de la friction ?",
+                  "status": "locked",
+                  "candidate_value": null,
+                  "locked_value": "poser trois papiers sur la table, pas plus",
+                  "previous_value": "poser trois papiers sur la table, pas plus",
+                  "needs_user_confirmation": false,
+                  "why_status": "explicitly confirmed by user"
+                },
+                "ready_environment": {
+                  "field_id": "ready_environment",
+                  "technique_key": "preparer_terrain",
+                  "field_label": "Quand le moment arrive, qu'est-ce qui devrait deja etre pret autour de toi ?",
+                  "status": "missing",
+                  "candidate_value": null,
+                  "locked_value": null,
+                  "previous_value": null,
+                  "needs_user_confirmation": false,
+                  "why_status": "not yet discussed"
+                }
+              },
+              "activation_keyword_state": {
+                "status": "not_applicable",
+                "candidate_value": null,
+                "locked_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "not pre_engagement"
+              },
+              "current_field_id": "ready_environment",
+              "last_visible_task": "ask_platform_field",
+              "last_handoff_delivered": false,
+              "subskill_history": [
+                {
+                  "skill_id": "product_help",
+                  "created_at": "2026-06-15T19:27:08.496Z",
+                  "user_message": "Avant de répondre au piège : une carte d'attaque comme ça, ça modifie mon Plan ou c'est juste une aide à part ?",
+                  "reply_summary": "C'est une aide à part. La carte d'attaque ne modifie pas ton Plan : elle sert simplement à rendre le démarrage plus facile et moins coûteux. Une fois prête, tu la retrouveras rangée dans tes Ressources.",
+                  "question_to_answer": "Est-ce qu'une carte d'attaque modifie le Plan ou est-ce une aide à part ?",
+                  "active_flow_context": {
+                    "flow_kind": "free_attack_card",
+                    "target_state": {
+                      "kind": "personal_action",
+                      "status": "locked",
+                      "why_status": "L'utilisateur a explicitement défini l'action et ses contraintes temporelles.",
+                      "locked_value": "ranger mes papiers demain matin (version 10 minutes)",
+                      "plan_item_id": null,
+                      "candidate_value": null,
+                      "needs_user_confirmation": false
+                    },
+                    "blocker_state": {
+                      "status": "missing",
+                      "why_status": "Piège manquant.",
+                      "blocker_type": null,
+                      "locked_value": null,
+                      "candidate_value": null,
+                      "needs_user_confirmation": false
+                    },
+                    "missing_fields": [],
+                    "technique_state": {
+                      "status": "missing",
+                      "why_status": "La technique sera choisie après identification du bloqueur.",
+                      "fit_warning": null,
+                      "technique_key": null,
+                      "technique_label": null,
+                      "candidate_options": [],
+                      "explicitly_requested": false,
+                      "needs_user_confirmation": false
+                    },
+                    "current_field_id": null,
+                    "platform_destination": "dans la section Cartes d’attaque"
+                  }
+                }
+              ]
+            },
+            "target": {
+              "kind": "personal_action",
+              "plan_item_id": null,
+              "title": "ranger mes papiers demain matin (version 10 minutes)"
+            },
+            "turn_count": 5,
+            "max_turns": 8,
+            "created_at": "2026-06-15T19:26:04.079Z",
+            "updated_at": "2026-06-15T19:29:36.386Z",
+            "executable_from_chat": false
+          },
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "state_mutation_audit": {
+            "server_owned_fields": [
+              "flow_id",
+              "platform_destination",
+              "platform_field_order",
+              "current_field_id",
+              "last_visible_task",
+              "last_handoff_delivered",
+              "subskill_history",
+              "target_state",
+              "blocker_state",
+              "technique_state",
+              "platform_field_states",
+              "activation_keyword_state",
+              "note_information",
+              "exit_memo",
+              "local_state_summary",
+              "previous_flow_summary"
+            ],
+            "modified_fields_declared": [],
+            "clear_fields_declared": [],
+            "applied_fields": [
+              "technique_state",
+              "platform_field_states",
+              "current_field_id",
+              "last_visible_task"
+            ],
+            "preserved_fields": [
+              "target_state",
+              "blocker_state",
+              "last_handoff_delivered"
+            ],
+            "restored_fields": [],
+            "cleared_fields": [
+              "activation_keyword_state"
+            ],
+            "rejected_changes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "db_context_pack_loaded",
+              "plan_items_count": 0,
+              "micro_memory_items_count": 0,
+              "selected_handler": "prepare_attack_card"
+            },
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "global_dispatcher_skipped",
+              "reason_code": "active_prepare_attack_card_uses_local_dispatcher",
+              "selected_handler": "prepare_attack_card"
+            },
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "local_dispatcher start",
+              "flow_action": null,
+              "stage": null,
+              "visible_task_kind": null,
+              "current_field_id": "action_to_simplify",
+              "technique_key": "preparer_terrain",
+              "target_status": "locked",
+              "blocker_status": "locked",
+              "missing_fields": [
+                "action_to_simplify",
+                "prep_in_advance",
+                "ready_environment"
+              ],
+              "risk_assessment": null,
+              "selected_handler": "prepare_attack_card",
+              "state_mutation_audit": null
+            },
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "local_dispatcher decision",
+              "flow_action": "confirm_technique_proposal",
+              "stage": "ask_platform_field",
+              "visible_task_kind": "ask_platform_field",
+              "current_field_id": null,
+              "technique_key": "preparer_terrain",
+              "target_status": "locked",
+              "blocker_status": "locked",
+              "missing_fields": [],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_attack_card",
+              "state_mutation_audit": null
+            },
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "reducer reduced",
+              "flow_action": "confirm_technique_proposal",
+              "stage": "ask_platform_field",
+              "visible_task_kind": "ask_platform_field",
+              "current_field_id": "ready_environment",
+              "technique_key": "preparer_terrain",
+              "target_status": "locked",
+              "blocker_status": "locked",
+              "missing_fields": [
+                "ready_environment"
+              ],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_attack_card",
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "flow_id",
+                  "platform_destination",
+                  "platform_field_order",
+                  "current_field_id",
+                  "last_visible_task",
+                  "last_handoff_delivered",
+                  "subskill_history",
+                  "target_state",
+                  "blocker_state",
+                  "technique_state",
+                  "platform_field_states",
+                  "activation_keyword_state",
+                  "note_information",
+                  "exit_memo",
+                  "local_state_summary",
+                  "previous_flow_summary"
+                ],
+                "modified_fields_declared": [],
+                "clear_fields_declared": [],
+                "applied_fields": [
+                  "technique_state",
+                  "platform_field_states",
+                  "current_field_id",
+                  "last_visible_task"
+                ],
+                "preserved_fields": [
+                  "target_state",
+                  "blocker_state",
+                  "last_handoff_delivered"
+                ],
+                "restored_fields": [],
+                "cleared_fields": [
+                  "activation_keyword_state"
+                ],
+                "rejected_changes": []
+              }
+            },
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "visible_stage start",
+              "flow_action": "confirm_technique_proposal",
+              "stage": "ask_platform_field",
+              "visible_task_kind": "ask_platform_field",
+              "current_field_id": "ready_environment",
+              "technique_key": "preparer_terrain",
+              "target_status": "locked",
+              "blocker_status": "locked",
+              "missing_fields": [
+                "ready_environment"
+              ],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_attack_card",
+              "state_mutation_audit": null
+            },
+            {
+              "component": "visible_agent",
+              "stage": "ask_platform_field",
+              "attempt": 1,
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "visible_stage complete",
+              "flow_action": "confirm_technique_proposal",
+              "stage": "ask_platform_field",
+              "visible_task_kind": "ask_platform_field",
+              "current_field_id": "ready_environment",
+              "technique_key": "preparer_terrain",
+              "target_status": "locked",
+              "blocker_status": "locked",
+              "missing_fields": [
+                "ready_environment"
+              ],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_attack_card",
+              "state_mutation_audit": null
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-product_help_stateful_server_owned_20260615_r1-t06",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "tool_skill"
+      }
+    },
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "qa-product_help_stateful_server_owned_20260615_r1-t06",
+        "source_message_id": "ce83d3d8-8f68-4aea-b348-a6ec3881e86a",
+        "user_id": "31427658-4bed-43e9-b80e-41f69ed763d0",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [
+            0,
+            0
+          ],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "tool_skill_intents": [],
+        "skill_signals": {},
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "blocked_paths": [
+          {
+            "path": "global_dispatcher",
+            "reason_code": "active_prepare_attack_card_uses_local_dispatcher"
+          }
+        ],
+        "direct_effects_to_run": [],
+        "reason_code": "active_prepare_attack_card_local_dispatcher",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none"
+      },
+      "tool_skill_run": {
+        "selected_handler": "prepare_attack_card",
+        "reason_code": "prepare_attack_card_local_ask_platform_field",
+        "operation_type": "prepare_attack_card",
+        "mode": "platform_handoff",
+        "executable_from_chat": false,
+        "status": "clarifying",
+        "flow_action": "confirm_technique_proposal",
+        "visible_task": "ask_platform_field",
+        "visible_task_context": {
+          "state_summary": "Technique 'Préparer le terrain' et premier geste verrouillés. Reste l'environnement.",
+          "user_words": [
+            "Oui, ça me convient",
+            "Garde ce premier geste de trois papiers"
+          ],
+          "field_or_stage": "ready_environment",
+          "known_values": {
+            "target": {
+              "status": "locked",
+              "kind": "personal_action",
+              "plan_item_id": null,
+              "candidate_value": null,
+              "locked_value": "ranger mes papiers demain matin (version 10 minutes)",
+              "needs_user_confirmation": false,
+              "why_status": "previously locked"
+            },
+            "blocker": {
+              "status": "locked",
+              "blocker_type": null,
+              "candidate_value": null,
+              "locked_value": "vouloir tout trier parfaitement et ça va me bloquer dès la première pile",
+              "needs_user_confirmation": false,
+              "why_status": "previously locked"
+            },
+            "technique": {
+              "status": "locked",
+              "technique_key": "preparer_terrain",
+              "technique_label": "Preparer le terrain",
+              "explicitly_requested": false,
+              "candidate_options": [],
+              "fit_warning": null,
+              "needs_user_confirmation": false,
+              "why_status": "user confirmed the proposal"
+            },
+            "current_field": {
+              "field_id": "ready_environment",
+              "technique_key": "preparer_terrain",
+              "field_label": "Quand le moment arrive, qu'est-ce qui devrait deja etre pret autour de toi ?",
+              "status": "missing",
+              "candidate_value": null,
+              "locked_value": null,
+              "previous_value": null,
+              "needs_user_confirmation": false,
+              "why_status": "not yet discussed"
+            },
+            "activation_keyword": {
+              "status": "not_applicable",
+              "candidate_value": null,
+              "locked_value": null,
+              "needs_user_confirmation": false,
+              "why_status": "not pre_engagement"
+            }
+          },
+          "missing_or_weak_values": [
+            "ready_environment"
+          ],
+          "selected_candidate": {
+            "candidate_options": [],
+            "allowed_technique_labels": [],
+            "recommended_technique": null,
+            "previous_value": "ranger mes papiers"
+          },
+          "handoff_data": {
+            "operation_name": "prepare_attack_card",
+            "surface_label": "Cartes d'attaque",
+            "platform_destination": "",
+            "platform_steps": [],
+            "flow_kind": "free_attack_card",
+            "technique_label": "Preparer le terrain",
+            "target_value": "ranger mes papiers demain matin (version 10 minutes)",
+            "blocker_value": "vouloir tout trier parfaitement et ça va me bloquer dès la première pile",
+            "locked_fields": [
+              {
+                "field_id": "action_to_simplify",
+                "field_label": "Par rapport a quelle action tu veux te rendre la vie plus simple ?",
+                "field_value": "ranger mes papiers"
+              },
+              {
+                "field_id": "prep_in_advance",
+                "field_label": "Qu'est-ce que tu pourrais preparer en avance pour enlever de la friction ?",
+                "field_value": "poser trois papiers sur la table, pas plus"
+              }
+            ],
+            "missing_fields": [
+              "ready_environment"
+            ],
+            "activation_keyword": null
+          },
+          "tone_constraints": [],
+          "do_not_say": [
+            "c'est cree",
+            "je l'ai creee",
+            "je l'ai ajoutee",
+            "c'est active",
+            "dis oui et je la cree",
+            "c'est créé",
+            "c'est enregistré"
+          ],
+          "context_summary": "L'utilisateur valide la technique et le geste concret. Je demande maintenant comment préparer l'environnement.",
+          "evidence_used": [
+            "Oui, ça me convient",
+            "Garde ce premier geste de trois papiers"
+          ]
+        },
+        "requested_effects": [],
+        "allowed_effects": [],
+        "committed_effects": [],
+        "blocked_effects": [],
+        "handoff_state": {
+          "skill_id": "prepare_attack_card",
+          "mode": "platform_handoff",
+          "status": "collecting",
+          "draft": {
+            "mode": "platform_handoff",
+            "operation_type": "prepare_attack_card",
+            "recommendation": {
+              "avoid": [],
+              "preserve": [],
+              "platform_steps": [
+                "ouvre la section Cartes",
+                "choisis Carte d’attaque",
+                "reprends le brouillon proposé"
+              ],
+              "technique_label": "",
+              "card_draft_summary": "",
+              "why_this_technique": "La technique sera choisie après identification du bloqueur.",
+              "platform_destination": "dans la section Cartes d’attaque"
+            },
+            "target_summary": "ranger mes papiers demain matin (version 10 minutes)",
+            "blocker_summary": "",
+            "missing_decisions": [],
+            "executable_from_chat": false
+          },
+          "source_draft": null,
+          "local_state": {
+            "flow_id": "prepare_attack_card",
+            "flow_kind": "free_attack_card",
+            "platform_destination": "dans la section Cartes d’attaque",
+            "target_state": {
+              "status": "locked",
+              "kind": "personal_action",
+              "plan_item_id": null,
+              "candidate_value": null,
+              "locked_value": "ranger mes papiers demain matin (version 10 minutes)",
+              "needs_user_confirmation": false,
+              "why_status": "previously locked"
+            },
+            "blocker_state": {
+              "status": "locked",
+              "blocker_type": null,
+              "candidate_value": null,
+              "locked_value": "vouloir tout trier parfaitement et ça va me bloquer dès la première pile",
+              "needs_user_confirmation": false,
+              "why_status": "previously locked"
+            },
+            "technique_state": {
+              "status": "locked",
+              "technique_key": "preparer_terrain",
+              "technique_label": "Preparer le terrain",
+              "explicitly_requested": false,
+              "candidate_options": [],
+              "fit_warning": null,
+              "needs_user_confirmation": false,
+              "why_status": "user confirmed the proposal"
+            },
+            "platform_field_order": [
+              "action_to_simplify",
+              "prep_in_advance",
+              "ready_environment"
+            ],
+            "platform_field_states": {
+              "action_to_simplify": {
+                "field_id": "action_to_simplify",
+                "technique_key": "preparer_terrain",
+                "field_label": "Par rapport a quelle action tu veux te rendre la vie plus simple ?",
+                "status": "locked",
+                "candidate_value": null,
+                "locked_value": "ranger mes papiers",
+                "previous_value": "ranger mes papiers",
+                "needs_user_confirmation": false,
+                "why_status": "confirmed via technique validation"
+              },
+              "prep_in_advance": {
+                "field_id": "prep_in_advance",
+                "technique_key": "preparer_terrain",
+                "field_label": "Qu'est-ce que tu pourrais preparer en avance pour enlever de la friction ?",
+                "status": "locked",
+                "candidate_value": null,
+                "locked_value": "poser trois papiers sur la table, pas plus",
+                "previous_value": "poser trois papiers sur la table, pas plus",
+                "needs_user_confirmation": false,
+                "why_status": "explicitly confirmed by user"
+              },
+              "ready_environment": {
+                "field_id": "ready_environment",
+                "technique_key": "preparer_terrain",
+                "field_label": "Quand le moment arrive, qu'est-ce qui devrait deja etre pret autour de toi ?",
+                "status": "missing",
+                "candidate_value": null,
+                "locked_value": null,
+                "previous_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "not yet discussed"
+              }
+            },
+            "activation_keyword_state": {
+              "status": "not_applicable",
+              "candidate_value": null,
+              "locked_value": null,
+              "needs_user_confirmation": false,
+              "why_status": "not pre_engagement"
+            },
+            "current_field_id": "ready_environment",
+            "last_visible_task": "ask_platform_field",
+            "last_handoff_delivered": false,
+            "subskill_history": [
+              {
+                "skill_id": "product_help",
+                "created_at": "2026-06-15T19:27:08.496Z",
+                "user_message": "Avant de répondre au piège : une carte d'attaque comme ça, ça modifie mon Plan ou c'est juste une aide à part ?",
+                "reply_summary": "C'est une aide à part. La carte d'attaque ne modifie pas ton Plan : elle sert simplement à rendre le démarrage plus facile et moins coûteux. Une fois prête, tu la retrouveras rangée dans tes Ressources.",
+                "question_to_answer": "Est-ce qu'une carte d'attaque modifie le Plan ou est-ce une aide à part ?",
+                "active_flow_context": {
+                  "flow_kind": "free_attack_card",
+                  "target_state": {
+                    "kind": "personal_action",
+                    "status": "locked",
+                    "why_status": "L'utilisateur a explicitement défini l'action et ses contraintes temporelles.",
+                    "locked_value": "ranger mes papiers demain matin (version 10 minutes)",
+                    "plan_item_id": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "blocker_state": {
+                    "status": "missing",
+                    "why_status": "Piège manquant.",
+                    "blocker_type": null,
+                    "locked_value": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "missing_fields": [],
+                  "technique_state": {
+                    "status": "missing",
+                    "why_status": "La technique sera choisie après identification du bloqueur.",
+                    "fit_warning": null,
+                    "technique_key": null,
+                    "technique_label": null,
+                    "candidate_options": [],
+                    "explicitly_requested": false,
+                    "needs_user_confirmation": false
+                  },
+                  "current_field_id": null,
+                  "platform_destination": "dans la section Cartes d’attaque"
+                }
+              }
+            ]
+          },
+          "target": {
+            "kind": "personal_action",
+            "plan_item_id": null,
+            "title": "ranger mes papiers demain matin (version 10 minutes)"
+          },
+          "turn_count": 5,
+          "max_turns": 8,
+          "created_at": "2026-06-15T19:26:04.079Z",
+          "updated_at": "2026-06-15T19:29:36.386Z",
+          "executable_from_chat": false
+        },
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "flow_id",
+            "platform_destination",
+            "platform_field_order",
+            "current_field_id",
+            "last_visible_task",
+            "last_handoff_delivered",
+            "subskill_history",
+            "target_state",
+            "blocker_state",
+            "technique_state",
+            "platform_field_states",
+            "activation_keyword_state",
+            "note_information",
+            "exit_memo",
+            "local_state_summary",
+            "previous_flow_summary"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "technique_state",
+            "platform_field_states",
+            "current_field_id",
+            "last_visible_task"
+          ],
+          "preserved_fields": [
+            "target_state",
+            "blocker_state",
+            "last_handoff_delivered"
+          ],
+          "restored_fields": [],
+          "cleared_fields": [
+            "activation_keyword_state"
+          ],
+          "rejected_changes": []
+        },
+        "runtime_trace": [
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "db_context_pack_loaded",
+            "plan_items_count": 0,
+            "micro_memory_items_count": 0,
+            "selected_handler": "prepare_attack_card"
+          },
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "global_dispatcher_skipped",
+            "reason_code": "active_prepare_attack_card_uses_local_dispatcher",
+            "selected_handler": "prepare_attack_card"
+          },
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "local_dispatcher start",
+            "flow_action": null,
+            "stage": null,
+            "visible_task_kind": null,
+            "current_field_id": "action_to_simplify",
+            "technique_key": "preparer_terrain",
+            "target_status": "locked",
+            "blocker_status": "locked",
+            "missing_fields": [
+              "action_to_simplify",
+              "prep_in_advance",
+              "ready_environment"
+            ],
+            "risk_assessment": null,
+            "selected_handler": "prepare_attack_card",
+            "state_mutation_audit": null
+          },
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "local_dispatcher decision",
+            "flow_action": "confirm_technique_proposal",
+            "stage": "ask_platform_field",
+            "visible_task_kind": "ask_platform_field",
+            "current_field_id": null,
+            "technique_key": "preparer_terrain",
+            "target_status": "locked",
+            "blocker_status": "locked",
+            "missing_fields": [],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "selected_handler": "prepare_attack_card",
+            "state_mutation_audit": null
+          },
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "reducer reduced",
+            "flow_action": "confirm_technique_proposal",
+            "stage": "ask_platform_field",
+            "visible_task_kind": "ask_platform_field",
+            "current_field_id": "ready_environment",
+            "technique_key": "preparer_terrain",
+            "target_status": "locked",
+            "blocker_status": "locked",
+            "missing_fields": [
+              "ready_environment"
+            ],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "selected_handler": "prepare_attack_card",
+            "state_mutation_audit": {
+              "server_owned_fields": [
+                "flow_id",
+                "platform_destination",
+                "platform_field_order",
+                "current_field_id",
+                "last_visible_task",
+                "last_handoff_delivered",
+                "subskill_history",
+                "target_state",
+                "blocker_state",
+                "technique_state",
+                "platform_field_states",
+                "activation_keyword_state",
+                "note_information",
+                "exit_memo",
+                "local_state_summary",
+                "previous_flow_summary"
+              ],
+              "modified_fields_declared": [],
+              "clear_fields_declared": [],
+              "applied_fields": [
+                "technique_state",
+                "platform_field_states",
+                "current_field_id",
+                "last_visible_task"
+              ],
+              "preserved_fields": [
+                "target_state",
+                "blocker_state",
+                "last_handoff_delivered"
+              ],
+              "restored_fields": [],
+              "cleared_fields": [
+                "activation_keyword_state"
+              ],
+              "rejected_changes": []
+            }
+          },
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "visible_stage start",
+            "flow_action": "confirm_technique_proposal",
+            "stage": "ask_platform_field",
+            "visible_task_kind": "ask_platform_field",
+            "current_field_id": "ready_environment",
+            "technique_key": "preparer_terrain",
+            "target_status": "locked",
+            "blocker_status": "locked",
+            "missing_fields": [
+              "ready_environment"
+            ],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "selected_handler": "prepare_attack_card",
+            "state_mutation_audit": null
+          },
+          {
+            "component": "visible_agent",
+            "stage": "ask_platform_field",
+            "attempt": 1,
+            "accepted": true,
+            "issues": []
+          },
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "visible_stage complete",
+            "flow_action": "confirm_technique_proposal",
+            "stage": "ask_platform_field",
+            "visible_task_kind": "ask_platform_field",
+            "current_field_id": "ready_environment",
+            "technique_key": "preparer_terrain",
+            "target_status": "locked",
+            "blocker_status": "locked",
+            "missing_fields": [
+              "ready_environment"
+            ],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "selected_handler": "prepare_attack_card",
+            "state_mutation_audit": null
+          }
+        ]
+      },
+      "effect_ledger": {
+        "turn_id": "qa-product_help_stateful_server_owned_20260615_r1-t06",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "tool_skill"
+    },
+    "trace_error": null
+  }
+}

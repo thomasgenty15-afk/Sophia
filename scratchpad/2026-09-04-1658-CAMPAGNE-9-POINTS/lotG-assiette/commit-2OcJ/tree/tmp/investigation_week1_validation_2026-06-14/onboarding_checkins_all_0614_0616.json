@@ -1,0 +1,185 @@
+{
+  "ok": true,
+  "status": 200,
+  "count": "0-5/6",
+  "body": [
+    {
+      "id": "1abd5819-5b17-4c30-bec9-d5a40d40d3a5",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "created_at": "2026-06-15T15:14:24.711939+00:00",
+      "scheduled_for": "2026-06-15T15:35:26.328+00:00",
+      "status": "sent",
+      "processed_at": "2026-06-15T15:36:04.733+00:00",
+      "event_context": "onboarding_week1_validation_prompt_v1",
+      "message_payload": {
+        "source": "schedule_onboarding_week1_validation",
+        "plan_id": "8ada3200-fd15-482b-a56a-5ef3caed9183",
+        "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+        "version": 1,
+        "timezone": "Europe/Paris",
+        "plan_title": "Sortir du décalage extrême",
+        "prompt_kind": "validation_prompt",
+        "created_from": "plan_activation",
+        "generated_at": "2026-06-15T15:14:24.652Z",
+        "summary_lines": [
+          "- Prendre la lumière du jour au réveil : lundi, mardi, mercredi et jeudi",
+          "- Identifier les freins du matin : lundi"
+        ],
+        "week_end_date": "2026-06-21",
+        "week_start_date": "2026-06-15",
+        "target_week_start_date": "2026-06-15",
+        "planning_available_at_schedule_time": true
+      }
+    },
+    {
+      "id": "f8dca8a0-9cec-45c3-8048-b1bb4d6858ca",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "created_at": "2026-06-15T15:14:24.785404+00:00",
+      "scheduled_for": "2026-06-15T16:41:04.931+00:00",
+      "status": "cancelled",
+      "processed_at": "2026-06-15T16:42:05.661+00:00",
+      "event_context": "onboarding_week1_auto_validation_v1",
+      "message_payload": {
+        "source": "schedule_onboarding_week1_validation",
+        "plan_id": "8ada3200-fd15-482b-a56a-5ef3caed9183",
+        "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+        "version": 1,
+        "timezone": "Europe/Paris",
+        "plan_title": "Sortir du décalage extrême",
+        "prompt_kind": "auto_validation",
+        "created_from": "plan_activation",
+        "generated_at": "2026-06-15T15:14:24.652Z",
+        "summary_lines": [
+          "- Prendre la lumière du jour au réveil : lundi, mardi, mercredi et jeudi",
+          "- Identifier les freins du matin : lundi"
+        ],
+        "week_end_date": "2026-06-21",
+        "auto_validated": true,
+        "week_start_date": "2026-06-15",
+        "auto_validated_at": "2026-06-15T16:36:03.931Z",
+        "target_week_start_date": "2026-06-15",
+        "planning_available_at_schedule_time": true
+      }
+    },
+    {
+      "id": "7fa836b3-24e3-461e-8550-cf59dfa1b062",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "created_at": "2026-06-15T16:14:01.884253+00:00",
+      "scheduled_for": "2026-06-16T07:50:51.243+00:00",
+      "status": "sent",
+      "processed_at": "2026-06-16T07:51:05.81+00:00",
+      "event_context": "onboarding_week1_validation_prompt_v1",
+      "message_payload": {
+        "source": "schedule_onboarding_week1_validation",
+        "plan_id": "f46e7ce4-2ffb-43b7-b35a-34a724b59fb0",
+        "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+        "version": 1,
+        "timezone": "Europe/Paris",
+        "plan_title": "Dégager du temps pour ton projet entrepreneurial",
+        "prompt_kind": "validation_prompt",
+        "created_from": "plan_activation",
+        "generated_at": "2026-06-15T16:14:01.835Z",
+        "summary_lines": [
+          "- Créer ton sas de décompression : mercredi",
+          "- Faire une session de travail focus d'une heure : lundi",
+          "- Bloquer tes deux créneaux dans l'agenda : lundi"
+        ],
+        "week_end_date": "2026-06-21",
+        "week_start_date": "2026-06-15",
+        "target_week_start_date": "2026-06-15",
+        "planning_available_at_schedule_time": true
+      }
+    },
+    {
+      "id": "dffa32d3-b6bf-4046-b931-a2cb6f9aeffc",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "created_at": "2026-06-15T16:14:01.940848+00:00",
+      "scheduled_for": "2026-06-16T08:50:51.243+00:00",
+      "status": "sent",
+      "processed_at": "2026-06-16T08:12:06.196+00:00",
+      "event_context": "onboarding_week1_auto_validation_v1",
+      "message_payload": {
+        "source": "schedule_onboarding_week1_validation",
+        "plan_id": "f46e7ce4-2ffb-43b7-b35a-34a724b59fb0",
+        "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+        "version": 1,
+        "timezone": "Europe/Paris",
+        "plan_title": "Dégager du temps pour ton projet entrepreneurial",
+        "prompt_kind": "auto_validation",
+        "created_from": "plan_activation",
+        "generated_at": "2026-06-15T16:14:01.835Z",
+        "summary_lines": [
+          "- Créer ton sas de décompression : mercredi",
+          "- Bloquer tes deux créneaux dans l'agenda : lundi",
+          "- Faire une session de travail focus d'une heure : lundi"
+        ],
+        "week_end_date": "2026-06-21",
+        "auto_validated": true,
+        "week_start_date": "2026-06-15",
+        "auto_validated_at": "2026-06-16T08:12:04.637Z",
+        "target_week_start_date": "2026-06-15",
+        "planning_available_at_schedule_time": true
+      }
+    },
+    {
+      "id": "b51b580b-74cb-44de-831a-c04be528f044",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "created_at": "2026-06-15T16:14:21.73898+00:00",
+      "scheduled_for": "2026-06-14T14:57:32.226+00:00",
+      "status": "sent",
+      "processed_at": "2026-06-15T16:15:21.387+00:00",
+      "event_context": "onboarding_week1_validation_prompt_v1",
+      "message_payload": {
+        "source": "schedule_onboarding_week1_validation",
+        "plan_id": "a31d8112-22c1-4ae6-8f00-83af149fdf17",
+        "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+        "version": 1,
+        "timezone": "Europe/Paris",
+        "plan_title": "Dégager du temps pour ta passion",
+        "prompt_kind": "validation_prompt",
+        "created_from": "plan_activation",
+        "generated_at": "2026-06-15T16:14:21.644Z",
+        "summary_lines": [
+          "- Le studio mobile (Trajets) : lundi, mardi et mercredi",
+          "- Le bloc profond du week-end : lundi et mardi",
+          "- Sanctuariser l'agenda du week-end : jeudi"
+        ],
+        "week_end_date": "2026-06-21",
+        "week_start_date": "2026-06-15",
+        "target_week_start_date": "2026-06-15",
+        "planning_available_at_schedule_time": true
+      }
+    },
+    {
+      "id": "17eb8198-9306-4c63-b890-2a714a9842a8",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "created_at": "2026-06-15T16:14:22.097916+00:00",
+      "scheduled_for": "2026-06-15T16:35:14.394+00:00",
+      "status": "sent",
+      "processed_at": "2026-06-15T16:36:06.769+00:00",
+      "event_context": "onboarding_week1_auto_validation_v1",
+      "message_payload": {
+        "source": "schedule_onboarding_week1_validation",
+        "plan_id": "a31d8112-22c1-4ae6-8f00-83af149fdf17",
+        "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+        "version": 1,
+        "timezone": "Europe/Paris",
+        "plan_title": "Dégager du temps pour ta passion",
+        "prompt_kind": "auto_validation",
+        "created_from": "plan_activation",
+        "generated_at": "2026-06-15T16:14:21.644Z",
+        "summary_lines": [
+          "- Sanctuariser l'agenda du week-end : jeudi",
+          "- Le studio mobile (Trajets) : lundi, mardi et mercredi",
+          "- Le bloc profond du week-end : lundi et mardi"
+        ],
+        "week_end_date": "2026-06-21",
+        "auto_validated": true,
+        "week_start_date": "2026-06-15",
+        "auto_validated_at": "2026-06-15T16:36:05.189Z",
+        "target_week_start_date": "2026-06-15",
+        "planning_available_at_schedule_time": true
+      }
+    }
+  ]
+}

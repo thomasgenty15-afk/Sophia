@@ -1,0 +1,39 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r12-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Le niveau actuel autour du grignotage du soir me paraît trop dense. Je ne veux pas refaire tout le programme, juste rendre ce bloc plus respirable cette semaine.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r12-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r12",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Pour rendre ce bloc plus respirable cette semaine, comment souhaites-tu l'alléger ? Est-ce qu'on simplifie la préparation des alternatives, ou est-ce qu'on se concentre uniquement sur une ou deux actions comme le nettoyage de l'environnement ou le choix du brut ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r12-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Simplifie surtout la préparation des alternatives et le choix du brut. Je veux éviter d'avoir à cuisiner ou décider à 21h. Le décodage des envies et le nettoyage, je préfère les garder comme ils sont.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

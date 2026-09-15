@@ -1,0 +1,93 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-simple-t01",
+    "status": 500,
+    "ok": false,
+    "user": "Fais-moi une carte de défense pour le sas du soir, quand je risque de rallumer mon téléphone après avoir écrit dans le carnet.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": "TypeError: error sending request for url (http://127.0.0.1:54321/rest/v1/conversation_turn_traces?select=*&user_id=eq.9e165f02-6314-403b-8f01-27c0485c4aa2&ts=gte.2026-05-15T10%3A19%3A18.854Z&order=ts.desc&limit=1): client error (Connect): tcp connect error: Operation not permitted (os error 1)"
+  },
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-simple-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Fais-moi une carte de défense pour le sas du soir, quand je risque de rallumer mon téléphone après avoir écrit dans le carnet.",
+    "assistant": "Voici ton projet de carte :\n\n🎯 Cible : Faire le sas de déchargement\n⚠️ Risque : Rallumer le téléphone après le carnet\n⚡ Réponse : Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute.\n\nEst-ce que cette stratégie te convient pour protéger ton sommeil ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Protection du Sas du Soir",
+          "trigger": "Impulsion de vérifier une dernière info ou notification.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Cela brise le cycle de la dopamine et protège ton endormissement.",
+          "fallback_plan": "Ouvrir un livre papier ou boire un verre d'eau.",
+          "risk_situation": "Rallumer le téléphone juste après avoir fermé le carnet.",
+          "defense_response": "Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute."
+        },
+        "output_schema": "defense_card_draft_v1",
+        "operation_type": "prepare_defense_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ton projet de carte :\n\n🎯 Cible : Faire le sas de déchargement\n⚠️ Risque : Rallumer le téléphone après le carnet\n⚡ Réponse : Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute.\n\nEst-ce que cette stratégie te convient pour protéger ton sommeil ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "598808b3-c0e2-443f-bb23-aa052b398446",
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-simple-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui c'est bon, crée-la.",
+    "assistant": "C'est fait. J'ai créé la carte de défense \"Protection du Sas du Soir\" : Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute.\n\nTu peux la retrouver dans Ressources > Cartes de defense pour la relire, l'utiliser et l'ajuster depuis la plateforme quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, je peux aussi en preparer une nouvelle version apres confirmation.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_defense_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "598808b3-c0e2-443f-bb23-aa052b398446",
+      "defense_card_id": "c75d96f6-abd4-4451-ac4d-a7d175469da6",
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

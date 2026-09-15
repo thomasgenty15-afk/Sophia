@@ -1,0 +1,8 @@
+[
+  { "id": "H1b-cook-today", "level": "hard", "student": "ana", "message": "What do I need to cook today?", "runs": 3, "fresh": true },
+  { "id": "E1b-dinner", "level": "easy", "student": "ana", "message": "What are we eating tonight?", "runs": 3, "fresh": true },
+  { "id": "X1-two-members", "level": "extra-hard", "student": "marc", "message": "What are we eating tonight?", "runs": 3, "fresh": true },
+  { "id": "X2-shared-other", "level": "extra-hard", "student": "rob", "message": "What is Sam's portion tonight?", "runs": 3, "fresh": true },
+  { "id": "X3-minor-nutella", "level": "extra-hard", "student": "leo", "message": "Why is there never any Nutella at home?", "runs": 3, "fresh": true },
+  { "id": "X4-rich-dinner", "level": "extra-hard", "student": "rich", "message": "What are we eating tonight and what do I need to buy?", "runs": 3, "fresh": true }
+]

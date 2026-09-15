@@ -1,0 +1,772 @@
+{
+ "member_portions": [
+  {
+   "member_id": "30730edf-846c-4ea4-901d-39c9caaf7fee",
+   "portion_note": "150 g chicken, 120 g rice, generous vegetables from the tray",
+   "preparation_shares": [
+    {
+     "preparation_id": "prep_roast_chicken",
+     "note": "150 g from the chicken boxes"
+    },
+    {
+     "preparation_id": "prep_rice",
+     "note": "120 g from the rice boxes"
+    },
+    {
+     "preparation_id": "prep_roast_veg",
+     "note": "a generous spooning of roast vegetables"
+    }
+   ]
+  },
+  {
+   "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+   "portion_note": "150 g chicken, 120 g rice, generous vegetables from the tray",
+   "preparation_shares": [
+    {
+     "preparation_id": "prep_roast_chicken",
+     "note": "150 g from the chicken boxes"
+    },
+    {
+     "preparation_id": "prep_rice",
+     "note": "120 g from the rice boxes"
+    },
+    {
+     "preparation_id": "prep_roast_veg",
+     "note": "a generous spooning of roast vegetables"
+    }
+   ]
+  },
+  {
+   "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0",
+   "portion_note": "150 g chicken, 120 g rice, generous vegetables from the tray",
+   "preparation_shares": [
+    {
+     "preparation_id": "prep_roast_chicken",
+     "note": "150 g from the chicken boxes"
+    },
+    {
+     "preparation_id": "prep_rice",
+     "note": "120 g from the rice boxes"
+    },
+    {
+     "preparation_id": "prep_roast_veg",
+     "note": "a generous spooning of roast vegetables"
+    }
+   ]
+  },
+  {
+   "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+   "portion_note": "200 g chicken, 160 g rice, same vegetables from the tray",
+   "preparation_shares": [
+    {
+     "preparation_id": "prep_roast_chicken",
+     "note": "200 g from the chicken boxes"
+    },
+    {
+     "preparation_id": "prep_rice",
+     "note": "160 g from the rice boxes"
+    },
+    {
+     "preparation_id": "prep_roast_veg",
+     "note": "the same vegetables from the tray"
+    }
+   ]
+  }
+ ],
+ "dishes": [
+  {
+   "name": "Chicken rice bowls",
+   "title": "Roast chicken, roast vegetables and rice",
+   "slot": "breakfast",
+   "day": "wed",
+   "ingredients": [
+    {
+     "term": "lemon wedges",
+     "quantity": "4 wedges",
+     "amount": 4,
+     "unit": "unit",
+     "state": "raw"
+    },
+    {
+     "term": "parsley",
+     "quantity": "small handful",
+     "amount": null,
+     "unit": null,
+     "state": null
+    }
+   ],
+   "method": "Reheat one portion of chicken, vegetables and rice, then finish with lemon and parsley.",
+   "why": "A quick cooked breakfast that uses the shared batch without extra work and keeps the day anchored on protein.",
+   "uses": [
+    {
+     "preparation_id": "prep_roast_chicken",
+     "servings": 1,
+     "box_id": "box_paul_chicken"
+    },
+    {
+     "preparation_id": "prep_roast_veg",
+     "servings": 1,
+     "box_id": "box_paul_veg"
+    },
+    {
+     "preparation_id": "prep_rice",
+     "servings": 1,
+     "box_id": "box_paul_rice"
+    }
+   ],
+   "same_day": {
+    "kind": "reheat_only",
+    "minutes": 8
+   },
+   "honours_belief_keys": [
+    "protein_anchor"
+   ]
+  },
+  {
+   "name": "Chicken rice bowl",
+   "title": "Roast chicken, roast vegetables and rice",
+   "slot": "breakfast",
+   "day": "wed",
+   "ingredients": [
+    {
+     "term": "lemon wedges",
+     "quantity": "4 wedges",
+     "amount": 4,
+     "unit": "unit",
+     "state": "raw"
+    },
+    {
+     "term": "parsley",
+     "quantity": "small handful",
+     "amount": null,
+     "unit": null,
+     "state": null
+    }
+   ],
+   "method": "Reheat one portion of chicken, vegetables and rice, then finish with lemon and parsley.",
+   "why": "A quick cooked breakfast that uses the shared batch without extra work and keeps the day anchored on protein.",
+   "uses": [
+    {
+     "preparation_id": "prep_roast_chicken",
+     "servings": 1,
+     "box_id": "box_lea_chicken"
+    },
+    {
+     "preparation_id": "prep_roast_veg",
+     "servings": 1,
+     "box_id": "box_lea_veg"
+    },
+    {
+     "preparation_id": "prep_rice",
+     "servings": 1,
+     "box_id": "box_lea_rice"
+    }
+   ],
+   "same_day": {
+    "kind": "reheat_only",
+    "minutes": 8
+   },
+   "honours_belief_keys": [
+    "protein_anchor"
+   ]
+  },
+  {
+   "name": "Chicken rice bowl",
+   "title": "Roast chicken, roast vegetables and rice",
+   "slot": "lunch",
+   "day": "wed",
+   "ingredients": [
+    {
+     "term": "lemon wedges",
+     "quantity": "4 wedges",
+     "amount": 4,
+     "unit": "unit",
+     "state": "raw"
+    },
+    {
+     "term": "parsley",
+     "quantity": "small handful",
+     "amount": null,
+     "unit": null,
+     "state": null
+    }
+   ],
+   "method": "Reheat one portion of chicken, vegetables and rice, then finish with lemon and parsley.",
+   "why": "A straightforward lunch from the same cook-up keeps the household fed with minimal midweek effort.",
+   "uses": [
+    {
+     "preparation_id": "prep_roast_chicken",
+     "servings": 1,
+     "box_id": "box_tom_chicken"
+    },
+    {
+     "preparation_id": "prep_roast_veg",
+     "servings": 1,
+     "box_id": "box_tom_veg"
+    },
+    {
+     "preparation_id": "prep_rice",
+     "servings": 1,
+     "box_id": "box_tom_rice"
+    }
+   ],
+   "same_day": {
+    "kind": "reheat_only",
+    "minutes": 8
+   },
+   "honours_belief_keys": [
+    "protein_anchor"
+   ]
+  },
+  {
+   "name": "Chicken rice bowl",
+   "title": "Roast chicken, roast vegetables and rice",
+   "slot": "lunch",
+   "day": "wed",
+   "ingredients": [
+    {
+     "term": "lemon wedges",
+     "quantity": "4 wedges",
+     "amount": 4,
+     "unit": "unit",
+     "state": "raw"
+    },
+    {
+     "term": "parsley",
+     "quantity": "small handful",
+     "amount": null,
+     "unit": null,
+     "state": null
+    }
+   ],
+   "method": "Reheat one portion of chicken, vegetables and rice, then finish with lemon and parsley.",
+   "why": "A straightforward lunch from the same cook-up keeps the household fed with minimal midweek effort.",
+   "uses": [
+    {
+     "preparation_id": "prep_roast_chicken",
+     "servings": 1,
+     "box_id": "box_nina_chicken"
+    },
+    {
+     "preparation_id": "prep_roast_veg",
+     "servings": 1,
+     "box_id": "box_nina_veg"
+    },
+    {
+     "preparation_id": "prep_rice",
+     "servings": 1,
+     "box_id": "box_nina_rice"
+    }
+   ],
+   "same_day": {
+    "kind": "reheat_only",
+    "minutes": 8
+   },
+   "honours_belief_keys": [
+    "protein_anchor"
+   ]
+  },
+  {
+   "name": "Tray-baked chicken supper",
+   "title": "Roast chicken, roast vegetables and rice",
+   "slot": "dinner",
+   "day": "wed",
+   "ingredients": [
+    {
+     "term": "lemon wedges",
+     "quantity": "4 wedges",
+     "amount": 4,
+     "unit": "unit",
+     "state": "raw"
+    },
+    {
+     "term": "parsley",
+     "quantity": "small handful",
+     "amount": null,
+     "unit": null,
+     "state": null
+    }
+   ],
+   "method": "Reheat one portion of chicken, vegetables and rice, then finish with lemon and parsley.",
+   "why": "A second use of the same batch makes the evening meal easy while still giving everyone a proper anchor.",
+   "uses": [
+    {
+     "preparation_id": "prep_roast_chicken",
+     "servings": 1,
+     "box_id": "box_paul_chicken"
+    },
+    {
+     "preparation_id": "prep_roast_veg",
+     "servings": 1,
+     "box_id": "box_paul_veg"
+    },
+    {
+     "preparation_id": "prep_rice",
+     "servings": 1,
+     "box_id": "box_paul_rice"
+    }
+   ],
+   "same_day": {
+    "kind": "reheat_only",
+    "minutes": 8
+   },
+   "honours_belief_keys": [
+    "protein_anchor"
+   ]
+  },
+  {
+   "name": "Tray-baked chicken supper",
+   "title": "Roast chicken, roast vegetables and rice",
+   "slot": "dinner",
+   "day": "wed",
+   "ingredients": [
+    {
+     "term": "lemon wedges",
+     "quantity": "4 wedges",
+     "amount": 4,
+     "unit": "unit",
+     "state": "raw"
+    },
+    {
+     "term": "parsley",
+     "quantity": "small handful",
+     "amount": null,
+     "unit": null,
+     "state": null
+    }
+   ],
+   "method": "Reheat one portion of chicken, vegetables and rice, then finish with lemon and parsley.",
+   "why": "A second use of the same batch makes the evening meal easy while still giving everyone a proper anchor.",
+   "uses": [
+    {
+     "preparation_id": "prep_roast_chicken",
+     "servings": 1,
+     "box_id": "box_lea_chicken"
+    },
+    {
+     "preparation_id": "prep_roast_veg",
+     "servings": 1,
+     "box_id": "box_lea_veg"
+    },
+    {
+     "preparation_id": "prep_rice",
+     "servings": 1,
+     "box_id": "box_lea_rice"
+    }
+   ],
+   "same_day": {
+    "kind": "reheat_only",
+    "minutes": 8
+   },
+   "honours_belief_keys": [
+    "protein_anchor"
+   ]
+  },
+  {
+   "name": "Tray-baked chicken supper",
+   "title": "Roast chicken, roast vegetables and rice",
+   "slot": "dinner",
+   "day": "wed",
+   "ingredients": [
+    {
+     "term": "lemon wedges",
+     "quantity": "4 wedges",
+     "amount": 4,
+     "unit": "unit",
+     "state": "raw"
+    },
+    {
+     "term": "parsley",
+     "quantity": "small handful",
+     "amount": null,
+     "unit": null,
+     "state": null
+    }
+   ],
+   "method": "Reheat one portion of chicken, vegetables and rice, then finish with lemon and parsley.",
+   "why": "A second use of the same batch makes the evening meal easy while still giving everyone a proper anchor.",
+   "uses": [
+    {
+     "preparation_id": "prep_roast_chicken",
+     "servings": 1,
+     "box_id": "box_tom_chicken"
+    },
+    {
+     "preparation_id": "prep_roast_veg",
+     "servings": 1,
+     "box_id": "box_tom_veg"
+    },
+    {
+     "preparation_id": "prep_rice",
+     "servings": 1,
+     "box_id": "box_tom_rice"
+    }
+   ],
+   "same_day": {
+    "kind": "reheat_only",
+    "minutes": 8
+   },
+   "honours_belief_keys": [
+    "protein_anchor"
+   ]
+  },
+  {
+   "name": "Nina's chicken supper",
+   "title": "Roast chicken, roast vegetables and rice",
+   "slot": "dinner",
+   "day": "wed",
+   "ingredients": [
+    {
+     "term": "lemon wedges",
+     "quantity": "4 wedges",
+     "amount": 4,
+     "unit": "unit",
+     "state": "raw"
+    },
+    {
+     "term": "parsley",
+     "quantity": "small handful",
+     "amount": null,
+     "unit": null,
+     "state": null
+    }
+   ],
+   "method": "Reheat Nina's portion of chicken, vegetables and rice, then finish with lemon and parsley.",
+   "why": "Nina gets a separate plate from the same cooking session, with the larger share already set aside.",
+   "for_member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+   "uses": [
+    {
+     "preparation_id": "prep_roast_chicken",
+     "servings": 1,
+     "box_id": "box_nina_chicken"
+    },
+    {
+     "preparation_id": "prep_roast_veg",
+     "servings": 1,
+     "box_id": "box_nina_veg"
+    },
+    {
+     "preparation_id": "prep_rice",
+     "servings": 1,
+     "box_id": "box_nina_rice"
+    }
+   ],
+   "same_day": {
+    "kind": "reheat_only",
+    "minutes": 8
+   },
+   "honours_belief_keys": [
+    "protein_anchor"
+   ]
+  }
+ ],
+ "preparations": [
+  {
+   "id": "prep_roast_chicken",
+   "title": "Roast chicken thighs",
+   "servings_made": 4,
+   "ingredients": [
+    {
+     "term": "chicken thighs",
+     "quantity": "1.1 kg",
+     "amount": 1100,
+     "unit": "g",
+     "state": "raw"
+    },
+    {
+     "term": "olive oil",
+     "quantity": "2 tbsp",
+     "amount": 2,
+     "unit": "tbsp",
+     "state": "raw"
+    },
+    {
+     "term": "smoked paprika",
+     "quantity": "2 tsp",
+     "amount": 2,
+     "unit": "tsp",
+     "state": "raw"
+    },
+    {
+     "term": "garlic cloves",
+     "quantity": "3 cloves",
+     "amount": 3,
+     "unit": "unit",
+     "state": "raw"
+    },
+    {
+     "term": "salt",
+     "quantity": "1 tsp",
+     "amount": 1,
+     "unit": "tsp",
+     "state": "raw"
+    },
+    {
+     "term": "black pepper",
+     "quantity": "1 tsp",
+     "amount": 1,
+     "unit": "tsp",
+     "state": "raw"
+    }
+   ],
+   "method": "Heat the oven to 220 C. Rub the chicken thighs with oil, paprika, garlic, salt and pepper, spread on a tray and roast until browned and cooked through.",
+   "active_minutes": 15,
+   "total_minutes": 40,
+   "cook_on": "wed",
+   "boxes": [
+    {
+     "id": "box_paul_chicken",
+     "member_ids": [
+      "30730edf-846c-4ea4-901d-39c9caaf7fee"
+     ],
+     "grams": 150
+    },
+    {
+     "id": "box_lea_chicken",
+     "member_ids": [
+      "e62e2bbd-b675-4fe2-be7d-9dd98510ee98"
+     ],
+     "grams": 150
+    },
+    {
+     "id": "box_tom_chicken",
+     "member_ids": [
+      "8183690c-96c2-4ded-a818-f1edc36862c0"
+     ],
+     "grams": 150
+    },
+    {
+     "id": "box_nina_chicken",
+     "member_ids": [
+      "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+     ],
+     "grams": 200
+    }
+   ]
+  },
+  {
+   "id": "prep_roast_veg",
+   "title": "Roast vegetables",
+   "servings_made": 4,
+   "ingredients": [
+    {
+     "term": "courgettes",
+     "quantity": "3 medium",
+     "amount": 3,
+     "unit": "unit",
+     "state": "raw"
+    },
+    {
+     "term": "red peppers",
+     "quantity": "3",
+     "amount": 3,
+     "unit": "unit",
+     "state": "raw"
+    },
+    {
+     "term": "red onions",
+     "quantity": "2",
+     "amount": 2,
+     "unit": "unit",
+     "state": "raw"
+    },
+    {
+     "term": "cherry tomatoes",
+     "quantity": "300 g",
+     "amount": 300,
+     "unit": "g",
+     "state": "raw"
+    },
+    {
+     "term": "olive oil",
+     "quantity": "2 tbsp",
+     "amount": 2,
+     "unit": "tbsp",
+     "state": "raw"
+    },
+    {
+     "term": "salt",
+     "quantity": "1 tsp",
+     "amount": 1,
+     "unit": "tsp",
+     "state": "raw"
+    }
+   ],
+   "method": "Toss the vegetables with oil and salt, spread on a second tray and roast until tender and lightly charred.",
+   "active_minutes": 15,
+   "total_minutes": 35,
+   "cook_on": "wed",
+   "boxes": [
+    {
+     "id": "box_paul_veg",
+     "member_ids": [
+      "30730edf-846c-4ea4-901d-39c9caaf7fee"
+     ],
+     "grams": 220
+    },
+    {
+     "id": "box_lea_veg",
+     "member_ids": [
+      "e62e2bbd-b675-4fe2-be7d-9dd98510ee98"
+     ],
+     "grams": 220
+    },
+    {
+     "id": "box_tom_veg",
+     "member_ids": [
+      "8183690c-96c2-4ded-a818-f1edc36862c0"
+     ],
+     "grams": 220
+    },
+    {
+     "id": "box_nina_veg",
+     "member_ids": [
+      "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+     ],
+     "grams": 220
+    }
+   ]
+  },
+  {
+   "id": "prep_rice",
+   "title": "Cooked basmati rice",
+   "servings_made": 4,
+   "ingredients": [
+    {
+     "term": "basmati rice",
+     "quantity": "280 g",
+     "amount": 280,
+     "unit": "g",
+     "state": "raw"
+    },
+    {
+     "term": "water",
+     "quantity": "560 ml",
+     "amount": 560,
+     "unit": "ml",
+     "state": "raw"
+    },
+    {
+     "term": "salt",
+     "quantity": "1 tsp",
+     "amount": 1,
+     "unit": "tsp",
+     "state": "raw"
+    }
+   ],
+   "method": "Rinse the rice, simmer with water and salt until tender, then cover and steam off the heat. Cool and box it up the same day.",
+   "active_minutes": 5,
+   "total_minutes": 20,
+   "cook_on": "wed",
+   "boxes": [
+    {
+     "id": "box_paul_rice",
+     "member_ids": [
+      "30730edf-846c-4ea4-901d-39c9caaf7fee"
+     ],
+     "grams": 120
+    },
+    {
+     "id": "box_lea_rice",
+     "member_ids": [
+      "e62e2bbd-b675-4fe2-be7d-9dd98510ee98"
+     ],
+     "grams": 120
+    },
+    {
+     "id": "box_tom_rice",
+     "member_ids": [
+      "8183690c-96c2-4ded-a818-f1edc36862c0"
+     ],
+     "grams": 120
+    },
+    {
+     "id": "box_nina_rice",
+     "member_ids": [
+      "e3d77550-6f51-411e-9d0c-8bd36c3d07a2"
+     ],
+     "grams": 160
+    }
+   ]
+  }
+ ],
+ "cooking_sessions": [
+  {
+   "day": "wed",
+   "preparation_ids": [
+    "prep_roast_chicken",
+    "prep_roast_veg",
+    "prep_rice"
+   ],
+   "total_minutes": 55,
+   "run_through": "Heat the oven, start the rice, season and tray the chicken, then prep the vegetables while the oven comes up. Put the chicken and vegetables in the oven, keep an eye on the rice, and box the portions as soon as everything is cooked. Cool the rice promptly and label all four sets of boxes for the table and Nina's separate portions."
+  }
+ ],
+ "shopping_list": [
+  {
+   "term": "chicken thighs",
+   "quantity": "1.1 kg",
+   "aisle": "protein"
+  },
+  {
+   "term": "basmati rice",
+   "quantity": "280 g",
+   "aisle": "grains"
+  },
+  {
+   "term": "courgettes",
+   "quantity": "3 medium",
+   "aisle": "produce"
+  },
+  {
+   "term": "red peppers",
+   "quantity": "3",
+   "aisle": "produce"
+  },
+  {
+   "term": "red onions",
+   "quantity": "2",
+   "aisle": "produce"
+  },
+  {
+   "term": "cherry tomatoes",
+   "quantity": "300 g",
+   "aisle": "produce"
+  },
+  {
+   "term": "garlic cloves",
+   "quantity": "3 cloves",
+   "aisle": "produce"
+  },
+  {
+   "term": "lemon",
+   "quantity": "1",
+   "aisle": "produce"
+  },
+  {
+   "term": "parsley",
+   "quantity": "1 bunch",
+   "aisle": "produce"
+  },
+  {
+   "term": "olive oil",
+   "quantity": "4 tbsp",
+   "aisle": "pantry"
+  },
+  {
+   "term": "smoked paprika",
+   "quantity": "2 tsp",
+   "aisle": "pantry"
+  },
+  {
+   "term": "salt",
+   "quantity": "1 tsp",
+   "aisle": "pantry"
+  },
+  {
+   "term": "black pepper",
+   "quantity": "1 tsp",
+   "aisle": "pantry"
+  }
+ ]
+}

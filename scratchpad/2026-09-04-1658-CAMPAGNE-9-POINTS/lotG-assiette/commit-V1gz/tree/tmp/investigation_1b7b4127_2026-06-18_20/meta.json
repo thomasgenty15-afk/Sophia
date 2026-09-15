@@ -1,0 +1,41 @@
+{
+  "ok": true,
+  "bundle_id": "investigation_1b7b4127_2026-06-18_20",
+  "source": "env",
+  "supabase_url": "https://iabxchanerdkczbxyjgg.supabase.co",
+  "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+  "scope": "ALL",
+  "since": "2026-06-18T00:00:00.000Z",
+  "until": "2026-06-21T00:00:00.000Z",
+  "counts": {
+    "chat_messages": 21,
+    "request_ids": 12,
+    "assistant_request_ids": 3,
+    "turn_summary_lookup_request_ids": 12,
+    "turn_summary_logs": 8,
+    "missing_turn_summaries": 4,
+    "missing_brain_trace": 4
+  },
+  "outputs": {
+    "out_dir": "/Users/ahmedamara/Dev/Sophia 2/tmp/investigation_1b7b4127_2026-06-18_20",
+    "conversation_transcript": "/Users/ahmedamara/Dev/Sophia 2/tmp/investigation_1b7b4127_2026-06-18_20/conversation_transcript.txt",
+    "brain_trace_jsonl": "/Users/ahmedamara/Dev/Sophia 2/tmp/investigation_1b7b4127_2026-06-18_20/brain_trace.jsonl"
+  },
+  "turn_summary_lookup_source": "assistant_request_ids_then_all_request_ids_fallback",
+  "missing_brain_trace_request_ids": [
+    "98e8b457-1e4b-424e-84ec-f3d96329515c",
+    "b1af9f06-c014-448a-a0fb-48bcf5042ab2",
+    "6bda16cd-4329-44db-94c8-dacf8a132bd4",
+    "8b215998-b1b6-4134-8f91-ab89e4b2e4f3"
+  ],
+  "missing_turn_summary_request_ids": [
+    "98e8b457-1e4b-424e-84ec-f3d96329515c",
+    "b1af9f06-c014-448a-a0fb-48bcf5042ab2",
+    "6bda16cd-4329-44db-94c8-dacf8a132bd4",
+    "8b215998-b1b6-4134-8f91-ab89e4b2e4f3"
+  ],
+  "warnings": [
+    "Assistant request_ids lookup returned no turn summaries; retried with all request_ids.",
+    "Missing brain trace for 4 assistant request_ids (turn_summary_logs absent)."
+  ]
+}

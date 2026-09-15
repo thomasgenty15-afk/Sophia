@@ -1,0 +1,1386 @@
+{
+  "ok": true,
+  "request_id": "attack-switch-20260613-r1-t01",
+  "user_id": "94b4f5d3-30dd-47c6-a228-9d341cfc9db6",
+  "channel": "whatsapp",
+  "scope": "attack-switch-20260613-r1",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "On part donc sur un Mot de bascule pour t'aider à rester concentré sur l'ouverture de ton dossier URSSAF. Est-ce que c'est bien la technique que tu veux utiliser ?",
+    "additional_contents": [],
+    "mode": "companion",
+    "tool_execution": "blocked",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "attack-switch-20260613-r1-t01",
+        "source_message_id": "35995fa4-2e65-40f9-a283-603a7147e0c0",
+        "user_id": "94b4f5d3-30dd-47c6-a228-9d341cfc9db6",
+        "channel": "whatsapp",
+        "safety": {
+          "risk_band": "low",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null,
+          "flow_exit_context": null
+        },
+        "direct_effects": [],
+        "tool_skill_intents": [
+          {
+            "operation_type": "prepare_attack_card",
+            "explicitness": "explicit",
+            "target_hint": "ouvrir le dossier URSSAF",
+            "operation_input": {
+              "target_action_hint": "ouvrir le dossier URSSAF",
+              "constraints": [
+                "mot de bascule très court",
+                "utilisable tel quel par message"
+              ],
+              "evidence": [
+                "Prépare-moi une carte d'attaque",
+                "ouvrir le dossier URSSAF",
+                "mot de bascule très court"
+              ]
+            },
+            "confidence_band": "high",
+            "ambiguity": "none",
+            "user_intent": "create"
+          }
+        ],
+        "flow_opportunity": null,
+        "note_information": {
+          "source_flow_id": "global_dispatcher",
+          "handoff_reason": "explicit_user_request",
+          "target_dispatcher": "prepare_attack_card",
+          "handoff_context_for_next_dispatcher": "User explicitly requests an Attack Card for a specific friction point (opening URSSAF portal vs tidying desk). He wants a very short 'switch word' to send back when he gets distracted.",
+          "user_words": [
+            "Prépare-moi une carte d'attaque",
+            "ouvrir le dossier URSSAF",
+            "mot de bascule très court"
+          ],
+          "structured_context": {
+            "primary_signal_path": "tool_skill_intents[0]",
+            "target_kind": "tool_skill",
+            "target_flow": "prepare_attack_card",
+            "confidence_band": "high",
+            "evidence": [
+              "Prépare-moi une carte d'attaque",
+              "mot de bascule très court"
+            ],
+            "recommended_next_focus": "Run the prepare_attack_card dispatcher. Use the provided action and constraints to propose the card structure."
+          },
+          "confidence": "high"
+        },
+        "skill_signals": {
+          "entry": {},
+          "lifecycle": {},
+          "exit": {}
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "targeted",
+          "memory_mode": "light",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "small",
+          "targets": [
+            {
+              "type": "domain_key",
+              "key": "habitudes.procrastination",
+              "query_hint": "évitement administratif URSSAF",
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first",
+              "priority": "medium",
+              "entity_type": null
+            }
+          ],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        },
+        "normal_reply_fit_score": 0.1,
+        "normal_reply_fit_evidence": [
+          "Demande explicite de création d'un outil produit spécifique (carte d'attaque) avec des contraintes précises."
+        ],
+        "active_handoff_action": null,
+        "confirmation_response": null
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "tool_skill_intent_start",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "none",
+          "active_owner": "none",
+          "selected_owner": "none",
+          "resume_policy": "none",
+          "reason_code": "no_active_flow"
+        },
+        "selected_handler": "prepare_attack_card",
+        "active_flow_debug": {
+          "version": "active_flow_debug_v1",
+          "snapshots": [
+            {
+              "phase": "user_state_loaded",
+              "scope": "attack-switch-20260613-r1",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 0,
+                "flow_keys": [],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": null
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "after_onboarding_and_reconcile",
+              "scope": "attack-switch-20260613-r1",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 1,
+                "flow_keys": [],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": null
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "read_active_flow_state",
+              "scope": "attack-switch-20260613-r1",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 1,
+                "flow_keys": [],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": null
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "after_pending_confirmation_reload",
+              "scope": "attack-switch-20260613-r1",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 1,
+                "flow_keys": [],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": null
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "before_run_conversation_routers",
+              "scope": "attack-switch-20260613-r1",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 3,
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": {
+                  "should_exit_flows": false,
+                  "score": 0,
+                  "reason_codes": []
+                }
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "after_run_conversation_routers",
+              "scope": "attack-switch-20260613-r1",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 3,
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": {
+                  "should_exit_flows": false,
+                  "score": 0,
+                  "reason_codes": []
+                }
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": "tool_skill_intent_start",
+              "route_active_flow_reason_code": "no_active_flow"
+            }
+          ]
+        }
+      },
+      "tool_skill_run": {
+        "selected_handler": "prepare_attack_card",
+        "reason_code": "prepare_attack_card_local_ask_or_confirm_technique",
+        "operation_type": "prepare_attack_card",
+        "mode": "platform_handoff",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "status": "clarifying",
+        "flow_action": "confirm_technique_proposal",
+        "visible_task": "ask_or_confirm_technique",
+        "visible_task_context": {
+          "state_summary": "Cible et piège identifiés. L'utilisateur demande spécifiquement un mot de bascule.",
+          "user_words": [
+            "ouvrir le dossier URSSAF",
+            "ranger mon bureau",
+            "mot de bascule très court"
+          ],
+          "field_or_stage": "technique_selection",
+          "known_values": {
+            "target": {
+              "status": "locked",
+              "kind": "personal_action",
+              "plan_item_id": null,
+              "candidate_value": null,
+              "locked_value": "ouvrir le dossier URSSAF",
+              "needs_user_confirmation": false,
+              "why_status": "explicitly stated by user"
+            },
+            "blocker": {
+              "status": "locked",
+              "blocker_type": "avoidance",
+              "candidate_value": null,
+              "locked_value": "partir ranger mon bureau dès que je vois le portail",
+              "needs_user_confirmation": false,
+              "why_status": "explicitly stated by user"
+            },
+            "technique": {
+              "status": "proposed",
+              "technique_key": "pre_engagement",
+              "technique_label": "Mot de bascule",
+              "explicitly_requested": true,
+              "candidate_options": [],
+              "fit_warning": null,
+              "needs_user_confirmation": true,
+              "why_status": "user explicitly asked for a switch word"
+            },
+            "current_field": {
+              "field_id": "protected_value",
+              "technique_key": "pre_engagement",
+              "field_label": "Quand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ?",
+              "status": "missing",
+              "candidate_value": null,
+              "locked_value": null,
+              "previous_value": null,
+              "needs_user_confirmation": false,
+              "why_status": "not yet provided"
+            },
+            "activation_keyword": {
+              "status": "proposed",
+              "candidate_value": "URSSAF",
+              "locked_value": null,
+              "needs_user_confirmation": true,
+              "why_status": "user asked for a short word to send back"
+            }
+          },
+          "missing_or_weak_values": [
+            "protected_value"
+          ],
+          "selected_candidate": {
+            "technique_key": "pre_engagement",
+            "technique_label": "Mot de bascule",
+            "recommended_technique": null,
+            "allowed_technique_labels": [],
+            "candidate_options": [],
+            "previous_value": null
+          },
+          "handoff_data": {
+            "operation_name": "prepare_attack_card",
+            "surface_label": "Cartes d'attaque",
+            "platform_destination": "",
+            "platform_steps": [],
+            "flow_kind": "free_attack_card",
+            "technique_label": "Mot de bascule",
+            "target_value": "ouvrir le dossier URSSAF",
+            "blocker_value": "partir ranger mon bureau dès que je vois le portail",
+            "locked_fields": [
+              {
+                "field_id": "risk_situation",
+                "field_label": "Dans quelle situation precise tu sens que tu vas craquer ou perdre le controle ?",
+                "field_value": "dès que je vois le portail URSSAF"
+              }
+            ],
+            "missing_fields": [
+              "technique",
+              "protected_value"
+            ],
+            "activation_keyword": null,
+            "no_chat_mutation": true
+          },
+          "tone_constraints": [],
+          "do_not_say": [
+            "c'est cree",
+            "je l'ai creee",
+            "je l'ai ajoutee",
+            "c'est active",
+            "dis oui et je la cree",
+            "c'est créé"
+          ],
+          "context_summary": "Confirmer la technique 'Mot de bascule' et proposer un mot d'activation court.",
+          "evidence_used": [
+            "mot de bascule très court",
+            "envoyer tel quel quand je décroche"
+          ]
+        },
+        "requested_effects": [],
+        "allowed_effects": [],
+        "committed_effects": [],
+        "blocked_effects": [],
+        "handoff_state": {
+          "skill_id": "prepare_attack_card",
+          "mode": "platform_handoff",
+          "status": "collecting",
+          "draft": {
+            "operation_type": "prepare_attack_card",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "target_summary": "ouvrir le dossier URSSAF",
+            "blocker_summary": "partir ranger mon bureau dès que je vois le portail",
+            "recommendation": {
+              "technique_label": "Mot de bascule",
+              "why_this_technique": "user explicitly asked for a switch word",
+              "card_draft_summary": "",
+              "preserve": [],
+              "avoid": [],
+              "platform_destination": "dans la section Cartes d’attaque",
+              "platform_steps": [
+                "ouvre la section Cartes",
+                "choisis Carte d’attaque",
+                "reprends le brouillon proposé"
+              ]
+            },
+            "missing_decisions": [
+              "protected_value"
+            ]
+          },
+          "source_draft": null,
+          "local_state": {
+            "flow_id": "prepare_attack_card",
+            "flow_kind": "free_attack_card",
+            "platform_destination": "dans la section Cartes d’attaque",
+            "target_state": {
+              "status": "locked",
+              "kind": "personal_action",
+              "plan_item_id": null,
+              "candidate_value": null,
+              "locked_value": "ouvrir le dossier URSSAF",
+              "needs_user_confirmation": false,
+              "why_status": "explicitly stated by user"
+            },
+            "blocker_state": {
+              "status": "locked",
+              "blocker_type": "avoidance",
+              "candidate_value": null,
+              "locked_value": "partir ranger mon bureau dès que je vois le portail",
+              "needs_user_confirmation": false,
+              "why_status": "explicitly stated by user"
+            },
+            "technique_state": {
+              "status": "proposed",
+              "technique_key": "pre_engagement",
+              "technique_label": "Mot de bascule",
+              "explicitly_requested": true,
+              "candidate_options": [],
+              "fit_warning": null,
+              "needs_user_confirmation": true,
+              "why_status": "user explicitly asked for a switch word"
+            },
+            "platform_field_order": [
+              "risk_situation",
+              "protected_value"
+            ],
+            "platform_field_states": {
+              "risk_situation": {
+                "field_id": "risk_situation",
+                "technique_key": "pre_engagement",
+                "field_label": "Dans quelle situation precise tu sens que tu vas craquer ou perdre le controle ?",
+                "status": "locked",
+                "candidate_value": null,
+                "locked_value": "dès que je vois le portail URSSAF",
+                "previous_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "extracted from user message"
+              },
+              "protected_value": {
+                "field_id": "protected_value",
+                "technique_key": "pre_engagement",
+                "field_label": "Quand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ?",
+                "status": "missing",
+                "candidate_value": null,
+                "locked_value": null,
+                "previous_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "not yet provided"
+              }
+            },
+            "activation_keyword_state": {
+              "status": "proposed",
+              "candidate_value": "URSSAF",
+              "locked_value": null,
+              "needs_user_confirmation": true,
+              "why_status": "user asked for a short word to send back"
+            },
+            "current_field_id": "protected_value",
+            "last_visible_task": "ask_or_confirm_technique",
+            "last_handoff_delivered": false,
+            "subskill_history": []
+          },
+          "target": {
+            "kind": "personal_action",
+            "plan_item_id": null,
+            "title": "ouvrir le dossier URSSAF"
+          },
+          "turn_count": 1,
+          "max_turns": 8,
+          "created_at": "2026-06-13T12:36:46.171Z",
+          "updated_at": "2026-06-13T12:36:46.171Z",
+          "no_chat_mutation": true
+        },
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "runtime_trace": [
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "db_context_pack_loaded",
+            "plan_items_count": 0,
+            "micro_memory_items_count": 0,
+            "selected_handler": "prepare_attack_card"
+          },
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "global_dispatcher_skipped",
+            "reason_code": "active_prepare_attack_card_uses_local_dispatcher",
+            "selected_handler": "prepare_attack_card"
+          },
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "note_information_consumed",
+            "source_flow_id": "global_dispatcher",
+            "target_dispatcher": "prepare_attack_card",
+            "selected_handler": "prepare_attack_card"
+          },
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "local_dispatcher start",
+            "flow_action": null,
+            "stage": null,
+            "visible_task_kind": null,
+            "current_field_id": null,
+            "technique_key": null,
+            "target_status": "proposed",
+            "blocker_status": "missing",
+            "missing_fields": [],
+            "risk_assessment": null,
+            "selected_handler": "prepare_attack_card"
+          },
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "local_dispatcher decision",
+            "flow_action": "confirm_technique_proposal",
+            "stage": "ask_or_confirm_technique",
+            "visible_task_kind": "ask_or_confirm_technique",
+            "current_field_id": null,
+            "technique_key": "pre_engagement",
+            "target_status": "locked",
+            "blocker_status": "locked",
+            "missing_fields": [],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "selected_handler": "prepare_attack_card"
+          },
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "reducer reduced",
+            "flow_action": "confirm_technique_proposal",
+            "stage": "ask_or_confirm_technique",
+            "visible_task_kind": "ask_or_confirm_technique",
+            "current_field_id": "protected_value",
+            "technique_key": "pre_engagement",
+            "target_status": "locked",
+            "blocker_status": "locked",
+            "missing_fields": [
+              "protected_value"
+            ],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "selected_handler": "prepare_attack_card"
+          },
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "visible_stage start",
+            "flow_action": "confirm_technique_proposal",
+            "stage": "ask_or_confirm_technique",
+            "visible_task_kind": "ask_or_confirm_technique",
+            "current_field_id": "protected_value",
+            "technique_key": "pre_engagement",
+            "target_status": "locked",
+            "blocker_status": "locked",
+            "missing_fields": [
+              "protected_value"
+            ],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "selected_handler": "prepare_attack_card"
+          },
+          {
+            "component": "visible_agent",
+            "stage": "ask_or_confirm_technique",
+            "attempt": 1,
+            "accepted": true,
+            "issues": []
+          },
+          {
+            "component": "prepare_attack_card.local_flow",
+            "event": "visible_stage complete",
+            "flow_action": "confirm_technique_proposal",
+            "stage": "ask_or_confirm_technique",
+            "visible_task_kind": "ask_or_confirm_technique",
+            "current_field_id": "protected_value",
+            "technique_key": "pre_engagement",
+            "target_status": "locked",
+            "blocker_status": "locked",
+            "missing_fields": [
+              "protected_value"
+            ],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "selected_handler": "prepare_attack_card"
+          }
+        ]
+      },
+      "effect_ledger": {
+        "turn_id": "attack-switch-20260613-r1-t01",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "tool_skill"
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "attack-switch-20260613-r1-t01",
+      "source_message_id": "35995fa4-2e65-40f9-a283-603a7147e0c0",
+      "user_id": "94b4f5d3-30dd-47c6-a228-9d341cfc9db6",
+      "channel": "whatsapp",
+      "safety": {
+        "risk_band": "low",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null,
+        "flow_exit_context": null
+      },
+      "direct_effects": [],
+      "tool_skill_intents": [
+        {
+          "operation_type": "prepare_attack_card",
+          "explicitness": "explicit",
+          "target_hint": "ouvrir le dossier URSSAF",
+          "operation_input": {
+            "target_action_hint": "ouvrir le dossier URSSAF",
+            "constraints": [
+              "mot de bascule très court",
+              "utilisable tel quel par message"
+            ],
+            "evidence": [
+              "Prépare-moi une carte d'attaque",
+              "ouvrir le dossier URSSAF",
+              "mot de bascule très court"
+            ]
+          },
+          "confidence_band": "high",
+          "ambiguity": "none",
+          "user_intent": "create"
+        }
+      ],
+      "flow_opportunity": null,
+      "note_information": {
+        "source_flow_id": "global_dispatcher",
+        "handoff_reason": "explicit_user_request",
+        "target_dispatcher": "prepare_attack_card",
+        "handoff_context_for_next_dispatcher": "User explicitly requests an Attack Card for a specific friction point (opening URSSAF portal vs tidying desk). He wants a very short 'switch word' to send back when he gets distracted.",
+        "user_words": [
+          "Prépare-moi une carte d'attaque",
+          "ouvrir le dossier URSSAF",
+          "mot de bascule très court"
+        ],
+        "structured_context": {
+          "primary_signal_path": "tool_skill_intents[0]",
+          "target_kind": "tool_skill",
+          "target_flow": "prepare_attack_card",
+          "confidence_band": "high",
+          "evidence": [
+            "Prépare-moi une carte d'attaque",
+            "mot de bascule très court"
+          ],
+          "recommended_next_focus": "Run the prepare_attack_card dispatcher. Use the provided action and constraints to propose the card structure."
+        },
+        "confidence": "high"
+      },
+      "skill_signals": {
+        "entry": {},
+        "lifecycle": {},
+        "exit": {}
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "reflection",
+        "reasoning_complexity": "low",
+        "context_need": "targeted",
+        "memory_mode": "light",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "small",
+        "targets": [
+          {
+            "type": "domain_key",
+            "key": "habitudes.procrastination",
+            "query_hint": "évitement administratif URSSAF",
+            "expansion_policy": null,
+            "retrieval_policy": "taxonomy_first",
+            "priority": "medium",
+            "entity_type": null
+          }
+        ],
+        "retrieval_policy": "semantic_first",
+        "plan_confidence": 0.7
+      },
+      "normal_reply_fit_score": 0.1,
+      "normal_reply_fit_evidence": [
+        "Demande explicite de création d'un outil produit spécifique (carte d'attaque) avec des contraintes précises."
+      ],
+      "active_handoff_action": null,
+      "confirmation_response": null
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "tool_skill",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "tool_skill_intent_start",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "active_flow_arbitration": {
+        "decision": "none",
+        "active_owner": "none",
+        "selected_owner": "none",
+        "resume_policy": "none",
+        "reason_code": "no_active_flow"
+      },
+      "selected_handler": "prepare_attack_card",
+      "active_flow_debug": {
+        "version": "active_flow_debug_v1",
+        "snapshots": [
+          {
+            "phase": "user_state_loaded",
+            "scope": "attack-switch-20260613-r1",
+            "temp_memory": {
+              "temp_memory_type": "object",
+              "has_temp_memory": true,
+              "temp_memory_key_count": 0,
+              "flow_keys": [],
+              "raw_active_key": null,
+              "raw_active_skill": {
+                "present": false,
+                "value_type": "null"
+              },
+              "conversation_risk_last": null
+            },
+            "active_skill_state": {
+              "present": false,
+              "value_type": "undefined"
+            },
+            "active_tool_skill_id": null,
+            "pending_confirmation_id": null,
+            "route_reason_code": null,
+            "route_active_flow_reason_code": null
+          },
+          {
+            "phase": "after_onboarding_and_reconcile",
+            "scope": "attack-switch-20260613-r1",
+            "temp_memory": {
+              "temp_memory_type": "object",
+              "has_temp_memory": true,
+              "temp_memory_key_count": 1,
+              "flow_keys": [],
+              "raw_active_key": null,
+              "raw_active_skill": {
+                "present": false,
+                "value_type": "null"
+              },
+              "conversation_risk_last": null
+            },
+            "active_skill_state": {
+              "present": false,
+              "value_type": "undefined"
+            },
+            "active_tool_skill_id": null,
+            "pending_confirmation_id": null,
+            "route_reason_code": null,
+            "route_active_flow_reason_code": null
+          },
+          {
+            "phase": "read_active_flow_state",
+            "scope": "attack-switch-20260613-r1",
+            "temp_memory": {
+              "temp_memory_type": "object",
+              "has_temp_memory": true,
+              "temp_memory_key_count": 1,
+              "flow_keys": [],
+              "raw_active_key": null,
+              "raw_active_skill": {
+                "present": false,
+                "value_type": "null"
+              },
+              "conversation_risk_last": null
+            },
+            "active_skill_state": {
+              "present": false,
+              "value_type": "null"
+            },
+            "active_tool_skill_id": null,
+            "pending_confirmation_id": null,
+            "route_reason_code": null,
+            "route_active_flow_reason_code": null
+          },
+          {
+            "phase": "after_pending_confirmation_reload",
+            "scope": "attack-switch-20260613-r1",
+            "temp_memory": {
+              "temp_memory_type": "object",
+              "has_temp_memory": true,
+              "temp_memory_key_count": 1,
+              "flow_keys": [],
+              "raw_active_key": null,
+              "raw_active_skill": {
+                "present": false,
+                "value_type": "null"
+              },
+              "conversation_risk_last": null
+            },
+            "active_skill_state": {
+              "present": false,
+              "value_type": "null"
+            },
+            "active_tool_skill_id": null,
+            "pending_confirmation_id": null,
+            "route_reason_code": null,
+            "route_active_flow_reason_code": null
+          },
+          {
+            "phase": "before_run_conversation_routers",
+            "scope": "attack-switch-20260613-r1",
+            "temp_memory": {
+              "temp_memory_type": "object",
+              "has_temp_memory": true,
+              "temp_memory_key_count": 3,
+              "flow_keys": [
+                "__conversation_risk_history",
+                "__conversation_risk_last"
+              ],
+              "raw_active_key": null,
+              "raw_active_skill": {
+                "present": false,
+                "value_type": "null"
+              },
+              "conversation_risk_last": {
+                "should_exit_flows": false,
+                "score": 0,
+                "reason_codes": []
+              }
+            },
+            "active_skill_state": {
+              "present": false,
+              "value_type": "null"
+            },
+            "active_tool_skill_id": null,
+            "pending_confirmation_id": null,
+            "route_reason_code": null,
+            "route_active_flow_reason_code": null
+          },
+          {
+            "phase": "after_run_conversation_routers",
+            "scope": "attack-switch-20260613-r1",
+            "temp_memory": {
+              "temp_memory_type": "object",
+              "has_temp_memory": true,
+              "temp_memory_key_count": 3,
+              "flow_keys": [
+                "__conversation_risk_history",
+                "__conversation_risk_last"
+              ],
+              "raw_active_key": null,
+              "raw_active_skill": {
+                "present": false,
+                "value_type": "null"
+              },
+              "conversation_risk_last": {
+                "should_exit_flows": false,
+                "score": 0,
+                "reason_codes": []
+              }
+            },
+            "active_skill_state": {
+              "present": false,
+              "value_type": "null"
+            },
+            "active_tool_skill_id": null,
+            "pending_confirmation_id": null,
+            "route_reason_code": "tool_skill_intent_start",
+            "route_active_flow_reason_code": "no_active_flow"
+          }
+        ]
+      }
+    },
+    "tool_skill_run": {
+      "selected_handler": "prepare_attack_card",
+      "reason_code": "prepare_attack_card_local_ask_or_confirm_technique",
+      "operation_type": "prepare_attack_card",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "flow_action": "confirm_technique_proposal",
+      "visible_task": "ask_or_confirm_technique",
+      "visible_task_context": {
+        "state_summary": "Cible et piège identifiés. L'utilisateur demande spécifiquement un mot de bascule.",
+        "user_words": [
+          "ouvrir le dossier URSSAF",
+          "ranger mon bureau",
+          "mot de bascule très court"
+        ],
+        "field_or_stage": "technique_selection",
+        "known_values": {
+          "target": {
+            "status": "locked",
+            "kind": "personal_action",
+            "plan_item_id": null,
+            "candidate_value": null,
+            "locked_value": "ouvrir le dossier URSSAF",
+            "needs_user_confirmation": false,
+            "why_status": "explicitly stated by user"
+          },
+          "blocker": {
+            "status": "locked",
+            "blocker_type": "avoidance",
+            "candidate_value": null,
+            "locked_value": "partir ranger mon bureau dès que je vois le portail",
+            "needs_user_confirmation": false,
+            "why_status": "explicitly stated by user"
+          },
+          "technique": {
+            "status": "proposed",
+            "technique_key": "pre_engagement",
+            "technique_label": "Mot de bascule",
+            "explicitly_requested": true,
+            "candidate_options": [],
+            "fit_warning": null,
+            "needs_user_confirmation": true,
+            "why_status": "user explicitly asked for a switch word"
+          },
+          "current_field": {
+            "field_id": "protected_value",
+            "technique_key": "pre_engagement",
+            "field_label": "Quand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ?",
+            "status": "missing",
+            "candidate_value": null,
+            "locked_value": null,
+            "previous_value": null,
+            "needs_user_confirmation": false,
+            "why_status": "not yet provided"
+          },
+          "activation_keyword": {
+            "status": "proposed",
+            "candidate_value": "URSSAF",
+            "locked_value": null,
+            "needs_user_confirmation": true,
+            "why_status": "user asked for a short word to send back"
+          }
+        },
+        "missing_or_weak_values": [
+          "protected_value"
+        ],
+        "selected_candidate": {
+          "technique_key": "pre_engagement",
+          "technique_label": "Mot de bascule",
+          "recommended_technique": null,
+          "allowed_technique_labels": [],
+          "candidate_options": [],
+          "previous_value": null
+        },
+        "handoff_data": {
+          "operation_name": "prepare_attack_card",
+          "surface_label": "Cartes d'attaque",
+          "platform_destination": "",
+          "platform_steps": [],
+          "flow_kind": "free_attack_card",
+          "technique_label": "Mot de bascule",
+          "target_value": "ouvrir le dossier URSSAF",
+          "blocker_value": "partir ranger mon bureau dès que je vois le portail",
+          "locked_fields": [
+            {
+              "field_id": "risk_situation",
+              "field_label": "Dans quelle situation precise tu sens que tu vas craquer ou perdre le controle ?",
+              "field_value": "dès que je vois le portail URSSAF"
+            }
+          ],
+          "missing_fields": [
+            "technique",
+            "protected_value"
+          ],
+          "activation_keyword": null,
+          "no_chat_mutation": true
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "c'est cree",
+          "je l'ai creee",
+          "je l'ai ajoutee",
+          "c'est active",
+          "dis oui et je la cree",
+          "c'est créé"
+        ],
+        "context_summary": "Confirmer la technique 'Mot de bascule' et proposer un mot d'activation court.",
+        "evidence_used": [
+          "mot de bascule très court",
+          "envoyer tel quel quand je décroche"
+        ]
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "handoff_state": {
+        "skill_id": "prepare_attack_card",
+        "mode": "platform_handoff",
+        "status": "collecting",
+        "draft": {
+          "operation_type": "prepare_attack_card",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "target_summary": "ouvrir le dossier URSSAF",
+          "blocker_summary": "partir ranger mon bureau dès que je vois le portail",
+          "recommendation": {
+            "technique_label": "Mot de bascule",
+            "why_this_technique": "user explicitly asked for a switch word",
+            "card_draft_summary": "",
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "dans la section Cartes d’attaque",
+            "platform_steps": [
+              "ouvre la section Cartes",
+              "choisis Carte d’attaque",
+              "reprends le brouillon proposé"
+            ]
+          },
+          "missing_decisions": [
+            "protected_value"
+          ]
+        },
+        "source_draft": null,
+        "local_state": {
+          "flow_id": "prepare_attack_card",
+          "flow_kind": "free_attack_card",
+          "platform_destination": "dans la section Cartes d’attaque",
+          "target_state": {
+            "status": "locked",
+            "kind": "personal_action",
+            "plan_item_id": null,
+            "candidate_value": null,
+            "locked_value": "ouvrir le dossier URSSAF",
+            "needs_user_confirmation": false,
+            "why_status": "explicitly stated by user"
+          },
+          "blocker_state": {
+            "status": "locked",
+            "blocker_type": "avoidance",
+            "candidate_value": null,
+            "locked_value": "partir ranger mon bureau dès que je vois le portail",
+            "needs_user_confirmation": false,
+            "why_status": "explicitly stated by user"
+          },
+          "technique_state": {
+            "status": "proposed",
+            "technique_key": "pre_engagement",
+            "technique_label": "Mot de bascule",
+            "explicitly_requested": true,
+            "candidate_options": [],
+            "fit_warning": null,
+            "needs_user_confirmation": true,
+            "why_status": "user explicitly asked for a switch word"
+          },
+          "platform_field_order": [
+            "risk_situation",
+            "protected_value"
+          ],
+          "platform_field_states": {
+            "risk_situation": {
+              "field_id": "risk_situation",
+              "technique_key": "pre_engagement",
+              "field_label": "Dans quelle situation precise tu sens que tu vas craquer ou perdre le controle ?",
+              "status": "locked",
+              "candidate_value": null,
+              "locked_value": "dès que je vois le portail URSSAF",
+              "previous_value": null,
+              "needs_user_confirmation": false,
+              "why_status": "extracted from user message"
+            },
+            "protected_value": {
+              "field_id": "protected_value",
+              "technique_key": "pre_engagement",
+              "field_label": "Quand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ?",
+              "status": "missing",
+              "candidate_value": null,
+              "locked_value": null,
+              "previous_value": null,
+              "needs_user_confirmation": false,
+              "why_status": "not yet provided"
+            }
+          },
+          "activation_keyword_state": {
+            "status": "proposed",
+            "candidate_value": "URSSAF",
+            "locked_value": null,
+            "needs_user_confirmation": true,
+            "why_status": "user asked for a short word to send back"
+          },
+          "current_field_id": "protected_value",
+          "last_visible_task": "ask_or_confirm_technique",
+          "last_handoff_delivered": false,
+          "subskill_history": []
+        },
+        "target": {
+          "kind": "personal_action",
+          "plan_item_id": null,
+          "title": "ouvrir le dossier URSSAF"
+        },
+        "turn_count": 1,
+        "max_turns": 8,
+        "created_at": "2026-06-13T12:36:46.171Z",
+        "updated_at": "2026-06-13T12:36:46.171Z",
+        "no_chat_mutation": true
+      },
+      "risk_assessment": {
+        "risk_score": 0,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "db_context_pack_loaded",
+          "plan_items_count": 0,
+          "micro_memory_items_count": 0,
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "global_dispatcher_skipped",
+          "reason_code": "active_prepare_attack_card_uses_local_dispatcher",
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "note_information_consumed",
+          "source_flow_id": "global_dispatcher",
+          "target_dispatcher": "prepare_attack_card",
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher start",
+          "flow_action": null,
+          "stage": null,
+          "visible_task_kind": null,
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "proposed",
+          "blocker_status": "missing",
+          "missing_fields": [],
+          "risk_assessment": null,
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher decision",
+          "flow_action": "confirm_technique_proposal",
+          "stage": "ask_or_confirm_technique",
+          "visible_task_kind": "ask_or_confirm_technique",
+          "current_field_id": null,
+          "technique_key": "pre_engagement",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "reducer reduced",
+          "flow_action": "confirm_technique_proposal",
+          "stage": "ask_or_confirm_technique",
+          "visible_task_kind": "ask_or_confirm_technique",
+          "current_field_id": "protected_value",
+          "technique_key": "pre_engagement",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "protected_value"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage start",
+          "flow_action": "confirm_technique_proposal",
+          "stage": "ask_or_confirm_technique",
+          "visible_task_kind": "ask_or_confirm_technique",
+          "current_field_id": "protected_value",
+          "technique_key": "pre_engagement",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "protected_value"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "ask_or_confirm_technique",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage complete",
+          "flow_action": "confirm_technique_proposal",
+          "stage": "ask_or_confirm_technique",
+          "visible_task_kind": "ask_or_confirm_technique",
+          "current_field_id": "protected_value",
+          "technique_key": "pre_engagement",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "protected_value"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "attack-switch-20260613-r1-t01",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "tool_skill"
+  },
+  "trace_error": null
+}

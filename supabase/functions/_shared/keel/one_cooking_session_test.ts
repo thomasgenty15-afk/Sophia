@@ -395,5 +395,5 @@ Deno.test("le millésime du TRONC est celui d'aujourd'hui — épinglé ici auss
   // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
   // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
   // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v32_the_recipe_says_what_holds_it");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v33_the_recipe_writes_the_shopping_list");
 });

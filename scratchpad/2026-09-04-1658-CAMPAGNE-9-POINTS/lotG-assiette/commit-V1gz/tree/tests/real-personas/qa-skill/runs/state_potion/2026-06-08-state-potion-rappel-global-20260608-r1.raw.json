@@ -1,0 +1,11 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-state-potion-rappel-global-20260608-r1-t01",
+    "user": "J'aimerais bien avoir une potion, mais je ne sais pas laquelle. Je sais que je veux ouvrir mon carnet le matin, mais je laisse filer et je repousse après le café.",
+    "status": 401,
+    "body": {
+      "msg": "Invalid JWT"
+    }
+  }
+]

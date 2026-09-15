@@ -1,0 +1,197 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux te partager un détail hors plan officiel : quand je rentre le soir, le téléphone finit souvent sur le canapé avec moi. Je scrolle, et après quelques minutes l’envie de snack arrive. Je pense que le charger dans l’entrée m’aiderait.",
+    "assistant": "C'est super bien repéré ça. Charger ton téléphone dans l'entrée crée une vraie coupure physique, c'est l'idéal pour casser cet enchaînement automatique avec le grignotage 🛋️.\n\nVu que tu as clairement identifié ce déclencheur du soir, on peut se préparer une Carte de défense sur mesure pour ce moment précis. Tu veux qu'on la prépare ensemble ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, faisons une carte de défense pour ce moment-là. Je veux qu’elle reste libre, hors action officielle du plan : elle protège juste le retour du soir avec téléphone, canapé et snack.",
+    "assistant": "Ok, c'est noté pour le retour du soir avec téléphone, canapé et snack, et que ce soit une carte libre. Qu'est-ce qui se passe exactement au moment où ça craque, et pourquoi ça t'embarque ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "source": "recommendation_tool",
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "risk_situation",
+        "needed": true,
+        "reason": "structured_ai_missing_trigger",
+        "status": "missing",
+        "question": "Ok, c'est noté pour le retour du soir avec téléphone, canapé et snack, et que ce soit une carte libre. Qu'est-ce qui se passe exactement au moment où ça craque, et pourquoi ça t'embarque ?",
+        "known_slots": {
+          "attachment": {
+            "kind": "free_risk_context",
+            "title": "Retour du soir avec téléphone, canapé et snack",
+            "plan_item_id": null
+          },
+          "intake_state": {
+            "trigger": {
+              "type": null,
+              "status": "missing",
+              "evidence": [],
+              "confidence": 0.5
+            },
+            "skill_id": "prepare_defense_card",
+            "tool_fit": {
+              "reason": null,
+              "status": "defense",
+              "evidence": [
+                "current_user_message"
+              ],
+              "confidence": "high"
+            },
+            "attachment": {
+              "kind": "free_risk_context",
+              "title": "Retour du soir avec téléphone, canapé et snack",
+              "status": "identified",
+              "evidence": [
+                "current_user_message"
+              ],
+              "confidence": "high",
+              "plan_item_id": null
+            },
+            "confidence": "high",
+            "constraints": [],
+            "current_step": "risk_intake",
+            "defense_goal": {
+              "value": null,
+              "status": "missing",
+              "evidence": [],
+              "confidence": "low"
+            },
+            "missing_slots": [
+              "trigger",
+              "defense_goal"
+            ],
+            "risk_situation": {
+              "label": "Retour du soir avec téléphone, canapé et snack",
+              "status": "identified",
+              "evidence": [
+                "current_user_message",
+                "operation_input.risk_situation"
+              ],
+              "confidence": "high",
+              "description": "quand je rentre le soir, le téléphone finit souvent sur le canapé avec moi. Je scrolle, et après quelques minutes l’envie de snack arrive.",
+              "timing_hint": "le retour du soir",
+              "context_hint": "avec téléphone, canapé et snack"
+            },
+            "defense_response_hint": {
+              "value": null,
+              "status": "missing",
+              "evidence": [],
+              "confidence": "low",
+              "strategy_hint": null
+            },
+            "generated_user_message": "Ok, c'est noté pour le retour du soir avec téléphone, canapé et snack, et que ce soit une carte libre. Qu'est-ce qui se passe exactement au moment où ça craque, et pourquoi ça t'embarque ?"
+          },
+          "risk_situation": {
+            "label": "Retour du soir avec téléphone, canapé et snack",
+            "description": "quand je rentre le soir, le téléphone finit souvent sur le canapé avec moi. Je scrolle, et après quelques minutes l’envie de snack arrive.",
+            "timing_hint": "le retour du soir",
+            "context_hint": "avec téléphone, canapé et snack"
+          }
+        }
+      },
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "trigger",
+        "defense_goal"
+      ],
+      "selected_handler": "prepare_defense_card",
+      "recommendation_id": "dispatcher_opportunity:defense_card:qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t01"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Le moment exact, c’est juste après avoir enlevé mes chaussures : je m’assois deux minutes sur le canapé, téléphone en main. Le piège, c’est “je mérite une pause”, puis le scroll rend le snack automatique.",
+    "assistant": "C'est le piège classique du mérite : on s'assoit \"juste deux minutes\" et le cerveau passe en mode automatique. Le téléphone devient le pont direct vers le placard à snacks 🛋️.\n\nPour ta Carte de défense, on a le déclencheur (les chaussures enlevées) et le piège (le scroll du mérite). Maintenant, il nous faut ton geste de défense : une micro-action de moins de 30 secondes que tu peux faire dès que tu sens ce piège arriver pour poser ce téléphone dans l'entrée.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r7-t03",
+    "trace_error": null
+  }
+]

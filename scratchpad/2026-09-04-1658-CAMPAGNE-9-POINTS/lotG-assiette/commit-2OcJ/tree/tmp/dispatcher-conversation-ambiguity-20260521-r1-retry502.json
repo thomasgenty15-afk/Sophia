@@ -1,0 +1,923 @@
+{
+  "run_id": "dispatcher-conversation-ambiguity-20260521-r1-retry502",
+  "created_at": "2026-05-21T09:03:58.105Z",
+  "base_url": "http://127.0.0.1:54321",
+  "qa_user": {
+    "email": "qa-dispatcher-conversation-ambiguity-20260521-r1-retry502-1779354186387@example.com",
+    "user_id": "7c3ee9ce-3359-4ea9-bbb9-ab5acca0286c"
+  },
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "results": [
+    {
+      "id": "negation_not_potion_execution",
+      "kind": "checks",
+      "trap": null,
+      "group": "negation_multi_signal",
+      "scope": "dispatcher-conversation-ambiguity-20260521-r1-retry502-negation_not_potion_execution",
+      "seed_result": null,
+      "pre_results": [],
+      "sent_at": "2026-05-21T09:03:06.699Z",
+      "user_message": "Ne lance pas de potion, aide-moi juste à comprendre par où commencer.",
+      "expected": {
+        "intentExcludes": [
+          "select_state_potion"
+        ],
+        "skillEntryIncludes": [
+          "execution_breakdown"
+        ]
+      },
+      "observed": {
+        "intent_operations": [
+          "select_state_potion"
+        ],
+        "intent_explicitness": [
+          "explicit"
+        ],
+        "opportunity_type": "none",
+        "opportunity_operation": null,
+        "opportunity_should_offer": false,
+        "opportunity_must_not_execute": true,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "blocked_paths": [],
+        "blocked_reason_codes": [],
+        "skill_entry_ids": [
+          "execution_breakdown"
+        ],
+        "skill_lifecycle_ids": [],
+        "skill_exit_ids": [],
+        "confirmation_kind": null,
+        "safety_risk_band": "low",
+        "needs_research": false,
+        "needs_research_query": null,
+        "response_owner": "tool_skill",
+        "selected_handler": "select_state_potion",
+        "route_reason": "tool_skill_intent_start",
+        "executed_tools": [],
+        "content": "Je comprends, on va se concentrer là-dessus. Pour t'aider à trouver ce premier pas, qu'est-ce qui te semble le plus flou ou le plus lourd à gérer en ce moment ? 🙂"
+      },
+      "verdict": "fail",
+      "failures": [
+        "intentExcludes expected [\"select_state_potion\"], got [\"select_state_potion\"]"
+      ],
+      "raw": {
+        "http_status": 200,
+        "ok": true,
+        "response": {
+          "ok": true,
+          "request_id": "3861e719-2885-4a97-ba6c-7d3b099a1918",
+          "user_id": "7c3ee9ce-3359-4ea9-bbb9-ab5acca0286c",
+          "channel": "web",
+          "scope": "dispatcher-conversation-ambiguity-20260521-r1-retry502-negation_not_potion_execution",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je comprends, on va se concentrer là-dessus. Pour t'aider à trouver ce premier pas, qu'est-ce qui te semble le plus flou ou le plus lourd à gérer en ce moment ? 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "3861e719-2885-4a97-ba6c-7d3b099a1918",
+            "user_id": "7c3ee9ce-3359-4ea9-bbb9-ab5acca0286c",
+            "source_message_id": "8ecc94fd-920f-41ed-834b-733e5d3c9220",
+            "ts": "2026-05-21T09:03:29.884+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8366,
+              "latency_ms": 7543,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 595,
+              "memory_plan": {
+                "targets": [],
+                "memory_mode": "none",
+                "context_need": "minimal",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "tiny",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "3861e719-2885-4a97-ba6c-7d3b099a1918",
+              "user_id": "7c3ee9ce-3359-4ea9-bbb9-ab5acca0286c",
+              "memory_plan": {
+                "targets": [],
+                "memory_mode": "none",
+                "context_need": "minimal",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "tiny",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {
+                  "execution_breakdown": {
+                    "reason": "user_requests_help_to_identify_starting_point",
+                    "detected": true,
+                    "confidence_band": "high"
+                  }
+                },
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 0,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [],
+                "context_summary": null,
+                "previous_scores": [],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "8ecc94fd-920f-41ed-834b-733e5d3c9220",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "Ne lance pas de potion, aide-moi juste à comprendre par où commencer.",
+                  "user_intent": "select",
+                  "explicitness": "explicit",
+                  "operation_type": "select_state_potion",
+                  "confidence_band": "high"
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "tool_skill_intent_start",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "status": "ask_question",
+              "reason_code": "tool_skill_intent_start",
+              "missing_slots": [
+                "potion_detail:clarity_problem"
+              ],
+              "selected_handler": "select_state_potion"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 23140,
+            "created_at": "2026-05-21T09:03:29.885591+00:00"
+          },
+          "trace_error": null
+        }
+      }
+    },
+    {
+      "id": "coach_pref_product_where",
+      "kind": "checks",
+      "trap": null,
+      "group": "coach_preferences_vs_product",
+      "scope": "dispatcher-conversation-ambiguity-20260521-r1-retry502-coach_pref_product_where",
+      "seed_result": null,
+      "pre_results": [],
+      "sent_at": "2026-05-21T09:03:29.894Z",
+      "user_message": "Où est-ce que je change ton style de réponse dans Sophia ?",
+      "expected": {
+        "intentCount": 0,
+        "skillEntryIncludes": [
+          "product_help"
+        ]
+      },
+      "observed": {
+        "intent_operations": [],
+        "intent_explicitness": [],
+        "opportunity_type": "coach_preferences",
+        "opportunity_operation": "update_coach_preferences",
+        "opportunity_should_offer": true,
+        "opportunity_must_not_execute": true,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "blocked_paths": [
+          "product_help"
+        ],
+        "blocked_reason_codes": [
+          "coach_preference_is_tool_skill"
+        ],
+        "skill_entry_ids": [
+          "product_help"
+        ],
+        "skill_lifecycle_ids": [],
+        "skill_exit_ids": [],
+        "confirmation_kind": null,
+        "safety_risk_band": "low",
+        "needs_research": false,
+        "needs_research_query": null,
+        "response_owner": "tool_skill",
+        "selected_handler": "update_coach_preferences",
+        "route_reason": "coach_preference_request_overrides_product_help",
+        "executed_tools": [],
+        "content": "Tu peux me le dire directement ici ! Tu aimerais que je change mon ton, que je sois plus exigeante avec toi, ou que je te pose plus ou moins de questions ? 🙂"
+      },
+      "verdict": "pass",
+      "failures": [],
+      "raw": {
+        "http_status": 200,
+        "ok": true,
+        "response": {
+          "ok": true,
+          "request_id": "30c34670-3fb3-4b0a-a2dc-3310ba14679f",
+          "user_id": "7c3ee9ce-3359-4ea9-bbb9-ab5acca0286c",
+          "channel": "web",
+          "scope": "dispatcher-conversation-ambiguity-20260521-r1-retry502-coach_pref_product_where",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Tu peux me le dire directement ici ! Tu aimerais que je change mon ton, que je sois plus exigeante avec toi, ou que je te pose plus ou moins de questions ? 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "30c34670-3fb3-4b0a-a2dc-3310ba14679f",
+            "user_id": "7c3ee9ce-3359-4ea9-bbb9-ab5acca0286c",
+            "source_message_id": "72c5d7be-d81e-4fc4-a068-ab0632b7887c",
+            "ts": "2026-05-21T09:03:46.595+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8362,
+              "latency_ms": 3724,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 583,
+              "memory_plan": {
+                "targets": [],
+                "memory_mode": "none",
+                "context_need": "minimal",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "tiny",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "30c34670-3fb3-4b0a-a2dc-3310ba14679f",
+              "user_id": "7c3ee9ce-3359-4ea9-bbb9-ab5acca0286c",
+              "memory_plan": {
+                "targets": [],
+                "memory_mode": "none",
+                "context_need": "minimal",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "tiny",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {
+                  "product_help": {
+                    "reason": "user_asking_how_to_use_interface_for_preferences",
+                    "detected": true,
+                    "confidence_band": "high"
+                  }
+                },
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 0,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [],
+                "context_summary": null,
+                "previous_scores": [],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "72c5d7be-d81e-4fc4-a068-ab0632b7887c",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "coach_preferences",
+                "surface_id": "dashboard.preferences",
+                "prop_reason": "user_asking_where_to_change_coach_style",
+                "source_span": "Où est-ce que je change ton style de réponse",
+                "target_hint": "style de réponse",
+                "offer_timing": "now",
+                "should_offer": true,
+                "target_status": "identified",
+                "operation_type": "update_coach_preferences",
+                "confidence_band": "high",
+                "must_not_execute": true,
+                "suggested_question_intent": "offer_coach_preferences"
+              }
+            },
+            "route_decision": {
+              "reason_code": "coach_preference_request_overrides_product_help",
+              "blocked_paths": [
+                {
+                  "path": "product_help",
+                  "reason_code": "coach_preference_is_tool_skill"
+                }
+              ],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "update_coach_preferences",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "status": "ask_question",
+              "reason_code": "coach_preference_request_overrides_product_help",
+              "missing_slots": [
+                "preference"
+              ],
+              "selected_handler": "update_coach_preferences"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 16667,
+            "created_at": "2026-05-21T09:03:46.597511+00:00"
+          },
+          "trace_error": null
+        }
+      }
+    },
+    {
+      "id": "coach_pref_explicit_update",
+      "kind": "checks",
+      "trap": null,
+      "group": "coach_preferences_vs_product",
+      "scope": "dispatcher-conversation-ambiguity-20260521-r1-retry502-coach_pref_explicit_update",
+      "seed_result": null,
+      "pre_results": [],
+      "sent_at": "2026-05-21T09:03:46.611Z",
+      "user_message": "À partir de maintenant, réponds-moi plus directement et avec moins de questions.",
+      "expected": {
+        "intentIncludes": [
+          "update_coach_preferences"
+        ],
+        "handlerOneOf": [
+          "update_coach_preferences"
+        ]
+      },
+      "observed": {
+        "intent_operations": [
+          "update_coach_preferences"
+        ],
+        "intent_explicitness": [
+          "explicit"
+        ],
+        "opportunity_type": "none",
+        "opportunity_operation": null,
+        "opportunity_should_offer": false,
+        "opportunity_must_not_execute": true,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "blocked_paths": [],
+        "blocked_reason_codes": [],
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_exit_ids": [],
+        "confirmation_kind": null,
+        "safety_risk_band": "low",
+        "needs_research": false,
+        "needs_research_query": null,
+        "response_owner": "tool_skill",
+        "selected_handler": "update_coach_preferences",
+        "route_reason": "tool_skill_intent_start",
+        "executed_tools": [],
+        "content": "Tu souhaites que je sois plus directe ou que je pose moins de questions ? Dis-moi par quoi tu veux que je commence. 🙂"
+      },
+      "verdict": "pass",
+      "failures": [],
+      "raw": {
+        "http_status": 200,
+        "ok": true,
+        "response": {
+          "ok": true,
+          "request_id": "beea83cf-e494-49e5-8d4a-2f6ecb4cad58",
+          "user_id": "7c3ee9ce-3359-4ea9-bbb9-ab5acca0286c",
+          "channel": "web",
+          "scope": "dispatcher-conversation-ambiguity-20260521-r1-retry502-coach_pref_explicit_update",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Tu souhaites que je sois plus directe ou que je pose moins de questions ? Dis-moi par quoi tu veux que je commence. 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "beea83cf-e494-49e5-8d4a-2f6ecb4cad58",
+            "user_id": "7c3ee9ce-3359-4ea9-bbb9-ab5acca0286c",
+            "source_message_id": "1a1c752d-3be9-49bb-abb7-7c1ff08d5800",
+            "ts": "2026-05-21T09:03:58.019+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [
+                "maintenant"
+              ],
+              "risk_band": "none",
+              "reason_codes": [
+                "immediacy_now"
+              ],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": true,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8368,
+              "latency_ms": 5681,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 609,
+              "memory_plan": {
+                "targets": [],
+                "memory_mode": "none",
+                "context_need": "minimal",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "tiny",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "beea83cf-e494-49e5-8d4a-2f6ecb4cad58",
+              "user_id": "7c3ee9ce-3359-4ea9-bbb9-ab5acca0286c",
+              "memory_plan": {
+                "targets": [],
+                "memory_mode": "none",
+                "context_need": "minimal",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "tiny",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 0,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [],
+                "context_summary": null,
+                "previous_scores": [],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "1a1c752d-3be9-49bb-abb7-7c1ff08d5800",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "style de communication plus direct et moins de questions",
+                  "user_intent": "update",
+                  "explicitness": "explicit",
+                  "operation_type": "update_coach_preferences",
+                  "confidence_band": "high",
+                  "operation_input": {
+                    "value": "direct, fewer_questions",
+                    "evidence": [
+                      "À partir de maintenant",
+                      "réponds-moi plus directement",
+                      "moins de questions"
+                    ],
+                    "preference_type": "communication_style"
+                  }
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "tool_skill_intent_start",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "update_coach_preferences",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "status": "ask_question",
+              "reason_code": "tool_skill_intent_start",
+              "missing_slots": [
+                "preference"
+              ],
+              "selected_handler": "update_coach_preferences"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 11352,
+            "created_at": "2026-05-21T09:03:58.020008+00:00"
+          },
+          "trace_error": null
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "passed": 2,
+    "failed": 1
+  },
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false,
+      "body": {
+        "code": "PGRST205",
+        "details": null,
+        "hint": "Perhaps you meant the table 'public.user_metrics'",
+        "message": "Could not find the table 'public.user_memories' in the schema cache"
+      }
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true,
+      "body": {}
+    }
+  ]
+}

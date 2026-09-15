@@ -1,0 +1,4 @@
+9716b77ede6a8ded94fc02bb85fb662ba39c6cd8f1c6c93189b09463f8f97673  scratchpad/2026-09-11-FIABILITE-RECETTES/banc-lot-F.ts
+49668ab5ab37f496030fbdb294f5fadc73190fbcd9920b1ac98c4a4844870a29  scratchpad/2026-09-11-FIABILITE-RECETTES/transport-lot-F.ts
+f69f532730e3df1170b61d5adbe88b58a06e0556cf24121724e117cafb741a07  supabase/functions/_shared/keel/portion_sizing.ts
+eef3ca5800b33facb511a37f18b63ffce43e3db2bf0548d1fcdda923ba9bb9b1  supabase/functions/generate-household-meal-v1/index.ts

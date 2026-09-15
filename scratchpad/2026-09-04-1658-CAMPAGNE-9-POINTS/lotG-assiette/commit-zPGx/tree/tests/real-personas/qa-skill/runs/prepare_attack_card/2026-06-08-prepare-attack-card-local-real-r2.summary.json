@@ -1,0 +1,779 @@
+[
+  {
+    "turn": 1,
+    "requestId": "prepare-attack-card-local-real-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux préparer une carte d'attaque pour arrêter de repousser mon étirement du soir; quand je rentre tard je me raconte que je le ferai demain.",
+    "assistant": "C'est une situation très classique quand on rentre tard. Pour t'aider à ne plus repousser tes étirements, je te propose d'utiliser Le texte magique. Pour commencer : Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ? 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "tool_skill_intent_start",
+    "safety": {
+      "risk_band": "low",
+      "reason_codes": [],
+      "evidence": []
+    },
+    "direct_effects": [],
+    "operation": "prepare_attack_card",
+    "pending_confirmation": null,
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "targeted",
+      "memory_mode": "light",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "small",
+      "targets": [
+        {
+          "type": "action",
+          "key": "etirement_soir",
+          "query_hint": "habitudes d'étirement et procrastination soir",
+          "expansion_policy": null,
+          "retrieval_policy": "semantic_first",
+          "priority": "high",
+          "entity_type": null
+        },
+        {
+          "type": "domain_key",
+          "key": "habitudes.procrastination",
+          "query_hint": "patterns de procrastination quand rentre tard",
+          "expansion_policy": null,
+          "retrieval_policy": "taxonomy_first",
+          "priority": "medium",
+          "entity_type": null
+        }
+      ],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "executed_tools": [],
+    "tool_execution": "blocked",
+    "durable_effect": {
+      "committed_effects": [],
+      "platform_handoff": null
+    },
+    "tool_skill_run": {
+      "selected_handler": "prepare_attack_card",
+      "reason_code": "prepare_attack_card_local_ask_target",
+      "operation_type": "prepare_attack_card",
+      "status": "collecting",
+      "no_chat_mutation": true,
+      "blocked_effects": [],
+      "runtime_trace": [
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher start",
+          "flow_action": null,
+          "stage": null,
+          "visible_task_kind": null,
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "proposed",
+          "blocker_status": "missing",
+          "missing_fields": [],
+          "risk_assessment": null,
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher decision",
+          "flow_action": "choose_technique",
+          "stage": "ask_target",
+          "visible_task_kind": "ask_target",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "reducer reduced",
+          "flow_action": "choose_technique",
+          "stage": "ask_target",
+          "visible_task_kind": "ask_target",
+          "current_field_id": "negotiated_action",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "negotiated_action",
+            "recurring_excuse",
+            "desired_reframe_state"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage start",
+          "flow_action": "choose_technique",
+          "stage": "ask_target",
+          "visible_task_kind": "ask_target",
+          "current_field_id": "negotiated_action",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "negotiated_action",
+            "recurring_excuse",
+            "desired_reframe_state"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "ask_target",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage complete",
+          "flow_action": "choose_technique",
+          "stage": "ask_target",
+          "visible_task_kind": "ask_target",
+          "current_field_id": "negotiated_action",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "negotiated_action",
+            "recurring_excuse",
+            "desired_reframe_state"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        }
+      ],
+      "exit_memo": null
+    },
+    "flow_exit_context": null
+  },
+  {
+    "turn": 2,
+    "requestId": "prepare-attack-card-local-real-r2-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, l'action c'est mon étirement du soir. L'excuse qui revient, c'est surtout: je suis trop fatigué, je le ferai demain matin.",
+    "assistant": "C'est une excuse très tentante quand la fatigue s'en mêle. Pour finaliser Le texte magique, dans quel état est-ce que tu aimerais te remettre au moment de le lire pour retrouver ta motivation ? 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "active_prepare_attack_card_local_dispatcher",
+    "safety": {
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tomorrow"
+      ],
+      "evidence": [
+        "demain"
+      ]
+    },
+    "direct_effects": [],
+    "operation": "prepare_attack_card",
+    "pending_confirmation": null,
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "minimal",
+      "memory_mode": "none",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "tiny",
+      "targets": [],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "executed_tools": [],
+    "tool_execution": "blocked",
+    "durable_effect": {
+      "committed_effects": [],
+      "platform_handoff": null
+    },
+    "tool_skill_run": {
+      "selected_handler": "prepare_attack_card",
+      "reason_code": "prepare_attack_card_local_ask_platform_field",
+      "operation_type": "prepare_attack_card",
+      "status": "clarifying",
+      "no_chat_mutation": true,
+      "blocked_effects": [],
+      "runtime_trace": [
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher start",
+          "flow_action": null,
+          "stage": null,
+          "visible_task_kind": null,
+          "current_field_id": "negotiated_action",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "negotiated_action",
+            "recurring_excuse",
+            "desired_reframe_state"
+          ],
+          "risk_assessment": null,
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher decision",
+          "flow_action": "answer_current_field",
+          "stage": "ask_platform_field",
+          "visible_task_kind": "ask_platform_field",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "reducer reduced",
+          "flow_action": "answer_current_field",
+          "stage": "ask_platform_field",
+          "visible_task_kind": "ask_platform_field",
+          "current_field_id": "desired_reframe_state",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "desired_reframe_state"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage start",
+          "flow_action": "answer_current_field",
+          "stage": "ask_platform_field",
+          "visible_task_kind": "ask_platform_field",
+          "current_field_id": "desired_reframe_state",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "desired_reframe_state"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "ask_platform_field",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage complete",
+          "flow_action": "answer_current_field",
+          "stage": "ask_platform_field",
+          "visible_task_kind": "ask_platform_field",
+          "current_field_id": "desired_reframe_state",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "desired_reframe_state"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        }
+      ],
+      "exit_memo": null
+    },
+    "flow_exit_context": null
+  },
+  {
+    "turn": 3,
+    "requestId": "prepare-attack-card-local-real-r2-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux me remettre dans un état simple et ferme: je déroule le tapis, je fais huit minutes, et je ne rouvre pas le débat.",
+    "assistant": "C'est une excellente approche pour ne plus laisser de place au doute. Tu peux maintenant te rendre dans la destination Cartes d'attaque pour utiliser la technique Le texte magique avec ces éléments :\n\nQuelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ? : étirement du soir\nQuelles excuses ou pensees reviennent quand tu sens que tu glisses ? : je suis trop fatigué, je le ferai demain matin\nDans quel etat tu veux te remettre en ecrivant ce texte ? : simple et ferme 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "active_prepare_attack_card_local_dispatcher",
+    "safety": {
+      "risk_band": "none",
+      "reason_codes": [],
+      "evidence": []
+    },
+    "direct_effects": [],
+    "operation": "prepare_attack_card",
+    "pending_confirmation": null,
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "minimal",
+      "memory_mode": "none",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "tiny",
+      "targets": [],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "durable_effect": {
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "prepare_attack_card",
+        "status": "delivered",
+        "surface_id": "attack_cards",
+        "reason_code": "handoff_ready",
+        "no_chat_mutation": true
+      }
+    },
+    "tool_skill_run": {
+      "selected_handler": "prepare_attack_card",
+      "reason_code": "handoff_ready",
+      "operation_type": "prepare_attack_card",
+      "status": "handoff_delivered",
+      "no_chat_mutation": true,
+      "blocked_effects": [],
+      "runtime_trace": [
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher start",
+          "flow_action": null,
+          "stage": null,
+          "visible_task_kind": null,
+          "current_field_id": "desired_reframe_state",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "desired_reframe_state"
+          ],
+          "risk_assessment": null,
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher decision",
+          "flow_action": "handoff_ready",
+          "stage": "handoff_ready",
+          "visible_task_kind": "handoff_ready",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "reducer reduced",
+          "flow_action": "handoff_ready",
+          "stage": "handoff_ready",
+          "visible_task_kind": "handoff_ready",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage start",
+          "flow_action": "handoff_ready",
+          "stage": "handoff_ready",
+          "visible_task_kind": "handoff_ready",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "handoff_ready",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage complete",
+          "flow_action": "handoff_ready",
+          "stage": "handoff_ready",
+          "visible_task_kind": "handoff_ready",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "handoff_ready",
+          "flow_action": "handoff_ready",
+          "stage": "handoff_ready",
+          "visible_task_kind": "handoff_ready",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        }
+      ],
+      "exit_memo": null
+    },
+    "flow_exit_context": null
+  },
+  {
+    "turn": 4,
+    "requestId": "prepare-attack-card-local-real-r2-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Ok, crée-la maintenant.",
+    "assistant": "Je ne crée pas la carte directement depuis notre discussion, mais tu peux l'ajouter en un instant dans la section Cartes d'attaque. Voici les données exactes à saisir pour finaliser ta technique Le texte magique :\n\nQuelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ? : étirement du soir\nQuelles excuses ou pensees reviennent quand tu sens que tu glisses ? : je suis trop fatigué, je le ferai demain matin\nDans quel etat tu veux te remettre en ecrivant ce texte ? : simple et ferme 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "active_prepare_attack_card_local_dispatcher",
+    "safety": {
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "evidence": [
+        "maintenant"
+      ]
+    },
+    "direct_effects": [],
+    "operation": "prepare_attack_card",
+    "pending_confirmation": null,
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "minimal",
+      "memory_mode": "none",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "tiny",
+      "targets": [],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "durable_effect": {
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "prepare_attack_card",
+        "status": "delivered",
+        "surface_id": "attack_cards",
+        "reason_code": "apply_attempt_no_chat_mutation",
+        "no_chat_mutation": true
+      }
+    },
+    "tool_skill_run": {
+      "selected_handler": "prepare_attack_card",
+      "reason_code": "apply_attempt_no_chat_mutation",
+      "operation_type": "prepare_attack_card",
+      "status": "apply_attempt",
+      "no_chat_mutation": true,
+      "blocked_effects": [
+        {
+          "type": "create_attack_card",
+          "reason_code": "chat_creation_disabled_platform_handoff"
+        }
+      ],
+      "runtime_trace": [
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher start",
+          "flow_action": null,
+          "stage": null,
+          "visible_task_kind": null,
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": null,
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher decision",
+          "flow_action": "apply_attempt",
+          "stage": "apply_attempt",
+          "visible_task_kind": "apply_attempt",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "reducer reduced",
+          "flow_action": "apply_attempt",
+          "stage": "apply_attempt",
+          "visible_task_kind": "apply_attempt",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage start",
+          "flow_action": "apply_attempt",
+          "stage": "apply_attempt",
+          "visible_task_kind": "apply_attempt",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "apply_attempt",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage complete",
+          "flow_action": "apply_attempt",
+          "stage": "apply_attempt",
+          "visible_task_kind": "apply_attempt",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "apply_attempt no mutation",
+          "flow_action": "apply_attempt",
+          "stage": "apply_attempt",
+          "visible_task_kind": "apply_attempt",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "handoff_ready",
+          "flow_action": "apply_attempt",
+          "stage": "apply_attempt",
+          "visible_task_kind": "apply_attempt",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        }
+      ],
+      "exit_memo": null
+    },
+    "flow_exit_context": null
+  },
+  {
+    "turn": 5,
+    "requestId": "prepare-attack-card-local-real-r2-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Laisse tomber la carte pour l'instant; aide-moi plutôt à décider ce que je fais ce soir en priorité.",
+    "assistant": "Je garde la carte d'attaque en cours, mais je n'arrive pas à traiter correctement ce tour. Réessaie dans un instant. 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "active_prepare_attack_card_local_dispatcher",
+    "safety": {
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "evidence": [
+        "ce soir"
+      ]
+    },
+    "direct_effects": [],
+    "operation": "prepare_attack_card",
+    "pending_confirmation": null,
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "minimal",
+      "memory_mode": "none",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "tiny",
+      "targets": [],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "executed_tools": [],
+    "tool_execution": "blocked",
+    "durable_effect": {
+      "committed_effects": [],
+      "platform_handoff": null
+    },
+    "tool_skill_run": {
+      "selected_handler": "prepare_attack_card",
+      "reason_code": "active_prepare_attack_card_local_runtime_null",
+      "operation_type": "prepare_attack_card",
+      "status": "blocked",
+      "no_chat_mutation": true,
+      "blocked_effects": [
+        {
+          "type": "local_flow_runtime",
+          "reason_code": "active_prepare_attack_card_local_runtime_null"
+        }
+      ],
+      "runtime_trace": [
+        {
+          "component": "prepare_attack_card",
+          "event": "local_runtime_null",
+          "global_dispatcher_skipped": true
+        }
+      ],
+      "exit_memo": null
+    },
+    "flow_exit_context": null
+  }
+]

@@ -1,0 +1,47 @@
+{
+  "run_id": "weekly-qa-20260623-r6-owner-smoke-partial_habits_mission_partial",
+  "user_id": "c6be19bf-de71-481f-ab79-ad0cfe97f68a",
+  "requestId": "weekly-qa-20260623-r6-owner-smoke-partial_habits_mission_partial-whatsapp-t01",
+  "status": 200,
+  "ok": true,
+  "user": "Je l'ai vécue comme une semaine un peu irrégulière : les repères du début m'ont aidé, mais le soir j'ai souvent décroché. J'aimerais garder ce qui marche et rendre la suite plus légère.",
+  "assistant": "Sur cette semaine, entre les repères du début et la fatigue du soir, est-ce que tu as eu le sentiment d’avancer vers ton objectif global, même un peu ?",
+  "trace": {
+    "response_owner": "weekly_adaptive_review_v1",
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "weekly_adaptive_review_v1",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "active_weekly_adaptive_review",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "active_flow_arbitration": {
+        "decision": "continue_active",
+        "active_owner": "weekly_adaptive_review_v1",
+        "selected_owner": "weekly_adaptive_review_v1",
+        "resume_policy": "resume_active",
+        "reason_code": "active_weekly_adaptive_review"
+      },
+      "selected_handler": "weekly_adaptive_review_v1"
+    },
+    "selected_handler": "weekly_adaptive_review_v1",
+    "flow_action": "confirm_weekly_diagnostic",
+    "visible_task": "ask_global_progress_feeling",
+    "effect_ledger": {
+      "requested": 0,
+      "allowed": 0,
+      "blocked": 0,
+      "committed": 0,
+      "failed": 0,
+      "proposed": 0,
+      "delivered": 0,
+      "cancelled": 0,
+      "superseded": 0,
+      "asked": 0,
+      "resolved": 0,
+      "topic_change": 0
+    }
+  }
+}

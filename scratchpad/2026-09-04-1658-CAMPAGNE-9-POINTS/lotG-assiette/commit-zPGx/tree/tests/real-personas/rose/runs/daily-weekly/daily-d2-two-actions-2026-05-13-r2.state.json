@@ -1,0 +1,384 @@
+{
+  "run_id": "daily-d2-two-actions-2026-05-13-r2",
+  "persona": "rose",
+  "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+  "connection_path": "tests/real-personas/rose/connection.json",
+  "created_at": "2026-05-13T21:10:20.565Z",
+  "qa_mode": "manual_adaptive_turn_by_turn",
+  "anti_hardcoding": {
+    "ids_discovered_at_runtime": true,
+    "user_replies_pre_scripted": false,
+    "dynamic_daily_generated_if_needed": false
+  },
+  "whatsapp": {
+    "from": "15551648892269",
+    "display_phone": "15550017639775",
+    "phone_number_id": "3ba81f93a17fb098"
+  },
+  "pending_initial": {
+    "id": "7bc8299f-65d8-4567-94ae-4e8cdea83f5e",
+    "scheduled_checkin_id": "2581a260-1619-4fa5-9493-045e2835b5a5",
+    "status": "pending",
+    "payload": {
+      "targets": [
+        {
+          "kind": "habit",
+          "title": "Partager un point positif",
+          "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+          "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+          "dimension": "habits",
+          "planned_day": "tue",
+          "time_of_day": "evening",
+          "plan_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+          "occurrence_id": "57e3b4a8-35ce-414f-8012-61a162423ef4",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-05-11",
+          "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+          "reviewed_local_date": "2026-05-13",
+          "original_planned_day": null
+        },
+        {
+          "kind": "task",
+          "title": "Convenir d'un signal de pause",
+          "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+          "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+          "dimension": "missions",
+          "planned_day": "tue",
+          "time_of_day": "anytime",
+          "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+          "occurrence_id": "60103e2e-f87c-4759-be10-86081decafc7",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-05-11",
+          "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+          "reviewed_local_date": "2026-05-13",
+          "original_planned_day": null
+        }
+      ],
+      "timezone": "Europe/Paris",
+      "local_date": "2026-05-13",
+      "message_mode": "conversation",
+      "review_state": {
+        "items": {
+          "57e3b4a8-35ce-414f-8012-61a162423ef4": {
+            "title": "Partager un point positif",
+            "outcome": null,
+            "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "habit",
+            "reason_text": null,
+            "plan_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+            "evidence_text": null,
+            "missing_slots": [
+              "outcome"
+            ],
+            "occurrence_id": "57e3b4a8-35ce-414f-8012-61a162423ef4",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          },
+          "60103e2e-f87c-4759-be10-86081decafc7": {
+            "title": "Convenir d'un signal de pause",
+            "outcome": null,
+            "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "mission",
+            "reason_text": null,
+            "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+            "evidence_text": null,
+            "missing_slots": [
+              "outcome"
+            ],
+            "occurrence_id": "60103e2e-f87c-4759-be10-86081decafc7",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          }
+        },
+        "source": "daily_action_review_v1",
+        "status": "collecting",
+        "skill_id": "daily_action_review_v1",
+        "stop_reason": null,
+        "next_question": null,
+        "should_apply_effects": false,
+        "next_question_targets": [
+          "57e3b4a8-35ce-414f-8012-61a162423ef4",
+          "60103e2e-f87c-4759-be10-86081decafc7"
+        ],
+        "remaining_occurrence_ids": [],
+        "asked_occurrence_ids_history": [
+          [
+            "57e3b4a8-35ce-414f-8012-61a162423ef4",
+            "60103e2e-f87c-4759-be10-86081decafc7"
+          ]
+        ],
+        "current_focus_occurrence_ids": [
+          "57e3b4a8-35ce-414f-8012-61a162423ef4",
+          "60103e2e-f87c-4759-be10-86081decafc7"
+        ]
+      },
+      "draft_message": "Tu as pu faire ta revue du soir aujourd’hui, notamment partager un point positif ?",
+      "event_context": "action_evening_review_v2",
+      "occurrence_ids": [
+        "57e3b4a8-35ce-414f-8012-61a162423ef4",
+        "60103e2e-f87c-4759-be10-86081decafc7"
+      ],
+      "chat_capability": "daily_action_review",
+      "grouping_reason": "priority",
+      "week_start_date": "2026-05-11",
+      "asked_occurrence_ids": [
+        "57e3b4a8-35ce-414f-8012-61a162423ef4",
+        "60103e2e-f87c-4759-be10-86081decafc7"
+      ],
+      "action_evening_review": true,
+      "not_yet_asked_occurrence_ids": []
+    },
+    "created_at": "2026-05-13T21:10:06.235559+00:00"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "role": "assistant",
+      "text": "Tu as pu faire ta revue du soir aujourd’hui, notamment partager un point positif ?",
+      "source": "existing_pending"
+    },
+    {
+      "turn": 1,
+      "role": "user",
+      "text": "Oui, j'ai partagé un point positif avec lui ce soir, ça a été un peu maladroit mais je l'ai fait. Par contre le signal de pause, non : je n'ai pas osé l'amener, j'avais peur que ça relance une tension."
+    },
+    {
+      "turn": 1,
+      "role": "assistant",
+      "text": "C'est note pour ce soir :\n- Partager un point positif: faite\n- Convenir d'un signal de pause: non faite, reportee a mercredi",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "829feb11-9fad-4a87-af0c-05bd340e761a",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "done",
+        "entries_count": 2,
+        "occurrence_statuses": [
+          {
+            "id": "57e3b4a8-35ce-414f-8012-61a162423ef4",
+            "status": "done"
+          },
+          {
+            "id": "60103e2e-f87c-4759-be10-86081decafc7",
+            "status": "rescheduled"
+          }
+        ]
+      }
+    }
+  ],
+  "latest": {
+    "pending_after": [
+      {
+        "id": "7bc8299f-65d8-4567-94ae-4e8cdea83f5e",
+        "status": "done",
+        "payload": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Partager un point positif",
+              "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+              "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+              "dimension": "habits",
+              "planned_day": "tue",
+              "time_of_day": "evening",
+              "plan_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+              "occurrence_id": "57e3b4a8-35ce-414f-8012-61a162423ef4",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-05-11",
+              "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+              "reviewed_local_date": "2026-05-13",
+              "original_planned_day": null
+            },
+            {
+              "kind": "task",
+              "title": "Convenir d'un signal de pause",
+              "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+              "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+              "dimension": "missions",
+              "planned_day": "tue",
+              "time_of_day": "anytime",
+              "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+              "occurrence_id": "60103e2e-f87c-4759-be10-86081decafc7",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-05-11",
+              "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+              "reviewed_local_date": "2026-05-13",
+              "original_planned_day": null
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "local_date": "2026-05-13",
+          "completed_at": "2026-05-13T21:10:32.597Z",
+          "message_mode": "conversation",
+          "review_state": {
+            "items": {
+              "57e3b4a8-35ce-414f-8012-61a162423ef4": {
+                "title": "Partager un point positif",
+                "outcome": "completed",
+                "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "habit",
+                "reason_text": null,
+                "plan_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "evidence_text": "partagé un point positif ce soir, un peu maladroitement",
+                "missing_slots": [],
+                "occurrence_id": "57e3b4a8-35ce-414f-8012-61a162423ef4",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": "Oui, j'ai partagé un point positif avec lui ce soir, ça a été un peu maladroit mais je l'ai fait."
+              },
+              "60103e2e-f87c-4759-be10-86081decafc7": {
+                "title": "Convenir d'un signal de pause",
+                "outcome": "missed",
+                "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": "peur que ça relance une tension",
+                "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                "evidence_text": null,
+                "missing_slots": [],
+                "occurrence_id": "60103e2e-f87c-4759-be10-86081decafc7",
+                "still_relevant": "unknown",
+                "reason_category": "emotional",
+                "matched_user_text": "Par contre le signal de pause, non : je n'ai pas osé l'amener, j'avais peur que ça relance une tension."
+              }
+            },
+            "source": "daily_action_review_v1",
+            "status": "complete",
+            "skill_id": "daily_action_review_v1",
+            "stop_reason": "all_required_slots_filled",
+            "next_question": null,
+            "last_user_text": "Oui, j'ai partagé un point positif avec lui ce soir, ça a été un peu maladroit mais je l'ai fait. Par contre le signal de pause, non : je n'ai pas osé l'amener, j'avais peur que ça relance une tension.",
+            "should_apply_effects": true,
+            "next_question_targets": [],
+            "remaining_occurrence_ids": [],
+            "asked_occurrence_ids_history": [
+              [
+                "57e3b4a8-35ce-414f-8012-61a162423ef4",
+                "60103e2e-f87c-4759-be10-86081decafc7"
+              ]
+            ],
+            "current_focus_occurrence_ids": []
+          },
+          "draft_message": "Tu as pu faire ta revue du soir aujourd’hui, notamment partager un point positif ?",
+          "event_context": "action_evening_review_v2",
+          "occurrence_ids": [
+            "57e3b4a8-35ce-414f-8012-61a162423ef4",
+            "60103e2e-f87c-4759-be10-86081decafc7"
+          ],
+          "chat_capability": "daily_action_review",
+          "grouping_reason": "priority",
+          "week_start_date": "2026-05-11",
+          "asked_occurrence_ids": [
+            "57e3b4a8-35ce-414f-8012-61a162423ef4",
+            "60103e2e-f87c-4759-be10-86081decafc7"
+          ],
+          "action_evening_review": true,
+          "not_yet_asked_occurrence_ids": []
+        },
+        "processed_at": "2026-05-13T21:10:42.887+00:00"
+      }
+    ],
+    "entries": [
+      {
+        "id": "9c2c5a84-b198-4628-a0bd-96fd698a6dac",
+        "plan_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-05-13",
+          "reason_text": null,
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "57e3b4a8-35ce-414f-8012-61a162423ef4",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": "Oui, j'ai partagé un point positif avec lui ce soir, ça a été un peu maladroit mais je l'ai fait.",
+          "occurrence_status": "done",
+          "pending_action_id": "7bc8299f-65d8-4567-94ae-4e8cdea83f5e",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": "2581a260-1619-4fa5-9493-045e2835b5a5"
+        },
+        "effective_at": "2026-05-13T12:00:00+00:00",
+        "created_at": "2026-05-13T21:10:32.597+00:00"
+      },
+      {
+        "id": "8962a7ae-49ea-438f-b658-a7957aa35dc1",
+        "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+        "entry_kind": "skip",
+        "outcome": "missed",
+        "value_text": "peur que ça relance une tension",
+        "blocker_hint": "emotional",
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-05-13",
+          "reason_text": "peur que ça relance une tension",
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "60103e2e-f87c-4759-be10-86081decafc7",
+          "outcome_source": "free_text",
+          "rescheduled_to": "wed",
+          "still_relevant": null,
+          "reason_category": "emotional",
+          "matched_user_text": "Par contre le signal de pause, non : je n'ai pas osé l'amener, j'avais peur que ça relance une tension.",
+          "occurrence_status": "rescheduled",
+          "pending_action_id": "7bc8299f-65d8-4567-94ae-4e8cdea83f5e",
+          "reschedule_decision": "rescheduled_tomorrow",
+          "scheduled_checkin_id": "2581a260-1619-4fa5-9493-045e2835b5a5"
+        },
+        "effective_at": "2026-05-13T12:00:00+00:00",
+        "created_at": "2026-05-13T21:10:32.597+00:00"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "57e3b4a8-35ce-414f-8012-61a162423ef4",
+        "plan_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+        "planned_day": "tue",
+        "status": "done",
+        "source": "default_generated",
+        "validated_at": "2026-05-13T21:10:32.597+00:00",
+        "updated_at": "2026-05-13T21:10:32.597+00:00"
+      },
+      {
+        "id": "60103e2e-f87c-4759-be10-86081decafc7",
+        "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+        "planned_day": "wed",
+        "status": "rescheduled",
+        "source": "auto_rescheduled",
+        "validated_at": null,
+        "updated_at": "2026-05-13T21:10:32.597+00:00"
+      }
+    ]
+  }
+}

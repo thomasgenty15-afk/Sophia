@@ -1,0 +1,11 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r129-repair-step-e2e-t01",
+    "user": "J'ai regardé la fin du plan et je trouve qu'il manque une marche. On passe trop vite vers comprendre les tensions, alors que moi j'aimerais une vraie étape pour se retrouver après une dispute.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

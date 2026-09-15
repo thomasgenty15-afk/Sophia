@@ -1,0 +1,614 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "J’ai besoin d’aide quand je rentre fatigué et que j’ai l’impulsion de commander n’importe quoi.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah oui, je vois très bien le piège : t’arrives rincé, ton cerveau veut du “rapide” et paf, commande au hasard 😅\n\nOn peut te préparer une Carte de defense pour le moment exact du retour fatigué + impulsion de commande, pour que tu aies une réponse toute faite au lieu de décider à chaud. Tu veux qu’on l’utilise ? ✅",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+            "source_message_id": "5a4b4524-edd8-4196-928d-752054e360fd",
+            "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 3.5,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "system_misunderstanding"
+              ],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": true,
+                  "weight": 3.5,
+                  "contribution": 3.5,
+                  "evidence": "n’importe quoi"
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "defense_card",
+              "operation_type": "prepare_defense_card",
+              "surface_id": "defense_card",
+              "suggested_question_intent": "offer_defense_card",
+              "confidence_band": "high",
+              "should_offer": true,
+              "prop_reason": "user_describes_impulse_risk_at_specific_moment",
+              "source_span": "rentre fatigué et que j’ai l’impulsion de commander n’importe quoi",
+              "target_hint": "moment du retour fatigué avec impulsion de commande",
+              "target_status": "identified",
+              "offer_timing": "now",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.controle_impulsions",
+                  "query_hint": "impulsions alimentaires fatigue",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "habitudes.environnement",
+                  "query_hint": "rituel retour maison fatigue",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "low",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            }
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "defense_card_handoff"
+            ],
+            "operation_types": [
+              "prepare_defense_card"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "opportunity:prepare_defense_card",
+                "kind": "platform_handoff",
+                "owner": "defense_card_handoff",
+                "operation_type": "prepare_defense_card",
+                "intent": "create",
+                "source": "dispatcher",
+                "status": "candidate",
+                "reason_code": "skill_recommended_platform_action"
+              }
+            ]
+          },
+          "recommendation_tool_run": {
+            "recommendation": {
+              "recommendation_id": "dispatcher_opportunity:defense_card:qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+              "decision": "recommend_operation",
+              "surface_id": "defense_card",
+              "executor_tool_id": "prepare_defense_card",
+              "operation_type": "prepare_defense_card",
+              "operation_input": {
+                "attachment": {
+                  "kind": "personal_action",
+                  "title": "moment du retour fatigué avec impulsion de commande"
+                },
+                "risk_situation": {
+                  "label": "rentre fatigué et que j’ai l’impulsion de commander n’importe quoi"
+                }
+              },
+              "confidence": 0.86,
+              "timing": "now",
+              "presentation_level": 2,
+              "cta_style": "soft",
+              "requires_consent": true,
+              "reason": "user_describes_impulse_risk_at_specific_moment",
+              "user_facing_offer": "Je vois un risque récurrent pour \"moment du retour fatigué avec impulsion de commande\". Si tu veux, on peut préparer une Carte de defense pour ce moment précis.",
+              "alternatives": [],
+              "do_not_recommend": []
+            },
+            "stats": null
+          },
+          "effect_ledger": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+            "counts": {
+              "requested": 1,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01:agenda:candidate:opportunity:prepare_defense_card",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.prepare_defense_card",
+                "operation_type": "prepare_defense_card",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "defense_card_handoff",
+                "status": "requested",
+                "reason_code": "skill_recommended_platform_action",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "opportunity:prepare_defense_card",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "high",
+                    "user_describes_impulse_risk_at_specific_moment"
+                  ],
+                  "user_goal_summary": "moment du retour fatigué avec impulsion de commande",
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "defense_cards",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01:recommendation:recommend_operation:dispatcher_opportunity:defense_card:qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.prepare_defense_card",
+                "operation_type": "prepare_defense_card",
+                "operation_id": "dispatcher_opportunity:defense_card:qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+                "committed_id": null,
+                "tool_id": "prepare_defense_card",
+                "status": "proposed",
+                "reason_code": "user_describes_impulse_risk_at_specific_moment",
+                "source": "recommendation_tool",
+                "payload_summary": {
+                  "decision": "recommend_operation",
+                  "surface_id": "defense_card",
+                  "requires_consent": true,
+                  "presentation_level": 2
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "defense_card",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "normal_reply"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+          "source_message_id": "5a4b4524-edd8-4196-928d-752054e360fd",
+          "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 3.5,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [
+              "system_misunderstanding"
+            ],
+            "previous_scores": [],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": true,
+                "weight": 3.5,
+                "contribution": 3.5,
+                "evidence": "n’importe quoi"
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": null
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "defense_card",
+            "operation_type": "prepare_defense_card",
+            "surface_id": "defense_card",
+            "suggested_question_intent": "offer_defense_card",
+            "confidence_band": "high",
+            "should_offer": true,
+            "prop_reason": "user_describes_impulse_risk_at_specific_moment",
+            "source_span": "rentre fatigué et que j’ai l’impulsion de commander n’importe quoi",
+            "target_hint": "moment du retour fatigué avec impulsion de commande",
+            "target_status": "identified",
+            "offer_timing": "now",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.controle_impulsions",
+                "query_hint": "impulsions alimentaires fatigue",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "habitudes.environnement",
+                "query_hint": "rituel retour maison fatigue",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "low",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          }
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "defense_card_handoff"
+          ],
+          "operation_types": [
+            "prepare_defense_card"
+          ],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "opportunity:prepare_defense_card",
+              "kind": "platform_handoff",
+              "owner": "defense_card_handoff",
+              "operation_type": "prepare_defense_card",
+              "intent": "create",
+              "source": "dispatcher",
+              "status": "candidate",
+              "reason_code": "skill_recommended_platform_action"
+            }
+          ]
+        },
+        "recommendation_tool_run": {
+          "recommendation": {
+            "recommendation_id": "dispatcher_opportunity:defense_card:qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+            "decision": "recommend_operation",
+            "surface_id": "defense_card",
+            "executor_tool_id": "prepare_defense_card",
+            "operation_type": "prepare_defense_card",
+            "operation_input": {
+              "attachment": {
+                "kind": "personal_action",
+                "title": "moment du retour fatigué avec impulsion de commande"
+              },
+              "risk_situation": {
+                "label": "rentre fatigué et que j’ai l’impulsion de commander n’importe quoi"
+              }
+            },
+            "confidence": 0.86,
+            "timing": "now",
+            "presentation_level": 2,
+            "cta_style": "soft",
+            "requires_consent": true,
+            "reason": "user_describes_impulse_risk_at_specific_moment",
+            "user_facing_offer": "Je vois un risque récurrent pour \"moment du retour fatigué avec impulsion de commande\". Si tu veux, on peut préparer une Carte de defense pour ce moment précis.",
+            "alternatives": [],
+            "do_not_recommend": []
+          },
+          "stats": null
+        },
+        "effect_ledger": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+          "counts": {
+            "requested": 1,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 1,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01:agenda:candidate:opportunity:prepare_defense_card",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.prepare_defense_card",
+              "operation_type": "prepare_defense_card",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "defense_card_handoff",
+              "status": "requested",
+              "reason_code": "skill_recommended_platform_action",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "opportunity:prepare_defense_card",
+                "source": "dispatcher",
+                "evidence": [
+                  "high",
+                  "user_describes_impulse_risk_at_specific_moment"
+                ],
+                "user_goal_summary": "moment du retour fatigué avec impulsion de commande",
+                "recommended_next_step": "open_platform_surface"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "defense_cards",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01:recommendation:recommend_operation:dispatcher_opportunity:defense_card:qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.prepare_defense_card",
+              "operation_type": "prepare_defense_card",
+              "operation_id": "dispatcher_opportunity:defense_card:qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+              "committed_id": null,
+              "tool_id": "prepare_defense_card",
+              "status": "proposed",
+              "reason_code": "user_describes_impulse_risk_at_specific_moment",
+              "source": "recommendation_tool",
+              "payload_summary": {
+                "decision": "recommend_operation",
+                "surface_id": "defense_card",
+                "requires_consent": true,
+                "presentation_level": 2
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "defense_card",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "normal_reply"
+      },
+      "trace_error": null
+    }
+  }
+]

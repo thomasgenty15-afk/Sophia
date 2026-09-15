@@ -1,0 +1,87 @@
+{
+  "request_id": "a3000002-0000-4000-8000-000000000002",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000012",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T00:46:45.049Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "e9eea3d3-f613-4496-a451-5f6541c092ba",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T00:46:41.637389+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16134,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16134,
+    "user_message_chars": 17773,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17773,
+    "independent_counters": {
+      "system_prompt_chars": 16134,
+      "prompt_chars": 17773
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "dcc32e2e-236b-46fc-b209-9b2008bd4080",
+    "created_at": "2026-08-19T00:46:42.213947+00:00",
+    "status": "retryable_status",
+    "outcome": "error",
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "http_status": 429,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": null,
+    "output_text_json": null,
+    "raw_response_truncated": false,
+    "raw_response": {
+      "error": {
+        "code": "credit_balance_exhausted",
+        "type": "insufficient_quota",
+        "param": null,
+        "message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/."
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T00:46:41.637389+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:46:42.213947+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    }
+  ]
+}

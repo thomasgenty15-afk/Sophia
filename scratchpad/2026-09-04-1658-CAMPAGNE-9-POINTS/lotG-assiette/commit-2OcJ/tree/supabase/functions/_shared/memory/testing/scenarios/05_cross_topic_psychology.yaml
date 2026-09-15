@@ -1,0 +1,62 @@
+{
+  "id": "05_cross_topic_psychology",
+  "description": "Cross-topic psychology lookup should use broad retrieval without leaking unrelated sensitive details.",
+  "scenario_version": 1,
+  "initial_state": {
+    "memory_items": [
+      {
+        "id": "seed_self_esteem",
+        "kind": "statement",
+        "content_text": "Le user dit avoir peur de rater quand il commence un projet.",
+        "status": "active",
+        "topic_slug": "peur_echec",
+      },
+      {
+        "id": "seed_work",
+        "kind": "fact",
+        "content_text": "Le user travaille souvent tard le mardi.",
+        "status": "active",
+        "topic_slug": "travail_charge",
+      },
+    ],
+  },
+  "turns": [
+    {
+      "user": "Tu vois quoi dans ma psychologie en ce moment ?",
+      "expect": {
+        "retrieval_mode": "cross_topic_lookup",
+        "topic_decision": "stay",
+        "payload_contains": [
+          { "kind": "statement", "contains": "peur de rater" },
+        ],
+        "payload_does_not_contain": [{ "kind": "fact", "contains": "mardi" }],
+      },
+    },
+    {
+      "user": "Je veux surtout comprendre pourquoi je bloque.",
+      "expect": {
+        "retrieval_mode": "cross_topic_lookup",
+        "created_items": [
+          {
+            "kind": "statement",
+            "contains": ["comprendre", "je bloque"],
+            "domain_keys_any_of": ["psychologie.peur_echec"],
+          },
+        ],
+        "forbidden_items": [
+          { "kind": "fact", "contains": ["le user bloque toujours"] },
+        ],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

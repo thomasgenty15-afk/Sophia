@@ -1,0 +1,755 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t01",
+    "user": "Je veux ajuster le plan dans son ensemble pour deux semaines, en gardant l'objectif couple. Fais un brouillon: signal de pause en 5 minutes, point positif 2 fois par semaine sans horaire fixe, bilan du signal repoussé après deux semaines. Ne l'applique pas encore.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server",
+      "_http_status": 502
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t02",
+    "user": "Je veux ajuster le plan dans son ensemble pour deux semaines, en gardant l'objectif couple. Fais un brouillon: signal de pause en 5 minutes, point positif 2 fois par semaine sans horaire fixe, bilan du signal repoussé après deux semaines. Ne l'applique pas encore.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server",
+      "_http_status": 502
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t03",
+    "user": "Juste pour vérifier, tu peux me répondre normalement ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui, je suis bien là ! Pour que je puisse ajuster ton plan sur les deux prochaines semaines, dis-moi ce que tu souhaites obtenir : est-ce que tu as besoin d'alléger tes actions pour que ce soit plus facile à tenir, ou est-ce qu'il y a un aspect précis de ton objectif de couple que tu veux prioriser ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null,
+      "_http_status": 200
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t04",
+    "user": "Je veux alléger le plan entier sans changer l'objectif couple: signal de pause en 5 minutes, point positif 2 fois par semaine sans horaire fixe, bilan du signal repoussé après deux semaines. Prépare le brouillon sans appliquer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t04",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose d'alléger ton plan pour les deux prochaines semaines tout en gardant ton objectif de couple. Voici ce que je prévois de modifier : l'action pour convenir d'un signal de pause sera limitée à 5 minutes pour être plus rapide, et l'habitude de partager un point positif passera à 2 fois par semaine sans horaire fixe. Le bilan sur le signal de pause sera quant à lui repoussé à dans deux semaines. Rien n'est encore appliqué, j'attends ton feu vert pour enregistrer ces changements. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t04",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "afc22d47-48bc-44f0-9ce1-9c6a8ec7ddfc",
+        "ts": "2026-05-18T12:54:37.361+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11967,
+          "latency_ms": 13365,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 803,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "relations.couple",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "objectif couple et signal de pause",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t04",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "relations.couple",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "objectif couple et signal de pause",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "reason": "user_providing_details_for_plan_adjustment",
+              "active_skill_id": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "afc22d47-48bc-44f0-9ce1-9c6a8ec7ddfc",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "plan entier",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "objectif couple",
+                  "status": "identified",
+                  "evidence": [
+                    "sans changer l'objectif couple"
+                  ]
+                },
+                "payload": {
+                  "constraints": [
+                    "horizon 2 semaines",
+                    "sans horaire fixe",
+                    "repoussé après deux semaines",
+                    "ne pas appliquer immédiatement"
+                  ],
+                  "change_target": "plan entier",
+                  "reason_change": "besoin d'alléger",
+                  "affected_items": [
+                    "signal de pause",
+                    "point positif",
+                    "bilan du signal"
+                  ],
+                  "adjustment_type": "lighten"
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "alléger le plan entier"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "confidence": "medium",
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "horizon: 2 semaines",
+                  "Convenir d'un signal de pause en 5 minutes",
+                  "Partager un point positif 2 fois par semaine sans horaire fixe",
+                  "Bilan du signal repoussé après deux semaines",
+                  "ne pas appliquer immédiatement",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Partager un point positif",
+                  "affected_item:Faire le point sur le signal de pause"
+                ],
+                "reason_type": "context_changed",
+                "change_target": "global_load",
+                "reason_change": "context_changed",
+                "load_adjustment": "lighter",
+                "plan_adjustment": "reduce_global_load"
+              },
+              "title": "Ajustement - objectif couple",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "plan global: reduce_global_load",
+                  "cible de changement: global_load"
+                ],
+                "unchanged": [
+                  "l'objectif/direction reste préservé sauf demande contraire explicite",
+                  "le plan canonique n'est pas reconstruit automatiquement"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel.",
+                "follow_up_needed": "identifier ensuite les semaines ou blocs les plus lourds pour affiner"
+              },
+              "scope_label": "objectif couple",
+              "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+              "decision_basis": {
+                "evidence": [
+                  "Je veux alléger le plan entier sans changer l'objectif couple: signal de pause en 5 minutes, point positif 2 fois par semaine sans horaire fixe, bilan du signal repoussé après deux semaines. Prépare le brouillon sans appliquer.",
+                  "sans changer l'objectif couple",
+                  "alléger le plan entier",
+                  "alléger le plan entier",
+                  "alléger le plan entier",
+                  "alléger le plan entier"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "reduire la charge globale du plan",
+              "change_rationale": {
+                "why_this_change": "Réduire global_load répond au problème \"context_changed\" sans changer la direction du plan.",
+                "success_condition": "Le plan paraît tenable sans reconstruction complète ni changement d'objectif implicite.",
+                "expected_mechanism": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [
+                    "Précision sur les blocs de temps exacts si l'allègement doit être plus granulaire."
+                  ],
+                  "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                  "expected_effect": "Un plan qui paraît tenable sans reconstruction complète ni changement d'objectif.",
+                  "why_this_change": "Réduire la charge globale via la fréquence et la durée permet de maintenir l'engagement sans épuisement."
+                },
+                "boundaries": {
+                  "explanation": "Le plan est allégé temporairement pour correspondre au contexte actuel sans dévier de la direction initiale.",
+                  "affected_scope": "Plan dans son ensemble pour les deux prochaines semaines.",
+                  "global_plan_impact": "indirect",
+                  "explicitly_not_affected": [
+                    "Objectif principal du couple",
+                    "Identité du plan"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Allègement de la charge globale du plan pour les deux prochaines semaines tout en préservant l'objectif de couple.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "Convenir d'un signal de pause en 5 minutes.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Réduction de la durée pour faciliter l'exécution immédiate sans pression.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "after": "2 fois par semaine sans horaire fixe",
+                      "title": "Partager un point positif",
+                      "before": "3 jours / semaine",
+                      "reason": "Réduction de la fréquence et suppression de la contrainte horaire pour alléger la charge mentale.",
+                      "capability": "change_action_frequency"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "Bilan du signal repoussé après deux semaines",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Disponible la semaine prochaine",
+                      "reason": "Report de l'échéance pour s'adapter à l'horizon de deux semaines demandé.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": []
+                },
+                "user_message_brief": "J'ai préparé un brouillon pour alléger ton plan : signal de pause en 5 minutes, points positifs 2 fois par semaine et bilan repoussé à 2 semaines.",
+                "user_message_detailed": "Pour répondre à ton besoin d'alléger le plan sans changer ton objectif de couple, je propose les ajustements suivants sur un horizon de 2 semaines : \n1. **Convenir d'un signal de pause** : l'action est simplifiée pour ne durer que 5 minutes.\n2. **Partager un point positif** : la fréquence passe de 3 à 2 fois par semaine, sans horaire fixe pour t'enlever de la pression.\n3. **Faire le point sur le signal de pause** : cette étape est repoussée à dans deux semaines.\nL'intention globale de ton plan reste intacte, seule la charge d'exécution est réduite."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait, j'ai ajusté ton plan pour qu'il soit plus tenable. J'ai réduit la durée pour convenir du signal de pause à 5 minutes et j'ai passé le partage de points positifs à 2 fois par semaine sans contrainte d'horaire. Le bilan est décalé de deux semaines pour te laisser le temps de tester le signal. Ces ajustements te permettent de garder le cap sans la pression du rythme initial. Je suis assez confiante sur le fait que cela rendra ton quotidien plus fluide.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose d'alléger ton plan pour les deux prochaines semaines tout en gardant ton objectif de couple. Voici ce que je prévois de modifier : l'action pour convenir d'un signal de pause sera limitée à 5 minutes pour être plus rapide, et l'habitude de partager un point positif passera à 2 fois par semaine sans horaire fixe. Le bilan sur le signal de pause sera quant à lui repoussé à dans deux semaines. Rien n'est encore appliqué, j'attends ton feu vert pour enregistrer ces changements."
+          },
+          "status": "draft_review",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "a5e09edf-c26c-46da-9536-78b2cc0b45e5",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 83222,
+        "created_at": "2026-05-18T12:54:37.369618+00:00"
+      },
+      "trace_error": null,
+      "_http_status": 200
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t05",
+    "user": "Oui, j'applique maintenant ce brouillon. Je valide explicitement l'ajustement du plan entier.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t05",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est fait, j'ai ajusté ton plan pour qu'il soit plus tenable. J'ai réduit la durée pour convenir du signal de pause à 5 minutes et j'ai passé le partage de points positifs à 2 fois par semaine sans contrainte d'horaire. Le bilan est décalé de deux semaines pour te laisser le temps de tester le signal. Ces ajustements te permettent de garder le cap sans la pression du rythme initial. Je suis assez confiante sur le fait que cela rendra ton quotidien plus fluide. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "adjust_plan_item"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t05",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "c6ed15e6-5cd7-4a78-98e6-3491c415c32c",
+        "ts": "2026-05-18T12:55:01.155+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "maintenant"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11416,
+          "latency_ms": 9535,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 648,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t05",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "c6ed15e6-5cd7-4a78-98e6-3491c415c32c",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "plan entier",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "plan entier",
+                  "status": "identified",
+                  "evidence": [
+                    "plan entier"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "valide explicitement l'ajustement du plan entier"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "yes",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "adjust_plan_item"
+          }
+        ],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "executed",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "a5e09edf-c26c-46da-9536-78b2cc0b45e5",
+          "plan_patch_id": "7d276584-1b9e-4584-8e93-7a00f5f979a6",
+          "selected_handler": "adjust_plan_item",
+          "bridge_plan_item_id": null
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 9708,
+        "created_at": "2026-05-18T12:55:01.156431+00:00"
+      },
+      "trace_error": null,
+      "_http_status": 200
+    }
+  }
+]

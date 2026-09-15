@@ -1,0 +1,249 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-one-shot-reminder-oneshotreminder-r3a-t01",
+    "user": "Rappelle-moi dans 3 minutes de sortir les oeufs du frigo.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-one-shot-reminder-oneshotreminder-r3a-t01",
+      "user_id": "b0882ea3-776a-4a06-849c-db6dc6fef9f8",
+      "channel": "web",
+      "scope": "qa-one-shot-reminder-oneshotreminder-r3a",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C’est programmé pour mardi 19 mai à 15:57 : sortir les oeufs du frigo. 🙂",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-one-shot-reminder-oneshotreminder-r3a-t01",
+        "user_id": "b0882ea3-776a-4a06-849c-db6dc6fef9f8",
+        "source_message_id": "d529581d-7596-4fce-b677-eaecc4307e67",
+        "ts": "2026-05-19T13:54:39.744+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "dans 3 minutes"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_near_term"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 7100,
+          "latency_ms": 60023,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 596,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "active_topic",
+                "type": "topic",
+                "query_hint": "Rappelle-moi dans 3 minutes de sortir les oeufs du frigo.",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [
+              "dans 3 minutes"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_near_term"
+            ]
+          },
+          "channel": "web",
+          "turn_id": "qa-one-shot-reminder-oneshotreminder-r3a-t01",
+          "user_id": "b0882ea3-776a-4a06-849c-db6dc6fef9f8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "active_topic",
+                "type": "topic",
+                "query_hint": "Rappelle-moi dans 3 minutes de sortir les oeufs du frigo.",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {},
+          "direct_effects": [
+            {
+              "effect_type": "create_one_shot_reminder",
+              "explicitness": "explicit",
+              "payload_hint": {
+                "raw_text": "Rappelle-moi dans 3 minutes de sortir les oeufs du frigo."
+              },
+              "target_status": "identified",
+              "confidence_band": "high"
+            }
+          ],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "d529581d-7596-4fce-b677-eaecc4307e67",
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [
+            "create_one_shot_reminder"
+          ],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "create_one_shot_reminder"
+          }
+        ],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 60165,
+        "created_at": "2026-05-19T13:54:39.745687+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

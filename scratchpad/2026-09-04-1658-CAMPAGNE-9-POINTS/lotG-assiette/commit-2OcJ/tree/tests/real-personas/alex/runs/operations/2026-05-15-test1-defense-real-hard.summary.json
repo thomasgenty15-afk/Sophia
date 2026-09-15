@@ -1,0 +1,227 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Fais un truc pour le soir, là où ça part en vrille. Pas un pavé, juste règle ça.",
+    "assistant": "Ça marche, on sécurise ton sas de déchargement du soir. C'est quoi l'élément déclencheur précis qui fait que ça part en vrille ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "risk_situation",
+        "needed": true,
+        "reason": "structured_ai_missing_trigger",
+        "status": "missing",
+        "question": "Ça marche, on sécurise ton sas de déchargement du soir. C'est quoi l'élément déclencheur précis qui fait que ça part en vrille ?",
+        "known_slots": {
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "intake_state": {
+            "trigger": {
+              "type": null,
+              "status": "missing",
+              "evidence": [],
+              "confidence": 0
+            },
+            "skill_id": "prepare_defense_card",
+            "tool_fit": {
+              "reason": "L'utilisateur identifie un moment de dérapage ('ça part en vrille') le soir.",
+              "status": "defense",
+              "evidence": [
+                "le soir, là où ça part en vrille"
+              ],
+              "confidence": "high"
+            },
+            "attachment": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "le soir"
+              ],
+              "confidence": "medium",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "confidence": "medium",
+            "constraints": [
+              "pas de pavé",
+              "court"
+            ],
+            "current_step": "risk_intake",
+            "defense_goal": {
+              "value": null,
+              "status": "missing",
+              "evidence": [],
+              "confidence": "low"
+            },
+            "missing_slots": [
+              "trigger",
+              "defense_goal"
+            ],
+            "risk_situation": {
+              "label": "Soirée qui dérape",
+              "status": "identified",
+              "evidence": [
+                "le soir, là où ça part en vrille"
+              ],
+              "confidence": "medium",
+              "description": "Le moment du soir où la situation échappe au contrôle.",
+              "timing_hint": "soir",
+              "context_hint": null
+            },
+            "defense_response_hint": {
+              "value": null,
+              "status": "missing",
+              "evidence": [],
+              "confidence": "low",
+              "strategy_hint": null
+            },
+            "generated_user_message": "Ça marche, on sécurise ton sas de déchargement du soir. C'est quoi l'élément déclencheur précis qui fait que ça part en vrille ?"
+          },
+          "risk_situation": {
+            "label": "Soirée qui dérape",
+            "description": "Le moment du soir où la situation échappe au contrôle.",
+            "timing_hint": "soir",
+            "context_hint": null
+          }
+        }
+      },
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "trigger",
+        "defense_goal"
+      ],
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Quand je ferme le carnet je reprends le tel, soi-disant pour vérifier un truc sinon j'ai peur d'oublier.",
+    "assistant": "Voici ton plan pour protéger ton sas :\n\n*Risque :* Reprendre le tel après le carnet.\n*Action :* Poser une main sur le carnet fermé, respirer une fois, et s'éloigner du bureau sans le téléphone.\n\nOn valide cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Fin du sas de déchargement",
+          "trigger": "Fermeture du carnet + pensée 'j'ai oublié un truc'.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Casse la boucle réflexe et confirme physiquement que tout est déjà noté.",
+          "fallback_plan": "Si je le reprends, je le repose immédiatement et je change de pièce.",
+          "risk_situation": "Reprendre le téléphone juste après avoir fermé le carnet par peur d'oublier un détail.",
+          "defense_response": "Poser une main sur le carnet fermé, respirer une fois, et s'éloigner du bureau sans le téléphone."
+        },
+        "output_schema": "defense_card_draft_v1",
+        "operation_type": "prepare_defense_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ton plan pour protéger ton sas :\n\n*Risque :* Reprendre le tel après le carnet.\n*Action :* Poser une main sur le carnet fermé, respirer une fois, et s'éloigner du bureau sans le téléphone.\n\nOn valide cette carte ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "8d0039c6-4ef1-4943-b4bd-2a424d7d84d2",
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Non, pas m'éloigner du bureau. Mets plutôt : je mets le téléphone en mode avion et je le pose écran contre table.",
+    "assistant": "Voici ta carte de défense :\n\n🎯 Cible : Faire le sas de déchargement\n⚠️ Risque : Reprendre le téléphone par peur d'un oubli\n🛡️ Action : Je mets le téléphone en mode avion et je le pose écran contre table.\n\nOn valide cette version ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "confirmation_correction_to_pending",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Sas de déchargement : Fin de session",
+          "trigger": "Peur d'avoir oublié un détail important.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Cela coupe les notifications et rend l'écran invisible, brisant le cycle de l'impulsion.",
+          "fallback_plan": "Prendre une grande inspiration et s'éloigner 1 minute.",
+          "risk_situation": "Au moment de fermer le carnet, l'envie de reprendre le téléphone surgit.",
+          "defense_response": "Je mets le téléphone en mode avion et je le pose écran contre table."
+        },
+        "output_schema": "defense_card_draft_v1",
+        "operation_type": "prepare_defense_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ta carte de défense :\n\n🎯 Cible : Faire le sas de déchargement\n⚠️ Risque : Reprendre le téléphone par peur d'un oubli\n🛡️ Action : Je mets le téléphone en mode avion et je le pose écran contre table.\n\nOn valide cette version ?"
+      },
+      "status": "pending_confirmation_updated",
+      "reason_code": "confirmation_correction_to_pending",
+      "operation_id": "f5e7dcb7-b85a-4a25-956e-f48e3c224907",
+      "selected_handler": "prepare_defense_card",
+      "previous_operation_id": "8d0039c6-4ef1-4943-b4bd-2a424d7d84d2"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, valide cette version.",
+    "assistant": "C'est fait. J'ai créé la carte de défense \"Sas de déchargement : Fin de session\" : Je mets le téléphone en mode avion et je le pose écran contre table.\n\nTu peux la retrouver dans Ressources > Cartes de defense pour la relire, l'utiliser et l'ajuster depuis la plateforme quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, je peux aussi en preparer une nouvelle version apres confirmation.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_defense_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "f5e7dcb7-b85a-4a25-956e-f48e3c224907",
+      "defense_card_id": "b204897d-a245-464e-8f33-e234c6498242",
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

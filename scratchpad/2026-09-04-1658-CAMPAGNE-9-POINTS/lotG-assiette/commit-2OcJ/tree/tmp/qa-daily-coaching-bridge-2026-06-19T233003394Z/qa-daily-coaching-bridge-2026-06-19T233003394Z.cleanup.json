@@ -1,0 +1,13 @@
+{
+  "run_id": "qa-daily-coaching-bridge-2026-06-19T233003394Z",
+  "deleted": {
+    "pending": 1,
+    "chat_messages": 21,
+    "checkin": 1,
+    "occurrences": 3
+  },
+  "restored": [
+    "profiles.whatsapp_activity_timestamps",
+    "user_chat_states.temp_memory"
+  ]
+}

@@ -1,0 +1,2700 @@
+{
+  "run_id": "daily-real-rose-20260623-r2",
+  "persona": "rose",
+  "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+  "created_at": "2026-06-22T22:48:00.955Z",
+  "qa_setup": {
+    "inserted_scheduled_checkin": {
+      "id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "action_evening_review_v2",
+      "draft_message": null,
+      "scheduled_for": "2026-06-22T22:47:58.947+00:00",
+      "status": "pending",
+      "created_at": "2026-06-22T22:48:00.949877+00:00",
+      "processed_at": null,
+      "message_mode": "dynamic",
+      "message_payload": {
+        "source": "qa_dynamic_daily_evening_fixture",
+        "version": 1,
+        "timezone": "Europe/Paris",
+        "qa_run_id": "daily-real-rose-20260623-r2",
+        "local_date": "2026-06-18",
+        "occurrence_ids": [
+          "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+          "934ee6ce-a44b-4c3f-8266-defe9246131f",
+          "80fdc319-6115-493b-8e64-1db689665535"
+        ],
+        "chat_capability": "daily_action_review",
+        "week_start_date": "2026-06-15",
+        "reviewed_local_date": "2026-06-18"
+      },
+      "origin": "action_review",
+      "delivery_attempt_count": 0,
+      "delivery_last_error": null,
+      "delivery_last_error_at": null,
+      "delivery_last_request_id": null,
+      "recurring_reminder_id": null
+    },
+    "occurrences": [
+      {
+        "id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "planned_day": "wed",
+        "status": "planned",
+        "source": "default_generated",
+        "validated_at": null,
+        "week_start_date": "2026-06-15"
+      },
+      {
+        "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "planned_day": "thu",
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "week_start_date": "2026-06-15"
+      },
+      {
+        "id": "80fdc319-6115-493b-8e64-1db689665535",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "planned_day": "thu",
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "week_start_date": "2026-06-15"
+      }
+    ]
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "role": "assistant",
+      "text": "Je repasse pour ton bilan du soir.  \nTu as pu faire ton sas de décompression sans fumer, et ranger le matériel hors de vue ?",
+      "trace_short": {
+        "source": "process-checkins",
+        "pending_status": "pending",
+        "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+        "targets": [
+          {
+            "id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "title": "Faire un sas de décompression (sans fumer)",
+            "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          },
+          {
+            "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "title": "Ranger le matériel hors de vue",
+            "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a"
+          },
+          {
+            "id": "80fdc319-6115-493b-8e64-1db689665535",
+            "title": "Cibler le joint réflexe",
+            "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 1,
+      "role": "user",
+      "text": "J'ai fait le sas de décompression. Par contre je n'ai pas rangé le matériel, j'étais trop crevée ; ça reste pertinent et je le ferai demain."
+    },
+    {
+      "turn": 1,
+      "role": "assistant",
+      "text": "Qu’est-ce qui t’a empêchée de ranger le matériel cette fois-ci ?",
+      "trace_short": {
+        "http_status": 200,
+        "raw_response": "{\"ok\":true,\"request_id\":\"daily-real-rose-20260623-r2-t01\"}",
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_clarification",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "16803a3d-cbd4-4dc5-82a1-9a023e9a2dc7",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "pending",
+        "pending_payload_summary": {
+          "asked": [
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f"
+          ],
+          "not_yet": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "review_state_status": "collecting",
+          "current_focus": [
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f"
+          ],
+          "remaining": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "items": {
+            "80fdc319-6115-493b-8e64-1db689665535": {
+              "title": "Cibler le joint réflexe",
+              "outcome": null,
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "low",
+              "plan_label": null,
+              "action_type": "clarification",
+              "reason_text": null,
+              "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+              "evidence_text": null,
+              "missing_slots": [
+                "not_asked",
+                "outcome"
+              ],
+              "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            },
+            "934ee6ce-a44b-4c3f-8266-defe9246131f": {
+              "title": "Ranger le matériel hors de vue",
+              "outcome": "missed",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "high",
+              "plan_label": null,
+              "action_type": "mission",
+              "reason_text": null,
+              "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+              "evidence_text": "je n'ai pas rangé le matériel, j'étais trop crevée ; ça reste pertinent et je le ferai demain",
+              "missing_slots": [
+                "reason"
+              ],
+              "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "still_relevant": true,
+              "reason_category": null,
+              "matched_user_text": null
+            },
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3": {
+              "title": "Faire un sas de décompression (sans fumer)",
+              "outcome": "completed",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "high",
+              "plan_label": null,
+              "action_type": "habit",
+              "reason_text": null,
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "evidence_text": "J'ai fait le sas de décompression.",
+              "missing_slots": [],
+              "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+              "still_relevant": "unknown",
+              "reason_category": "none",
+              "matched_user_text": null
+            }
+          }
+        },
+        "entries_count": 0,
+        "occurrence_statuses": [
+          {
+            "id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "status": "planned"
+          },
+          {
+            "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "status": "planned"
+          },
+          {
+            "id": "80fdc319-6115-493b-8e64-1db689665535",
+            "status": "planned"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 2,
+      "role": "user",
+      "text": "La fatigue, vraiment. J'étais trop crevée pour le faire correctement."
+    },
+    {
+      "turn": 2,
+      "role": "assistant",
+      "text": "Tu peux me dire en une phrase la raison la plus utile pour le bilan ?",
+      "trace_short": {
+        "http_status": 200,
+        "raw_response": "{\"ok\":true,\"request_id\":\"daily-real-rose-20260623-r2-t02\"}",
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_clarification",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "68573abd-d7d6-4371-a729-1fd480972666",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "pending",
+        "pending_payload_summary": {
+          "asked": [
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f"
+          ],
+          "not_yet": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "review_state_status": "collecting",
+          "current_focus": [
+            "934ee6ce-a44b-4c3f-8266-defe9246131f"
+          ],
+          "remaining": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "items": {
+            "80fdc319-6115-493b-8e64-1db689665535": {
+              "title": "Cibler le joint réflexe",
+              "outcome": null,
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "low",
+              "plan_label": null,
+              "action_type": "clarification",
+              "reason_text": null,
+              "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+              "evidence_text": null,
+              "missing_slots": [
+                "not_asked",
+                "outcome"
+              ],
+              "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            },
+            "934ee6ce-a44b-4c3f-8266-defe9246131f": {
+              "title": "Ranger le matériel hors de vue",
+              "outcome": "missed",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "high",
+              "plan_label": null,
+              "action_type": "mission",
+              "reason_text": "trop crevée / fatigue",
+              "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+              "evidence_text": "La fatigue, vraiment. J'étais trop crevée pour le faire correctement.",
+              "missing_slots": [
+                "reason"
+              ],
+              "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "still_relevant": true,
+              "reason_category": "fatigue",
+              "matched_user_text": null
+            },
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3": {
+              "title": "Faire un sas de décompression (sans fumer)",
+              "outcome": "completed",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "high",
+              "plan_label": null,
+              "action_type": "habit",
+              "reason_text": null,
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "evidence_text": "J'ai fait le sas de décompression.",
+              "missing_slots": [],
+              "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+              "still_relevant": "unknown",
+              "reason_category": "none",
+              "matched_user_text": null
+            }
+          }
+        },
+        "entries_count": 0,
+        "occurrence_statuses": [
+          {
+            "id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "status": "planned"
+          },
+          {
+            "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "status": "planned"
+          },
+          {
+            "id": "80fdc319-6115-493b-8e64-1db689665535",
+            "status": "planned"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 3,
+      "role": "user",
+      "text": "La raison utile pour le bilan : fatigue."
+    },
+    {
+      "turn": 3,
+      "role": "assistant",
+      "text": "Est-ce que cibler le joint réflexe reste pertinent pour toi ?",
+      "trace_short": {
+        "http_status": 200,
+        "raw_response": "{\"ok\":true,\"request_id\":\"daily-real-rose-20260623-r2-t03\"}",
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_clarification",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "388bee5d-8a79-42d8-acf5-749f5c394ba5",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "pending",
+        "pending_payload_summary": {
+          "asked": [
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f"
+          ],
+          "not_yet": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "review_state_status": "needs_clarification",
+          "current_focus": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "remaining": [],
+          "items": {
+            "80fdc319-6115-493b-8e64-1db689665535": {
+              "title": "Cibler le joint réflexe",
+              "outcome": null,
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "low",
+              "plan_label": null,
+              "action_type": "clarification",
+              "reason_text": null,
+              "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+              "evidence_text": null,
+              "missing_slots": [
+                "outcome"
+              ],
+              "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            },
+            "934ee6ce-a44b-4c3f-8266-defe9246131f": {
+              "title": "Ranger le matériel hors de vue",
+              "outcome": "missed",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "high",
+              "plan_label": null,
+              "action_type": "mission",
+              "reason_text": "fatigue",
+              "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+              "evidence_text": "La raison utile pour le bilan : fatigue.",
+              "missing_slots": [],
+              "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "still_relevant": true,
+              "reason_category": "fatigue",
+              "matched_user_text": null
+            },
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3": {
+              "title": "Faire un sas de décompression (sans fumer)",
+              "outcome": "completed",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "high",
+              "plan_label": null,
+              "action_type": "habit",
+              "reason_text": null,
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "evidence_text": "J'ai fait le sas de décompression.",
+              "missing_slots": [],
+              "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+              "still_relevant": "unknown",
+              "reason_category": "none",
+              "matched_user_text": null
+            }
+          }
+        },
+        "entries_count": 0,
+        "occurrence_statuses": [
+          {
+            "id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "status": "planned"
+          },
+          {
+            "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "status": "planned"
+          },
+          {
+            "id": "80fdc319-6115-493b-8e64-1db689665535",
+            "status": "planned"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 4,
+      "role": "user",
+      "text": "Oui ça reste pertinent, et je l’ai fait : j’ai identifié le moment où la main part vers le joint."
+    },
+    {
+      "turn": 4,
+      "role": "assistant",
+      "text": "C’est noté : tu as bien ciblé le joint réflexe.",
+      "trace_short": {
+        "http_status": 200,
+        "raw_response": "{\"ok\":true,\"request_id\":\"daily-real-rose-20260623-r2-t04\"}",
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "dd14c728-de25-43fb-b5c4-ccbba3acc2c2",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "done",
+        "pending_payload_summary": {
+          "asked": [
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f"
+          ],
+          "not_yet": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "review_state_status": "complete",
+          "current_focus": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "remaining": [],
+          "items": {
+            "80fdc319-6115-493b-8e64-1db689665535": {
+              "title": "Cibler le joint réflexe",
+              "outcome": "completed",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "high",
+              "plan_label": null,
+              "action_type": "clarification",
+              "reason_text": null,
+              "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+              "evidence_text": "j’ai identifié le moment où la main part vers le joint",
+              "missing_slots": [],
+              "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+              "still_relevant": "unknown",
+              "reason_category": "none",
+              "matched_user_text": null
+            },
+            "934ee6ce-a44b-4c3f-8266-defe9246131f": {
+              "title": "Ranger le matériel hors de vue",
+              "outcome": "missed",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "high",
+              "plan_label": null,
+              "action_type": "mission",
+              "reason_text": "fatigue",
+              "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+              "evidence_text": "La raison utile pour le bilan : fatigue.",
+              "missing_slots": [],
+              "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "still_relevant": true,
+              "reason_category": "fatigue",
+              "matched_user_text": null
+            },
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3": {
+              "title": "Faire un sas de décompression (sans fumer)",
+              "outcome": "completed",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "high",
+              "plan_label": null,
+              "action_type": "habit",
+              "reason_text": null,
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "evidence_text": "J'ai fait le sas de décompression.",
+              "missing_slots": [],
+              "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+              "still_relevant": "unknown",
+              "reason_category": "none",
+              "matched_user_text": null
+            }
+          }
+        },
+        "entries_count": 3,
+        "occurrence_statuses": [
+          {
+            "id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "status": "done"
+          },
+          {
+            "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "status": "rescheduled"
+          },
+          {
+            "id": "80fdc319-6115-493b-8e64-1db689665535",
+            "status": "done"
+          }
+        ]
+      }
+    },
+    {
+      "turn": "post-daily",
+      "role": "user",
+      "text": "Merci, c’est tout pour ce soir."
+    },
+    {
+      "turn": "post-daily",
+      "role": "assistant",
+      "text": "D’accord, bonne nuit 🙂",
+      "trace_short": {
+        "http_status": 200,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "pending_status": "done",
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    }
+  ],
+  "pending_initial": {
+    "id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+    "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+    "status": "pending",
+    "payload": {
+      "targets": [
+        {
+          "kind": "habit",
+          "title": "Faire un sas de décompression (sans fumer)",
+          "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+          "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "dimension": "habits",
+          "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+          "planned_day": "wed",
+          "time_of_day": "evening",
+          "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+          "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-06-15",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "reviewed_local_date": "2026-06-18",
+          "original_planned_day": null
+        },
+        {
+          "kind": "task",
+          "title": "Ranger le matériel hors de vue",
+          "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+          "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "dimension": "missions",
+          "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+          "planned_day": "thu",
+          "time_of_day": "anytime",
+          "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+          "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-06-15",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "reviewed_local_date": "2026-06-18",
+          "original_planned_day": null
+        },
+        {
+          "kind": "framework",
+          "title": "Cibler le joint réflexe",
+          "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+          "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "dimension": "clarifications",
+          "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+          "planned_day": "thu",
+          "time_of_day": "anytime",
+          "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+          "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-06-15",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "reviewed_local_date": "2026-06-18",
+          "original_planned_day": null
+        }
+      ],
+      "timezone": "Europe/Paris",
+      "local_date": "2026-06-18",
+      "message_mode": "conversation",
+      "review_state": {
+        "items": {
+          "80fdc319-6115-493b-8e64-1db689665535": {
+            "title": "Cibler le joint réflexe",
+            "outcome": null,
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "clarification",
+            "reason_text": null,
+            "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+            "evidence_text": null,
+            "missing_slots": [
+              "not_asked",
+              "outcome"
+            ],
+            "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          },
+          "934ee6ce-a44b-4c3f-8266-defe9246131f": {
+            "title": "Ranger le matériel hors de vue",
+            "outcome": null,
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "mission",
+            "reason_text": null,
+            "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+            "evidence_text": null,
+            "missing_slots": [
+              "outcome"
+            ],
+            "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          },
+          "de203918-6ca6-4b93-af3f-5d81f825c8d3": {
+            "title": "Faire un sas de décompression (sans fumer)",
+            "outcome": null,
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "habit",
+            "reason_text": null,
+            "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+            "evidence_text": null,
+            "missing_slots": [
+              "outcome"
+            ],
+            "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          }
+        },
+        "intent": "open_review",
+        "source": "daily_action_review_v1",
+        "status": "collecting",
+        "skill_id": "daily_action_review_v1",
+        "constraints": [
+          "one_question_max",
+          "no_solution_first",
+          "no_tool_suggestion",
+          "no_plan_adjustment",
+          "no_potion",
+          "no_guilt",
+          "respect_user_stopped",
+          "do_not_mark_without_evidence",
+          "do_not_apply_without_complete_slots"
+        ],
+        "effect_plan": {
+          "allowed": false,
+          "effects": []
+        },
+        "stop_reason": null,
+        "next_question": null,
+        "should_apply_effects": false,
+        "next_question_targets": [
+          "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+          "934ee6ce-a44b-4c3f-8266-defe9246131f"
+        ],
+        "generated_user_message": null,
+        "remaining_occurrence_ids": [
+          "80fdc319-6115-493b-8e64-1db689665535"
+        ],
+        "asked_occurrence_ids_history": [
+          [
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f"
+          ]
+        ],
+        "current_focus_occurrence_ids": [
+          "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+          "934ee6ce-a44b-4c3f-8266-defe9246131f"
+        ],
+        "action_intelligence_by_occurrence_id": {}
+      },
+      "draft_message": "Je repasse pour ton bilan du soir.  \nTu as pu faire ton sas de décompression sans fumer, et ranger le matériel hors de vue ?",
+      "event_context": "action_evening_review_v2",
+      "occurrence_ids": [
+        "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+        "934ee6ce-a44b-4c3f-8266-defe9246131f",
+        "80fdc319-6115-493b-8e64-1db689665535"
+      ],
+      "chat_capability": "daily_action_review",
+      "grouping_reason": "same_plan",
+      "week_start_date": "2026-06-15",
+      "asked_occurrence_ids": [
+        "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+        "934ee6ce-a44b-4c3f-8266-defe9246131f"
+      ],
+      "action_evening_review": true,
+      "already_resolved_targets": [],
+      "initial_note_information": {
+        "evidence": [
+          "event_context=action_evening_review_v2",
+          "process-checkins selected and persisted daily review targets"
+        ],
+        "confidence": "high",
+        "risk_score": 0,
+        "source_flow": "process_checkins",
+        "handoff_reason": "bridge",
+        "source_flow_id": "process_checkins.action_evening_review_v2",
+        "collected_state": {
+          "timezone": "Europe/Paris",
+          "local_date": "2026-06-18",
+          "event_context": "action_evening_review_v2",
+          "target_titles": [
+            "Faire un sas de décompression (sans fumer)",
+            "Ranger le matériel hors de vue",
+            "Cibler le joint réflexe"
+          ],
+          "week_start_date": "2026-06-15",
+          "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+          "target_occurrence_ids": [
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "already_resolved_occurrence_ids": []
+        },
+        "target_dispatcher": "daily_action_review_v1",
+        "structured_context": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Faire un sas de décompression (sans fumer)",
+              "dimension": "habits",
+              "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3"
+            },
+            {
+              "kind": "task",
+              "title": "Ranger le matériel hors de vue",
+              "dimension": "missions",
+              "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+              "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+              "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f"
+            },
+            {
+              "kind": "framework",
+              "title": "Cibler le joint réflexe",
+              "dimension": "clarifications",
+              "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+              "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+              "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535"
+            }
+          ],
+          "source_flow": "process_checkins",
+          "event_context": "action_evening_review_v2",
+          "chat_capability": "daily_action_review",
+          "pending_action_kind": "scheduled_checkin"
+        },
+        "active_flow_summary": "System opened daily review for the selected action targets.",
+        "unresolved_questions": [
+          "Which selected actions were done or not done today.",
+          "If not done, the reason and whether the action remains relevant."
+        ],
+        "user_message_summary": null,
+        "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+        "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+        "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+        "target_local_dispatcher_hint": "daily_action_review_v1",
+        "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+      },
+      "not_yet_asked_occurrence_ids": [
+        "80fdc319-6115-493b-8e64-1db689665535"
+      ]
+    },
+    "created_at": "2026-06-22T22:48:16.084726+00:00"
+  },
+  "opening_messages": [
+    {
+      "id": "de020ed6-e6f7-47c1-b90d-e22a00cd0790",
+      "content": "Je repasse pour ton bilan du soir.  \nTu as pu faire ton sas de décompression sans fumer, et ranger le matériel hors de vue ?",
+      "metadata": {
+        "to": "+10000000000",
+        "source": "scheduled_checkin",
+        "channel": "whatsapp",
+        "purpose": "action_evening_review",
+        "request_id": "81b37b3d-2df3-46c2-9b8b-44194e5950a6",
+        "is_proactive": false,
+        "event_context": "action_evening_review_v2",
+        "plan_item_ids": [
+          "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+          "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+          "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c"
+        ],
+        "occurrence_ids": [
+          "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+          "934ee6ce-a44b-4c3f-8266-defe9246131f",
+          "80fdc319-6115-493b-8e64-1db689665535"
+        ],
+        "require_opted_in": true,
+        "whatsapp_buttons": [],
+        "whatsapp_template": null,
+        "simulated_whatsapp": true,
+        "original_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+        "outbound_tracking_id": "0863ed58-fa8a-4bb2-b293-d44e9963a9f5",
+        "wa_outbound_message_id": "wamid_WEB_SIM_81b37b3d-2df3-46c2-9b8b-44194e5950a6",
+        "simulation_bypassed_phone": true,
+        "simulation_bypassed_opt_in": null,
+        "already_resolved_occurrence_ids": []
+      },
+      "created_at": "2026-06-22T22:48:16.071703+00:00"
+    },
+    {
+      "id": "429d5dcc-1216-4804-b481-bd190476a68c",
+      "content": "Merci, c’est bien noté pour les trois.",
+      "metadata": {
+        "source": "daily_action_review",
+        "channel": "whatsapp",
+        "purpose": "action_evening_review",
+        "is_proactive": false,
+        "event_context": "action_evening_review_v2",
+        "outbound_tracking_id": "f237033d-6418-4097-b6e7-a196a942c521",
+        "wa_outbound_message_id": "wamid_DISABLED"
+      },
+      "created_at": "2026-06-18T15:45:55.953028+00:00"
+    },
+    {
+      "id": "abb44bc5-c1be-48b7-9a6b-8b4be88aaf90",
+      "content": "C’est noté pour les trois : sas sans fumer, matériel rangé hors de vue, et moment réflexe repéré juste après le dîner.",
+      "metadata": {
+        "source": "daily_action_review",
+        "channel": "whatsapp",
+        "purpose": "action_evening_review",
+        "is_proactive": false,
+        "event_context": "action_evening_review_v2",
+        "outbound_tracking_id": "265b1d0a-15c7-4db9-b369-91d619eccd58",
+        "wa_outbound_message_id": "wamid_DISABLED"
+      },
+      "created_at": "2026-06-18T14:06:13.671315+00:00"
+    },
+    {
+      "id": "4e557c4b-0d7e-42e9-9315-fa964a83ef99",
+      "content": "Tu me confirmes juste pour le sas de décompression : c’est fait ou pas fait ?",
+      "metadata": {
+        "source": "daily_action_review_clarification",
+        "channel": "whatsapp",
+        "purpose": "action_evening_review",
+        "is_proactive": false,
+        "event_context": "action_evening_review_v2",
+        "outbound_tracking_id": "87a03aad-310d-4048-99d9-9b54c4a6703a",
+        "wa_outbound_message_id": "wamid_DISABLED"
+      },
+      "created_at": "2026-06-18T14:06:09.891267+00:00"
+    },
+    {
+      "id": "a671d594-fdec-48be-9c95-8896fbaf28e9",
+      "content": "Tu parles de quelle action : Faire un sas de décompression (sans fumer), Ranger le matériel hors de vue, ou Cibler le joint réflexe ?",
+      "metadata": {
+        "source": "daily_action_review_clarification",
+        "channel": "whatsapp",
+        "purpose": "action_evening_review",
+        "is_proactive": false,
+        "event_context": "action_evening_review_v2",
+        "outbound_tracking_id": "6b2f49cc-bc65-4d6a-89cf-a20d7f77a937",
+        "wa_outbound_message_id": "wamid_DISABLED"
+      },
+      "created_at": "2026-06-18T14:06:05.641096+00:00"
+    }
+  ],
+  "latest": {
+    "pending_after": [
+      {
+        "id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+        "status": "done",
+        "payload": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Faire un sas de décompression (sans fumer)",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "habits",
+              "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+              "planned_day": "wed",
+              "time_of_day": "evening",
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-15",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-18",
+              "original_planned_day": null
+            },
+            {
+              "kind": "task",
+              "title": "Ranger le matériel hors de vue",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "missions",
+              "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+              "planned_day": "thu",
+              "time_of_day": "anytime",
+              "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+              "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-15",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-18",
+              "original_planned_day": null
+            },
+            {
+              "kind": "framework",
+              "title": "Cibler le joint réflexe",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "clarifications",
+              "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+              "planned_day": "thu",
+              "time_of_day": "anytime",
+              "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+              "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-15",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-18",
+              "original_planned_day": null
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "local_date": "2026-06-18",
+          "completed_at": "2026-06-22T22:53:00.169Z",
+          "message_mode": "conversation",
+          "review_state": {
+            "items": {
+              "80fdc319-6115-493b-8e64-1db689665535": {
+                "title": "Cibler le joint réflexe",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "clarification",
+                "reason_text": null,
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "evidence_text": "j’ai identifié le moment où la main part vers le joint",
+                "missing_slots": [],
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              },
+              "934ee6ce-a44b-4c3f-8266-defe9246131f": {
+                "title": "Ranger le matériel hors de vue",
+                "outcome": "missed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": "fatigue",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "evidence_text": "La raison utile pour le bilan : fatigue.",
+                "missing_slots": [],
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "still_relevant": true,
+                "reason_category": "fatigue",
+                "matched_user_text": null
+              },
+              "de203918-6ca6-4b93-af3f-5d81f825c8d3": {
+                "title": "Faire un sas de décompression (sans fumer)",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "habit",
+                "reason_text": null,
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "evidence_text": "J'ai fait le sas de décompression.",
+                "missing_slots": [],
+                "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              }
+            },
+            "intent": "answer_review",
+            "source": "daily_action_review_v1",
+            "status": "complete",
+            "skill_id": "daily_action_review_v1",
+            "constraints": [
+              "one_question_max",
+              "no_solution_first",
+              "no_tool_suggestion",
+              "no_plan_adjustment",
+              "no_potion",
+              "no_guilt",
+              "respect_user_stopped",
+              "do_not_mark_without_evidence",
+              "do_not_apply_without_complete_slots"
+            ],
+            "effect_plan": {
+              "allowed": true,
+              "effects": [
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "missed",
+                  "reason_text": "fatigue",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                  "still_relevant": true,
+                  "reason_category": "fatigue"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                }
+              ]
+            },
+            "stop_reason": "all_required_slots_filled",
+            "next_question": null,
+            "last_user_text": "Oui ça reste pertinent, et je l’ai fait : j’ai identifié le moment où la main part vers le joint.",
+            "blocked_effects": [],
+            "should_apply_effects": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "items.80fdc319-6115-493b-8e64-1db689665535",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [],
+              "preserved_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "next_question_targets": [],
+            "generated_user_message": "Est-ce que cibler le joint réflexe reste pertinent pour toi ?",
+            "remaining_occurrence_ids": [],
+            "asked_occurrence_ids_history": [
+              [
+                "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+                "934ee6ce-a44b-4c3f-8266-defe9246131f"
+              ],
+              [
+                "934ee6ce-a44b-4c3f-8266-defe9246131f"
+              ],
+              [
+                "80fdc319-6115-493b-8e64-1db689665535"
+              ]
+            ],
+            "current_focus_occurrence_ids": [
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "action_intelligence_by_occurrence_id": {}
+          },
+          "draft_message": "Je repasse pour ton bilan du soir.  \nTu as pu faire ton sas de décompression sans fumer, et ranger le matériel hors de vue ?",
+          "event_context": "action_evening_review_v2",
+          "last_user_text": "La raison utile pour le bilan : fatigue.",
+          "occurrence_ids": [
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "chat_capability": "daily_action_review",
+          "grouping_reason": "same_plan",
+          "week_start_date": "2026-06-15",
+          "completed_flow_memo": {
+            "status": "completed",
+            "completed_at": "2026-06-22T22:53:00.169Z",
+            "source_flow_id": "daily_action_review_v1",
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "adb0b583-ba8a-48a6-bb75-376c723c413a",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "commit_status": "inserted",
+                "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "missed",
+                "entry_id": "254e9648-da6e-4ada-8882-cd008f165e10",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "commit_status": "inserted",
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "reason_category": "fatigue"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "360d8745-6656-427c-bdee-8b4fe17c2761",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "commit_status": "inserted",
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "asked_occurrence_ids": [
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f"
+          ],
+          "action_evening_review": true,
+          "missing_occurrence_ids": [],
+          "already_resolved_targets": [],
+          "initial_note_information": {
+            "evidence": [
+              "event_context=action_evening_review_v2",
+              "process-checkins selected and persisted daily review targets"
+            ],
+            "confidence": "high",
+            "risk_score": 0,
+            "source_flow": "process_checkins",
+            "handoff_reason": "bridge",
+            "source_flow_id": "process_checkins.action_evening_review_v2",
+            "collected_state": {
+              "timezone": "Europe/Paris",
+              "local_date": "2026-06-18",
+              "event_context": "action_evening_review_v2",
+              "target_titles": [
+                "Faire un sas de décompression (sans fumer)",
+                "Ranger le matériel hors de vue",
+                "Cibler le joint réflexe"
+              ],
+              "week_start_date": "2026-06-15",
+              "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+              "target_occurrence_ids": [
+                "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+                "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "80fdc319-6115-493b-8e64-1db689665535"
+              ],
+              "already_resolved_occurrence_ids": []
+            },
+            "target_dispatcher": "daily_action_review_v1",
+            "structured_context": {
+              "targets": [
+                {
+                  "kind": "habit",
+                  "title": "Faire un sas de décompression (sans fumer)",
+                  "dimension": "habits",
+                  "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3"
+                },
+                {
+                  "kind": "task",
+                  "title": "Ranger le matériel hors de vue",
+                  "dimension": "missions",
+                  "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f"
+                },
+                {
+                  "kind": "framework",
+                  "title": "Cibler le joint réflexe",
+                  "dimension": "clarifications",
+                  "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535"
+                }
+              ],
+              "source_flow": "process_checkins",
+              "event_context": "action_evening_review_v2",
+              "chat_capability": "daily_action_review",
+              "pending_action_kind": "scheduled_checkin"
+            },
+            "active_flow_summary": "System opened daily review for the selected action targets.",
+            "unresolved_questions": [
+              "Which selected actions were done or not done today.",
+              "If not done, the reason and whether the action remains relevant."
+            ],
+            "user_message_summary": null,
+            "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+            "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+            "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+            "target_local_dispatcher_hint": "daily_action_review_v1",
+            "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+          },
+          "daily_review_effects_result": {
+            "failed_effects": [],
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "adb0b583-ba8a-48a6-bb75-376c723c413a",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "commit_status": "inserted",
+                "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "missed",
+                "entry_id": "254e9648-da6e-4ada-8882-cd008f165e10",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "commit_status": "inserted",
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "reason_category": "fatigue"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "360d8745-6656-427c-bdee-8b4fe17c2761",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "commit_status": "inserted",
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "not_yet_asked_occurrence_ids": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "daily_action_review_diagnosis": {
+            "flow_action": "answer_review",
+            "visible_task": "commit_success",
+            "blocked_effects": [],
+            "selected_targets": [
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "candidate_summary": [
+              {
+                "title": "Faire un sas de décompression (sans fumer)",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3"
+              },
+              {
+                "title": "Ranger le matériel hors de vue",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f"
+              },
+              {
+                "title": "Cibler le joint réflexe",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535"
+              }
+            ],
+            "direct_handoff_flag": false,
+            "stabilization_ready": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "items.80fdc319-6115-493b-8e64-1db689665535",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [],
+              "preserved_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "pending_state_present": true
+          }
+        },
+        "processed_at": "2026-06-22T22:53:03.429+00:00"
+      }
+    ],
+    "entries": [
+      {
+        "id": "254e9648-da6e-4ada-8882-cd008f165e10",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "entry_kind": "skip",
+        "outcome": "missed",
+        "value_text": "fatigue",
+        "blocker_hint": "fatigue",
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-06-18",
+          "reason_text": "fatigue",
+          "evidence_text": "La raison utile pour le bilan : fatigue.",
+          "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+          "daily_decision": "missed_rescheduled_tomorrow",
+          "outcome_source": "free_text",
+          "rescheduled_to": "fri",
+          "still_relevant": true,
+          "reason_category": "fatigue",
+          "matched_user_text": null,
+          "occurrence_status": "rescheduled",
+          "pending_action_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+          "reschedule_decision": "rescheduled_tomorrow",
+          "completed_part_label": null,
+          "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "effective_at": "2026-06-18T12:00:00+00:00",
+        "created_at": "2026-06-22T22:53:00.169+00:00"
+      },
+      {
+        "id": "360d8745-6656-427c-bdee-8b4fe17c2761",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "clarifications",
+          "confidence": "high",
+          "local_date": "2026-06-18",
+          "reason_text": null,
+          "evidence_text": "j’ai identifié le moment où la main part vers le joint",
+          "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "effective_at": "2026-06-18T12:00:00+00:00",
+        "created_at": "2026-06-22T22:53:00.169+00:00"
+      },
+      {
+        "id": "adb0b583-ba8a-48a6-bb75-376c723c413a",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-06-18",
+          "reason_text": null,
+          "evidence_text": "J'ai fait le sas de décompression.",
+          "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "effective_at": "2026-06-18T12:00:00+00:00",
+        "created_at": "2026-06-22T22:53:00.169+00:00"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "planned_day": "wed",
+        "status": "done",
+        "source": "default_generated",
+        "validated_at": "2026-06-22T22:53:00.169+00:00",
+        "updated_at": "2026-06-22T22:53:00.169+00:00"
+      },
+      {
+        "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "planned_day": "fri",
+        "status": "rescheduled",
+        "source": "auto_rescheduled",
+        "validated_at": null,
+        "updated_at": "2026-06-22T22:53:00.169+00:00"
+      },
+      {
+        "id": "80fdc319-6115-493b-8e64-1db689665535",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "planned_day": "thu",
+        "status": "done",
+        "source": "manual_change",
+        "validated_at": "2026-06-22T22:53:00.169+00:00",
+        "updated_at": "2026-06-22T22:53:00.169+00:00"
+      }
+    ]
+  },
+  "whatsapp": {
+    "from": "15552211018760",
+    "display_phone": "15553194463433",
+    "phone_number_id": "d4a3848de036bb8f"
+  },
+  "post_daily": {
+    "request_id": "daily-real-rose-20260623-r2-post-daily",
+    "http_status": 200,
+    "raw_response": {
+      "ok": true,
+      "request_id": "daily-real-rose-20260623-r2-post-daily",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "whatsapp",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "D’accord, bonne nuit 🙂",
+        "mode": "companion",
+        "delivery": {
+          "mode": "text_reply"
+        },
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "daily-real-rose-20260623-r2-post-daily",
+            "source_message_id": "a9ab30e9-edd2-4a8a-9aa3-474c215b2ec0",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "acknowledge_closure",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "normal_reply",
+              "resume_policy": "none",
+              "reason_code": "normal_reply_default"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "daily-real-rose-20260623-r2-post-daily",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "daily-real-rose-20260623-r2-post-daily",
+          "source_message_id": "a9ab30e9-edd2-4a8a-9aa3-474c215b2ec0",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "acknowledge_closure",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "taxonomy_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "minimal_global_dispatcher",
+            "active_owner": "none",
+            "selected_owner": "normal_reply",
+            "resume_policy": "none",
+            "reason_code": "normal_reply_default"
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "daily-real-rose-20260623-r2-post-daily",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "normal_reply"
+      },
+      "trace_error": null
+    },
+    "messages": [
+      {
+        "id": "a9ab30e9-edd2-4a8a-9aa3-474c215b2ec0",
+        "role": "user",
+        "content": "Merci, c’est tout pour ce soir.",
+        "metadata": {
+          "request_id": "daily-real-rose-20260623-r2-post-daily",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-22T22:53:43.034623+00:00"
+      },
+      {
+        "id": "b026e498-7869-492f-aa46-96ea55a76c35",
+        "role": "assistant",
+        "content": "D’accord, bonne nuit 🙂",
+        "metadata": {
+          "request_id": "daily-real-rose-20260623-r2-post-daily",
+          "route_owner": "normal_reply",
+          "agent_latency_ms": 860,
+          "selected_handler": null,
+          "context_latency_ms": 45,
+          "dispatcher_latency_ms": 1755,
+          "runtime_safety_risk_band": "none"
+        },
+        "created_at": "2026-06-22T22:53:45.736465+00:00"
+      }
+    ],
+    "pending_after": [
+      {
+        "id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+        "status": "done",
+        "payload": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Faire un sas de décompression (sans fumer)",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "habits",
+              "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+              "planned_day": "wed",
+              "time_of_day": "evening",
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-15",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-18",
+              "original_planned_day": null
+            },
+            {
+              "kind": "task",
+              "title": "Ranger le matériel hors de vue",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "missions",
+              "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+              "planned_day": "thu",
+              "time_of_day": "anytime",
+              "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+              "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-15",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-18",
+              "original_planned_day": null
+            },
+            {
+              "kind": "framework",
+              "title": "Cibler le joint réflexe",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "clarifications",
+              "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+              "planned_day": "thu",
+              "time_of_day": "anytime",
+              "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+              "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-15",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-18",
+              "original_planned_day": null
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "local_date": "2026-06-18",
+          "completed_at": "2026-06-22T22:53:00.169Z",
+          "message_mode": "conversation",
+          "review_state": {
+            "items": {
+              "80fdc319-6115-493b-8e64-1db689665535": {
+                "title": "Cibler le joint réflexe",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "clarification",
+                "reason_text": null,
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "evidence_text": "j’ai identifié le moment où la main part vers le joint",
+                "missing_slots": [],
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              },
+              "934ee6ce-a44b-4c3f-8266-defe9246131f": {
+                "title": "Ranger le matériel hors de vue",
+                "outcome": "missed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": "fatigue",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "evidence_text": "La raison utile pour le bilan : fatigue.",
+                "missing_slots": [],
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "still_relevant": true,
+                "reason_category": "fatigue",
+                "matched_user_text": null
+              },
+              "de203918-6ca6-4b93-af3f-5d81f825c8d3": {
+                "title": "Faire un sas de décompression (sans fumer)",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "habit",
+                "reason_text": null,
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "evidence_text": "J'ai fait le sas de décompression.",
+                "missing_slots": [],
+                "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              }
+            },
+            "intent": "answer_review",
+            "source": "daily_action_review_v1",
+            "status": "complete",
+            "skill_id": "daily_action_review_v1",
+            "constraints": [
+              "one_question_max",
+              "no_solution_first",
+              "no_tool_suggestion",
+              "no_plan_adjustment",
+              "no_potion",
+              "no_guilt",
+              "respect_user_stopped",
+              "do_not_mark_without_evidence",
+              "do_not_apply_without_complete_slots"
+            ],
+            "effect_plan": {
+              "allowed": true,
+              "effects": [
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "missed",
+                  "reason_text": "fatigue",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                  "still_relevant": true,
+                  "reason_category": "fatigue"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                }
+              ]
+            },
+            "stop_reason": "all_required_slots_filled",
+            "next_question": null,
+            "last_user_text": "Oui ça reste pertinent, et je l’ai fait : j’ai identifié le moment où la main part vers le joint.",
+            "blocked_effects": [],
+            "should_apply_effects": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "items.80fdc319-6115-493b-8e64-1db689665535",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [],
+              "preserved_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "next_question_targets": [],
+            "generated_user_message": "Est-ce que cibler le joint réflexe reste pertinent pour toi ?",
+            "remaining_occurrence_ids": [],
+            "asked_occurrence_ids_history": [
+              [
+                "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+                "934ee6ce-a44b-4c3f-8266-defe9246131f"
+              ],
+              [
+                "934ee6ce-a44b-4c3f-8266-defe9246131f"
+              ],
+              [
+                "80fdc319-6115-493b-8e64-1db689665535"
+              ]
+            ],
+            "current_focus_occurrence_ids": [
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "action_intelligence_by_occurrence_id": {}
+          },
+          "draft_message": "Je repasse pour ton bilan du soir.  \nTu as pu faire ton sas de décompression sans fumer, et ranger le matériel hors de vue ?",
+          "event_context": "action_evening_review_v2",
+          "last_user_text": "La raison utile pour le bilan : fatigue.",
+          "occurrence_ids": [
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "chat_capability": "daily_action_review",
+          "grouping_reason": "same_plan",
+          "week_start_date": "2026-06-15",
+          "completed_flow_memo": {
+            "status": "completed",
+            "completed_at": "2026-06-22T22:53:00.169Z",
+            "source_flow_id": "daily_action_review_v1",
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "adb0b583-ba8a-48a6-bb75-376c723c413a",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "commit_status": "inserted",
+                "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "missed",
+                "entry_id": "254e9648-da6e-4ada-8882-cd008f165e10",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "commit_status": "inserted",
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "reason_category": "fatigue"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "360d8745-6656-427c-bdee-8b4fe17c2761",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "commit_status": "inserted",
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "asked_occurrence_ids": [
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f"
+          ],
+          "action_evening_review": true,
+          "missing_occurrence_ids": [],
+          "already_resolved_targets": [],
+          "initial_note_information": {
+            "evidence": [
+              "event_context=action_evening_review_v2",
+              "process-checkins selected and persisted daily review targets"
+            ],
+            "confidence": "high",
+            "risk_score": 0,
+            "source_flow": "process_checkins",
+            "handoff_reason": "bridge",
+            "source_flow_id": "process_checkins.action_evening_review_v2",
+            "collected_state": {
+              "timezone": "Europe/Paris",
+              "local_date": "2026-06-18",
+              "event_context": "action_evening_review_v2",
+              "target_titles": [
+                "Faire un sas de décompression (sans fumer)",
+                "Ranger le matériel hors de vue",
+                "Cibler le joint réflexe"
+              ],
+              "week_start_date": "2026-06-15",
+              "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+              "target_occurrence_ids": [
+                "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+                "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "80fdc319-6115-493b-8e64-1db689665535"
+              ],
+              "already_resolved_occurrence_ids": []
+            },
+            "target_dispatcher": "daily_action_review_v1",
+            "structured_context": {
+              "targets": [
+                {
+                  "kind": "habit",
+                  "title": "Faire un sas de décompression (sans fumer)",
+                  "dimension": "habits",
+                  "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3"
+                },
+                {
+                  "kind": "task",
+                  "title": "Ranger le matériel hors de vue",
+                  "dimension": "missions",
+                  "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f"
+                },
+                {
+                  "kind": "framework",
+                  "title": "Cibler le joint réflexe",
+                  "dimension": "clarifications",
+                  "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535"
+                }
+              ],
+              "source_flow": "process_checkins",
+              "event_context": "action_evening_review_v2",
+              "chat_capability": "daily_action_review",
+              "pending_action_kind": "scheduled_checkin"
+            },
+            "active_flow_summary": "System opened daily review for the selected action targets.",
+            "unresolved_questions": [
+              "Which selected actions were done or not done today.",
+              "If not done, the reason and whether the action remains relevant."
+            ],
+            "user_message_summary": null,
+            "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+            "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+            "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+            "target_local_dispatcher_hint": "daily_action_review_v1",
+            "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+          },
+          "daily_review_effects_result": {
+            "failed_effects": [],
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "adb0b583-ba8a-48a6-bb75-376c723c413a",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "commit_status": "inserted",
+                "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "missed",
+                "entry_id": "254e9648-da6e-4ada-8882-cd008f165e10",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "commit_status": "inserted",
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+                "reason_category": "fatigue"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "360d8745-6656-427c-bdee-8b4fe17c2761",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "commit_status": "inserted",
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "not_yet_asked_occurrence_ids": [
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "daily_action_review_diagnosis": {
+            "flow_action": "answer_review",
+            "visible_task": "commit_success",
+            "blocked_effects": [],
+            "selected_targets": [
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "candidate_summary": [
+              {
+                "title": "Faire un sas de décompression (sans fumer)",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3"
+              },
+              {
+                "title": "Ranger le matériel hors de vue",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f"
+              },
+              {
+                "title": "Cibler le joint réflexe",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535"
+              }
+            ],
+            "direct_handoff_flag": false,
+            "stabilization_ready": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "items.80fdc319-6115-493b-8e64-1db689665535",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [],
+              "preserved_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "pending_state_present": true
+          }
+        },
+        "processed_at": "2026-06-22T22:53:03.429+00:00"
+      }
+    ]
+  },
+  "cleanup_candidates": {
+    "entries": [
+      {
+        "id": "254e9648-da6e-4ada-8882-cd008f165e10",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "outcome": "missed",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-06-18",
+          "reason_text": "fatigue",
+          "evidence_text": "La raison utile pour le bilan : fatigue.",
+          "occurrence_id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+          "daily_decision": "missed_rescheduled_tomorrow",
+          "outcome_source": "free_text",
+          "rescheduled_to": "fri",
+          "still_relevant": true,
+          "reason_category": "fatigue",
+          "matched_user_text": null,
+          "occurrence_status": "rescheduled",
+          "pending_action_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+          "reschedule_decision": "rescheduled_tomorrow",
+          "completed_part_label": null,
+          "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "created_at": "2026-06-22T22:53:00.169+00:00"
+      },
+      {
+        "id": "360d8745-6656-427c-bdee-8b4fe17c2761",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "outcome": "completed",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "clarifications",
+          "confidence": "high",
+          "local_date": "2026-06-18",
+          "reason_text": null,
+          "evidence_text": "j’ai identifié le moment où la main part vers le joint",
+          "occurrence_id": "80fdc319-6115-493b-8e64-1db689665535",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "created_at": "2026-06-22T22:53:00.169+00:00"
+      },
+      {
+        "id": "adb0b583-ba8a-48a6-bb75-376c723c413a",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "outcome": "completed",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-06-18",
+          "reason_text": null,
+          "evidence_text": "J'ai fait le sas de décompression.",
+          "occurrence_id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "created_at": "2026-06-22T22:53:00.169+00:00"
+      }
+    ],
+    "messages": [
+      {
+        "id": "a9ab30e9-edd2-4a8a-9aa3-474c215b2ec0",
+        "role": "user",
+        "content": "Merci, c’est tout pour ce soir.",
+        "metadata": {
+          "request_id": "daily-real-rose-20260623-r2-post-daily",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-22T22:53:43.034623+00:00"
+      },
+      {
+        "id": "b026e498-7869-492f-aa46-96ea55a76c35",
+        "role": "assistant",
+        "content": "D’accord, bonne nuit 🙂",
+        "metadata": {
+          "request_id": "daily-real-rose-20260623-r2-post-daily",
+          "route_owner": "normal_reply",
+          "agent_latency_ms": 860,
+          "selected_handler": null,
+          "context_latency_ms": 45,
+          "dispatcher_latency_ms": 1755,
+          "runtime_safety_risk_band": "none"
+        },
+        "created_at": "2026-06-22T22:53:45.736465+00:00"
+      },
+      {
+        "id": "6c12c4e3-541f-45b5-8dd7-069ee07fa049",
+        "role": "user",
+        "content": "J'ai fait le sas de décompression. Par contre je n'ai pas rangé le matériel, j'étais trop crevée ; ça reste pertinent et je le ferai demain.",
+        "metadata": {
+          "channel": "whatsapp",
+          "wa_from": "+15552211018760",
+          "wa_type": "text",
+          "request_id": "e4cfdb0a-feba-4e24-adba-0f3e2dba3219",
+          "wa_message_id": "wamid_daily-real-rose-20260623-r2_1_0d6ad5da-834c-45c1-8758-82f58bc99d92",
+          "wa_profile_name": "rose QA",
+          "wa_interactive_id": null,
+          "webhook_request_id": "daily-real-rose-20260623-r2-t01",
+          "wa_interactive_title": null,
+          "daily_action_review_v1": {
+            "stop_reason": null,
+            "skill_status": "collecting",
+            "occurrence_ids": [
+              "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+              "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "pending_action_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+            "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+            "structured_extraction_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+            "structured_extraction_status": "partial"
+          },
+          "structured_extraction_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+          "structured_extraction_source": "daily_action_review_v1"
+        },
+        "created_at": "2026-06-22T22:49:06.953718+00:00"
+      },
+      {
+        "id": "68a196e9-f7f6-46ef-a944-b0b9586c52e1",
+        "role": "user",
+        "content": "La raison utile pour le bilan : fatigue.",
+        "metadata": {
+          "channel": "whatsapp",
+          "wa_from": "+15552211018760",
+          "wa_type": "text",
+          "request_id": "19547d23-013a-4bb5-b73a-d2e34ef5a998",
+          "wa_message_id": "wamid_daily-real-rose-20260623-r2_3_d0d446fe-dd64-46a6-bf0d-7f5cf1ec2e88",
+          "wa_profile_name": "rose QA",
+          "wa_interactive_id": null,
+          "webhook_request_id": "daily-real-rose-20260623-r2-t03",
+          "wa_interactive_title": null,
+          "daily_action_review_v1": {
+            "stop_reason": null,
+            "skill_status": "needs_clarification",
+            "occurrence_ids": [
+              "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+              "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "pending_action_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+            "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+            "structured_extraction_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+            "structured_extraction_status": "partial"
+          },
+          "structured_extraction_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+          "structured_extraction_source": "daily_action_review_v1"
+        },
+        "created_at": "2026-06-22T22:50:18.402314+00:00"
+      },
+      {
+        "id": "44297e2f-65b8-45ac-ac77-4e8004dcb095",
+        "role": "user",
+        "content": "La fatigue, vraiment. J'étais trop crevée pour le faire correctement.",
+        "metadata": {
+          "channel": "whatsapp",
+          "wa_from": "+15552211018760",
+          "wa_type": "text",
+          "request_id": "689f294c-e731-4320-ab8a-4847143e91be",
+          "wa_message_id": "wamid_daily-real-rose-20260623-r2_2_53e6278f-ecde-41d1-ab2b-16c908aab45e",
+          "wa_profile_name": "rose QA",
+          "wa_interactive_id": null,
+          "webhook_request_id": "daily-real-rose-20260623-r2-t02",
+          "wa_interactive_title": null,
+          "daily_action_review_v1": {
+            "stop_reason": null,
+            "skill_status": "collecting",
+            "occurrence_ids": [
+              "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+              "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "pending_action_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+            "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+            "structured_extraction_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+            "structured_extraction_status": "partial"
+          },
+          "structured_extraction_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+          "structured_extraction_source": "daily_action_review_v1"
+        },
+        "created_at": "2026-06-22T22:49:42.070977+00:00"
+      },
+      {
+        "id": "de6b6225-df7d-4c7c-b95f-02a7eec466ce",
+        "role": "user",
+        "content": "Oui ça reste pertinent, et je l’ai fait : j’ai identifié le moment où la main part vers le joint.",
+        "metadata": {
+          "channel": "whatsapp",
+          "wa_from": "+15552211018760",
+          "wa_type": "text",
+          "request_id": "78d4260e-bc4e-4ea3-807a-536dc4fe8d81",
+          "wa_message_id": "wamid_daily-real-rose-20260623-r2_4_157eb526-2c2c-4cff-bbaf-eb4ddb70f6aa",
+          "wa_profile_name": "rose QA",
+          "wa_interactive_id": null,
+          "webhook_request_id": "daily-real-rose-20260623-r2-t04",
+          "wa_interactive_title": null,
+          "daily_action_review_v1": {
+            "stop_reason": "all_required_slots_filled",
+            "skill_status": "complete",
+            "occurrence_ids": [
+              "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+              "934ee6ce-a44b-4c3f-8266-defe9246131f",
+              "80fdc319-6115-493b-8e64-1db689665535"
+            ],
+            "pending_action_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+            "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+            "structured_extraction_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+            "structured_extraction_status": "complete"
+          },
+          "structured_extraction_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+          "structured_extraction_source": "daily_action_review_v1"
+        },
+        "created_at": "2026-06-22T22:53:00.13191+00:00"
+      },
+      {
+        "id": "de020ed6-e6f7-47c1-b90d-e22a00cd0790",
+        "role": "assistant",
+        "content": "Je repasse pour ton bilan du soir.  \nTu as pu faire ton sas de décompression sans fumer, et ranger le matériel hors de vue ?",
+        "metadata": {
+          "to": "+10000000000",
+          "source": "scheduled_checkin",
+          "channel": "whatsapp",
+          "purpose": "action_evening_review",
+          "request_id": "81b37b3d-2df3-46c2-9b8b-44194e5950a6",
+          "is_proactive": false,
+          "event_context": "action_evening_review_v2",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+            "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+            "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c"
+          ],
+          "occurrence_ids": [
+            "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+            "934ee6ce-a44b-4c3f-8266-defe9246131f",
+            "80fdc319-6115-493b-8e64-1db689665535"
+          ],
+          "require_opted_in": true,
+          "whatsapp_buttons": [],
+          "whatsapp_template": null,
+          "simulated_whatsapp": true,
+          "original_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+          "outbound_tracking_id": "0863ed58-fa8a-4bb2-b293-d44e9963a9f5",
+          "wa_outbound_message_id": "wamid_WEB_SIM_81b37b3d-2df3-46c2-9b8b-44194e5950a6",
+          "simulation_bypassed_phone": true,
+          "simulation_bypassed_opt_in": null,
+          "already_resolved_occurrence_ids": []
+        },
+        "created_at": "2026-06-22T22:48:16.071703+00:00"
+      },
+      {
+        "id": "a4cf850f-31cf-4404-a700-b1123506366a",
+        "role": "assistant",
+        "content": "Qu’est-ce qui t’a empêchée de ranger le matériel cette fois-ci ?",
+        "metadata": {
+          "source": "daily_action_review_clarification",
+          "channel": "whatsapp",
+          "purpose": "action_evening_review",
+          "is_proactive": false,
+          "event_context": "action_evening_review_v2",
+          "outbound_tracking_id": "16803a3d-cbd4-4dc5-82a1-9a023e9a2dc7",
+          "wa_outbound_message_id": "wamid_DISABLED"
+        },
+        "created_at": "2026-06-22T22:49:11.409717+00:00"
+      },
+      {
+        "id": "9bf08530-a48a-4131-a430-b93ddefd7485",
+        "role": "assistant",
+        "content": "Tu peux me dire en une phrase la raison la plus utile pour le bilan ?",
+        "metadata": {
+          "source": "daily_action_review_clarification",
+          "channel": "whatsapp",
+          "purpose": "action_evening_review",
+          "is_proactive": false,
+          "event_context": "action_evening_review_v2",
+          "outbound_tracking_id": "68573abd-d7d6-4371-a729-1fd480972666",
+          "wa_outbound_message_id": "wamid_DISABLED"
+        },
+        "created_at": "2026-06-22T22:49:44.832696+00:00"
+      },
+      {
+        "id": "023de230-0348-4880-8fb8-8b5a2c95c173",
+        "role": "assistant",
+        "content": "Est-ce que cibler le joint réflexe reste pertinent pour toi ?",
+        "metadata": {
+          "source": "daily_action_review_clarification",
+          "channel": "whatsapp",
+          "purpose": "action_evening_review",
+          "is_proactive": false,
+          "event_context": "action_evening_review_v2",
+          "outbound_tracking_id": "388bee5d-8a79-42d8-acf5-749f5c394ba5",
+          "wa_outbound_message_id": "wamid_DISABLED"
+        },
+        "created_at": "2026-06-22T22:50:21.439594+00:00"
+      },
+      {
+        "id": "e4aa64ad-f7a4-40e9-8dc5-52e989ec9e61",
+        "role": "assistant",
+        "content": "C’est noté : tu as bien ciblé le joint réflexe.",
+        "metadata": {
+          "source": "daily_action_review",
+          "channel": "whatsapp",
+          "purpose": "action_evening_review",
+          "is_proactive": false,
+          "event_context": "action_evening_review_v2",
+          "outbound_tracking_id": "dd14c728-de25-43fb-b5c4-ccbba3acc2c2",
+          "wa_outbound_message_id": "wamid_DISABLED"
+        },
+        "created_at": "2026-06-22T22:53:04.337408+00:00"
+      }
+    ],
+    "pending_id": "02bfb2a5-b5c5-4201-aa33-a721554d7783",
+    "scheduled_checkin_id": "929b52e1-e398-4336-9b02-3cf353cb0f5c",
+    "occurrences_before_restore": [
+      {
+        "id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "planned_day": "wed",
+        "status": "done",
+        "source": "default_generated",
+        "validated_at": "2026-06-22T22:53:00.169+00:00",
+        "updated_at": "2026-06-22T22:53:00.169+00:00"
+      },
+      {
+        "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "planned_day": "fri",
+        "status": "rescheduled",
+        "source": "auto_rescheduled",
+        "validated_at": null,
+        "updated_at": "2026-06-22T22:53:00.169+00:00"
+      },
+      {
+        "id": "80fdc319-6115-493b-8e64-1db689665535",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "planned_day": "thu",
+        "status": "done",
+        "source": "manual_change",
+        "validated_at": "2026-06-22T22:53:00.169+00:00",
+        "updated_at": "2026-06-22T22:53:00.169+00:00"
+      }
+    ]
+  },
+  "cleanup_result": {
+    "deleted_counts": {
+      "entries": 3,
+      "messages": 11,
+      "pending": 1,
+      "scheduled_checkin": 1
+    },
+    "restored": [
+      {
+        "id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "week_start_date": "2026-06-15",
+        "ordinal": 3,
+        "planned_day": "wed",
+        "original_planned_day": null,
+        "actual_day": null,
+        "status": "planned",
+        "source": "default_generated",
+        "validated_at": null,
+        "created_at": "2026-06-02T16:06:21.413983+00:00",
+        "updated_at": "2026-06-22T22:53:00.169+00:00",
+        "default_day": "wed"
+      },
+      {
+        "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "week_start_date": "2026-06-15",
+        "ordinal": 4,
+        "planned_day": "thu",
+        "original_planned_day": "thu",
+        "actual_day": null,
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "created_at": "2026-06-18T15:46:31.786256+00:00",
+        "updated_at": "2026-06-22T22:53:00.169+00:00",
+        "default_day": "thu"
+      },
+      {
+        "id": "80fdc319-6115-493b-8e64-1db689665535",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "week_start_date": "2026-06-15",
+        "ordinal": 4,
+        "planned_day": "thu",
+        "original_planned_day": null,
+        "actual_day": null,
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "created_at": "2026-06-18T15:46:31.804505+00:00",
+        "updated_at": "2026-06-22T22:53:00.169+00:00",
+        "default_day": "thu"
+      }
+    ]
+  },
+  "cleanup_verification": {
+    "entries_remaining": [],
+    "messages_remaining": [],
+    "pending_remaining": [],
+    "scheduled_checkin_remaining": [],
+    "occurrences_after_restore": [
+      {
+        "id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+        "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "planned_day": "wed",
+        "status": "planned",
+        "source": "default_generated",
+        "validated_at": null,
+        "updated_at": "2026-06-22T22:53:00.169+00:00"
+      },
+      {
+        "id": "934ee6ce-a44b-4c3f-8266-defe9246131f",
+        "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+        "planned_day": "thu",
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "updated_at": "2026-06-22T22:53:00.169+00:00"
+      },
+      {
+        "id": "80fdc319-6115-493b-8e64-1db689665535",
+        "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+        "planned_day": "thu",
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "updated_at": "2026-06-22T22:53:00.169+00:00"
+      }
+    ],
+    "run_entries_remaining": []
+  }
+}

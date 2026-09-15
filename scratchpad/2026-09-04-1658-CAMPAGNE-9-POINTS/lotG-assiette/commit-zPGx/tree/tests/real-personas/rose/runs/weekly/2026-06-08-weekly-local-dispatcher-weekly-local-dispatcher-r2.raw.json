@@ -1,0 +1,1757 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t01",
+    "user": "Oui, je confirme que c est surtout la fatigue en fin de journee. J ai quand meme un peu avance parce que le materiel etait moins visible, mais je n ai pas eu assez d energie pour tenir tout le reste.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est noté, la fatigue a été le frein principal malgré le petit progrès sur le matériel. On va adapter la suite pour que ce soit plus gérable avec ton énergie. Est-ce que tu préfères qu'on reste sur un rythme très léger pour la semaine prochaine ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t01",
+            "source_message_id": "c8770411-d16e-4321-ac5a-54fa47ad4662",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_weekly_review_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_weekly_review_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_local_answer_weekly_question",
+            "operation_type": "weekly_adaptive_review_v1",
+            "status": "answered",
+            "flow_action": "answer_weekly_question",
+            "visible_task": "answer_weekly_question",
+            "confidence": "high",
+            "risk_score": 0,
+            "weekly_intent": {
+              "kind": "weekly_answer",
+              "summary": "L'utilisateur confirme que la fatigue est le bloqueur principal et signale un léger progrès grâce au rangement du matériel malgré un manque d'énergie global."
+            },
+            "handoff_updates": {
+              "status": "none",
+              "requested_adjustment_summary": null,
+              "revision_summary": null,
+              "platform_destination": null,
+              "scope": {
+                "kind": "none",
+                "plan_id": null,
+                "plan_title": null,
+                "plan_item_ids": [],
+                "scope_summary": null,
+                "needs_scope_clarification": false
+              }
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null
+            },
+            "local_flow_state": {
+              "stage": "collecting_human_signal",
+              "proposal_status": "none",
+              "validation_unlock_status": "locked_until_weekly_complete",
+              "human_signals": {
+                "objective_delta": "slight_progress",
+                "felt_state": "tired_but_ok"
+              },
+              "last_user_signal": "Confirme la fatigue de fin de journée comme obstacle majeur; note que le rangement du matériel a aidé mais que l'énergie manquait pour le reste.",
+              "last_visible_summary": "L'utilisateur confirme que la fatigue est le bloqueur principal et signale un léger progrès grâce au rangement du matériel malgré un manque d'énergie global.",
+              "last_handoff_summary": null,
+              "turn_count": 1,
+              "max_turns": 6,
+              "updated_at": "2026-06-08T15:55:12.103Z"
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "no_chat_mutation": true,
+            "no_durable_plan_mutation": true,
+            "evidence": [
+              "User explicitly confirmed: 'Oui, je confirme que c est surtout la fatigue'",
+              "User mentioned slight progress: 'J ai quand meme un peu avance'",
+              "User linked progress to specific item: 'le materiel etait moins visible'"
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 1,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t01:guard:uncommitted_progress_track_claim",
+                "kind": "durable_effect",
+                "effect_type": "final_reply.claim",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": null,
+                "status": "blocked",
+                "reason_code": "uncommitted_progress_track_claim",
+                "source": "guard",
+                "payload_summary": {
+                  "reason_codes": [
+                    "uncommitted_progress_track_claim"
+                  ]
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t01",
+          "source_message_id": "c8770411-d16e-4321-ac5a-54fa47ad4662",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "weekly_adaptive_review_v1",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_weekly_review_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_weekly_review_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "weekly_adaptive_review_v1",
+          "reason_code": "weekly_review_local_answer_weekly_question",
+          "operation_type": "weekly_adaptive_review_v1",
+          "status": "answered",
+          "flow_action": "answer_weekly_question",
+          "visible_task": "answer_weekly_question",
+          "confidence": "high",
+          "risk_score": 0,
+          "weekly_intent": {
+            "kind": "weekly_answer",
+            "summary": "L'utilisateur confirme que la fatigue est le bloqueur principal et signale un léger progrès grâce au rangement du matériel malgré un manque d'énergie global."
+          },
+          "handoff_updates": {
+            "status": "none",
+            "requested_adjustment_summary": null,
+            "revision_summary": null,
+            "platform_destination": null,
+            "scope": {
+              "kind": "none",
+              "plan_id": null,
+              "plan_title": null,
+              "plan_item_ids": [],
+              "scope_summary": null,
+              "needs_scope_clarification": false
+            }
+          },
+          "forgotten_progress": {
+            "status": "none",
+            "target_hint": null,
+            "outcome_hint": null,
+            "evidence": null
+          },
+          "local_flow_state": {
+            "stage": "collecting_human_signal",
+            "proposal_status": "none",
+            "validation_unlock_status": "locked_until_weekly_complete",
+            "human_signals": {
+              "objective_delta": "slight_progress",
+              "felt_state": "tired_but_ok"
+            },
+            "last_user_signal": "Confirme la fatigue de fin de journée comme obstacle majeur; note que le rangement du matériel a aidé mais que l'énergie manquait pour le reste.",
+            "last_visible_summary": "L'utilisateur confirme que la fatigue est le bloqueur principal et signale un léger progrès grâce au rangement du matériel malgré un manque d'énergie global.",
+            "last_handoff_summary": null,
+            "turn_count": 1,
+            "max_turns": 6,
+            "updated_at": "2026-06-08T15:55:12.103Z"
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "no_chat_mutation": true,
+          "no_durable_plan_mutation": true,
+          "evidence": [
+            "User explicitly confirmed: 'Oui, je confirme que c est surtout la fatigue'",
+            "User mentioned slight progress: 'J ai quand meme un peu avance'",
+            "User linked progress to specific item: 'le materiel etait moins visible'"
+          ],
+          "toolExecution": "none",
+          "executedTools": []
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 1,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t01:guard:uncommitted_progress_track_claim",
+              "kind": "durable_effect",
+              "effect_type": "final_reply.claim",
+              "operation_type": null,
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": null,
+              "status": "blocked",
+              "reason_code": "uncommitted_progress_track_claim",
+              "source": "guard",
+              "payload_summary": {
+                "reason_codes": [
+                  "uncommitted_progress_track_claim"
+                ]
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t02",
+    "user": "Oui, reste sur un rythme tres leger pour la semaine prochaine. Je veux surtout garder le sas de decompression, mais en version plus simple et moins exigeante.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est entendu pour le rythme très léger. On va simplifier l'action du sas de décompression dans ton plan \"Libération progressive du cannabis\" pour qu'elle soit moins exigeante. Je te laisse reprendre la main dans l'onglet Plan pour finaliser ces ajustements ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t02",
+            "source_message_id": "57ea0e60-0ca1-4ba8-87ac-dd3f868524fc",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_weekly_review_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_weekly_review_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_local_prepare_plan_handoff",
+            "operation_type": "adjust_plan_item",
+            "status": "handoff",
+            "flow_action": "prepare_plan_handoff",
+            "visible_task": "plan_handoff_ready",
+            "confidence": "high",
+            "risk_score": 0,
+            "weekly_intent": {
+              "kind": "plan_handoff_request",
+              "summary": "L'utilisateur accepte un rythme léger pour la semaine prochaine et demande de simplifier l'item 'sas de décompression' pour le rendre moins exigeant."
+            },
+            "handoff_updates": {
+              "status": "requested",
+              "requested_adjustment_summary": "Maintenir un rythme très léger. Simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+              "revision_summary": null,
+              "platform_destination": "Plan",
+              "scope": {
+                "kind": "specific_item",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_ids": [
+                  "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+                ],
+                "scope_summary": "Ajustement de l'item sas de décompression et du rythme global de la semaine.",
+                "needs_scope_clarification": false
+              }
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null
+            },
+            "local_flow_state": {
+              "stage": "plan_handoff",
+              "proposal_status": "handoff_delivered",
+              "validation_unlock_status": "locked_until_weekly_complete",
+              "human_signals": {
+                "objective_delta": "slight_progress",
+                "felt_state": "tired_but_ok"
+              },
+              "last_user_signal": "Confirme la fatigue comme bloqueur et souhaite un plan allégé.",
+              "last_visible_summary": "L'utilisateur accepte un rythme léger pour la semaine prochaine et demande de simplifier l'item 'sas de décompression' pour le rendre moins exigeant.",
+              "last_handoff_summary": "Maintenir un rythme très léger. Simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+              "turn_count": 2,
+              "max_turns": 6,
+              "updated_at": "2026-06-08T15:55:39.448Z"
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "platform_handoff": {
+              "operation_type": "adjust_plan_item",
+              "status": "delivered",
+              "surface_id": "plan",
+              "reason_code": "weekly_review_local_prepare_plan_handoff",
+              "no_chat_mutation": true,
+              "handoff_summary": "Maintenir un rythme très léger. Simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+              "scope": {
+                "kind": "specific_item",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_ids": [
+                  "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+                ],
+                "scope_summary": "Ajustement de l'item sas de décompression et du rythme global de la semaine.",
+                "needs_scope_clarification": false
+              }
+            },
+            "no_chat_mutation": true,
+            "no_durable_plan_mutation": true,
+            "evidence": [
+              "User message: 'Oui, reste sur un rythme tres leger... Je veux surtout garder le sas de decompression, mais en version plus simple'",
+              "Plan item ID for sas de décompression: 3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "toolExecution": "platform_handoff",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t02:platform_handoff:delivered:adjust_plan_item:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "weekly_adaptive_review_v1",
+                "status": "delivered",
+                "reason_code": "weekly_review_local_prepare_plan_handoff",
+                "source": "weekly_review",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "handoff",
+                  "surface_id": "plan"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t02",
+          "source_message_id": "57ea0e60-0ca1-4ba8-87ac-dd3f868524fc",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "weekly_adaptive_review_v1",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_weekly_review_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_weekly_review_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "weekly_adaptive_review_v1",
+          "reason_code": "weekly_review_local_prepare_plan_handoff",
+          "operation_type": "adjust_plan_item",
+          "status": "handoff",
+          "flow_action": "prepare_plan_handoff",
+          "visible_task": "plan_handoff_ready",
+          "confidence": "high",
+          "risk_score": 0,
+          "weekly_intent": {
+            "kind": "plan_handoff_request",
+            "summary": "L'utilisateur accepte un rythme léger pour la semaine prochaine et demande de simplifier l'item 'sas de décompression' pour le rendre moins exigeant."
+          },
+          "handoff_updates": {
+            "status": "requested",
+            "requested_adjustment_summary": "Maintenir un rythme très léger. Simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+            "revision_summary": null,
+            "platform_destination": "Plan",
+            "scope": {
+              "kind": "specific_item",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "plan_title": "Libération progressive du cannabis",
+              "plan_item_ids": [
+                "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+              ],
+              "scope_summary": "Ajustement de l'item sas de décompression et du rythme global de la semaine.",
+              "needs_scope_clarification": false
+            }
+          },
+          "forgotten_progress": {
+            "status": "none",
+            "target_hint": null,
+            "outcome_hint": null,
+            "evidence": null
+          },
+          "local_flow_state": {
+            "stage": "plan_handoff",
+            "proposal_status": "handoff_delivered",
+            "validation_unlock_status": "locked_until_weekly_complete",
+            "human_signals": {
+              "objective_delta": "slight_progress",
+              "felt_state": "tired_but_ok"
+            },
+            "last_user_signal": "Confirme la fatigue comme bloqueur et souhaite un plan allégé.",
+            "last_visible_summary": "L'utilisateur accepte un rythme léger pour la semaine prochaine et demande de simplifier l'item 'sas de décompression' pour le rendre moins exigeant.",
+            "last_handoff_summary": "Maintenir un rythme très léger. Simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+            "turn_count": 2,
+            "max_turns": 6,
+            "updated_at": "2026-06-08T15:55:39.448Z"
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "platform_handoff": {
+            "operation_type": "adjust_plan_item",
+            "status": "delivered",
+            "surface_id": "plan",
+            "reason_code": "weekly_review_local_prepare_plan_handoff",
+            "no_chat_mutation": true,
+            "handoff_summary": "Maintenir un rythme très léger. Simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+            "scope": {
+              "kind": "specific_item",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "plan_title": "Libération progressive du cannabis",
+              "plan_item_ids": [
+                "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+              ],
+              "scope_summary": "Ajustement de l'item sas de décompression et du rythme global de la semaine.",
+              "needs_scope_clarification": false
+            }
+          },
+          "no_chat_mutation": true,
+          "no_durable_plan_mutation": true,
+          "evidence": [
+            "User message: 'Oui, reste sur un rythme tres leger... Je veux surtout garder le sas de decompression, mais en version plus simple'",
+            "Plan item ID for sas de décompression: 3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "toolExecution": "platform_handoff",
+          "executedTools": []
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t02:platform_handoff:delivered:adjust_plan_item:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "weekly_adaptive_review_v1",
+              "status": "delivered",
+              "reason_code": "weekly_review_local_prepare_plan_handoff",
+              "source": "weekly_review",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "handoff",
+                "surface_id": "plan"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "plan",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t03",
+    "user": "Ok, applique-la comme ca dans mon plan s il te plait.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je ne peux pas modifier ton plan directement depuis notre échange. Je t'invite à te rendre dans l'onglet Plan pour y retrouver cette proposition et l'ajuster selon tes besoins. On fait comme ça ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t03",
+            "source_message_id": "2b3354c4-cc7d-40e2-9e86-14ec3a60052c",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_weekly_review_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_weekly_review_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_local_apply_attempt",
+            "operation_type": "adjust_plan_item",
+            "status": "handoff",
+            "flow_action": "apply_attempt",
+            "visible_task": "apply_attempt",
+            "confidence": "high",
+            "risk_score": 0,
+            "weekly_intent": {
+              "kind": "apply_attempt",
+              "summary": "L'utilisateur demande d'appliquer les modifications de plan discutées (rythme léger et simplification du sas de décompression)."
+            },
+            "handoff_updates": {
+              "status": "apply_attempt",
+              "requested_adjustment_summary": "Maintenir un rythme très léger et simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+              "revision_summary": null,
+              "platform_destination": "Plan",
+              "scope": {
+                "kind": "specific_plan",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_ids": [
+                  "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+                ],
+                "scope_summary": "Ajustement du rythme global et de l'item spécifique du sas de décompression.",
+                "needs_scope_clarification": false
+              }
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null
+            },
+            "local_flow_state": {
+              "stage": "plan_handoff",
+              "proposal_status": "apply_attempt",
+              "validation_unlock_status": "locked_until_weekly_complete",
+              "human_signals": {
+                "objective_delta": "slight_progress",
+                "felt_state": "tired_but_ok"
+              },
+              "last_user_signal": "Confirme la fatigue comme bloqueur et souhaite un plan allégé avec un sas de décompression simplifié.",
+              "last_visible_summary": "L'utilisateur demande d'appliquer les modifications de plan discutées (rythme léger et simplification du sas de décompression).",
+              "last_handoff_summary": "Maintenir un rythme très léger et simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+              "turn_count": 3,
+              "max_turns": 6,
+              "updated_at": "2026-06-08T15:56:02.850Z"
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "platform_handoff": {
+              "operation_type": "adjust_plan_item",
+              "status": "delivered",
+              "surface_id": "plan",
+              "reason_code": "weekly_review_local_apply_attempt",
+              "no_chat_mutation": true,
+              "handoff_summary": "Maintenir un rythme très léger et simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+              "scope": {
+                "kind": "specific_plan",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_ids": [
+                  "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+                ],
+                "scope_summary": "Ajustement du rythme global et de l'item spécifique du sas de décompression.",
+                "needs_scope_clarification": false
+              }
+            },
+            "no_chat_mutation": true,
+            "no_durable_plan_mutation": true,
+            "evidence": [
+              "User message: 'Ok, applique-la comme ca dans mon plan s il te plait.'",
+              "Current stage: plan_handoff",
+              "Action: apply_attempt triggered because user wants to commit the discussed changes."
+            ],
+            "toolExecution": "platform_handoff",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t03:platform_handoff:delivered:adjust_plan_item:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "weekly_adaptive_review_v1",
+                "status": "delivered",
+                "reason_code": "weekly_review_local_apply_attempt",
+                "source": "weekly_review",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "handoff",
+                  "surface_id": "plan"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t03",
+          "source_message_id": "2b3354c4-cc7d-40e2-9e86-14ec3a60052c",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "weekly_adaptive_review_v1",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_weekly_review_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_weekly_review_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "weekly_adaptive_review_v1",
+          "reason_code": "weekly_review_local_apply_attempt",
+          "operation_type": "adjust_plan_item",
+          "status": "handoff",
+          "flow_action": "apply_attempt",
+          "visible_task": "apply_attempt",
+          "confidence": "high",
+          "risk_score": 0,
+          "weekly_intent": {
+            "kind": "apply_attempt",
+            "summary": "L'utilisateur demande d'appliquer les modifications de plan discutées (rythme léger et simplification du sas de décompression)."
+          },
+          "handoff_updates": {
+            "status": "apply_attempt",
+            "requested_adjustment_summary": "Maintenir un rythme très léger et simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+            "revision_summary": null,
+            "platform_destination": "Plan",
+            "scope": {
+              "kind": "specific_plan",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "plan_title": "Libération progressive du cannabis",
+              "plan_item_ids": [
+                "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+              ],
+              "scope_summary": "Ajustement du rythme global et de l'item spécifique du sas de décompression.",
+              "needs_scope_clarification": false
+            }
+          },
+          "forgotten_progress": {
+            "status": "none",
+            "target_hint": null,
+            "outcome_hint": null,
+            "evidence": null
+          },
+          "local_flow_state": {
+            "stage": "plan_handoff",
+            "proposal_status": "apply_attempt",
+            "validation_unlock_status": "locked_until_weekly_complete",
+            "human_signals": {
+              "objective_delta": "slight_progress",
+              "felt_state": "tired_but_ok"
+            },
+            "last_user_signal": "Confirme la fatigue comme bloqueur et souhaite un plan allégé avec un sas de décompression simplifié.",
+            "last_visible_summary": "L'utilisateur demande d'appliquer les modifications de plan discutées (rythme léger et simplification du sas de décompression).",
+            "last_handoff_summary": "Maintenir un rythme très léger et simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+            "turn_count": 3,
+            "max_turns": 6,
+            "updated_at": "2026-06-08T15:56:02.850Z"
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "platform_handoff": {
+            "operation_type": "adjust_plan_item",
+            "status": "delivered",
+            "surface_id": "plan",
+            "reason_code": "weekly_review_local_apply_attempt",
+            "no_chat_mutation": true,
+            "handoff_summary": "Maintenir un rythme très léger et simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+            "scope": {
+              "kind": "specific_plan",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "plan_title": "Libération progressive du cannabis",
+              "plan_item_ids": [
+                "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+              ],
+              "scope_summary": "Ajustement du rythme global et de l'item spécifique du sas de décompression.",
+              "needs_scope_clarification": false
+            }
+          },
+          "no_chat_mutation": true,
+          "no_durable_plan_mutation": true,
+          "evidence": [
+            "User message: 'Ok, applique-la comme ca dans mon plan s il te plait.'",
+            "Current stage: plan_handoff",
+            "Action: apply_attempt triggered because user wants to commit the discussed changes."
+          ],
+          "toolExecution": "platform_handoff",
+          "executedTools": []
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t03:platform_handoff:delivered:adjust_plan_item:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "weekly_adaptive_review_v1",
+              "status": "delivered",
+              "reason_code": "weekly_review_local_apply_attempt",
+              "source": "weekly_review",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "handoff",
+                "surface_id": "plan"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "plan",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t04",
+    "user": "En fait maintenant je veux plutot une carte d attaque pour le sas de decompression, pas modifier le plan.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t04",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Yes, je vois le truc. Pour ton sas de décompression (sans fumer), voilà une carte d’attaque prête à l’emploi 👇🙂\n\nCarte d’attaque: Sas de décompression (3–7 min)\n1) Minute zéro: posture + respiration\n- Assieds-toi/pose-toi confort, épaules relâchées\n- 5 respirations lentes: inspire 4s, expire 6s\n\n2) Décharge mentale (1 min)\n- Note en 3 mots ce qui te tourne dans la tête (ou “vide” si rien)\n\n3) Décharge corps (2–4 min)\n- Option A: étirements doux (nuque/épaules/dos)\n- Option B: marche lente dans la pièce / couloir\n- Option C: 20 “relâchements” (tu contractes léger 2s puis tu relâches 5s)\n\n4) Ancrage (30s)\n- Regard fixe sur un point + relâche la mâchoire\n- Phrase simple dans ta tête: “Je redescends. Là maintenant.”\n\n5) Fin claire (10s)\n- Tu te dis: “C’est fini” puis tu reprends la prochaine micro-tâche (même petite)\n\nVersion ultra-courte (si t’as 2 minutes)\nRespiration 5 cycles + 1 étirement épaules + “Je redescends. Là maintenant.”\n\nTu veux une version A (plutôt corps) ou B (plutôt mental) pour que ça colle à ton profil ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "0": {
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [
+                {
+                  "operation_type": "prepare_attack_card",
+                  "explicitness": "explicit",
+                  "target_hint": "sas de decompression",
+                  "confidence_band": "high",
+                  "ambiguity": "none",
+                  "user_intent": "create",
+                  "operation_input": {
+                    "target_action_hint": "sas de decompression",
+                    "evidence": [
+                      "je veux plutot une carte d attaque pour le sas de decompression",
+                      "pas modifier le plan"
+                    ]
+                  }
+                }
+              ],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "should_offer": false,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {
+                  "weekly_adaptive_review": {
+                    "detected": true,
+                    "reason": "user_explicitly_switches_from_plan_adjustment_to_attack_card"
+                  }
+                }
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null,
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": true,
+                "status": "identified",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "action_title": "Faire un sas de décompression (sans fumer)",
+                "action_family_key": "habit:sas_decompression",
+                "action_type": "habit",
+                "expansion_policy": "exact_then_action_family_recent",
+                "reason": "matched_active_plan_item_sas_decompression"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": null
+              },
+              "memory_plan": {
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "action",
+                    "key": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                    "retrieval_policy": "semantic_first",
+                    "priority": "high"
+                  }
+                ],
+                "retrieval_policy": "semantic_first"
+              }
+            },
+            "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t04",
+            "source_message_id": "2e7a72a0-6f7f-42e2-811d-57027bf80704",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [
+                "immediacy_now"
+              ],
+              "evidence": [
+                "maintenant"
+              ]
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            }
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "normal_reply"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "normal_reply",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "normal_reply_default"
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "0": {
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "prepare_attack_card",
+                "explicitness": "explicit",
+                "target_hint": "sas de decompression",
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "create",
+                "operation_input": {
+                  "target_action_hint": "sas de decompression",
+                  "evidence": [
+                    "je veux plutot une carte d attaque pour le sas de decompression",
+                    "pas modifier le plan"
+                  ]
+                }
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "should_offer": false,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {
+                "weekly_adaptive_review": {
+                  "detected": true,
+                  "reason": "user_explicitly_switches_from_plan_adjustment_to_attack_card"
+                }
+              }
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null,
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": true,
+              "status": "identified",
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "action_title": "Faire un sas de décompression (sans fumer)",
+              "action_family_key": "habit:sas_decompression",
+              "action_type": "habit",
+              "expansion_policy": "exact_then_action_family_recent",
+              "reason": "matched_active_plan_item_sas_decompression"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": null
+            },
+            "memory_plan": {
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high"
+                }
+              ],
+              "retrieval_policy": "semantic_first"
+            }
+          },
+          "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t04",
+          "source_message_id": "2e7a72a0-6f7f-42e2-811d-57027bf80704",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ],
+            "evidence": [
+              "maintenant"
+            ]
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": null
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          }
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "normal_reply"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "normal_reply",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "normal_reply_default"
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t04",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "normal_reply"
+      },
+      "trace_error": null
+    }
+  }
+]

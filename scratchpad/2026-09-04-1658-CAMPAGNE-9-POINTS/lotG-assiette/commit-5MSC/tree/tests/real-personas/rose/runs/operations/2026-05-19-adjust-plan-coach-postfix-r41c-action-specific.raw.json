@@ -1,0 +1,1464 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t01",
+    "user": "L'action 'Partager un point positif' me met encore la pression. Je veux modifier uniquement cette action, pas le niveau : garder l'idée positive, mais enlever le côté compliment parfait.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-coach-postfix-r41c-action-specific",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends que l'action 'Partager un point positif' te met la pression et que tu souhaites la modifier pour garder l'idée positive sans le côté 'compliment parfait'. Je peux te préparer une proposition pour ajuster cette action. Est-ce que je peux te montrer ce brouillon ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "c1b6427d-bf9e-45b6-8162-2e37b58658da",
+        "ts": "2026-05-19T14:03:18.83+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11300,
+          "latency_ms": 7056,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 942,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Partager un point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "L'action 'Partager un point positif' me met encore la pression. Je veux modifier uniquement cette action, pas le niveau : garder l'idée positive, mais enlever l",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Partager un point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "L'action 'Partager un point positif' me met encore la pression. Je veux modifier uniquement cette action, pas le niveau : garder l'idée positive, mais enlever l",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": "matched_active_plan_item",
+            "status": "identified",
+            "detected": true,
+            "action_type": "habit",
+            "action_title": "Partager un point positif",
+            "plan_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+            "expansion_policy": "exact_then_action_family_recent",
+            "action_family_key": "habit:partager_point_positif"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "c1b6427d-bf9e-45b6-8162-2e37b58658da",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Partager un point positif",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "specific_action",
+                  "label": "Partager un point positif",
+                  "status": "identified",
+                  "evidence": [
+                    "L'action 'Partager un point positif'"
+                  ],
+                  "plan_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c"
+                },
+                "change_target": {
+                  "value": "enlever le côté compliment parfait",
+                  "status": "identified",
+                  "evidence": [
+                    "enlever le côté compliment parfait"
+                  ],
+                  "confidence": "high"
+                },
+                "reason_change": {
+                  "value": "me met encore la pression",
+                  "status": "identified",
+                  "evidence": [
+                    "me met encore la pression"
+                  ],
+                  "confidence": "high"
+                },
+                "target_granularity": {
+                  "value": "specific_action",
+                  "status": "identified",
+                  "evidence": [
+                    "modifier uniquement cette action"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": [
+                    "pas le niveau"
+                  ]
+                }
+              },
+              "adjust_plan_scope": "specific_action"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "draft_generation_confirmation"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de supprimer l'action 'Partager un point positif'.",
+              "Proposer de modifier la fréquence ou le moment de l'action, car l'utilisateur a explicitement dit 'pas le niveau'.",
+              "Proposer une solution qui augmenterait l'effort ou la réflexion nécessaire.",
+              "Utiliser des mots comme 'compliment', 'parfait', 'vrai point positif' dans la nouvelle instruction."
+            ],
+            "scope": "action",
+            "preserve": [
+              "L'intention générale d'introduire des partages positifs réguliers.",
+              "La nature d'habitude de l'action (récurrente).",
+              "Le caractère de faible effort et de faible friction de l'habitude.",
+              "La fréquence actuelle (3 jours/semaine) et le moment de la journée (soir)."
+            ],
+            "warnings": [
+              "Ne pas suggérer de supprimer l'action, car l'utilisateur souhaite 'garder l'idée positive'.",
+              "Ne pas proposer de solution qui réintroduirait la pression de trouver quelque chose de 'significatif' ou d''éloquent'.",
+              "Éviter tout langage qui pourrait être interprété comme une forme subtile de louange ou d'évaluation."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+              "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+              "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+              "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+              "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+              "Guidelines action: Le rôle de l'action est de favoriser la positivité. L'intention de partager quelque chose de positif doit être préservée. Un pont encore plus petit est nécessaire pour rendre l'action moins intimidante, en supprimant l'aspect 'compliment'. Un changement de nature est explicitement demandé par l'utilisateur ('enlever le côté compliment parfait').",
+              "Guidelines niveau: La demande de l'utilisateur est de ne pas toucher au niveau ('pas le niveau').",
+              "Guidelines whole_plan: Le scope est limité à une action spécifique, la cohérence globale du plan n'est pas en jeu à ce stade."
+            ],
+            "observation": "L'utilisateur exprime une pression persistante liée à l'action 'Partager un point positif', malgré les ajustements précédents. Le cœur du problème réside dans la perception que l'action exige encore de trouver un 'compliment parfait' ou un 'vrai point positif', ce qui génère une charge mentale et une attente de performance. L'intention est de maintenir la positivité mais de décharger l'action de toute notion d'évaluation ou de perfection.",
+            "recommendation": "Proposer une reformulation de l'instruction de l'action qui déplace explicitement le focus de la recherche d'un 'point positif' ou d'un 'compliment' vers le simple partage d'une observation neutre, d'un sentiment agréable ou d'un moment léger, sans jugement ni exigence de perfection. L'objectif est de rendre l'action plus spontanée et moins contraignante.",
+            "options_to_discuss": [
+              "Reformuler l'instruction pour se concentrer sur 'Partager une observation agréable de la journée'.",
+              "Reformuler l'instruction pour se concentrer sur 'Exprimer un petit moment de bien-être ou de légèreté'.",
+              "Reformuler l'instruction pour se concentrer sur 'Noter une petite chose qui t'a fait sourire ou te sentir bien'."
+            ],
+            "questions_to_clarify": [
+              "Quand tu dis 'enlever le côté compliment parfait', qu'est-ce que cela signifie concrètement pour toi ? Peux-tu me donner un exemple de ce que tu voudrais partager, et un exemple de ce que tu ne voudrais plus avoir à chercher ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "action",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 33719,
+        "created_at": "2026-05-19T14:03:18.775498+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t02",
+    "user": "Oui, montre le brouillon sans appliquer. Je veux que l'instruction devienne : 'dire merci pour un truc concret', et garder 3 jours par semaine.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-coach-postfix-r41c-action-specific",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends que tu veux que l'habitude \"Partager un point positif\" devienne \"dire merci pour un truc concret\" et qu'elle reste à 3 jours par semaine. Pour que je puisse te montrer le brouillon de ce changement, peux-tu me confirmer que ton intention est bien de rendre cette habitude plus simple et moins contraignante ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "e3ed3c5b-44eb-4d5b-b2a8-d29d1c6cb641",
+        "ts": "2026-05-19T14:04:14.35+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 14116,
+          "latency_ms": 10697,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 983,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Partager un point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Partager un point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "reason": "user provides further input for the active adjust_plan_item tool skill",
+              "signal_type": "user_input_for_active_tool_skill",
+              "active_skill_id": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "e3ed3c5b-44eb-4d5b-b2a8-d29d1c6cb641",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Partager un point positif",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "specific_plan_item",
+                  "label": "Partager un point positif",
+                  "title": "Partager un point positif",
+                  "status": "identified",
+                  "evidence": [
+                    "L'action 'Partager un point positif'"
+                  ],
+                  "plan_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c"
+                },
+                "payload": {
+                  "reason": {
+                    "status": "identified",
+                    "evidence": [
+                      "me met encore la pression"
+                    ]
+                  },
+                  "scope_kind": "specific_plan_item",
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "instruction:dire merci pour un truc concret",
+                      "cadence:3 jours par semaine"
+                    ],
+                    "evidence": [
+                      "l'instruction devienne : 'dire merci pour un truc concret'",
+                      "garder 3 jours par semaine"
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      "Partager un point positif"
+                    ],
+                    "evidence": [
+                      "L'action 'Partager un point positif'"
+                    ]
+                  },
+                  "adjustment_type": {
+                    "value": "rebalance",
+                    "status": "identified",
+                    "evidence": [
+                      "me met encore la pression",
+                      "enlever le côté compliment parfait"
+                    ]
+                  }
+                },
+                "target_granularity": {
+                  "value": "single_action",
+                  "status": "identified",
+                  "evidence": [
+                    "cette action"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": [
+                    "pas le niveau"
+                  ]
+                }
+              },
+              "adjust_plan_scope": "specific_action"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "reason": "user asks to see the draft without applying it, and provides further modifications",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": null,
+          "target_title": "Partager un point positif",
+          "missing_slots": [
+            "specific_plan_item.adjustment_type",
+            "specific_plan_item.reason"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de supprimer l'action 'Partager un point positif'.",
+              "Proposer une solution qui augmenterait l'effort ou la réflexion nécessaire.",
+              "Utiliser des mots comme 'compliment', 'parfait', 'vrai point positif' ou toute autre formulation qui pourrait réintroduire la pression."
+            ],
+            "scope": "action",
+            "preserve": [
+              "L'intention générale de l'action : introduire des partages positifs réguliers.",
+              "La nature d'habitude de l'action (récurrente).",
+              "Le caractère de faible effort et de faible friction de l'habitude.",
+              "La fréquence de 3 jours par semaine.",
+              "Le moment de la journée (soir) si applicable et non mentionné par l'utilisateur."
+            ],
+            "warnings": [
+              "Ne pas réintroduire de complexité ou de subjectivité dans l'instruction.",
+              "Ne pas modifier la fréquence de l'habitude, l'utilisateur ayant explicitement demandé de la garder à 3 jours par semaine."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+              "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+              "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+              "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+              "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+              "Guidelines action: Le rôle de l'action est de favoriser la positivité. L'intention de partager quelque chose de positif doit être préservée. La nouvelle instruction 'dire merci pour un truc concret' est un pont encore plus petit et plus direct, qui supprime l'aspect 'recherche' ou 'évaluation'. Le changement de nature vers une gratitude concrète est en ligne avec la demande de l'utilisateur de 'enlever le côté compliment parfait'.",
+              "Guidelines niveau: La demande de l'utilisateur est de ne pas toucher au niveau ('garder 3 jours par semaine'), ce qui est respecté.",
+              "Guidelines whole_plan: Le scope est limité à une action spécifique, la cohérence globale du plan n'est pas en jeu à ce stade."
+            ],
+            "observation": "L'utilisateur affine la formulation de l'instruction pour l'action 'Partager un point positif', cherchant à la rendre encore plus concrète et moins sujette à interprétation ou à la pression de la 'perfection'. La demande de 'dire merci pour un truc concret' est une tentative de simplifier l'exécution et de s'éloigner de la recherche d'un 'vrai point positif' ou d'un 'compliment'. La fréquence de 3 jours par semaine est explicitement confirmée, ce qui indique une stabilité sur la charge de l'habitude.",
+            "recommendation": "Valider la nouvelle instruction proposée par l'utilisateur : 'dire merci pour un truc concret'. Cette formulation répond directement au besoin de réduire la friction et la pression, en offrant une consigne claire et actionnable qui préserve l'intention de positivité sans exiger une recherche complexe ou une évaluation. Confirmer également le maintien de la fréquence à 3 jours par semaine.",
+            "options_to_discuss": [],
+            "questions_to_clarify": []
+          },
+          "coaching_guidance_audit": {
+            "scope": "action",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 45032,
+        "created_at": "2026-05-19T14:04:14.287666+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t03",
+    "user": "Oui, exactement : rendre l'habitude plus simple et moins contraignante, sans changer la fréquence ni les autres actions.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-coach-postfix-r41c-action-specific",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour la rendre plus facile à mettre en œuvre. Actuellement, l'instruction est 'écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif'. Pour enlever la pression de trouver un 'compliment parfait', je te propose de la changer en 'dire merci pour un truc concret'. Cela devrait te permettre de l'exécuter plus facilement et sans la contrainte de la 'perfection'. La fréquence de cette habitude restera à 3 jours par semaine, et toutes les autres actions de ton plan, comme 'Convenir d'un signal de pause' ou 'Faire le point sur le signal de pause', ne seront pas modifiées. Qu'en penses-tu ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "eafb81e8-e60e-4758-81a9-282bdc72350d",
+        "ts": "2026-05-19T14:05:01.231+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 14272,
+          "latency_ms": 8130,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 766,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Partager un point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Partager un point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "skill_id": "adjust_plan_item",
+              "signal_type": "continue_skill",
+              "skill_state_updates": {
+                "operation_input": {
+                  "payload": {
+                    "constraints": {
+                      "status": "identified",
+                      "values": [
+                        "instruction:dire merci pour un truc concret",
+                        "cadence:3 jours par semaine",
+                        "sans changer la fréquence",
+                        "sans changer les autres actions"
+                      ],
+                      "evidence": [
+                        "l'instruction devienne : 'dire merci pour un truc concret'",
+                        "garder 3 jours par semaine",
+                        "sans changer la fréquence",
+                        "sans changer les autres actions"
+                      ]
+                    },
+                    "adjustment_type": {
+                      "value": "simplify_and_reduce_constraint",
+                      "status": "identified",
+                      "evidence": [
+                        "rendre l'habitude plus simple et moins contraignante"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "eafb81e8-e60e-4758-81a9-282bdc72350d",
+          "tool_skill_intents": [],
+          "confirmation_response": {
+            "kind": "yes",
+            "reason": "user_confirms_intention_for_tool_skill_intake",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "difficulty": "medium",
+                "instruction": "instruction:dire merci pour un truc concret",
+                "target_reps": 3,
+                "cadence_label": "3 jours / semaine"
+              },
+              "title": "Ajustement - Partager un point positif",
+              "confidence": "high",
+              "ack_summary": {
+                "changed": [
+                  "ajustement de \"Partager un point positif\""
+                ],
+                "unchanged": [
+                  "le reste du plan n'est pas touché"
+                ],
+                "confidence": "high",
+                "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+                "follow_up_needed": null
+              },
+              "scope_label": "Partager un point positif",
+              "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+              "decision_basis": {
+                "evidence": [
+                  "Oui, exactement : rendre l'habitude plus simple et moins contraignante, sans changer la fréquence ni les autres actions.",
+                  "L'action 'Partager un point positif'",
+                  "me met encore la pression",
+                  "enlever le côté compliment parfait",
+                  "me met encore la pression"
+                ],
+                "confidence": "high",
+                "uncertainty": [],
+                "user_problem": "Partager un point positif bloque parce que l'entree est trop lourde.",
+                "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+                "must_preserve": [
+                  "reprendre Partager un point positif apres la version mini"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "ajuster le plan de facon minimale",
+              "change_rationale": {
+                "why_this_change": "Ajuster \"Partager un point positif\" traite le blocage identifié sans changer le reste du plan.",
+                "success_condition": "L'action redevient faisable.",
+                "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+              },
+              "adjust_plan_result": {
+                "scope": "action",
+                "rationale": {
+                  "confidence": "high",
+                  "missing_info": [],
+                  "user_problem": "L'habitude 'Partager un point positif' est bloquée car l'instruction actuelle génère une pression de 'perfection' ou de 'compliment parfait', rendant son exécution trop lourde.",
+                  "expected_effect": "L'habitude 'Partager un point positif' devrait redevenir faisable et être exécutée plus régulièrement, favorisant la positivité sans la pression ressentie auparavant.",
+                  "why_this_change": "Modifier l'instruction de l'habitude 'Partager un point positif' pour la rendre plus simple et concrète ('dire merci pour un truc concret') répond directement au blocage identifié en réduisant la friction et la charge cognitive, sans changer la fréquence ou le reste du plan."
+                },
+                "boundaries": {
+                  "explanation": "Seule l'instruction de l'habitude ciblée est modifiée pour réduire la pression et faciliter son exécution, sans impacter la fréquence ou le reste du plan.",
+                  "affected_scope": "L'ajustement est limité à l'habitude 'Partager un point positif'.",
+                  "global_plan_impact": "none",
+                  "explicitly_not_affected": [
+                    "L'objectif global du plan",
+                    "Les autres actions et habitudes du plan",
+                    "La structure globale du plan"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Ajustement de l'habitude 'Partager un point positif' pour la rendre plus simple et concrète.",
+                  "changed_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "after": "dire merci pour un truc concret",
+                      "title": "Partager un point positif",
+                      "before": "écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif",
+                      "reason": "Pour enlever la pression de trouver un 'compliment parfait' et rendre l'habitude plus simple et concrète à exécuter.",
+                      "capability": "change_action_frequency"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "title": "Partager un point positif",
+                      "reason": "La fréquence de 3 jours par semaine est maintenue comme demandé."
+                    },
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "title": "Convenir d'un signal de pause",
+                      "reason": "Cette action n'est pas affectée par l'ajustement."
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "title": "Faire le point sur le signal de pause",
+                      "reason": "Cette action n'est pas affectée par l'ajustement."
+                    },
+                    {
+                      "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                      "kind": "clarification",
+                      "title": "Cartographier les déclencheurs",
+                      "reason": "Cette clarification n'est pas affectée par l'ajustement."
+                    }
+                  ]
+                },
+                "user_message_brief": "J'ai ajusté l'habitude 'Partager un point positif' pour la rendre plus simple et concrète, en gardant sa fréquence.",
+                "user_message_detailed": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour la rendre plus facile à mettre en œuvre. Actuellement, l'instruction est 'écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif'. Pour enlever la pression de trouver un 'compliment parfait', je te propose de la changer en 'dire merci pour un truc concret'. Cela devrait te permettre de l'exécuter plus facilement et sans la contrainte de la 'perfection'. La fréquence de cette habitude restera à 3 jours par semaine, et toutes les autres actions de ton plan, comme 'Convenir d'un signal de pause' ou 'Faire le point sur le signal de pause', ne seront pas modifiées. Qu'en penses-tu ?"
+              },
+              "execution_strategy": "patch_existing",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused",
+                "target_reps",
+                "cadence_label"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait ! J'ai ajusté l'habitude 'Partager un point positif' pour la rendre plus simple et moins contraignante. L'instruction est maintenant 'dire merci pour un truc concret'. Cela devrait t'aider à l'exécuter plus facilement, sans la pression de devoir trouver un 'compliment parfait'. La fréquence de cette habitude reste bien à 3 jours par semaine, et le reste de ton plan n'a pas été touché. Je suis confiant que ce petit ajustement t'aidera à reprendre cette habitude positive.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour la rendre plus facile à mettre en œuvre. Actuellement, l'instruction est 'écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif'. Pour enlever la pression de trouver un 'compliment parfait', je te propose de la changer en 'dire merci pour un truc concret'. Cela devrait te permettre de l'exécuter plus facilement et sans la contrainte de la 'perfection'. La fréquence de cette habitude restera à 3 jours par semaine, et toutes les autres actions de ton plan, comme 'Convenir d'un signal de pause' ou 'Faire le point sur le signal de pause', ne seront pas modifiées. Qu'en penses-tu ?"
+          },
+          "status": "draft_review",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "6039f623-cdd3-4914-a46b-c56d7e6fb74b",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de supprimer l'action 'Partager un point positif'.",
+              "Proposer une solution qui augmenterait l'effort ou la réflexion nécessaire.",
+              "Utiliser des mots comme 'compliment', 'parfait', 'vrai point positif' ou toute autre formulation qui pourrait réintroduire la pression.",
+              "Modifier la fréquence ou les autres actions du plan."
+            ],
+            "scope": "action",
+            "preserve": [
+              "L'intention générale de l'action : introduire des partages positifs réguliers.",
+              "La nature d'habitude de l'action (récurrente).",
+              "Le caractère de faible effort et de faible friction de l'habitude.",
+              "La fréquence de 3 jours par semaine.",
+              "Le moment de la journée (soir) si applicable et non mentionné par l'utilisateur.",
+              "L'intégrité des autres actions et missions du plan."
+            ],
+            "warnings": [
+              "Ne pas réintroduire de complexité, de subjectivité ou d'exigence implicite dans la nouvelle instruction.",
+              "Ne pas modifier la fréquence de l'habitude, l'utilisateur ayant explicitement demandé de la garder à 3 jours par semaine.",
+              "Ne pas proposer de changements aux autres actions du plan, l'utilisateur ayant explicitement demandé de ne pas les toucher."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+              "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+              "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+              "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+              "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+              "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+              "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+              "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+              "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+              "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+              "Guidelines action: Le rôle de l'action est de favoriser la positivité. L'intention de partager quelque chose de positif doit être préservée. La nouvelle instruction 'dire merci pour un truc concret' est un pont encore plus petit et plus direct, qui supprime l'aspect 'recherche' ou 'évaluation'. Le changement de nature vers une gratitude concrète est en ligne avec la demande de l'utilisateur de 'enlever le côté compliment parfait'.",
+              "Guidelines niveau: La demande de l'utilisateur est de ne pas toucher au niveau ('garder 3 jours par semaine'), ce qui est respecté.",
+              "Guidelines whole_plan: Le scope est limité à une action spécifique, la cohérence globale du plan n'est pas en jeu à ce stade."
+            ],
+            "observation": "L'utilisateur confirme explicitement la direction de l'ajustement : rendre l'habitude 'Partager un point positif' plus simple et moins contraignante, en préservant la fréquence et sans impacter les autres actions. Cela valide la proposition de modifier l'instruction pour la rendre plus concrète et moins sujette à la pression de la 'perfection'.",
+            "recommendation": "Procéder à l'ajustement de l'instruction de l'habitude 'Partager un point positif' vers une formulation plus simple et concrète, telle que 'dire merci pour un truc concret', tout en confirmant le maintien de la fréquence à 3 jours par semaine et l'intégrité des autres actions du plan. L'intention de faciliter l'exécution est pleinement validée.",
+            "options_to_discuss": [],
+            "questions_to_clarify": []
+          },
+          "coaching_guidance_audit": {
+            "scope": "action",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 36418,
+        "created_at": "2026-05-19T14:05:01.170234+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t04",
+    "user": "Oui, je valide. Applique seulement cet ajustement sur 'Partager un point positif' : instruction 'dire merci pour un truc concret', fréquence 3 jours, rien d'autre.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t04",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-coach-postfix-r41c-action-specific",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est fait ! J'ai ajusté l'habitude 'Partager un point positif' pour la rendre plus simple et moins contraignante. L'instruction est maintenant 'dire merci pour un truc concret'. Cela devrait t'aider à l'exécuter plus facilement, sans la pression de devoir trouver un 'compliment parfait'. La fréquence de cette habitude reste bien à 3 jours par semaine, et le reste de ton plan n'a pas été touché. Je suis confiant que ce petit ajustement t'aidera à reprendre cette habitude positive. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "adjust_plan_item"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t04",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "73dcbaa2-fe70-4689-babc-a437afda9a68",
+        "ts": "2026-05-19T14:05:17.887+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11777,
+          "latency_ms": 5587,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 591,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t04",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1,1;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "73dcbaa2-fe70-4689-babc-a437afda9a68",
+          "tool_skill_intents": [],
+          "confirmation_response": {
+            "kind": "yes",
+            "payload_hint": {
+              "adjustments": {
+                "instruction": "dire merci pour un truc concret",
+                "target_reps": 3,
+                "cadence_label": "3 jours / semaine"
+              },
+              "operation_type": "adjust_plan_item",
+              "target_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c"
+            },
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "adjust_plan_item"
+          }
+        ],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "executed",
+          "reason_code": "normal_reply_default",
+          "operation_id": "6039f623-cdd3-4914-a46b-c56d7e6fb74b",
+          "plan_patch_id": "6683aa27-9957-4c9a-a5d1-72471c602dbe",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de supprimer l'action 'Partager un point positif'.",
+              "Proposer une solution qui augmenterait l'effort ou la réflexion nécessaire.",
+              "Utiliser des mots comme 'compliment', 'parfait', 'vrai point positif' ou toute autre formulation qui pourrait réintroduire la pression.",
+              "Modifier la fréquence ou les autres actions du plan."
+            ],
+            "scope": "action",
+            "preserve": [
+              "L'intention générale de l'action : introduire des partages positifs réguliers.",
+              "La nature d'habitude de l'action (récurrente).",
+              "Le caractère de faible effort et de faible friction de l'habitude.",
+              "La fréquence de 3 jours par semaine.",
+              "Le moment de la journée (soir) si applicable et non mentionné par l'utilisateur.",
+              "L'intégrité des autres actions et missions du plan."
+            ],
+            "warnings": [
+              "Ne pas réintroduire de complexité, de subjectivité ou d'exigence implicite dans la nouvelle instruction.",
+              "Ne pas modifier la fréquence de l'habitude, l'utilisateur ayant explicitement demandé de la garder à 3 jours par semaine.",
+              "Ne pas proposer de changements aux autres actions du plan, l'utilisateur ayant explicitement demandé de ne pas les toucher."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+              "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+              "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+              "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+              "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+              "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+              "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+              "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+              "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+              "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+              "Guidelines action: Le rôle de l'action est de favoriser la positivité. L'intention de partager quelque chose de positif doit être préservée. La nouvelle instruction 'dire merci pour un truc concret' est un pont encore plus petit et plus direct, qui supprime l'aspect 'recherche' ou 'évaluation'. Le changement de nature vers une gratitude concrète est en ligne avec la demande de l'utilisateur de 'enlever le côté compliment parfait'.",
+              "Guidelines niveau: La demande de l'utilisateur est de ne pas toucher au niveau ('garder 3 jours par semaine'), ce qui est respecté.",
+              "Guidelines whole_plan: Le scope est limité à une action spécifique, la cohérence globale du plan n'est pas en jeu à ce stade."
+            ],
+            "observation": "L'utilisateur confirme explicitement la direction de l'ajustement : rendre l'habitude 'Partager un point positif' plus simple et moins contraignante, en préservant la fréquence et sans impacter les autres actions. Cela valide la proposition de modifier l'instruction pour la rendre plus concrète et moins sujette à la pression de la 'perfection'.",
+            "recommendation": "Procéder à l'ajustement de l'instruction de l'habitude 'Partager un point positif' vers une formulation plus simple et concrète, telle que 'dire merci pour un truc concret', tout en confirmant le maintien de la fréquence à 3 jours par semaine et l'intégrité des autres actions du plan. L'intention de faciliter l'exécution est pleinement validée.",
+            "options_to_discuss": [],
+            "questions_to_clarify": []
+          },
+          "bridge_plan_item_id": null,
+          "coaching_guidance_audit": {
+            "scope": "action",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 5686,
+        "created_at": "2026-05-19T14:05:17.823826+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

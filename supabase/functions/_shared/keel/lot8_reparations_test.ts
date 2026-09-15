@@ -174,7 +174,7 @@ Deno.test("RÉPARATIONS ⑥ — LA GARDE FINALE LIT LA CHARGE ÉCRITE, pas un ob
   );
   const gate = src.indexOf("finalPlanGate(asGatePlan(writePayload)");
   const payload = src.indexOf("const writePayload = {");
-  const write = src.indexOf('"write_student_meal_plan"');
+  const write = src.indexOf('"keel_household_publish_generation"');
   assert(gate >= 0, "la garde finale ne tourne plus sur la charge écrite");
   assert(
     payload >= 0 && payload < gate,

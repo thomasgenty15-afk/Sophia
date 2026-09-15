@@ -1,0 +1,170 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r8-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Hier soir j'ai bien fait le sas, mais j'ai bloqué plusieurs minutes avant d'ouvrir le carnet. Ce soir j'aimerais ne pas repartir dans ce flottement.",
+    "assistant": "Ah oui… le “sas OK” mais le démarrage après, c’est le piège classique 😅 Je te propose de réduire juste la friction du lancement : garder ton sas, mais lui donner une toute petite suite automatique pour passer dès que tu as fini.\n\nOn fait quoi ce soir : tu veux utiliser un repère très simple du type “1 minute = j’ouvre le carnet, sans réfléchir” ou plutôt “d’abord une micro-liste (3 lignes max), puis j’ouvre le carnet” ? 🙂\n\nConcrètement, je parle d'une Carte d'attaque pour \"Faire le sas de déchargement\", à préparer seulement si tu confirmes.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "track_progress_plan_item"
+    ],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "Ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "track_progress_plan_item"
+      }
+    ],
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r8-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prépare la carte d'attaque pour ce moment-là. Je veux vraiment viser l'instant où je dois sortir le carnet, pas refaire toute ma soirée.",
+    "assistant": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nPrepare l'environnement de \"Faire le sas de déchargement\" pendant 2 minutes, sans obligation d'aller plus loin.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Faire le sas de déchargement",
+          "technique": "preparer_terrain",
+          "instruction": "Prepare l'environnement de \"Faire le sas de déchargement\" pendant 2 minutes, sans obligation d'aller plus loin.",
+          "mode_emploi": "Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Retirer de la friction avant que le moment d'action arrive.",
+          "generated_asset": "Prepare l'environnement de \"Faire le sas de déchargement\" pendant 2 minutes, sans obligation d'aller plus loin.",
+          "technique_title": "Preparer le terrain",
+          "supporting_points": [],
+          "activation_keyword": null
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nPrepare l'environnement de \"Faire le sas de déchargement\" pendant 2 minutes, sans obligation d'aller plus loin.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?"
+      },
+      "source": "recommendation_tool",
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "97ddab0e-ad89-4537-9f02-204e20be8b5e",
+      "selected_handler": "prepare_attack_card",
+      "recommendation_id": "dispatcher_opportunity:attack_card:qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r8-t01"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r8-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Avant de créer, change le draft: je veux que ça dise ouvrir le carnet, écrire seulement une phrase, puis décider après si je continue.",
+    "assistant": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nVersion minuscule : ouvrir le carnet, puis décider après si je continue.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "confirmation_correction_to_pending",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Faire le sas de déchargement",
+          "technique": "preparer_terrain",
+          "instruction": "Version minuscule : ouvrir le carnet, puis décider après si je continue.",
+          "mode_emploi": "Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Retirer de la friction avant que le moment d'action arrive.",
+          "generated_asset": "Version minuscule : ouvrir le carnet, puis décider après si je continue.",
+          "technique_title": "Preparer le terrain",
+          "supporting_points": [],
+          "activation_keyword": null
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nVersion minuscule : ouvrir le carnet, puis décider après si je continue.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?"
+      },
+      "status": "pending_confirmation_updated",
+      "reason_code": "confirmation_correction_to_pending",
+      "operation_id": "976d12d5-3ddf-4cf8-b7d5-23df54259085",
+      "selected_handler": "prepare_attack_card",
+      "previous_operation_id": "97ddab0e-ad89-4537-9f02-204e20be8b5e"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

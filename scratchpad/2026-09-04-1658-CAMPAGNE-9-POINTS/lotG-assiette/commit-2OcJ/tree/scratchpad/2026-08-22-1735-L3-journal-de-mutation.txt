@@ -1,0 +1,16 @@
+[NON MUTÉE] VERT —  Test Files  3 passed (3) |       Tests  136 passed (136)
+[M1 le chiffre revient dans la phrase EN] attendu ROUGE · obtenu ROUGE ✅ —  Test Files  2 failed | 1 passed (3) |       Tests  4 failed | 132 passed (136)
+[M2 une unité SANS chiffre revient en FR] attendu ROUGE · obtenu ROUGE ✅ —  Test Files  1 failed | 2 passed (3) |       Tests  1 failed | 135 passed (136)
+[M3 l'ancien hint revient (la 2e surface)] attendu ROUGE · obtenu ROUGE ✅ —  Test Files  1 failed | 2 passed (3) |       Tests  2 failed | 134 passed (136)
+[M4 la garde est DÉSARMÉE (rend toujours null)] attendu ROUGE · obtenu ROUGE ✅ —  Test Files  1 failed | 2 passed (3) |       Tests  1 failed | 135 passed (136)
+[M5 un mot quitte le vocabulaire fermé (`weeks`)] attendu ROUGE · obtenu ROUGE ✅ —  Test Files  1 failed | 2 passed (3) |       Tests  2 failed | 134 passed (136)
+[M6 les bornes de mot deviennent du `includes`] attendu ROUGE · obtenu ROUGE ✅ —  Test Files  1 failed | 2 passed (3) |       Tests  5 failed | 131 passed (136)
+[M7 la prémisse saute: la phrase sort TOUJOURS] attendu ROUGE · obtenu ROUGE ✅ —  Test Files  1 failed | 2 passed (3) |       Tests  3 failed | 133 passed (136)
+[M8 l'ÉCRAN réaffiche un nombre de semaines exact] attendu ROUGE · obtenu ROUGE ✅ —  Test Files  1 failed | 2 passed (3) |       Tests  1 failed | 135 passed (136)
+[M9 l'ÉTAT reporte un champ `weeks`] attendu ROUGE · obtenu ROUGE ✅ —  Test Files  1 failed | 2 passed (3) |       Tests  1 failed | 135 passed (136)
+[V1 phrase FR réécrite, toujours honnête] attendu VERT · obtenu VERT ✅ —  Test Files  3 passed (3) |       Tests  136 passed (136)
+[V2 phrase EN réécrite, toujours honnête] attendu VERT · obtenu VERT ✅ —  Test Files  3 passed (3) |       Tests  136 passed (136)
+[V3 hint FR réécrit, toujours honnête] attendu VERT · obtenu VERT ✅ —  Test Files  3 passed (3) |       Tests  136 passed (136)
+[RESTAURÉE] VERT —  Test Files  3 passed (3) |       Tests  136 passed (136)
+
+=== 12 mutations, 0 inattendues ===

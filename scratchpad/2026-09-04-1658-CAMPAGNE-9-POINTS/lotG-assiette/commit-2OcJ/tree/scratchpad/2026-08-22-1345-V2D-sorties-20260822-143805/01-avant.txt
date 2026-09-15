@@ -1,0 +1,14 @@
+V2-D — ÉTAT D'AVANT · 2026-08-22T12:38:13Z
+plan de référence 66de9046-7b8e-48f9-958c-aa8086d65d66 : retired_at=NULL duration_days=7
+plan V0-D         3c781a71-da7c-4abe-8a99-4a6ed7445c99 : retired_at=NULL duration_days=1
+générations déjà en base (source sans point) : 370
+food_composition_pending : 5
+profiles.locale : fr-FR
+
+— plans VIVANTS de la fixture —
+                  id                  | plan_kind | starts_on  | duration_days | retired_at | content_locale |                              pv                               
+--------------------------------------+-----------+------------+---------------+------------+----------------+---------------------------------------------------------------
+ 3c781a71-da7c-4abe-8a99-4a6ed7445c99 | household | 2026-08-21 |             1 |            | fr-FR          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ 66de9046-7b8e-48f9-958c-aa8086d65d66 | household | 2026-08-22 |             7 |            | fr-FR          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+(2 rows)
+

@@ -255,6 +255,67 @@ Deno.test("a medical allergen in the SHOPPING LIST does not ship either", () => 
   assertEquals(meal.lock.reason, "blocked_medical_constraint");
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-12 · FERMETURE LOT 2 — LA CANDIDATE NON LIVRABLE, ET OÙ ELLE MORD
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ une morsure médicale garde le plan VIDE, et dit où elle a mordu", () => {
+  // ⛔ LE DÉFAUT FERMÉ: le verrou lit UN texte concaténé. Une arachide dans le
+  // dîner de samedi rendait les six repas indisponibles, et rien ne disait
+  // lequel était en cause. Le plan de clôture l'exige: « localiser les
+  // violations par plat, préparation, note de portion, méthode, session,
+  // courses ou autre surface visible ».
+  const meal = parse({
+    dishes: [
+      dish({ title: "Sain", method: "Fais revenir le riz." }),
+      dish({ title: "Fautif", method: "Finish with a spoon of peanut butter." }),
+    ],
+    shopping_list: [],
+  }, { safetyConstraints: [PEANUT] });
+
+  // ⛔ LA MOITIÉ QUI PROTÈGE NE BOUGE PAS: les quatre tableaux PUBLICS restent
+  // vides. Aucun appelant existant ne voit une candidate dangereuse.
+  assertEquals(meal.dishes, []);
+  assertEquals(meal.preparations, []);
+  assertEquals(meal.shopping_list, []);
+  assertEquals(meal.lock.reason, "blocked_medical_constraint");
+
+  // ⛔ ET CE QUI EST AJOUTÉ VIT À CÔTÉ, SOUS UN NOM QUI DIT CE QU'IL EST.
+  assert(meal.unsafe_candidate !== null, "la candidate interne a disparu");
+  assertEquals(meal.unsafe_candidate.dishes.length, 2);
+  const mordus = meal.unsafe_candidate.violations.filter((v) => v.where === "dish");
+  assertEquals(mordus.length, 1, "la localisation accuse plus d'un plat");
+  assertEquals(mordus[0].title, "Fautif");
+  assertEquals(mordus[0].index, 1);
+  assert(mordus[0].tokens.length > 0, "les jetons qui ont mordu ne sortent pas");
+});
+
+Deno.test("⛔ bis — une sortie PROPRE n'a pas de candidate interne", () => {
+  // ⛔ LA CONTRE-ÉPREUVE. Une candidate interne posée sur un plan sain ferait
+  // exister un second chemin de publication, et personne ne le verrait.
+  const meal = parse({ dishes: [dish()], shopping_list: [] });
+  assertEquals(meal.lock.reason, "clean");
+  assertEquals(meal.unsafe_candidate, null);
+});
+
+Deno.test("⛔ ter — la morsure de la LISTE DE COURSES est située sur sa ligne", () => {
+  const meal = parse({
+    dishes: [dish()],
+    shopping_list: [{ term: "peanut butter", quantity: "1 jar", aisle: "pantry" }],
+  }, { safetyConstraints: [PEANUT] });
+  assert(meal.unsafe_candidate !== null);
+  const courses = meal.unsafe_candidate.violations.filter((v) =>
+    v.where === "shopping"
+  );
+  assertEquals(courses.length, 1);
+  assertEquals(courses[0].term, "peanut butter");
+  // ⛔ ET AUCUN PLAT N'EST ACCUSÉ: la recette est saine.
+  assertEquals(
+    meal.unsafe_candidate.violations.filter((v) => v.where === "dish").length,
+    0,
+  );
+});
+
 Deno.test("a food the coach DISCOURAGES does not ship", () => {
   const meal = parse({
     dishes: [dish({ method: "Fry the onions in sunflower oil." })],
@@ -729,12 +790,22 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
 // ---------------------------------------------------------------------------
 
 /** Le budget d'une bouche qui reçoit son plat à elle. */
-function eaterAsking(memberIds: readonly string[]) {
+function eaterAsking(
+  memberIds: readonly string[],
+  cells: readonly { day: string; slot: string }[] = [{ day: "mon", slot: "lunch" }],
+) {
   return {
     shape: "one_session" as const,
     ownDishesShown: 0,
     dedicatedDishesAsked: 1,
-    dedicatedCells: [{ day: "mon", slot: "lunch" }],
+    // ⟳ 2026-09-14 · BÊTA 1A ② — LA CASE NOMME LA BOUCHE QU'ELLE ATTEND. Le
+    // décor d'avant ne portait que `{day, slot}`, et c'est exactement ce qui
+    // rendait indiscernables « ce plat est celui de Nils, sur la case de Nils »
+    // et « ce plat est adressé à Lea, sur la case de Nils ». La grille de
+    // production pose les deux.
+    dedicatedCells: cells.flatMap((c) =>
+      memberIds.map((memberId) => ({ day: c.day, slot: c.slot, memberId }))
+    ),
     dishBearerIds: memberIds,
   };
 }
@@ -845,6 +916,7 @@ Deno.test("LOT 3C — rien de déclaré: les quatre nombres le disent", () => {
     declared: 0,
     attributed: 0,
     refused: 0,
+    refused_dropped: 0,
   });
 });
 
@@ -857,6 +929,7 @@ Deno.test("LOT 3C — déclaré et accepté: `declared` ET `attributed` montent"
     declared: 1,
     attributed: 1,
     refused: 0,
+    refused_dropped: 0,
   });
 });
 
@@ -873,6 +946,7 @@ Deno.test("LOT 3C — déclaré sur une bouche INCONNUE: `declared` monte, `attr
     declared: 1,
     attributed: 0,
     refused: 1,
+    refused_dropped: 0,
   });
 });
 
@@ -891,6 +965,7 @@ Deno.test("LOT 3C — déclaré au barreau ①: compté REFUSÉ, jamais attribu�
     declared: 1,
     attributed: 0,
     refused: 1,
+    refused_dropped: 0,
   });
 });
 
@@ -939,28 +1014,256 @@ Deno.test("LOT 3C — un plat ÉVINCÉ par le plafond ne compte dans AUCUN des q
     why: "It fits the day.",
     ...over,
   });
-  // Le TROISIÈME déjeuner est le plat le plus jetable (sa case est déjà prise
-  // deux fois): c'est lui que le plafond sacrifie quand le dîner arrive, et
-  // c'est lui qui porte l'attribution refusée.
+  // ⟳ 2026-09-14 · BÊTA 1A ② — LE DÉCOR A CHANGÉ DEUX FOIS, ET IL FALLAIT LES
+  // DEUX. ① Le décor d'origine marquait le TROISIÈME déjeuner d'une case qui
+  // portait déjà le plat de la table: depuis que ce plat-là tombe à l'arrivée,
+  // le test passait toujours sans plus rien mesurer. ② Le décor suivant mettait
+  // un `for_member_id` REFUSÉ sur le plat marqué — et un refus, désormais, ne
+  // franchit plus le plafond: il tombe avant. Le plat marqué porte donc
+  // maintenant une attribution PARFAITEMENT VALIDE (m-zoe, sur la case que la
+  // grille lui réserve), et il est le TROISIÈME de sa case, donc rang 2, donc
+  // le seul que le plafond puisse évincer.
   const meal = parse({
     dishes: [
       dish("breakfast", 1),
       dish("lunch", 1),
-      dish("lunch", 2),
-      dish("lunch", 3, { for_member_id: "m-inconnu" }),
       dish("dinner", 1),
+      dish("dinner", 2, { for_member_id: "m-zoe" }),
+      dish("dinner", 3, { for_member_id: "m-zoe" }),
     ],
-  }, { merge: eaterAsking(["m-zoe"]) });
+  }, {
+    merge: eaterAsking(["m-zoe"], [{ day: "mon", slot: "dinner" }]),
+  });
   assert(
-    !meal.dishes.some((d) => d.title === "Plate lunch 3"),
+    !meal.dishes.some((d) => d.title === "Plate dinner 3"),
     "le plafond n'a pas évincé le plat marqué: le test ne mesure plus rien",
+  );
+  assert(
+    // ⚠️ LE MOTIF DU PLAFOND NOMME L'INDEX DE LA RÉPONSE BRUTE, pas le titre —
+    // `dishes[4]` est bien `Plate dinner 3`, le cinquième et dernier.
+    meal.issues.some((i) => i.includes("over the") && i.includes("dishes[4]")),
+    `le plat marqué n'est pas tombé par le PLAFOND: ${meal.issues.join(" | ")}`,
   );
   assertEquals(meal.dish_owner_counts, {
     dishes: meal.dishes.length,
+    // `dinner 2` survit et porte une attribution VALIDE: c'est lui, et lui
+    // seul, que les quatre nombres décrivent. `dinner 3` en portait une aussi,
+    // et il ne compte NULLE PART — c'est tout l'objet du test.
+    declared: 1,
+    attributed: 1,
+    refused: 0,
+    refused_dropped: 0,
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ⟳ 2026-09-14 — UN `for_member_id` REFUSÉ NE DEVIENT PAS UN SECOND PLAT DE
+//                TABLE. Le défaut qui l'impose a été mesuré sur 6 tirs sur 13.
+//
+// ⛔ CE QUE LE LOT C PROMETTAIT ET CE QU'IL FAISAIT. « Un `for_member_id`
+// refusé ne rejette jamais le plat »: l'attribution tombait, le plat restait —
+// et comme la case portait DÉJÀ le plat de la table, le plat dédié devenait un
+// SECOND plat de table. Chaque bouche de la case était nommée sur deux
+// couvercles, `mealsDelivered` rendait `double`, et la porte finale refusait le
+// PLAN ENTIER en 422. Le commentaire disait « jamais une raison de retirer un
+// dîner à quelqu'un »; le résultat était que personne n'avait de dîner.
+// ---------------------------------------------------------------------------
+
+Deno.test("ATTRIBUTION REFUSÉE — le plat tombe quand la case a DÉJÀ son plat de table", () => {
+  const dish = (slot: string, n: number, over: Record<string, unknown> = {}) => ({
+    title: `Plate ${slot} ${n}`,
+    slot,
+    day: "mon",
+    ingredients: [{ term: "chicken", quantity: "150 g" }],
+    method: "Cook it.",
+    why: "It fits the day.",
+    ...over,
+  });
+  const meal = parse({
+    dishes: [
+      dish("lunch", 1),
+      dish("lunch", 2, { for_member_id: "m-inconnu" }),
+    ],
+  }, { merge: eaterAsking(["m-zoe"]) });
+  // LE PLAT DE LA TABLE RESTE: personne ne perd son déjeuner.
+  assertEquals(meal.dishes.length, 1);
+  assertEquals(meal.dishes[0].title, "Plate lunch 1");
+  assertEquals(meal.dishes[0].memberId, null);
+  // ⛔ ET LE GESTE EST NOMMÉ. Une suppression silencieuse est pire que le défaut.
+  assert(
+    meal.issues.some((i) =>
+      i.includes("already carries the table's dish") && i.includes("feed everyone there twice")
+    ),
+    meal.issues.join(" | "),
+  );
+  // ⛔ ET COMPTÉ. Le plat tombé n'est dans aucun des quatre autres nombres — il
+  // n'est plus dans `dishes` — donc sans le cinquième il ne se lirait nulle part.
+  assertEquals(meal.dish_owner_counts, {
+    dishes: 1,
     declared: 0,
     attributed: 0,
     refused: 0,
+    refused_dropped: 1,
   });
+});
+
+Deno.test("ATTRIBUTION REFUSÉE — LE CAS QUI PASSE: sans plat de table, le plat RESTE", () => {
+  // ⛔ « Une garde a besoin d'un cas qui passe. » Cassée, elle jetterait tout
+  // plat porteur d'une attribution refusée et ressemblerait à une garde qui
+  // marche. Ici la case ne porte AUCUN plat de table: le plat refusé devient ce
+  // plat de table, la promesse du lot C tenue mot pour mot.
+  const meal = parse(dishFor({ for_member_id: "m-inconnu" }), {
+    merge: eaterAsking(["m-zoe"]),
+  });
+  assertEquals(meal.dishes.length, 1);
+  assertEquals(meal.dishes[0].memberId, null);
+  assertEquals(meal.dish_owner_counts, {
+    dishes: 1,
+    declared: 1,
+    attributed: 0,
+    refused: 1,
+    refused_dropped: 0,
+  });
+  assert(
+    !meal.issues.some((i) => i.includes("feed everyone there twice")),
+    meal.issues.join(" | "),
+  );
+});
+
+Deno.test("ATTRIBUTION REFUSÉE — un plat ATTRIBUÉ reste un second plat légitime", () => {
+  // ⛔ LA GARDE NE MORD QUE SUR LE REFUS. Une attribution VALIDE sur une case
+  // qui porte le plat de la table est exactement ce que la consigne réclame: le
+  // plat dédié. `mealsDelivered` ne compte pas ses couvercles contre la table —
+  // il nourrit sa bouche et personne d'autre.
+  const dish = (slot: string, n: number, over: Record<string, unknown> = {}) => ({
+    title: `Plate ${slot} ${n}`,
+    slot,
+    day: "mon",
+    ingredients: [{ term: "chicken", quantity: "150 g" }],
+    method: "Cook it.",
+    why: "It fits the day.",
+    ...over,
+  });
+  const meal = parse({
+    dishes: [
+      dish("lunch", 1),
+      dish("lunch", 2, { for_member_id: "m-zoe" }),
+    ],
+  }, { merge: eaterAsking(["m-zoe"]) });
+  assertEquals(meal.dishes.length, 2);
+  assertEquals(meal.dishes[1].memberId, "m-zoe");
+  assertEquals(meal.dish_owner_counts.refused_dropped, 0);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-14 · BÊTA 1A ② — LE MÊME JSON DANS LES DEUX ORDRES REND LE MÊME
+//                PLAN. C'est la première exigence du lot: « l'ordre table →
+//                dédié ou dédié → table doit produire le même résultat
+//                fonctionnel ».
+//
+// ⛔ CE QU'IL MANQUAIT, ET POURQUOI PERSONNE NE L'AVAIT VU. La décision de
+// retirer un plat à l'attribution refusée ne regardait QUE les plats DÉJÀ
+// gardés. Les treize réponses archivées écrivent toutes le plat de la table en
+// premier, donc la moitié manquante n'a jamais été exercée. Écrite dans
+// l'autre sens, la même réponse rendait le plat refusé PREMIER plat de table,
+// puis le vrai plat de table devenait le second: `double`, 422, plan perdu.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Deux plats sur une même case, l'un nu, l'autre mal adressé. */
+function paireSurUneCase(ordre: "table_puis_adresse" | "adresse_puis_table") {
+  const nu = {
+    title: "Table plate",
+    slot: "lunch",
+    day: "mon",
+    ingredients: [{ term: "chicken", quantity: "150 g" }],
+    method: "Cook it.",
+    why: "It fits the day.",
+  };
+  const adresse = { ...nu, title: "Addressed plate", for_member_id: "m-inconnu" };
+  return {
+    dishes: ordre === "table_puis_adresse" ? [nu, adresse] : [adresse, nu],
+  };
+}
+
+Deno.test("BÊTA 1A ② — les deux ordres rendent le MÊME plan: un seul plat de table", () => {
+  const dabord = parse(paireSurUneCase("table_puis_adresse"), {
+    merge: eaterAsking(["m-zoe"]),
+  });
+  const ensuite = parse(paireSurUneCase("adresse_puis_table"), {
+    merge: eaterAsking(["m-zoe"]),
+  });
+  // ⛔ UN SEUL PLAT, DES DEUX CÔTÉS. Avant ce lot, le second ordre en gardait
+  // DEUX — deux plats de table sur la même case, chaque bouche servie deux
+  // fois, et la porte finale refusait le plan entier.
+  assertEquals(dabord.dishes.length, 1);
+  assertEquals(ensuite.dishes.length, 1);
+  assertEquals(dabord.dishes[0].memberId, null);
+  assertEquals(ensuite.dishes[0].memberId, null);
+  // ⚠️ C'EST BIEN LE PLAT NU QUI SURVIT DANS LES DEUX SENS, et pas « le
+  // premier écrit »: le plat mal adressé n'est le dîner de personne.
+  assertEquals(dabord.dishes[0].title, "Table plate");
+  assertEquals(ensuite.dishes[0].title, "Table plate");
+  // Et les compteurs décrivent la même chose des deux côtés.
+  assertEquals(dabord.dish_owner_counts, ensuite.dish_owner_counts);
+  assertEquals(dabord.dish_owner_counts.refused_dropped, 1);
+});
+
+Deno.test("BÊTA 1A ② — le plat mal adressé RESTE quand il est seul sur sa case", () => {
+  // ⛔ LA GARDE A TOUJOURS SON CAS QUI PASSE. Sans plat nu sur la case — ni
+  // gardé, ni à venir — le plat refusé devient le plat de la table.
+  const meal = parse({
+    dishes: [{
+      title: "Addressed plate",
+      slot: "lunch",
+      day: "mon",
+      for_member_id: "m-inconnu",
+      ingredients: [{ term: "chicken", quantity: "150 g" }],
+      method: "Cook it.",
+      why: "It fits the day.",
+    }],
+  }, { merge: eaterAsking(["m-zoe"]) });
+  assertEquals(meal.dishes.length, 1);
+  assertEquals(meal.dishes[0].memberId, null);
+  assertEquals(meal.dish_owner_counts.refused_dropped, 0);
+});
+
+Deno.test("BÊTA 1A ② — un plat adressé à la MAUVAISE case n'est pas attribué", () => {
+  // ⛔ LE POINT ⑥ DE LA CLÔTURE, PRIS À SA SOURCE. `m-zoe` est bien une bouche
+  // de la liste fermée — mais la grille ne lui réserve `mon/lunch`, pas
+  // `mon/dinner`. Avant ce lot, les deux listes étaient PLATES: l'attribution
+  // passait partout, et l'obligation de la vraie case disparaissait en
+  // silence.
+  const meal = parse({
+    dishes: [{
+      title: "Dinner plate",
+      slot: "dinner",
+      day: "mon",
+      for_member_id: "m-zoe",
+      ingredients: [{ term: "chicken", quantity: "150 g" }],
+      method: "Cook it.",
+      why: "It fits the day.",
+    }],
+  }, { merge: eaterAsking(["m-zoe"], [{ day: "mon", slot: "lunch" }]) });
+  assertEquals(meal.dishes.length, 1);
+  assertEquals(meal.dishes[0].memberId, null);
+  assertEquals(meal.dish_owner_counts.refused, 1);
+});
+
+Deno.test("BÊTA 1A ② — sur SA case, la même attribution passe", () => {
+  // Le cas qui passe de la porte de case: mêmes entrées, bonne case.
+  const meal = parse({
+    dishes: [{
+      title: "Lunch plate",
+      slot: "lunch",
+      day: "mon",
+      for_member_id: "m-zoe",
+      ingredients: [{ term: "chicken", quantity: "150 g" }],
+      method: "Cook it.",
+      why: "It fits the day.",
+    }],
+  }, { merge: eaterAsking(["m-zoe"], [{ day: "mon", slot: "lunch" }]) });
+  assertEquals(meal.dishes[0].memberId, "m-zoe");
+  assertEquals(meal.dish_owner_counts.attributed, 1);
 });
 
 // ---------------------------------------------------------------------------
@@ -1467,5 +1770,228 @@ Deno.test("le prompt système dit la FORME d'un repas complet — plus son POIDS
   // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
   // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
   // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v32_the_recipe_says_what_holds_it");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v33_the_recipe_writes_the_shopping_list");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-13 · LOT 1 — LE DÉROULÉ D'UNE SESSION EST DU TEXTE QU'ON CUISINE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ LE DÉFAUT REPRODUIT, ET IL VIENT DE LA REVUE DU 2026-09-12 (P1 §2). Le
+// texte concaténé du verrou lisait plats, préparations, notes de portion et
+// courses — PAS `cooking_sessions[].run_through`. Une contrainte `peanut`
+// médicale, la MÊME phrase à deux endroits:
+//
+//   · dans `dishes[].method`      → plat retiré, `unsafe_candidate` posé;
+//   · dans `cooking_sessions[]`   → plat ET session conservés, verrou `clean`.
+//
+// ⚠️ LA PRÉPARATION FAIT DEUX PARTS, ET C'EST LA CONDITION DE VALIDITÉ DE LA
+// SONDE. Une casserole d'une part peut être rejetée par le parseur pour une
+// autre raison, et la sonde rendrait alors le bon résultat pour le mauvais
+// motif.
+//
+// ⛔ ET LE LEXIQUE N'EST PAS EN CAUSE. Le témoin anglais ci-dessous mord par le
+// même chemin: ce qui manquait était un CHAMP, pas un mot.
+
+function deroulePayload(
+  runThrough: string,
+  methodePlat = "Sers le riz avec le poulet.",
+): Record<string, unknown> {
+  return {
+    dishes: [{
+      title: "Riz au poulet",
+      slot: "dinner",
+      day: "mon",
+      method: methodePlat,
+      why: "",
+      ingredients: [{ term: "rice", quantity: "200 g" }],
+      uses: [{ preparation_id: "prep_poulet", servings: 1 }],
+    }],
+    preparations: [{
+      id: "prep_poulet",
+      title: "Poulet rôti",
+      // ⛔ DEUX PARTS: une casserole d'une part se fait jeter pour un autre
+      // motif, et la sonde perdrait sa valeur.
+      servings_made: 2,
+      ingredients: [{ term: "chicken thighs", quantity: "400 g" }],
+      method: "Fais rôtir les cuisses.",
+      active_minutes: 10,
+      total_minutes: 50,
+      cook_on: "mon",
+    }],
+    cooking_sessions: [{
+      day: "mon",
+      preparation_ids: ["prep_poulet"],
+      total_minutes: 60,
+      run_through: runThrough,
+    }],
+    shopping_list: [],
+  };
+}
+
+Deno.test("⛔ un allergène médical dans le DÉROULÉ d'une session ne part pas", () => {
+  const meal = parse(
+    deroulePayload("Ajouter du beurre de cacahuète au riz."),
+    { safetyConstraints: [PEANUT] },
+  );
+  // ⛔ LA MOITIÉ QUI PROTÈGE: les quatre tableaux publics sortent vides, comme
+  // pour une morsure de recette. Une session dangereuse n'est pas un plan
+  // qu'on rend amputé d'une ligne.
+  assertEquals(meal.dishes, []);
+  assertEquals(meal.cooking_sessions, []);
+  assertEquals(meal.lock.reason, "blocked_medical_constraint");
+
+  // ⛔ ET ELLE EST LOCALISÉE SUR SA SESSION, avec les casseroles qu'elle porte.
+  assert(meal.unsafe_candidate !== null, "la candidate interne a disparu");
+  const sessions = meal.unsafe_candidate.violations.filter((v) =>
+    v.where === "cooking_session"
+  );
+  assertEquals(sessions.length, 1);
+  assertEquals(sessions[0].sessionIndex, 0);
+  assertEquals(sessions[0].preparationIds, ["prep_poulet"]);
+  assert(sessions[0].tokens.length > 0);
+  // ⛔ AUCUN PLAT N'EST ACCUSÉ: sa recette est saine. Une session n'est pas un
+  // repas, et lui inventer un `slot` pour satisfaire un périmètre serait une
+  // attribution arbitraire.
+  assertEquals(
+    meal.unsafe_candidate.violations.filter((v) => v.where === "dish").length,
+    0,
+  );
+  assertEquals(sessions[0].slot, null);
+});
+
+Deno.test("⛔ bis — la MÊME phrase dans la méthode du plat mord déjà", () => {
+  // Le témoin de non-régression: ce chemin-là marchait avant ce lot.
+  const meal = parse(
+    deroulePayload(
+      "Chauffe le four, fais rôtir, puis dresse.",
+      "Ajouter du beurre de cacahuète au riz.",
+    ),
+    { safetyConstraints: [PEANUT] },
+  );
+  assertEquals(meal.dishes, []);
+  assert(meal.unsafe_candidate !== null);
+  assertEquals(
+    meal.unsafe_candidate.violations.filter((v) => v.where === "dish").length,
+    1,
+  );
+});
+
+Deno.test("⛔ ter — le témoin ANGLAIS mord par le même champ", () => {
+  const meal = parse(
+    deroulePayload("Stir a spoon of peanut butter through the rice."),
+    { safetyConstraints: [PEANUT] },
+  );
+  assertEquals(meal.dishes, []);
+  assert(meal.unsafe_candidate !== null);
+  assertEquals(
+    meal.unsafe_candidate.violations.filter((v) => v.where === "cooking_session")
+      .length,
+    1,
+  );
+});
+
+Deno.test("⚠️ LE CAS QUI PASSE — un déroulé propre ne bloque rien", () => {
+  // Sans lui, une garde cassée qui refuse TOUT ressemblerait à une garde juste.
+  const meal = parse(
+    deroulePayload("Chauffe le four, fais rôtir le poulet, puis dresse."),
+    { safetyConstraints: [PEANUT] },
+  );
+  assertEquals(meal.lock.reason, "clean");
+  assertEquals(meal.unsafe_candidate, null);
+  assertEquals(meal.cooking_sessions.length, 1);
+  assertEquals(meal.dishes.length, 1);
+});
+
+Deno.test("⛔ l'allergène dans le NOM D'USAGE bloque — c'est la ligne qu'on lit en premier", () => {
+  // ⛔ `dishes[].name` N'ÉTAIT DANS AUCUN DES DEUX TEXTES CONTRÔLÉS. Il est
+  // traduit (`MEAL_TRANSLATABLE_FIELDS`), il remplit la grille de la semaine,
+  // et une garde qui ne le lit pas laisse passer la seule ligne visible.
+  const payload = deroulePayload("Chauffe le four, fais rôtir, puis dresse.");
+  (payload.dishes as Record<string, unknown>[])[0].name =
+    "Bol de riz au beurre de cacahuète";
+  const meal = parse(payload, { safetyConstraints: [PEANUT] });
+  assertEquals(meal.dishes, []);
+  assert(meal.unsafe_candidate !== null);
+  const mordus = meal.unsafe_candidate.violations.filter((v) => v.where === "dish");
+  assertEquals(mordus.length, 1);
+  assertEquals(mordus[0].index, 0);
+});
+
+Deno.test("⛔ l'allergène dans la MÉTHODE D'UNE PRÉPARATION est situé sur sa casserole", () => {
+  const payload = deroulePayload("Chauffe le four, fais rôtir, puis dresse.");
+  (payload.preparations as Record<string, unknown>[])[0].method =
+    "Fais rôtir les cuisses, puis nappe de beurre de cacahuète.";
+  const meal = parse(payload, { safetyConstraints: [PEANUT] });
+  assertEquals(meal.dishes, []);
+  assert(meal.unsafe_candidate !== null);
+  const pots = meal.unsafe_candidate.violations.filter((v) =>
+    v.where === "preparation"
+  );
+  assertEquals(pots.length, 1);
+  assertEquals(pots[0].preparationId, "prep_poulet");
+  // ⛔ ET SES CONSOMMATEURS SONT NOMMÉS. Une casserole partagée n'appartient à
+  // personne : on rend l'ensemble concerné, jamais le premier membre trouvé.
+  assertEquals(pots[0].preparationIds, ["prep_poulet"]);
+});
+
+Deno.test("⛔ l'allergène dans une NOTE DE PART bloque, et la note est citée", () => {
+  const payload = deroulePayload("Chauffe le four, fais rôtir, puis dresse.");
+  payload.member_portions = [{
+    member_id: "m_ana",
+    portion_note: "Ajoute une cuillère de beurre de cacahuète sur la sienne.",
+  }];
+  const meal = parse(payload, { safetyConstraints: [PEANUT] });
+  assertEquals(meal.dishes, []);
+  assert(meal.unsafe_candidate !== null);
+  const notes = meal.unsafe_candidate.violations.filter((v) =>
+    v.where === "portion_note"
+  );
+  assertEquals(notes.length, 1);
+  assert(notes[0].term !== null && notes[0].term.startsWith("Ajoute une cuillère"));
+});
+
+Deno.test("⚠️ LE CAS QUI PASSE — une NÉGATION reste tolérée sur toutes les surfaces", () => {
+  // ⛔ LE PIÈGE DE CETTE EXTENSION, ET IL EST MESURÉ. « Ensure no peanut is
+  // present » est le BON texte sur l'assiette de la personne allergique : c'est
+  // la seule façon d'écrire une consigne de contact croisé. La tolérance est
+  // portée par le moteur commun (`allowNegatedMentions`), pas réécrite ici —
+  // une seconde formulation de la même règle à deux fichiers d'écart est un
+  // générateur de divergence.
+  const payload = deroulePayload(
+    "Cook it on a clean board — no peanut goes anywhere near this.",
+  );
+  payload.member_portions = [{
+    member_id: "m_ana",
+    portion_note: "Ensure no peanut is present on her plate.",
+  }];
+  const meal = parse(payload, { safetyConstraints: [PEANUT] });
+  assertEquals(meal.lock.reason, "clean");
+  assertEquals(meal.unsafe_candidate, null);
+  assertEquals(meal.dishes.length, 1);
+  assertEquals(meal.cooking_sessions.length, 1);
+});
+
+Deno.test("⛔ la candidate interne garde ce qu'il faut pour RÉPARER la session", () => {
+  // ⛔ SANS ELLE, LA SEULE RÉPONSE POSSIBLE EST « REFAIS TOUT ». Les recettes
+  // saines doivent survivre à l'intérieur de la génération pour qu'un patch
+  // puisse viser le déroulé seul.
+  const meal = parse(
+    deroulePayload("Ajouter du beurre de cacahuète au riz."),
+    { safetyConstraints: [PEANUT] },
+  );
+  assert(meal.unsafe_candidate !== null);
+  assertEquals(meal.unsafe_candidate.dishes.length, 1);
+  assertEquals(meal.unsafe_candidate.preparations.length, 1);
+  assertEquals(meal.unsafe_candidate.cooking_sessions.length, 1);
+  assertEquals(
+    meal.unsafe_candidate.cooking_sessions[0].preparationIds,
+    ["prep_poulet"],
+  );
+  // ⛔ ET LA MOITIÉ PUBLIQUE RESTE VIDE: aucun appelant existant ne voit une
+  // candidate dangereuse.
+  assertEquals(meal.dishes, []);
+  assertEquals(meal.preparations, []);
+  assertEquals(meal.cooking_sessions, []);
+  assertEquals(meal.shopping_list, []);
 });

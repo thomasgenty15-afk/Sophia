@@ -1,0 +1,19 @@
+{
+  "qaPhone": "+33697018400",
+  "planIds": [
+    "afdf2141-96eb-4717-95aa-100e1f55b6cf",
+    "88261bae-e52a-4663-82ca-9f32021d647b"
+  ],
+  "itemIds": [
+    "19943701-ea08-4dce-80c7-10bf441200f9",
+    "7546a2aa-7d6b-41cb-9ee6-b131228f90da"
+  ],
+  "occurrenceIds": [
+    "1420e356-23b0-4860-af53-1f3149b3a487",
+    "430733e3-1fb3-4e7f-b7aa-3be798deb0b2"
+  ],
+  "checkinId": "7875e7bc-f1f2-4322-ae00-4145404e76db",
+  "pendingIds": [],
+  "entryIds": [],
+  "dedupWamids": []
+}

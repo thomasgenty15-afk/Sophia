@@ -206,7 +206,10 @@ Deno.test("le bloc est VIDE quand personne n'a rien déclaré", () => {
   // C'est le désarmement, et c'est ce qui rend le prompt byte-identique à celui
   // d'avant le lot pour tout le foyer d'hier.
   assertEquals(
-    householdDietBlock({ strictest: null, heldBy: ["Thomas"], divergingNames: [], freeNames: [] }),
+    householdDietBlock({ strictest: null, heldBy: ["Thomas"], divergingNames: [], freeNames: [],
+    dedicatedSectionSent: false,
+    boxChannelOpen: true,
+  }),
     "",
   );
 });
@@ -223,7 +226,9 @@ Deno.test("la consigne du bloc est CELLE DU MOTEUR, mot pour mot", () => {
       heldBy: ["Christèle"],
       freeNames: [],
       divergingNames: [],
-    });
+    dedicatedSectionSent: false,
+    boxChannelOpen: true,
+  });
     assert(
       block.includes(dietaryRegimePromptLine(regime)),
       `${regime}: la consigne du moteur n'est pas dans le bloc`,
@@ -237,6 +242,8 @@ Deno.test("le bloc nomme qui porte la ligne, et interdit d'en faire une raison",
     heldBy: ["Christèle"],
     freeNames: [],
     divergingNames: ["Thomas"],
+    dedicatedSectionSent: true,
+    boxChannelOpen: true,
   });
   assert(block.includes("Christèle"));
   // La ligne d'encadrement dit que ce qui suit gouverne LE PLAT PARTAGÉ — sans
@@ -258,6 +265,8 @@ Deno.test("⟳ 2026-09-04 — LE COMPOSANT QUI SÉPARE EST SERVI PAR BOÎTE, ET 
     heldBy: ["Léa"],
     freeNames: [],
     divergingNames: [],
+    dedicatedSectionSent: false,
+    boxChannelOpen: true,
   });
 
   // ⚠️ LES PHRASES SE LISENT SUR LE TEXTE MIS À PLAT, pas sur le brut: le bloc
@@ -314,6 +323,8 @@ Deno.test("AUCUN NOM DE RÉGIME NE PART SEUL: la ligne du moteur porte l'expansi
     heldBy: [],
     freeNames: [],
     divergingNames: [],
+    dedicatedSectionSent: false,
+    boxChannelOpen: true,
   });
   assert(block.includes("no eggs"));
   assert(block.includes("no dairy"));
@@ -336,6 +347,8 @@ Deno.test("⛔ RUN RÉEL 2026-09-04 — LE BLOC DIT QUE LES AUTRES MANGENT ENCOR
     heldBy: ["Léa"],
     freeNames: ["Claire", "Marc", "Tom", "Zoé"],
     divergingNames: [],
+    dedicatedSectionSent: false,
+    boxChannelOpen: true,
   }).replace(/\s+/g, " ");
 
   assert(mixed.includes("Claire, Marc, Tom, Zoé are not bound by that line"), mixed);
@@ -363,7 +376,143 @@ Deno.test("⛔ UN FOYER ENTIÈREMENT VÉGÉTARIEN NE PAIE PAS CETTE PHRASE", () 
     heldBy: ["Léa", "Claire"],
     freeNames: [],
     divergingNames: [],
+    dedicatedSectionSent: false,
+    boxChannelOpen: true,
   });
   assertEquals(all.includes("still eat meat"), false, all);
   assertEquals(all.includes("not bound by that line"), false, all);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-13 — ON NE RENVOIE PAS À UNE SECTION QU'ON N'ENVOIE PAS
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ LU SUR LE PROMPT RÉELLEMENT TRANSMIS (tir réel N=2 du 2026-09-13,
+// `gain-lot3r2-…prompts.txt`, une bouche végane à une table omnivore) :
+//
+//     "see A DISH OF THEIR OWN"   → 1 occurrence
+//     "A DISH OF THEIR OWN"       → 1 occurrence   (c'est LA MÊME)
+//     "for_member_id"             → 0 occurrence
+//
+// Le bloc renvoyait à une section absente, dont la clé n'était nommée nulle
+// part. `household_prompt_v34.ts` garde son renvoi derrière `anyDedicated`;
+// celui-ci ne gardait rien.
+
+Deno.test("renvoi ① — la section ENVOYÉE: le renvoi part, mot pour mot", () => {
+  const bloc = householdDietBlock({
+    strictest: "vegan",
+    heldBy: ["Lea"],
+    freeNames: ["Max"],
+    divergingNames: ["Max"],
+    dedicatedSectionSent: true,
+    boxChannelOpen: true,
+  });
+  assert(bloc.includes("(see A DISH OF THEIR OWN)"), bloc);
+  assert(bloc.includes("eat a dish of their OWN at some meals"), bloc);
+});
+
+Deno.test("renvoi ② — la section ABSENTE: aucun renvoi mort, et le canal réel est nommé", () => {
+  const bloc = householdDietBlock({
+    strictest: "vegan",
+    heldBy: ["Lea"],
+    freeNames: ["Max"],
+    divergingNames: ["Max"],
+    dedicatedSectionSent: false,
+    boxChannelOpen: true,
+  });
+  // ⛔ LE POINT DU TEST.
+  assert(!bloc.includes("A DISH OF THEIR OWN"), bloc);
+  // ⚠️ ET CE QUI RESTE VRAI NE DISPARAÎT PAS: cette bouche n'est pas liée par
+  // la ligne du dessus. Retirer la phrase entière ferait suivre à Max le régime
+  // de Lea — le défaut que ce bloc existe pour ne pas produire.
+  assert(bloc.includes("Max"), bloc);
+  assert(bloc.includes("NOT bound by the sentence above"), bloc);
+  // Et il pointe le canal qui existe réellement.
+  assert(bloc.includes("their own box of the dish"), bloc);
+});
+
+Deno.test("renvoi ③ — personne ne diverge: le drapeau ne change rien", () => {
+  const avec = householdDietBlock({
+    strictest: "vegan",
+    heldBy: ["Lea"],
+    freeNames: [],
+    divergingNames: [],
+    dedicatedSectionSent: true,
+    boxChannelOpen: true,
+  });
+  const sans = householdDietBlock({
+    strictest: "vegan",
+    heldBy: ["Lea"],
+    freeNames: [],
+    divergingNames: [],
+    dedicatedSectionSent: false,
+    boxChannelOpen: true,
+  });
+  assertEquals(avec, sans);
+  assert(!avec.includes("A DISH OF THEIR OWN"), avec);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-14 · BÊTA 1A ④ — ON NE COMMANDE PAS UNE SORTIE QU'ON JETTE
+//
+// ⛔ LE DÉFAUT FERMÉ ICI EST LE POINT ① DE LA CLÔTURE DU 2026-09-14. Ce bloc
+// ordonnait, SANS CONDITION, un partage « PER BOX ». Sous `portion_v1` —
+// c'est-à-dire sur tout le périmètre de la bêta, N=1 à 4 — le schéma des
+// contenants est retiré du prompt et `applySizing` écrit les boîtes par-dessus
+// celles du modèle. Le modèle composait donc la séparation demandée, et elle
+// disparaissait entre le parseur et l'assiette.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const MIXTE = {
+  strictest: "vegan" as const,
+  heldBy: ["Lea"],
+  freeNames: ["Max"],
+  divergingNames: ["Max"],
+  dedicatedSectionSent: true,
+};
+
+Deno.test("BÊTA 1A ④ — canal des boîtes FERMÉ: aucun ordre de boîte ne part", () => {
+  const bloc = householdDietBlock({ ...MIXTE, boxChannelOpen: false });
+  // ⛔ LES TROIS FORMES QUE LE MOTEUR JETTE SUR CE CHEMIN.
+  assert(!bloc.includes("PER BOX"), bloc);
+  assert(!bloc.includes('"boxes"'), bloc);
+  assert(!bloc.includes('"grams"'), bloc);
+  // ⚠️ ET LE CANAL QUI RESTE EST NOMMÉ, avec sa clé — cicatrice
+  // `promise-and-schema-key-must-be-adjacent`: une consigne qui interdit sans
+  // nommer la sortie à prendre est une consigne qu'on reprend.
+  assert(bloc.includes("DISH OF THEIR OWN"), bloc);
+  assert(bloc.includes('"for_member_id"'), bloc);
+  // La règle de sécurité, elle, ne bouge pas d'un mot.
+  assert(bloc.includes("== WHAT THE SHARED BASE MUST RESPECT =="), bloc);
+  assert(bloc.includes("follows the STRICTEST line"), bloc);
+  // Et l'anti-flagrant R5 reste entier: Max mange toujours de la viande.
+  assert(bloc.includes("Max are not bound by that line") || bloc.includes("Max is not bound by that line"), bloc);
+});
+
+Deno.test("BÊTA 1A ④ — canal OUVERT: le bloc est celui d'avant, mot pour mot", () => {
+  // ⛔ LA MOITIÉ QUI PROUVE QUE RIEN N'A BOUGÉ AILLEURS. `legacy_measure` (plus
+  // de quatre bouches, fusion, reprise) garde exactement la consigne mesurée.
+  const bloc = householdDietBlock({ ...MIXTE, boxChannelOpen: true });
+  assert(bloc.includes("The one component that line refuses is served PER BOX"), bloc);
+  assert(bloc.includes('"grams" is the key that'), bloc);
+});
+
+Deno.test("BÊTA 1A ④ — sans divergence, les deux canaux rendent le MÊME bloc", () => {
+  // ⚠️ LA POPULATION QUI NE BOUGE PAS: un foyer entièrement lié par la même
+  // ligne n'a rien à séparer. Les deux versions doivent y être identiques à
+  // l'octet, sinon le lot aurait changé le prompt de tout le monde.
+  const commun = {
+    strictest: "vegetarian" as const,
+    heldBy: ["Lea", "Max"],
+    freeNames: [],
+    divergingNames: [],
+    dedicatedSectionSent: false,
+  };
+  const ouvert = householdDietBlock({ ...commun, boxChannelOpen: true });
+  const ferme = householdDietBlock({ ...commun, boxChannelOpen: false });
+  // ⛔ ILS DIFFÈRENT, ET C'EST VOULU: la phrase de mécanique part même sans
+  // divergence (« When nobody at this table is bound differently, one box »).
+  // Ce qu'on épingle est donc que la partie SÉCURITÉ est identique.
+  const tete = (b: string) => b.split("The one component")[0];
+  assertEquals(tete(ouvert), tete(ferme));
 });

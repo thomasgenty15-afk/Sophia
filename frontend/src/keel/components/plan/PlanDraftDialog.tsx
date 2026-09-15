@@ -57,11 +57,14 @@ import {
 } from "../../api/planDraft";
 import { useMealEnergy } from "../../lib/useMealEnergy";
 import { t } from "../../i18n/t";
+import { planFailureKey } from "../../copy/planRefusals";
 import { Button } from "../ui/Button";
 import { Card, SectionLabel } from "../ui/Card";
 import { inputClass } from "../ui/Field";
 import Modal from "../ui/Modal";
 import PlanResult from "./PlanResult";
+// ⟳ 2026-09-12 · ÉTAPE C5 — le même bloc d'écarts que sur le plan adopté.
+import PlanValidationNotice from "./PlanValidationNotice";
 
 export interface PlanDraftDialogProps {
   open: boolean;
@@ -160,6 +163,25 @@ function cellLabel(key: string, t: (k: string) => string): string {
   // Une clé absente du catalogue ressort telle quelle (« day.long.xyz ») : on
   // la jette et on rend le jeton brut plutôt qu'un chemin de catalogue.
   return [dayLabel, slotLabel].filter((x) => x && !x.startsWith("day.") && !x.startsWith("slot.")).join(" ") || key;
+}
+
+/**
+ * LE MOTIF NOMMÉ, TRADUIT — LE MÊME GESTE QUE DANS `MealBuilder`.
+ *
+ * ⛔ MESURÉ LE 2026-09-14, SUR L'ÉCRAN RÉEL. Les trois `setFailure` de ce
+ * fichier posaient `e.message` tel quel, et une adoption dont le délai client
+ * a expiré affichait au pied du dialogue, en anglais et avec le nom de code
+ * interne: « [keel/planDraft] Failed to send a request to the Edge Function ».
+ * La source est bouchée (`refusalOf` dans `planDraft.ts`), mais un jeton sans
+ * traduction resterait un code brut sur un écran — donc il se traduit ICI.
+ *
+ * ⚠️ UN JETON INCONNU RESSORT TEL QUEL, comme partout ailleurs: taire ce
+ * qu'on ne sait pas nommer donnerait un bouton mort.
+ */
+function failureText(e: unknown): string {
+  const raw = e instanceof Error ? e.message : String(e);
+  const key = planFailureKey(raw.split(":")[0]);
+  return key ? t(key) : raw;
 }
 
 export default function PlanDraftDialog(props: PlanDraftDialogProps) {
@@ -315,7 +337,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
       if (merged.announced.length === 0 && merged.cells.length === 0) return;
       await renderNow(merged);
     } catch (e) {
-      setFailure({ at: "body", message: e instanceof Error ? e.message : String(e) });
+      setFailure({ at: "body", message: failureText(e) });
     } finally {
       setWorking(false);
     }
@@ -335,7 +357,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
     try {
       await onAdopt();
     } catch (e) {
-      setFailure({ at, message: e instanceof Error ? e.message : String(e) });
+      setFailure({ at, message: failureText(e) });
     } finally {
       setWorking(false);
     }
@@ -409,8 +431,8 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           avoir hésité sur « adopter » serait le lire trop tard. */}
       <p className="text-sm text-ink-soft">{t("plan.draft.not_saved")}</p>
 
-      {/* ⚠️ LA MÊME PHRASE QU'EN PIED, ET LA RÉPÉTITION EST VOULUE.
-          `adopt_recomposes` est posée sous CHAQUE bouton « adopter », parce
+      {/* La même phrase est posée sous chaque bouton « adopter »: elle dit que
+          le payload relu sera revalidé puis écrit tel quel, sans recomposition.
           qu'elle doit être à l'écran avant le clic — et les deux ne sont jamais
           en vue en même temps: celle-ci est au-dessus du plan, l'autre en
           dessous. La retirer d'ici rendrait le raccourci du fronton silencieux
@@ -504,6 +526,20 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           identifiant — il se chiffre comme un plan, sous exactement les mêmes
           quatre portes. C'est même le moment où le chiffre sert le plus:
           l'aperçu est ce qu'on relit AVANT d'adopter. */}
+      {/* ⟳ 2026-09-12 · ÉTAPE C5 — LES ÉCARTS DE L'APERÇU, AU-DESSUS DU PLAN.
+          ⛔ ICI AUSSI, ET C'EST LE MOMENT OÙ ÇA SERT LE PLUS: l'aperçu est ce
+          qu'on relit AVANT d'adopter. Le serveur rend `validation` à la racine
+          de la réponse `draft` comme sur un plan écrit; s'en taire ici ferait
+          adopter un plan dont les écarts n'apparaîtraient qu'après. */}
+      {draft && (
+        <div className="mt-4">
+          <PlanValidationNotice
+            validation={draft.validation}
+            portions={draft.memberPortions}
+            showEnergy={energy.showing}
+          />
+        </div>
+      )}
       <div className="mt-4">
         {draft
           ? (
@@ -795,10 +831,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
                 // `at: "body"` — la phrase refusée est DANS ce champ-ci, et le
                 // motif se lit sous lui. Jamais au fronton, qui ne porte pas
                 // ce geste.
-                setFailure({
-                  at: "body",
-                  message: e instanceof Error ? e.message : String(e),
-                });
+                setFailure({ at: "body", message: failureText(e) });
               } finally {
                 setWorking(false);
               }
@@ -816,20 +849,9 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           </Button>
         </div>
 
-        {/* ══════════════════════════════════════════════════════════════════
-            🔴 CE QUE « ADOPTER » FAIT VRAIMENT, DIT AVANT LE CLIC.
-
-            Il n'existe AUCUN chemin qui écrive l'aperçu tel quel: le seul
-            écrivain est la RPC `write_student_meal_plan`, dont l'`EXECUTE` est
-            RÉVOQUÉ à `anon` et `authenticated` (migrations 20260807090000,
-            20260811080000, 20260811140000), et aucune fonction edge n'accepte
-            un plan déjà composé. Adopter RECOMPOSE donc, à partir de la même
-            demande et de la même phrase.
-
-            Le taire ferait montrer un plan et en écrire un autre — le défaut
-            que cette fenêtre existe précisément pour empêcher. La phrase est
-            donc SOUS le bouton et avant le clic, comme le plafond de tours.
-            ══════════════════════════════════════════════════════════════════ */}
+        {/* L'adoption rejoue le write_payload rangé, après empreinte et garde
+            finale. La phrase reste sous le bouton pour que ce contrat soit
+            lisible avant le clic. */}
         <p className="mt-2 text-label leading-5 text-ink-soft">
           {t("plan.draft.adopt_recomposes")}
         </p>

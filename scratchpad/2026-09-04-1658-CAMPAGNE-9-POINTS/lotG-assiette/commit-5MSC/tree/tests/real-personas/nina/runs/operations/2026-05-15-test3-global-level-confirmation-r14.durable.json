@@ -1,0 +1,236 @@
+{
+  "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+  "scope": "qa-adjust-plan-nina-2026-05-15-test3-global-level-confirmation-r14",
+  "plan_patches": {
+    "ok": false,
+    "status": 404,
+    "body": {
+      "code": "PGRST205",
+      "details": null,
+      "hint": "Perhaps you meant the table 'public.user_plan_item_entries'",
+      "message": "Could not find the table 'public.plan_patches' in the schema cache"
+    }
+  },
+  "plan_items": {
+    "ok": false,
+    "status": 404,
+    "body": {
+      "code": "PGRST205",
+      "details": null,
+      "hint": "Perhaps you meant the table 'public.user_plan_items'",
+      "message": "Could not find the table 'public.plan_items' in the schema cache"
+    }
+  },
+  "user_chat_state": {
+    "ok": true,
+    "status": 200,
+    "body": [
+      {
+        "temp_memory": {
+          "__conversation_risk_last": {
+            "at": "2026-05-15T17:50:39.295Z",
+            "score": 0,
+            "threshold": 8,
+            "reason_codes": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__active_tool_skill_intake": {
+            "phase": "generation",
+            "turn_count": 1,
+            "updated_at": "2026-05-15T17:50:55.566Z",
+            "missing_slots": [
+              "draft_generation_confirmation"
+            ],
+            "operation_type": "adjust_plan_item",
+            "operation_input": {
+              "scope": {
+                "kind": "current_level",
+                "label": "Reprendre le contrôle sur le grignotage",
+                "title": "Reprendre le contrôle sur le grignotage",
+                "evidence": [
+                  "le bloc grignotage me bloque surtout le soir"
+                ],
+                "plan_item_id": null,
+                "current_summary": "Reprendre le contrôle sur le grignotage"
+              },
+              "payload": {
+                "reason": {
+                  "status": "missing",
+                  "evidence": []
+                },
+                "scope_kind": "current_level",
+                "constraints": {
+                  "status": "identified",
+                  "values": [
+                    "le soir",
+                    "fatigue intense"
+                  ],
+                  "evidence": [
+                    "surtout le soir",
+                    "déjà crevée"
+                  ]
+                },
+                "change_target": {
+                  "status": "identified",
+                  "evidence": [
+                    "trop de petites décisions"
+                  ]
+                },
+                "reason_change": {
+                  "status": "identified",
+                  "evidence": [
+                    "trop de petites décisions quand je suis déjà crevée"
+                  ]
+                },
+                "affected_items": {
+                  "status": "identified",
+                  "values": [
+                    "Reprendre le contrôle sur le grignotage"
+                  ],
+                  "evidence": [
+                    "le niveau entier"
+                  ]
+                },
+                "adjustment_type": {
+                  "value": "reduce_load",
+                  "status": "identified",
+                  "evidence": []
+                }
+              },
+              "intake_state": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Reprendre le contrôle sur le grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "le bloc grignotage me bloque surtout le soir"
+                  ],
+                  "plan_item_id": null
+                },
+                "payload": {
+                  "reason": {
+                    "status": "missing",
+                    "evidence": []
+                  },
+                  "scope_kind": "current_level",
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "le soir",
+                      "fatigue intense"
+                    ],
+                    "evidence": [
+                      "surtout le soir",
+                      "déjà crevée"
+                    ]
+                  },
+                  "change_target": {
+                    "status": "identified",
+                    "evidence": [
+                      "trop de petites décisions"
+                    ]
+                  },
+                  "reason_change": {
+                    "status": "identified",
+                    "evidence": [
+                      "trop de petites décisions quand je suis déjà crevée"
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      "Reprendre le contrôle sur le grignotage"
+                    ],
+                    "evidence": [
+                      "le niveau entier"
+                    ]
+                  },
+                  "adjustment_type": {
+                    "value": "reduce_load",
+                    "status": "identified",
+                    "evidence": []
+                  }
+                },
+                "selected_sub_skill": "level_intake",
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "Ce n’est pas une action en particulier, c’est le niveau entier"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": []
+                }
+              },
+              "target_granularity": {
+                "value": "current_level",
+                "status": "identified",
+                "evidence": [
+                  "Ce n’est pas une action en particulier, c’est le niveau entier"
+                ],
+                "confidence": "high",
+                "negative_evidence": []
+              },
+              "adjust_plan_sub_skills": [
+                {
+                  "id": "scope_router",
+                  "role": "Determine if the user targets one action, the current level, or the whole plan.",
+                  "minimum_ready_slots": [
+                    "scope.status=identified",
+                    "scope.kind"
+                  ]
+                },
+                {
+                  "id": "action_intake",
+                  "role": "Fill the action-specific adjustment payload once scope is a specific plan item.",
+                  "minimum_ready_slots": [
+                    "scope.plan_item_id",
+                    "adjustment_type",
+                    "reason",
+                    "constraints"
+                  ]
+                },
+                {
+                  "id": "level_intake",
+                  "role": "Fill the current-level adjustment payload and protect whole-plan boundaries.",
+                  "minimum_ready_slots": [
+                    "reason_change",
+                    "change_target",
+                    "constraints",
+                    "affected_items_before_execution"
+                  ]
+                },
+                {
+                  "id": "whole_plan_intake",
+                  "role": "Fill the whole-plan adjustment payload and preserve the global objective when requested.",
+                  "minimum_ready_slots": [
+                    "reason_change",
+                    "global_change_target",
+                    "preserved_intent",
+                    "impact_examples_before_confirmation"
+                  ]
+                },
+                {
+                  "id": "draft_validation",
+                  "role": "Validate the generated draft and require concrete examples before confirmation.",
+                  "minimum_ready_slots": [
+                    "user_ready_review_message",
+                    "changed_examples",
+                    "boundaries",
+                    "no_pre_confirmation_execution_claim"
+                  ]
+                }
+              ]
+            }
+          },
+          "__conversation_risk_history": [
+            0
+          ],
+          "__coaching_intervention_history": []
+        },
+        "updated_at": "2026-05-15T17:50:55.568332+00:00"
+      }
+    ]
+  }
+}

@@ -1,0 +1,2666 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-state-potion-guerison-global-20260608-r1-t01",
+    "user": "J'aimerais bien avoir une potion, mais je ne sais pas laquelle. Hier j'ai craqué et abandonné mon engagement, et depuis je m'en veux beaucoup, avec pas mal de honte.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-state-potion-guerison-global-20260608-r1-t01",
+      "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+      "channel": "web",
+      "scope": "qa-state-potion-guerison-global-20260608-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est pesant de porter cette honte après avoir mis de côté ton engagement hier. Pour t'aider à rebondir, est-ce que tu préfères qu'on travaille à apaiser cette culpabilité pour repartir sur des bases saines, ou as-tu surtout besoin de retrouver un peu de douceur et de bienveillance envers toi-même ? ✨",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-state-potion-guerison-global-20260608-r1-t01",
+            "source_message_id": "1ad46277-daa1-495f-b645-0545b09d6931",
+            "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": [
+                "Le user exprime de la honte et de la culpabilité mais sans signe de mise en danger immédiate."
+              ]
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "select_state_potion",
+                "explicitness": "explicit",
+                "target_hint": "potion à clarifier",
+                "operation_input": {
+                  "potion_type": {
+                    "status": "ambiguous",
+                    "value": null,
+                    "confidence": "low",
+                    "evidence": [
+                      "J'aimerais bien avoir une potion, mais je ne sais pas laquelle"
+                    ],
+                    "negative_evidence": [
+                      "je ne sais pas laquelle"
+                    ]
+                  }
+                },
+                "confidence_band": "high",
+                "ambiguity": "target_ambiguous",
+                "user_intent": "select"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "emotional_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "Le user exprime explicitement de la honte et de la culpabilité ('je m'en veux beaucoup', 'honte') après un échec."
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "honte et culpabilité",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "habitudes.reprise_apres_echec",
+                  "query_hint": "craqué et abandonné engagement",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                },
+                {
+                  "type": "event",
+                  "key": "hier",
+                  "query_hint": "échec ou abandon hier",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [
+              {
+                "path": "tool_skills",
+                "reason_code": "target_ambiguous"
+              },
+              {
+                "path": "direct_effects",
+                "reason_code": "orientation_clarification_resolved_tool_skill"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "orientation_clarification_resolved_tool_skill",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "select_state_potion"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "dispatcher"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "clarification:dispatcher",
+                "kind": "clarification",
+                "owner": "dispatcher",
+                "operation_type": null,
+                "intent": "clarify",
+                "source": "dispatcher",
+                "status": "requested",
+                "reason_code": "clarification_required"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion",
+            "reason_code": "state_potion_handoff_clarifying",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "clarifying",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": null,
+            "runtime_trace": [],
+            "handoff": null,
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "state_potion_handoff_clarifying",
+              "no_chat_mutation": true,
+              "draft": null
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-state-potion-guerison-global-20260608-r1-t01",
+            "counts": {
+              "requested": 1,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-state-potion-guerison-global-20260608-r1-t01:agenda:requested:clarification:dispatcher",
+                "kind": "clarification",
+                "effect_type": "clarification.target",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "dispatcher",
+                "status": "requested",
+                "reason_code": "clarification_required",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "clarification:dispatcher",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "select_state_potion"
+                  ]
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": "dispatcher",
+                "ambiguity_kind": "target",
+                "candidate_ids": [
+                  "select_state_potion"
+                ],
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-state-potion-guerison-global-20260608-r1-t01:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion",
+                "status": "delivered",
+                "reason_code": "state_potion_handoff_clarifying",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "clarifying",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-state-potion-guerison-global-20260608-r1-t01",
+          "source_message_id": "1ad46277-daa1-495f-b645-0545b09d6931",
+          "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": [
+              "Le user exprime de la honte et de la culpabilité mais sans signe de mise en danger immédiate."
+            ]
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": null
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [
+            {
+              "operation_type": "select_state_potion",
+              "explicitness": "explicit",
+              "target_hint": "potion à clarifier",
+              "operation_input": {
+                "potion_type": {
+                  "status": "ambiguous",
+                  "value": null,
+                  "confidence": "low",
+                  "evidence": [
+                    "J'aimerais bien avoir une potion, mais je ne sais pas laquelle"
+                  ],
+                  "negative_evidence": [
+                    "je ne sais pas laquelle"
+                  ]
+                }
+              },
+              "confidence_band": "high",
+              "ambiguity": "target_ambiguous",
+              "user_intent": "select"
+            }
+          ],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {
+              "emotional_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "Le user exprime explicitement de la honte et de la culpabilité ('je m'en veux beaucoup', 'honte') après un échec."
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.emotions",
+                "query_hint": "honte et culpabilité",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "habitudes.reprise_apres_echec",
+                "query_hint": "craqué et abandonné engagement",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              },
+              {
+                "type": "event",
+                "key": "hier",
+                "query_hint": "échec ou abandon hier",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "taxonomy_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [
+            {
+              "path": "tool_skills",
+              "reason_code": "target_ambiguous"
+            },
+            {
+              "path": "direct_effects",
+              "reason_code": "orientation_clarification_resolved_tool_skill"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "orientation_clarification_resolved_tool_skill",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "select_state_potion"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "dispatcher"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "clarification:dispatcher",
+              "kind": "clarification",
+              "owner": "dispatcher",
+              "operation_type": null,
+              "intent": "clarify",
+              "source": "dispatcher",
+              "status": "requested",
+              "reason_code": "clarification_required"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion",
+          "reason_code": "state_potion_handoff_clarifying",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "clarifying",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "risk_assessment": null,
+          "runtime_trace": [],
+          "handoff": null,
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "state_potion_handoff_clarifying",
+            "no_chat_mutation": true,
+            "draft": null
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-state-potion-guerison-global-20260608-r1-t01",
+          "counts": {
+            "requested": 1,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-state-potion-guerison-global-20260608-r1-t01:agenda:requested:clarification:dispatcher",
+              "kind": "clarification",
+              "effect_type": "clarification.target",
+              "operation_type": null,
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "dispatcher",
+              "status": "requested",
+              "reason_code": "clarification_required",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "clarification:dispatcher",
+                "source": "dispatcher",
+                "evidence": [
+                  "select_state_potion"
+                ]
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": "dispatcher",
+              "ambiguity_kind": "target",
+              "candidate_ids": [
+                "select_state_potion"
+              ],
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-state-potion-guerison-global-20260608-r1-t01:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion",
+              "status": "delivered",
+              "reason_code": "state_potion_handoff_clarifying",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "clarifying",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-state-potion-guerison-global-20260608-r1-t02",
+    "user": "Je veux surtout apaiser la culpabilité et repartir proprement, donc plutôt une potion de guérison.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-state-potion-guerison-global-20260608-r1-t02",
+      "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+      "channel": "web",
+      "scope": "qa-state-potion-guerison-global-20260608-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "La Potion de guérison est tout à fait adaptée pour transformer cette culpabilité en un nouveau départ. Pour bien cibler le soin, est-ce que tu pourrais m'en dire un peu plus sur ce qui s'est passé hier ou sur la nature de cet engagement ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-state-potion-guerison-global-20260608-r1-t02",
+            "source_message_id": "b3d50beb-1950-4c34-b23c-d2dfe7789754",
+            "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "select_state_potion.guerison",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_select_state_potion_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_select_state_potion_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.guerison",
+            "reason_code": "guerison_field_needs_more_detail",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "clarifying",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 1,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.guerison",
+                "event": "active_guerison_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": "clarifying"
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.guerison",
+                "flow_action": "answer_current_field",
+                "confidence": "high",
+                "selected_potion": "guerison",
+                "current_field_id": "recent_hurt",
+                "visible_task": "ask_deeper",
+                "risk_assessment": {
+                  "risk_score": 1,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.guerison",
+                "status": "clarifying",
+                "reason_code": "guerison_field_needs_more_detail",
+                "visible_task": "ask_deeper",
+                "current_field_id": "recent_hurt",
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "potion_subskill_task",
+                "clarte_visible_task": null,
+                "potion_subskill_visible_task": "ask_deeper",
+                "handoff_status": "clarifying"
+              },
+              {
+                "component": "visible_agent",
+                "stage": "potion_subskill_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "potion_subskill_task"
+              }
+            ],
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "guerison_field_needs_more_detail",
+              "no_chat_mutation": true,
+              "draft": null
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-state-potion-guerison-global-20260608-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-state-potion-guerison-global-20260608-r1-t02:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.guerison",
+                "status": "delivered",
+                "reason_code": "guerison_field_needs_more_detail",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "clarifying",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-state-potion-guerison-global-20260608-r1-t02",
+          "source_message_id": "b3d50beb-1950-4c34-b23c-d2dfe7789754",
+          "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion.guerison",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_select_state_potion_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_select_state_potion_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion.guerison",
+          "reason_code": "guerison_field_needs_more_detail",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "clarifying",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "select_state_potion.guerison",
+              "event": "active_guerison_turn_start",
+              "global_dispatcher_available": false,
+              "previous_status": "clarifying"
+            },
+            {
+              "component": "local_dispatcher",
+              "event": "decision",
+              "flow": "select_state_potion.guerison",
+              "flow_action": "answer_current_field",
+              "confidence": "high",
+              "selected_potion": "guerison",
+              "current_field_id": "recent_hurt",
+              "visible_task": "ask_deeper",
+              "risk_assessment": {
+                "risk_score": 1,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "exit_reason": null
+            },
+            {
+              "component": "local_reducer",
+              "event": "reduced",
+              "flow": "select_state_potion.guerison",
+              "status": "clarifying",
+              "reason_code": "guerison_field_needs_more_detail",
+              "visible_task": "ask_deeper",
+              "current_field_id": "recent_hurt",
+              "exit_to_global_dispatcher": false
+            },
+            {
+              "component": "visible_stage",
+              "event": "start",
+              "stage": "potion_subskill_task",
+              "clarte_visible_task": null,
+              "potion_subskill_visible_task": "ask_deeper",
+              "handoff_status": "clarifying"
+            },
+            {
+              "component": "visible_agent",
+              "stage": "potion_subskill_task",
+              "attempt": 1,
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "visible_stage",
+              "event": "complete",
+              "stage": "potion_subskill_task"
+            }
+          ],
+          "handoff": {
+            "target": "state_potions"
+          },
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "guerison_field_needs_more_detail",
+            "no_chat_mutation": true,
+            "draft": null
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-state-potion-guerison-global-20260608-r1-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-state-potion-guerison-global-20260608-r1-t02:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion.guerison",
+              "status": "delivered",
+              "reason_code": "guerison_field_needs_more_detail",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "clarifying",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-state-potion-guerison-global-20260608-r1-t03",
+    "user": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber. Depuis je ressens surtout de la honte.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-state-potion-guerison-global-20260608-r1-t03",
+      "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+      "channel": "web",
+      "scope": "qa-state-potion-guerison-global-20260608-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est tout à fait humain de se sentir vidé après une longue journée, et cette Potion de guérison va t'aider à apaiser cette honte pour repartir plus sereinement. Tu peux la retrouver dans la section État / Potions de la plateforme en utilisant ces précisions :\n\nQu'est-ce qui t'a fait mal ou t'a fait retomber recemment ? J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.\n\nTu ressens surtout quoi ? De la culpabilite 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-state-potion-guerison-global-20260608-r1-t03",
+            "source_message_id": "eeb3aa75-8e0e-4fac-9587-a4c96f76da3a",
+            "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "select_state_potion.guerison",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_guerison_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_guerison_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.guerison",
+            "reason_code": "guerison_handoff_delivered",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "handoff_delivered",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 1,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": [
+                "no_safety_issue",
+                "shame_guilt_supported"
+              ]
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.guerison",
+                "event": "active_guerison_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": "clarifying"
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.guerison",
+                "flow_action": "answer_current_field",
+                "confidence": "high",
+                "selected_potion": "guerison",
+                "current_field_id": "recent_hurt",
+                "visible_task": "handoff_ready",
+                "risk_assessment": {
+                  "risk_score": 1,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": [
+                    "no_safety_issue",
+                    "shame_guilt_supported"
+                  ]
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.guerison",
+                "status": "handoff_delivered",
+                "reason_code": "guerison_handoff_delivered",
+                "visible_task": "handoff_ready",
+                "current_field_id": null,
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "potion_subskill_task",
+                "clarte_visible_task": null,
+                "potion_subskill_visible_task": "handoff_ready",
+                "handoff_status": "handoff_delivered"
+              },
+              {
+                "component": "visible_agent",
+                "stage": "potion_subskill_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "potion_subskill_task"
+              }
+            ],
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "guerison_handoff_delivered",
+              "no_chat_mutation": true,
+              "draft": {
+                "operation_type": "select_state_potion",
+                "mode": "platform_handoff",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "user_state_summary": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber. ; De la culpabilite",
+                "desired_shift_summary": "te relever, degonfler la honte, repartir plus proprement",
+                "recommendation": {
+                  "potion_label": "Potion de guérison",
+                  "why_this_potion": "Quand tu t'en veux, que tu as craque ou que tu te sens blesse, elle t'aide a te relever sans t'enfoncer.",
+                  "immediate_step": null,
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "section État / Potions",
+                  "platform_steps": [
+                    "va dans État / Potions",
+                    "choisis Potion de guérison"
+                  ],
+                  "platform_inputs": {
+                    "potion_type": "guerison",
+                    "potion_title": "Potion de guérison",
+                    "answers": [
+                      {
+                        "question_id": "recent_hurt",
+                        "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                        "value": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.",
+                        "option_value": null,
+                        "option_label": null
+                      },
+                      {
+                        "question_id": "dominant_feeling",
+                        "question_label": "Tu ressens surtout quoi ?",
+                        "value": "De la culpabilite",
+                        "option_value": "culpabilite",
+                        "option_label": "De la culpabilite"
+                      }
+                    ],
+                    "optional_free_text": null
+                  }
+                },
+                "missing_decisions": []
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-state-potion-guerison-global-20260608-r1-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-state-potion-guerison-global-20260608-r1-t03:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.guerison",
+                "status": "delivered",
+                "reason_code": "guerison_handoff_delivered",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "handoff_delivered",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-state-potion-guerison-global-20260608-r1-t03",
+          "source_message_id": "eeb3aa75-8e0e-4fac-9587-a4c96f76da3a",
+          "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion.guerison",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_guerison_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_guerison_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion.guerison",
+          "reason_code": "guerison_handoff_delivered",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "handoff_delivered",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": [
+              "no_safety_issue",
+              "shame_guilt_supported"
+            ]
+          },
+          "runtime_trace": [
+            {
+              "component": "select_state_potion.guerison",
+              "event": "active_guerison_turn_start",
+              "global_dispatcher_available": false,
+              "previous_status": "clarifying"
+            },
+            {
+              "component": "local_dispatcher",
+              "event": "decision",
+              "flow": "select_state_potion.guerison",
+              "flow_action": "answer_current_field",
+              "confidence": "high",
+              "selected_potion": "guerison",
+              "current_field_id": "recent_hurt",
+              "visible_task": "handoff_ready",
+              "risk_assessment": {
+                "risk_score": 1,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": [
+                  "no_safety_issue",
+                  "shame_guilt_supported"
+                ]
+              },
+              "exit_reason": null
+            },
+            {
+              "component": "local_reducer",
+              "event": "reduced",
+              "flow": "select_state_potion.guerison",
+              "status": "handoff_delivered",
+              "reason_code": "guerison_handoff_delivered",
+              "visible_task": "handoff_ready",
+              "current_field_id": null,
+              "exit_to_global_dispatcher": false
+            },
+            {
+              "component": "visible_stage",
+              "event": "start",
+              "stage": "potion_subskill_task",
+              "clarte_visible_task": null,
+              "potion_subskill_visible_task": "handoff_ready",
+              "handoff_status": "handoff_delivered"
+            },
+            {
+              "component": "visible_agent",
+              "stage": "potion_subskill_task",
+              "attempt": 1,
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "visible_stage",
+              "event": "complete",
+              "stage": "potion_subskill_task"
+            }
+          ],
+          "handoff": {
+            "target": "state_potions"
+          },
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "guerison_handoff_delivered",
+            "no_chat_mutation": true,
+            "draft": {
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_state_summary": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber. ; De la culpabilite",
+              "desired_shift_summary": "te relever, degonfler la honte, repartir plus proprement",
+              "recommendation": {
+                "potion_label": "Potion de guérison",
+                "why_this_potion": "Quand tu t'en veux, que tu as craque ou que tu te sens blesse, elle t'aide a te relever sans t'enfoncer.",
+                "immediate_step": null,
+                "preserve": [],
+                "avoid": [],
+                "platform_destination": "section État / Potions",
+                "platform_steps": [
+                  "va dans État / Potions",
+                  "choisis Potion de guérison"
+                ],
+                "platform_inputs": {
+                  "potion_type": "guerison",
+                  "potion_title": "Potion de guérison",
+                  "answers": [
+                    {
+                      "question_id": "recent_hurt",
+                      "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                      "value": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.",
+                      "option_value": null,
+                      "option_label": null
+                    },
+                    {
+                      "question_id": "dominant_feeling",
+                      "question_label": "Tu ressens surtout quoi ?",
+                      "value": "De la culpabilite",
+                      "option_value": "culpabilite",
+                      "option_label": "De la culpabilite"
+                    }
+                  ],
+                  "optional_free_text": null
+                }
+              },
+              "missing_decisions": []
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-state-potion-guerison-global-20260608-r1-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-state-potion-guerison-global-20260608-r1-t03:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion.guerison",
+              "status": "delivered",
+              "reason_code": "guerison_handoff_delivered",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "handoff_delivered",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-state-potion-guerison-global-20260608-r1-t04",
+    "user": "Redis-moi juste quoi mettre dans la plateforme.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-state-potion-guerison-global-20260608-r1-t04",
+      "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+      "channel": "web",
+      "scope": "qa-state-potion-guerison-global-20260608-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Bien sûr, voici les éléments à reporter dans la section État / Potions pour ta Potion de guérison :\n\nPour la question « Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ? », tu peux écrire : J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.\n\nEt pour « Tu ressens surtout quoi ? », choisis : De la culpabilite.\n\nC'est ce qui permettra à la potion de bien cibler ce que tu traverses pour t'aider à repartir sereinement. ✨",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-state-potion-guerison-global-20260608-r1-t04",
+            "source_message_id": "890b860d-a566-4328-95aa-4b59a392db62",
+            "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "select_state_potion.guerison",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_guerison_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_guerison_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.guerison",
+            "reason_code": "guerison_repeat_handoff",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "repeat_handoff",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.guerison",
+                "event": "active_guerison_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": "handoff_delivered"
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.guerison",
+                "flow_action": "repeat_handoff",
+                "confidence": "high",
+                "selected_potion": "guerison",
+                "current_field_id": null,
+                "visible_task": "repeat_handoff",
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.guerison",
+                "status": "repeat_handoff",
+                "reason_code": "guerison_repeat_handoff",
+                "visible_task": "repeat_handoff",
+                "current_field_id": null,
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "potion_subskill_task",
+                "clarte_visible_task": null,
+                "potion_subskill_visible_task": "repeat_handoff",
+                "handoff_status": "repeat_handoff"
+              },
+              {
+                "component": "visible_agent",
+                "stage": "potion_subskill_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "potion_subskill_task"
+              }
+            ],
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "guerison_repeat_handoff",
+              "no_chat_mutation": true,
+              "draft": {
+                "operation_type": "select_state_potion",
+                "mode": "platform_handoff",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "user_state_summary": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber. ; De la culpabilite",
+                "desired_shift_summary": "te relever, degonfler la honte, repartir plus proprement",
+                "recommendation": {
+                  "potion_label": "Potion de guérison",
+                  "why_this_potion": "Quand tu t'en veux, que tu as craque ou que tu te sens blesse, elle t'aide a te relever sans t'enfoncer.",
+                  "immediate_step": null,
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "section État / Potions",
+                  "platform_steps": [
+                    "va dans État / Potions",
+                    "choisis Potion de guérison"
+                  ],
+                  "platform_inputs": {
+                    "potion_type": "guerison",
+                    "potion_title": "Potion de guérison",
+                    "answers": [
+                      {
+                        "question_id": "recent_hurt",
+                        "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                        "value": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.",
+                        "option_value": null,
+                        "option_label": null
+                      },
+                      {
+                        "question_id": "dominant_feeling",
+                        "question_label": "Tu ressens surtout quoi ?",
+                        "value": "De la culpabilite",
+                        "option_value": "culpabilite",
+                        "option_label": "De la culpabilite"
+                      }
+                    ],
+                    "optional_free_text": null
+                  }
+                },
+                "missing_decisions": []
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-state-potion-guerison-global-20260608-r1-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-state-potion-guerison-global-20260608-r1-t04:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.guerison",
+                "status": "delivered",
+                "reason_code": "guerison_repeat_handoff",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "repeat_handoff",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-state-potion-guerison-global-20260608-r1-t04",
+          "source_message_id": "890b860d-a566-4328-95aa-4b59a392db62",
+          "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion.guerison",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_guerison_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_guerison_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion.guerison",
+          "reason_code": "guerison_repeat_handoff",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "repeat_handoff",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "select_state_potion.guerison",
+              "event": "active_guerison_turn_start",
+              "global_dispatcher_available": false,
+              "previous_status": "handoff_delivered"
+            },
+            {
+              "component": "local_dispatcher",
+              "event": "decision",
+              "flow": "select_state_potion.guerison",
+              "flow_action": "repeat_handoff",
+              "confidence": "high",
+              "selected_potion": "guerison",
+              "current_field_id": null,
+              "visible_task": "repeat_handoff",
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "exit_reason": null
+            },
+            {
+              "component": "local_reducer",
+              "event": "reduced",
+              "flow": "select_state_potion.guerison",
+              "status": "repeat_handoff",
+              "reason_code": "guerison_repeat_handoff",
+              "visible_task": "repeat_handoff",
+              "current_field_id": null,
+              "exit_to_global_dispatcher": false
+            },
+            {
+              "component": "visible_stage",
+              "event": "start",
+              "stage": "potion_subskill_task",
+              "clarte_visible_task": null,
+              "potion_subskill_visible_task": "repeat_handoff",
+              "handoff_status": "repeat_handoff"
+            },
+            {
+              "component": "visible_agent",
+              "stage": "potion_subskill_task",
+              "attempt": 1,
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "visible_stage",
+              "event": "complete",
+              "stage": "potion_subskill_task"
+            }
+          ],
+          "handoff": {
+            "target": "state_potions"
+          },
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "guerison_repeat_handoff",
+            "no_chat_mutation": true,
+            "draft": {
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_state_summary": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber. ; De la culpabilite",
+              "desired_shift_summary": "te relever, degonfler la honte, repartir plus proprement",
+              "recommendation": {
+                "potion_label": "Potion de guérison",
+                "why_this_potion": "Quand tu t'en veux, que tu as craque ou que tu te sens blesse, elle t'aide a te relever sans t'enfoncer.",
+                "immediate_step": null,
+                "preserve": [],
+                "avoid": [],
+                "platform_destination": "section État / Potions",
+                "platform_steps": [
+                  "va dans État / Potions",
+                  "choisis Potion de guérison"
+                ],
+                "platform_inputs": {
+                  "potion_type": "guerison",
+                  "potion_title": "Potion de guérison",
+                  "answers": [
+                    {
+                      "question_id": "recent_hurt",
+                      "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                      "value": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.",
+                      "option_value": null,
+                      "option_label": null
+                    },
+                    {
+                      "question_id": "dominant_feeling",
+                      "question_label": "Tu ressens surtout quoi ?",
+                      "value": "De la culpabilite",
+                      "option_value": "culpabilite",
+                      "option_label": "De la culpabilite"
+                    }
+                  ],
+                  "optional_free_text": null
+                }
+              },
+              "missing_decisions": []
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-state-potion-guerison-global-20260608-r1-t04",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-state-potion-guerison-global-20260608-r1-t04:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion.guerison",
+              "status": "delivered",
+              "reason_code": "guerison_repeat_handoff",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "repeat_handoff",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-state-potion-guerison-global-20260608-r1-t05",
+    "user": "Ok active-la.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-state-potion-guerison-global-20260608-r1-t05",
+      "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+      "channel": "web",
+      "scope": "qa-state-potion-guerison-global-20260608-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je ne peux pas lancer la potion directement depuis notre discussion, mais tu peux le faire en un instant dans la section État / Potions de la plateforme. Il te suffit de sélectionner la Potion de guérison et d'y copier ces éléments :\n\nPour « Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ? » : J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.\n\nPour « Tu ressens surtout quoi ? » : De la culpabilite.\n\nC'est ce qui permettra à la potion d'agir au mieux pour t'aider à apaiser cette honte et repartir sereinement. ✨",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-state-potion-guerison-global-20260608-r1-t05",
+            "source_message_id": "a82b7a29-5b4b-4bd6-9636-65b048d2651c",
+            "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "select_state_potion.guerison",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_guerison_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_guerison_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.guerison",
+            "reason_code": "guerison_apply_attempt_no_chat_execution",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "apply_attempt",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 1,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.guerison",
+                "event": "active_guerison_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": "repeat_handoff"
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.guerison",
+                "flow_action": "apply_attempt",
+                "confidence": "high",
+                "selected_potion": "guerison",
+                "current_field_id": null,
+                "visible_task": "apply_attempt",
+                "risk_assessment": {
+                  "risk_score": 1,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.guerison",
+                "status": "apply_attempt",
+                "reason_code": "guerison_apply_attempt_no_chat_execution",
+                "visible_task": "apply_attempt",
+                "current_field_id": null,
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "potion_subskill_task",
+                "clarte_visible_task": null,
+                "potion_subskill_visible_task": "apply_attempt",
+                "handoff_status": "apply_attempt"
+              },
+              {
+                "component": "visible_agent",
+                "stage": "potion_subskill_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "potion_subskill_task"
+              }
+            ],
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "guerison_apply_attempt_no_chat_execution",
+              "no_chat_mutation": true,
+              "draft": {
+                "operation_type": "select_state_potion",
+                "mode": "platform_handoff",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "user_state_summary": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber. ; De la culpabilite",
+                "desired_shift_summary": "te relever, degonfler la honte, repartir plus proprement",
+                "recommendation": {
+                  "potion_label": "Potion de guérison",
+                  "why_this_potion": "Quand tu t'en veux, que tu as craque ou que tu te sens blesse, elle t'aide a te relever sans t'enfoncer.",
+                  "immediate_step": null,
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "section État / Potions",
+                  "platform_steps": [
+                    "va dans État / Potions",
+                    "choisis Potion de guérison"
+                  ],
+                  "platform_inputs": {
+                    "potion_type": "guerison",
+                    "potion_title": "Potion de guérison",
+                    "answers": [
+                      {
+                        "question_id": "recent_hurt",
+                        "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                        "value": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.",
+                        "option_value": null,
+                        "option_label": null
+                      },
+                      {
+                        "question_id": "dominant_feeling",
+                        "question_label": "Tu ressens surtout quoi ?",
+                        "value": "De la culpabilite",
+                        "option_value": "culpabilite",
+                        "option_label": "De la culpabilite"
+                      }
+                    ],
+                    "optional_free_text": null
+                  }
+                },
+                "missing_decisions": []
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-state-potion-guerison-global-20260608-r1-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-state-potion-guerison-global-20260608-r1-t05:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.guerison",
+                "status": "delivered",
+                "reason_code": "guerison_apply_attempt_no_chat_execution",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "apply_attempt",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-state-potion-guerison-global-20260608-r1-t05",
+          "source_message_id": "a82b7a29-5b4b-4bd6-9636-65b048d2651c",
+          "user_id": "519b09f8-99da-4856-8a72-b44747194ec1",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion.guerison",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_guerison_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_guerison_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion.guerison",
+          "reason_code": "guerison_apply_attempt_no_chat_execution",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "apply_attempt",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "select_state_potion.guerison",
+              "event": "active_guerison_turn_start",
+              "global_dispatcher_available": false,
+              "previous_status": "repeat_handoff"
+            },
+            {
+              "component": "local_dispatcher",
+              "event": "decision",
+              "flow": "select_state_potion.guerison",
+              "flow_action": "apply_attempt",
+              "confidence": "high",
+              "selected_potion": "guerison",
+              "current_field_id": null,
+              "visible_task": "apply_attempt",
+              "risk_assessment": {
+                "risk_score": 1,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "exit_reason": null
+            },
+            {
+              "component": "local_reducer",
+              "event": "reduced",
+              "flow": "select_state_potion.guerison",
+              "status": "apply_attempt",
+              "reason_code": "guerison_apply_attempt_no_chat_execution",
+              "visible_task": "apply_attempt",
+              "current_field_id": null,
+              "exit_to_global_dispatcher": false
+            },
+            {
+              "component": "visible_stage",
+              "event": "start",
+              "stage": "potion_subskill_task",
+              "clarte_visible_task": null,
+              "potion_subskill_visible_task": "apply_attempt",
+              "handoff_status": "apply_attempt"
+            },
+            {
+              "component": "visible_agent",
+              "stage": "potion_subskill_task",
+              "attempt": 1,
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "visible_stage",
+              "event": "complete",
+              "stage": "potion_subskill_task"
+            }
+          ],
+          "handoff": {
+            "target": "state_potions"
+          },
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "guerison_apply_attempt_no_chat_execution",
+            "no_chat_mutation": true,
+            "draft": {
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_state_summary": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber. ; De la culpabilite",
+              "desired_shift_summary": "te relever, degonfler la honte, repartir plus proprement",
+              "recommendation": {
+                "potion_label": "Potion de guérison",
+                "why_this_potion": "Quand tu t'en veux, que tu as craque ou que tu te sens blesse, elle t'aide a te relever sans t'enfoncer.",
+                "immediate_step": null,
+                "preserve": [],
+                "avoid": [],
+                "platform_destination": "section État / Potions",
+                "platform_steps": [
+                  "va dans État / Potions",
+                  "choisis Potion de guérison"
+                ],
+                "platform_inputs": {
+                  "potion_type": "guerison",
+                  "potion_title": "Potion de guérison",
+                  "answers": [
+                    {
+                      "question_id": "recent_hurt",
+                      "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                      "value": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.",
+                      "option_value": null,
+                      "option_label": null
+                    },
+                    {
+                      "question_id": "dominant_feeling",
+                      "question_label": "Tu ressens surtout quoi ?",
+                      "value": "De la culpabilite",
+                      "option_value": "culpabilite",
+                      "option_label": "De la culpabilite"
+                    }
+                  ],
+                  "optional_free_text": null
+                }
+              },
+              "missing_decisions": []
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-state-potion-guerison-global-20260608-r1-t05",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-state-potion-guerison-global-20260608-r1-t05:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion.guerison",
+              "status": "delivered",
+              "reason_code": "guerison_apply_attempt_no_chat_execution",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "apply_attempt",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  }
+]

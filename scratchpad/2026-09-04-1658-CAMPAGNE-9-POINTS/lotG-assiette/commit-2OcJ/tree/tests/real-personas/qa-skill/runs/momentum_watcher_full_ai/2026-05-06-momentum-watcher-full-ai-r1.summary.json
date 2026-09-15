@@ -1,0 +1,20 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-momentum-watcher-full-ai-2026-05-06-r1-t01",
+    "status": 546,
+    "ok": null,
+    "user": "Je veux tester mon plan presentation client en conditions reelles. L'action active c'est 'Repeter l'ouverture client'.",
+    "assistant": "",
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "direct_effects": [],
+    "tool_skill_intents": [],
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "safety_risk_band": null,
+    "trace_id": null,
+    "trace_error": null
+  }
+]

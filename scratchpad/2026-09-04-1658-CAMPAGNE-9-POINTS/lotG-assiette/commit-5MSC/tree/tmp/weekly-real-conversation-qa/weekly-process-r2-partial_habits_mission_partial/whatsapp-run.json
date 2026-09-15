@@ -1,0 +1,1227 @@
+[
+  {
+    "turn": 1,
+    "user": "Je la resume comme une semaine coupee en deux : debut plutot solide, puis grosse fatigue jeudi et vendredi. Je veux garder ce qui a marche, mais alleger la suite.",
+    "status": 200,
+    "ok": true,
+    "assistant": "Oui, c’est une bonne lecture : solide au début, puis la fatigue a pris le dessus en fin de semaine. Le bon angle, c’est de garder les points qui ont tenu et de baisser un peu l’exigence là où ça a coincé 🙂",
+    "trace": {
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "normal_reply_default",
+      "active_flow_arbitration": {
+        "decision": "minimal_global_dispatcher",
+        "active_owner": "none",
+        "selected_owner": "normal_reply",
+        "resume_policy": "none",
+        "reason_code": "normal_reply_default"
+      },
+      "tool_skill_run": null,
+      "effect_ledger": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      }
+    },
+    "raw": {
+      "ok": true,
+      "request_id": "weekly-process-r2-t01",
+      "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+      "channel": "whatsapp",
+      "scope": "whatsapp",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui, c’est une bonne lecture : solide au début, puis la fatigue a pris le dessus en fin de semaine. Le bon angle, c’est de garder les points qui ont tenu et de baisser un peu l’exigence là où ça a coincé 🙂",
+        "mode": "companion",
+        "delivery": {
+          "mode": "text_reply"
+        },
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "weekly-process-r2-t01",
+            "source_message_id": "b4ff4330-c161-4423-9010-18473a10a42a",
+            "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+            "channel": "whatsapp",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "synthese de semaine avec ajustement pour la suite",
+              "reasoning_complexity": "medium",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "standard",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.74
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "normal_reply",
+              "resume_policy": "none",
+              "reason_code": "normal_reply_default"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "weekly-process-r2-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "weekly-process-r2-t01",
+          "source_message_id": "b4ff4330-c161-4423-9010-18473a10a42a",
+          "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+          "channel": "whatsapp",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "synthese de semaine avec ajustement pour la suite",
+            "reasoning_complexity": "medium",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "standard",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "taxonomy_first",
+            "plan_confidence": 0.74
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "minimal_global_dispatcher",
+            "active_owner": "none",
+            "selected_owner": "normal_reply",
+            "resume_policy": "none",
+            "reason_code": "normal_reply_default"
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "weekly-process-r2-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "normal_reply"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "user": "Oui, la fatigue est bien le blocage dominant. Dans le bilan weekly, est-ce que ca veut dire qu on part sur une semaine allegee plutot que refaire exactement la meme semaine ?",
+    "status": 200,
+    "ok": true,
+    "assistant": "Oui, clairement : vu que la fatigue a bloqué la fin de semaine, l’idée la plus saine c’est d’alléger la suite plutôt que de rejouer la même charge. Garde ce qui a bien tenu, et baisse l’exigence sur ce qui a coincé 🙂",
+    "trace": {
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "normal_reply_default",
+      "active_flow_arbitration": {
+        "decision": "minimal_global_dispatcher",
+        "active_owner": "none",
+        "selected_owner": "normal_reply",
+        "resume_policy": "none",
+        "reason_code": "normal_reply_default"
+      },
+      "tool_skill_run": null,
+      "effect_ledger": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      }
+    },
+    "raw": {
+      "ok": true,
+      "request_id": "weekly-process-r2-t02",
+      "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+      "channel": "whatsapp",
+      "scope": "whatsapp",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui, clairement : vu que la fatigue a bloqué la fin de semaine, l’idée la plus saine c’est d’alléger la suite plutôt que de rejouer la même charge. Garde ce qui a bien tenu, et baisse l’exigence sur ce qui a coincé 🙂",
+        "mode": "companion",
+        "delivery": {
+          "mode": "text_reply"
+        },
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "weekly-process-r2-t02",
+            "source_message_id": "5b2ec7b7-d41b-441a-910d-7ffd85c1c82e",
+            "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+            "channel": "whatsapp",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "clarify_weekly_adjustment_after_fatigue",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.75
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "normal_reply",
+              "resume_policy": "none",
+              "reason_code": "normal_reply_default"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "weekly-process-r2-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "weekly-process-r2-t02",
+          "source_message_id": "5b2ec7b7-d41b-441a-910d-7ffd85c1c82e",
+          "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+          "channel": "whatsapp",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "clarify_weekly_adjustment_after_fatigue",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "taxonomy_first",
+            "plan_confidence": 0.75
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "minimal_global_dispatcher",
+            "active_owner": "none",
+            "selected_owner": "normal_reply",
+            "resume_policy": "none",
+            "reason_code": "normal_reply_default"
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "weekly-process-r2-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "normal_reply"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "user": "Dans ce bilan hebdo, propose-moi la version semaine allegee : garder les deux habitudes utiles, reduire la charge en fin de semaine, et laisser la mission signal de pause a finir. Ne l applique pas encore.",
+    "status": 200,
+    "ok": true,
+    "assistant": "Oui — version semaine allégée :\n- garder les 2 habitudes utiles\n- baisser la charge surtout en fin de semaine\n- laisser la mission “signal de pause” à finir plus tard\n\nJe ne l’applique pas, je te propose juste le cadrage.",
+    "trace": {
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "normal_reply_default",
+      "active_flow_arbitration": {
+        "decision": "minimal_global_dispatcher",
+        "active_owner": "none",
+        "selected_owner": "normal_reply",
+        "resume_policy": "none",
+        "reason_code": "normal_reply_default"
+      },
+      "tool_skill_run": null,
+      "effect_ledger": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      }
+    },
+    "raw": {
+      "ok": true,
+      "request_id": "weekly-process-r2-t03",
+      "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+      "channel": "whatsapp",
+      "scope": "whatsapp",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui — version semaine allégée :\n- garder les 2 habitudes utiles\n- baisser la charge surtout en fin de semaine\n- laisser la mission “signal de pause” à finir plus tard\n\nJe ne l’applique pas, je te propose juste le cadrage.",
+        "mode": "companion",
+        "delivery": {
+          "mode": "text_reply"
+        },
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "weekly-process-r2-t03",
+            "source_message_id": "113471ee-2f17-4890-ba56-cad0595e7b9f",
+            "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+            "channel": "whatsapp",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "proposer une version semaine allégée sans l’appliquer",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.75
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "normal_reply",
+              "resume_policy": "none",
+              "reason_code": "normal_reply_default"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "weekly-process-r2-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "weekly-process-r2-t03",
+          "source_message_id": "113471ee-2f17-4890-ba56-cad0595e7b9f",
+          "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+          "channel": "whatsapp",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "proposer une version semaine allégée sans l’appliquer",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "taxonomy_first",
+            "plan_confidence": 0.75
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "minimal_global_dispatcher",
+            "active_owner": "none",
+            "selected_owner": "normal_reply",
+            "resume_policy": "none",
+            "reason_code": "normal_reply_default"
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "weekly-process-r2-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "normal_reply"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "user": "Avant de confirmer quoi que ce soit, dis-moi exactement ce qui serait modifie dans le plan weekly et ce qui reste pareil. Je veux juste verifier, pas valider.",
+    "status": 200,
+    "ok": true,
+    "assistant": "Dans le weekly, ce qui changerait si tu confirmes, c’est surtout l’intensité : la semaine serait allégée en gardant les 2 habitudes utiles, avec une baisse de charge surtout en fin de semaine, et la mission “signal de pause” resterait à finir plus tard.\n\nCe qui resterait pareil : le cadre de suivi de la semaine, les habitudes déjà en place, et le fait que je ne touche à rien tant que tu ne valides pas.",
+    "trace": {
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "normal_reply_default",
+      "active_flow_arbitration": {
+        "decision": "minimal_global_dispatcher",
+        "active_owner": "none",
+        "selected_owner": "normal_reply",
+        "resume_policy": "none",
+        "reason_code": "normal_reply_default"
+      },
+      "tool_skill_run": null,
+      "effect_ledger": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      }
+    },
+    "raw": {
+      "ok": true,
+      "request_id": "weekly-process-r2-t04",
+      "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+      "channel": "whatsapp",
+      "scope": "whatsapp",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Dans le weekly, ce qui changerait si tu confirmes, c’est surtout l’intensité : la semaine serait allégée en gardant les 2 habitudes utiles, avec une baisse de charge surtout en fin de semaine, et la mission “signal de pause” resterait à finir plus tard.\n\nCe qui resterait pareil : le cadre de suivi de la semaine, les habitudes déjà en place, et le fait que je ne touche à rien tant que tu ne valides pas.",
+        "mode": "companion",
+        "delivery": {
+          "mode": "text_reply"
+        },
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "weekly-process-r2-t04",
+            "source_message_id": "48433e89-3869-4688-b291-79da566235f5",
+            "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+            "channel": "whatsapp",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "compare_weekly_plan_changes_and_unchanged_items_for_verification",
+              "reasoning_complexity": "medium",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "standard",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.75
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "normal_reply",
+              "resume_policy": "none",
+              "reason_code": "normal_reply_default"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "weekly-process-r2-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "weekly-process-r2-t04",
+          "source_message_id": "48433e89-3869-4688-b291-79da566235f5",
+          "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+          "channel": "whatsapp",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "compare_weekly_plan_changes_and_unchanged_items_for_verification",
+            "reasoning_complexity": "medium",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "standard",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "taxonomy_first",
+            "plan_confidence": 0.75
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "minimal_global_dispatcher",
+            "active_owner": "none",
+            "selected_owner": "normal_reply",
+            "resume_policy": "none",
+            "reason_code": "normal_reply_default"
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "weekly-process-r2-t04",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "normal_reply"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "user": "Ok je valide le principe de la semaine allegee, mais je veux que tu me dises si tu as vraiment applique quelque chose ou si c est seulement une proposition a confirmer dans le plan.",
+    "status": 200,
+    "ok": true,
+    "assistant": "C’est seulement une proposition à confirmer dans le plan, pas quelque chose de déjà appliqué. Tant que tu ne le valides pas explicitement, je garde juste le cadrage en l’état 🙂",
+    "trace": {
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "normal_reply_default",
+      "active_flow_arbitration": {
+        "decision": "minimal_global_dispatcher",
+        "active_owner": "none",
+        "selected_owner": "normal_reply",
+        "resume_policy": "none",
+        "reason_code": "normal_reply_default"
+      },
+      "tool_skill_run": null,
+      "effect_ledger": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      }
+    },
+    "raw": {
+      "ok": true,
+      "request_id": "weekly-process-r2-t05",
+      "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+      "channel": "whatsapp",
+      "scope": "whatsapp",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C’est seulement une proposition à confirmer dans le plan, pas quelque chose de déjà appliqué. Tant que tu ne le valides pas explicitement, je garde juste le cadrage en l’état 🙂",
+        "mode": "companion",
+        "delivery": {
+          "mode": "text_reply"
+        },
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "weekly-process-r2-t05",
+            "source_message_id": "4ac257de-06b8-473d-b452-9defa67cc126",
+            "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+            "channel": "whatsapp",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "verify whether the weekly lightened plan is only proposed or actually applied",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "standard",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.75
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "normal_reply",
+              "resume_policy": "none",
+              "reason_code": "normal_reply_default"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "weekly-process-r2-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "weekly-process-r2-t05",
+          "source_message_id": "4ac257de-06b8-473d-b452-9defa67cc126",
+          "user_id": "64c521b4-0562-48ac-9d87-35d38ec83f41",
+          "channel": "whatsapp",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "verify whether the weekly lightened plan is only proposed or actually applied",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "standard",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.75
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "minimal_global_dispatcher",
+            "active_owner": "none",
+            "selected_owner": "normal_reply",
+            "resume_policy": "none",
+            "reason_code": "normal_reply_default"
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "weekly-process-r2-t05",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "normal_reply"
+      },
+      "trace_error": null
+    }
+  }
+]

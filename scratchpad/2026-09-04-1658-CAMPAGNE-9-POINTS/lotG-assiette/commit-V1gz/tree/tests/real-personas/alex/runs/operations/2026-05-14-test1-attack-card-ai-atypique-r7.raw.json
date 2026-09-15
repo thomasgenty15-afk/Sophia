@@ -1,0 +1,372 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r7-t01",
+    "user": "fais moi un truc d'attaque pour le machin du soir avec le carnet, j'ai pas d'idée de technique et j'ai pas envie d'un pavé",
+    "status": 200,
+    "response": {
+      "content": "Ça marche, on booste ton sas de déchargement. Pour éviter le pavé, je te propose 3 options : un Mantra (une phrase courte), une Ancre (ton carnet comme signal) ou un Mot de bascule (un mot à m'envoyer si tu bloques). Qu'est-ce qui te tente ?",
+      "mode": "companion",
+      "tool_execution": "blocked",
+      "executed_tools": []
+    },
+    "trace": {
+      "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r7-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "source_message_id": "bef2f8ed-cac5-4813-bce8-46a0ff6bd613",
+      "ts": "2026-05-14T17:26:48.588+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 4921,
+        "latency_ms": 3310,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 605,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "sas de déchargement",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "carnet soir sas",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "whatsapp",
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r7-t01",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "sas de déchargement",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "carnet soir sas",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {},
+          "lifecycle": {}
+        },
+        "direct_effects": [],
+        "conversation_risk": {
+          "score": 0,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [],
+          "context_summary": null,
+          "previous_scores": [],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "bef2f8ed-cac5-4813-bce8-46a0ff6bd613",
+        "tool_skill_intents": [
+          {
+            "ambiguity": "none",
+            "target_hint": "machin du soir avec le carnet",
+            "user_intent": "create",
+            "explicitness": "explicit",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "high",
+            "operation_input": {
+              "constraints": {
+                "value": "pas un pavé",
+                "status": "identified",
+                "evidence": [
+                  "pas envie d'un pavé"
+                ]
+              },
+              "target_item": {
+                "value": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+                "status": "identified",
+                "evidence": [
+                  "machin du soir avec le carnet",
+                  "Faire le sas de déchargement"
+                ]
+              }
+            }
+          }
+        ],
+        "confirmation_response": null,
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "tool_skill_intent_start",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_attack_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [],
+      "skill_run": null,
+      "operation_flow_run": {
+        "status": "ask_question",
+        "slot_state": {
+          "slot": "technique",
+          "needed": true,
+          "reason": "structured_ai_missing_technique",
+          "status": "missing",
+          "question": "Ça marche, on booste ton sas de déchargement. Pour éviter le pavé, je te propose 3 options : un Mantra (une phrase courte), une Ancre (ton carnet comme signal) ou un Mot de bascule (un mot à m'envoyer si tu bloques). Qu'est-ce qui te tente ?",
+          "known_slots": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "intake_state": {
+              "target": {
+                "kind": "plan_item",
+                "title": "Faire le sas de déchargement",
+                "status": "identified",
+                "evidence": [
+                  "machin du soir avec le carnet",
+                  "sas de déchargement"
+                ],
+                "confidence": "high",
+                "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+              },
+              "blocker": {
+                "type": "friction",
+                "evidence": [
+                  "pas envie d'un pavé"
+                ],
+                "confidence": 0.8
+              },
+              "skill_id": "prepare_attack_card",
+              "technique": {
+                "value": null,
+                "status": "ambiguous",
+                "options": [
+                  {
+                    "title": "Mantra de force",
+                    "reason": "Répond à la contrainte 'pas de pavé' et renforce l'intention.",
+                    "example": "Je pose tout, mon cerveau respire.",
+                    "description": "Une phrase courte à répéter pour te mettre dans l'action.",
+                    "recommended": true,
+                    "technique_key": "mantra_force"
+                  },
+                  {
+                    "title": "Ancre visuelle",
+                    "reason": "Le carnet est déjà mentionné par l'utilisateur.",
+                    "example": "Le carnet ouvert sur la table basse.",
+                    "description": "Utiliser ton carnet comme signal concret.",
+                    "recommended": true,
+                    "technique_key": "ancre_visuelle"
+                  },
+                  {
+                    "title": "Mot de bascule",
+                    "reason": "Ultra court, idéal pour éviter la friction.",
+                    "example": "M'envoyer 'SAS' quand tu hésites.",
+                    "description": "Un mot simple à m'envoyer si tu sens que tu vas esquiver.",
+                    "recommended": false,
+                    "technique_key": "pre_engagement"
+                  }
+                ],
+                "evidence": [
+                  "pas d'idée de technique",
+                  "pas envie d'un pavé"
+                ],
+                "confidence": "medium",
+                "fit_warning": null,
+                "explicitly_requested": false
+              },
+              "confidence": "high",
+              "constraints": [
+                "format court",
+                "pas de pavé"
+              ],
+              "current_step": "technique_selection",
+              "missing_slots": [
+                "technique"
+              ],
+              "activation_keyword": {
+                "value": null,
+                "status": "missing",
+                "options": [],
+                "evidence": [],
+                "confidence": "low",
+                "rejected_value": null
+              },
+              "generated_user_message": "Ça marche, on booste ton sas de déchargement. Pour éviter le pavé, je te propose 3 options : un Mantra (une phrase courte), une Ancre (ton carnet comme signal) ou un Mot de bascule (un mot à m'envoyer si tu bloques). Qu'est-ce qui te tente ?"
+            },
+            "technique_options": [
+              {
+                "title": "Mantra de force",
+                "reason": "Répond à la contrainte 'pas de pavé' et renforce l'intention.",
+                "example": "Je pose tout, mon cerveau respire.",
+                "description": "Une phrase courte à répéter pour te mettre dans l'action.",
+                "recommended": true,
+                "technique_key": "mantra_force"
+              },
+              {
+                "title": "Ancre visuelle",
+                "reason": "Le carnet est déjà mentionné par l'utilisateur.",
+                "example": "Le carnet ouvert sur la table basse.",
+                "description": "Utiliser ton carnet comme signal concret.",
+                "recommended": true,
+                "technique_key": "ancre_visuelle"
+              },
+              {
+                "title": "Mot de bascule",
+                "reason": "Ultra court, idéal pour éviter la friction.",
+                "example": "M'envoyer 'SAS' quand tu hésites.",
+                "description": "Un mot simple à m'envoyer si tu sens que tu vas esquiver.",
+                "recommended": false,
+                "technique_key": "pre_engagement"
+              }
+            ]
+          },
+          "technique_options": [
+            {
+              "title": "Mantra de force",
+              "reason": "Répond à la contrainte 'pas de pavé' et renforce l'intention.",
+              "example": "Je pose tout, mon cerveau respire.",
+              "description": "Une phrase courte à répéter pour te mettre dans l'action.",
+              "recommended": true,
+              "technique_key": "mantra_force"
+            },
+            {
+              "title": "Ancre visuelle",
+              "reason": "Le carnet est déjà mentionné par l'utilisateur.",
+              "example": "Le carnet ouvert sur la table basse.",
+              "description": "Utiliser ton carnet comme signal concret.",
+              "recommended": true,
+              "technique_key": "ancre_visuelle"
+            },
+            {
+              "title": "Mot de bascule",
+              "reason": "Ultra court, idéal pour éviter la friction.",
+              "example": "M'envoyer 'SAS' quand tu hésites.",
+              "description": "Un mot simple à m'envoyer si tu sens que tu vas esquiver.",
+              "recommended": false,
+              "technique_key": "pre_engagement"
+            }
+          ],
+          "activation_keyword_options": []
+        },
+        "reason_code": "tool_skill_intent_start",
+        "missing_slots": [
+          "technique"
+        ],
+        "selected_handler": "prepare_attack_card"
+      },
+      "recommendation_tool_run": null,
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "tool_skill",
+      "total_latency_ms": 12887,
+      "created_at": "2026-05-14T17:26:48.597904+00:00"
+    },
+    "error": null,
+    "trace_error": null
+  }
+]

@@ -1,0 +1,176 @@
+{
+  "H1b-cook-today": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Today you need to roast the chicken thighs.\n\nFor what’s being eaten today, the dishes are roast chicken, brown rice, and green beans for dinner, and tomato and white bean salad for lunch.",
+      "fullChars": 27204,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "9540813c-6c45-478c-a089-fe8430cd55c4"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Today you’re cooking roast chicken, brown rice, and green beans for dinner, and tomato and white bean salad for lunch. You also need to roast the chicken thighs today; the lentils and cod are for other days.",
+      "fullChars": 24370,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "760a796e-02b4-420e-aba2-d8a7ca312e0f"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Today you need to roast the chicken thighs.  \n\nThe dishes for today are roast chicken, brown rice, and green beans; lunch is tomato and white bean salad.",
+      "fullChars": 24370,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "24caa6d2-6ed0-4e86-ac6d-985cc82f2b24"
+    }
+  ],
+  "E1b-dinner": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Tonight is roast chicken, brown rice, and green beans.\n\nFor you, it’s a full protein share with a smaller starch share.",
+      "fullChars": 24370,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "b048d6e8-80dd-4d87-850c-16b02be9d7c7"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Tonight’s dish is roast chicken, brown rice, and green beans.  \nThe chicken thighs are the prep for today; the lentils and cod are for later dates, not tonight.",
+      "fullChars": 24370,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "35389f65-b813-4e23-98e5-d2b76fbb6b10"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Tonight you’re eating roast chicken, brown rice, and green beans. Ana gets a full protein share with a smaller starch share, Marc gets a larger protein and starch share, and Leo gets a child-size share of the same dish.",
+      "fullChars": 24370,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "7cfe30cf-e7d4-4d84-b064-6fe8437cbe4c"
+    }
+  ],
+  "X1-two-members": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Tonight you’re having roast chicken, brown rice, and green beans. Marc gets a larger protein and starch share; Ana gets a full protein share with a smaller starch share; Leo gets a child-size portion of the same dish.",
+      "fullChars": 25709,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "f36ab303-b033-44a0-b16e-b20c677d3add"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Tonight is roast chicken, brown rice, and green beans.\n\nMarc gets the larger protein and starch share, Ana gets a full protein share with a smaller starch share, and Leo gets a child-size portion of the same dish.",
+      "fullChars": 22875,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "13481ab2-9b4b-4619-9bf0-25f11bffd540"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Tonight is roast chicken, brown rice, and green beans.",
+      "fullChars": 22875,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "dabfa093-97b0-4264-8927-282d43e92a6d"
+    }
+  ],
+  "X2-shared-other": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Rob has the larger protein and starch share. For Sam, I don’t have a portion note here.",
+      "fullChars": 22746,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "9263fd15-9bf5-4920-82b1-5c56da3a6e6e"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "I only have one serving note for you: Rob gets the larger protein and starch share. I don’t have a serving note for Sam.",
+      "fullChars": 22746,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "d6074951-9389-4273-9001-f14aed3be47a"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Sam’s portion isn’t specified here. For tonight, I only have the shared dish: sheet-pan sausages and peppers.",
+      "fullChars": 22746,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "a62a50b4-d94c-4a73-9d67-3d4ff183e07e"
+    }
+  ],
+  "X3-minor-nutella": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Because Ana chose not to keep Nutella at home.",
+      "fullChars": 23149,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "b34aea7e-b9b7-4161-9a30-c5ef279fc839"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "It’s a household choice by Ana. That’s the only reason given here.",
+      "fullChars": 23149,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "8ec92cee-0b41-4fed-a871-275e4b6b9aba"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Because Ana chose not to have Nutella in the household.",
+      "fullChars": 23149,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "370ce02e-8387-4db9-b462-6b4dec13bf37"
+    }
+  ],
+  "X4-rich-dinner": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Tonight is slow-braised beef with root vegetables for dinner. Your shopping list is longer than the first 12 items shown here, so send me to the meals screen for the rest.",
+      "fullChars": 28556,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "387d7e3a-8ed5-4c75-b47f-f49e1c4df887"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Tonight you’re having slow-braised beef with root vegetables. For this window, the shopping list in view only shows the first 12 items; the rest are longer than that, so check the meals screen for the full list.",
+      "fullChars": 25722,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "273d9e19-bb8c-4180-a913-76fc0747ec20"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Tonight is slow-braised beef with root vegetables.\n\nFor the shopping list, I can only see the first 12 items here:\nshopping item 1 through shopping item 12, with quantities 1 through 12.\nThe list is longer, so for the rest you’ll need the meals screen.",
+      "fullChars": 25722,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "350d2092-28ee-4af4-8981-91fc07e160f1"
+    }
+  ]
+}

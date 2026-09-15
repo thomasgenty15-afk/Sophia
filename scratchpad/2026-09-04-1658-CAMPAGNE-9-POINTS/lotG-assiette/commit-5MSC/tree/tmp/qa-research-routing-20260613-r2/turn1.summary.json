@@ -1,0 +1,20 @@
+{
+  "status": "HTTP/1.1 200 OK",
+  "ok": true,
+  "request_id": "b4d7cbe6-f84d-4a93-89fc-c1a18b178a44",
+  "content": "Oui 🙂 D’après les infos récentes, le modèle OpenAI le plus économique pour générer du texte court est généralement GPT-4.1 Nano (parfois listé via une variante “Nano” selon l’accès/segment).  \n\nCe que tu dois regarder en priorité pour ton petit outil interne :\n\n1) Le coût par token (input vs output)  \n- Nano est le plus “low cost”, mais compare toujours input ET output (la partie génération peut coûter plus).\n\n2) La fiabilité sur “court texte”  \n- Teste sur tes cas réels : résumés ultra-courts, classifications, extraction, réponses courtes.  \n- Le “moins cher” perd parfois en exactitude → donc le meilleur rapport qualité/prix peut être un modèle légèrement plus cher.\n\n3) Latence + volume  \n- Si ton outil fait du très haut volume, même une petite différence de coût/token devient énorme.  \n- Si tu as une contrainte temps réel, regarde aussi la latence attendue.\n\n4) Facilité d’intégration côté API  \n- Disponibilité dans ton compte, limites, formats d’API, et éventuels frais/contraintes autour du “routing” ou de la mise en cache.\n\n5) Stratégie de fallback  \n- Le plus pratique : commencer par le modèle économique, et prévoir un “fallback” sur un modèle plus robuste si la sortie est trop incertaine (ça évite de payer cher tout le temps).\n\nSi tu me dis en 1 phrase ton usage exact (ex: “classification de tickets + extraction de champs”, “réponses en style X”, etc.) et à peu près le volume (par jour), je te dis quel modèle viser en premier et quoi mesurer pour décider rapidement ✅",
+  "forbidden": {
+    "fil_rouge": false,
+    "html_comment": false
+  },
+  "needs_research": {
+    "detected": true,
+    "value": true,
+    "query": "OpenAI most economical model for short text generation June 2026",
+    "domain_hint": "software",
+    "confidence": 0.9,
+    "reason": "User asks for recent information on OpenAI API pricing and models which requires fresh external data."
+  },
+  "response_owner": "normal_reply",
+  "reason_code": "needs_research_forces_normal_reply"
+}

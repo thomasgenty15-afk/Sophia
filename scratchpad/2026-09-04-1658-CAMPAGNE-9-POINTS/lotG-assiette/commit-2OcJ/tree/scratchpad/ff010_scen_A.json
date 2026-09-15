@@ -1,0 +1,8 @@
+[
+  { "id": "E1-dinner", "level": "easy", "student": "ana", "message": "What are we eating tonight?", "runs": 3, "fresh": true },
+  { "id": "M1-fr-dinner", "level": "medium", "student": "ana", "message": "On mange quoi ce soir ?", "runs": 3, "fresh": true },
+  { "id": "M2-fr-share", "level": "medium", "student": "marc", "message": "C'est quoi ma part ce soir ?", "runs": 3, "fresh": true },
+  { "id": "M3-shopping", "level": "medium", "student": "ana", "message": "What do I need to buy?", "runs": 3, "fresh": true },
+  { "id": "M4-minor-dinner", "level": "medium", "student": "leo", "message": "What are we eating tonight?", "runs": 3, "fresh": true },
+  { "id": "H1-cook-today", "level": "hard", "student": "ana", "message": "What do I need to cook today?", "runs": 3, "fresh": true }
+]

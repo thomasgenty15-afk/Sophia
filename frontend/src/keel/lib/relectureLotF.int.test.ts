@@ -85,14 +85,88 @@ describe("LOT F ③ — trois plans écrits par le moteur, relus par l'écran", 
   // ⛔ LA PRÉMISSE EST ÉPINGLÉE. Une boucle sur un objet vide passerait toutes
   // les assertions du fichier sans en exécuter une seule ; c'est la cicatrice
   // « une garde a besoin d'un cas qui passe », prise à l'envers.
-  it("la fixture porte bien les trois plans, et ils portent des plats", () => {
-    expect(Object.keys(PLANS).sort()).toEqual(["duo", "gain", "perte"]);
+  it("la fixture porte bien les plans, et ils portent des plats", () => {
+    // ⟳ 2026-09-12 · FERMETURE DES TROIS LOTS — LA FIXTURE A ÉTÉ REGÉNÉRÉE
+    // depuis les TROIS demandes réelles de la fermeture (appels modèle
+    // payants), et elle garde EN PLUS le plan `archive` du 2026-09-11 : écrit
+    // avant que la liste de courses porte ses champs structurés, il prouve
+    // qu'un plan ancien reste lisible.
+    //
+    // ⚠️ SIX PLATS PARTOUT, ET C'EST LA FENÊTRE QUI LE DIT: les trois demandes
+    // portaient deux jours × trois moments (le premier jour tombe sur le délai
+    // d'achat). Le nombre n'est pas un réglage — c'est la grille annoncée avant
+    // l'appel, et l'instrument l'a vérifiée (6, 12 et 6 parts attendues).
+    // ⟳ 2026-09-13 · FERMETURE DES RÉPARATIONS DE FOYER — `quatuor` REJOINT LA
+    // FIXTURE. C'est le tir `l3d04` : QUATRE bouches, et un déroulé de session
+    // qui portait un allergène et que la boucle a RÉPARÉ. Il ferme le point ⑦
+    // du plan (« lecture API/UI des sorties N=2/N=4 : bonnes personnes,
+    // quantités finales entières, texte corrigé »).
+    expect(Object.keys(PLANS).sort()).toEqual([
+      "archive",
+      "duo",
+      "gain",
+      "perte",
+      "quatuor",
+    ]);
     expect(PLANS.perte.dishes.length).toBe(6);
     expect(PLANS.gain.dishes.length).toBe(6);
     expect(PLANS.duo.dishes.length).toBe(6);
-    // Le foyer de deux sert DEUX parts ; les deux solos une seule.
+    expect(PLANS.archive.dishes.length).toBe(6);
+    // ⚠️ SEPT PLATS, ET PAS SIX : la fenêtre de ce tir porte fri/dinner plus
+    // deux journées pleines, et la boucle a rempli la case manquante.
+    expect(PLANS.quatuor.dishes.length).toBe(7);
+    // Le foyer de deux sert DEUX parts ; celui de quatre en sert QUATRE ; les
+    // deux solos une seule.
     expect(PLANS.duo.servings).toBe(2);
+    expect(PLANS.quatuor.servings).toBe(4);
     expect(PLANS.perte.servings).toBe(1);
+  });
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // ① bis ⟳ 2026-09-13 — LE FOYER DE QUATRE : LES BONNES PERSONNES, ET LE
+  //        TEXTE RÉPARÉ
+  // ═════════════════════════════════════════════════════════════════════════
+  it("quatuor — quatre bouches nommées, et aucune part orpheline", () => {
+    const parts = PLANS.quatuor.member_portions as { member_id?: string }[];
+    expect(parts.length).toBe(4);
+    const bouches = new Set(parts.map((p) => String(p.member_id ?? "")));
+    expect(bouches.size).toBe(4);
+    expect([...bouches].every((id) => id !== "")).toBe(true);
+
+    // ⛔ ET CHAQUE CONTENANT NOMME QUELQU'UN DE LA TABLE. Un couvercle sans nom
+    // sur une table de quatre est un contenant que personne ne sait à qui
+    // ouvrir — la cicatrice `box-belongs-to-the-meal`.
+    const dishes = readDishes(reload(PLANS.quatuor.dishes));
+    const contenants = dishes.flatMap((d) => d.boxes ?? []);
+    expect(contenants.length).toBeGreaterThan(0);
+    for (const b of contenants) {
+      // ⚠️ `member_ids`, LA CLÉ DU PAYLOAD — `readDishes` la transporte telle
+      // quelle (`mealGeneration.ts`), il ne la renomme pas.
+      const noms = (b as { member_ids?: string[] }).member_ids ?? [];
+      expect(noms.length).toBeGreaterThan(0);
+      for (const id of noms) expect(bouches.has(id)).toBe(true);
+    }
+  });
+
+  it("quatuor — le DÉROULÉ réparé est celui qui est relu, et il ne nomme plus l'aliment", () => {
+    // ⛔ LE DÉFAUT FERMÉ AU LOT 1, VU DEPUIS L'ÉCRAN. L'allergène n'était que
+    // dans `cooking_sessions[].run_through` ; il passait le verrou, et la
+    // correction devait se retrouver jusque dans la ligne écrite.
+    const sessions = reload(PLANS.quatuor.cooking_sessions) as {
+      run_through?: string;
+    }[];
+    expect(sessions.length).toBeGreaterThan(0);
+    const textes = sessions.map((s) => String(s.run_through ?? ""));
+    for (const t of textes) {
+      expect(t.trim().length).toBeGreaterThan(0);
+      expect(t.toLowerCase()).not.toContain("peanut");
+      expect(t.toLowerCase()).not.toContain("cacahu");
+    }
+    // ⛔ ET LE TEXTE RÉPARÉ EST BIEN CELUI-LÀ, pas un vestige : la boucle a
+    // réécrit la session en défaut, et c'est sa phrase qui est en base.
+    expect(textes.some((t) => t.includes("répartis en boîtes étiquetées"))).toBe(
+      true,
+    );
   });
 
   // ═════════════════════════════════════════════════════════════════════════
@@ -102,7 +176,7 @@ describe("LOT F ③ — trois plans écrits par le moteur, relus par l'écran", 
   // C'est le champ que `readIngredients` laissait tomber avant le lot C :
   // `amount`, `unit`, `state`, `grams_raw`, `ref`. Sans eux l'écran retombe sur
   // l'ancien `quantity` — le défaut mesuré à 64 lignes sur 96 le 2026-09-11.
-  for (const cle of ["perte", "gain", "duo"] as const) {
+  for (const cle of ["perte", "gain", "duo", "quatuor"] as const) {
     it(`${cle} — les lecteurs transportent amount/unit/ref sur toutes les lignes`, () => {
       const plan = PLANS[cle];
       const preps = readPreparations(reload(plan.preparations));
@@ -123,7 +197,12 @@ describe("LOT F ③ — trois plans écrits par le moteur, relus par l'écran", 
       // un nombre que personne n'a mesuré. Le test NOMME la liste au lieu de
       // tolérer n'importe quel manque : une ligne pesée qui s'y ajouterait
       // ferait rougir.
-      const CONDIMENTS = ["sel", "poivre noir"];
+      // ⟳ 2026-09-12 · FERMETURE DES TROIS LOTS — « herbes séchées » rejoint la
+      // liste, et pour la MÊME raison que le sel: le modèle l'écrit sans
+      // quantité, le lot A la pèse par convention et le lot C la laisse en
+      // texte plutôt que d'inventer « 0,5 g ». Le moteur le NOMME de son côté
+      // (`unquantified_terms: herbes séchées`).
+      const CONDIMENTS = ["sel", "poivre noir", "herbes séchées"];
       const inattendus = [...new Set(sansDonnee.map((i) => i.term))].filter(
         (t) => !CONDIMENTS.includes(t),
       );
@@ -227,19 +306,42 @@ describe("LOT F ③ — trois plans écrits par le moteur, relus par l'écran", 
   // ⑤ LES COURSES SE RELISENT — ET LEUR TROU EST NOMMÉ, PAS MASQUÉ
   // ═════════════════════════════════════════════════════════════════════════
   //
-  // ⛔ CE TEST ÉPINGLE UNE ABSENCE. `shopping_list[]` ne porte TOUJOURS ni
-  // `amount`, ni `unit`, ni `ref` : c'est la demande C-E1 du lot E, non servie.
-  // Tant qu'elle l'est, l'écran ne peut rien dériver de ces lignes et le
-  // contrôle de suffisance rend « incomplet » — 3 lignes sur PERTE, 20 sur
-  // GAIN, mesurées par le tir du lot F. L'écrire ici empêche de croire que le
-  // transport d'identité du lot C couvre aussi les courses.
-  it("les lignes de courses n'ont ni quantité structurée ni identité", () => {
-    const lignes = readShopping(reload(PLANS.perte.shopping_list));
+  // ⛔ CE TEST ÉPINGLAIT UNE ABSENCE, ET ELLE EST FERMÉE — ⟳ 2026-09-12 · C3.
+  //
+  // Il disait : « `shopping_list[]` ne porte ni `amount`, ni `unit`, ni `ref` —
+  // demande C-E1 du lot E, non servie ». Conséquence mesurée : l'écran ne
+  // pouvait rien dériver de ces lignes et le contrôle de suffisance rendait
+  // « incomplet » sur 3 lignes de PERTE et **20 de GAIN**.
+  //
+  // ⛔ CE QU'IL GARDE MAINTENANT, ET C'EST LA MOITIÉ QUI COMPTE : le lecteur
+  // porte les champs, **et un plan écrit AVANT C3 reste lisible**. Les trois
+  // plans de cette fixture ont été écrits le 2026-09-11, donc sans ces champs :
+  // ils doivent ressortir à `null` — la valeur « inconnue » — et surtout PAS à
+  // zéro, qui dirait « n'en achète pas » (cicatrice `readIngredients`, 6 lignes
+  // sur 43 le même soir).
+  it("les lignes de courses portent l'identité et la quantité structurée — `null` sur un plan d'archive", () => {
+    // ⟳ 2026-09-12 · LOT 3 — CE CAS LIT MAINTENANT LE PLAN `archive`. Les plans
+    // de la campagne du 2026-09-12 portent, eux, les champs REMPLIS : la
+    // liste est produite depuis les recettes. Les deux directions sont
+    // épinglées, ici et dans le cas juste en dessous.
+    const lignes = readShopping(reload(PLANS.archive.shopping_list));
     expect(lignes.length).toBeGreaterThan(10);
     for (const l of lignes) {
-      expect(Object.keys(l)).not.toContain("amount");
-      expect(Object.keys(l)).not.toContain("ref");
-      // Ce qu'elles portent : une prose, un rayon, une date d'achat.
+      expect(Object.keys(l)).toContain("amount");
+      expect(Object.keys(l)).toContain("unit");
+      expect(Object.keys(l)).toContain("ref");
+      expect(Object.keys(l)).toContain("state");
+      expect(Object.keys(l)).toContain("purchasable");
+      // ⛔ LE CAS QUI MORD : une archive sans donnée structurée rend `null`,
+      // jamais `0`. `Number(undefined)` vaut `NaN`, `Number(null)` vaut `0` —
+      // les deux passeraient inaperçus dans une somme.
+      expect(l.amount).toBeNull();
+      expect(l.unit).toBeNull();
+      expect(l.ref).toBeNull();
+      // ⛔ ET ELLE RESTE ACHETABLE : l'absence du champ ne sort personne de la
+      // liste de courses.
+      expect(l.purchasable).toBe(true);
+      // Ce qu'elles portent depuis toujours : une prose, un rayon, une date.
       expect(typeof l.quantity).toBe("string");
     }
   });
@@ -256,8 +358,45 @@ describe("LOT F ③ — trois plans écrits par le moteur, relus par l'écran", 
       expect(boxes.length).toBe(2);
       cases++;
     }
-    // 6 cases × 2 bouches = 12 parts. C'est le dénominateur du lot E
-    // (`portion_cells: 12`, `measured_cells: 12`) vu depuis l'écran.
+    // ⟳ 2026-09-12 · FERMETURE DES TROIS LOTS — 6 cases × 2 bouches = 12 parts,
+    // sur le plan écrit par la demande réelle n° 2. C'est exactement le
+    // dénominateur que la grille de mesure annonce AVANT l'appel
+    // (`cases_annoncees: 6`, `bouches_annoncees: 2` ⇒ 12 parts attendues) et
+    // que l'instrument a mesuré conforme (12/12) : l'écran voit le même nombre
+    // de parts que la mesure.
     expect(cases).toBe(6);
+  });
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · LOT 3 — L'AUTRE DIRECTION : LA LISTE PRODUITE SE RELIT
+  // ═════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LE CAS AU-DESSUS PROUVE QU'UN PLAN ANCIEN RESTE LISIBLE. Celui-ci prouve
+  // que les plans d'AUJOURD'HUI portent réellement ce que le lot 1 produit :
+  // depuis que le modèle n'écrit plus `shopping_list`, chaque ligne est
+  // calculée depuis les recettes, et si l'écran ne la relisait pas, la personne
+  // arriverait au magasin avec une liste sans quantité.
+  it("les plans du 2026-09-12 portent une liste PRODUITE, et l'écran la relit", () => {
+    for (const cle of ["perte", "gain", "duo", "quatuor"] as const) {
+      const lignes = readShopping(reload(PLANS[cle].shopping_list));
+      expect(lignes.length).toBeGreaterThan(10);
+      // ⛔ AUCUNE LIGNE SANS DATE D'ACHAT. Une liste sans jour se lit « achète
+      // tout maintenant » — c'est le défaut que la datation des vagues ferme,
+      // et une ligne produite après la datation le rouvrait (mesuré le
+      // 2026-09-12 sur « blancs d'œuf »).
+      for (const l of lignes) {
+        expect(typeof l.buy_on === "string" && l.buy_on.length === 10).toBe(true);
+        expect(l.purchasable).toBe(true);
+      }
+      // ⛔ ET LA QUANTITÉ STRUCTURÉE EST LÀ SUR LA PLUPART DES LIGNES. Pas sur
+      // TOUTES : un besoin non pesable garde son texte et sort sans nombre,
+      // `null` voulant dire « inconnu » et jamais zéro. On épingle donc une
+      // MAJORITÉ, qui est ce que « la liste est calculée » veut dire.
+      const chiffrees = lignes.filter((l) => typeof l.amount === "number" && l.amount > 0);
+      expect(chiffrees.length).toBeGreaterThan(lignes.length / 2);
+      for (const l of chiffrees) {
+        expect(typeof l.unit === "string" && l.unit.length > 0).toBe(true);
+      }
+    }
   });
 });

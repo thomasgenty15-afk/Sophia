@@ -1,0 +1,155 @@
+═══════════════════════════════════════════════════════════════════════════
+L5 — LE SEL, LES SUCRES ET LA VITAMINE K
+exécuté le 2026-08-22 17:14:49 CEST · base supabase_db_Sophia_2
+═══════════════════════════════════════════════════════════════════════════
+
+── LES TROIS COLONNES EXISTENT-ELLES ? (information_schema) ───────────────
+     sodium_mg        EXISTE
+     sugars_g         EXISTE
+     vitamin_k_ug     EXISTE
+     micronutrient_so EXISTE
+
+── CE QUI EST VÉRIFIABLE CONTRE SA SOURCE (lot `O9`) ─────────────────────
+     source=ciqual   total  881 · avec ciqual_code  192 · SANS  689
+     source=manual   total   42 · avec ciqual_code    0 · SANS   42
+
+── ① LES TROIS COLONNES, ET LE RÉFÉRENTIEL ENTIER ────────────────────────
+     sodium_mg       226 / 923    24.5 %
+     sugars_g        226 / 923    24.5 %
+     vitamin_k_ug    226 / 923    24.5 %
+
+── ② LES DEUX DÉNOMINATEURS — §⑨ n° 50 ET SON AMENDEMENT ─────────────────
+     [A] corpus entier           193 plans ·  199 aliments ATTEINTS
+     [B] population vivante       13 plans ·   93 aliments ATTEINTS
+         millésimes vivants: meal.en.v18_one_box_per_group · meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+     ⛔ POPULATION EXCLUE de [B]: 180 plans, 25 millésimes morts — les voici, comptés:
+          43 × (aucun prompt_version)
+          28 × meal.en.v15_the_plan_never_names_it+household.v17_what_each_mouth_already_has
+          17 × meal.en.v3_preparations
+          12 × meal.en.v2_batch
+          11 × meal.en.v14_what_outranks_what+household.v17_what_each_mouth_already_has
+           8 × meal.en.v9_cooking_shape+household.v6_voices
+           8 × meal.en.v9_cooking_shape+household.v5_unmerge
+           6 × meal.en.v8_distinct_health_direction+household.v2_presence
+           6 × meal.en.v9_cooking_shape+household.v9_merge_dedicated_per_meal
+           5 × meal.en.v9_cooking_shape+household.v8_plan_gaps
+           4 × meal.en.v12_a_dish_has_a_name+household.v16_this_kitchen_and_a_meal_out
+           4 × meal.en.v9_cooking_shape
+           4 × meal.en.v1_doctrine
+           4 × meal.en.v9_cooking_shape+household.v3_merge
+           3 × meal.en.v13_what_they_can_actually_do+household.v17_what_each_mouth_already_has
+           3 × meal.en.v11_weighed_or_counted+household.v15_one_box_each_and_a_number
+           3 × meal.en.v13_what_they_can_actually_do
+           3 × meal.en.v9_cooking_shape+household.v4_merge_budget
+           2 × meal.en.v12_a_dish_has_a_name
+           1 × meal.en.v16_the_model_declares_the_group+household.v19_a_why_names_no_ones_rule
+           1 × meal.en.v9_cooking_shape+household.v11_dietary_regime_at_the_table
+           1 × meal.en.v11_weighed_or_counted+household.v14_weigh_once_into_boxes
+           1 × meal.en.v10_same_day+household.v12_whose_dish_is_it
+           1 × meal.en.v14_what_outranks_what
+           1 × meal.en.v9_cooking_shape+household.v7_merge_anchor
+
+── ③ LA COUVERTURE SUR LES ALIMENTS ATTEINTS ─────────────────────────────
+     seuil de la fiche: 90 %
+     [A] 199 aliments atteints
+         sodium_mg       199 /  199   100.0 %
+         sugars_g        199 /  199   100.0 %
+         vitamin_k_ug    199 /  199   100.0 %
+         LES TROIS À LA FOIS   199 /  199   100.0 %   ⇒ ATTEINT
+     [B] 93 aliments atteints
+         sodium_mg        93 /   93   100.0 %
+         sugars_g         93 /   93   100.0 %
+         vitamin_k_ug     93 /   93   100.0 %
+         LES TROIS À LA FOIS    93 /   93   100.0 %   ⇒ ATTEINT
+
+── ④ LES ALIMENTS ATTEINTS SANS LES TROIS VALEURS — 0, par fréquence ──
+
+── ⑤ LA LISTE FERMÉE DES ALIMENTS À K ÉLEVÉE (≥ 100 µg/100 g) ──
+     1714.5 µg/100 g  herbs_thyme                    atteint  100 ×   Thyme
+       1640 µg/100 g  herbs_parsley                  atteint  151 ×   Parsley
+        830 µg/100 g  swiss_chard                    atteint    0 ×   Swiss chard
+      704.8 µg/100 g  kale                           atteint    2 ×   Kale
+        600 µg/100 g  dried_herbs                    atteint  127 ×   Dried mixed herbs
+      493.6 µg/100 g  spinach_water                  atteint    0 ×   Spinach, boiled/cooked in water
+      482.9 µg/100 g  spinach                        atteint  165 ×   Spinach
+      482.9 µg/100 g  spinach_young_leaves           atteint    0 ×   Spinach, young leaves, raw
+      414.8 µg/100 g  herbs_basil                    atteint   41 ×   Basil
+        400 µg/100 g  herbs_bay_leaf                 atteint   27 ×   Bay leaf, dried
+      327.3 µg/100 g  swiss_chard_leaf_stalk         atteint    0 ×   Swiss chard, leaf and stalk, boiled/cooked in water
+        310 µg/100 g  herbs_coriander                atteint   29 ×   Coriander
+      297.6 µg/100 g  chicory                        atteint    0 ×   Chicory, raw
+        250 µg/100 g  watercress                     atteint    0 ×   Watercress
+      212.7 µg/100 g  herbs_chives                   atteint   11 ×   Chives
+        207 µg/100 g  spring_onion                   atteint   34 ×   Spring onion
+        200 µg/100 g  herbs_mint                     atteint   45 ×   Mint
+        177 µg/100 g  brussels_sprouts               atteint    0 ×   Brussels sprouts
+      163.7 µg/100 g  black_pepper                   atteint  478 ×   Black pepper
+        163 µg/100 g  mayonnaise                     atteint   21 ×   Mayonnaise
+      141.1 µg/100 g  broccoli_water_crunchy         atteint    0 ×   Broccoli, boiled/cooked in water, crunchy
+      141.1 µg/100 g  broccoli_water_tender          atteint    0 ×   Broccoli, boiled/cooked in water, tender
+      141.1 µg/100 g  romanesco_cauliflower_romanesco_broccoli atteint    0 ×   Romanesco cauliflower or romanesco broccoli, cooked
+      140.3 µg/100 g  brussels_sprout_water          atteint    0 ×   Brussels sprout, boiled/cooked in water
+        140 µg/100 g  lamb_s_lettuce                 atteint    0 ×   Lamb's lettuce, raw
+        130 µg/100 g  mixed_leaves                   atteint    1 ×   Mixed salad leaves
+      126.3 µg/100 g  lettuce                        atteint  109 ×   Lettuce
+      126.3 µg/100 g  lettuce_oak_leaf               atteint    0 ×   Lettuce, oak-leaf, raw
+      126.3 µg/100 g  lettuce_sucrine                atteint    0 ×   Lettuce, sucrine, raw
+      126.3 µg/100 g  lettuce_var_batavia            atteint    0 ×   Lettuce, var. batavia, raw
+      108.7 µg/100 g  green_cabbage_water            atteint    0 ×   Green cabbage, boiled/cooked in water
+      108.6 µg/100 g  rocket                         atteint   30 ×   Rocket
+        102 µg/100 g  broccoli                       atteint   32 ×   Broccoli
+        100 µg/100 g  pesto                          atteint    1 ×   Pesto
+
+     périmètre à risque (leafy_greens + cruciferous_veg): 38 lignes, 0 sans valeur de K
+     liste publiée 34 · en base 34 · IDENTIQUES ⇒ la liste est FERMÉE
+
+── ⑥ ⛔ LA PREUVE QUE RIEN NE PEUT FORMULER UN MANQUE DE SEL ─────────────
+     SODIUM_VERDICTS = [unknown, within, above]
+     sodiumVerdict(0)     = within    (jamais « below »)
+     sodiumVerdict(1999)  = within
+     sodiumVerdict(2001)  = above
+     sodiumVerdict(null)  = unknown
+     saltGramsOf(2000)    = 5.1 g de sel
+
+── ⑦ LA K SERVIE PAR PLAN — le compteur qui arme le lot ──────────────────
+     ⚠️ Une journée dont UNE ligne pesée n'a pas de K rend `null`, jamais
+        une somme partielle: c'est sur ce chiffre qu'une dose se règle.
+     [A]  193 plans · journées  602/ 602 calculables 100.0 % · K médiane par journée 273 µg
+     [B]   13 plans · journées   77/  77 calculables 100.0 % · K médiane par journée 236 µg
+
+     Les plans VIVANTS, journée par journée (µg de K servis):
+     ⚠️ `référence` = la MOYENNE DU PLAN, faute d'apport habituel (porte P1).
+        Le verdict dit le BALANCEMENT INTERNE, pas un avis clinique.
+       09240cb5 foyer  pesées  29 sans K   0 · suppressed amplitude   ×14 · fri=29 mon=18 sun=20 thu=3 tue=41 wed=24
+       3c781a71 foyer  pesées 276 sans K   0 · suppressed amplitude    ×3 · mon=282 sat=450 sun=132 thu=276 tue=384 wed=210
+       3eae73ac foyer  pesées  99 sans K   0 · suppressed amplitude   ×20 · fri=24 mon=328 sun=86 thu=19 tue=17 wed=18
+       4ef89334 foyer  pesées  37 sans K   0 · suppressed amplitude   ×39 · mon=14 sun=565
+       5058be6a foyer  pesées 170 sans K   0 · suppressed amplitude   ×36 · fri=19 mon=675 sat=50 sun=201 thu=111 tue=217 wed=379
+       5f078b7e solo   pesées 153 sans K   0 · suppressed amplitude    ×5 · fri=428 mon=212 sat=114 sun=178 thu=466 tue=102 wed=410
+       612ac898 foyer  pesées 153 sans K   0 · suppressed amplitude    ×3 · fri=165 mon=71 sat=50 sun=174 thu=84 tue=52 wed=160
+       66de9046 foyer  pesées 136 sans K   0 · suppressed amplitude    ×3 · fri=181 mon=379 sat=160 sun=402 thu=197 tue=374 wed=146
+       8f498609 foyer  pesées 161 sans K   0 · suppressed amplitude   ×23 · fri=377 mon=226 sat=16 sun=119 thu=139 tue=84 wed=70
+       9ec54e51 foyer  pesées 100 sans K   0 · suppressed amplitude    ×7 · fri=273 mon=191 sun=159 wed=38
+       9f02838a foyer  pesées 254 sans K   0 · suppressed amplitude    ×4 · fri=219 mon=893 sat=366 sun=220 thu=267 tue=337 wed=783
+       a5b2a817 foyer  pesées 134 sans K   0 · suppressed amplitude    ×2 · mon=238 sun=158 tue=392 wed=184
+       d46c4dad foyer  pesées 163 sans K   0 · suppressed amplitude   ×25 · fri=730 mon=178 sat=29 sun=150 thu=55 tue=72 wed=302
+     ⇒ 13 plan(s) vivant(s) sur 13 sortent de la bande ±30 % de leur PROPRE moyenne.
+
+     abstention: 0 ligne(s) servie(s) sans valeur de K ⇒ 0 journée(s) à `null`
+
+── ⑧ ⛔ CE QU'ON NE PEUT PAS VÉRIFIER CONTRE SA SOURCE (lot `O9`) ────────
+     Sur les 199 aliments atteints, 28 se déclarent `ciqual` SANS `ciqual_code`.
+     ⛔ Pour eux, relire la valeur contre la table ANSES est IMPOSSIBLE depuis ce
+        dépôt. Ce lot ne le contourne pas: il l'écrit, et `micronutrient_source`
+        dit pour chaque ligne d'où sa valeur vient RÉELLEMENT.
+         151 × famille `ciqual2020:`
+          18 × famille `convention:`
+          15 × famille `interne:`
+          13 × famille `usda:`
+           2 × famille `nul:`
+
+✅ les cinq gardes passent
+
+═══════════════════════════════════════════════════════════════════════════
+FIN · rc=0
+═══════════════════════════════════════════════════════════════════════════

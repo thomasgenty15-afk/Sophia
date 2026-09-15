@@ -1,0 +1,49 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "cc8547e1-ffcd-4ff4-a409-08304edd29ec",
+        "role": "user",
+        "content": "Je suis en train de monter en pression après un échange tendu. Je ne suis pas en danger, mais mon corps est à cran et je me juge de réagir aussi fort.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r1-apaisement",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r1-apaisement-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:44:07.973745+00:00"
+      },
+      {
+        "id": "22c210bc-e967-4838-b54a-2e7d529b80a8",
+        "role": "user",
+        "content": "Je suis en train de monter en pression après un échange tendu. Je ne suis pas en danger, mais mon corps est à cran et je me juge de réagir aussi fort.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r1-apaisement",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r1-apaisement-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:44:37.649321+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

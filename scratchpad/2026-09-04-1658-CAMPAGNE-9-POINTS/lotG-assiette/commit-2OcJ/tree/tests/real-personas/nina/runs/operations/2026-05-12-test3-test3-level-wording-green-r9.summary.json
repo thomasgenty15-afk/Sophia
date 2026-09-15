@@ -1,0 +1,29 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-level-wording-green-r9-t01",
+    "status": 200,
+    "ok": true,
+    "user": "En fait c'est tout le rituel du soir contre les grignotages qui me fatigue. Quand je rentre, j'ai l'impression qu'il y a trop de petits choix à faire, donc je finis par lâcher.",
+    "assistant": "Je comprends, la fatigue décisionnelle en fin de journée est un vrai frein. Pour alléger ce rituel, préfères-tu qu'on automatise certains choix (par exemple en fixant une seule option à l'avance pour ne plus avoir à réfléchir) ou qu'on mette de côté les actions qui demandent trop d'analyse comme le décodage des envies ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "safety_pregate": null,
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": null,
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-level-wording-green-r9-t01",
+    "trace_error": null
+  }
+]

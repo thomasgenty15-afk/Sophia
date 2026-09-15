@@ -1,0 +1,5 @@
+les courses comptées (œufs, pommes, cuillères) suivent aussi la demande : deux classes par terme, la ligne choisit la sienne
+
+FD4 (0f, 16:30) : `lines_unattributed 11` — « 42 œufs », « 20 pommes », « 1 l d'huile d'olive » et six fruits à l'unité n'avaient aucune demande à quoi se rattacher : la demande par terme ne sommait que les grammes et millilitres. Elle porte désormais deux classes par terme — pesé (g/ml) et compté (pièces, cuillères) — et la ligne de courses choisit la classe de sa propre quantité de tête ; on ne mélange jamais des grammes et des pièces.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

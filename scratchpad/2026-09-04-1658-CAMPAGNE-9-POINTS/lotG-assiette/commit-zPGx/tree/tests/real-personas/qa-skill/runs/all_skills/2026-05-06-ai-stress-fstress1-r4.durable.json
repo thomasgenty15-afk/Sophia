@@ -1,0 +1,79 @@
+{
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "3225a067-00aa-4e07-a423-906a411881d5",
+        "user_id": "595441e0-da29-4c47-acb6-ca96caec9c8c",
+        "message_instruction": "Je viens le dire : chaque lundi , message 'Quelle est la prochaine petite action ?'",
+        "rationale": "Rappel récurrent créé depuis la conversation web Sophia : Rappel récurrent : Je viens le dire : chaque lundi , message 'Quelle est la prochaine petite action ?'",
+        "local_time_hhmm": "09:00",
+        "scheduled_days": [
+          "mon"
+        ],
+        "status": "active",
+        "deactivated_at": null,
+        "last_drafted_at": null,
+        "last_draft_message": null,
+        "created_at": "2026-05-06T13:36:19.728614+00:00",
+        "updated_at": "2026-05-06T13:36:19.728614+00:00",
+        "unanswered_probe_count": 0,
+        "probe_last_sent_at": null,
+        "probe_paused_at": null,
+        "personalization_level": 1,
+        "context_policy": {},
+        "classification_reason": null,
+        "last_classified_at": null,
+        "cycle_id": null,
+        "transformation_id": null,
+        "scope_kind": "out_of_plan",
+        "initiative_kind": "base_free",
+        "source_kind": "user_created",
+        "source_potion_session_id": null,
+        "starts_at": "2026-05-06T13:36:19.726+00:00",
+        "ends_at": null,
+        "ended_reason": null,
+        "archived_at": null,
+        "initiative_metadata": {
+          "draft": {
+            "draft": {
+              "days": [
+                "lundi"
+              ],
+              "time": "09:00",
+              "title": "Rappel récurrent : Je viens le dire : chaque lundi , message 'Quelle est la prochaine petite action ?'",
+              "message": "Je viens le dire : chaque lundi , message 'Quelle est la prochaine petite action ?'",
+              "timezone": "Europe/Paris",
+              "frequency": "weekly",
+              "destination": "base_de_vie",
+              "related_plan_item_id": null
+            },
+            "output_schema": "recurring_reminder_draft_v1",
+            "operation_type": "create_recurring_reminder",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose de créer ce rappel récurrent : \"Je viens le dire : chaque lundi , message 'Quelle est la prochaine petite action ?'\", chaque semaine à 09:00. Tu veux que je le crée ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r4-t06",
+          "operation_id": "8d9e60c7-2bff-4757-9724-632cfb1bd264",
+          "operation_type": "create_recurring_reminder",
+          "source_message_id": "13d6c59e-1f3a-4c14-af87-d9d20a635981"
+        }
+      }
+    ]
+  }
+}

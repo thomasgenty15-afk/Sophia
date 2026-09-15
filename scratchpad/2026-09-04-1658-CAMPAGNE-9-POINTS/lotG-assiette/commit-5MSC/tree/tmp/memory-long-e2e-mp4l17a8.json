@@ -1,0 +1,3949 @@
+{
+  "ok": true,
+  "run_id": "memory-long-e2e-mp4l17a8",
+  "user": {
+    "id": "34110344-485d-405f-b3a0-23d364123564",
+    "email": "memory-long-e2e-mp4l17a8@example.com"
+  },
+  "scopes": {
+    "first": "memory-long-e2e-mp4l17a8-conversation-a",
+    "second": "memory-long-e2e-mp4l17a8-conversation-b"
+  },
+  "first_conversation": {
+    "turn_count": 23,
+    "turns": [
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-0",
+        "id": "seed_0",
+        "message": "Contexte durable: je travaille sur un projet perso appele Nebula, un mini CRM pour profs independants.",
+        "response_text": "C'est noté pour Nebula. Un CRM pour les profs indépendants, c'est un super créneau, il y a un vrai besoin d'organisation quand on gère ses élèves en solo.\n\nOn garde ça dans un coin de la tête pour tes prochaines sessions de travail. C'est quoi la priorité du moment sur ce projet ? 🚀",
+        "response_body": {
+          "content": "C'est noté pour Nebula. Un CRM pour les profs indépendants, c'est un super créneau, il y a un vrai besoin d'organisation quand on gère ses élèves en solo.\n\nOn garde ça dans un coin de la tête pour tes prochaines sessions de travail. C'est quoi la priorité du moment sur ce projet ? 🚀",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-1",
+        "id": "seed_1",
+        "message": "Nebula est prioritaire jusqu'a la fin juillet, plus que mes autres idees SaaS.",
+        "response_text": "Tu veux changer quoi precisement: mon ton, mon niveau de challenge, ou le nombre de questions ?",
+        "response_body": {
+          "content": "Tu veux changer quoi precisement: mon ton, mon niveau de challenge, ou le nombre de questions ?",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-2",
+        "id": "seed_2",
+        "message": "Mon objectif pour Nebula est d'obtenir cinq profs pilotes et deux retours payants avant fin juillet.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-3",
+        "id": "seed_3",
+        "message": "Quand je travaille sur l'interface apres 22h45, je m'eparpille et je casse souvent des details deja stables.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-4",
+        "id": "seed_4",
+        "message": "Je bloque surtout quand une tache demande trop de decisions; propose-moi une action de sept minutes, observable et concrete.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-5",
+        "id": "seed_5",
+        "message": "Ma routine de debut de journee ideale: ouvrir les volets, boire de l'eau, ranger le bureau trois minutes, puis seulement ouvrir Linear.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-6",
+        "id": "seed_6",
+        "message": "Ines est mon assistante administrative et elle m'aide a suivre les contrats signes.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-7",
+        "id": "seed_7",
+        "message": "Correction importante: Ines est mon assistante administrative, pas ma cliente.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-8",
+        "id": "seed_8",
+        "message": "Samir est mon coach de natation; il m'aide a nager sans chercher la performance.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-9",
+        "id": "seed_9",
+        "message": "Je veux nager deux fois par semaine, mais garder ca comme recuperation, pas comme objectif de performance.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-10",
+        "id": "seed_10",
+        "message": "Hier midi, j'ai nage 28 minutes et ca m'a vraiment calme avant de reprendre Nebula.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-11",
+        "id": "seed_11",
+        "message": "Je surveille une allergie au sesame; evite de me proposer des plats avec sesame, tahini ou gomasio.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-12",
+        "id": "seed_12",
+        "message": "Je ne veux pas que mon allergie au sesame ressorte dans une conversation neutre sur Nebula ou la natation.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-13",
+        "id": "seed_13",
+        "message": "Je bois parfois du whisky le soir quand je veux anesthesier la pression; ce sujet doit rester sensible.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-14",
+        "id": "seed_14",
+        "message": "Ne ressors pas l'alcool sauf si je parle directement de whisky, d'apero, de pression le soir ou d'envie d'anesthesier.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-15",
+        "id": "seed_15",
+        "message": "Le client Rivage me stresse parce qu'il valide puis revient sur les decisions deux jours apres.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-16",
+        "id": "seed_16",
+        "message": "Rivage est un client de consulting, pas un module de Nebula.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-17",
+        "id": "seed_17",
+        "message": "Quand je dis 'je suis nul en vente', c'est de la honte du moment, pas une verite stable.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-18",
+        "id": "seed_18",
+        "message": "Je prefere des reponses sobres, en trois points maximum, quand je suis fatigue.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-19",
+        "id": "seed_19",
+        "message": "Si je suis en surcharge, propose-moi d'abord de fermer une boucle ouverte plutot que d'ajouter une nouvelle ambition.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-20",
+        "id": "seed_20",
+        "message": "Vendredi dernier, j'ai oublie de relancer Rivage sur un contrat et Ines m'a aide a retrouver le document.",
+        "response_text": "C'est noté pour la surcharge. On se concentre sur le ménage avant de bâtir du neuf. 🧹\n\nPour Rivage, si Inès a retrouvé le document, c'est une super nouvelle. Ça t'enlève une épine du pied.\n\nTu veux que je te rappelle de leur envoyer un petit mot demain matin pour boucler ça ? ✉️",
+        "response_body": {
+          "content": "C'est noté pour la surcharge. On se concentre sur le ménage avant de bâtir du neuf. 🧹\n\nPour Rivage, si Inès a retrouvé le document, c'est une super nouvelle. Ça t'enlève une épine du pied.\n\nTu veux que je te rappelle de leur envoyer un petit mot demain matin pour boucler ça ? ✉️",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-21",
+        "id": "seed_21",
+        "message": "Je veux evaluer mes progres avec un bilan du vendredi, pas avec une note tous les soirs.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_a-22",
+        "id": "seed_22",
+        "message": "Aujourd'hui j'ai annule une session Nebula parce que j'etais vide, mais j'ai quand meme choisi la prochaine micro-livraison.",
+        "response_text": "C'est noté pour le bilan du vendredi, on laisse tomber le point quotidien. C'est plus sain si ça t'évite de transformer tes soirées en corvée administrative. 🗓️\n\nPour Nebula, c'est une sage décision d'avoir annulé. Si tu es vide, forcer n'aurait rien donné de bon. Le fait d'avoir quand même choisi la prochaine micro-livraison montre que tu gardes le cap malgré la fatigue. C'est une boucle fermée, on n'y touche plus pour ce soir.\n\nRepose-toi maintenant, tu as fait l'essentiel. 🌙",
+        "response_body": {
+          "content": "C'est noté pour le bilan du vendredi, on laisse tomber le point quotidien. C'est plus sain si ça t'évite de transformer tes soirées en corvée administrative. 🗓️\n\nPour Nebula, c'est une sage décision d'avoir annulé. Si tu es vide, forcer n'aurait rien donné de bon. Le fait d'avoir quand même choisi la prochaine micro-livraison montre que tu gardes le cap malgré la fatigue. C'est une boucle fermée, on n'y touche plus pour ce soir.\n\nRepose-toi maintenant, tu as fait l'essentiel. 🌙",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      }
+    ],
+    "trace_summary": {
+      "messages_total": 46,
+      "user_messages": 23,
+      "assistant_messages": 23,
+      "turns_total": 23,
+      "memorizer_runs_total": 0,
+      "observability_events_total": 58
+    }
+  },
+  "memorizer": {
+    "ok": true,
+    "request_id": "memory-long-e2e-mp4l17a8-memorizer",
+    "since_iso": "2026-05-12T21:42:11.075Z",
+    "processed_count": 1,
+    "processed": [
+      {
+        "user_id": "34110344-485d-405f-b3a0-23d364123564",
+        "timezone": "Europe/Paris",
+        "message_count": 23,
+        "memorizer": {
+          "status": "completed",
+          "reason": null,
+          "processed_message_count": 23,
+          "persisted_count": 19,
+          "extraction_run_id": "061e1a08-60b3-46e0-8717-d9374897498c",
+          "batch_hash": "ecd5e026fa510684bb893d61b46ade527bbb48adf1639554bde32c2131f587ed",
+          "write_decision_count": 19,
+          "extraction_run": {
+            "id": "061e1a08-60b3-46e0-8717-d9374897498c",
+            "status": "completed",
+            "trigger_type": "daily_batch",
+            "proposed_item_count": 19,
+            "accepted_item_count": 19,
+            "rejected_item_count": 2,
+            "proposed_entity_count": 5,
+            "accepted_entity_count": 0,
+            "duration_ms": 47626,
+            "error_message": null,
+            "durable_writes": {
+              "active_items": 17,
+              "memory_items": 19,
+              "candidate_items": 2
+            },
+            "pre_filter_skip_count": 1,
+            "statement_as_fact_violation_count": 0,
+            "rejection_reasons": {
+              "smart_pre_filter": 1,
+              "L'utilisateur a explicitement précisé qu'il s'agissait d'un sentiment de honte passager et non d'une vérité stable.": 1
+            },
+            "write_decision_statuses": {
+              "active": 17,
+              "candidate": 2
+            }
+          }
+        }
+      }
+    ]
+  },
+  "memory_state": {
+    "items": [
+      {
+        "id": "616a2a17-77f6-4034-bd81-2f5079e7a419",
+        "kind": "fact",
+        "status": "active",
+        "content_text": "je travaille sur un projet perso appele Nebula, un mini CRM pour profs independants.",
+        "domain_keys": [
+          "travail.carriere"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.768884+00:00"
+      },
+      {
+        "id": "e28528f7-d72d-4c6e-b3a8-636dc275c077",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Mon objectif pour Nebula est d'obtenir cinq profs pilotes et deux retours payants avant fin juillet.",
+        "domain_keys": [
+          "objectifs.court_terme"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.793085+00:00"
+      },
+      {
+        "id": "1ebfa5f1-e376-460d-96b9-e2a74c348735",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Quand je travaille sur l'interface apres 22h45, je m'eparpille et je casse souvent des details deja stables.",
+        "domain_keys": [
+          "habitudes.execution",
+          "sante.sommeil"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.815314+00:00"
+      },
+      {
+        "id": "de97d6c3-ba49-4be1-9d47-232dfd6ccc4f",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Je bloque surtout quand une tache demande trop de decisions; propose-moi une action de sept minutes, observable et concrete.",
+        "domain_keys": [
+          "habitudes.execution"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.837858+00:00"
+      },
+      {
+        "id": "3c42bdc0-c88e-4b11-b8d9-f859c8b32324",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Ma routine de debut de journee ideale: ouvrir les volets, boire de l'eau, ranger le bureau trois minutes, puis seulement ouvrir Linear.",
+        "domain_keys": [
+          "habitudes.environnement"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.852571+00:00"
+      },
+      {
+        "id": "4e22eb70-a786-4cd3-9692-2ec42958d3eb",
+        "kind": "fact",
+        "status": "active",
+        "content_text": "Ines est mon assistante administrative et elle m'aide a suivre les contrats signes.",
+        "domain_keys": [
+          "travail.performance"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.860341+00:00"
+      },
+      {
+        "id": "44c7b7ad-a1e4-4cd8-8f04-e89d862b389e",
+        "kind": "fact",
+        "status": "active",
+        "content_text": "Samir est mon coach de natation; il m'aide a nager sans chercher la performance.",
+        "domain_keys": [
+          "sante.activite_physique"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.864799+00:00"
+      },
+      {
+        "id": "66135ff9-dc1c-4e63-b318-c8707895c5df",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Je veux nager deux fois par semaine, mais garder ca comme recuperation, pas comme objectif de performance.",
+        "domain_keys": [
+          "sante.activite_physique"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.868544+00:00"
+      },
+      {
+        "id": "49e578c6-3fed-4a3e-b71f-8f44ac06250f",
+        "kind": "event",
+        "status": "candidate",
+        "content_text": "Hier midi, j'ai nage 28 minutes et ca m'a vraiment calme avant de reprendre Nebula.",
+        "domain_keys": [
+          "sante.activite_physique"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.872268+00:00"
+      },
+      {
+        "id": "21e30927-d67c-4109-91df-7ad1dc291629",
+        "kind": "fact",
+        "status": "active",
+        "content_text": "Je surveille une allergie au sesame; evite de me proposer des plats avec sesame, tahini ou gomasio.",
+        "domain_keys": [
+          "sante.alimentation",
+          "sante.medical"
+        ],
+        "sensitivity_level": "sensitive",
+        "requires_user_initiated": true,
+        "created_at": "2026-05-13T21:42:58.876597+00:00"
+      },
+      {
+        "id": "73b59f01-01f9-4ef7-99df-24a3ad6b39e3",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Je bois parfois du whisky le soir quand je veux anesthesier la pression; ce sujet doit rester sensible.",
+        "domain_keys": [
+          "addictions.alcool",
+          "psychologie.emotions"
+        ],
+        "sensitivity_level": "sensitive",
+        "requires_user_initiated": true,
+        "created_at": "2026-05-13T21:42:58.880886+00:00"
+      },
+      {
+        "id": "8ee85a1f-b66f-4d29-92e1-1f8b51953498",
+        "kind": "fact",
+        "status": "active",
+        "content_text": "Rivage est un client de consulting, pas un module de Nebula.",
+        "domain_keys": [
+          "travail.carriere"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.886202+00:00"
+      },
+      {
+        "id": "bac26169-3449-4fc3-8698-c7f945872818",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Le client Rivage me stresse parce qu'il valide puis revient sur les decisions deux jours apres.",
+        "domain_keys": [
+          "travail.charge",
+          "travail.conflits"
+        ],
+        "sensitivity_level": "sensitive",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.89011+00:00"
+      },
+      {
+        "id": "63300e56-9a4d-4394-bb77-f030eaa524ba",
+        "kind": "statement",
+        "status": "candidate",
+        "content_text": "Quand je dis 'je suis nul en vente', c'est de la honte du moment, pas une verite stable.",
+        "domain_keys": [
+          "psychologie.estime_de_soi"
+        ],
+        "sensitivity_level": "sensitive",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.893663+00:00"
+      },
+      {
+        "id": "16e7273c-ac7e-42b5-aca4-f7b60c73de4b",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Je prefere des reponses sobres, en trois points maximum, quand je suis fatigue.",
+        "domain_keys": [
+          "habitudes.execution"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.897592+00:00"
+      },
+      {
+        "id": "d6058d93-4ea1-4fab-ac0a-3b1c02c1310c",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Si je suis en surcharge, propose-moi d'abord de fermer une boucle ouverte plutot que d'ajouter une nouvelle ambition.",
+        "domain_keys": [
+          "habitudes.planification"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.901314+00:00"
+      },
+      {
+        "id": "29014b64-f740-4ba7-913f-8521d73503e9",
+        "kind": "event",
+        "status": "active",
+        "content_text": "Vendredi dernier, j'ai oublie de relancer Rivage sur un contrat et Ines m'a aide a retrouver le document.",
+        "domain_keys": [
+          "travail.performance"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.904512+00:00"
+      },
+      {
+        "id": "37feffc4-0e7e-46df-bd55-2f241b6a60b7",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Je veux evaluer mes progres avec un bilan du vendredi, pas avec une note tous les soirs.",
+        "domain_keys": [
+          "habitudes.planification"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.907922+00:00"
+      },
+      {
+        "id": "03c642cd-7c91-45db-a271-94866d9cbab6",
+        "kind": "event",
+        "status": "active",
+        "content_text": "Aujourd'hui j'ai annule une session Nebula parce que j'etais vide, mais j'ai quand meme choisi la prochaine micro-livraison.",
+        "domain_keys": [
+          "travail.charge",
+          "sante.energie"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T21:42:58.911282+00:00"
+      }
+    ],
+    "topics": [],
+    "links": [],
+    "runs": [
+      {
+        "id": "061e1a08-60b3-46e0-8717-d9374897498c",
+        "status": "completed",
+        "trigger_type": "daily_batch",
+        "proposed_item_count": 19,
+        "accepted_item_count": 19,
+        "rejected_item_count": 2,
+        "metadata": {
+          "cost": {
+            "model_name": "gemini-3-flash-preview",
+            "estimated_llm_calls": 1
+          },
+          "dry_run": false,
+          "durable_writes": {
+            "active_items": 17,
+            "memory_items": 19,
+            "candidate_items": 2
+          },
+          "write_decisions": [
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {},
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "travail.carriere"
+                  ],
+                  "content_text": "je travaille sur un projet perso appele Nebula, un mini CRM pour profs independants.",
+                  "event_end_at": null,
+                  "canonical_key": "travail.carriere.fact.utilisateur_developpe_nebula_crm_pour_professeurs_independants.",
+                  "event_start_at": null,
+                  "evidence_quote": "je travaille sur un projet perso appele Nebula, un mini CRM pour profs independants.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.8,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "L'utilisateur développe Nebula, un CRM pour professeurs indépendants.",
+                  "source_message_ids": [
+                    "1ad283e8-3784-4b66-8766-5f8d370913fa"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.carriere"
+                    ],
+                    "content_text": "je travaille sur un projet perso appele Nebula, un mini CRM pour profs independants.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.carriere.fact.utilisateur_developpe_nebula_crm_pour_professeurs_independants.",
+                    "event_start_at": null,
+                    "evidence_quote": "je travaille sur un projet perso appele Nebula, un mini CRM pour profs independants.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur développe Nebula, un CRM pour professeurs indépendants.",
+                    "source_message_ids": [
+                      "1ad283e8-3784-4b66-8766-5f8d370913fa"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.carriere"
+                    ],
+                    "content_text": "je travaille sur un projet perso appele Nebula, un mini CRM pour profs independants.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.carriere.fact.utilisateur_developpe_nebula_crm_pour_professeurs_independants.",
+                    "event_start_at": null,
+                    "evidence_quote": "je travaille sur un projet perso appele Nebula, un mini CRM pour profs independants.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur développe Nebula, un CRM pour professeurs indépendants.",
+                    "source_message_ids": [
+                      "1ad283e8-3784-4b66-8766-5f8d370913fa"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "goal"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "objectifs.court_terme"
+                  ],
+                  "content_text": "Mon objectif pour Nebula est d'obtenir cinq profs pilotes et deux retours payants avant fin juillet.",
+                  "event_end_at": null,
+                  "canonical_key": "objectifs.court_terme.statement.utilisateur_vise_professeurs_pilotes_retours_payants_pour_nebula",
+                  "event_start_at": null,
+                  "evidence_quote": "Mon objectif pour Nebula est d'obtenir cinq profs pilotes et deux retours payants avant fin juillet.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.9,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "L'utilisateur vise 5 professeurs pilotes et 2 retours payants pour Nebula d'ici fin juillet 2026.",
+                  "source_message_ids": [
+                    "305c9d62-6d13-45b2-be7e-1aef2339f1dd"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "goal"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "objectifs.court_terme"
+                    ],
+                    "content_text": "Mon objectif pour Nebula est d'obtenir cinq profs pilotes et deux retours payants avant fin juillet.",
+                    "event_end_at": null,
+                    "canonical_key": "objectifs.court_terme.statement.utilisateur_vise_professeurs_pilotes_retours_payants_pour_nebula",
+                    "event_start_at": null,
+                    "evidence_quote": "Mon objectif pour Nebula est d'obtenir cinq profs pilotes et deux retours payants avant fin juillet.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.9,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur vise 5 professeurs pilotes et 2 retours payants pour Nebula d'ici fin juillet 2026.",
+                    "source_message_ids": [
+                      "305c9d62-6d13-45b2-be7e-1aef2339f1dd"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "goal"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "objectifs.court_terme"
+                    ],
+                    "content_text": "Mon objectif pour Nebula est d'obtenir cinq profs pilotes et deux retours payants avant fin juillet.",
+                    "event_end_at": null,
+                    "canonical_key": "objectifs.court_terme.statement.utilisateur_vise_professeurs_pilotes_retours_payants_pour_nebula",
+                    "event_start_at": null,
+                    "evidence_quote": "Mon objectif pour Nebula est d'obtenir cinq profs pilotes et deux retours payants avant fin juillet.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.9,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur vise 5 professeurs pilotes et 2 retours payants pour Nebula d'ici fin juillet 2026.",
+                    "source_message_ids": [
+                      "305c9d62-6d13-45b2-be7e-1aef2339f1dd"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "behavior"
+                  },
+                  "confidence": 0.9,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.execution",
+                    "sante.sommeil"
+                  ],
+                  "content_text": "Quand je travaille sur l'interface apres 22h45, je m'eparpille et je casse souvent des details deja stables.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.execution.statement.travailler_sur_interface_apres_22h45_nuit_concentration_stabilite",
+                  "event_start_at": null,
+                  "evidence_quote": "Quand je travaille sur l'interface apres 22h45, je m'eparpille et je casse souvent des details deja stables.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Travailler sur l'interface après 22h45 nuit à la concentration et à la stabilité du projet de l'utilisateur.",
+                  "source_message_ids": [
+                    "d6f18745-4f59-4f22-832f-dddc314f50fd"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "behavior"
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution",
+                      "sante.sommeil"
+                    ],
+                    "content_text": "Quand je travaille sur l'interface apres 22h45, je m'eparpille et je casse souvent des details deja stables.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.travailler_sur_interface_apres_22h45_nuit_concentration_stabilite",
+                    "event_start_at": null,
+                    "evidence_quote": "Quand je travaille sur l'interface apres 22h45, je m'eparpille et je casse souvent des details deja stables.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Travailler sur l'interface après 22h45 nuit à la concentration et à la stabilité du projet de l'utilisateur.",
+                    "source_message_ids": [
+                      "d6f18745-4f59-4f22-832f-dddc314f50fd"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "behavior"
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution",
+                      "sante.sommeil"
+                    ],
+                    "content_text": "Quand je travaille sur l'interface apres 22h45, je m'eparpille et je casse souvent des details deja stables.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.travailler_sur_interface_apres_22h45_nuit_concentration_stabilite",
+                    "event_start_at": null,
+                    "evidence_quote": "Quand je travaille sur l'interface apres 22h45, je m'eparpille et je casse souvent des details deja stables.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Travailler sur l'interface après 22h45 nuit à la concentration et à la stabilité du projet de l'utilisateur.",
+                    "source_message_ids": [
+                      "d6f18745-4f59-4f22-832f-dddc314f50fd"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "preference"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.execution"
+                  ],
+                  "content_text": "Je bloque surtout quand une tache demande trop de decisions; propose-moi une action de sept minutes, observable et concrete.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.execution.statement.utilisateur_besoin_micro-taches_concretes_minutes_lorsqu_est_bloque",
+                  "event_start_at": null,
+                  "evidence_quote": "Je bloque surtout quand une tache demande trop de decisions; propose-moi une action de sept minutes, observable et concrete.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "L'utilisateur a besoin de micro-tâches concrètes de 7 minutes lorsqu'il est bloqué par un excès de décisions.",
+                  "source_message_ids": [
+                    "61ea8bd0-0d01-4984-a4a7-cd027676136b"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "Je bloque surtout quand une tache demande trop de decisions; propose-moi une action de sept minutes, observable et concrete.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.utilisateur_besoin_micro-taches_concretes_minutes_lorsqu_est_bloque",
+                    "event_start_at": null,
+                    "evidence_quote": "Je bloque surtout quand une tache demande trop de decisions; propose-moi une action de sept minutes, observable et concrete.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur a besoin de micro-tâches concrètes de 7 minutes lorsqu'il est bloqué par un excès de décisions.",
+                    "source_message_ids": [
+                      "61ea8bd0-0d01-4984-a4a7-cd027676136b"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "Je bloque surtout quand une tache demande trop de decisions; propose-moi une action de sept minutes, observable et concrete.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.utilisateur_besoin_micro-taches_concretes_minutes_lorsqu_est_bloque",
+                    "event_start_at": null,
+                    "evidence_quote": "Je bloque surtout quand une tache demande trop de decisions; propose-moi une action de sept minutes, observable et concrete.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur a besoin de micro-tâches concrètes de 7 minutes lorsqu'il est bloqué par un excès de décisions.",
+                    "source_message_ids": [
+                      "61ea8bd0-0d01-4984-a4a7-cd027676136b"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "routine"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.environnement"
+                  ],
+                  "content_text": "Ma routine de debut de journee ideale: ouvrir les volets, boire de l'eau, ranger le bureau trois minutes, puis seulement ouvrir Linear.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.environnement.statement.routine_matinale_ideale_ouvrir_les_volets_boire_eau",
+                  "event_start_at": null,
+                  "evidence_quote": "Ma routine de debut de journee ideale: ouvrir les volets, boire de l'eau, ranger le bureau trois minutes, puis seulement ouvrir Linear.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Routine matinale idéale : ouvrir les volets, boire de l'eau, 3 minutes de rangement, puis ouvrir Linear.",
+                  "source_message_ids": [
+                    "585c1115-30f2-40a1-a057-afc56fa02ab4"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "routine"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement"
+                    ],
+                    "content_text": "Ma routine de debut de journee ideale: ouvrir les volets, boire de l'eau, ranger le bureau trois minutes, puis seulement ouvrir Linear.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.statement.routine_matinale_ideale_ouvrir_les_volets_boire_eau",
+                    "event_start_at": null,
+                    "evidence_quote": "Ma routine de debut de journee ideale: ouvrir les volets, boire de l'eau, ranger le bureau trois minutes, puis seulement ouvrir Linear.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Routine matinale idéale : ouvrir les volets, boire de l'eau, 3 minutes de rangement, puis ouvrir Linear.",
+                    "source_message_ids": [
+                      "585c1115-30f2-40a1-a057-afc56fa02ab4"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "routine"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement"
+                    ],
+                    "content_text": "Ma routine de debut de journee ideale: ouvrir les volets, boire de l'eau, ranger le bureau trois minutes, puis seulement ouvrir Linear.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.statement.routine_matinale_ideale_ouvrir_les_volets_boire_eau",
+                    "event_start_at": null,
+                    "evidence_quote": "Ma routine de debut de journee ideale: ouvrir les volets, boire de l'eau, ranger le bureau trois minutes, puis seulement ouvrir Linear.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Routine matinale idéale : ouvrir les volets, boire de l'eau, 3 minutes de rangement, puis ouvrir Linear.",
+                    "source_message_ids": [
+                      "585c1115-30f2-40a1-a057-afc56fa02ab4"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {},
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "travail.performance"
+                  ],
+                  "content_text": "Ines est mon assistante administrative et elle m'aide a suivre les contrats signes.",
+                  "event_end_at": null,
+                  "canonical_key": "travail.performance.fact.ines_est_assistante_administrative_utilisateur_aide_pour_suivi",
+                  "event_start_at": null,
+                  "evidence_quote": "Ines est mon assistante administrative et elle m'aide a suivre les contrats signes.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Ines est l'assistante administrative de l'utilisateur et l'aide pour le suivi des contrats.",
+                  "source_message_ids": [
+                    "a00ad552-e1f0-4e38-b4e6-55ccc44bcbee",
+                    "f39c43be-0a93-48ec-ac5c-9f41c6943c51"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.performance"
+                    ],
+                    "content_text": "Ines est mon assistante administrative et elle m'aide a suivre les contrats signes.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.performance.fact.ines_est_assistante_administrative_utilisateur_aide_pour_suivi",
+                    "event_start_at": null,
+                    "evidence_quote": "Ines est mon assistante administrative et elle m'aide a suivre les contrats signes.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Ines est l'assistante administrative de l'utilisateur et l'aide pour le suivi des contrats.",
+                    "source_message_ids": [
+                      "a00ad552-e1f0-4e38-b4e6-55ccc44bcbee",
+                      "f39c43be-0a93-48ec-ac5c-9f41c6943c51"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.performance"
+                    ],
+                    "content_text": "Ines est mon assistante administrative et elle m'aide a suivre les contrats signes.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.performance.fact.ines_est_assistante_administrative_utilisateur_aide_pour_suivi",
+                    "event_start_at": null,
+                    "evidence_quote": "Ines est mon assistante administrative et elle m'aide a suivre les contrats signes.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Ines est l'assistante administrative de l'utilisateur et l'aide pour le suivi des contrats.",
+                    "source_message_ids": [
+                      "a00ad552-e1f0-4e38-b4e6-55ccc44bcbee",
+                      "f39c43be-0a93-48ec-ac5c-9f41c6943c51"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {},
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "sante.activite_physique"
+                  ],
+                  "content_text": "Samir est mon coach de natation; il m'aide a nager sans chercher la performance.",
+                  "event_end_at": null,
+                  "canonical_key": "sante.activite_physique.fact.samir_est_coach_natation_utilisateur_axe_sur_une",
+                  "event_start_at": null,
+                  "evidence_quote": "Samir est mon coach de natation; il m'aide a nager sans chercher la performance.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Samir est le coach de natation de l'utilisateur, axé sur une pratique sans recherche de performance.",
+                  "source_message_ids": [
+                    "7ebd96b6-d69d-43fb-956a-172ad232bd1c"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "Samir est mon coach de natation; il m'aide a nager sans chercher la performance.",
+                    "event_end_at": null,
+                    "canonical_key": "sante.activite_physique.fact.samir_est_coach_natation_utilisateur_axe_sur_une",
+                    "event_start_at": null,
+                    "evidence_quote": "Samir est mon coach de natation; il m'aide a nager sans chercher la performance.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Samir est le coach de natation de l'utilisateur, axé sur une pratique sans recherche de performance.",
+                    "source_message_ids": [
+                      "7ebd96b6-d69d-43fb-956a-172ad232bd1c"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "Samir est mon coach de natation; il m'aide a nager sans chercher la performance.",
+                    "event_end_at": null,
+                    "canonical_key": "sante.activite_physique.fact.samir_est_coach_natation_utilisateur_axe_sur_une",
+                    "event_start_at": null,
+                    "evidence_quote": "Samir est mon coach de natation; il m'aide a nager sans chercher la performance.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Samir est le coach de natation de l'utilisateur, axé sur une pratique sans recherche de performance.",
+                    "source_message_ids": [
+                      "7ebd96b6-d69d-43fb-956a-172ad232bd1c"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "goal"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "sante.activite_physique"
+                  ],
+                  "content_text": "Je veux nager deux fois par semaine, mais garder ca comme recuperation, pas comme objectif de performance.",
+                  "event_end_at": null,
+                  "canonical_key": "sante.activite_physique.statement.utilisateur_souhaite_nager_deux_fois_par_semaine_pour",
+                  "event_start_at": null,
+                  "evidence_quote": "Je veux nager deux fois par semaine, mais garder ca comme recuperation, pas comme objectif de performance.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "L'utilisateur souhaite nager deux fois par semaine pour la récupération physique.",
+                  "source_message_ids": [
+                    "03038e15-ea8e-4c1b-b533-6961efbbfff4"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "goal"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "Je veux nager deux fois par semaine, mais garder ca comme recuperation, pas comme objectif de performance.",
+                    "event_end_at": null,
+                    "canonical_key": "sante.activite_physique.statement.utilisateur_souhaite_nager_deux_fois_par_semaine_pour",
+                    "event_start_at": null,
+                    "evidence_quote": "Je veux nager deux fois par semaine, mais garder ca comme recuperation, pas comme objectif de performance.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur souhaite nager deux fois par semaine pour la récupération physique.",
+                    "source_message_ids": [
+                      "03038e15-ea8e-4c1b-b533-6961efbbfff4"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "goal"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "Je veux nager deux fois par semaine, mais garder ca comme recuperation, pas comme objectif de performance.",
+                    "event_end_at": null,
+                    "canonical_key": "sante.activite_physique.statement.utilisateur_souhaite_nager_deux_fois_par_semaine_pour",
+                    "event_start_at": null,
+                    "evidence_quote": "Je veux nager deux fois par semaine, mais garder ca comme recuperation, pas comme objectif de performance.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur souhaite nager deux fois par semaine pour la récupération physique.",
+                    "source_message_ids": [
+                      "03038e15-ea8e-4c1b-b533-6961efbbfff4"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "ambiguous_link",
+              "status": "candidate",
+              "candidate": {
+                "item": {
+                  "kind": "event",
+                  "metadata": {
+                    "temporal_resolution_raw": "hier",
+                    "temporal_resolution_timezone": "Europe/Paris",
+                    "temporal_resolution_confidence": 0.9
+                  },
+                  "confidence": 0.9,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "sante.activite_physique"
+                  ],
+                  "content_text": "Hier midi, j'ai nage 28 minutes et ca m'a vraiment calme avant de reprendre Nebula.",
+                  "event_end_at": "2026-05-12T22:00:00.000Z",
+                  "canonical_key": "sante.activite_physique.event.utilisateur_nage_minutes_mai_2026_qui_effet_apaisant.",
+                  "event_start_at": "2026-05-12T12:00:00.000Z",
+                  "evidence_quote": "Hier midi, j'ai nage 28 minutes et ca m'a vraiment calme avant de reprendre Nebula.",
+                  "time_precision": "day",
+                  "entity_mentions": [],
+                  "importance_score": 0.5,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "L'utilisateur a nagé 28 minutes le 12 mai 2026, ce qui a eu un effet apaisant.",
+                  "source_message_ids": [
+                    "ce81960d-0609-49bf-b8e5-245f167ff44d"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "hier",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.9
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "Hier midi, j'ai nage 28 minutes et ca m'a vraiment calme avant de reprendre Nebula.",
+                    "event_end_at": "2026-05-12T22:00:00.000Z",
+                    "canonical_key": "sante.activite_physique.event.utilisateur_nage_minutes_mai_2026_qui_effet_apaisant.",
+                    "event_start_at": "2026-05-12T12:00:00.000Z",
+                    "evidence_quote": "Hier midi, j'ai nage 28 minutes et ca m'a vraiment calme avant de reprendre Nebula.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur a nagé 28 minutes le 12 mai 2026, ce qui a eu un effet apaisant.",
+                    "source_message_ids": [
+                      "ce81960d-0609-49bf-b8e5-245f167ff44d"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "hier",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.9
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "Hier midi, j'ai nage 28 minutes et ca m'a vraiment calme avant de reprendre Nebula.",
+                    "event_end_at": "2026-05-12T22:00:00.000Z",
+                    "canonical_key": "sante.activite_physique.event.utilisateur_nage_minutes_mai_2026_qui_effet_apaisant.",
+                    "event_start_at": "2026-05-12T12:00:00.000Z",
+                    "evidence_quote": "Hier midi, j'ai nage 28 minutes et ca m'a vraiment calme avant de reprendre Nebula.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur a nagé 28 minutes le 12 mai 2026, ce qui a eu un effet apaisant.",
+                    "source_message_ids": [
+                      "ce81960d-0609-49bf-b8e5-245f167ff44d"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_user_initiated_guarded",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {},
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "sante.alimentation",
+                    "sante.medical"
+                  ],
+                  "content_text": "Je surveille une allergie au sesame; evite de me proposer des plats avec sesame, tahini ou gomasio.",
+                  "event_end_at": null,
+                  "canonical_key": "sante.alimentation.fact.utilisateur_est_allergique_sesame_compris_tahini_gomasio_souhaite",
+                  "event_start_at": null,
+                  "evidence_quote": "Je surveille une allergie au sesame; evite de me proposer des plats avec sesame, tahini ou gomasio.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.8,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "L'utilisateur est allergique au sésame (y compris tahini et gomasio) et ne souhaite pas que ce sujet soit abordé hors contexte alimentaire.",
+                  "source_message_ids": [
+                    "1c08e6c5-0465-493a-94a9-24097f17f2bd",
+                    "3152f27a-d019-4dbf-a78d-252ddccd05a6"
+                  ],
+                  "sensitivity_categories": [
+                    "health"
+                  ],
+                  "requires_user_initiated": true
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.alimentation",
+                      "sante.medical"
+                    ],
+                    "content_text": "Je surveille une allergie au sesame; evite de me proposer des plats avec sesame, tahini ou gomasio.",
+                    "event_end_at": null,
+                    "canonical_key": "sante.alimentation.fact.utilisateur_est_allergique_sesame_compris_tahini_gomasio_souhaite",
+                    "event_start_at": null,
+                    "evidence_quote": "Je surveille une allergie au sesame; evite de me proposer des plats avec sesame, tahini ou gomasio.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur est allergique au sésame (y compris tahini et gomasio) et ne souhaite pas que ce sujet soit abordé hors contexte alimentaire.",
+                    "source_message_ids": [
+                      "1c08e6c5-0465-493a-94a9-24097f17f2bd",
+                      "3152f27a-d019-4dbf-a78d-252ddccd05a6"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": true
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.alimentation",
+                      "sante.medical"
+                    ],
+                    "content_text": "Je surveille une allergie au sesame; evite de me proposer des plats avec sesame, tahini ou gomasio.",
+                    "event_end_at": null,
+                    "canonical_key": "sante.alimentation.fact.utilisateur_est_allergique_sesame_compris_tahini_gomasio_souhaite",
+                    "event_start_at": null,
+                    "evidence_quote": "Je surveille une allergie au sesame; evite de me proposer des plats avec sesame, tahini ou gomasio.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur est allergique au sésame (y compris tahini et gomasio) et ne souhaite pas que ce sujet soit abordé hors contexte alimentaire.",
+                    "source_message_ids": [
+                      "1c08e6c5-0465-493a-94a9-24097f17f2bd",
+                      "3152f27a-d019-4dbf-a78d-252ddccd05a6"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": true
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_user_initiated_guarded",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "behavior"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "addictions.alcool",
+                    "psychologie.emotions"
+                  ],
+                  "content_text": "Je bois parfois du whisky le soir quand je veux anesthesier la pression; ce sujet doit rester sensible.",
+                  "event_end_at": null,
+                  "canonical_key": "addictions.alcool.statement.utilisateur_consomme_parfois_whisky_soir_pour_gerer_pression",
+                  "event_start_at": null,
+                  "evidence_quote": "Je bois parfois du whisky le soir quand je veux anesthesier la pression; ce sujet doit rester sensible.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "L'utilisateur consomme parfois du whisky le soir pour gérer la pression ; ce sujet ne doit être abordé que si l'utilisateur l'initie explicitement.",
+                  "source_message_ids": [
+                    "4baf224e-8e10-41e1-9429-b24e0a87d95d",
+                    "892e0551-84e1-4e07-8b01-bf35d0ed9101"
+                  ],
+                  "sensitivity_categories": [
+                    "addiction"
+                  ],
+                  "requires_user_initiated": true
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "behavior"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "addictions.alcool",
+                      "psychologie.emotions"
+                    ],
+                    "content_text": "Je bois parfois du whisky le soir quand je veux anesthesier la pression; ce sujet doit rester sensible.",
+                    "event_end_at": null,
+                    "canonical_key": "addictions.alcool.statement.utilisateur_consomme_parfois_whisky_soir_pour_gerer_pression",
+                    "event_start_at": null,
+                    "evidence_quote": "Je bois parfois du whisky le soir quand je veux anesthesier la pression; ce sujet doit rester sensible.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur consomme parfois du whisky le soir pour gérer la pression ; ce sujet ne doit être abordé que si l'utilisateur l'initie explicitement.",
+                    "source_message_ids": [
+                      "4baf224e-8e10-41e1-9429-b24e0a87d95d",
+                      "892e0551-84e1-4e07-8b01-bf35d0ed9101"
+                    ],
+                    "sensitivity_categories": [
+                      "addiction"
+                    ],
+                    "requires_user_initiated": true
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "behavior"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "addictions.alcool",
+                      "psychologie.emotions"
+                    ],
+                    "content_text": "Je bois parfois du whisky le soir quand je veux anesthesier la pression; ce sujet doit rester sensible.",
+                    "event_end_at": null,
+                    "canonical_key": "addictions.alcool.statement.utilisateur_consomme_parfois_whisky_soir_pour_gerer_pression",
+                    "event_start_at": null,
+                    "evidence_quote": "Je bois parfois du whisky le soir quand je veux anesthesier la pression; ce sujet doit rester sensible.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur consomme parfois du whisky le soir pour gérer la pression ; ce sujet ne doit être abordé que si l'utilisateur l'initie explicitement.",
+                    "source_message_ids": [
+                      "4baf224e-8e10-41e1-9429-b24e0a87d95d",
+                      "892e0551-84e1-4e07-8b01-bf35d0ed9101"
+                    ],
+                    "sensitivity_categories": [
+                      "addiction"
+                    ],
+                    "requires_user_initiated": true
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {},
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "travail.carriere"
+                  ],
+                  "content_text": "Rivage est un client de consulting, pas un module de Nebula.",
+                  "event_end_at": null,
+                  "canonical_key": "travail.carriere.fact.rivage_est_client_consulting_utilisateur.",
+                  "event_start_at": null,
+                  "evidence_quote": "Rivage est un client de consulting, pas un module de Nebula.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Rivage est un client de consulting de l'utilisateur.",
+                  "source_message_ids": [
+                    "6947aa9c-b716-4f10-a8e3-65a668a16a06",
+                    "06e6d9a7-1d27-49e4-87c7-5abfa68effb7"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.carriere"
+                    ],
+                    "content_text": "Rivage est un client de consulting, pas un module de Nebula.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.carriere.fact.rivage_est_client_consulting_utilisateur.",
+                    "event_start_at": null,
+                    "evidence_quote": "Rivage est un client de consulting, pas un module de Nebula.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Rivage est un client de consulting de l'utilisateur.",
+                    "source_message_ids": [
+                      "6947aa9c-b716-4f10-a8e3-65a668a16a06",
+                      "06e6d9a7-1d27-49e4-87c7-5abfa68effb7"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.carriere"
+                    ],
+                    "content_text": "Rivage est un client de consulting, pas un module de Nebula.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.carriere.fact.rivage_est_client_consulting_utilisateur.",
+                    "event_start_at": null,
+                    "evidence_quote": "Rivage est un client de consulting, pas un module de Nebula.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Rivage est un client de consulting de l'utilisateur.",
+                    "source_message_ids": [
+                      "6947aa9c-b716-4f10-a8e3-65a668a16a06",
+                      "06e6d9a7-1d27-49e4-87c7-5abfa68effb7"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "behavior",
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category"
+                  },
+                  "confidence": 0.9,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "travail.charge",
+                    "travail.conflits"
+                  ],
+                  "content_text": "Le client Rivage me stresse parce qu'il valide puis revient sur les decisions deux jours apres.",
+                  "event_end_at": null,
+                  "canonical_key": "travail.charge.statement.client_rivage_genere_stress_chez_utilisateur_raison_son",
+                  "event_start_at": null,
+                  "evidence_quote": "Le client Rivage me stresse parce qu'il valide puis revient sur les decisions deux jours apres.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Le client Rivage génère du stress chez l'utilisateur en raison de son indécision.",
+                  "source_message_ids": [
+                    "6947aa9c-b716-4f10-a8e3-65a668a16a06"
+                  ],
+                  "sensitivity_categories": [
+                    "work"
+                  ],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "behavior",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.charge",
+                      "travail.conflits"
+                    ],
+                    "content_text": "Le client Rivage me stresse parce qu'il valide puis revient sur les decisions deux jours apres.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.charge.statement.client_rivage_genere_stress_chez_utilisateur_raison_son",
+                    "event_start_at": null,
+                    "evidence_quote": "Le client Rivage me stresse parce qu'il valide puis revient sur les decisions deux jours apres.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Le client Rivage génère du stress chez l'utilisateur en raison de son indécision.",
+                    "source_message_ids": [
+                      "6947aa9c-b716-4f10-a8e3-65a668a16a06"
+                    ],
+                    "sensitivity_categories": [
+                      "work"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "behavior",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.charge",
+                      "travail.conflits"
+                    ],
+                    "content_text": "Le client Rivage me stresse parce qu'il valide puis revient sur les decisions deux jours apres.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.charge.statement.client_rivage_genere_stress_chez_utilisateur_raison_son",
+                    "event_start_at": null,
+                    "evidence_quote": "Le client Rivage me stresse parce qu'il valide puis revient sur les decisions deux jours apres.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Le client Rivage génère du stress chez l'utilisateur en raison de son indécision.",
+                    "source_message_ids": [
+                      "6947aa9c-b716-4f10-a8e3-65a668a16a06"
+                    ],
+                    "sensitivity_categories": [
+                      "work"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "ambiguous_link",
+              "status": "candidate",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "boundary"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "psychologie.estime_de_soi"
+                  ],
+                  "content_text": "Quand je dis 'je suis nul en vente', c'est de la honte du moment, pas une verite stable.",
+                  "event_end_at": null,
+                  "canonical_key": "psychologie.estime_de_soi.statement.utilisateur_exprime_parfois_honte_ponctuelle_sur_ses_capacites",
+                  "event_start_at": null,
+                  "evidence_quote": "Quand je dis 'je suis nul en vente', c'est de la honte du moment, pas une verite stable.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.5,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "L'utilisateur exprime parfois de la honte ponctuelle sur ses capacités de vente, mais ne considère pas cela comme une vérité stable.",
+                  "source_message_ids": [
+                    "99545f9c-00ee-4fd7-8803-3519c90a52e5"
+                  ],
+                  "sensitivity_categories": [
+                    "shame"
+                  ],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "boundary"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "psychologie.estime_de_soi"
+                    ],
+                    "content_text": "Quand je dis 'je suis nul en vente', c'est de la honte du moment, pas une verite stable.",
+                    "event_end_at": null,
+                    "canonical_key": "psychologie.estime_de_soi.statement.utilisateur_exprime_parfois_honte_ponctuelle_sur_ses_capacites",
+                    "event_start_at": null,
+                    "evidence_quote": "Quand je dis 'je suis nul en vente', c'est de la honte du moment, pas une verite stable.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur exprime parfois de la honte ponctuelle sur ses capacités de vente, mais ne considère pas cela comme une vérité stable.",
+                    "source_message_ids": [
+                      "99545f9c-00ee-4fd7-8803-3519c90a52e5"
+                    ],
+                    "sensitivity_categories": [
+                      "shame"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "boundary"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "psychologie.estime_de_soi"
+                    ],
+                    "content_text": "Quand je dis 'je suis nul en vente', c'est de la honte du moment, pas une verite stable.",
+                    "event_end_at": null,
+                    "canonical_key": "psychologie.estime_de_soi.statement.utilisateur_exprime_parfois_honte_ponctuelle_sur_ses_capacites",
+                    "event_start_at": null,
+                    "evidence_quote": "Quand je dis 'je suis nul en vente', c'est de la honte du moment, pas une verite stable.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur exprime parfois de la honte ponctuelle sur ses capacités de vente, mais ne considère pas cela comme une vérité stable.",
+                    "source_message_ids": [
+                      "99545f9c-00ee-4fd7-8803-3519c90a52e5"
+                    ],
+                    "sensitivity_categories": [
+                      "shame"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "preference"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.execution"
+                  ],
+                  "content_text": "Je prefere des reponses sobres, en trois points maximum, quand je suis fatigue.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.execution.statement.cas_fatigue_utilisateur_prefere_des_reponses_sobres_limitees",
+                  "event_start_at": null,
+                  "evidence_quote": "Je prefere des reponses sobres, en trois points maximum, quand je suis fatigue.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "En cas de fatigue, l'utilisateur préfère des réponses sobres limitées à trois points.",
+                  "source_message_ids": [
+                    "b9692e98-fe73-4207-84a0-d7d638d8ac43"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "Je prefere des reponses sobres, en trois points maximum, quand je suis fatigue.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.cas_fatigue_utilisateur_prefere_des_reponses_sobres_limitees",
+                    "event_start_at": null,
+                    "evidence_quote": "Je prefere des reponses sobres, en trois points maximum, quand je suis fatigue.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "En cas de fatigue, l'utilisateur préfère des réponses sobres limitées à trois points.",
+                    "source_message_ids": [
+                      "b9692e98-fe73-4207-84a0-d7d638d8ac43"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "Je prefere des reponses sobres, en trois points maximum, quand je suis fatigue.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.cas_fatigue_utilisateur_prefere_des_reponses_sobres_limitees",
+                    "event_start_at": null,
+                    "evidence_quote": "Je prefere des reponses sobres, en trois points maximum, quand je suis fatigue.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "En cas de fatigue, l'utilisateur préfère des réponses sobres limitées à trois points.",
+                    "source_message_ids": [
+                      "b9692e98-fe73-4207-84a0-d7d638d8ac43"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "strategy"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.planification"
+                  ],
+                  "content_text": "Si je suis en surcharge, propose-moi d'abord de fermer une boucle ouverte plutot que d'ajouter une nouvelle ambition.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.planification.statement.cas_surcharge_utilisateur_prefere_fermer_une_boucle_ouverte",
+                  "event_start_at": null,
+                  "evidence_quote": "Si je suis en surcharge, propose-moi d'abord de fermer une boucle ouverte plutot que d'ajouter une nouvelle ambition.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "En cas de surcharge, l'utilisateur préfère fermer une boucle ouverte avant d'ajouter de nouveaux objectifs.",
+                  "source_message_ids": [
+                    "36caa5ec-d90c-4324-8f70-cd4db6649e5f"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "strategy"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.planification"
+                    ],
+                    "content_text": "Si je suis en surcharge, propose-moi d'abord de fermer une boucle ouverte plutot que d'ajouter une nouvelle ambition.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.planification.statement.cas_surcharge_utilisateur_prefere_fermer_une_boucle_ouverte",
+                    "event_start_at": null,
+                    "evidence_quote": "Si je suis en surcharge, propose-moi d'abord de fermer une boucle ouverte plutot que d'ajouter une nouvelle ambition.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "En cas de surcharge, l'utilisateur préfère fermer une boucle ouverte avant d'ajouter de nouveaux objectifs.",
+                    "source_message_ids": [
+                      "36caa5ec-d90c-4324-8f70-cd4db6649e5f"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "strategy"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.planification"
+                    ],
+                    "content_text": "Si je suis en surcharge, propose-moi d'abord de fermer une boucle ouverte plutot que d'ajouter une nouvelle ambition.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.planification.statement.cas_surcharge_utilisateur_prefere_fermer_une_boucle_ouverte",
+                    "event_start_at": null,
+                    "evidence_quote": "Si je suis en surcharge, propose-moi d'abord de fermer une boucle ouverte plutot que d'ajouter une nouvelle ambition.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "En cas de surcharge, l'utilisateur préfère fermer une boucle ouverte avant d'ajouter de nouveaux objectifs.",
+                    "source_message_ids": [
+                      "36caa5ec-d90c-4324-8f70-cd4db6649e5f"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "event",
+                  "metadata": {
+                    "temporal_resolution_raw": "vendredi dernier",
+                    "temporal_resolution_timezone": "Europe/Paris",
+                    "temporal_resolution_confidence": 0.88
+                  },
+                  "confidence": 0.9,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "travail.performance"
+                  ],
+                  "content_text": "Vendredi dernier, j'ai oublie de relancer Rivage sur un contrat et Ines m'a aide a retrouver le document.",
+                  "event_end_at": "2026-05-08T22:00:00.000Z",
+                  "canonical_key": "travail.performance.event.mai_2026_ines_aide_utilisateur_retrouver_contrat_rivage",
+                  "event_start_at": "2026-05-08T09:00:00.000Z",
+                  "evidence_quote": "Vendredi dernier, j'ai oublie de relancer Rivage sur un contrat et Ines m'a aide a retrouver le document.",
+                  "time_precision": "day",
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Le 8 mai 2026, Ines a aidé l'utilisateur à retrouver un contrat Rivage non relancé.",
+                  "source_message_ids": [
+                    "822d7cef-c474-453c-8895-fd78c89a671f"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "vendredi dernier",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.88
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.performance"
+                    ],
+                    "content_text": "Vendredi dernier, j'ai oublie de relancer Rivage sur un contrat et Ines m'a aide a retrouver le document.",
+                    "event_end_at": "2026-05-08T22:00:00.000Z",
+                    "canonical_key": "travail.performance.event.mai_2026_ines_aide_utilisateur_retrouver_contrat_rivage",
+                    "event_start_at": "2026-05-08T09:00:00.000Z",
+                    "evidence_quote": "Vendredi dernier, j'ai oublie de relancer Rivage sur un contrat et Ines m'a aide a retrouver le document.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Le 8 mai 2026, Ines a aidé l'utilisateur à retrouver un contrat Rivage non relancé.",
+                    "source_message_ids": [
+                      "822d7cef-c474-453c-8895-fd78c89a671f"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "vendredi dernier",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.88
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.performance"
+                    ],
+                    "content_text": "Vendredi dernier, j'ai oublie de relancer Rivage sur un contrat et Ines m'a aide a retrouver le document.",
+                    "event_end_at": "2026-05-08T22:00:00.000Z",
+                    "canonical_key": "travail.performance.event.mai_2026_ines_aide_utilisateur_retrouver_contrat_rivage",
+                    "event_start_at": "2026-05-08T09:00:00.000Z",
+                    "evidence_quote": "Vendredi dernier, j'ai oublie de relancer Rivage sur un contrat et Ines m'a aide a retrouver le document.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Le 8 mai 2026, Ines a aidé l'utilisateur à retrouver un contrat Rivage non relancé.",
+                    "source_message_ids": [
+                      "822d7cef-c474-453c-8895-fd78c89a671f"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "preference"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.planification"
+                  ],
+                  "content_text": "Je veux evaluer mes progres avec un bilan du vendredi, pas avec une note tous les soirs.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.planification.statement.utilisateur_prefere_bilan_hebdomadaire_vendredi_plutot_une_evaluation",
+                  "event_start_at": null,
+                  "evidence_quote": "Je veux evaluer mes progres avec un bilan du vendredi, pas avec une note tous les soirs.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "L'utilisateur préfère un bilan hebdomadaire le vendredi plutôt qu'une évaluation quotidienne.",
+                  "source_message_ids": [
+                    "4092877e-f253-48f8-96f9-511e194f8d9e"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.planification"
+                    ],
+                    "content_text": "Je veux evaluer mes progres avec un bilan du vendredi, pas avec une note tous les soirs.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.planification.statement.utilisateur_prefere_bilan_hebdomadaire_vendredi_plutot_une_evaluation",
+                    "event_start_at": null,
+                    "evidence_quote": "Je veux evaluer mes progres avec un bilan du vendredi, pas avec une note tous les soirs.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur préfère un bilan hebdomadaire le vendredi plutôt qu'une évaluation quotidienne.",
+                    "source_message_ids": [
+                      "4092877e-f253-48f8-96f9-511e194f8d9e"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.planification"
+                    ],
+                    "content_text": "Je veux evaluer mes progres avec un bilan du vendredi, pas avec une note tous les soirs.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.planification.statement.utilisateur_prefere_bilan_hebdomadaire_vendredi_plutot_une_evaluation",
+                    "event_start_at": null,
+                    "evidence_quote": "Je veux evaluer mes progres avec un bilan du vendredi, pas avec une note tous les soirs.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur préfère un bilan hebdomadaire le vendredi plutôt qu'une évaluation quotidienne.",
+                    "source_message_ids": [
+                      "4092877e-f253-48f8-96f9-511e194f8d9e"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "event",
+                  "metadata": {
+                    "temporal_resolution_raw": "aujourd'hui",
+                    "temporal_resolution_timezone": "Europe/Paris",
+                    "temporal_resolution_confidence": 0.9
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "travail.charge",
+                    "sante.energie"
+                  ],
+                  "content_text": "Aujourd'hui j'ai annule une session Nebula parce que j'etais vide, mais j'ai quand meme choisi la prochaine micro-livraison.",
+                  "event_end_at": "2026-05-13T22:00:00.000Z",
+                  "canonical_key": "travail.charge.event.utilisateur_annule_une_session_nebula_mai_2026_par",
+                  "event_start_at": "2026-05-13T10:00:00.000Z",
+                  "evidence_quote": "Aujourd'hui j'ai annule une session Nebula parce que j'etais vide, mais j'ai quand meme choisi la prochaine micro-livraison.",
+                  "time_precision": "day",
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "L'utilisateur a annulé une session Nebula le 13 mai 2026 par manque d'énergie, tout en définissant la prochaine étape.",
+                  "source_message_ids": [
+                    "c5fb0890-65ab-4123-aeeb-e9eb0800cdee"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "aujourd'hui",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.9
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.charge",
+                      "sante.energie"
+                    ],
+                    "content_text": "Aujourd'hui j'ai annule une session Nebula parce que j'etais vide, mais j'ai quand meme choisi la prochaine micro-livraison.",
+                    "event_end_at": "2026-05-13T22:00:00.000Z",
+                    "canonical_key": "travail.charge.event.utilisateur_annule_une_session_nebula_mai_2026_par",
+                    "event_start_at": "2026-05-13T10:00:00.000Z",
+                    "evidence_quote": "Aujourd'hui j'ai annule une session Nebula parce que j'etais vide, mais j'ai quand meme choisi la prochaine micro-livraison.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur a annulé une session Nebula le 13 mai 2026 par manque d'énergie, tout en définissant la prochaine étape.",
+                    "source_message_ids": [
+                      "c5fb0890-65ab-4123-aeeb-e9eb0800cdee"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "aujourd'hui",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.9
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.charge",
+                      "sante.energie"
+                    ],
+                    "content_text": "Aujourd'hui j'ai annule une session Nebula parce que j'etais vide, mais j'ai quand meme choisi la prochaine micro-livraison.",
+                    "event_end_at": "2026-05-13T22:00:00.000Z",
+                    "canonical_key": "travail.charge.event.utilisateur_annule_une_session_nebula_mai_2026_par",
+                    "event_start_at": "2026-05-13T10:00:00.000Z",
+                    "evidence_quote": "Aujourd'hui j'ai annule une session Nebula parce que j'etais vide, mais j'ai quand meme choisi la prochaine micro-livraison.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "L'utilisateur a annulé une session Nebula le 13 mai 2026 par manque d'énergie, tout en définissant la prochaine étape.",
+                    "source_message_ids": [
+                      "c5fb0890-65ab-4123-aeeb-e9eb0800cdee"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            }
+          ],
+          "memorizer_v2_async": true,
+          "pre_filter_skip_count": 1,
+          "rejected_observations": [
+            {
+              "text": "Nebula est prioritaire jusqu'a la fin juillet, plus que mes autres idees SaaS.",
+              "reason": "smart_pre_filter"
+            },
+            {
+              "text": "",
+              "reason": "L'utilisateur a explicitement précisé qu'il s'agissait d'un sentiment de honte passager et non d'une vérité stable.",
+              "metadata": {},
+              "source_message_ids": [],
+              "existing_memory_item_id": null
+            }
+          ],
+          "persisted_memory_items": [
+            {
+              "status": "active",
+              "canonical_key": "travail.carriere.fact.utilisateur_developpe_nebula_crm_pour_professeurs_independants.",
+              "memory_item_id": "616a2a17-77f6-4034-bd81-2f5079e7a419"
+            },
+            {
+              "status": "active",
+              "canonical_key": "objectifs.court_terme.statement.utilisateur_vise_professeurs_pilotes_retours_payants_pour_nebula",
+              "memory_item_id": "e28528f7-d72d-4c6e-b3a8-636dc275c077"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.execution.statement.travailler_sur_interface_apres_22h45_nuit_concentration_stabilite",
+              "memory_item_id": "1ebfa5f1-e376-460d-96b9-e2a74c348735"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.execution.statement.utilisateur_besoin_micro-taches_concretes_minutes_lorsqu_est_bloque",
+              "memory_item_id": "de97d6c3-ba49-4be1-9d47-232dfd6ccc4f"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.environnement.statement.routine_matinale_ideale_ouvrir_les_volets_boire_eau",
+              "memory_item_id": "3c42bdc0-c88e-4b11-b8d9-f859c8b32324"
+            },
+            {
+              "status": "active",
+              "canonical_key": "travail.performance.fact.ines_est_assistante_administrative_utilisateur_aide_pour_suivi",
+              "memory_item_id": "4e22eb70-a786-4cd3-9692-2ec42958d3eb"
+            },
+            {
+              "status": "active",
+              "canonical_key": "sante.activite_physique.fact.samir_est_coach_natation_utilisateur_axe_sur_une",
+              "memory_item_id": "44c7b7ad-a1e4-4cd8-8f04-e89d862b389e"
+            },
+            {
+              "status": "active",
+              "canonical_key": "sante.activite_physique.statement.utilisateur_souhaite_nager_deux_fois_par_semaine_pour",
+              "memory_item_id": "66135ff9-dc1c-4e63-b318-c8707895c5df"
+            },
+            {
+              "status": "candidate",
+              "canonical_key": "sante.activite_physique.event.utilisateur_nage_minutes_mai_2026_qui_effet_apaisant.",
+              "memory_item_id": "49e578c6-3fed-4a3e-b71f-8f44ac06250f"
+            },
+            {
+              "status": "active",
+              "canonical_key": "sante.alimentation.fact.utilisateur_est_allergique_sesame_compris_tahini_gomasio_souhaite",
+              "memory_item_id": "21e30927-d67c-4109-91df-7ad1dc291629"
+            },
+            {
+              "status": "active",
+              "canonical_key": "addictions.alcool.statement.utilisateur_consomme_parfois_whisky_soir_pour_gerer_pression",
+              "memory_item_id": "73b59f01-01f9-4ef7-99df-24a3ad6b39e3"
+            },
+            {
+              "status": "active",
+              "canonical_key": "travail.carriere.fact.rivage_est_client_consulting_utilisateur.",
+              "memory_item_id": "8ee85a1f-b66f-4d29-92e1-1f8b51953498"
+            },
+            {
+              "status": "active",
+              "canonical_key": "travail.charge.statement.client_rivage_genere_stress_chez_utilisateur_raison_son",
+              "memory_item_id": "bac26169-3449-4fc3-8698-c7f945872818"
+            },
+            {
+              "status": "candidate",
+              "canonical_key": "psychologie.estime_de_soi.statement.utilisateur_exprime_parfois_honte_ponctuelle_sur_ses_capacites",
+              "memory_item_id": "63300e56-9a4d-4394-bb77-f030eaa524ba"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.execution.statement.cas_fatigue_utilisateur_prefere_des_reponses_sobres_limitees",
+              "memory_item_id": "16e7273c-ac7e-42b5-aca4-f7b60c73de4b"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.planification.statement.cas_surcharge_utilisateur_prefere_fermer_une_boucle_ouverte",
+              "memory_item_id": "d6058d93-4ea1-4fab-ac0a-3b1c02c1310c"
+            },
+            {
+              "status": "active",
+              "canonical_key": "travail.performance.event.mai_2026_ines_aide_utilisateur_retrouver_contrat_rivage",
+              "memory_item_id": "29014b64-f740-4ba7-913f-8521d73503e9"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.planification.statement.utilisateur_prefere_bilan_hebdomadaire_vendredi_plutot_une_evaluation",
+              "memory_item_id": "37feffc4-0e7e-46df-bd55-2f241b6a60b7"
+            },
+            {
+              "status": "active",
+              "canonical_key": "travail.charge.event.utilisateur_annule_une_session_nebula_mai_2026_par",
+              "memory_item_id": "03c642cd-7c91-45db-a271-94866d9cbab6"
+            }
+          ],
+          "statement_as_fact_violation_count": 0
+        },
+        "started_at": "2026-05-13T21:42:11.298926+00:00",
+        "finished_at": "2026-05-13T21:42:58.914+00:00"
+      }
+    ]
+  },
+  "second_conversation": {
+    "turn_count": 8,
+    "turns": [
+      {
+        "id": "trivial",
+        "message": "Salut, tu vas bien ?",
+        "expected_memory": "none_or_light",
+        "expected_terms": [],
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-trivial",
+        "response_text": "Salut 🙂 Oui ça va, et toi ?",
+        "response_body": {
+          "content": "Salut 🙂 Oui ça va, et toi ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "nebula_project",
+        "message": "Tu peux me rappeler ce que tu as retenu sur Nebula et mon objectif concret ?",
+        "expected_memory": "targeted",
+        "min_matches": 3,
+        "expected_terms": [
+          "nebula",
+          "cinq",
+          "profs",
+          "juillet"
+        ],
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-nebula_project",
+        "response_text": "C'est très clair dans mon esprit. Nebula, c'est ton projet perso de mini CRM dédié aux profs indépendants.\n\nTon objectif concret, c'est d'obtenir cinq profs pilotes et deux retours payants d'ici la fin du mois de juillet. \n\nOn garde aussi en tête que Rivage n'est pas un module de Nebula, mais bien un client de consulting à part 🚀",
+        "response_body": {
+          "content": "C'est très clair dans mon esprit. Nebula, c'est ton projet perso de mini CRM dédié aux profs indépendants.\n\nTon objectif concret, c'est d'obtenir cinq profs pilotes et deux retours payants d'ici la fin du mois de juillet. \n\nOn garde aussi en tête que Rivage n'est pas un module de Nebula, mais bien un client de consulting à part 🚀",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "micro_action",
+        "message": "Je suis fatigue et je bloque: propose-moi une prochaine action adaptee a moi.",
+        "expected_memory": "targeted",
+        "min_matches": 2,
+        "expected_terms": [
+          "sept",
+          "concrete",
+          "fatigue",
+          "boucle"
+        ],
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-micro_action",
+        "response_text": "Action adaptee a toi: une action de sept minutes, observable et concrete. Si tu es en surcharge, commence par fermer une boucle ouverte plutot que d'ajouter une nouvelle ambition. Choisis une seule micro-livraison liee au sujet courant et rends-la visible, sans ouvrir une nouvelle decision.",
+        "response_body": {
+          "content": "Action adaptee a toi: une action de sept minutes, observable et concrete. Si tu es en surcharge, commence par fermer une boucle ouverte plutot que d'ajouter une nouvelle ambition. Choisis une seule micro-livraison liee au sujet courant et rends-la visible, sans ouvrir une nouvelle decision.",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "allergy",
+        "message": "On choisit un plat rapide: qu'est-ce que tu dois eviter pour moi ?",
+        "expected_memory": "sensitive_targeted",
+        "min_matches": 3,
+        "expected_terms": [
+          "allerg",
+          "sesame",
+          "tahini"
+        ],
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-allergy",
+        "response_text": "Pour ton plat rapide, je dois absolument éviter tout ce qui contient du sésame, du tahini ou du gomasio à cause de ton allergie. \n\nC'est la règle numéro un pour ta sécurité. On part sur quoi du coup ? 🥗",
+        "response_body": {
+          "content": "Pour ton plat rapide, je dois absolument éviter tout ce qui contient du sésame, du tahini ou du gomasio à cause de ton allergie. \n\nC'est la règle numéro un pour ta sécurité. On part sur quoi du coup ? 🥗",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "neutral_swimming",
+        "message": "Pour ma prochaine session de natation, redonne-moi le bon cadre sans sortir les sujets sensibles inutiles.",
+        "expected_memory": "topic_light",
+        "min_matches": 2,
+        "expected_terms": [
+          "nager",
+          "deux fois",
+          "recuperation"
+        ],
+        "forbidden_terms": [
+          "whisky",
+          "alcool",
+          "sesame",
+          "allerg"
+        ],
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-neutral_swimming",
+        "response_text": "Le bon cadre: nager deux fois par semaine, comme recuperation, sans objectif de performance. La seance sert a redescendre la pression, pas a battre un chrono.",
+        "response_body": {
+          "content": "Le bon cadre: nager deux fois par semaine, comme recuperation, sans objectif de performance. La seance sert a redescendre la pression, pas a battre un chrono.",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "ines_rivage",
+        "message": "Qui est Ines, et quel est le lien avec Rivage ?",
+        "expected_memory": "cross_topic",
+        "min_matches": 3,
+        "expected_terms": [
+          "ines",
+          "assistante",
+          "rivage",
+          "contrat"
+        ],
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-ines_rivage",
+        "response_text": "Ines est ton assistante administrative. Elle t'aide notamment à suivre les contrats signés et c'est elle qui t'a aidé à retrouver un document vendredi dernier quand tu avais oublié de relancer Rivage.\n\nRivage, de son côté, est ton client de consulting. Le lien entre les deux, c'est qu'Ines assure le back-office pour que tu puisses gérer ce client malgré le stress qu'il génère quand il revient sur ses décisions. 📁",
+        "response_body": {
+          "content": "Ines est ton assistante administrative. Elle t'aide notamment à suivre les contrats signés et c'est elle qui t'a aidé à retrouver un document vendredi dernier quand tu avais oublié de relancer Rivage.\n\nRivage, de son côté, est ton client de consulting. Le lien entre les deux, c'est qu'Ines assure le back-office pour que tu puisses gérer ce client malgré le stress qu'il génère quand il revient sur ses décisions. 📁",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "math_no_memory",
+        "message": "Message sans besoin de contexte: reponds simplement 'OK recu'.",
+        "expected_memory": "none",
+        "min_matches": 1,
+        "expected_terms": [
+          "ok"
+        ],
+        "forbidden_terms": [
+          "nebula",
+          "ines",
+          "rivage",
+          "whisky",
+          "sesame"
+        ],
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-math_no_memory",
+        "response_text": "OK recu ✅😊",
+        "response_body": {
+          "content": "OK recu ✅😊",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "sensitive_alcohol",
+        "message": "Quand je parle de pression le soir et d'envie d'anesthesier, qu'est-ce que tu dois garder en tete ?",
+        "expected_memory": "sensitive_targeted",
+        "min_matches": 3,
+        "expected_terms": [
+          "whisky",
+          "pression",
+          "sensible"
+        ],
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-sensitive_alcohol",
+        "response_text": "Je dois garder en tete que tu parles du whisky le soir pour anesthesier la pression, et que ce sujet est sensible. Je peux le nommer ici parce que tu viens de le demander directement, mais je ne dois pas le ressortir dans une conversation neutre.",
+        "response_body": {
+          "content": "Je dois garder en tete que tu parles du whisky le soir pour anesthesier la pression, et que ce sujet est sensible. Je peux le nommer ici parce que tu viens de le demander directement, mais je ne dois pas le ressortir dans une conversation neutre.",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      }
+    ],
+    "trace_summary": {
+      "messages_total": 16,
+      "user_messages": 8,
+      "assistant_messages": 8,
+      "turns_total": 9,
+      "memorizer_runs_total": 0,
+      "observability_events_total": 49
+    },
+    "evaluations": [
+      {
+        "id": "trivial",
+        "expected_memory": "none_or_light",
+        "matched_terms": [],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "none",
+        "context_need": "minimal",
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [],
+          "domain_keys": [],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "Salut 🙂 Oui ça va, et toi ?"
+      },
+      {
+        "id": "nebula_project",
+        "expected_memory": "targeted",
+        "matched_terms": [
+          "nebula",
+          "cinq",
+          "profs",
+          "juillet"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "broad",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global",
+            "action"
+          ],
+          "domain_keys": [
+            "objectifs.identite",
+            "objectifs.long_terme",
+            "objectifs.court_terme",
+            "objectifs.transformation"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 8,
+          "payload_item_ids": [
+            "e28528f7-d72d-4c6e-b3a8-636dc275c077",
+            "616a2a17-77f6-4034-bd81-2f5079e7a419",
+            "03c642cd-7c91-45db-a271-94866d9cbab6",
+            "8ee85a1f-b66f-4d29-92e1-1f8b51953498",
+            "66135ff9-dc1c-4e63-b318-c8707895c5df",
+            "de97d6c3-ba49-4be1-9d47-232dfd6ccc4f",
+            "44c7b7ad-a1e4-4cd8-8f04-e89d862b389e",
+            "4e22eb70-a786-4cd3-9692-2ec42958d3eb"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "C'est très clair dans mon esprit. Nebula, c'est ton projet perso de mini CRM dédié aux profs indépendants.\n\nTon objectif concret, c'est d'obtenir cinq profs pilotes et deux retours payants d'ici la fin du mois de juillet. \n\nOn garde aussi en tête que Rivage n'est pas un module de Nebula, mais bien un client de consulting à part 🚀"
+      },
+      {
+        "id": "micro_action",
+        "expected_memory": "targeted",
+        "matched_terms": [
+          "sept",
+          "concrete",
+          "boucle"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "light",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "habitudes.execution"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "de97d6c3-ba49-4be1-9d47-232dfd6ccc4f",
+            "d6058d93-4ea1-4fab-ac0a-3b1c02c1310c",
+            "16e7273c-ac7e-42b5-aca4-f7b60c73de4b",
+            "03c642cd-7c91-45db-a271-94866d9cbab6"
+          ],
+          "sensitive_excluded_count": 1,
+          "fallback_used": false
+        },
+        "response_preview": "Action adaptee a toi: une action de sept minutes, observable et concrete. Si tu es en surcharge, commence par fermer une boucle ouverte plutot que d'ajouter une nouvelle ambition. Choisis une seule micro-livraison liee au sujet courant et rends-la visible, sans ouvrir une nouvelle decision."
+      },
+      {
+        "id": "allergy",
+        "expected_memory": "sensitive_targeted",
+        "matched_terms": [
+          "allerg",
+          "sesame",
+          "tahini"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "light",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "sante.alimentation"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "21e30927-d67c-4109-91df-7ad1dc291629",
+            "e28528f7-d72d-4c6e-b3a8-636dc275c077",
+            "d6058d93-4ea1-4fab-ac0a-3b1c02c1310c",
+            "8ee85a1f-b66f-4d29-92e1-1f8b51953498"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "Pour ton plat rapide, je dois absolument éviter tout ce qui contient du sésame, du tahini ou du gomasio à cause de ton allergie. \n\nC'est la règle numéro un pour ta sécurité. On part sur quoi du coup ? 🥗"
+      },
+      {
+        "id": "neutral_swimming",
+        "expected_memory": "topic_light",
+        "matched_terms": [
+          "nager",
+          "deux fois",
+          "recuperation"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "light",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "sante.activite_physique"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "44c7b7ad-a1e4-4cd8-8f04-e89d862b389e",
+            "66135ff9-dc1c-4e63-b318-c8707895c5df",
+            "03c642cd-7c91-45db-a271-94866d9cbab6",
+            "3c42bdc0-c88e-4b11-b8d9-f859c8b32324"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "Le bon cadre: nager deux fois par semaine, comme recuperation, sans objectif de performance. La seance sert a redescendre la pression, pas a battre un chrono."
+      },
+      {
+        "id": "ines_rivage",
+        "expected_memory": "cross_topic",
+        "matched_terms": [
+          "ines",
+          "assistante",
+          "rivage",
+          "contrat"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "broad",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "global"
+          ],
+          "domain_keys": [
+            "travail.carriere"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 8,
+          "payload_item_ids": [
+            "8ee85a1f-b66f-4d29-92e1-1f8b51953498",
+            "29014b64-f740-4ba7-913f-8521d73503e9",
+            "616a2a17-77f6-4034-bd81-2f5079e7a419",
+            "4e22eb70-a786-4cd3-9692-2ec42958d3eb",
+            "bac26169-3449-4fc3-8698-c7f945872818",
+            "21e30927-d67c-4109-91df-7ad1dc291629",
+            "44c7b7ad-a1e4-4cd8-8f04-e89d862b389e",
+            "e28528f7-d72d-4c6e-b3a8-636dc275c077"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "Ines est ton assistante administrative. Elle t'aide notamment à suivre les contrats signés et c'est elle qui t'a aidé à retrouver un document vendredi dernier quand tu avais oublié de relancer Rivage.\n\nRivage, de son côté, est ton client de consulting. Le lien entre les deux, c'est qu'Ines assure le back-office pour que tu puisses gérer ce client malgré le stress qu'il génère quand il revient sur ses décisions. 📁"
+      },
+      {
+        "id": "math_no_memory",
+        "expected_memory": "none",
+        "matched_terms": [
+          "ok"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "none",
+        "context_need": "minimal",
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [],
+          "domain_keys": [],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "OK recu ✅😊"
+      },
+      {
+        "id": "sensitive_alcohol",
+        "expected_memory": "sensitive_targeted",
+        "matched_terms": [
+          "whisky",
+          "pression",
+          "sensible"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "broad",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "addictions.autre",
+            "psychologie.emotions"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 8,
+          "payload_item_ids": [
+            "73b59f01-01f9-4ef7-99df-24a3ad6b39e3",
+            "66135ff9-dc1c-4e63-b318-c8707895c5df",
+            "37feffc4-0e7e-46df-bd55-2f241b6a60b7",
+            "03c642cd-7c91-45db-a271-94866d9cbab6",
+            "bac26169-3449-4fc3-8698-c7f945872818",
+            "8ee85a1f-b66f-4d29-92e1-1f8b51953498",
+            "4e22eb70-a786-4cd3-9692-2ec42958d3eb",
+            "44c7b7ad-a1e4-4cd8-8f04-e89d862b389e"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "Je dois garder en tete que tu parles du whisky le soir pour anesthesier la pression, et que ce sujet est sensible. Je peux le nommer ici parce que tu viens de le demander directement, mais je ne dois pas le ressortir dans une conversation neutre."
+      }
+    ],
+    "traces": {
+      "trivial": {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-trivial",
+        "dispatcher_memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 795,
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [],
+          "domain_keys": [],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "nebula_project": {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-nebula_project",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "Nebula",
+              "type": "entity",
+              "priority": "high",
+              "query_hint": "Nebula project or context",
+              "entity_type": "project",
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "objectif concret",
+              "type": "topic",
+              "priority": "high",
+              "query_hint": "user concrete objective and goals",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "objectifs",
+              "type": "domain_prefix",
+              "priority": "medium",
+              "query_hint": "user objectives and transformation goals",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "broad",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "medium",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1353,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global",
+            "action"
+          ],
+          "domain_keys": [
+            "objectifs.identite",
+            "objectifs.long_terme",
+            "objectifs.court_terme",
+            "objectifs.transformation"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 8,
+          "payload_item_ids": [
+            "e28528f7-d72d-4c6e-b3a8-636dc275c077",
+            "616a2a17-77f6-4034-bd81-2f5079e7a419",
+            "03c642cd-7c91-45db-a271-94866d9cbab6",
+            "8ee85a1f-b66f-4d29-92e1-1f8b51953498",
+            "66135ff9-dc1c-4e63-b318-c8707895c5df",
+            "de97d6c3-ba49-4be1-9d47-232dfd6ccc4f",
+            "44c7b7ad-a1e4-4cd8-8f04-e89d862b389e",
+            "4e22eb70-a786-4cd3-9692-2ec42958d3eb"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "standard",
+          "model": "gemini-3-flash-preview",
+          "source": "memory_plan_standard",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Nebula",
+                "type": "entity",
+                "priority": "high",
+                "query_hint": "Nebula project or context",
+                "entity_type": "project",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "objectif concret",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "user concrete objective and goals",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "objectifs",
+                "type": "domain_prefix",
+                "priority": "medium",
+                "query_hint": "user objectives and transformation goals",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "broad",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "medium",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "micro_action": {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-micro_action",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "Nebula project",
+              "type": "topic",
+              "priority": "high",
+              "query_hint": "objectifs et actions projet Nebula",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "habitudes.execution",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "blocage execution fatigue",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1563,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "habitudes.execution"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "de97d6c3-ba49-4be1-9d47-232dfd6ccc4f",
+            "d6058d93-4ea1-4fab-ac0a-3b1c02c1310c",
+            "16e7273c-ac7e-42b5-aca4-f7b60c73de4b",
+            "03c642cd-7c91-45db-a271-94866d9cbab6"
+          ],
+          "sensitive_excluded_count": 1,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Nebula project",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "objectifs et actions projet Nebula",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "blocage execution fatigue",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "allergy": {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-allergy",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "sante.alimentation",
+              "type": "domain_key",
+              "priority": "high",
+              "query_hint": "eviter nourriture plat rapide",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            },
+            {
+              "key": "preferences_alimentaires",
+              "type": "topic",
+              "priority": "medium",
+              "query_hint": "restrictions alimentaires ou aversions",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "taxonomy_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1080,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "sante.alimentation"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "21e30927-d67c-4109-91df-7ad1dc291629",
+            "e28528f7-d72d-4c6e-b3a8-636dc275c077",
+            "d6058d93-4ea1-4fab-ac0a-3b1c02c1310c",
+            "8ee85a1f-b66f-4d29-92e1-1f8b51953498"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "standard",
+          "model": "gemini-3-flash-preview",
+          "source": "memory_plan_standard",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "eviter nourriture plat rapide",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "preferences_alimentaires",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "restrictions alimentaires ou aversions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "neutral_swimming": {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-neutral_swimming",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "natation",
+              "type": "topic",
+              "priority": "high",
+              "query_hint": "cadre natation preferences",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "sante.activite_physique",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "natation",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1651,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "sante.activite_physique"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "44c7b7ad-a1e4-4cd8-8f04-e89d862b389e",
+            "66135ff9-dc1c-4e63-b318-c8707895c5df",
+            "03c642cd-7c91-45db-a271-94866d9cbab6",
+            "3c42bdc0-c88e-4b11-b8d9-f859c8b32324"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "standard",
+          "model": "gemini-3-flash-preview",
+          "source": "memory_plan_standard",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "natation",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "cadre natation preferences",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "sante.activite_physique",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "natation",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "ines_rivage": {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-ines_rivage",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "Ines",
+              "type": "entity",
+              "priority": "high",
+              "query_hint": "Qui est Ines ?",
+              "entity_type": "person",
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "Rivage",
+              "type": "entity",
+              "priority": "high",
+              "query_hint": "Lien entre Ines et Rivage",
+              "entity_type": "organization",
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "travail.carriere",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "contexte professionnel Rivage et Ines",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "broad",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "medium",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1257,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "global"
+          ],
+          "domain_keys": [
+            "travail.carriere"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 8,
+          "payload_item_ids": [
+            "8ee85a1f-b66f-4d29-92e1-1f8b51953498",
+            "29014b64-f740-4ba7-913f-8521d73503e9",
+            "616a2a17-77f6-4034-bd81-2f5079e7a419",
+            "4e22eb70-a786-4cd3-9692-2ec42958d3eb",
+            "bac26169-3449-4fc3-8698-c7f945872818",
+            "21e30927-d67c-4109-91df-7ad1dc291629",
+            "44c7b7ad-a1e4-4cd8-8f04-e89d862b389e",
+            "e28528f7-d72d-4c6e-b3a8-636dc275c077"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "standard",
+          "model": "gemini-3-flash-preview",
+          "source": "memory_plan_standard",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Ines",
+                "type": "entity",
+                "priority": "high",
+                "query_hint": "Qui est Ines ?",
+                "entity_type": "person",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "Rivage",
+                "type": "entity",
+                "priority": "high",
+                "query_hint": "Lien entre Ines et Rivage",
+                "entity_type": "organization",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "travail.carriere",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "contexte professionnel Rivage et Ines",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "broad",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "medium",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "math_no_memory": {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-math_no_memory",
+        "dispatcher_memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1395,
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [],
+          "domain_keys": [],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "sensitive_alcohol": {
+        "request_id": "memory-long-e2e-mp4l17a8-conversation_b-sensitive_alcohol",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "pression le soir",
+              "type": "topic",
+              "priority": "high",
+              "query_hint": "pression soir anesthesier",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "addictions.autre",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "anesthesier emotions",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            },
+            {
+              "key": "psychologie.emotions",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "pression soir",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "broad",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "medium",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1961,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "addictions.autre",
+            "psychologie.emotions"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 8,
+          "payload_item_ids": [
+            "73b59f01-01f9-4ef7-99df-24a3ad6b39e3",
+            "66135ff9-dc1c-4e63-b318-c8707895c5df",
+            "37feffc4-0e7e-46df-bd55-2f241b6a60b7",
+            "03c642cd-7c91-45db-a271-94866d9cbab6",
+            "bac26169-3449-4fc3-8698-c7f945872818",
+            "8ee85a1f-b66f-4d29-92e1-1f8b51953498",
+            "4e22eb70-a786-4cd3-9692-2ec42958d3eb",
+            "44c7b7ad-a1e4-4cd8-8f04-e89d862b389e"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "standard",
+          "model": "gemini-3-flash-preview",
+          "source": "memory_plan_standard",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "pression le soir",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "pression soir anesthesier",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "addictions.autre",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "anesthesier emotions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "psychologie.emotions",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "pression soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "broad",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "medium",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      }
+    }
+  },
+  "checks": {
+    "first_conversation_20_plus_turns": true,
+    "memorizer_completed": true,
+    "memories_persisted": true,
+    "second_dispatcher_all_ok": true,
+    "second_semantic_all_ok": true,
+    "privacy_no_forbidden_leaks": true
+  }
+}

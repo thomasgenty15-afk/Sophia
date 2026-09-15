@@ -1,0 +1,346 @@
+{
+  "ok": true,
+  "request_id": "a35110eb-4d2b-4ab2-8a30-70fb2d5228b7",
+  "user_id": "d93db839-7302-41f9-8239-b90fefe3d672",
+  "channel": "web",
+  "scope": "web",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Ça peut servir à te remettre un peu d’élan quand ça part en vrille, mais là le vrai sujet c’est surtout que tu te sens plombé en ce moment.\n\nOn laisse le reste de côté pour l’instant. Si tu veux, je peux juste t’aider à remettre ça à plat en une phrase très simple.",
+    "mode": "companion",
+    "delivery": {
+      "mode": "text_reply"
+    },
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "a35110eb-4d2b-4ab2-8a30-70fb2d5228b7",
+        "source_message_id": "dc8fb102-d03e-4e91-a29e-677436b8f69b",
+        "user_id": "d93db839-7302-41f9-8239-b90fefe3d672",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "direct_effect_time_context": {
+          "now_utc": "2026-07-02T14:31:29.606Z",
+          "user_timezone": "Europe/Paris",
+          "user_locale": "fr-FR",
+          "user_local_datetime": "2026-07-02T16:31:29",
+          "user_local_human": "jeudi 2 juillet 2026 à 16:31"
+        },
+        "note_information": {
+          "source_flow_id": "feature_opportunity",
+          "handoff_reason": "topic_change",
+          "target_dispatcher": "global",
+          "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"User expresses emotional distress and discouragement about the situation, without asking for a product opportunity.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Tous les dimanches soir\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"priority_reason\":\"Repeated weekly context fits initiatives.\",\"trigger_context\":\"Tous les dimanches soir\",\"opportunity_kind\":\"recurring_context\",\"user_problem_summary\":\"User forgets a repeated Sunday evening preparation ritual and wants support to remember it every time.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Current message is an emotional state / discouragement without an opportunity request.\"]}",
+          "user_words": [
+            "Franchement à quoi ça sert tout ça... j'ai l'impression de jamais y arriver et ça me plombe vraiment en ce moment.",
+            "Current message is an emotional state / discouragement without an opportunity request."
+          ],
+          "structured_context": {
+            "user_message_summary": "User expresses emotional distress and discouragement about the situation, without asking for a product opportunity.",
+            "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+            "collected_state": {
+              "feature": "initiatives",
+              "opportunity_kind": "recurring_context",
+              "trigger_context": "Tous les dimanches soir",
+              "dispatcher_signal_context": {
+                "feature": "initiatives",
+                "priority_reason": "Repeated weekly context fits initiatives.",
+                "trigger_context": "Tous les dimanches soir",
+                "opportunity_kind": "recurring_context",
+                "user_problem_summary": "User forgets a repeated Sunday evening preparation ritual and wants support to remember it every time."
+              }
+            },
+            "unresolved_questions": [],
+            "recommended_next_focus": "global",
+            "evidence": [
+              "Current message is an emotional state / discouragement without an opportunity request."
+            ]
+          },
+          "confidence": "high"
+        },
+        "skill_signals": {},
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "emotionally_distressed_followup",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "force_taxonomy",
+          "plan_confidence": 0.2
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "normal_reply",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "normal_reply_default",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none"
+      },
+      "effect_ledger": {
+        "turn_id": "a35110eb-4d2b-4ab2-8a30-70fb2d5228b7",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "normal_reply",
+      "skill_run": {
+        "selected_skill_id": "feature_opportunity",
+        "reason_code": "active_feature_opportunity",
+        "status": "exit",
+        "latency_ms": 4174,
+        "exit_target": "global",
+        "exit_note_information": {
+          "source_flow_id": "feature_opportunity",
+          "handoff_reason": "topic_change",
+          "target_dispatcher": "global",
+          "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"User expresses emotional distress and discouragement about the situation, without asking for a product opportunity.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Tous les dimanches soir\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"priority_reason\":\"Repeated weekly context fits initiatives.\",\"trigger_context\":\"Tous les dimanches soir\",\"opportunity_kind\":\"recurring_context\",\"user_problem_summary\":\"User forgets a repeated Sunday evening preparation ritual and wants support to remember it every time.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Current message is an emotional state / discouragement without an opportunity request.\"]}",
+          "user_words": [
+            "Franchement à quoi ça sert tout ça... j'ai l'impression de jamais y arriver et ça me plombe vraiment en ce moment.",
+            "Current message is an emotional state / discouragement without an opportunity request."
+          ],
+          "structured_context": {
+            "user_message_summary": "User expresses emotional distress and discouragement about the situation, without asking for a product opportunity.",
+            "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+            "collected_state": {
+              "feature": "initiatives",
+              "opportunity_kind": "recurring_context",
+              "trigger_context": "Tous les dimanches soir",
+              "dispatcher_signal_context": {
+                "feature": "initiatives",
+                "priority_reason": "Repeated weekly context fits initiatives.",
+                "trigger_context": "Tous les dimanches soir",
+                "opportunity_kind": "recurring_context",
+                "user_problem_summary": "User forgets a repeated Sunday evening preparation ritual and wants support to remember it every time."
+              }
+            },
+            "unresolved_questions": [],
+            "recommended_next_focus": "global",
+            "evidence": [
+              "Current message is an emotional state / discouragement without an opportunity request."
+            ]
+          },
+          "confidence": "high"
+        }
+      }
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "a35110eb-4d2b-4ab2-8a30-70fb2d5228b7",
+      "source_message_id": "dc8fb102-d03e-4e91-a29e-677436b8f69b",
+      "user_id": "d93db839-7302-41f9-8239-b90fefe3d672",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "direct_effect_time_context": {
+        "now_utc": "2026-07-02T14:31:29.606Z",
+        "user_timezone": "Europe/Paris",
+        "user_locale": "fr-FR",
+        "user_local_datetime": "2026-07-02T16:31:29",
+        "user_local_human": "jeudi 2 juillet 2026 à 16:31"
+      },
+      "note_information": {
+        "source_flow_id": "feature_opportunity",
+        "handoff_reason": "topic_change",
+        "target_dispatcher": "global",
+        "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"User expresses emotional distress and discouragement about the situation, without asking for a product opportunity.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Tous les dimanches soir\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"priority_reason\":\"Repeated weekly context fits initiatives.\",\"trigger_context\":\"Tous les dimanches soir\",\"opportunity_kind\":\"recurring_context\",\"user_problem_summary\":\"User forgets a repeated Sunday evening preparation ritual and wants support to remember it every time.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Current message is an emotional state / discouragement without an opportunity request.\"]}",
+        "user_words": [
+          "Franchement à quoi ça sert tout ça... j'ai l'impression de jamais y arriver et ça me plombe vraiment en ce moment.",
+          "Current message is an emotional state / discouragement without an opportunity request."
+        ],
+        "structured_context": {
+          "user_message_summary": "User expresses emotional distress and discouragement about the situation, without asking for a product opportunity.",
+          "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+          "collected_state": {
+            "feature": "initiatives",
+            "opportunity_kind": "recurring_context",
+            "trigger_context": "Tous les dimanches soir",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated weekly context fits initiatives.",
+              "trigger_context": "Tous les dimanches soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "User forgets a repeated Sunday evening preparation ritual and wants support to remember it every time."
+            }
+          },
+          "unresolved_questions": [],
+          "recommended_next_focus": "global",
+          "evidence": [
+            "Current message is an emotional state / discouragement without an opportunity request."
+          ]
+        },
+        "confidence": "high"
+      },
+      "skill_signals": {},
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "emotionally_distressed_followup",
+        "reasoning_complexity": "low",
+        "context_need": "minimal",
+        "memory_mode": "none",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "tiny",
+        "targets": [],
+        "retrieval_policy": "force_taxonomy",
+        "plan_confidence": 0.2
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "normal_reply",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "normal_reply_default",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none"
+    },
+    "effect_ledger": {
+      "turn_id": "a35110eb-4d2b-4ab2-8a30-70fb2d5228b7",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "normal_reply",
+    "skill_run": {
+      "selected_skill_id": "feature_opportunity",
+      "reason_code": "active_feature_opportunity",
+      "status": "exit",
+      "latency_ms": 4174,
+      "exit_target": "global",
+      "exit_note_information": {
+        "source_flow_id": "feature_opportunity",
+        "handoff_reason": "topic_change",
+        "target_dispatcher": "global",
+        "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"User expresses emotional distress and discouragement about the situation, without asking for a product opportunity.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Tous les dimanches soir\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"priority_reason\":\"Repeated weekly context fits initiatives.\",\"trigger_context\":\"Tous les dimanches soir\",\"opportunity_kind\":\"recurring_context\",\"user_problem_summary\":\"User forgets a repeated Sunday evening preparation ritual and wants support to remember it every time.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Current message is an emotional state / discouragement without an opportunity request.\"]}",
+        "user_words": [
+          "Franchement à quoi ça sert tout ça... j'ai l'impression de jamais y arriver et ça me plombe vraiment en ce moment.",
+          "Current message is an emotional state / discouragement without an opportunity request."
+        ],
+        "structured_context": {
+          "user_message_summary": "User expresses emotional distress and discouragement about the situation, without asking for a product opportunity.",
+          "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+          "collected_state": {
+            "feature": "initiatives",
+            "opportunity_kind": "recurring_context",
+            "trigger_context": "Tous les dimanches soir",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated weekly context fits initiatives.",
+              "trigger_context": "Tous les dimanches soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "User forgets a repeated Sunday evening preparation ritual and wants support to remember it every time."
+            }
+          },
+          "unresolved_questions": [],
+          "recommended_next_focus": "global",
+          "evidence": [
+            "Current message is an emotional state / discouragement without an opportunity request."
+          ]
+        },
+        "confidence": "high"
+      }
+    }
+  },
+  "trace_error": null
+}

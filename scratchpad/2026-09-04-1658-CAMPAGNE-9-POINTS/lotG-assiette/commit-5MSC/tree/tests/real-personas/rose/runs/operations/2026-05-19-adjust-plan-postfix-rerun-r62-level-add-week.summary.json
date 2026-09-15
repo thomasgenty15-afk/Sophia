@@ -1,0 +1,626 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r62-level-add-week-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Le niveau actuel me semble juste, mais il me faudrait une semaine de plus dessus. Je veux prolonger ce niveau sans changer le rythme ni les actions existantes.",
+    "assistant": "Je dois reprendre le brouillon proprement. Pour le régénérer, quelle action du niveau veux-tu que je cite comme repère principal pour cette semaine de consolidation ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de modifier les tâches du niveau.",
+          "Proposer de diminuer ou d’augmenter la cadence.",
+          "Proposer un changement de nature des actions.",
+          "Rouvrir le questionnaire ou la logique de niveau sans demande explicite.",
+          "Présenter l’allongement comme une remise en question du plan."
+        ],
+        "scope": "level",
+        "preserve": [
+          "Le niveau actuel comme bon point d’ajustement.",
+          "Le rythme existant du niveau.",
+          "Les actions déjà en place.",
+          "La cohérence de la progression du plan.",
+          "La limite temporelle implicite d’une seule semaine supplémentaire."
+        ],
+        "warnings": [
+          "Éviter de proposer une baisse de niveau globale ou un changement de phase si la demande ne le dit pas.",
+          "Éviter de toucher aux actions existantes ou à leur cadence sous prétexte de rendre la semaine plus confortable.",
+          "Éviter de transformer cette prolongation en ajustement de méthode, de contenu ou d’objectif.",
+          "Attention à ne pas confondre \"une semaine de plus\" avec un prolongement indéfini ; le cadre doit rester borné.",
+          "Ne pas suggérer que le niveau actuel est insuffisant ou mal choisi ; la demande exprime au contraire qu’il est juste."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Action : traiter la demande comme un maintien du rôle actuel du niveau, avec une intention de consolidation et non de refonte.",
+          "Action : préserver le pont minimal entre le niveau courant et le prochain palier, sans changer la nature des pratiques.",
+          "Niveau : conserver la charge et le rythme déjà posés ; l’allègement demandé est temporaire et borné à une semaine de plus.",
+          "Niveau : garder la frontière de fin de niveau visible afin que la prolongation ne devienne pas une nouvelle trajectoire.",
+          "Niveau : le cœur du niveau doit rester intact ; seule la durée d’exposition au même cadre s’allonge.",
+          "Whole plan : maintenir la trajectoire globale, l’ordre des phases et les prérequis déjà définis.",
+          "Whole plan : ne pas déplacer l’objectif du plan ni le questionnaire attendu ; la demande concerne uniquement le tempo de consolidation.",
+          "Whole plan : si un repère doit être mentionné, il doit servir à protéger la progression globale, pas à ouvrir une nouvelle branche."
+        ],
+        "observation": "La demande ne porte pas sur un changement de contenu mais sur un besoin de temps supplémentaire dans un niveau perçu comme encore juste. Le sens humain est une recherche de consolidation et de sécurité avant de passer à la suite, avec une volonté explicite de ne pas surcharger ni réorganiser le cadre.",
+        "recommendation": "Répondre en maintenant strictement le niveau courant, en le prolongeant d’une semaine comme repère de consolidation, sans modifier le rythme ni les actions. Le sous-skill doit préserver la trajectoire actuelle et présenter ce prolongement comme un maintien de cap, non comme une réécriture du plan.",
+        "options_to_discuss": [
+          "Confirmer le niveau actuel une semaine de plus comme simple consolidation.",
+          "Garder exactement les mêmes actions et la même cadence pour ne préserver que le temps d’intégration.",
+          "Si besoin, expliciter que cette semaine supplémentaire sert à stabiliser avant le prochain palier, sans changer le cap.",
+          "Prévoir un repère de fin de prolongation pour éviter que l’allégement devienne une stagnation."
+        ],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de modifier les tâches du niveau.",
+        "Proposer de diminuer ou d’augmenter la cadence.",
+        "Proposer un changement de nature des actions.",
+        "Rouvrir le questionnaire ou la logique de niveau sans demande explicite.",
+        "Présenter l’allongement comme une remise en question du plan."
+      ],
+      "scope": "level",
+      "preserve": [
+        "Le niveau actuel comme bon point d’ajustement.",
+        "Le rythme existant du niveau.",
+        "Les actions déjà en place.",
+        "La cohérence de la progression du plan.",
+        "La limite temporelle implicite d’une seule semaine supplémentaire."
+      ],
+      "warnings": [
+        "Éviter de proposer une baisse de niveau globale ou un changement de phase si la demande ne le dit pas.",
+        "Éviter de toucher aux actions existantes ou à leur cadence sous prétexte de rendre la semaine plus confortable.",
+        "Éviter de transformer cette prolongation en ajustement de méthode, de contenu ou d’objectif.",
+        "Attention à ne pas confondre \"une semaine de plus\" avec un prolongement indéfini ; le cadre doit rester borné.",
+        "Ne pas suggérer que le niveau actuel est insuffisant ou mal choisi ; la demande exprime au contraire qu’il est juste."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Action : traiter la demande comme un maintien du rôle actuel du niveau, avec une intention de consolidation et non de refonte.",
+        "Action : préserver le pont minimal entre le niveau courant et le prochain palier, sans changer la nature des pratiques.",
+        "Niveau : conserver la charge et le rythme déjà posés ; l’allègement demandé est temporaire et borné à une semaine de plus.",
+        "Niveau : garder la frontière de fin de niveau visible afin que la prolongation ne devienne pas une nouvelle trajectoire.",
+        "Niveau : le cœur du niveau doit rester intact ; seule la durée d’exposition au même cadre s’allonge.",
+        "Whole plan : maintenir la trajectoire globale, l’ordre des phases et les prérequis déjà définis.",
+        "Whole plan : ne pas déplacer l’objectif du plan ni le questionnaire attendu ; la demande concerne uniquement le tempo de consolidation.",
+        "Whole plan : si un repère doit être mentionné, il doit servir à protéger la progression globale, pas à ouvrir une nouvelle branche."
+      ],
+      "observation": "La demande ne porte pas sur un changement de contenu mais sur un besoin de temps supplémentaire dans un niveau perçu comme encore juste. Le sens humain est une recherche de consolidation et de sécurité avant de passer à la suite, avec une volonté explicite de ne pas surcharger ni réorganiser le cadre.",
+      "recommendation": "Répondre en maintenant strictement le niveau courant, en le prolongeant d’une semaine comme repère de consolidation, sans modifier le rythme ni les actions. Le sous-skill doit préserver la trajectoire actuelle et présenter ce prolongement comme un maintien de cap, non comme une réécriture du plan.",
+      "options_to_discuss": [
+        "Confirmer le niveau actuel une semaine de plus comme simple consolidation.",
+        "Garder exactement les mêmes actions et la même cadence pour ne préserver que le temps d’intégration.",
+        "Si besoin, expliciter que cette semaine supplémentaire sert à stabiliser avant le prochain palier, sans changer le cap.",
+        "Prévoir un repère de fin de prolongation pour éviter que l’allégement devienne une stagnation."
+      ],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r62-level-add-week-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r62-level-add-week-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Le repère principal, c'est Convenir d'un signal de pause. Mais je ne veux pas modifier cette action : je veux juste garder le niveau une semaine de plus pour consolider.",
+    "assistant": "Je te propose de garder le niveau actuel tel quel une semaine de plus pour consolider, sans toucher aux autres actions ni au rythme déjà posé. Concrètement, je suggère de laisser \"Convenir d'un signal de pause\" en place comme repère de travail, et de préserver \"Partager un point positif\" sans modification. Ça aide parce que tu gardes un cadre stable le temps d’intégrer, sans ouvrir une nouvelle trajectoire. Rien n’est encore appliqué : dis-moi si tu veux que je parte sur cette prolongation bornée, ou si tu préfères un autre ajustement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "difficulty": "medium",
+            "instruction": "same_level:conserver le niveau actuel une semaine de plus"
+          },
+          "title": "Ajustement - Convenir d'un signal de pause",
+          "confidence": "high",
+          "ack_summary": {
+            "changed": [
+              "ajustement de \"Convenir d'un signal de pause\""
+            ],
+            "unchanged": [
+              "le reste du plan n'est pas touché"
+            ],
+            "confidence": "high",
+            "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+            "follow_up_needed": null
+          },
+          "scope_label": "Convenir d'un signal de pause",
+          "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+          "decision_basis": {
+            "evidence": [
+              "Le repère principal, c'est Convenir d'un signal de pause. Mais je ne veux pas modifier cette action : je veux juste garder le niveau une semaine de plus pour consolider.",
+              "Le niveau actuel me semble juste",
+              "prolonger ce niveau",
+              "single affected item replacement request",
+              "deterministic single action replacement signal",
+              "deterministic action bad-fit signal"
+            ],
+            "confidence": "high",
+            "uncertainty": [],
+            "user_problem": "Convenir d'un signal de pause bloque parce que l'entree est trop lourde.",
+            "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+            "must_preserve": [
+              "reprendre Convenir d'un signal de pause apres la version mini"
+            ]
+          },
+          "adjustment_type": "replace",
+          "proposed_change": "ajuster le plan de facon minimale",
+          "change_rationale": {
+            "why_this_change": "Ajuster \"Convenir d'un signal de pause\" traite le blocage identifié sans changer le reste du plan.",
+            "success_condition": "L'action redevient faisable.",
+            "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+          },
+          "adjust_plan_result": {
+            "scope": "action",
+            "rationale": {
+              "confidence": "high",
+              "missing_info": [
+                "La date précise de fin de la semaine supplémentaire n’est pas fournie.",
+                "Aucun autre ajustement de contenu n’a été demandé."
+              ],
+              "user_problem": "Le blocage vient d’un besoin de consolidation temporelle : le cadre actuel est jugé juste, mais il faut un peu plus de temps pour l’intégrer sans changer le contenu.",
+              "expected_effect": "Tu gardes le même cadre, avec moins de pression, ce qui facilite l’intégration et rend la reprise plus fluide au prochain palier.",
+              "why_this_change": "Conserver le niveau actuel une semaine de plus protège la stabilité, évite de toucher aux actions déjà posées et laisse le temps d’installer le repère sans casser l’élan."
+            },
+            "boundaries": {
+              "explanation": "L’ajustement reste limité au niveau actuel et sert uniquement à consolider pendant une semaine de plus, sans changer la direction générale ni les autres actions.",
+              "affected_scope": "action ciblée uniquement, avec prolongation bornée du niveau actuel",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "autres actions du plan",
+                "rythme déjà établi",
+                "objectif global",
+                "structure complète du plan"
+              ]
+            },
+            "applied_change": {
+              "summary": "Maintien du niveau actuel une semaine de plus pour consolidation, sans modification des actions ni du rythme.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Cette action reste le repère ciblé, mais son rôle est conservé tel quel pendant la semaine supplémentaire de consolidation, sans changer son contenu ni sa place dans le niveau.",
+                  "capability": "change_action_frequency"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "Cette habitude reste inchangée, car la demande porte sur la consolidation du niveau sans toucher au reste du rythme."
+                },
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Le niveau actuel",
+                  "reason": "Le cadre est prolongé d’une semaine de plus pour intégrer, tout en gardant la frontière de fin visible et sans modifier la trajectoire globale."
+                }
+              ],
+              "trajectory_change": null
+            },
+            "user_message_brief": "Je te propose de garder le niveau actuel une semaine de plus, sans changer les actions ni le rythme.",
+            "user_message_detailed": "Je te propose de conserver le niveau actuel une semaine de plus pour consolider, sans modifier le reste du plan. Avant : \"Convenir d'un signal de pause\" servait déjà de repère principal avec ce contenu ; après : il reste exactement tel quel, pour garder la stabilité et éviter de toucher au rythme. Avant : \"Partager un point positif\" faisait déjà partie du cadre ; après : cette habitude reste inchangée, ce qui préserve la cohérence du niveau. Ça aide parce que le besoin exprimé est surtout de sécurité et d’intégration, pas de changement de contenu. Le niveau actuel reste le bon périmètre de travail, et la prolongation est bien bornée à une semaine de plus. Je suis très confiant dans cette proposition."
+          },
+          "execution_strategy": "patch_existing",
+          "allowed_patch_fields": [
+            "difficulty",
+            "duration_minutes",
+            "instruction",
+            "paused",
+            "target_reps",
+            "cadence_label"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "J’ai gardé le cadre du niveau actuel intact pour une semaine de plus, afin de te laisser le temps de consolider sans changer la direction du plan. Deux repères restent stables : \"Convenir d'un signal de pause\" continue d’être l’action ciblée telle quelle, et \"Partager un point positif\" reste inchangé. Ça aide à réduire la pression sans modifier le rythme ni les autres actions. Je suis très confiant dans cette lecture du besoin, et la prolongation reste bien bornée à cette semaine supplémentaire.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose de garder le niveau actuel tel quel une semaine de plus pour consolider, sans toucher aux autres actions ni au rythme déjà posé. Concrètement, je suggère de laisser \"Convenir d'un signal de pause\" en place comme repère de travail, et de préserver \"Partager un point positif\" sans modification. Ça aide parce que tu gardes un cadre stable le temps d’intégrer, sans ouvrir une nouvelle trajectoire. Rien n’est encore appliqué : dis-moi si tu veux que je parte sur cette prolongation bornée, ou si tu préfères un autre ajustement."
+      },
+      "status": "draft_review",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "acd0dc20-1544-4ae0-b3d7-7de758528fe2",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer une modification des tâches du niveau.",
+          "Proposer une baisse ou une hausse de cadence.",
+          "Changer la nature des actions.",
+          "Réouvrir la logique de plan ou de questionnaire sans demande explicite.",
+          "Présenter l’allongement comme une remise en cause du plan."
+        ],
+        "scope": "action",
+        "preserve": [
+          "Le niveau actuel comme bon périmètre de travail.",
+          "Le rythme déjà établi.",
+          "Les actions existantes sans modification.",
+          "La cohérence de progression entre niveaux.",
+          "Le caractère borné de la semaine supplémentaire."
+        ],
+        "warnings": [
+          "Ne pas reformuler la demande comme une baisse de niveau globale ou un changement de phase.",
+          "Ne pas proposer de modifier une action existante sous prétexte d’alléger la semaine.",
+          "Ne pas déplacer le sujet vers la cadence ou la fréquence des tâches.",
+          "Ne pas laisser entendre que le niveau actuel serait mauvais ou mal choisi.",
+          "Ne pas transformer une prolongation bornée en report indéfini."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Action : traiter la demande comme un maintien du rôle actuel du niveau, avec une intention de consolidation et non de refonte.",
+          "Action : préserver le pont minimal entre le niveau courant et le prochain palier, sans changer la nature des pratiques.",
+          "Niveau : conserver la charge et le rythme déjà posés ; l’allègement demandé est temporaire et borné à une semaine de plus.",
+          "Niveau : garder la frontière de fin de niveau visible afin que la prolongation ne devienne pas une nouvelle trajectoire.",
+          "Niveau : le cœur du niveau doit rester intact ; seule la durée d’exposition au même cadre s’allonge.",
+          "Whole plan : maintenir la trajectoire globale, l’ordre des phases et les prérequis déjà définis.",
+          "Whole plan : ne pas déplacer l’objectif du plan ni le questionnaire attendu ; la demande concerne uniquement le tempo de consolidation.",
+          "Whole plan : si un repère doit être mentionné, il doit servir à protéger la progression globale, pas à ouvrir une nouvelle branche."
+        ],
+        "observation": "La demande exprime un besoin de consolidation temporelle, pas un besoin de changement de contenu. Le point humain central est la recherche de sécurité et d’intégration avant d’avancer, avec un cadrage explicite : garder le niveau tel quel, sans toucher aux actions ni au rythme.",
+        "recommendation": "Maintenir le niveau courant inchangé et le présenter comme prolongé d’une semaine supplémentaire pour consolider. La prochaine réponse doit protéger le cadre existant, éviter toute réécriture des actions, et faire sentir que ce temps additionnel sert l’intégration sans déplacer la trajectoire.",
+        "options_to_discuss": [
+          "Garder exactement le même niveau pendant une semaine de plus comme temps de consolidation.",
+          "Conserver le même rythme et les mêmes actions pour préserver la stabilité du cadre.",
+          "Nommer cette semaine supplémentaire comme une phase d’intégration avant le prochain palier.",
+          "Fixer un repère clair de fin de prolongation pour garder la progression visible."
+        ],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "action",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "action",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer une modification des tâches du niveau.",
+        "Proposer une baisse ou une hausse de cadence.",
+        "Changer la nature des actions.",
+        "Réouvrir la logique de plan ou de questionnaire sans demande explicite.",
+        "Présenter l’allongement comme une remise en cause du plan."
+      ],
+      "scope": "action",
+      "preserve": [
+        "Le niveau actuel comme bon périmètre de travail.",
+        "Le rythme déjà établi.",
+        "Les actions existantes sans modification.",
+        "La cohérence de progression entre niveaux.",
+        "Le caractère borné de la semaine supplémentaire."
+      ],
+      "warnings": [
+        "Ne pas reformuler la demande comme une baisse de niveau globale ou un changement de phase.",
+        "Ne pas proposer de modifier une action existante sous prétexte d’alléger la semaine.",
+        "Ne pas déplacer le sujet vers la cadence ou la fréquence des tâches.",
+        "Ne pas laisser entendre que le niveau actuel serait mauvais ou mal choisi.",
+        "Ne pas transformer une prolongation bornée en report indéfini."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Action : traiter la demande comme un maintien du rôle actuel du niveau, avec une intention de consolidation et non de refonte.",
+        "Action : préserver le pont minimal entre le niveau courant et le prochain palier, sans changer la nature des pratiques.",
+        "Niveau : conserver la charge et le rythme déjà posés ; l’allègement demandé est temporaire et borné à une semaine de plus.",
+        "Niveau : garder la frontière de fin de niveau visible afin que la prolongation ne devienne pas une nouvelle trajectoire.",
+        "Niveau : le cœur du niveau doit rester intact ; seule la durée d’exposition au même cadre s’allonge.",
+        "Whole plan : maintenir la trajectoire globale, l’ordre des phases et les prérequis déjà définis.",
+        "Whole plan : ne pas déplacer l’objectif du plan ni le questionnaire attendu ; la demande concerne uniquement le tempo de consolidation.",
+        "Whole plan : si un repère doit être mentionné, il doit servir à protéger la progression globale, pas à ouvrir une nouvelle branche."
+      ],
+      "observation": "La demande exprime un besoin de consolidation temporelle, pas un besoin de changement de contenu. Le point humain central est la recherche de sécurité et d’intégration avant d’avancer, avec un cadrage explicite : garder le niveau tel quel, sans toucher aux actions ni au rythme.",
+      "recommendation": "Maintenir le niveau courant inchangé et le présenter comme prolongé d’une semaine supplémentaire pour consolider. La prochaine réponse doit protéger le cadre existant, éviter toute réécriture des actions, et faire sentir que ce temps additionnel sert l’intégration sans déplacer la trajectoire.",
+      "options_to_discuss": [
+        "Garder exactement le même niveau pendant une semaine de plus comme temps de consolidation.",
+        "Conserver le même rythme et les mêmes actions pour préserver la stabilité du cadre.",
+        "Nommer cette semaine supplémentaire comme une phase d’intégration avant le prochain palier.",
+        "Fixer un repère clair de fin de prolongation pour garder la progression visible."
+      ],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r62-level-add-week-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r62-level-add-week-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, c'est exactement ça. Montre-moi le brouillon final : niveau prolongé d'une semaine, actions et rythme inchangés, objectif global inchangé.",
+    "assistant": "Ok, je te le mets au propre. 😊\n\nBrouillon final : Niveau prolongé (+1 semaine), sans changer rythme ni actions\n\n1) Objectif global\n- Objectif inchangé : consolider le niveau actuel.\n\n2) Cadre de continuité\n- On prolonge exactement le même niveau pendant une semaine de plus.\n- Aucun changement de rythme.\n- Aucune modification des actions existantes.\n\n3) Repères à conserver (inchangés)\n- Convenir d'un signal de pause (repère principal) : on le garde en place tel quel.\n- Partager un point positif : on garde l’action telle qu’elle est (sans toucher au format ni à la cadence).\n\n4) Rappel “traction” (pour ne pas dériver)\n- “Partager un point positif” reste le levier déjà en hausse.\n- “Convenir d'un signal de pause” reste le repère stable à installer/consolider.\n\nSi tu veux, je peux aussi te le reformuler en version ultra-courte “à coller” dans ton espace de suivi. Tu préfères court (1 bloc) ou structuré (comme là) ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "reason_code": "tool_skill_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r62-level-add-week-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r62-level-add-week-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Structuré comme ça me va. Oui, applique cette prolongation d'une semaine au niveau actuel.",
+    "assistant": "J’ai gardé le cadre du niveau actuel intact pour une semaine de plus, afin de te laisser le temps de consolider sans changer la direction du plan. Deux repères restent stables : \"Convenir d'un signal de pause\" continue d’être l’action ciblée telle quelle, et \"Partager un point positif\" reste inchangé. Ça aide à réduire la pression sans modifier le rythme ni les autres actions. Je suis très confiant dans cette lecture du besoin, et la prolongation reste bien bornée à cette semaine supplémentaire. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "executed",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "acd0dc20-1544-4ae0-b3d7-7de758528fe2",
+      "plan_patch_id": "ddec0211-3975-46f9-857b-70d43a952bca",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer une modification des tâches du niveau.",
+          "Proposer une baisse ou une hausse de cadence.",
+          "Changer la nature des actions.",
+          "Réouvrir la logique de plan ou de questionnaire sans demande explicite.",
+          "Présenter l’allongement comme une remise en cause du plan."
+        ],
+        "scope": "action",
+        "preserve": [
+          "Le niveau actuel comme bon périmètre de travail.",
+          "Le rythme déjà établi.",
+          "Les actions existantes sans modification.",
+          "La cohérence de progression entre niveaux.",
+          "Le caractère borné de la semaine supplémentaire."
+        ],
+        "warnings": [
+          "Ne pas reformuler la demande comme une baisse de niveau globale ou un changement de phase.",
+          "Ne pas proposer de modifier une action existante sous prétexte d’alléger la semaine.",
+          "Ne pas déplacer le sujet vers la cadence ou la fréquence des tâches.",
+          "Ne pas laisser entendre que le niveau actuel serait mauvais ou mal choisi.",
+          "Ne pas transformer une prolongation bornée en report indéfini."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Action : traiter la demande comme un maintien du rôle actuel du niveau, avec une intention de consolidation et non de refonte.",
+          "Action : préserver le pont minimal entre le niveau courant et le prochain palier, sans changer la nature des pratiques.",
+          "Niveau : conserver la charge et le rythme déjà posés ; l’allègement demandé est temporaire et borné à une semaine de plus.",
+          "Niveau : garder la frontière de fin de niveau visible afin que la prolongation ne devienne pas une nouvelle trajectoire.",
+          "Niveau : le cœur du niveau doit rester intact ; seule la durée d’exposition au même cadre s’allonge.",
+          "Whole plan : maintenir la trajectoire globale, l’ordre des phases et les prérequis déjà définis.",
+          "Whole plan : ne pas déplacer l’objectif du plan ni le questionnaire attendu ; la demande concerne uniquement le tempo de consolidation.",
+          "Whole plan : si un repère doit être mentionné, il doit servir à protéger la progression globale, pas à ouvrir une nouvelle branche."
+        ],
+        "observation": "La demande exprime un besoin de consolidation temporelle, pas un besoin de changement de contenu. Le point humain central est la recherche de sécurité et d’intégration avant d’avancer, avec un cadrage explicite : garder le niveau tel quel, sans toucher aux actions ni au rythme.",
+        "recommendation": "Maintenir le niveau courant inchangé et le présenter comme prolongé d’une semaine supplémentaire pour consolider. La prochaine réponse doit protéger le cadre existant, éviter toute réécriture des actions, et faire sentir que ce temps additionnel sert l’intégration sans déplacer la trajectoire.",
+        "options_to_discuss": [
+          "Garder exactement le même niveau pendant une semaine de plus comme temps de consolidation.",
+          "Conserver le même rythme et les mêmes actions pour préserver la stabilité du cadre.",
+          "Nommer cette semaine supplémentaire comme une phase d’intégration avant le prochain palier.",
+          "Fixer un repère clair de fin de prolongation pour garder la progression visible."
+        ],
+        "questions_to_clarify": []
+      },
+      "bridge_plan_item_id": null,
+      "coaching_guidance_audit": {
+        "scope": "action",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "action",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer une modification des tâches du niveau.",
+        "Proposer une baisse ou une hausse de cadence.",
+        "Changer la nature des actions.",
+        "Réouvrir la logique de plan ou de questionnaire sans demande explicite.",
+        "Présenter l’allongement comme une remise en cause du plan."
+      ],
+      "scope": "action",
+      "preserve": [
+        "Le niveau actuel comme bon périmètre de travail.",
+        "Le rythme déjà établi.",
+        "Les actions existantes sans modification.",
+        "La cohérence de progression entre niveaux.",
+        "Le caractère borné de la semaine supplémentaire."
+      ],
+      "warnings": [
+        "Ne pas reformuler la demande comme une baisse de niveau globale ou un changement de phase.",
+        "Ne pas proposer de modifier une action existante sous prétexte d’alléger la semaine.",
+        "Ne pas déplacer le sujet vers la cadence ou la fréquence des tâches.",
+        "Ne pas laisser entendre que le niveau actuel serait mauvais ou mal choisi.",
+        "Ne pas transformer une prolongation bornée en report indéfini."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Action : traiter la demande comme un maintien du rôle actuel du niveau, avec une intention de consolidation et non de refonte.",
+        "Action : préserver le pont minimal entre le niveau courant et le prochain palier, sans changer la nature des pratiques.",
+        "Niveau : conserver la charge et le rythme déjà posés ; l’allègement demandé est temporaire et borné à une semaine de plus.",
+        "Niveau : garder la frontière de fin de niveau visible afin que la prolongation ne devienne pas une nouvelle trajectoire.",
+        "Niveau : le cœur du niveau doit rester intact ; seule la durée d’exposition au même cadre s’allonge.",
+        "Whole plan : maintenir la trajectoire globale, l’ordre des phases et les prérequis déjà définis.",
+        "Whole plan : ne pas déplacer l’objectif du plan ni le questionnaire attendu ; la demande concerne uniquement le tempo de consolidation.",
+        "Whole plan : si un repère doit être mentionné, il doit servir à protéger la progression globale, pas à ouvrir une nouvelle branche."
+      ],
+      "observation": "La demande exprime un besoin de consolidation temporelle, pas un besoin de changement de contenu. Le point humain central est la recherche de sécurité et d’intégration avant d’avancer, avec un cadrage explicite : garder le niveau tel quel, sans toucher aux actions ni au rythme.",
+      "recommendation": "Maintenir le niveau courant inchangé et le présenter comme prolongé d’une semaine supplémentaire pour consolider. La prochaine réponse doit protéger le cadre existant, éviter toute réécriture des actions, et faire sentir que ce temps additionnel sert l’intégration sans déplacer la trajectoire.",
+      "options_to_discuss": [
+        "Garder exactement le même niveau pendant une semaine de plus comme temps de consolidation.",
+        "Conserver le même rythme et les mêmes actions pour préserver la stabilité du cadre.",
+        "Nommer cette semaine supplémentaire comme une phase d’intégration avant le prochain palier.",
+        "Fixer un repère clair de fin de prolongation pour garder la progression visible."
+      ],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r62-level-add-week-t04",
+    "trace_error": null
+  }
+]

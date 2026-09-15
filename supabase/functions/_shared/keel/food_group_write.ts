@@ -147,11 +147,104 @@ export function closedGroupOrNull(raw: unknown): FoodGroupRef | null {
   }
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ LE `ref` PRIME SUR LE `group` DÉCLARÉ — 2026-09-13, run réel payé.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT, SUR UNE LIGNE QU'ON PEUT LIRE ─────────────────────────────
+ * Un premier jet de foyer avec une bouche végane a été refusé EN ENTIER
+ * (422 `plan_not_deliverable`, `regime_forbidden_component`) sur cette ligne
+ * écrite par le modèle:
+ *
+ *   { "term": "yaourt de soja nature", "ref": "soy_yogurt",
+ *     "group": "dairy_yogurt" }
+ *
+ * `ref: soy_yogurt` est JUSTE — `food_composition_refs` lui donne
+ * `food_group_ref = tofu_tempeh`. `group: dairy_yogurt` est FAUX, et c'est le
+ * modèle qui l'a écrit. Même plat: `ref: soy_milk` déclaré `whole_grain`.
+ *
+ * ── POURQUOI RIEN NE L'ATTRAPAIT ─────────────────────────────────────────
+ * `readDeclaredGroup` valide le groupe contre le VOCABULAIRE FERMÉ, et
+ * `dairy_yogurt` EST un slug valide: il passait `groups_valid`, atteignait la
+ * ligne écrite, puis `finalPlanGate` le croyait et refusait le plan. Rien ne
+ * confrontait jamais les DEUX champs de la MÊME ligne, alors que le
+ * référentiel connaît la réponse.
+ *
+ * ── LA RÈGLE, ET SES TROIS ABSTENTIONS ───────────────────────────────────
+ * Le `ref` gagne **quand il se résout**, parce qu'il a été lu dans une liste
+ * fermée alors que le groupe a été écrit de mémoire. Trois cas ne bougent
+ * pas, et chacun pour une raison:
+ *
+ *   · pas de `ref`, ou `ref` inconnu ⇒ le groupe déclaré RESTE. C'est la
+ *     seule information disponible sur cette ligne, et la retirer
+ *     DÉSARMERAIT la garde de régime au lieu de la corriger.
+ *   · `ref` résolu mais sans `food_group_ref` du vocabulaire fermé ⇒ le
+ *     groupe déclaré RESTE. `food_composition_io.ts` écrit déjà une chaîne
+ *     vide quand la colonne est nulle; la prendre pour une réponse
+ *     effacerait une déclaration juste au profit d'un silence.
+ *   · les deux disent la même chose ⇒ rien à corriger, et RIEN À COMPTER.
+ *
+ * ⛔ AUCUNE COMPARAISON DE MOTS. Le rapprochement passe par
+ * `resolveCompositionLine`, c'est-à-dire par une clé de table. Ce dépôt a
+ * mesuré 12 faux positifs sur 12 la dernière fois qu'il a comparé des
+ * libellés (« laitue » n'est pas « lait »).
+ *
+ * ⛔ ET CE N'EST PAS UN TROU DE LEXIQUE. `PLANT_ANALOGUE_PHRASES` contient
+ * DÉJÀ « yaourt de soja »: le chemin fautif est celui du GROUPE, pas celui du
+ * texte. Ajouter une phrase de plus aurait masqué le défaut au lieu de le
+ * fermer.
+ */
+export interface ReconciledIngredientGroup {
+  /** Le groupe qui voyage: celui du référentiel s'il existe, sinon le déclaré. */
+  group: FoodGroupRef | null;
+  /**
+   * ⛔ LE MODÈLE A DÉCLARÉ UN GROUPE QUE SON PROPRE `ref` CONTREDIT.
+   *
+   * C'est un FAIT sur la sortie du modèle, pas une erreur: le plan continue,
+   * corrigé. Sans ce booléen — et sans le compteur qu'il alimente — un lot qui
+   * corrige zéro ligne et un lot débranché rendent le même silence. C'est la
+   * cicatrice `model-declared-fields-need-a-counter`, sur le champ qui vient
+   * de coûter un plan entier.
+   */
+  conflicting: boolean;
+}
+
+/**
+ * LE GROUPE D'UNE LIGNE, RÉCONCILIÉ. PURE: aucune I/O, aucune horloge.
+ *
+ * @param declared le groupe validé que le modèle a écrit, ou `null`.
+ * @param fromRef le `foodGroupRef` de la fiche de référentiel ATTEINTE PAR LE
+ *   `ref` de cette ligne — jamais par son libellé. L'appelant passe `null`
+ *   quand le `ref` est absent ou n'a pas résolu; la valeur est revalidée ici
+ *   contre le vocabulaire fermé, pour la même raison que `persistedGroupOf`.
+ */
+export function reconcileIngredientGroup(
+  declared: FoodGroupRef | null,
+  fromRef: unknown,
+): ReconciledIngredientGroup {
+  const referential = closedGroupOrNull(fromRef);
+  if (referential === null) return { group: declared, conflicting: false };
+  return {
+    group: referential,
+    conflicting: declared !== null && declared !== referential,
+  };
+}
+
 /** Ce que la ceinture a compté du côté du MODÈLE. Sous-ensemble de `regime_belt`. */
 export interface FoodGroupDeclarationCounts {
   groups_declared: number;
   groups_valid: number;
   groups_refused: number;
+  /**
+   * ⛔ DÉCLARÉ, VALIDE, ET POURTANT CONTREDIT PAR LE `ref` DE LA MÊME LIGNE.
+   *
+   * Sous-ensemble de `groups_valid`, JAMAIS de `groups_refused`: un slug
+   * inventé n'a pas de groupe à contredire. Les confondre rendrait « le modèle
+   * invente des slugs » et « le modèle se trompe d'étagère » indiscernables,
+   * alors qu'ils appellent deux corrections opposées.
+   */
+  groups_conflicting: number;
 }
 
 /** Les deux populations, côte à côte, plus leur dénominateur. */
@@ -162,6 +255,12 @@ export interface FoodGroupWriteCounts {
   valid: number;
   /** Déclaré PUIS refusé — un slug inventé. À ne pas confondre avec « jamais déclaré ». */
   refused: number;
+  /**
+   * ⛔ Déclaré, VALIDE, et contredit par le `ref` de la même ligne — corrigé
+   * depuis le référentiel avant de partir en base. Voir
+   * `reconcileIngredientGroup`.
+   */
+  conflicting: number;
   /** ⛔ Ce qui ATTEINT la base, lu sur la ligne écrite. */
   persisted: number;
   /** Lignes d'ingrédient réellement écrites, plats ET préparations. Le dénominateur. */
@@ -214,6 +313,7 @@ export function foodGroupWriteCounts(
     declared: belt.groups_declared,
     valid: belt.groups_valid,
     refused: belt.groups_refused,
+    conflicting: belt.groups_conflicting,
     persisted,
     lines,
   };

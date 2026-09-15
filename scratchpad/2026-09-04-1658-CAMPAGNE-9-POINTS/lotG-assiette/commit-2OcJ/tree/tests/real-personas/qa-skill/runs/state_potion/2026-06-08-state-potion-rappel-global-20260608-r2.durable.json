@@ -1,0 +1,914 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "671e49af-6102-49d3-956b-f7723602f971",
+        "role": "user",
+        "content": "J'aimerais bien avoir une potion, mais je ne sais pas laquelle. Je sais que je veux ouvrir mon carnet le matin, mais je laisse filer et je repousse après le café.",
+        "scope": "qa-state-potion-rappel-global-20260608-r2",
+        "metadata": {
+          "request_id": "qa-state-potion-rappel-global-20260608-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T15:48:44.380885+00:00"
+      },
+      {
+        "id": "65dc3052-7df7-49fa-9b1f-23f764a6fdce",
+        "role": "assistant",
+        "content": "C'est souvent le moment le plus délicat, quand l'envie est là mais que le temps s'échappe après le café. Est-ce que tu sens que tu as surtout besoin d'un coup de pouce pour ne pas laisser filer ton intention, ou est-ce qu'il y a une petite pointe d'appréhension qui te fait reculer devant ton carnet ? 🙂",
+        "scope": "qa-state-potion-rappel-global-20260608-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-rappel-global-20260608-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_clarifying",
+              "runtime_trace": [],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": null,
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_clarifying",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T15:49:20.189175+00:00"
+      },
+      {
+        "id": "e0e60e68-7c69-4fe3-aea1-13227cb80ead",
+        "role": "user",
+        "content": "C'est surtout ne pas laisser filer mon intention d'ouvrir le carnet avant le café.",
+        "scope": "qa-state-potion-rappel-global-20260608-r2",
+        "metadata": {
+          "request_id": "qa-state-potion-rappel-global-20260608-r2-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T15:49:36.261524+00:00"
+      },
+      {
+        "id": "e389701a-91c9-438b-b4e3-997b4648a707",
+        "role": "assistant",
+        "content": "C'est exactement là que la Potion anti-décrochage intervient : elle est faite pour ces moments où l'élan s'étire et finit par nous échapper. Pour l'utiliser, rends-toi dans la section État / Potions de ton espace. Tu pourras y renseigner ces éléments : Par rapport a quoi tu sens que tu decroches ? : ouvrir le carnet avant le café et Tu decroches plutot comment ? : Je laisse filer. Ça t'aidera à rester ancré dans ton intention dès le réveil ! 🙂",
+        "scope": "qa-state-potion-rappel-global-20260608-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-rappel-global-20260608-r2-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "rappel_handoff_delivered",
+              "runtime_trace": [
+                {
+                  "event": "active_rappel_turn_start",
+                  "component": "select_state_potion.rappel",
+                  "previous_status": "clarifying",
+                  "global_dispatcher_available": false
+                },
+                {
+                  "flow": "select_state_potion.rappel",
+                  "event": "decision",
+                  "component": "local_dispatcher",
+                  "confidence": "high",
+                  "exit_reason": null,
+                  "flow_action": "answer_current_field",
+                  "visible_task": "handoff_ready",
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_potion": "rappel",
+                  "current_field_id": "drift_target"
+                },
+                {
+                  "flow": "select_state_potion.rappel",
+                  "event": "reduced",
+                  "status": "handoff_delivered",
+                  "component": "local_reducer",
+                  "reason_code": "rappel_handoff_delivered",
+                  "visible_task": "handoff_ready",
+                  "current_field_id": null,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage",
+                  "handoff_status": "handoff_delivered",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "handoff_ready"
+                },
+                {
+                  "stage": "potion_subskill_task",
+                  "issues": [],
+                  "attempt": 1,
+                  "accepted": true,
+                  "component": "visible_agent"
+                },
+                {
+                  "event": "complete",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage"
+                }
+              ],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion anti-décrochage",
+                    "immediate_step": null,
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion anti-décrochage"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "ouvrir le carnet avant le café",
+                          "question_id": "drift_target",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Par rapport a quoi tu sens que tu decroches ?"
+                        },
+                        {
+                          "value": "Je laisse filer",
+                          "question_id": "drift_style",
+                          "option_label": "Je laisse filer",
+                          "option_value": "laisse_filer",
+                          "question_label": "Tu decroches plutot comment ?"
+                        }
+                      ],
+                      "potion_type": "rappel",
+                      "potion_title": "Potion anti-décrochage",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Quand tu sais deja ce que tu devrais faire mais que tu sens que tu laisses filer, elle t'aide a te raccrocher.",
+                    "platform_destination": "section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "ouvrir le carnet avant le café ; Je laisse filer",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "te raccrocher, couper le glissement, te remettre dans le mouvement"
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "rappel_handoff_delivered",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion.rappel",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T15:50:00.294307+00:00"
+      },
+      {
+        "id": "a4afcf6e-3688-4258-bd40-1bac037e72d9",
+        "role": "user",
+        "content": "Redis-moi juste quoi mettre dans la plateforme.",
+        "scope": "qa-state-potion-rappel-global-20260608-r2",
+        "metadata": {
+          "request_id": "qa-state-potion-rappel-global-20260608-r2-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T15:50:15.564938+00:00"
+      },
+      {
+        "id": "d981bdb0-02ec-4707-8300-1dc8f1962fdd",
+        "role": "assistant",
+        "content": "Pas de souci ! Pour configurer ta Potion anti-décrochage, rends-toi dans la section État / Potions de ton espace. Voici les éléments à saisir : pour la question 'Par rapport a quoi tu sens que tu decroches ?', tu peux inscrire 'ouvrir le carnet avant le café'. Et pour 'Tu decroches plutot comment ?', sélectionne 'Je laisse filer'. Ça te permettra de bien ancrer ton intention ! 🙂",
+        "scope": "qa-state-potion-rappel-global-20260608-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-rappel-global-20260608-r2-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 1,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "repeat_handoff",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "rappel_repeat_handoff",
+              "runtime_trace": [
+                {
+                  "event": "active_rappel_turn_start",
+                  "component": "select_state_potion.rappel",
+                  "previous_status": "handoff_delivered",
+                  "global_dispatcher_available": false
+                },
+                {
+                  "flow": "select_state_potion.rappel",
+                  "event": "decision",
+                  "component": "local_dispatcher",
+                  "confidence": "high",
+                  "exit_reason": null,
+                  "flow_action": "repeat_handoff",
+                  "visible_task": "repeat_handoff",
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 1,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_potion": "rappel",
+                  "current_field_id": null
+                },
+                {
+                  "flow": "select_state_potion.rappel",
+                  "event": "reduced",
+                  "status": "repeat_handoff",
+                  "component": "local_reducer",
+                  "reason_code": "rappel_repeat_handoff",
+                  "visible_task": "repeat_handoff",
+                  "current_field_id": null,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage",
+                  "handoff_status": "repeat_handoff",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "repeat_handoff"
+                },
+                {
+                  "stage": "potion_subskill_task",
+                  "issues": [],
+                  "attempt": 1,
+                  "accepted": true,
+                  "component": "visible_agent"
+                },
+                {
+                  "event": "complete",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage"
+                }
+              ],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 1,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion anti-décrochage",
+                    "immediate_step": null,
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion anti-décrochage"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "ouvrir le carnet avant le café",
+                          "question_id": "drift_target",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Par rapport a quoi tu sens que tu decroches ?"
+                        },
+                        {
+                          "value": "Je laisse filer",
+                          "question_id": "drift_style",
+                          "option_label": "Je laisse filer",
+                          "option_value": "laisse_filer",
+                          "question_label": "Tu decroches plutot comment ?"
+                        }
+                      ],
+                      "potion_type": "rappel",
+                      "potion_title": "Potion anti-décrochage",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Quand tu sais deja ce que tu devrais faire mais que tu sens que tu laisses filer, elle t'aide a te raccrocher.",
+                    "platform_destination": "section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "ouvrir le carnet avant le café ; Je laisse filer",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "te raccrocher, couper le glissement, te remettre dans le mouvement"
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "rappel_repeat_handoff",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion.rappel",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T15:50:26.933245+00:00"
+      },
+      {
+        "id": "f352c948-b596-4249-8b20-d87d9cd1ac04",
+        "role": "user",
+        "content": "Ok active-la.",
+        "scope": "qa-state-potion-rappel-global-20260608-r2",
+        "metadata": {
+          "request_id": "qa-state-potion-rappel-global-20260608-r2-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T15:50:46.030648+00:00"
+      },
+      {
+        "id": "13e4ef56-e4ac-42d0-b791-e23feacf09b7",
+        "role": "assistant",
+        "content": "J'aimerais beaucoup pouvoir le faire pour toi, mais je ne peux pas activer de potion directement depuis notre discussion. Pour lancer ta Potion anti-décrochage, il te suffit de te rendre dans la section État / Potions de ton espace. Une fois là-bas, tu pourras saisir ces éléments : pour la question 'Par rapport a quoi tu sens que tu decroches ?', indique 'ouvrir le carnet avant le café', et pour 'Tu decroches plutot comment ?', sélectionne 'Je laisse filer'. C'est ce qui permettra à la potion de bien t'épauler dans ta routine matinale ! 🙂",
+        "scope": "qa-state-potion-rappel-global-20260608-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-rappel-global-20260608-r2-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 1,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "apply_attempt",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "rappel_apply_attempt_no_chat_execution",
+              "runtime_trace": [
+                {
+                  "event": "active_rappel_turn_start",
+                  "component": "select_state_potion.rappel",
+                  "previous_status": "repeat_handoff",
+                  "global_dispatcher_available": false
+                },
+                {
+                  "flow": "select_state_potion.rappel",
+                  "event": "decision",
+                  "component": "local_dispatcher",
+                  "confidence": "high",
+                  "exit_reason": null,
+                  "flow_action": "apply_attempt",
+                  "visible_task": "apply_attempt",
+                  "risk_assessment": {
+                    "risk_band": "low",
+                    "risk_score": 1,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_potion": "rappel",
+                  "current_field_id": null
+                },
+                {
+                  "flow": "select_state_potion.rappel",
+                  "event": "reduced",
+                  "status": "apply_attempt",
+                  "component": "local_reducer",
+                  "reason_code": "rappel_apply_attempt_no_chat_execution",
+                  "visible_task": "apply_attempt",
+                  "current_field_id": null,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage",
+                  "handoff_status": "apply_attempt",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "apply_attempt"
+                },
+                {
+                  "stage": "potion_subskill_task",
+                  "issues": [],
+                  "attempt": 1,
+                  "accepted": true,
+                  "component": "visible_agent"
+                },
+                {
+                  "event": "complete",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage"
+                }
+              ],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "low",
+                "risk_score": 1,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion anti-décrochage",
+                    "immediate_step": null,
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion anti-décrochage"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "ouvrir le carnet avant le café",
+                          "question_id": "drift_target",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Par rapport a quoi tu sens que tu decroches ?"
+                        },
+                        {
+                          "value": "Je laisse filer",
+                          "question_id": "drift_style",
+                          "option_label": "Je laisse filer",
+                          "option_value": "laisse_filer",
+                          "question_label": "Tu decroches plutot comment ?"
+                        }
+                      ],
+                      "potion_type": "rappel",
+                      "potion_title": "Potion anti-décrochage",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Quand tu sais deja ce que tu devrais faire mais que tu sens que tu laisses filer, elle t'aide a te raccrocher.",
+                    "platform_destination": "section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "ouvrir le carnet avant le café ; Je laisse filer",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "te raccrocher, couper le glissement, te remettre dans le mouvement"
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "rappel_apply_attempt_no_chat_execution",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion.rappel",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T15:51:00.677248+00:00"
+      }
+    ]
+  },
+  "user_chat_states": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "user_id": "4baac903-789a-47b2-b066-8f57d1c89d11",
+        "scope": "qa-state-potion-rappel-global-20260608-r2",
+        "temp_memory": {
+          "__conversation_risk_last": {
+            "at": "2026-06-08T15:48:49.532Z",
+            "score": 0,
+            "threshold": 8,
+            "reason_codes": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__active_tool_skill_intake": {
+            "mode": "platform_handoff",
+            "draft": {
+              "mode": "platform_handoff",
+              "operation_type": "select_state_potion",
+              "recommendation": {
+                "avoid": [],
+                "preserve": [],
+                "potion_label": "Potion anti-décrochage",
+                "immediate_step": null,
+                "platform_steps": [
+                  "va dans État / Potions",
+                  "choisis Potion anti-décrochage"
+                ],
+                "platform_inputs": {
+                  "answers": [
+                    {
+                      "value": "ouvrir le carnet avant le café",
+                      "question_id": "drift_target",
+                      "option_label": null,
+                      "option_value": null,
+                      "question_label": "Par rapport a quoi tu sens que tu decroches ?"
+                    },
+                    {
+                      "value": "Je laisse filer",
+                      "question_id": "drift_style",
+                      "option_label": "Je laisse filer",
+                      "option_value": "laisse_filer",
+                      "question_label": "Tu decroches plutot comment ?"
+                    }
+                  ],
+                  "potion_type": "rappel",
+                  "potion_title": "Potion anti-décrochage",
+                  "optional_free_text": null
+                },
+                "why_this_potion": "Quand tu sais deja ce que tu devrais faire mais que tu sens que tu laisses filer, elle t'aide a te raccrocher.",
+                "platform_destination": "section État / Potions"
+              },
+              "no_chat_mutation": true,
+              "missing_decisions": [],
+              "user_state_summary": "ouvrir le carnet avant le café ; Je laisse filer",
+              "executable_from_chat": false,
+              "desired_shift_summary": "te raccrocher, couper le glissement, te remettre dans le mouvement"
+            },
+            "phase": "detail_intake",
+            "status": "apply_attempt",
+            "skill_id": "select_state_potion",
+            "max_turns": 6,
+            "created_at": "2026-06-08T15:48:59.676Z",
+            "turn_count": 4,
+            "updated_at": "2026-06-08T15:50:52.668Z",
+            "clarte_state": null,
+            "intake_state": {
+              "state": {
+                "kind": "decrochage",
+                "status": "identified",
+                "evidence": [
+                  "ne pas laisser filer mon intention d'ouvrir le carnet avant le café"
+                ],
+                "intensity": "medium",
+                "confidence": "high"
+              },
+              "context": {
+                "topic_hint": "routine matinale",
+                "target_hint": "ouvrir le carnet avant le café",
+                "handoff_summary": null,
+                "related_plan_item_id": null,
+                "opportunistic_detail_candidates": []
+              },
+              "details": {
+                "fields": [
+                  {
+                    "label": "Par rapport a quoi tu sens que tu decroches ?",
+                    "status": "missing",
+                    "evidence": [],
+                    "required": true,
+                    "question_id": "drift_target",
+                    "locked_value": null,
+                    "user_evidence": [],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  {
+                    "label": "Tu decroches plutot comment ?",
+                    "status": "missing",
+                    "evidence": [],
+                    "required": true,
+                    "question_id": "drift_style",
+                    "locked_value": null,
+                    "user_evidence": [],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "missing",
+                "answers": [],
+                "evidence": [],
+                "optional_free_text": null,
+                "required_question_ids": [
+                  "drift_target",
+                  "drift_style"
+                ]
+              },
+              "skill_id": "select_state_potion",
+              "shortlist": {
+                "status": "identified",
+                "options": [
+                  {
+                    "reason": "Le geste est identifié (ouvrir le carnet) mais l'utilisateur sent qu'il laisse filer et repousse l'échéance.",
+                    "evidence": [
+                      "je laisse filer et je repousse"
+                    ],
+                    "potion_type": "rappel",
+                    "fit_confidence": "high"
+                  },
+                  {
+                    "reason": "Le fait de repousser peut parfois traduire une forme d'évitement ou d'appréhension face à l'action.",
+                    "evidence": [
+                      "repousse après le café"
+                    ],
+                    "potion_type": "courage",
+                    "fit_confidence": "medium"
+                  }
+                ],
+                "evidence": [
+                  "L'utilisateur a choisi l'option liée au glissement de l'intention."
+                ]
+              },
+              "confidence": "high",
+              "missing_slots": [
+                "potion_detail:drift_target",
+                "potion_detail:drift_style"
+              ],
+              "selected_potion": {
+                "value": "rappel",
+                "status": "identified",
+                "evidence": [
+                  "C'est surtout ne pas laisser filer mon intention d'ouvrir le carnet avant le café."
+                ],
+                "confidence": "high"
+              },
+              "current_sub_skill": "detail_intake",
+              "generated_user_message": null,
+              "explicit_potion_request": {
+                "status": "none",
+                "evidence": [],
+                "potion_type": null
+              }
+            },
+            "operation_input": {
+              "state": {
+                "kind": "decrochage",
+                "evidence": [
+                  "Je sais que je veux ouvrir mon carnet le matin, mais je laisse filer et je repousse après le café."
+                ],
+                "intensity": "medium"
+              },
+              "context": {
+                "topic_hint": "routine matinale",
+                "target_hint": "ouvrir mon carnet le matin",
+                "handoff_summary": null,
+                "related_plan_item_id": null,
+                "opportunistic_detail_candidates": []
+              },
+              "shortlist": {
+                "status": "identified",
+                "options": [
+                  {
+                    "reason": "Le geste est identifié (ouvrir le carnet) mais l'utilisateur sent qu'il laisse filer et repousse l'échéance.",
+                    "evidence": [
+                      "je laisse filer et je repousse"
+                    ],
+                    "potion_type": "rappel",
+                    "fit_confidence": "high"
+                  },
+                  {
+                    "reason": "Le fait de repousser peut parfois traduire une forme d'évitement ou d'appréhension face à l'action.",
+                    "evidence": [
+                      "repousse après le café"
+                    ],
+                    "potion_type": "courage",
+                    "fit_confidence": "medium"
+                  }
+                ],
+                "evidence": [
+                  "L'utilisateur sait ce qu'il doit faire mais n'arrive pas à maintenir le mouvement."
+                ]
+              },
+              "intake_state": {
+                "state": {
+                  "kind": "decrochage",
+                  "status": "identified",
+                  "evidence": [
+                    "Je sais que je veux ouvrir mon carnet le matin, mais je laisse filer et je repousse après le café."
+                  ],
+                  "intensity": "medium",
+                  "confidence": "high"
+                },
+                "context": {
+                  "topic_hint": "routine matinale",
+                  "target_hint": "ouvrir mon carnet le matin",
+                  "handoff_summary": null,
+                  "related_plan_item_id": null,
+                  "opportunistic_detail_candidates": []
+                },
+                "details": {
+                  "fields": [],
+                  "status": "missing",
+                  "answers": [],
+                  "evidence": [],
+                  "optional_free_text": null,
+                  "required_question_ids": []
+                },
+                "skill_id": "select_state_potion",
+                "shortlist": {
+                  "status": "identified",
+                  "options": [
+                    {
+                      "reason": "Le geste est identifié (ouvrir le carnet) mais l'utilisateur sent qu'il laisse filer et repousse l'échéance.",
+                      "evidence": [
+                        "je laisse filer et je repousse"
+                      ],
+                      "potion_type": "rappel",
+                      "fit_confidence": "high"
+                    },
+                    {
+                      "reason": "Le fait de repousser peut parfois traduire une forme d'évitement ou d'appréhension face à l'action.",
+                      "evidence": [
+                        "repousse après le café"
+                      ],
+                      "potion_type": "courage",
+                      "fit_confidence": "medium"
+                    }
+                  ],
+                  "evidence": [
+                    "L'utilisateur sait ce qu'il doit faire mais n'arrive pas à maintenir le mouvement."
+                  ]
+                },
+                "confidence": "high",
+                "missing_slots": [
+                  "potion_type"
+                ],
+                "selected_potion": {
+                  "value": null,
+                  "status": "missing",
+                  "evidence": [],
+                  "confidence": "low"
+                },
+                "current_sub_skill": "potion_choice",
+                "generated_user_message": "Je vois, c'est ce petit glissement qui s'installe. Pour t'aider à retrouver ton élan avec ton carnet, j'hésite entre deux potions : la Potion anti-décrochage pour arrêter de repousser, ou la Potion de courage si tu sens que c'est l'appréhension qui te bloque. Laquelle te parle le plus ?",
+                "explicit_potion_request": {
+                  "status": "none",
+                  "evidence": [],
+                  "potion_type": null
+                }
+              }
+            },
+            "no_chat_mutation": true,
+            "active_subskill_id": "select_state_potion.rappel",
+            "potion_subskill_state": {
+              "flow_id": "select_state_potion.rappel",
+              "field_order": [
+                "drift_target",
+                "drift_style"
+              ],
+              "potion_name": "Potion anti-décrochage",
+              "field_states": {
+                "drift_style": {
+                  "status": "locked",
+                  "field_id": "drift_style",
+                  "input_type": "single_select",
+                  "why_status": "L'utilisateur a utilisé les termes exacts de l'option.",
+                  "field_label": "Tu decroches plutot comment ?",
+                  "locked_value": "Je laisse filer",
+                  "option_label": "Je laisse filer",
+                  "option_value": "laisse_filer",
+                  "previous_value": "Je laisse filer",
+                  "candidate_value": null,
+                  "detail_sufficiency": {
+                    "reason": null,
+                    "status": "sufficient",
+                    "evidence": [],
+                    "followup_asked": false,
+                    "followup_answered": true,
+                    "followup_question": null
+                  },
+                  "needs_user_confirmation": false
+                },
+                "drift_target": {
+                  "status": "locked",
+                  "field_id": "drift_target",
+                  "input_type": "free_text",
+                  "why_status": "L'utilisateur a clairement identifié le geste et le moment précis.",
+                  "field_label": "Par rapport a quoi tu sens que tu decroches ?",
+                  "locked_value": "ouvrir le carnet avant le café",
+                  "option_label": null,
+                  "option_value": null,
+                  "previous_value": "ouvrir le carnet avant le café",
+                  "candidate_value": null,
+                  "detail_sufficiency": {
+                    "reason": "Le geste (ouvrir le carnet) et le timing (avant le café) sont explicites.",
+                    "status": "sufficient",
+                    "evidence": [
+                      "ouvrir le carnet avant le café"
+                    ],
+                    "followup_asked": false,
+                    "followup_answered": false,
+                    "followup_question": null
+                  },
+                  "needs_user_confirmation": false
+                }
+              },
+              "selected_potion": "rappel",
+              "current_field_id": null,
+              "subskill_history": [],
+              "last_visible_task": "apply_attempt",
+              "platform_destination": "section État / Potions",
+              "last_handoff_delivered": true
+            }
+          },
+          "__conversation_risk_history": [
+            0
+          ],
+          "__coaching_intervention_history": []
+        },
+        "last_interaction_at": "2026-06-08T15:51:00.673+00:00"
+      }
+    ]
+  },
+  "user_potion_sessions": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

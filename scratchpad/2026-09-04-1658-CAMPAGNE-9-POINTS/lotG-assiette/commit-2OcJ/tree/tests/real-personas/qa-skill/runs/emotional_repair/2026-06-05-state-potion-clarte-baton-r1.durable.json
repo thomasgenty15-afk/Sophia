@@ -1,0 +1,14 @@
+{
+  "chat_messages": {
+    "skipped": "missing_service_role_key"
+  },
+  "memory_items": {
+    "skipped": "missing_service_role_key"
+  },
+  "scheduled_checkins": {
+    "skipped": "missing_service_role_key"
+  },
+  "user_recurring_reminders": {
+    "skipped": "missing_service_role_key"
+  }
+}

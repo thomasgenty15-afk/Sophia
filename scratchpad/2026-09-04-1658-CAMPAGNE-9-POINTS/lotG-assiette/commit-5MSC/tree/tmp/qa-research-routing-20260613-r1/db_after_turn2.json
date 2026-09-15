@@ -1,0 +1,222 @@
+{
+  "chats_status": 200,
+  "chats": [
+    {
+      "id": "01a7fc24-6560-471a-958c-bf42ef0f22d4",
+      "role": "user",
+      "content": "Je dois choisir une API IA pour un petit outil interne. Peux-tu vérifier les infos récentes sur le modèle OpenAI le plus économique pour générer du texte court, et me dire quoi regarder en priorité ?",
+      "metadata": {
+        "request_id": "qa-research-routing-20260613-r1-t01",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-13T00:29:30.558141+00:00"
+    },
+    {
+      "id": "e893660f-df53-4e4a-bd13-648863f7f753",
+      "role": "assistant",
+      "content": "OK — pour du texte court “en masse” (ex: résumés très courts, routage, extraction légère), le modèle OpenAI le plus économique à regarder en priorité (d’après les infos récentes) est : GPT-5.4 Nano ✅🙂\n\nCe qu’il faut regarder en priorité avant de décider :\n1) Le coût input/output par million de tokens  \n   - GPT-5.4 Nano est positionné pour générer du texte court à bas coût (souvent le meilleur choix quand tes sorties sont petites).\n2) La taille des sorties réelles (c’est souvent là que le budget explose)  \n   - Si tes réponses font plus que “court”, le rapport coût/qualité peut changer.\n3) Le besoin de raisonnement vs simple génération  \n   - Si ton outil fait juste de l’extraction/tri/formatage, Nano est typiquement suffisant.\n   - Si tu as des tâches plus “raisonnement”, tu devras peut-être monter en gamme (même si ça coûte plus).\n4) Le caching / réutilisation de contexte (si ton outil en a)  \n   - Si une partie de ton prompt est identique d’une requête à l’autre, tu peux réduire fortement le coût.\n5) Le type de texte court  \n   - “Routage + classification” ≠ “rédaction fluide” : ça influence le bon modèle.\n\nSi tu me dis en 1 phrase le type exact de texte court que ton outil produit (ex: “classification en 3 labels”, “extraction de champs”, “réécriture en 1 phrase”), je te dis lequel de Nano/Mini est le plus logique pour ton cas. 💡\n\n<!--fil_rouge_whatsapp: Modèle économique recommandé: GPT-5.4 Nano pour texte court; vérifier coûts input/output, taille de sortie, besoin de raisonnement et usage possible du caching; prochaine étape: préciser le type de sortie du tool.-->",
+      "metadata": {
+        "channel": "whatsapp",
+        "request_id": "qa-research-routing-20260613-r1-t01",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "surface_id": null,
+          "agent_model": "gpt-5.4-nano",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": "OpenAI most economical model for short text generation June 2026",
+          "outage_fallback": false,
+          "agent_model_tier": "lite",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": true,
+          "agent_model_source": "memory_plan_lite",
+          "outage_failed_mode": null,
+          "research_requested": true,
+          "research_sources_count": 2,
+          "conversation_risk_score": 0,
+          "conversation_risk_exit_flows": false,
+          "coaching_intervention_pending": null
+        }
+      },
+      "created_at": "2026-06-13T00:29:48.518474+00:00"
+    },
+    {
+      "id": "04bccb01-25b5-4954-b301-4daa44e5eaf5",
+      "role": "user",
+      "content": "Ok, mon cas c’est surtout classer des tickets internes en trois catégories et générer une phrase courte. Choisis entre Nano et Mini, sans refaire toute la recherche.",
+      "metadata": {
+        "request_id": "qa-research-routing-20260613-r1-t02",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-13T00:30:43.897909+00:00"
+    },
+    {
+      "id": "1a1f3d4c-5100-42f1-aa62-fef7ee4b560b",
+      "role": "assistant",
+      "content": "Go Nano ✅🙂 (pour du classement + génération de phrases courtes, tu seras surtout gagnant en coût/volume).  \n\nAvant de valider : tes tickets font plutôt des textes courts (1-3 phrases) ou des longs (plusieurs paragraphes) ?  \n<!--fil_rouge_whatsapp: Tu fais un outil de tri en 3 catégories + phrase courte; recommandation immédiate: Nano pour optimiser le coût. Prochaine étape: confirmer la longueur moyenne des tickets pour ajuster éventuellement vers Mini si c’est long.-->",
+      "metadata": {
+        "channel": "whatsapp",
+        "request_id": "qa-research-routing-20260613-r1-t02",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 0,
+          "surface_id": null,
+          "agent_model": "gpt-5.4-nano",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": null,
+          "outage_fallback": false,
+          "agent_model_tier": "lite",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": false,
+          "agent_model_source": "memory_plan_lite",
+          "outage_failed_mode": null,
+          "research_requested": false,
+          "research_sources_count": 0,
+          "conversation_risk_score": 0,
+          "conversation_risk_exit_flows": false,
+          "coaching_intervention_pending": null
+        }
+      },
+      "created_at": "2026-06-13T00:30:48.766477+00:00"
+    }
+  ],
+  "states_status": 200,
+  "states": [
+    {
+      "user_id": "b59a2c95-64cd-4781-8a6e-8df8b0d7abbb",
+      "current_mode": "companion",
+      "risk_level": 0,
+      "temp_memory": {
+        "__momentum_state_v2": {
+          "posture": {
+            "confidence": "high",
+            "recommended_posture": "simplify"
+          },
+          "version": 2,
+          "blockers": {
+            "blocker_kind": null,
+            "blocker_repeat_score": 0
+          },
+          "_internal": {
+            "sources": {
+              "router_updated_at": "2026-06-13T00:30:48.739Z",
+              "last_classified_by": "router"
+            },
+            "stability": {
+              "stable_since_at": "2026-06-13T00:29:48.505Z"
+            },
+            "signal_log": {
+              "consent_events": [],
+              "emotional_turns": [],
+              "response_quality_events": [
+                {
+                  "at": "2026-06-13T00:29:48.505Z",
+                  "quality": "substantive"
+                },
+                {
+                  "at": "2026-06-13T00:30:48.739Z",
+                  "quality": "substantive"
+                }
+              ]
+            },
+            "metrics_cache": {
+              "last_user_turn_at": "2026-06-13T00:30:48.739Z",
+              "last_user_turn_quality": "substantive",
+              "days_since_last_user_message": 0
+            }
+          },
+          "assessment": {
+            "top_risk": null,
+            "confidence": "low",
+            "top_blocker": null
+          },
+          "dimensions": {
+            "consent": {
+              "level": "open",
+              "reason": "no_decline_detected"
+            },
+            "plan_fit": {
+              "level": "uncertain"
+            },
+            "engagement": {
+              "level": "high",
+              "reason": "substantive_recent_reply"
+            },
+            "load_balance": {
+              "level": "balanced"
+            },
+            "emotional_load": {
+              "level": "low",
+              "reason": "no_emotional_marker"
+            },
+            "execution_traction": {
+              "level": "unknown"
+            }
+          },
+          "updated_at": "2026-06-13T00:30:48.739Z",
+          "active_load": {
+            "needs_reduce": false,
+            "needs_consolidate": false,
+            "current_load_score": 0,
+            "mission_slots_used": 0,
+            "support_slots_used": 0,
+            "habit_building_slots_used": 0
+          },
+          "memory_links": {
+            "last_useful_support_ids": [],
+            "last_failed_technique_ids": []
+          },
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "current_state": "friction_legere"
+        },
+        "__conversation_risk_last": {
+          "at": "2026-06-13T00:30:48.739Z",
+          "score": 0,
+          "threshold": 8,
+          "reason_codes": [],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "companion_question_rhythm": {
+          "preference": "normal",
+          "recent_turns": [
+            0,
+            1
+          ],
+          "last_updated_at": "2026-06-13T00:30:48.726Z",
+          "last_turn_had_question": true,
+          "turns_since_last_question": 0
+        },
+        "__conversation_risk_history": [
+          0,
+          0
+        ]
+      },
+      "updated_at": "2026-06-13T00:30:48.742791+00:00"
+    }
+  ]
+}

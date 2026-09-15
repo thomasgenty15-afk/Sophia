@@ -1,0 +1,3062 @@
+{
+  "run_id": "coachingrec-novice-confused-postfix-20260619-r1",
+  "scope": "qa-normal-conversation-coachingrec-novice-confused-postfix-20260619-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-coachingrec-novice-confused-postfix-20260619-r1-1781886941896@example.com",
+  "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIwYWMyZDZiMC0zZDExLTQ2MGItYTZlOS1hYjU5NmJmY2U4OGEiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxODkwNTQzLCJpYXQiOjE3ODE4ODY5NDMsImVtYWlsIjoicWEtbm9ybWFsLWNvYWNoaW5ncmVjLW5vdmljZS1jb25mdXNlZC1wb3N0Zml4LTIwMjYwNjE5LXIxLTE3ODE4ODY5NDE4OTZAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoicWEtbm9ybWFsLWNvYWNoaW5ncmVjLW5vdmljZS1jb25mdXNlZC1wb3N0Zml4LTIwMjYwNjE5LXIxLTE3ODE4ODY5NDE4OTZAZXhhbXBsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNfdGVzdF9wZXJzb25hIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInFhX3J1bl9pZCI6ImNvYWNoaW5ncmVjLW5vdmljZS1jb25mdXNlZC1wb3N0Zml4LTIwMjYwNjE5LXIxIiwic3ViIjoiMGFjMmQ2YjAtM2QxMS00NjBiLWE2ZTktYWI1OTZiZmNlODhhIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODE4ODY5NDN9XSwic2Vzc2lvbl9pZCI6IjJlN2UwNmE5LTU5NzgtNGIyZC1hODI4LTZiZjE2MTFiNjE5ZSIsImlzX2Fub255bW91cyI6ZmFsc2V9.Pn7gzqPBi3ftQY5N9fPYLQlOToRW29oLtFQSyHHNJi4",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-19T16:35:43.346Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-19T16:36:08.827Z",
+      "user": "Je sais pas trop comment dire. J'ai un truc à faire, j'ouvre mon ordi, je regarde, puis je referme. Et je comprends rien à vos histoires de cartes, c'est quoi exactement ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Une carte d’attaque t’aide à démarrer une action quand c’est dur de t’y mettre. Une carte de défense t’aide à tenir quand il y a un risque de déraper, craquer ou éviter.\n\nEn bref : attaque = “comment je m’y mets ?” ; défense = “qu’est-ce qui peut me faire dévier, et quoi faire à ce moment-là ?”",
+      "trace_short": {
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason": "product_help_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "product_help",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {},
+              "updated_at": "2026-06-19T16:36:08.782794+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-novice-confused-postfix-20260619-r1-t01",
+        "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-novice-confused-postfix-20260619-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Une carte d’attaque t’aide à démarrer une action quand c’est dur de t’y mettre. Une carte de défense t’aide à tenir quand il y a un risque de déraper, craquer ou éviter.\n\nEn bref : attaque = “comment je m’y mets ?” ; défense = “qu’est-ce qui peut me faire dévier, et quoi faire à ce moment-là ?”",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t01",
+              "source_message_id": "a14bf1ff-7f44-41e3-b8e3-7f7d0eb429ba",
+              "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "product_help_question"
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "Explain what the user is asking about cards and help with the blocked action at a high level if needed.",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "product_help_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "product_help",
+                "resume_policy": "none",
+                "reason_code": "product_help_signal"
+              },
+              "selected_handler": "product_help"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "product_help",
+            "skill_run": {
+              "selected_skill_id": "product_help",
+              "reason_code": "product_help_signal",
+              "status": "complete",
+              "latency_ms": 7514
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t01",
+            "source_message_id": "a14bf1ff-7f44-41e3-b8e3-7f7d0eb429ba",
+            "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_question"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "Explain what the user is asking about cards and help with the blocked action at a high level if needed.",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "product_help_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "product_help",
+              "resume_policy": "none",
+              "reason_code": "product_help_signal"
+            },
+            "selected_handler": "product_help"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help",
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "product_help_signal",
+            "status": "complete",
+            "latency_ms": 7514
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-19T16:36:50.721Z",
+      "user": "Ok. Le truc c'est mon dossier mutuelle, enfin je crois. Je dois envoyer des papiers mais dès que j'y pense je pars ailleurs. Donc je fais quoi, une carte attaque ou défense ou je sais pas ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je partirais sur une carte d’attaque libre, technique Preparer le terrain : elle sert à rendre le démarrage plus simple quand tu ouvres l’ordi, regardes, puis décroches. La défense, elle, sert plutôt quand tu es déjà lancé et que tu risques de partir ailleurs ou d’abandonner au mauvais moment.\n\nLà, ton blocage principal c’est d’entrer dedans.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-19T16:36:50.643Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-19T16:36:50.643Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer les papiers du dossier mutuelle",
+                        "action_source": "free"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "La difficulté décrite est d'entrer dans l'action et de s'y mettre sans décrocher. Une carte d'attaque est la meilleure pour préparer le démarrage de cette tâche concrète."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user décrit surtout un blocage de démarrage et demande une différence entre attaque et défense. Une carte d’attaque libre avec Preparer le terrain correspond au besoin immédiat pour une action hors plan.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le user décrit surtout un blocage de démarrage et demande une différence entre attaque et défense. Une carte d’attaque libre avec Preparer le terrain correspond au besoin immédiat pour une action hors plan.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le user décrit surtout un blocage de démarrage et demande une différence entre attaque et défense. Une carte d’attaque libre avec Preparer le terrain correspond au besoin immédiat pour une action hors plan.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user décrit surtout un blocage de démarrage et demande une différence entre attaque et défense. Une carte d’attaque libre avec Preparer le terrain correspond au besoin immédiat pour une action hors plan.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user décrit surtout un blocage de démarrage et demande une différence entre attaque et défense. Une carte d’attaque libre avec Preparer le terrain correspond au besoin immédiat pour une action hors plan.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "dans Ressources, comme carte d'attaque libre"
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer les papiers du dossier mutuelle",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-19T16:36:50.643Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-19T16:36:50.643Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer les papiers du dossier mutuelle",
+                        "action_source": "free"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "La difficulté décrite est d'entrer dans l'action et de s'y mettre sans décrocher. Une carte d'attaque est la meilleure pour préparer le démarrage de cette tâche concrète."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user décrit surtout un blocage de démarrage et demande une différence entre attaque et défense. Une carte d’attaque libre avec Preparer le terrain correspond au besoin immédiat pour une action hors plan.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le user décrit surtout un blocage de démarrage et demande une différence entre attaque et défense. Une carte d’attaque libre avec Preparer le terrain correspond au besoin immédiat pour une action hors plan.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le user décrit surtout un blocage de démarrage et demande une différence entre attaque et défense. Une carte d’attaque libre avec Preparer le terrain correspond au besoin immédiat pour une action hors plan.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user décrit surtout un blocage de démarrage et demande une différence entre attaque et défense. Une carte d’attaque libre avec Preparer le terrain correspond au besoin immédiat pour une action hors plan.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user décrit surtout un blocage de démarrage et demande une différence entre attaque et défense. Une carte d’attaque libre avec Preparer le terrain correspond au besoin immédiat pour une action hors plan.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "dans Ressources, comme carte d'attaque libre"
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer les papiers du dossier mutuelle",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-19T16:36:50.652484+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-novice-confused-postfix-20260619-r1-t02",
+        "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-novice-confused-postfix-20260619-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je partirais sur une carte d’attaque libre, technique Preparer le terrain : elle sert à rendre le démarrage plus simple quand tu ouvres l’ordi, regardes, puis décroches. La défense, elle, sert plutôt quand tu es déjà lancé et que tu risques de partir ailleurs ou d’abandonner au mauvais moment.\n\nLà, ton blocage principal c’est d’entrer dedans.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t02",
+              "source_message_id": "43d7a9d6-a377-46ef-8470-196113a0f0d1",
+              "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "action_linked_emotional_friction",
+                  "context": {
+                    "coaching_type": "no_plan_action",
+                    "confidence": 0.84,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": false,
+                      "is_about_non_plan_action": true,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": true,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "free",
+                      "plan_item_id": null,
+                      "action_title": "envoyer les papiers du dossier mutuelle",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": {
+                      "state_hint": "distraction / évitement quand il pense à la tâche",
+                      "intensity": "medium"
+                    },
+                    "reason": "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "coach_choice_for_blocked_action",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue",
+              "latency_ms": 19217
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t02",
+            "source_message_id": "43d7a9d6-a377-46ef-8470-196113a0f0d1",
+            "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "action_linked_emotional_friction",
+                "context": {
+                  "coaching_type": "no_plan_action",
+                  "confidence": 0.84,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": false,
+                    "is_about_non_plan_action": true,
+                    "is_about_emotional_state": false,
+                    "has_concrete_plan_action": true,
+                    "needs_type_confirmation": false
+                  },
+                  "action_context": {
+                    "source": "free",
+                    "plan_item_id": null,
+                    "action_title": "envoyer les papiers du dossier mutuelle",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": {
+                    "state_hint": "distraction / évitement quand il pense à la tâche",
+                    "intensity": "medium"
+                  },
+                  "reason": "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "coach_choice_for_blocked_action",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue",
+            "latency_ms": 19217
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "sent_at": "2026-06-19T16:37:16.475Z",
+      "user": "Attends je suis perdu. Préparer le terrain ça veut dire quoi en vrai ? Et carte libre ça veut dire quoi ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Oui, je t’éclaire simplement :\n- carte d’attaque = pour t’aider à démarrer quand tu bloques à l’entrée\n- carte de défense = pour éviter de décrocher au moment critique\n- carte libre = une carte pour ton action à toi, sans lien avec un Plan\n\nLà, vu que tu ouvres puis tu refermes, je partirais sur une carte d’attaque libre, technique Préparer le terrain : tu mets juste tout ce qu’il faut sous la main avant d’ouvrir le dossier, pour rendre le premier geste le plus facile possible.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-19T16:36:50.643Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-19T16:37:16.371Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer les papiers du dossier mutuelle",
+                        "action_source": "free"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "La difficulté décrite est d'entrer dans l'action et de s'y mettre sans décrocher. Une carte d'attaque est la meilleure pour préparer le démarrage de cette tâche concrète."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user ne demande pas une nouvelle cible de coaching, il demande juste la signification de deux notions liées à la carte d’attaque libre déjà recommandée.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "dans Ressources, comme carte d'attaque libre"
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer les papiers du dossier mutuelle",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-19T16:36:50.643Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-19T16:37:16.371Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer les papiers du dossier mutuelle",
+                        "action_source": "free"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "La difficulté décrite est d'entrer dans l'action et de s'y mettre sans décrocher. Une carte d'attaque est la meilleure pour préparer le démarrage de cette tâche concrète."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user ne demande pas une nouvelle cible de coaching, il demande juste la signification de deux notions liées à la carte d’attaque libre déjà recommandée.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "dans Ressources, comme carte d'attaque libre"
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer les papiers du dossier mutuelle",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-19T16:37:16.385706+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-novice-confused-postfix-20260619-r1-t03",
+        "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-novice-confused-postfix-20260619-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, je t’éclaire simplement :\n- carte d’attaque = pour t’aider à démarrer quand tu bloques à l’entrée\n- carte de défense = pour éviter de décrocher au moment critique\n- carte libre = une carte pour ton action à toi, sans lien avec un Plan\n\nLà, vu que tu ouvres puis tu refermes, je partirais sur une carte d’attaque libre, technique Préparer le terrain : tu mets juste tout ce qu’il faut sous la main avant d’ouvrir le dossier, pour rendre le premier geste le plus facile possible.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t03",
+              "source_message_id": "4107ef9b-6a9f-4116-8a86-d2f9e98b5878",
+              "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "product_help_question"
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "clarify_product_concepts",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 11248
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t03",
+            "source_message_id": "4107ef9b-6a9f-4116-8a86-d2f9e98b5878",
+            "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_question"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "clarify_product_concepts",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 11248
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "sent_at": "2026-06-19T16:37:36.247Z",
+      "user": "Je crois que je mélange tout. Premier geste ça veut dire quoi ? Genre là maintenant je dois ouvrir quoi, écrire quoi, faire quoi ?",
+      "http_status": 502,
+      "ok": false,
+      "empty_response": true,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "",
+      "trace_short": {
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": null
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-19T16:36:50.643Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-19T16:37:16.371Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer les papiers du dossier mutuelle",
+                        "action_source": "free"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "La difficulté décrite est d'entrer dans l'action et de s'y mettre sans décrocher. Une carte d'attaque est la meilleure pour préparer le démarrage de cette tâche concrète."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user ne demande pas une nouvelle cible de coaching, il demande juste la signification de deux notions liées à la carte d’attaque libre déjà recommandée.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "dans Ressources, comme carte d'attaque libre"
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer les papiers du dossier mutuelle",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-19T16:36:50.643Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-19T16:37:16.371Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer les papiers du dossier mutuelle",
+                        "action_source": "free"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "La difficulté décrite est d'entrer dans l'action et de s'y mettre sans décrocher. Une carte d'attaque est la meilleure pour préparer le démarrage de cette tâche concrète."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user ne demande pas une nouvelle cible de coaching, il demande juste la signification de deux notions liées à la carte d’attaque libre déjà recommandée.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une explication des termes et une recommandation pour une action hors plan. Le blocage décrit est un problème de démarrage, donc une carte d’attaque libre avec Préparer le terrain est la meilleure option.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "dans Ressources, comme carte d'attaque libre"
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer les papiers du dossier mutuelle",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-19T16:37:16.385706+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "message": "An invalid response was received from the upstream server"
+      }
+    },
+    {
+      "turn": 5,
+      "sent_at": "2026-06-19T16:38:11.482Z",
+      "user": "Je crois que je mélange tout. Premier geste ça veut dire quoi ? Genre là maintenant je dois ouvrir quoi, écrire quoi, faire quoi ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Oui, ici je partirais sur une carte d’attaque libre, technique Préparer le terrain. En vrai, ça veut dire: tu mets juste le dossier devant toi, tu rassembles les papiers au même endroit, puis tu ouvres le premier document. Le but, c’est de rendre le démarrage plus simple quand tu pars ailleurs dès que tu y penses.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-19T16:36:50.643Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-19T16:38:11.416Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer les papiers du dossier mutuelle",
+                        "action_source": "free"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "La difficulté décrite est d'entrer dans l'action et de s'y mettre sans décrocher. Une carte d'attaque est la meilleure pour préparer le démarrage de cette tâche concrète."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user reste sur une action libre hors plan et demande à quoi ressemble le tout premier geste concret pour démarrer.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le problème décrit est surtout de démarrer l’action et de ne pas décrocher sur une action libre hors plan. Préparer le terrain correspond bien à ce besoin, et le user demande aussi une explication simple des termes.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le problème décrit est surtout de démarrer l’action et de ne pas décrocher sur une action libre hors plan. Préparer le terrain correspond bien à ce besoin, et le user demande aussi une explication simple des termes.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le problème décrit est surtout de démarrer l’action et de ne pas décrocher sur une action libre hors plan. Préparer le terrain correspond bien à ce besoin, et le user demande aussi une explication simple des termes.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le problème décrit est surtout de démarrer l’action et de ne pas décrocher sur une action libre hors plan. Préparer le terrain correspond bien à ce besoin, et le user demande aussi une explication simple des termes.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le problème décrit est surtout de démarrer l’action et de ne pas décrocher sur une action libre hors plan. Préparer le terrain correspond bien à ce besoin, et le user demande aussi une explication simple des termes.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "dans Ressources, comme carte d'attaque libre"
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user asks what to do right now to start a concrete action, but no plan action is identified.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "ouvrir le dossier / écrire / faire le premier geste",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-19T16:36:50.643Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-19T16:38:11.416Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer les papiers du dossier mutuelle",
+                        "action_source": "free"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "La difficulté décrite est d'entrer dans l'action et de s'y mettre sans décrocher. Une carte d'attaque est la meilleure pour préparer le démarrage de cette tâche concrète."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user reste sur une action libre hors plan et demande à quoi ressemble le tout premier geste concret pour démarrer.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le problème décrit est surtout de démarrer l’action et de ne pas décrocher sur une action libre hors plan. Préparer le terrain correspond bien à ce besoin, et le user demande aussi une explication simple des termes.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le problème décrit est surtout de démarrer l’action et de ne pas décrocher sur une action libre hors plan. Préparer le terrain correspond bien à ce besoin, et le user demande aussi une explication simple des termes.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le problème décrit est surtout de démarrer l’action et de ne pas décrocher sur une action libre hors plan. Préparer le terrain correspond bien à ce besoin, et le user demande aussi une explication simple des termes.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le problème décrit est surtout de démarrer l’action et de ne pas décrocher sur une action libre hors plan. Préparer le terrain correspond bien à ce besoin, et le user demande aussi une explication simple des termes.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le problème décrit est surtout de démarrer l’action et de ne pas décrocher sur une action libre hors plan. Préparer le terrain correspond bien à ce besoin, et le user demande aussi une explication simple des termes.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "dans Ressources, comme carte d'attaque libre"
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user asks what to do right now to start a concrete action, but no plan action is identified.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "ouvrir le dossier / écrire / faire le premier geste",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-19T16:38:11.424043+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-novice-confused-postfix-20260619-r1-t05",
+        "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-novice-confused-postfix-20260619-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, ici je partirais sur une carte d’attaque libre, technique Préparer le terrain. En vrai, ça veut dire: tu mets juste le dossier devant toi, tu rassembles les papiers au même endroit, puis tu ouvres le premier document. Le but, c’est de rendre le démarrage plus simple quand tu pars ailleurs dès que tu y penses.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t05",
+              "source_message_id": "f7e154ce-19c6-48a5-bd5f-25203ab3e362",
+              "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_requests_starting_help_for_concrete_free_action",
+                  "context": {
+                    "coaching_type": "no_plan_action",
+                    "confidence": 0.84,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": false,
+                      "is_about_non_plan_action": true,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": false,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "free",
+                      "plan_item_id": null,
+                      "action_title": "ouvrir le dossier / écrire / faire le premier geste",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": {
+                      "state_hint": null,
+                      "intensity": "medium"
+                    },
+                    "reason": "The user asks what to do right now to start a concrete action, but no plan action is identified."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "clarify what the first step means in a concrete action-starting context",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t05",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 17163
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t05",
+            "source_message_id": "f7e154ce-19c6-48a5-bd5f-25203ab3e362",
+            "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_requests_starting_help_for_concrete_free_action",
+                "context": {
+                  "coaching_type": "no_plan_action",
+                  "confidence": 0.84,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": false,
+                    "is_about_non_plan_action": true,
+                    "is_about_emotional_state": false,
+                    "has_concrete_plan_action": false,
+                    "needs_type_confirmation": false
+                  },
+                  "action_context": {
+                    "source": "free",
+                    "plan_item_id": null,
+                    "action_title": "ouvrir le dossier / écrire / faire le premier geste",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": {
+                    "state_hint": null,
+                    "intensity": "medium"
+                  },
+                  "reason": "The user asks what to do right now to start a concrete action, but no plan action is identified."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "clarify what the first step means in a concrete action-starting context",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 17163
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 6,
+      "sent_at": "2026-06-19T16:38:46.096Z",
+      "user": "Ok mais là je te demande pas vraiment de choisir à ma place. C'est quoi la différence entre préparer le terrain et juste me forcer deux minutes ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Oui :\n- **Préparer le terrain** = tu rends le démarrage plus facile avant d’agir. Par exemple : ouvrir le bon fichier, poser les papiers sur la table, couper les distractions.\n- **Te forcer deux minutes** = tu n’améliores pas le contexte, tu t’engages juste à faire un tout petit bout malgré l’inconfort.\n\nEn vrai, si ton blocage est de **commencer**, préparer le terrain est souvent plus simple et plus durable. Si tu veux, je peux te dire lequel colle le mieux à ton cas en une phrase.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-19T16:36:50.643Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-19T16:38:45.957Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer les papiers du dossier mutuelle",
+                        "action_source": "free"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "La difficulté décrite est d'entrer dans l'action et de s'y mettre sans décrocher. Une carte d'attaque est la meilleure pour préparer le démarrage de cette tâche concrète."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande la différence entre deux manières de démarrer une action libre: préparer le terrain versus se forcer deux minutes.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le dernier message demande une différence et une explication simple, pas un choix de carte. Il faut clarifier d’abord avant toute recommandation.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "coaching_only",
+                        "reason": "Le dernier message demande une différence et une explication simple, pas un choix de carte. Il faut clarifier d’abord avant toute recommandation.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le dernier message demande une différence et une explication simple, pas un choix de carte. Il faut clarifier d’abord avant toute recommandation.",
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user asks what to do right now to start a concrete action, but no plan action is identified.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "ouvrir le dossier / écrire / faire le premier geste",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-19T16:36:50.643Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-19T16:38:45.957Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer les papiers du dossier mutuelle",
+                        "action_source": "free"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "La difficulté décrite est d'entrer dans l'action et de s'y mettre sans décrocher. Une carte d'attaque est la meilleure pour préparer le démarrage de cette tâche concrète."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande la différence entre deux manières de démarrer une action libre: préparer le terrain versus se forcer deux minutes.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le dernier message demande une différence et une explication simple, pas un choix de carte. Il faut clarifier d’abord avant toute recommandation.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "coaching_only",
+                        "reason": "Le dernier message demande une différence et une explication simple, pas un choix de carte. Il faut clarifier d’abord avant toute recommandation.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le dernier message demande une différence et une explication simple, pas un choix de carte. Il faut clarifier d’abord avant toute recommandation.",
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user asks what to do right now to start a concrete action, but no plan action is identified.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "ouvrir le dossier / écrire / faire le premier geste",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-19T16:38:45.975607+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-novice-confused-postfix-20260619-r1-t06",
+        "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-novice-confused-postfix-20260619-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui :\n- **Préparer le terrain** = tu rends le démarrage plus facile avant d’agir. Par exemple : ouvrir le bon fichier, poser les papiers sur la table, couper les distractions.\n- **Te forcer deux minutes** = tu n’améliores pas le contexte, tu t’engages juste à faire un tout petit bout malgré l’inconfort.\n\nEn vrai, si ton blocage est de **commencer**, préparer le terrain est souvent plus simple et plus durable. Si tu veux, je peux te dire lequel colle le mieux à ton cas en une phrase.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t06",
+              "source_message_id": "8e490bf0-7b52-4cab-a962-c15044823b00",
+              "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "explain_difference_between_coaching_approaches",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t06",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 19246
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t06",
+            "source_message_id": "8e490bf0-7b52-4cab-a962-c15044823b00",
+            "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "explain_difference_between_coaching_approaches",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t06",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 19246
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 7,
+      "sent_at": "2026-06-19T16:39:18.922Z",
+      "user": "En fait parfois j'arrive à ouvrir les papiers, mais après je vois un truc compliqué et je ferme direct. C'est encore le même truc ou pas ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Oui, c’est le même type de difficulté, mais pas le même moment.\n\n- Si tu bloques avant d’ouvrir, c’est un souci de démarrage.\n- Si tu ouvres puis tu refermes dès que ça devient compliqué, c’est plutôt un moment de décrochage.\n\nLà, ce que tu décris ressemble surtout à un décrochage au moment où tu tombes sur le truc compliqué. Donc on ne travaille pas juste “ouvrir”, on travaille aussi “rester 30 secondes de plus sans fuir”.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-19T16:36:50.643Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-19T16:39:18.851Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer les papiers du dossier mutuelle",
+                        "action_source": "free"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "La difficulté décrite est d'entrer dans l'action et de s'y mettre sans décrocher. Une carte d'attaque est la meilleure pour préparer le démarrage de cette tâche concrète."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user décrit une action libre déjà commencée, puis un décrochage quand un élément compliqué apparaît. Il demande si c'est le même problème que le démarrage ou un autre.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le user demande une clarification simple sur la différence entre deux moments d'une même action, sans demander de carte ni de support immédiat. Il faut expliquer d'abord.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "coaching_only",
+                        "reason": "Le user demande une clarification simple sur la différence entre deux moments d'une même action, sans demander de carte ni de support immédiat. Il faut expliquer d'abord.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une clarification simple sur la différence entre deux moments d'une même action, sans demander de carte ni de support immédiat. Il faut expliquer d'abord.",
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user describes a concrete non-plan action: opening papers, then closing when a complication appears. This is action coaching, not global emotional coaching.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "ouvrir les papiers",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-19T16:36:50.643Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-19T16:39:18.851Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète hors plan: envoyer des papiers de mutuelle. Le problème principal est qu'il part ailleurs dès qu'il y pense, donc il s'agit surtout d'un blocage de démarrage/évitemment sur une action libre.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer les papiers du dossier mutuelle",
+                        "action_source": "free"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "La difficulté décrite est d'entrer dans l'action et de s'y mettre sans décrocher. Une carte d'attaque est la meilleure pour préparer le démarrage de cette tâche concrète."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user décrit une action libre déjà commencée, puis un décrochage quand un élément compliqué apparaît. Il demande si c'est le même problème que le démarrage ou un autre.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le user demande une clarification simple sur la différence entre deux moments d'une même action, sans demander de carte ni de support immédiat. Il faut expliquer d'abord.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "coaching_only",
+                        "reason": "Le user demande une clarification simple sur la différence entre deux moments d'une même action, sans demander de carte ni de support immédiat. Il faut expliquer d'abord.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks which coaching lever to use for a concrete action outside the plan; the avoidance is tied to that action, so this is free_action_coaching."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une clarification simple sur la différence entre deux moments d'une même action, sans demander de carte ni de support immédiat. Il faut expliquer d'abord.",
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user describes a concrete non-plan action: opening papers, then closing when a complication appears. This is action coaching, not global emotional coaching.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "ouvrir les papiers",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-19T16:39:18.85734+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-novice-confused-postfix-20260619-r1-t07",
+        "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-novice-confused-postfix-20260619-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, c’est le même type de difficulté, mais pas le même moment.\n\n- Si tu bloques avant d’ouvrir, c’est un souci de démarrage.\n- Si tu ouvres puis tu refermes dès que ça devient compliqué, c’est plutôt un moment de décrochage.\n\nLà, ce que tu décris ressemble surtout à un décrochage au moment où tu tombes sur le truc compliqué. Donc on ne travaille pas juste “ouvrir”, on travaille aussi “rester 30 secondes de plus sans fuir”.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t07",
+              "source_message_id": "b9a42482-9444-4991-b2a4-f8dc978054fe",
+              "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "action_linked_emotional_friction_on_free_action",
+                  "context": {
+                    "coaching_type": "ambiguous",
+                    "confidence": 0.84,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": false,
+                      "is_about_non_plan_action": true,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": false,
+                      "needs_type_confirmation": true
+                    },
+                    "action_context": {
+                      "source": "free",
+                      "plan_item_id": null,
+                      "action_title": "ouvrir les papiers",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": {
+                      "state_hint": "avoidance or friction when encountering complexity",
+                      "intensity": "medium"
+                    },
+                    "reason": "The user describes a concrete non-plan action: opening papers, then closing when a complication appears. This is action coaching, not global emotional coaching."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "Clarify whether the user’s pattern still fits the same coaching frame, given a concrete non-plan action with friction at the complexity point.",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.72
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t07",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 18128
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t07",
+            "source_message_id": "b9a42482-9444-4991-b2a4-f8dc978054fe",
+            "user_id": "0ac2d6b0-3d11-460b-a6e9-ab596bfce88a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "action_linked_emotional_friction_on_free_action",
+                "context": {
+                  "coaching_type": "ambiguous",
+                  "confidence": 0.84,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": false,
+                    "is_about_non_plan_action": true,
+                    "is_about_emotional_state": false,
+                    "has_concrete_plan_action": false,
+                    "needs_type_confirmation": true
+                  },
+                  "action_context": {
+                    "source": "free",
+                    "plan_item_id": null,
+                    "action_title": "ouvrir les papiers",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": {
+                    "state_hint": "avoidance or friction when encountering complexity",
+                    "intensity": "medium"
+                  },
+                  "reason": "The user describes a concrete non-plan action: opening papers, then closing when a complication appears. This is action coaching, not global emotional coaching."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "Clarify whether the user’s pattern still fits the same coaching frame, given a concrete non-plan action with friction at the complexity point.",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.72
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-novice-confused-postfix-20260619-r1-t07",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 18128
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-19T16:39:18.924Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-19T16:40:13.952Z"
+}

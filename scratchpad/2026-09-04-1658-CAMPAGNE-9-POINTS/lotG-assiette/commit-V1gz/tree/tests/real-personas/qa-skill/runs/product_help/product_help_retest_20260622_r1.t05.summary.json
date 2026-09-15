@@ -1,0 +1,47 @@
+{
+  "run_id": "product_help_retest_20260622_r1",
+  "turn": 5,
+  "user_message": "Question produit seulement : où est-ce que je retrouve mes cartes d'attaque une fois préparées ?",
+  "http_status": 200,
+  "ok": true,
+  "reply_content": "Tu les retrouves dans Dashboard > Ressources, rangées par niveau. Si la carte d’attaque vient d’une mission ou d’une habitude du Plan, elle apparaît aussi sur l’item concerné.",
+  "response_owner": "product_help",
+  "selected_handler": "product_help",
+  "reason_code": "product_help_signal",
+  "direct_effects": [],
+  "direct_effects_to_run": [],
+  "skill_signals": {
+    "product_help": {
+      "detected": true,
+      "confidence_band": "high",
+      "reason": "product_help_question"
+    }
+  },
+  "skill_run": {
+    "selected_skill_id": "product_help",
+    "reason_code": "product_help_signal",
+    "status": "complete",
+    "latency_ms": 4198
+  },
+  "tool_skill_run": null,
+  "effect_ledger": {
+    "turn_id": "36eb2adc-9aae-4747-842e-768fccf6a9ee",
+    "counts": {
+      "requested": 0,
+      "allowed": 0,
+      "blocked": 0,
+      "committed": 0,
+      "failed": 0,
+      "proposed": 0,
+      "delivered": 0,
+      "cancelled": 0,
+      "superseded": 0,
+      "asked": 0,
+      "resolved": 0,
+      "topic_change": 0
+    },
+    "entries": []
+  },
+  "tool_execution": "none",
+  "executed_tools": []
+}

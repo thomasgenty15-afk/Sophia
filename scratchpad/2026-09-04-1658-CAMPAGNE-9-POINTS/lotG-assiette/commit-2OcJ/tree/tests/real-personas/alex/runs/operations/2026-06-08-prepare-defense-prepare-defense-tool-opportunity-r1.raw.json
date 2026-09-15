@@ -1,0 +1,12 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-defense-tool-opportunity-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Ce soir, au moment de faire le sas de déchargement, je sens que je vais rester collé à mon téléphone et zapper le carnet.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

@@ -552,11 +552,214 @@ export function renderCatalogBlock(
     "",
     'ON EVERY INGREDIENT YOU WRITE, add "ref": the id from this list, exactly as',
     "spelled here. Dishes and preparations alike.",
-    "This list does NOT limit what you may cook. When the food you want is not on",
-    'it, write the ingredient as usual and leave "ref" out — that is expected and',
-    "counted. What is refused is an id that is not on this list: a made-up id",
-    "means that ingredient gets weighed by nobody.",
+    "",
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-12 · ÉTAPE C1 — LE CONTRAT DE SORTIE DIT MAINTENANT LA RÈGLE
+    // ENTIÈRE: id + quantité sur toute ligne pesée, convention sur le reste.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LA PHRASE QUI A ÉTÉ RETIRÉE, ET POURQUOI. Elle disait: « quand
+    // l'aliment n'est pas sur la liste, écris-le comme d'habitude et laisse
+    // "ref" de côté — c'est attendu et compté ». Sur le tir n° 2 du 2026-09-11
+    // le modèle a rendu SIX plats et **zéro** `ref`, dont
+    // `{"term":"pita complète","amount":1,"unit":"unit"}`: une unité dont le
+    // poids n'est connu de personne. Le dîner du dimanche est parti sans
+    // portion — cinq portions sur six, et rien ne l'a refusé.
+    //
+    // La compatibilité des plans HISTORIQUES sans `ref` reste entière (c'est un
+    // mode de LECTURE, `refForIngredient`); elle ne vaut pas permission pour une
+    // sortie NEUVE. Ce bloc ne peut pas l'interdire tout seul — c'est
+    // `checkOutputContract` ci-dessous qui refuse, et le modèle doit savoir
+    // pourquoi avant d'écrire, pas après.
+    "TWO RULES, AND THEY DECIDE WHETHER A DISH CAN BE SERVED AT ALL:",
+    '  1. A line you WEIGH carries all three: "ref", "amount", "unit".',
+    "     No id means no weight, and a meal nobody can weigh has no portion.",
+    '  2. A dash you do NOT weigh — salt, pepper, a herb — carries "ref" and NO',
+    '     amount. The app weighs it by the "pinch=" figure on its line above.',
+    "This list does NOT limit what you may cook. But an ingredient you weigh must",
+    "come from it: pick the closest listed id and say so in the term, or make that",
+    "ingredient a dash. What is always refused is an id that is not on this list.",
   ];
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑤ bis · ⟳ 2026-09-12 — LE CONTRAT DE SORTIE, RELU AVANT DE DIMENSIONNER
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * OÙ VIT LA LIGNE EXAMINÉE. Tout ce qu'il faut pour la NOMMER à quelqu'un.
+ *
+ * ⚠️ `preparationId` ET `dish` NE SE REMPLACENT PAS: la masse d'un plan de
+ * foyer vit surtout dans les préparations, et une préparation n'a ni jour ni
+ * moment. Les fondre en un seul champ rendrait « la ligne de la casserole » et
+ * « la ligne du samedi midi » indiscernables dans la demande de réparation.
+ */
+export interface OutputContractSite {
+  day: string | null;
+  slot: string | null;
+  dish: string | null;
+  preparationId: string | null;
+}
+
+/**
+ * UNE LIGNE TELLE QUE LE PARSEUR L'A POSÉE.
+ *
+ * ⚠️ TYPÉE STRUCTURELLEMENT, PAS IMPORTÉE DE `meal_generation.ts`. Ce module
+ * est importé PAR le parseur; prendre son type ici ferait un cycle. C'est la
+ * même raison que `ComposablePredicate` en tête de fichier.
+ *
+ * ⛔ `ref` EST DÉJÀ LE VERDICT DU PARSEUR, pas le texte du modèle:
+ * `readRefSlug` rend `null` sur un identifiant inventé ou refusé, et pose
+ * `refRefused`. Relire ici le champ brut ferait un second avis sur une décision
+ * qui n'en a qu'un.
+ */
+export interface OutputContractLine {
+  site: OutputContractSite;
+  term: string;
+  /** Le slug ACCEPTÉ, ou `null`. */
+  ref: string | null;
+  /** Le modèle a écrit un identifiant et il a été refusé (inventé, ou non composable). */
+  refRefused: boolean;
+  amount: number | null;
+  unit: string | null;
+}
+
+/**
+ * CE QU'UNE LIGNE VAUT FACE AU CONTRAT DE SORTIE.
+ *
+ * ⛔ QUATRE VERDICTS, ET ILS N'APPELLENT PAS LA MÊME CORRECTION:
+ *   · `ok`               id accepté + quantité structurée. Le cas nominal;
+ *   · `convention`       id accepté, aucune quantité, et l'aliment se pèse par
+ *                        convention (une pincée). ⚠️ CE N'EST PAS UN DÉFAUT —
+ *                        c'est la convention explicite que ce module SERT au
+ *                        modèle, et la refuser ferait écrire « 0,4 g de sel »;
+ *   · `dash_unreferenced` aucune quantité ET aucun identifiant. ⚠️ PAS UN
+ *                        DÉFAUT NON PLUS, et PAS confondu avec `convention`
+ *                        pour autant: c'est le mode de lecture HISTORIQUE
+ *                        (pesée par le terme libre), toléré sur une pincée
+ *                        parce que le plan n'exige l'identifiant que sur les
+ *                        lignes PESÉES. Il a son propre compteur parce qu'un
+ *                        compteur ne prouve pas ce qu'il ne mesure pas: fondu
+ *                        dans `convention`, il ferait passer un plan sans
+ *                        aucun identifiant pour un plan qui suit la convention;
+ *   · `ref_missing`      elle porte une quantité et aucun identifiant. C'est le
+ *                        tir n° 2, et c'est réparable par un appel: la liste a
+ *                        été servie, il suffit de la citer;
+ *   · `ref_refused`      un identifiant a été écrit et refusé (inventé, ou
+ *                        écarté par le manifeste);
+ *   · `quantity_missing` un identifiant accepté, aucune quantité, et l'aliment
+ *                        n'est PAS un condiment. Une huile sans grammes retire
+ *                        120 kcal d'une assiette en silence.
+ */
+export const OUTPUT_CONTRACT_VERDICTS = [
+  "ok",
+  "convention",
+  "dash_unreferenced",
+  "ref_missing",
+  "ref_refused",
+  "quantity_missing",
+] as const;
+export type OutputContractVerdict = (typeof OUTPUT_CONTRACT_VERDICTS)[number];
+
+export interface OutputContractFinding {
+  site: OutputContractSite;
+  term: string;
+  verdict: OutputContractVerdict;
+}
+
+export interface OutputContractReport {
+  /** Tout ce qui n'est ni `ok` ni `convention`. Ordre d'apparition, stable. */
+  findings: readonly OutputContractFinding[];
+  counters: Readonly<Record<OutputContractVerdict, number>>;
+  /** Le dénominateur, sans lequel « 3 défauts » ne veut rien dire. */
+  lines: number;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LE CONTRAT DE SORTIE, VÉRIFIÉ **AVANT DE DIMENSIONNER**
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── ⛔ LE DÉFAUT QU'IL FERME, AVEC SON CHIFFRE ET SA DATE ────────────────
+ * Tir n° 2 du 2026-09-11, premier jet: **6 plats, 31 lignes, 0 `ref`**. Cinq
+ * plats se sont pesés quand même — par leur TERME libre, en français, ce qui
+ * marche jusqu'au jour où ça ne marche pas. `{"term":"pita complète",
+ * "amount":1,"unit":"unit"}` n'a rien pesé du tout, et `sun/dinner` est parti
+ * **sans portion**. Le verdict publié a été « 5 / 5 » de conformité calorique:
+ * la case sans portion ne posait aucune des cinq questions, donc n'en ratait
+ * aucune. ⛔ C'est très exactement « une réussite partielle silencieuse ».
+ *
+ * ── ⚠️ CE MODULE NE JETTE RIEN, IL NOMME ────────────────────────────────
+ * Il ne supprime aucune ligne, ne remplace aucun identifiant et n'invente
+ * aucune quantité. Il rend des CONSTATS, que `defectsFromOutputContract`
+ * (`plan_repair_loop.ts`) traduit en défauts réparables pour le recours
+ * existant. Une identité déduite d'un rapprochement de noms est exactement ce
+ * que le chantier interdit — et ce module n'a même pas de quoi en faire une:
+ * il ne voit que la ligne qu'on lui donne, jamais ses voisines.
+ *
+ * ── ⚠️ « PESÉE » VEUT DIRE « LE MODÈLE A ÉCRIT UNE QUANTITÉ » ───────────
+ * `amount` ET `unit`, les deux. C'est le contrat structuré de FF-038, et c'est
+ * le seul état où une ligne PRÉTEND peser quelque chose. Une ligne sans
+ * quantité ne prétend rien: elle relève de la convention, ou du défaut
+ * `quantity_missing` si l'aliment ne peut pas s'y ranger.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function checkOutputContract(args: {
+  lines: readonly OutputContractLine[];
+  /**
+   * CET IDENTIFIANT SE PÈSE-T-IL SANS QUANTITÉ ?
+   *
+   * ⛔ INJECTÉ, JAMAIS DEVINÉ ICI. La règle d'admission est
+   * `condimentMassFor` (`food_composition.ts`): une masse conventionnelle sous
+   * 5 g dont le triple reste sous 10 kcal. La recopier ici ferait deux règles
+   * pour une seule décision, et c'est celle qu'on relit le moins qui garderait
+   * l'ancienne.
+   *
+   * ⛔ REQUIS, jamais `?`. Un défaut à « oui » accepterait toute ligne sans
+   * quantité — c'est-à-dire désarmerait `quantity_missing` en silence chez
+   * chaque appelant qui l'oublie.
+   */
+  weighsByConvention: (slug: string) => boolean;
+}): OutputContractReport {
+  const counters: Record<OutputContractVerdict, number> = {
+    ok: 0,
+    convention: 0,
+    dash_unreferenced: 0,
+    ref_missing: 0,
+    ref_refused: 0,
+    quantity_missing: 0,
+  };
+  const findings: OutputContractFinding[] = [];
+  for (const line of args.lines) {
+    const quantified = typeof line.amount === "number" &&
+      Number.isFinite(line.amount) &&
+      typeof line.unit === "string" && line.unit !== "";
+    let verdict: OutputContractVerdict;
+    if (line.ref === null) {
+      // ⛔ « REFUSÉ » PASSE AVANT « ABSENT », MÊME SUR UNE LIGNE NON PESÉE. Un
+      // identifiant inventé est une désobéissance qui se répare en citant la
+      // liste; le taire parce que la ligne est une pincée laisserait vivre la
+      // seule faute que le bloc du prompt déclare « toujours refusée ».
+      verdict = line.refRefused
+        ? "ref_refused"
+        : quantified
+        ? "ref_missing"
+        : "dash_unreferenced";
+    } else if (quantified) {
+      verdict = "ok";
+    } else {
+      verdict = args.weighsByConvention(line.ref) ? "convention" : "quantity_missing";
+    }
+    counters[verdict]++;
+    if (
+      verdict !== "ok" && verdict !== "convention" &&
+      verdict !== "dash_unreferenced"
+    ) {
+      findings.push({ site: line.site, term: line.term, verdict });
+    }
+  }
+  return { findings, counters, lines: args.lines.length };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

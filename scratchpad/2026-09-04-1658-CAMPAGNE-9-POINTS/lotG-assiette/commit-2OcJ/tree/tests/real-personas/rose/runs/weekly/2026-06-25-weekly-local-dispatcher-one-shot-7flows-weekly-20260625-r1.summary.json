@@ -1,0 +1,65 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-25-weekly-local-dispatcher-one-shot-7flows-weekly-20260625-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, la fatigue a guidé ma semaine. Rappelle-moi dans 29 minutes de relire ce point weekly, et continue le bilan simplement.",
+    "assistant": "Je te relis ce point weekly aujourd’hui à 12:29 pour relire ce point weekly. Avec ce que tu as fait cette semaine, tu te sens plutôt avancée, en maintien, ou freinée sur ton objectif global ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "create_one_shot_reminder"
+    ],
+    "trace": {
+      "response_owner": "weekly_adaptive_review_v1",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "direct_effect_lane_message_intake",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [
+        {
+          "effect_type": "create_one_shot_reminder",
+          "explicitness": "explicit",
+          "target_status": "identified",
+          "confidence_band": "high",
+          "payload_hint": {
+            "raw_text": "Rappelle-moi dans 29 minutes de relire ce point weekly",
+            "when_hint": "dans 29 minutes",
+            "UTC_time": "2026-06-25T10:29:00.000Z",
+            "local_label": "aujourd'hui à 12:29",
+            "instruction_hint": "relire ce point weekly"
+          }
+        }
+      ],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_confirm_weekly_diagnostic",
+        "flow_action": "confirm_weekly_diagnostic",
+        "visible_task": "ask_global_progress_feeling",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [
+          {
+            "type": "create_one_shot_reminder",
+            "id": "9da7beee-6bc8-4f2e-afa0-df134ba66b2b",
+            "scheduled_for": "2026-06-25T10:29:00+00:00",
+            "local_label": "aujourd'hui à 12:29",
+            "reminder_instruction": "relire ce point weekly"
+          }
+        ],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  }
+]

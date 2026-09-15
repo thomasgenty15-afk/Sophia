@@ -1,0 +1,229 @@
+{
+  "cleaned_at": "2026-05-20T12:11:57.223Z",
+  "results": [
+    {
+      "runId": "tool-intent-opportunity-20260520-r3",
+      "user_id": "898c1aca-0274-4820-a295-6b492849768c",
+      "statuses": [
+        {
+          "name": "memory_item_sources",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_item_entities",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_item_topics",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_item_actions",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_items",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "user_topic_memories",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "chat_messages",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "scheduled_checkins",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "user_chat_states",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "auth_user_delete",
+          "status": 200,
+          "body": "{}"
+        }
+      ]
+    },
+    {
+      "runId": "tool-intent-opportunity-20260520-r4",
+      "user_id": "eeed6539-e5fe-49a4-9837-705c4e8509c4",
+      "statuses": [
+        {
+          "name": "memory_item_sources",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_item_entities",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_item_topics",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_item_actions",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_items",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "user_topic_memories",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "chat_messages",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "scheduled_checkins",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "user_chat_states",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "auth_user_delete",
+          "status": 200,
+          "body": "{}"
+        }
+      ]
+    },
+    {
+      "runId": "tool-intent-opportunity-20260520-r5",
+      "user_id": "78f7dc76-8cf8-466c-be61-01354d4a9835",
+      "statuses": [
+        {
+          "name": "memory_item_sources",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_item_entities",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_item_topics",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_item_actions",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_items",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "user_topic_memories",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "chat_messages",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "scheduled_checkins",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "user_chat_states",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "auth_user_delete",
+          "status": 200,
+          "body": "{}"
+        }
+      ]
+    },
+    {
+      "runId": "tool-intent-opportunity-20260520-r6",
+      "user_id": "c92c9d29-3d07-4402-800e-70cb109a649f",
+      "statuses": [
+        {
+          "name": "memory_item_sources",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_item_entities",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_item_topics",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_item_actions",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "memory_items",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "user_topic_memories",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "chat_messages",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "scheduled_checkins",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "user_chat_states",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "name": "auth_user_delete",
+          "status": 200,
+          "body": "{}"
+        }
+      ]
+    }
+  ]
+}

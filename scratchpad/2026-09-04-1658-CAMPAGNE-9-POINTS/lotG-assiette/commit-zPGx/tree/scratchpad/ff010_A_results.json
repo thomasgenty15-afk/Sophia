@@ -1,0 +1,176 @@
+{
+  "E1-dinner": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Tonight is roast chicken, brown rice, and green beans.\n\nFor you: full protein share, smaller starch share.",
+      "fullChars": 24239,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "449df7f2-10d3-4f4f-bbe2-3bf7c87fa7d1"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Tonight you’re eating roast chicken, brown rice, and green beans. For Ana, it’s a full protein share with a smaller starch share.",
+      "fullChars": 24239,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "332e338a-f2a6-4b74-b06d-d6af8a005e81"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Tonight you’re eating roast chicken, brown rice, and green beans. For today, the chicken thighs are the prep to do.",
+      "fullChars": 27073,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "509f9f01-f30f-45b6-9296-493aea2bb040"
+    }
+  ],
+  "M1-fr-dinner": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Tonight is roast chicken, brown rice, and green beans.",
+      "fullChars": 27084,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "9b7a48af-d0d5-4b2c-9a15-a2c87312213f"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Tonight is roast chicken, brown rice, and green beans.\n\nFor you: full protein share, smaller starch share.",
+      "fullChars": 27084,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "1f51376e-fb2b-4969-a6c4-2423ab87ae28"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Tonight you’re eating roast chicken, brown rice, and green beans. For Ana, it’s a full protein share with a smaller starch share.",
+      "fullChars": 27084,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "07bbc9d7-4622-48c7-9496-38edd3acbdf3"
+    }
+  ],
+  "M2-fr-share": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Tonight’s dish is roast chicken, brown rice, and green beans.\n\nFor Marc, the share is larger for both protein and starch.",
+      "fullChars": 25720,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "30dadf8e-e9ae-4b85-b129-cee31c16fd32"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Ce soir, pour Marc, c’est une plus grande part de protéines et de féculents avec le plat de roast chicken, brown rice and green beans. Pour Ana, la part de protéines est plus petite, et Leo a une portion enfant du même plat.",
+      "fullChars": 25720,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "332cdfec-724a-4ade-92f3-60bfe9a3785f"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Tonight you have roast chicken, brown rice, and green beans.\n\nYour share is the larger protein and starch portion.",
+      "fullChars": 25720,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "76c84425-ddb0-4c7a-82fd-15046268a4bd"
+    }
+  ],
+  "M3-shopping": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "You need chicken thighs, brown rice, and green beans.",
+      "fullChars": 24239,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "7a09a819-6161-4593-ba40-e69fef7ee851"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "You need chicken thighs, brown rice, and green beans.\n\nFor today’s cooking, there’s also roast chicken thighs to prepare.",
+      "fullChars": 24239,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "12af57c7-0b19-43f5-b41e-39371b9bd25a"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "You need chicken thighs, brown rice, and green beans.\n\nFor today’s prep, roast the chicken thighs.",
+      "fullChars": 24239,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "072f4a46-b7df-4c63-ba87-05e5b2bc1220"
+    }
+  ],
+  "M4-minor-dinner": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Tonight you’re eating roast chicken, brown rice, and green beans. gets a child-size share of the same dish.",
+      "fullChars": 23149,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "e68c2fd0-77ab-480a-81cb-f70136866ff3"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Tonight’s dinner is roast chicken, brown rice, and green beans. Leo gets a child-size share of the same dish.",
+      "fullChars": 23149,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "edaaec5a-8463-43df-bb55-546047e71607"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Tonight you’re having roast chicken, brown rice, and green beans. For Leo, it’s a child-size share of the same dish.",
+      "fullChars": 23149,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "558cc8d4-4c8f-4827-a4f6-91ba7b0357bd"
+    }
+  ],
+  "H1-cook-today": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Today you have one meal listed: roast chicken, brown rice, and green beans for dinner.\n\nFor prep, roast the chicken thighs today.",
+      "fullChars": 24239,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "3fa18f94-5e52-4ade-b8a8-fe7695b65e31"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "fullChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "45a71269-acec-4583-94e4-381cb46d2359"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Today you need to roast the chicken thighs. The dishes for today are roast chicken, brown rice, and green beans for dinner, and tomato and white bean salad for lunch.",
+      "fullChars": 27204,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "53b1bbf0-0ff9-42b7-98e5-4b4805bbcb83"
+    }
+  ]
+}

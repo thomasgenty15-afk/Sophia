@@ -1,0 +1,241 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-apaisement-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux une potion d apaisement, pas un suivi. Ce qui me met sous pression la, c est une discussion qui tourne dans ma tete, et je suis tres stresse.",
+    "assistant": "Tu te sens stressé ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "orientation_clarification_resolved_tool_skill",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-apaisement-t01",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_handoff_clarifying",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_handoff_clarifying",
+        "no_chat_mutation": true,
+        "draft": null
+      }
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-apaisement-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, tres stresse. Et je veux vraiment garder ca ponctuel, sans suivi.",
+    "assistant": "Ce que je comprends : une discussion qui tourne dans ma tete ; stresse\n\nJe te conseille de choisir une potion d'apaisement court. Le shift recommandé est de redescendre la pression avant de reprendre.\n\nPourquoi cette potion : Tu te sens très stressé et sous pression à cause d'une discussion qui tourne dans ta tête, et tu as exprimé le besoin de redescendre. La Potion d'apaisement est la plus adaptée pour t'aider à retrouver un peu de calme et d'espace intérieur.\nPetit pas immédiat : Prends une grande inspiration. Laisse la pression redescendre un instant. Je suis là avec toi.\n\nÀ mettre dans la plateforme :\nPotion : Potion d'apaisement\n- Qu'est-ce qui te met le plus sous pression la ? une discussion qui tourne dans ma tete\n- Tu te sens plutot comment ? Tres stresse\nDans la plateforme, tu pourras aussi préciser si c'est lié à ton plan ou hors plan.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "active_handoff_turn_unclear",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-apaisement-t02",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_platform_handoff_delivered",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "handoff_delivered",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [
+        {
+          "kind": "no_followup",
+          "evidence": [
+            "Oui, tres stresse. Et je veux vraiment garder ca ponctuel, sans suivi."
+          ]
+        }
+      ],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_platform_handoff_delivered",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "une discussion qui tourne dans ma tete ; stresse",
+          "desired_shift_summary": "Le shift recommandé est de redescendre la pression avant de reprendre.",
+          "recommendation": {
+            "potion_label": "une potion d'apaisement court",
+            "why_this_potion": "Tu te sens très stressé et sous pression à cause d'une discussion qui tourne dans ta tête, et tu as exprimé le besoin de redescendre. La Potion d'apaisement est la plus adaptée pour t'aider à retrouver un peu de calme et d'espace intérieur.",
+            "immediate_step": "Prends une grande inspiration. Laisse la pression redescendre un instant. Je suis là avec toi.",
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "dans la section État / Potions",
+            "platform_steps": [
+              "ouvre la section État / Potions",
+              "choisis la potion recommandée",
+              "active-la depuis la plateforme si elle te convient"
+            ],
+            "platform_inputs": {
+              "potion_type": "apaisement",
+              "potion_title": "Potion d'apaisement",
+              "answers": [
+                {
+                  "question_id": "pressure_source",
+                  "question_label": "Qu'est-ce qui te met le plus sous pression la ?",
+                  "value": "une discussion qui tourne dans ma tete",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "pressure_state",
+                  "question_label": "Tu te sens plutot comment ?",
+                  "value": "Tres stresse",
+                  "option_value": "stresse",
+                  "option_label": "Tres stresse"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-apaisement-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Et je la lance ou exactement dans la plateforme ?",
+    "assistant": "Ce que je comprends : une discussion qui tourne dans ma tete ; stresse\n\nJe te conseille de choisir une potion d'apaisement court. Le shift recommandé est de redescendre la pression avant de reprendre.\n\nPourquoi cette potion : Tu te sens stressé et sous pression à cause d'une discussion qui tourne dans ta tête. Cette potion est là pour t'aider à redescendre et à retrouver un peu de calme.\nPetit pas immédiat : Prends une grande inspiration. Laisse la pression redescendre un instant. Je suis là avec toi.\n\nÀ mettre dans la plateforme :\nPotion : Potion d'apaisement\n- Qu'est-ce qui te met le plus sous pression la ? une discussion qui tourne dans ma tete\n- Tu te sens plutot comment ? Tres stresse\nDans la plateforme, tu pourras aussi préciser si c'est lié à ton plan ou hors plan.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "active_handoff_action_unclear",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-apaisement-t03",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_platform_handoff_delivered",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "handoff_delivered",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [
+        {
+          "kind": "no_followup",
+          "evidence": [
+            "Et je la lance ou exactement dans la plateforme ?"
+          ]
+        }
+      ],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_platform_handoff_delivered",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "une discussion qui tourne dans ma tete ; stresse",
+          "desired_shift_summary": "Le shift recommandé est de redescendre la pression avant de reprendre.",
+          "recommendation": {
+            "potion_label": "une potion d'apaisement court",
+            "why_this_potion": "Tu te sens stressé et sous pression à cause d'une discussion qui tourne dans ta tête. Cette potion est là pour t'aider à redescendre et à retrouver un peu de calme.",
+            "immediate_step": "Prends une grande inspiration. Laisse la pression redescendre un instant. Je suis là avec toi.",
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "dans la section État / Potions",
+            "platform_steps": [
+              "ouvre la section État / Potions",
+              "choisis la potion recommandée",
+              "active-la depuis la plateforme si elle te convient"
+            ],
+            "platform_inputs": {
+              "potion_type": "apaisement",
+              "potion_title": "Potion d'apaisement",
+              "answers": [
+                {
+                  "question_id": "pressure_source",
+                  "question_label": "Qu'est-ce qui te met le plus sous pression la ?",
+                  "value": "une discussion qui tourne dans ma tete",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "pressure_state",
+                  "question_label": "Tu te sens plutot comment ?",
+                  "value": "Tres stresse",
+                  "option_value": "stresse",
+                  "option_label": "Tres stresse"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    }
+  }
+]

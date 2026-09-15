@@ -143,13 +143,17 @@ Deno.test("⛔ LA PROTÉINE EST DANS LA PRÉPARATION, et elle mord quand même",
 // 5. LA RELANCE
 // ===========================================================================
 
-Deno.test("⛔ LA RELANCE NOMME LE PLAT, ET INTERDIT DE RACCOURCIR LE PLAN", () => {
+Deno.test("⛔ LA RELANCE NOMME LE PLAT, ET INTERDIT DE LE SUPPRIMER", () => {
   const out = exclusionRetryInstruction([
     { dish: "Poulet fajita", matched: "poulet", because: "Je n'aime pas le poulet" },
   ])!;
   assert(out.includes("Poulet fajita"), "le plat n'est pas nommé: tout le plan serait recomposé");
   assert(out.includes("Je n'aime pas le poulet"));
-  assert(/do NOT shorten the plan/i.test(out));
+  // ⟳ 2026-09-13 · LOT 1 — « do NOT shorten the plan » A ÉTÉ RETIRÉ: il suppose
+  // qu'on rend un PLAN, et ce texte part dans une instruction qui demande un
+  // PATCH. Ce qui reste porte sur le plat nommé: on ne le supprime pas.
+  assert(!/shorten the plan/i.test(out), out);
+  assert(/do NOT drop the dish/i.test(out), out);
   // ⚠️ ET ELLE NE DIT PAS QUE C'EST MÉDICAL: sinon la personne reçoit un plan
   // qui s'excuse pour un goût.
   assert(!/allerg|medical rule/i.test(out.replace(/not a medical rule/i, "")));
@@ -211,36 +215,45 @@ Deno.test("⛔ LE PARSEUR RETIRE LA BOUCHE, jamais le plat ni le plan", async ()
   assert(!/throw |empty_meal/.test(after), "une morsure fait tomber le plan");
 });
 
-Deno.test("⛔ LA LANE FOYER RELANCE, et une morsure survivante est DITE", async () => {
+Deno.test("⛔ LA LANE FOYER CONSTATE, et une morsure survivante est DITE", async () => {
   const src = await Deno.readTextFile(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
-  assert(
-    /exclusion_retry/.test(src),
-    "la relance a disparu: une exclusion du FOYER n'a personne à retirer, " +
-      "donc sans relance elle redevient une consigne de prompt",
-  );
-  // ⛔ LA RELANCE NE DOIT PAS RACCOURCIR LE PLAN. « Réparer » l'exclusion en
-  // retirant des journées ferait payer son goût en semaine vide.
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — CE TEST ÉPINGLAIT UNE RELANCE LOCALE
+  // ══════════════════════════════════════════════════════════════════════
   //
-  // ⚠️ SCOPÉ AU BLOC DE L'EXCLUSION, ET C'EST UNE CORRECTION. La MÊME
-  // expression existe dans la relance d'ancre protéique, vingt lignes plus
-  // haut: un test qui cherchait dans tout le fichier restait VERT quand on
-  // retirait la garde d'ici — il mesurait l'autre bloc. Mesuré par mutation.
-  const retryAt = src.indexOf("exclusion_retry");
-  assert(retryAt > 0, "le bloc de relance a disparu");
-  const retryBlock = src.slice(retryAt, retryAt + 1400);
+  // Il exigeait que le site d'exclusion APPELLE le modèle, et que sa réponse
+  // ne raccourcisse pas le plan. Les deux exigences ont été remplacées par une
+  // plus forte: le site ne rappelle plus le modèle du tout, son constat rejoint
+  // la décision commune, et le PATCH qui en revient ne peut structurellement pas
+  // raccourcir le plan — il ne porte que les unités autorisées, et une unité
+  // omise reste celle du meilleur plan (`plan_repair_patch.ts`).
+  //
+  // ⛔ CE QUI NE CHANGE PAS, ET C'EST LE CŒUR DU LOT: une exclusion du FOYER
+  // n'a personne à retirer d'un contenant. Sans un chemin de réparation, elle
+  // redevient une consigne de prompt. Le chemin existe toujours — il est
+  // ailleurs.
   assert(
-    /retried\.dishes\.length >= meal\.dishes\.length/.test(retryBlock),
-    "la relance d'exclusion peut raccourcir le plan",
+    /exclusionRetryInstruction\(morsures\)/.test(src),
+    "le constat d'exclusion ne compose plus sa consigne: une exclusion du " +
+      "FOYER redeviendrait une consigne de prompt",
   );
   assert(
-    /after\.length < bitesBefore\.length/.test(retryBlock),
-    "la relance est acceptée sans avoir RÉDUIT les morsures",
+    /cause: "table_exclusion_served"/.test(src),
+    "le constat ne porte plus la cause de la garde: le périmètre de " +
+      "réparation ne saurait plus contaminer les portions du lot en cause",
+  );
+  // ⛔ ET IL N'APPELLE PLUS LE MODÈLE DEPUIS CE SITE. C'est la propriété que le
+  // lot 1 ajoute: un seul compteur, deux appels pour la requête entière.
+  assert(
+    !/tag: "keel\.household_meal\.exclusion_retry_rejected"/.test(src),
+    "la relance locale d'exclusion est revenue: elle consommerait le budget " +
+      "avant que tous les défauts soient connus",
   );
   assert(
     /still contains/.test(src),
-    "une morsure qui SURVIT à la relance n'est plus dite: le plan la sert " +
+    "une morsure qui SURVIT n'est plus dite: le plan la sert " +
       "en silence, ce que ce lot existe pour empêcher",
   );
   assert(

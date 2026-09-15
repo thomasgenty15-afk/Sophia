@@ -1,0 +1,15 @@
+[Veilleur] Triggered for user aac76fd6-a688-4027-951a-fa79c628fac5 scope=qa-pulse-v2-real-1781097066
+{"tag":"watcher_main_prompt_cache_ready","request_id":"pulse-v2-real-1781097066-watcher","stable_hash":"cfe69ebf","semi_stable_hash":"58d767c6","stable_chars":7306,"semi_stable_chars":952,"volatile_chars":1014,"full_chars":9276}
+{"tag":"gemini_result","request_id":"pulse-v2-real-1781097066-watcher","source":"trigger-watcher-batch","model":"gemini-3-flash-preview","json_mode":true,"tool_choice":"auto","has_tools":false,"outcome":"text"}
+[Veilleur] scheduled_checkins_inserted=1 user=aac76fd6-a688-4027-951a-fa79c628fac5 scope=qa-pulse-v2-real-1781097066
+{"tag":"watcher_momentum_state_updated","user_id":"aac76fd6-a688-4027-951a-fa79c628fac5","scope":"qa-pulse-v2-real-1781097066","momentum":{"state":"friction_legere","state_reason":"engaged_but_not_clearly_progressing","engagement":"high","progression":"unknown","emotional_load":"low","consent":"open","pending_transition_target":null,"pending_transition_confirmations":null,"stable_since_at":"2026-06-10T13:11:39.280Z","active_blockers_count":0,"chronic_blockers_count":0,"top_blocker_action":null,"top_blocker_category":null,"top_blocker_stage":null,"updated_at":"2026-06-10T13:14:30.969Z"}}
+{"tag":"gemini_result","request_id":"pulse-v2-real-1781097066-watcher","source":"watcher_conversation_pulse_v2","model":"gemini-3-flash-preview","json_mode":true,"tool_choice":"auto","has_tools":false,"outcome":"text"}
+{
+  "run_id": "pulse-v2-real-1781097066",
+  "scope": "qa-pulse-v2-real-1781097066",
+  "watcher_snapshots": 0,
+  "daily_snapshot_id": null,
+  "daily_generated": false,
+  "legacy_conversation_pulse_snapshots": 0,
+  "snapshots": []
+}

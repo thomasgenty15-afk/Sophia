@@ -1,0 +1,1245 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-long-2026-05-05-t01",
+    "user": "salut",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t01",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "",
+        "mode": "companion",
+        "aborted": true
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-long-2026-05-05-t02",
+    "user": "je suis arrive au bureau avec l'impression d'avoir deja perdu la journee",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t02",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "",
+        "mode": "companion",
+        "aborted": true
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-long-2026-05-05-t03",
+    "user": "j'ai rate mon rituel du matin encore une fois et je me parle super mal depuis",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t03",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "Ok. Après l’envoi, le premier pas concret c’est de ne pas rester devant l’écran à guetter.\n\nPendant 5 minutes : pose le téléphone hors de vue, note juste “j’ai réparé ce que je pouvais réparer maintenant”, puis fais un geste physique simple : boire de l’eau, prendre une douche, ou marcher un peu.\n\nLe but n’est pas de te convaincre que tout va bien. C’est d’éviter que ton cerveau transforme l’attente en procès.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-emotional-long-2026-05-05-t03",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "f5c06b2b-9dec-4cdc-a926-50cd0bcccb4b",
+        "ts": "2026-05-05T16:55:27.647+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 546,
+          "latency_ms": 1,
+          "tokens_out": 151,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-emotional-long-2026-05-05-t03",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "entry": {
+              "execution_breakdown": {
+                "reason": "execution_blocked",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "source_message_id": "f5c06b2b-9dec-4cdc-a926-50cd0bcccb4b"
+        },
+        "route_decision": {
+          "reason_code": "skill_handoff_requested",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "skill_handoff_requested",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 6086,
+        "created_at": "2026-05-05T16:55:27.648607+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-emotional-long-2026-05-05-t04",
+    "user": "dans ma tete ca fait: bravo, t'es incapable de tenir trois jours",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t04",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "Ok. Après l’envoi, le premier pas concret c’est de ne pas rester devant l’écran à guetter.\n\nPendant 5 minutes : pose le téléphone hors de vue, note juste “j’ai réparé ce que je pouvais réparer maintenant”, puis fais un geste physique simple : boire de l’eau, prendre une douche, ou marcher un peu.\n\nLe but n’est pas de te convaincre que tout va bien. C’est d’éviter que ton cerveau transforme l’attente en procès.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-emotional-long-2026-05-05-t04",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "d11615ed-9b95-4e22-b3ec-808cdea9f1a2",
+        "ts": "2026-05-05T16:55:49.192+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 662,
+          "latency_ms": 1,
+          "tokens_out": 151,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-emotional-long-2026-05-05-t04",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "entry": {
+              "execution_breakdown": {
+                "reason": "execution_blocked",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "source_message_id": "d11615ed-9b95-4e22-b3ec-808cdea9f1a2"
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 21485,
+        "created_at": "2026-05-05T16:55:49.193434+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-emotional-long-2026-05-05-t05",
+    "user": "j'ai pas envie qu'on me fasse un plan tout de suite, je crois que je suis surtout degoute de moi",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t05",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "Oui. Une version sobre, sans drama :\n\n« Je repense à ma façon de te répondre tout à l’heure. J’ai été sec, je suis désolé. Je tenais à te le dire simplement. »",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-emotional-long-2026-05-05-t05",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "a50a6785-0489-4fb7-8eb5-f9b10a4d00f8",
+        "ts": "2026-05-05T16:56:11.039+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "tout de suite"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 790,
+          "latency_ms": 0,
+          "tokens_out": 159,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [
+              "tout de suite"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ]
+          },
+          "channel": "web",
+          "turn_id": "qa-emotional-long-2026-05-05-t05",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "entry": {
+              "execution_breakdown": {
+                "reason": "execution_blocked",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "source_message_id": "a50a6785-0489-4fb7-8eb5-f9b10a4d00f8"
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 21776,
+        "created_at": "2026-05-05T16:56:11.040281+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-emotional-long-2026-05-05-t06",
+    "user": "ce qui me met la honte c'est que c'etait juste 20 minutes de presentation client a preparer",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t06",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "Aïe. Ça touche un endroit très dur : pas seulement “j’ai mal parlé”, mais “est-ce que je suis quelqu’un qui fait du mal ?”\n\nJe ne veux pas minimiser ce que tu as dit. Mais une parole sèche, même regrettable, ne suffit pas à résumer qui tu es. Le fait que ça te remue montre aussi que le lien compte pour toi.\n\nPour l’instant, on garde deux phrases séparées : “j’ai blessé / brusqué quelqu’un” et “je suis minable”. La première peut se réparer. La deuxième est la honte qui frappe trop large.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-emotional-long-2026-05-05-t06",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "c2a1f814-f619-4757-b967-9c878d3e7456",
+        "ts": "2026-05-05T16:56:38.125+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 787,
+          "latency_ms": 1,
+          "tokens_out": 123,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-emotional-long-2026-05-05-t06",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "entry": {
+              "emotional_repair": {
+                "reason": "self_attack_or_shame",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "source_message_id": "c2a1f814-f619-4757-b967-9c878d3e7456"
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "emotional_repair",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "emotional_repair"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 26608,
+        "created_at": "2026-05-05T16:56:38.126569+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-emotional-long-2026-05-05-t07",
+    "user": "je compare avec les autres et j'ai l'impression d'etre le seul adulte qui n'arrive pas a se gerer",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t07",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "",
+        "mode": "companion",
+        "aborted": true
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 8,
+    "requestId": "qa-emotional-long-2026-05-05-t08",
+    "user": "la pression redescend un peu quand tu dis que c'est un moment, pas une identite",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t08",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "",
+        "mode": "companion",
+        "aborted": true
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 9,
+    "requestId": "qa-emotional-long-2026-05-05-t09",
+    "user": "ok je peux regarder le truc concret: la presentation est pour jeudi, j'ai evite la slide d'intro",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t09",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "",
+        "mode": "companion",
+        "aborted": true
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 10,
+    "requestId": "qa-emotional-long-2026-05-05-t10",
+    "user": "je crois que je bloque parce que je veux que l'intro soit parfaite et je n'ose pas commencer",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t10",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "",
+        "mode": "companion",
+        "aborted": true
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 11,
+    "requestId": "qa-emotional-long-2026-05-05-t11",
+    "user": "si je fais 10 minutes maintenant, je pourrais juste noter 3 idees moches",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t11",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "",
+        "mode": "companion",
+        "aborted": true
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 12,
+    "requestId": "qa-emotional-long-2026-05-05-t12",
+    "user": "j'ai fait les 10 minutes, j'ai 3 idees moches mais au moins c'est sorti",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t12",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "",
+        "mode": "companion",
+        "aborted": true
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 13,
+    "requestId": "qa-emotional-long-2026-05-05-t13",
+    "user": "tu peux m'aider a transformer ca en prochaine petite action sans me remettre la pression ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t13",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "",
+        "mode": "companion",
+        "aborted": true
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 14,
+    "requestId": "qa-emotional-long-2026-05-05-t14",
+    "user": "en fait rappelle-moi ce soir a 18h de reprendre la slide d'intro 20 minutes",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t14",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "",
+        "mode": "companion",
+        "aborted": true
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 15,
+    "requestId": "qa-emotional-long-2026-05-05-t15",
+    "user": "oui confirme le rappel",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t15",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "",
+        "mode": "companion",
+        "aborted": true
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 16,
+    "requestId": "qa-emotional-long-2026-05-05-t16",
+    "user": "c'est quoi une carte d'attaque dans Sophia ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t16",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "Tu veux la carte d'attaque pour quelle action precisement ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-emotional-long-2026-05-05-t16",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "b66a122f-4590-43b2-87ce-69d261c56bd1",
+        "ts": "2026-05-05T16:57:13.925+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 597,
+          "latency_ms": 1,
+          "tokens_out": 290,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-emotional-long-2026-05-05-t16",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "entry": {
+              "execution_breakdown": {
+                "reason": "execution_blocked",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "product_signal": {
+            "kind": "how_to",
+            "detected": true,
+            "explicitness": "explicit",
+            "surface_hints": [
+              "product_help"
+            ],
+            "confidence_band": "high"
+          },
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Oui, une phrase exacte. Je veux qu elle reconnaisse le tort sans me flageller. \n\noui confirme le rappel \n\nLa phrase me va presque. Apres l envoyer, c est quoi le premier pas concret pour ne pas ruminer toute la soiree ? \n\nc'est quoi une carte d'attaque dans Sophia ?",
+              "user_intent": "create",
+              "explicitness": "explicit",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "b66a122f-4590-43b2-87ce-69d261c56bd1"
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "missing_slots": [
+            "target",
+            "title"
+          ],
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 3542,
+        "created_at": "2026-05-05T16:57:13.925728+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 17,
+    "requestId": "qa-emotional-long-2026-05-05-t17",
+    "user": "ok pas maintenant, je veux juste rester sur l'apaisement, parce que je sens encore un fond de honte",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t17",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "Je n'ai pas une cible assez claire pour creer la carte depuis le chat. Tu peux la preparer dans ton espace sur sophia-coach.ai.",
+        "mode": "companion",
+        "tool_execution": "failed",
+        "executed_tools": [
+          "prepare_attack_card"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-emotional-long-2026-05-05-t17",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "d1fdbd55-bddf-4066-bde2-7acd521a3114",
+        "ts": "2026-05-05T16:57:17.499+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "maintenant"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 642,
+          "latency_ms": 1,
+          "tokens_out": 295,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [
+              "maintenant"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ]
+          },
+          "channel": "web",
+          "turn_id": "qa-emotional-long-2026-05-05-t17",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "entry": {
+              "execution_breakdown": {
+                "reason": "execution_blocked",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "product_signal": {
+            "kind": "how_to",
+            "detected": true,
+            "explicitness": "explicit",
+            "surface_hints": [
+              "product_help"
+            ],
+            "confidence_band": "high"
+          },
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "La phrase me va presque. Apres l envoyer, c est quoi le premier pas concret pour ne pas ruminer toute la soiree ? \n\nc'est quoi une carte d'attaque dans Sophia ? \n\nok pas maintenant, je veux juste rester sur l'apaisement, parce que je sens encore un fond de honte",
+              "user_intent": "create",
+              "explicitness": "explicit",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "d1fdbd55-bddf-4066-bde2-7acd521a3114"
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "failed",
+            "tool_id": "prepare_attack_card"
+          }
+        ],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "fallback_dashboard",
+          "reason_code": "active_tool_skill_continue",
+          "missing_slots": [
+            "target",
+            "title"
+          ],
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 3533,
+        "created_at": "2026-05-05T16:57:17.500611+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 18,
+    "requestId": "qa-emotional-long-2026-05-05-t18",
+    "user": "je suis pas en danger, juste fatigue et un peu triste de fonctionner comme ca",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t18",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "Je n'ai pas une cible assez claire pour creer la carte depuis le chat. Tu peux la preparer dans ton espace sur sophia-coach.ai.",
+        "mode": "companion",
+        "tool_execution": "failed",
+        "executed_tools": [
+          "prepare_attack_card"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-emotional-long-2026-05-05-t18",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "53ea8081-2ccb-4dfb-9194-12739d202832",
+        "ts": "2026-05-05T16:57:21.071+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "maintenant"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 655,
+          "latency_ms": 0,
+          "tokens_out": 157,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [
+              "maintenant"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ]
+          },
+          "channel": "web",
+          "turn_id": "qa-emotional-long-2026-05-05-t18",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "entry": {
+              "emotional_repair": {
+                "reason": "self_attack_or_shame",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "source_message_id": "53ea8081-2ccb-4dfb-9194-12739d202832"
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "failed",
+            "tool_id": "prepare_attack_card"
+          }
+        ],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "fallback_dashboard",
+          "reason_code": "active_tool_skill_continue",
+          "missing_slots": [
+            "target",
+            "title"
+          ],
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 3535,
+        "created_at": "2026-05-05T16:57:21.072219+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 19,
+    "requestId": "qa-emotional-long-2026-05-05-t19",
+    "user": "je veux garder en memoire que quand je rate le matin, j'ai besoin qu'on m'aide a revenir sans me juger, pas qu'on me pousse tout de suite",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t19",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "Je n'ai pas une cible assez claire pour creer la carte depuis le chat. Tu peux la preparer dans ton espace sur sophia-coach.ai.",
+        "mode": "companion",
+        "tool_execution": "failed",
+        "executed_tools": [
+          "prepare_attack_card"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-emotional-long-2026-05-05-t19",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "60483abc-9365-4a1e-8b02-a496dc43bb42",
+        "ts": "2026-05-05T16:57:24.662+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "tout de suite"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 697,
+          "latency_ms": 0,
+          "tokens_out": 132,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [
+              "tout de suite"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ]
+          },
+          "channel": "web",
+          "turn_id": "qa-emotional-long-2026-05-05-t19",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "source_message_id": "60483abc-9365-4a1e-8b02-a496dc43bb42"
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "failed",
+            "tool_id": "prepare_attack_card"
+          }
+        ],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "fallback_dashboard",
+          "reason_code": "active_tool_skill_continue",
+          "missing_slots": [
+            "target",
+            "title"
+          ],
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 3536,
+        "created_at": "2026-05-05T16:57:24.663425+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 20,
+    "requestId": "qa-emotional-long-2026-05-05-t20",
+    "user": "merci, pour demain je veux juste une phrase simple a me dire si je rate encore le rituel",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-long-2026-05-05-t20",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "web",
+      "response": {
+        "content": "Je te propose de creer une carte d'attaque courte pour demain je veux juste une phrase simple a me dire si je rate encore le rituel: Fais la version 4 minutes de \"demain je veux juste une phrase simple a me dire si je rate encore le rituel\", assez petite pour ne pas negocier. Tu veux que je la cree ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-emotional-long-2026-05-05-t20",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "2748e4e5-b3ac-49c4-9a7f-ce9c6dc7a961",
+        "ts": "2026-05-05T16:57:28.242+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "tout de suite"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 760,
+          "latency_ms": 0,
+          "tokens_out": 132,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [
+              "tout de suite"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ]
+          },
+          "channel": "web",
+          "turn_id": "qa-emotional-long-2026-05-05-t20",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "source_message_id": "2748e4e5-b3ac-49c4-9a7f-ce9c6dc7a961"
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - demain je veux juste une phrase simple a me dire si je rate encore le rituel",
+              "technique": "minimum_version",
+              "instruction": "Fais la version 4 minutes de \"demain je veux juste une phrase simple a me dire si je rate encore le rituel\", assez petite pour ne pas negocier.",
+              "target_label": "demain je veux juste une phrase simple a me dire si je rate encore le rituel",
+              "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose de creer une carte d'attaque courte pour demain je veux juste une phrase simple a me dire si je rate encore le rituel: Fais la version 4 minutes de \"demain je veux juste une phrase simple a me dire si je rate encore le rituel\", assez petite pour ne pas negocier. Tu veux que je la cree ?"
+          },
+          "status": "pending_confirmation",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "2ea1403e-4afc-46f2-b3c0-a2cc0bab48ac",
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 3537,
+        "created_at": "2026-05-05T16:57:28.243445+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

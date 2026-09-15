@@ -1,0 +1,14 @@
+{
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "count": 0,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "count": 0,
+    "body": []
+  }
+}

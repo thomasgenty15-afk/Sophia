@@ -1,0 +1,19 @@
+{
+  "qaPhone": "+33698360907",
+  "planIds": [
+    "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+    "a0f9667e-f702-42fe-86d5-df7f1ad29900"
+  ],
+  "itemIds": [
+    "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+    "2c7dc879-a7db-44ca-906a-ac77c449e566"
+  ],
+  "occurrenceIds": [
+    "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+    "fd55b1ed-803a-4161-873c-8b696685a1f0"
+  ],
+  "checkinId": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+  "pendingIds": [],
+  "entryIds": [],
+  "dedupWamids": []
+}

@@ -117,7 +117,7 @@ Deno.test("B3 — la casserole a UNE masse et UNE densité dans tout le moteur",
       preparations: pots.map((p) => ({ ...p, servingsMade: 1 })),
     },
     memberId: "m1",
-    rows: [{ dishIndex: 0, factor: 1, sized: true }],
+    rows: [{ dishIndex: 0, factor: 1, sized: true, recipeShare: null }],
     index: INDEX,
   });
   assertEquals(applied.dishes[0].boxes[0].items[0].grams, 260);
@@ -152,7 +152,7 @@ Deno.test("B3 — mesurer l'assiette et mesurer les composants appliqués donnen
   const applied = applySizing({
     meal,
     memberId: "m1",
-    rows: meal.dishes.map((_, i) => ({ dishIndex: i, factor: 1, sized: true })),
+    rows: meal.dishes.map((_, i) => ({ dishIndex: i, factor: 1, sized: true, recipeShare: null })),
     index: INDEX,
   });
   const ecrit = applied.dishes[0].boxes[0].items.reduce(
@@ -244,7 +244,7 @@ Deno.test("B5 — un foyer d'UNE bouche est mesuré, pas exempté", () => {
   const applied = applySizing({
     meal,
     memberId: "m_seul",
-    rows: [{ dishIndex: 0, factor: 1, sized: true }],
+    rows: [{ dishIndex: 0, factor: 1, sized: true, recipeShare: null }],
     index: INDEX,
   });
   // 400 g de riz ⇒ 1 040 g prêts. Le plafond d'un dîner d'adulte est 700 g.
@@ -322,7 +322,7 @@ Deno.test("B5 — la remesure porte sur les grammes ÉCRITS, pas sur la part ann
   const applied = applySizing({
     meal,
     memberId: "m_seul",
-    rows: [{ dishIndex: 0, factor: sized.factor, sized: true }],
+    rows: [{ dishIndex: 0, factor: sized.factor, sized: true, recipeShare: null }],
     index: INDEX,
   });
   const check = finalPortionCheck({

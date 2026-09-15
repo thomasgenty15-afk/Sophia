@@ -318,7 +318,23 @@ Deno.test("le bloc DIT que la liste ne limite pas la cuisine", () => {
   // alimentaire; le confondre ferait du catalogue un garde-manger.
   const bloc = catalog([ref({ slug: "chicken_breast" })]).lines.join("\n");
   assert(bloc.includes("does NOT limit what you may cook"));
-  assert(bloc.includes('leave "ref" out'));
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · ÉTAPE C1 — LA PHRASE QUI AUTORISAIT L'OMISSION EST PARTIE
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ CE TEST EXIGEAIT `leave "ref" out`, ET C'ÉTAIT LA PERMISSION. Au tir
+  // n° 2 du 2026-09-11 le modèle a rendu 31 lignes et ZÉRO identifiant; la
+  // pita du dimanche soir n'a rien pesé et la case est partie sans portion.
+  // La compatibilité des plans HISTORIQUES sans `ref` reste un mode de
+  // LECTURE (`refForIngredient`); elle ne vaut pas autorisation pour une
+  // sortie neuve.
+  assert(
+    !bloc.includes('leave "ref" out'),
+    "⛔ le bloc ne doit plus autoriser l'omission de l'identifiant",
+  );
+  // LA RÈGLE QUI LA REMPLACE, ET SES DEUX MOITIÉS.
+  assert(bloc.includes('"ref", "amount", "unit"'), "la ligne pesée porte les trois");
+  assert(bloc.includes("pinch="), "la convention du condiment est nommée");
   // Et la clé de schéma est DANS le bloc qui porte la liste: la promesse et la
   // clé doivent se toucher (0 % de conformité mesuré quand elles sont séparées).
   assert(bloc.includes('add "ref"'));

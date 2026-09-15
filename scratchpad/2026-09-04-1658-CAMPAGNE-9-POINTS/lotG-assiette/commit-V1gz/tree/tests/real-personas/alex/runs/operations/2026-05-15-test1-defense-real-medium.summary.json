@@ -1,0 +1,73 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-medium-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'ai besoin d'un filet de sécurité pour le soir, le moment où après le carnet je me dis juste deux minutes de téléphone et après je repars dedans.",
+    "assistant": "Voici ton filet de sécurité :\n\n🚩 Risque : Juste 2 min de téléphone après le carnet.\n🛡️ Action : Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer.\n💡 Pourquoi : Pour casser l'automatisme et protéger ton calme.\n\nOn valide cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Le piège des '2 minutes'",
+          "trigger": "La pensée : 'Allez, juste deux minutes de téléphone'.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Cela casse l'automatisme et protège ton sommeil en évitant la stimulation visuelle.",
+          "fallback_plan": "Si j'ai déjà le téléphone en main, je lance un minuteur de 1 minute pour le poser immédiatement.",
+          "risk_situation": "Après le carnet, la tentation de regarder le téléphone 'juste deux minutes'.",
+          "defense_response": "Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer."
+        },
+        "output_schema": "defense_card_draft_v1",
+        "operation_type": "prepare_defense_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ton filet de sécurité :\n\n🚩 Risque : Juste 2 min de téléphone après le carnet.\n🛡️ Action : Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer.\n💡 Pourquoi : Pour casser l'automatisme et protéger ton calme.\n\nOn valide cette carte ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "a53203ee-e8a0-42ec-b27a-28f4f30e77e7",
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-medium-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui valide.",
+    "assistant": "C'est fait. J'ai créé la carte de défense \"Le piège des '2 minutes'\" : Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer.\n\nTu peux la retrouver dans Ressources > Cartes de defense pour la relire, l'utiliser et l'ajuster depuis la plateforme quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, je peux aussi en preparer une nouvelle version apres confirmation.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_defense_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "a53203ee-e8a0-42ec-b27a-28f4f30e77e7",
+      "defense_card_id": "ae26fc60-9381-4960-8129-2ad4c85c3bc2",
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

@@ -1,0 +1,764 @@
+{
+  "run_id": "daily-d2-two-actions-skill-2026-05-15-r4",
+  "persona": "paul",
+  "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+  "connection_path": "tests/real-personas/paul/connection.json",
+  "created_at": "2026-05-15T12:12:28.095Z",
+  "qa_mode": "manual_adaptive_turn_by_turn",
+  "anti_hardcoding": {
+    "ids_discovered_at_runtime": true,
+    "user_replies_pre_scripted": false,
+    "dynamic_daily_generated_if_needed": false
+  },
+  "whatsapp": {
+    "from": "15551990669767",
+    "display_phone": "15553093746764",
+    "phone_number_id": "0473df414d7d9178"
+  },
+  "pending_initial": {
+    "id": "c0a29aa2-21af-42ab-9b6f-7816bf3392d1",
+    "scheduled_checkin_id": "2ed7f23f-b914-48f8-8fa5-736c177e16b0",
+    "status": "pending",
+    "payload": {
+      "targets": [
+        {
+          "kind": "habit",
+          "title": "Faire une session de travail focus (2h)",
+          "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+          "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+          "dimension": "habits",
+          "planned_day": "tue",
+          "time_of_day": "anytime",
+          "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+          "occurrence_id": "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+          "tracking_type": "count",
+          "week_start_date": "2026-05-18",
+          "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+          "reviewed_local_date": "2026-05-19",
+          "original_planned_day": null
+        },
+        {
+          "kind": "task",
+          "title": "Bloquer tes créneaux de la semaine",
+          "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+          "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+          "dimension": "missions",
+          "planned_day": "tue",
+          "time_of_day": "anytime",
+          "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+          "occurrence_id": "98f69549-ad61-4944-ad6f-c4d666f02f10",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-05-18",
+          "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+          "reviewed_local_date": "2026-05-19",
+          "original_planned_day": "mon"
+        }
+      ],
+      "timezone": "Europe/Paris",
+      "local_date": "2026-05-19",
+      "message_mode": "conversation",
+      "review_state": {
+        "items": {
+          "8d619c8d-46c8-4462-ac96-9695b8eec41f": {
+            "title": "Faire une session de travail focus (2h)",
+            "outcome": null,
+            "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "habit",
+            "reason_text": null,
+            "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+            "evidence_text": null,
+            "missing_slots": [
+              "outcome"
+            ],
+            "occurrence_id": "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          },
+          "98f69549-ad61-4944-ad6f-c4d666f02f10": {
+            "title": "Bloquer tes créneaux de la semaine",
+            "outcome": null,
+            "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "mission",
+            "reason_text": null,
+            "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+            "evidence_text": null,
+            "missing_slots": [
+              "outcome"
+            ],
+            "occurrence_id": "98f69549-ad61-4944-ad6f-c4d666f02f10",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          }
+        },
+        "source": "daily_action_review_v1",
+        "status": "collecting",
+        "skill_id": "daily_action_review_v1",
+        "stop_reason": null,
+        "next_question": null,
+        "should_apply_effects": false,
+        "next_question_targets": [
+          "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+          "98f69549-ad61-4944-ad6f-c4d666f02f10"
+        ],
+        "generated_user_message": null,
+        "remaining_occurrence_ids": [],
+        "asked_occurrence_ids_history": [
+          [
+            "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+            "98f69549-ad61-4944-ad6f-c4d666f02f10"
+          ]
+        ],
+        "current_focus_occurrence_ids": [
+          "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+          "98f69549-ad61-4944-ad6f-c4d666f02f10"
+        ]
+      },
+      "draft_message": "Je voulais voir où tu en es sur les deux actions du jour : la session de travail focus (2h) et le blocage de tes créneaux de la semaine.  \nTu me dis ce qui a été fait et/ou ce qui a coincé ?",
+      "event_context": "action_evening_review_v2",
+      "occurrence_ids": [
+        "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+        "98f69549-ad61-4944-ad6f-c4d666f02f10"
+      ],
+      "chat_capability": "daily_action_review",
+      "grouping_reason": "priority",
+      "week_start_date": "2026-05-18",
+      "asked_occurrence_ids": [
+        "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+        "98f69549-ad61-4944-ad6f-c4d666f02f10"
+      ],
+      "action_evening_review": true,
+      "not_yet_asked_occurrence_ids": []
+    },
+    "created_at": "2026-05-15T12:12:18.640481+00:00"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "role": "assistant",
+      "text": "Je voulais voir où tu en es sur les deux actions du jour : la session de travail focus (2h) et le blocage de tes créneaux de la semaine.  \nTu me dis ce qui a été fait et/ou ce qui a coincé ?",
+      "source": "existing_pending"
+    },
+    {
+      "turn": 1,
+      "role": "user",
+      "text": "La session focus, oui, je l'ai faite : j'ai tenu quasiment les deux heures. Par contre je n'ai pas bloqué mes créneaux, j'ai repoussé parce que j'étais saturé après ma journée et je n'avais plus envie d'ouvrir l'agenda."
+    },
+    {
+      "turn": 1,
+      "role": "assistant",
+      "text": "C'est noté pour ta session focus. Pour le blocage de tes créneaux, est-ce que tu souhaites le reporter à demain ?",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_clarification",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "0d59df93-4bb6-4f71-b485-da84787f54d4",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "pending",
+        "entries_count": 16,
+        "occurrence_statuses": [
+          {
+            "id": "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+            "status": "planned"
+          },
+          {
+            "id": "98f69549-ad61-4944-ad6f-c4d666f02f10",
+            "status": "rescheduled"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 2,
+      "role": "user",
+      "text": "Oui, reporte-le à demain. Je préfère m'en occuper quand je suis moins saturé."
+    },
+    {
+      "turn": 2,
+      "role": "assistant",
+      "text": "C'est entendu. J'ai bien noté ta session focus de 2h. Pour le blocage de tes créneaux, je note que tu étais saturé et je reporte cette mission à demain comme tu l'as demandé.",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_clarification",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "59221666-c194-4c69-b359-bbd44ada2853",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "pending",
+        "entries_count": 16,
+        "occurrence_statuses": [
+          {
+            "id": "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+            "status": "planned"
+          },
+          {
+            "id": "98f69549-ad61-4944-ad6f-c4d666f02f10",
+            "status": "rescheduled"
+          }
+        ]
+      }
+    }
+  ],
+  "latest": {
+    "pending_after": [
+      {
+        "id": "c0a29aa2-21af-42ab-9b6f-7816bf3392d1",
+        "status": "pending",
+        "payload": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Faire une session de travail focus (2h)",
+              "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+              "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+              "dimension": "habits",
+              "planned_day": "tue",
+              "time_of_day": "anytime",
+              "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+              "occurrence_id": "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+              "tracking_type": "count",
+              "week_start_date": "2026-05-18",
+              "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+              "reviewed_local_date": "2026-05-19",
+              "original_planned_day": null
+            },
+            {
+              "kind": "task",
+              "title": "Bloquer tes créneaux de la semaine",
+              "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+              "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+              "dimension": "missions",
+              "planned_day": "tue",
+              "time_of_day": "anytime",
+              "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+              "occurrence_id": "98f69549-ad61-4944-ad6f-c4d666f02f10",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-05-18",
+              "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+              "reviewed_local_date": "2026-05-19",
+              "original_planned_day": "mon"
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "local_date": "2026-05-19",
+          "message_mode": "conversation",
+          "review_state": {
+            "items": {
+              "8d619c8d-46c8-4462-ac96-9695b8eec41f": {
+                "title": "Faire une session de travail focus (2h)",
+                "outcome": "completed",
+                "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "habit",
+                "reason_text": null,
+                "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+                "evidence_text": "tenu quasiment les deux heures",
+                "missing_slots": [],
+                "occurrence_id": "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": "La session focus, oui, je l'ai faite : j'ai tenu quasiment les deux heures."
+              },
+              "98f69549-ad61-4944-ad6f-c4d666f02f10": {
+                "title": "Bloquer tes créneaux de la semaine",
+                "outcome": "missed",
+                "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": "saturé après ma journée et je n'avais plus envie d'ouvrir l'agenda",
+                "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+                "evidence_text": null,
+                "missing_slots": [
+                  "still_relevant"
+                ],
+                "occurrence_id": "98f69549-ad61-4944-ad6f-c4d666f02f10",
+                "still_relevant": "unknown",
+                "reason_category": "fatigue",
+                "matched_user_text": "Oui, reporte-le à demain. Je préfère m'en occuper quand je suis moins saturé."
+              }
+            },
+            "source": "daily_action_review_v1",
+            "status": "needs_clarification",
+            "skill_id": "daily_action_review_v1",
+            "stop_reason": "all_required_slots_filled",
+            "next_question": null,
+            "last_user_text": "Oui, reporte-le à demain. Je préfère m'en occuper quand je suis moins saturé.",
+            "should_apply_effects": false,
+            "next_question_targets": [],
+            "generated_user_message": "C'est entendu. J'ai bien noté ta session focus de 2h. Pour le blocage de tes créneaux, je note que tu étais saturé et je reporte cette mission à demain comme tu l'as demandé.",
+            "remaining_occurrence_ids": [],
+            "asked_occurrence_ids_history": [
+              [
+                "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+                "98f69549-ad61-4944-ad6f-c4d666f02f10"
+              ]
+            ],
+            "current_focus_occurrence_ids": []
+          },
+          "draft_message": "Je voulais voir où tu en es sur les deux actions du jour : la session de travail focus (2h) et le blocage de tes créneaux de la semaine.  \nTu me dis ce qui a été fait et/ou ce qui a coincé ?",
+          "event_context": "action_evening_review_v2",
+          "last_user_text": "Oui, reporte-le à demain. Je préfère m'en occuper quand je suis moins saturé.",
+          "occurrence_ids": [
+            "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+            "98f69549-ad61-4944-ad6f-c4d666f02f10"
+          ],
+          "chat_capability": "daily_action_review",
+          "grouping_reason": "priority",
+          "week_start_date": "2026-05-18",
+          "asked_occurrence_ids": [
+            "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+            "98f69549-ad61-4944-ad6f-c4d666f02f10"
+          ],
+          "action_evening_review": true,
+          "missing_occurrence_ids": [
+            "98f69549-ad61-4944-ad6f-c4d666f02f10"
+          ],
+          "not_yet_asked_occurrence_ids": []
+        },
+        "processed_at": null
+      }
+    ],
+    "entries": [
+      {
+        "id": "562c93a4-fa5d-4520-ac28-156897b18de4",
+        "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+        "entry_kind": "skip",
+        "outcome": "missed",
+        "value_text": "déjà saturé et je ne voulais pas ouvrir mon agenda ce soir",
+        "blocker_hint": "fatigue",
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-05-18",
+          "reason_text": "déjà saturé et je ne voulais pas ouvrir mon agenda ce soir",
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "98f69549-ad61-4944-ad6f-c4d666f02f10",
+          "outcome_source": "free_text",
+          "rescheduled_to": "tue",
+          "still_relevant": true,
+          "reason_category": "fatigue",
+          "matched_user_text": "Oui, reporte-le à demain. Je préfère le faire avec la tête plus fraîche.",
+          "occurrence_status": "rescheduled",
+          "pending_action_id": "4ec30df9-6fc4-428e-8c36-326bb220b5ee",
+          "reschedule_decision": "rescheduled_tomorrow",
+          "scheduled_checkin_id": "5212a1c3-a12e-4760-8921-a5528eeaa667"
+        },
+        "effective_at": "2026-05-18T12:00:00+00:00",
+        "created_at": "2026-05-14T17:04:07.824+00:00"
+      },
+      {
+        "id": "5c7aed9a-661b-4b9d-9800-26d5a8842cde",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-05-18",
+          "reason_text": null,
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "2b2edfe8-9b12-43a5-be93-de229fbab9a9",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": "Oui, pour moi la session focus est faite.",
+          "occurrence_status": "done",
+          "pending_action_id": "4ec30df9-6fc4-428e-8c36-326bb220b5ee",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": "5212a1c3-a12e-4760-8921-a5528eeaa667"
+        },
+        "effective_at": "2026-05-18T12:00:00+00:00",
+        "created_at": "2026-05-14T17:04:07.824+00:00"
+      },
+      {
+        "id": "d3d20b1c-0386-4a4d-b7b8-33180dae0870",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T13:52:53.288+00:00",
+        "created_at": "2026-05-13T13:52:53.288+00:00"
+      },
+      {
+        "id": "d1623809-7a77-4980-8d61-80d37facfb21",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T13:52:16.617+00:00",
+        "created_at": "2026-05-13T13:52:16.617+00:00"
+      },
+      {
+        "id": "7d50ba27-059e-44b4-bb02-e2c8e92b668c",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T13:51:55.127+00:00",
+        "created_at": "2026-05-13T13:51:55.127+00:00"
+      },
+      {
+        "id": "1892c78c-929d-4e89-8bd5-6476aebeb7c2",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "medium",
+          "local_date": "2026-05-17",
+          "reason_text": null,
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "f77106df-2119-479f-8819-2f4d91fa3975",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": "Oui, je l'ai faite. J'ai tenu les deux heures complètes, même si le démarrage m'a demandé un effort.",
+          "occurrence_status": "done",
+          "pending_action_id": "24d51850-6632-40fb-8774-64390c77764f",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": null
+        },
+        "effective_at": "2026-05-17T12:00:00+00:00",
+        "created_at": "2026-05-13T13:51:30.694+00:00"
+      },
+      {
+        "id": "ad77ab45-3418-4ba9-9bdf-6efcef20883f",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T02:28:00.569+00:00",
+        "created_at": "2026-05-13T02:28:00.569+00:00"
+      },
+      {
+        "id": "3d0626aa-0d26-473a-97b4-09cf1404ecda",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T02:27:31.485+00:00",
+        "created_at": "2026-05-13T02:27:31.485+00:00"
+      },
+      {
+        "id": "6bfcd6ae-0a46-4dd0-8114-d8e44a4dd45a",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T02:27:11.429+00:00",
+        "created_at": "2026-05-13T02:27:11.429+00:00"
+      },
+      {
+        "id": "576c8b74-4fe1-477d-a2c7-626208c11e6c",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T02:26:48.76+00:00",
+        "created_at": "2026-05-13T02:26:48.76+00:00"
+      },
+      {
+        "id": "0c74ba4a-8d4f-4825-8e70-cfbf5e09e0bd",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "partial",
+        "outcome": "partial",
+        "value_text": "Oui je l'ai fait, j'ai tenu les deux heures de focus. Le demarrage etait un peu laborieux mais apres c'etait bon.",
+        "blocker_hint": "unclear",
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "medium",
+          "local_date": "2026-05-16",
+          "reason_text": "Oui je l'ai fait, j'ai tenu les deux heures de focus. Le demarrage etait un peu laborieux mais apres c'etait bon.",
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "83628d73-778d-4f9c-9898-6a9213d6fba0",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "unclear",
+          "matched_user_text": "oui je l'ai fait j'ai tenu les deux heures de focus le demarrage etait un peu laborieux",
+          "occurrence_status": "partial",
+          "pending_action_id": "4746d76c-4f83-4969-87e3-c91eea956aed",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": null
+        },
+        "effective_at": "2026-05-16T12:00:00+00:00",
+        "created_at": "2026-05-13T02:26:30.976+00:00"
+      },
+      {
+        "id": "3acb0573-cf81-4ee0-b82d-6a4ba3edbf2c",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "medium",
+          "local_date": "2026-05-15",
+          "reason_text": null,
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "a3c1913e-1c8c-4b10-8e40-69074b51d0aa",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": "oui je l'ai faite j'ai bien tenu les deux heures de focus",
+          "occurrence_status": "done",
+          "pending_action_id": "df93268a-9610-4cbf-bba2-6f6639c22c21",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": null
+        },
+        "effective_at": "2026-05-15T12:00:00+00:00",
+        "created_at": "2026-05-13T01:32:40.114+00:00"
+      },
+      {
+        "id": "21a9e5c1-95fe-431a-8e87-3e54bf2605c3",
+        "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+        "entry_kind": "skip",
+        "outcome": "missed",
+        "value_text": "J'ai fait la premiere, la mission pas fait parce que j'etais creve, et la clarification j'ai commence mais pas fini.",
+        "blocker_hint": "fatigue",
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "medium",
+          "local_date": "2026-05-14",
+          "reason_text": "J'ai fait la premiere, la mission pas fait parce que j'etais creve, et la clarification j'ai commence mais pas fini.",
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "3a9789da-992c-4b71-a25a-e0edb0c5643d",
+          "outcome_source": "free_text",
+          "rescheduled_to": "fri",
+          "still_relevant": null,
+          "reason_category": "fatigue",
+          "matched_user_text": "j'ai fait la premiere la mission pas fait parce que j'etais creve",
+          "occurrence_status": "rescheduled",
+          "pending_action_id": "2dd0b929-a06d-4df6-b6b6-70c73d42a0c9",
+          "reschedule_decision": "rescheduled_tomorrow",
+          "scheduled_checkin_id": null
+        },
+        "effective_at": "2026-05-14T12:00:00+00:00",
+        "created_at": "2026-05-13T01:19:57.809+00:00"
+      },
+      {
+        "id": "63f355bc-f9c8-49b6-b1b9-233df6f9f405",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "medium",
+          "local_date": "2026-05-14",
+          "reason_text": null,
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "053ad5c2-9d09-4b40-ad9d-f048c0b1d101",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": "j'ai fait la premiere la",
+          "occurrence_status": "done",
+          "pending_action_id": "2dd0b929-a06d-4df6-b6b6-70c73d42a0c9",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": null
+        },
+        "effective_at": "2026-05-14T12:00:00+00:00",
+        "created_at": "2026-05-13T01:19:57.809+00:00"
+      },
+      {
+        "id": "355efaa4-4e71-4a95-8f70-e697133f6165",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "medium",
+          "local_date": "2026-05-13",
+          "reason_text": null,
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "3fa7037d-69f1-47e5-b4ee-273a8b83703c",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": "j'ai fait la premiere la",
+          "occurrence_status": "done",
+          "pending_action_id": "c47f51e5-59dd-457e-93db-b078ef34d101",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": null
+        },
+        "effective_at": "2026-05-13T12:00:00+00:00",
+        "created_at": "2026-05-13T01:10:56.023+00:00"
+      },
+      {
+        "id": "64aa801a-efb9-43de-b19d-d22fbae77f70",
+        "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+        "entry_kind": "skip",
+        "outcome": "missed",
+        "value_text": "J'ai fait la premiere, la mission pas fait parce que j'etais creve, et la clarification j'ai commence mais pas fini.",
+        "blocker_hint": "fatigue",
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "medium",
+          "local_date": "2026-05-13",
+          "reason_text": "J'ai fait la premiere, la mission pas fait parce que j'etais creve, et la clarification j'ai commence mais pas fini.",
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "7c413e3d-d113-4f97-a3dd-9a09188c5d13",
+          "outcome_source": "free_text",
+          "rescheduled_to": "thu",
+          "still_relevant": null,
+          "reason_category": "fatigue",
+          "matched_user_text": "j'ai fait la premiere la mission pas fait parce que j'etais creve",
+          "occurrence_status": "rescheduled",
+          "pending_action_id": "c47f51e5-59dd-457e-93db-b078ef34d101",
+          "reschedule_decision": "rescheduled_tomorrow",
+          "scheduled_checkin_id": null
+        },
+        "effective_at": "2026-05-13T12:00:00+00:00",
+        "created_at": "2026-05-13T01:10:56.023+00:00"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "planned_day": "tue",
+        "status": "planned",
+        "source": "default_generated",
+        "validated_at": null,
+        "updated_at": "2026-05-12T16:26:44.485+00:00"
+      },
+      {
+        "id": "98f69549-ad61-4944-ad6f-c4d666f02f10",
+        "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+        "planned_day": "tue",
+        "status": "rescheduled",
+        "source": "auto_rescheduled",
+        "validated_at": null,
+        "updated_at": "2026-05-14T17:04:07.824+00:00"
+      }
+    ]
+  }
+}

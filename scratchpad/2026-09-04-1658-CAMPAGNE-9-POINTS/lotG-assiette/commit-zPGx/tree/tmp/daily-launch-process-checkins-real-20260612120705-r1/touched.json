@@ -1,0 +1,16 @@
+{
+  "isolatedDueRows": [
+    {
+      "id": "8363fc9a-540b-4756-945b-eafdd7fc0f0f",
+      "original_scheduled_for": "2026-06-08T16:14:17.309+00:00",
+      "isolated_scheduled_for": "2026-06-12T20:07:06.179Z"
+    },
+    {
+      "id": "666976c4-762d-4014-8eb0-c00a6b75f951",
+      "original_scheduled_for": "2026-06-09T20:42:01.669+00:00",
+      "isolated_scheduled_for": "2026-06-12T20:07:07.179Z"
+    }
+  ],
+  "qaCheckinId": "eeb92c72-2cd0-43c9-a8e9-500dea9fc2c9",
+  "qaPhone": "+33699103022"
+}

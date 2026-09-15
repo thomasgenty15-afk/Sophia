@@ -1,0 +1,500 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5174",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5174,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-alt",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5175",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5175,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-alt2",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5176",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5176,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-alt3",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5177",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5177,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-alt4",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5178",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5178,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-alt5",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5179",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5179,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-a8",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5188",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5188,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-a10",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5180",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5180,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-a15",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5185",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5185,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-a12",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5182",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5182,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-a20",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5190",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5190,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-a16",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5186",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5186,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-a21",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5191",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5191,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-a24",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5194",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5194,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-a3b",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5195",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5195,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-a4b",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5196",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5196,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-a4c",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5197",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5197,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-e",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5198",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5198,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-l8b",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5199",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5199,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-d7",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5201",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5201,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-f1b",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5202",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5202,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-h1",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5205",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5205,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-b2c",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5210",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5210,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-ff059",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5215",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5215,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-1session",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5220",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5220,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-rapide",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5203",
+        "--strictPort"
+      ],
+      "cwd": ".worktrees/RAPIDE/frontend",
+      "port": 5203,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-foyer",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5204",
+        "--strictPort"
+      ],
+      "cwd": ".worktrees/FOYER/frontend",
+      "port": 5204,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-cuisine",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5206",
+        "--strictPort"
+      ],
+      "cwd": ".worktrees/CUISINE/frontend",
+      "port": 5206,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-membre",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5207",
+        "--strictPort"
+      ],
+      "cwd": ".worktrees/MEMBRE/frontend",
+      "port": 5207,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-suivi",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5208",
+        "--strictPort"
+      ],
+      "cwd": ".worktrees/SUIVI/frontend",
+      "port": 5208,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-verif",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5209",
+        "--strictPort"
+      ],
+      "cwd": ".worktrees/VERIF/frontend",
+      "port": 5209,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-verif2",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5211",
+        "--strictPort"
+      ],
+      "cwd": ".worktrees/VERIF2/frontend",
+      "port": 5211,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-seo",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5230",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5230,
+      "autoPort": false
+    }
+  ]
+}

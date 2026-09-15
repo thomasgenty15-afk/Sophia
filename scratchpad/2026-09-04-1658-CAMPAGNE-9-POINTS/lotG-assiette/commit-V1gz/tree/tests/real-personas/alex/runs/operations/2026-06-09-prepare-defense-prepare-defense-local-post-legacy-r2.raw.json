@@ -1,0 +1,4682 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "J'aimerais préparer une carte de défense pour les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t01",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Pour répondre à la question « Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? », est-ce que cette formulation te convient : « les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement » ?",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t01",
+            "source_message_id": "32898abf-5296-4436-891b-1552a4ffd682",
+            "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "prepare_defense_card",
+                "explicitness": "explicit",
+                "target_hint": "soirs où je rentre rincé et je commande au lieu de dîner normalement",
+                "operation_input": {
+                  "target_hint": "soirs où je rentre rincé et je commande au lieu de dîner normalement",
+                  "evidence": [
+                    "J'aimerais préparer une carte de défense",
+                    "soirs où je rentre rincé",
+                    "j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement"
+                  ]
+                },
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "create"
+              }
+            ],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "source_flow_presentation": "Global dispatcher selected a non-normal routing signal and is handing context to the target local dispatcher.",
+              "source_flow_state_summary": "signal=tool_skill_intent; target=prepare_defense_card; confidence=high",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "prepare_defense_card",
+              "handoff_context_for_next_dispatcher": "User explicitly asks to create a defense card for a specific risk moment (ordering food when exhausted). Use the provided evidence to seed the card creation.",
+              "target_local_dispatcher_hint": "Run the local dispatcher for prepare_defense_card. Preserve dispatcher evidence and ask for missing slots if needed.",
+              "user_words": [
+                "J'aimerais préparer une carte de défense pour les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement."
+              ],
+              "structured_context": {
+                "primary_signal_path": "tool_skill_intents[0]",
+                "target_kind": "tool_skill",
+                "target_flow": "prepare_defense_card",
+                "confidence_band": "high",
+                "evidence": [
+                  "J'aimerais préparer une carte de défense"
+                ]
+              },
+              "risk_score": 0,
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              }
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "sante.alimentation",
+                  "query_hint": "habitudes alimentaires soir fatigue",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "habitudes.procrastination",
+                  "query_hint": "craquage soir fatigue",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "low",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "tool_skill_intent_start",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "prepare_defense_card"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "defense_card_handoff"
+            ],
+            "operation_types": [
+              "prepare_defense_card"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "dispatcher:prepare_defense_card:0",
+                "kind": "platform_handoff",
+                "owner": "defense_card_handoff",
+                "operation_type": "prepare_defense_card",
+                "intent": "create",
+                "source": "dispatcher",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "prepare_defense_card",
+            "reason_code": "prepare_defense_card_local_collecting",
+            "operation_type": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "collecting",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "pending_confirmation": null,
+            "handoff_state": {
+              "skill_id": "prepare_defense_card",
+              "mode": "platform_handoff",
+              "status": "collecting",
+              "draft": null,
+              "local_state": {
+                "flow_id": "prepare_defense_card",
+                "route_kind": "free_card",
+                "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+                "tool_fit_state": {
+                  "status": "ambiguous",
+                  "reason": "Le besoin concerne la protection contre une impulsion automatique (commande de livraison) lors d'un moment de fatigue.",
+                  "needs_user_confirmation": false,
+                  "why_status": "L'intention de défense est explicite et correspond à la définition d'une carte de défense."
+                },
+                "attachment_state": {
+                  "status": "proposed",
+                  "kind": "free_risk_context",
+                  "plan_item_id": null,
+                  "candidate_value": "soirs de fatigue et commandes automatiques",
+                  "locked_value": null,
+                  "candidate_options": [],
+                  "needs_user_confirmation": true,
+                  "why_status": "Contexte de risque identifié."
+                },
+                "risk_state": {
+                  "status": "proposed",
+                  "label": "Commande automatique par fatigue",
+                  "description": "Rentrer fatigué et commander sur une application par automatisme au lieu de cuisiner.",
+                  "timing_hint": "le soir au retour du travail",
+                  "context_hint": "état d'épuisement",
+                  "needs_user_confirmation": true,
+                  "why_status": "Risque qualifié à partir de la description utilisateur."
+                },
+                "trigger_state": {
+                  "status": "missing",
+                  "type": null,
+                  "candidate_value": null,
+                  "locked_value": null,
+                  "needs_user_confirmation": false,
+                  "why_status": "Le signal précis déclencheur n'est pas encore isolé."
+                },
+                "defense_goal_state": {
+                  "status": "missing",
+                  "value": null,
+                  "candidate_value": null,
+                  "locked_value": null,
+                  "needs_user_confirmation": false,
+                  "why_status": "L'objectif alternatif n'est pas encore défini."
+                },
+                "defense_response_hint_state": {
+                  "status": "missing",
+                  "strategy_hint": null,
+                  "candidate_value": null,
+                  "locked_value": null,
+                  "needs_user_confirmation": false,
+                  "why_status": "La réponse défensive n'est pas encore définie."
+                },
+                "support_need_state": {
+                  "field_id": "support_need",
+                  "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                  "status": "proposed",
+                  "candidate_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                  "locked_value": null,
+                  "previous_value": null,
+                  "needs_user_confirmation": true,
+                  "why_status": "Valeur extraite du message initial, à confirmer pour le champ plateforme."
+                },
+                "last_visible_task": "confirm_support_need_proposal",
+                "last_handoff_delivered": false,
+                "subskill_history": []
+              },
+              "turn_count": 1,
+              "max_turns": 8,
+              "created_at": "2026-06-09T20:18:25.813Z",
+              "updated_at": "2026-06-09T20:18:25.813Z",
+              "no_chat_mutation": true
+            },
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "active flow entry",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "missing",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher called",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "missing",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "note_information_consumed",
+                "note_information": {
+                  "source_flow_id": "global_dispatcher",
+                  "source_flow_presentation": "Global dispatcher selected a non-normal routing signal and is handing context to the target local dispatcher.",
+                  "source_flow_state_summary": "signal=tool_skill_intent; target=prepare_defense_card; confidence=high",
+                  "handoff_reason": "explicit_user_request",
+                  "target_dispatcher": "prepare_defense_card",
+                  "handoff_context_for_next_dispatcher": "User explicitly asks to create a defense card for a specific risk moment (ordering food when exhausted). Use the provided evidence to seed the card creation.",
+                  "target_local_dispatcher_hint": "Run the local dispatcher for prepare_defense_card. Preserve dispatcher evidence and ask for missing slots if needed.",
+                  "user_words": [
+                    "J'aimerais préparer une carte de défense pour les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement."
+                  ],
+                  "structured_context": {
+                    "primary_signal_path": "tool_skill_intents[0]",
+                    "target_kind": "tool_skill",
+                    "target_flow": "prepare_defense_card",
+                    "confidence_band": "high",
+                    "evidence": [
+                      "J'aimerais préparer une carte de défense"
+                    ]
+                  },
+                  "risk_score": 0,
+                  "no_chat_mutation": {
+                    "db_write_committed": false,
+                    "potion_session_created": false,
+                    "scheduled_checkin_created": false,
+                    "recurring_reminder_created": false,
+                    "executable_confirmation_generated": false
+                  }
+                },
+                "source_flow_id": "global_dispatcher",
+                "target_dispatcher": "prepare_defense_card",
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher decision",
+                "flow_action": "confirm_proposed_field",
+                "visible_task_kind": "confirm_support_need_proposal",
+                "tool_fit": "ambiguous",
+                "support_need_status": "proposed",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "reducer reduced",
+                "flow_action": "confirm_proposed_field",
+                "visible_task_kind": "confirm_support_need_proposal",
+                "tool_fit": "ambiguous",
+                "support_need_status": "proposed",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit",
+                  "attachment",
+                  "risk_situation",
+                  "trigger",
+                  "defense_goal",
+                  "defense_response_hint",
+                  "support_need"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "visible_prompt called",
+                "flow_action": "confirm_proposed_field",
+                "visible_task_kind": "confirm_support_need_proposal",
+                "tool_fit": "ambiguous",
+                "support_need_status": "proposed",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit",
+                  "attachment",
+                  "risk_situation",
+                  "trigger",
+                  "defense_goal",
+                  "defense_response_hint",
+                  "support_need"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.visible_agent",
+                "stage": "confirm_support_need_proposal",
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "visible_prompt complete",
+                "flow_action": "confirm_proposed_field",
+                "visible_task_kind": "confirm_support_need_proposal",
+                "tool_fit": "ambiguous",
+                "support_need_status": "proposed",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit",
+                  "attachment",
+                  "risk_situation",
+                  "trigger",
+                  "defense_goal",
+                  "defense_response_hint",
+                  "support_need"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 2,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              }
+            ],
+            "ai_call_count": 2
+          },
+          "effect_ledger": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 1,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t01:agenda:proposed:dispatcher:prepare_defense_card:0",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.prepare_defense_card",
+                "operation_type": "prepare_defense_card",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "defense_card_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "dispatcher:prepare_defense_card:0",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "explicit",
+                    "high",
+                    "soirs où je rentre rincé et je commande au lieu de dîner normalement"
+                  ],
+                  "user_goal_summary": "soirs où je rentre rincé et je commande au lieu de dîner normalement",
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "defense_cards",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t01:blocked:defense_card.create:runtime",
+                "kind": "durable_effect",
+                "effect_type": "defense_card.create",
+                "operation_type": "prepare_defense_card",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "prepare_defense_card",
+                "status": "blocked",
+                "reason_code": "collecting",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "status": "collecting"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t01",
+          "source_message_id": "32898abf-5296-4436-891b-1552a4ffd682",
+          "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [
+            {
+              "operation_type": "prepare_defense_card",
+              "explicitness": "explicit",
+              "target_hint": "soirs où je rentre rincé et je commande au lieu de dîner normalement",
+              "operation_input": {
+                "target_hint": "soirs où je rentre rincé et je commande au lieu de dîner normalement",
+                "evidence": [
+                  "J'aimerais préparer une carte de défense",
+                  "soirs où je rentre rincé",
+                  "j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement"
+                ]
+              },
+              "confidence_band": "high",
+              "ambiguity": "none",
+              "user_intent": "create"
+            }
+          ],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "source_flow_presentation": "Global dispatcher selected a non-normal routing signal and is handing context to the target local dispatcher.",
+            "source_flow_state_summary": "signal=tool_skill_intent; target=prepare_defense_card; confidence=high",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "prepare_defense_card",
+            "handoff_context_for_next_dispatcher": "User explicitly asks to create a defense card for a specific risk moment (ordering food when exhausted). Use the provided evidence to seed the card creation.",
+            "target_local_dispatcher_hint": "Run the local dispatcher for prepare_defense_card. Preserve dispatcher evidence and ask for missing slots if needed.",
+            "user_words": [
+              "J'aimerais préparer une carte de défense pour les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement."
+            ],
+            "structured_context": {
+              "primary_signal_path": "tool_skill_intents[0]",
+              "target_kind": "tool_skill",
+              "target_flow": "prepare_defense_card",
+              "confidence_band": "high",
+              "evidence": [
+                "J'aimerais préparer une carte de défense"
+              ]
+            },
+            "risk_score": 0,
+            "no_chat_mutation": {
+              "db_write_committed": false,
+              "potion_session_created": false,
+              "scheduled_checkin_created": false,
+              "recurring_reminder_created": false,
+              "executable_confirmation_generated": false
+            }
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "sante.alimentation",
+                "query_hint": "habitudes alimentaires soir fatigue",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "habitudes.procrastination",
+                "query_hint": "craquage soir fatigue",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "low",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "tool_skill_intent_start",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "prepare_defense_card"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "defense_card_handoff"
+          ],
+          "operation_types": [
+            "prepare_defense_card"
+          ],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "dispatcher:prepare_defense_card:0",
+              "kind": "platform_handoff",
+              "owner": "defense_card_handoff",
+              "operation_type": "prepare_defense_card",
+              "intent": "create",
+              "source": "dispatcher",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "prepare_defense_card",
+          "reason_code": "prepare_defense_card_local_collecting",
+          "operation_type": "prepare_defense_card",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "collecting",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "pending_confirmation": null,
+          "handoff_state": {
+            "skill_id": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "status": "collecting",
+            "draft": null,
+            "local_state": {
+              "flow_id": "prepare_defense_card",
+              "route_kind": "free_card",
+              "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+              "tool_fit_state": {
+                "status": "ambiguous",
+                "reason": "Le besoin concerne la protection contre une impulsion automatique (commande de livraison) lors d'un moment de fatigue.",
+                "needs_user_confirmation": false,
+                "why_status": "L'intention de défense est explicite et correspond à la définition d'une carte de défense."
+              },
+              "attachment_state": {
+                "status": "proposed",
+                "kind": "free_risk_context",
+                "plan_item_id": null,
+                "candidate_value": "soirs de fatigue et commandes automatiques",
+                "locked_value": null,
+                "candidate_options": [],
+                "needs_user_confirmation": true,
+                "why_status": "Contexte de risque identifié."
+              },
+              "risk_state": {
+                "status": "proposed",
+                "label": "Commande automatique par fatigue",
+                "description": "Rentrer fatigué et commander sur une application par automatisme au lieu de cuisiner.",
+                "timing_hint": "le soir au retour du travail",
+                "context_hint": "état d'épuisement",
+                "needs_user_confirmation": true,
+                "why_status": "Risque qualifié à partir de la description utilisateur."
+              },
+              "trigger_state": {
+                "status": "missing",
+                "type": null,
+                "candidate_value": null,
+                "locked_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "Le signal précis déclencheur n'est pas encore isolé."
+              },
+              "defense_goal_state": {
+                "status": "missing",
+                "value": null,
+                "candidate_value": null,
+                "locked_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "L'objectif alternatif n'est pas encore défini."
+              },
+              "defense_response_hint_state": {
+                "status": "missing",
+                "strategy_hint": null,
+                "candidate_value": null,
+                "locked_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "La réponse défensive n'est pas encore définie."
+              },
+              "support_need_state": {
+                "field_id": "support_need",
+                "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                "status": "proposed",
+                "candidate_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                "locked_value": null,
+                "previous_value": null,
+                "needs_user_confirmation": true,
+                "why_status": "Valeur extraite du message initial, à confirmer pour le champ plateforme."
+              },
+              "last_visible_task": "confirm_support_need_proposal",
+              "last_handoff_delivered": false,
+              "subskill_history": []
+            },
+            "turn_count": 1,
+            "max_turns": 8,
+            "created_at": "2026-06-09T20:18:25.813Z",
+            "updated_at": "2026-06-09T20:18:25.813Z",
+            "no_chat_mutation": true
+          },
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "active flow entry",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "missing",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher called",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "missing",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "note_information_consumed",
+              "note_information": {
+                "source_flow_id": "global_dispatcher",
+                "source_flow_presentation": "Global dispatcher selected a non-normal routing signal and is handing context to the target local dispatcher.",
+                "source_flow_state_summary": "signal=tool_skill_intent; target=prepare_defense_card; confidence=high",
+                "handoff_reason": "explicit_user_request",
+                "target_dispatcher": "prepare_defense_card",
+                "handoff_context_for_next_dispatcher": "User explicitly asks to create a defense card for a specific risk moment (ordering food when exhausted). Use the provided evidence to seed the card creation.",
+                "target_local_dispatcher_hint": "Run the local dispatcher for prepare_defense_card. Preserve dispatcher evidence and ask for missing slots if needed.",
+                "user_words": [
+                  "J'aimerais préparer une carte de défense pour les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement."
+                ],
+                "structured_context": {
+                  "primary_signal_path": "tool_skill_intents[0]",
+                  "target_kind": "tool_skill",
+                  "target_flow": "prepare_defense_card",
+                  "confidence_band": "high",
+                  "evidence": [
+                    "J'aimerais préparer une carte de défense"
+                  ]
+                },
+                "risk_score": 0,
+                "no_chat_mutation": {
+                  "db_write_committed": false,
+                  "potion_session_created": false,
+                  "scheduled_checkin_created": false,
+                  "recurring_reminder_created": false,
+                  "executable_confirmation_generated": false
+                }
+              },
+              "source_flow_id": "global_dispatcher",
+              "target_dispatcher": "prepare_defense_card",
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher decision",
+              "flow_action": "confirm_proposed_field",
+              "visible_task_kind": "confirm_support_need_proposal",
+              "tool_fit": "ambiguous",
+              "support_need_status": "proposed",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "reducer reduced",
+              "flow_action": "confirm_proposed_field",
+              "visible_task_kind": "confirm_support_need_proposal",
+              "tool_fit": "ambiguous",
+              "support_need_status": "proposed",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit",
+                "attachment",
+                "risk_situation",
+                "trigger",
+                "defense_goal",
+                "defense_response_hint",
+                "support_need"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "visible_prompt called",
+              "flow_action": "confirm_proposed_field",
+              "visible_task_kind": "confirm_support_need_proposal",
+              "tool_fit": "ambiguous",
+              "support_need_status": "proposed",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit",
+                "attachment",
+                "risk_situation",
+                "trigger",
+                "defense_goal",
+                "defense_response_hint",
+                "support_need"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.visible_agent",
+              "stage": "confirm_support_need_proposal",
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "visible_prompt complete",
+              "flow_action": "confirm_proposed_field",
+              "visible_task_kind": "confirm_support_need_proposal",
+              "tool_fit": "ambiguous",
+              "support_need_status": "proposed",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit",
+                "attachment",
+                "risk_situation",
+                "trigger",
+                "defense_goal",
+                "defense_response_hint",
+                "support_need"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 2,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            }
+          ],
+          "ai_call_count": 2
+        },
+        "effect_ledger": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 1,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 1,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t01:agenda:proposed:dispatcher:prepare_defense_card:0",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.prepare_defense_card",
+              "operation_type": "prepare_defense_card",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "defense_card_handoff",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "dispatcher:prepare_defense_card:0",
+                "source": "dispatcher",
+                "evidence": [
+                  "explicit",
+                  "high",
+                  "soirs où je rentre rincé et je commande au lieu de dîner normalement"
+                ],
+                "user_goal_summary": "soirs où je rentre rincé et je commande au lieu de dîner normalement",
+                "recommended_next_step": "open_platform_surface"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "defense_cards",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t01:blocked:defense_card.create:runtime",
+              "kind": "durable_effect",
+              "effect_type": "defense_card.create",
+              "operation_type": "prepare_defense_card",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "prepare_defense_card",
+              "status": "blocked",
+              "reason_code": "collecting",
+              "source": "tool_skill",
+              "payload_summary": {
+                "status": "collecting"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Oui, cette formulation me va.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t02",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Nous avons maintenant une base solide pour ta carte de défense. Pour la mettre en place, il te suffit de te rendre dans Ressources / Défense / Cartes de défense libres. Comme la carte n'est pas créée directement depuis notre échange, tu pourras l'ajouter là-bas en utilisant cette formulation pour le champ « Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? » : les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement.",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t02",
+            "source_message_id": "fc020922-6640-4857-b127-dafc0ee82aef",
+            "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_defense_card",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_prepare_defense_card_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_prepare_defense_card_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "prepare_defense_card",
+            "reason_code": "prepare_defense_card_local_collecting",
+            "operation_type": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "collecting",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "pending_confirmation": null,
+            "handoff_state": {
+              "skill_id": "prepare_defense_card",
+              "mode": "platform_handoff",
+              "status": "collecting",
+              "draft": null,
+              "local_state": {
+                "flow_id": "prepare_defense_card",
+                "risk_state": {
+                  "label": "Commande automatique par fatigue",
+                  "status": "locked",
+                  "why_status": "Risque validé par l'utilisateur.",
+                  "description": "Rentrer fatigué et commander sur une application par automatisme au lieu de cuisiner.",
+                  "timing_hint": "le soir au retour du travail",
+                  "context_hint": "état d'épuisement",
+                  "needs_user_confirmation": false
+                },
+                "route_kind": "free_card",
+                "trigger_state": {
+                  "type": null,
+                  "status": "missing",
+                  "why_status": "Le signal précis déclencheur n'est pas encore isolé.",
+                  "locked_value": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "tool_fit_state": {
+                  "reason": "Le besoin concerne la protection contre une impulsion automatique (commande de livraison) lors d'un moment de fatigue, ce qui est une fonction de défense.",
+                  "status": "ambiguous",
+                  "why_status": "L'intention de défense est confirmée par la validation de la situation de risque.",
+                  "needs_user_confirmation": false
+                },
+                "attachment_state": {
+                  "kind": "free_risk_context",
+                  "status": "locked",
+                  "why_status": "Contexte de risque validé.",
+                  "locked_value": "soirs de fatigue et commandes automatiques",
+                  "plan_item_id": null,
+                  "candidate_value": null,
+                  "candidate_options": [],
+                  "needs_user_confirmation": false
+                },
+                "subskill_history": [],
+                "last_visible_task": "handoff_ready",
+                "defense_goal_state": {
+                  "value": null,
+                  "status": "missing",
+                  "why_status": "L'objectif alternatif n'est pas encore défini.",
+                  "locked_value": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "support_need_state": {
+                  "status": "locked",
+                  "field_id": "support_need",
+                  "why_status": "L'utilisateur a explicitement validé la formulation proposée.",
+                  "locked_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                  "previous_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                  "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+                "last_handoff_delivered": true,
+                "defense_response_hint_state": {
+                  "status": "missing",
+                  "why_status": "La réponse défensive n'est pas encore définie.",
+                  "locked_value": null,
+                  "strategy_hint": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                }
+              },
+              "turn_count": 2,
+              "max_turns": 8,
+              "created_at": "2026-06-09T20:18:25.813Z",
+              "updated_at": "2026-06-09T20:18:52.411Z",
+              "no_chat_mutation": true
+            },
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "active flow entry",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "proposed",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher called",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "proposed",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher decision",
+                "flow_action": "handoff_ready",
+                "visible_task_kind": "handoff_ready",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": true,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "reducer reduced",
+                "flow_action": "handoff_ready",
+                "visible_task_kind": "handoff_ready",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit",
+                  "attachment",
+                  "risk_situation",
+                  "support_need"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "visible_prompt called",
+                "flow_action": "handoff_ready",
+                "visible_task_kind": "handoff_ready",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit",
+                  "attachment",
+                  "risk_situation",
+                  "support_need"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.visible_agent",
+                "stage": "handoff_ready",
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "visible_prompt complete",
+                "flow_action": "handoff_ready",
+                "visible_task_kind": "handoff_ready",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit",
+                  "attachment",
+                  "risk_situation",
+                  "support_need"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 2,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              }
+            ],
+            "ai_call_count": 2
+          },
+          "effect_ledger": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 1,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t02:blocked:defense_card.create:runtime",
+                "kind": "durable_effect",
+                "effect_type": "defense_card.create",
+                "operation_type": "prepare_defense_card",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "prepare_defense_card",
+                "status": "blocked",
+                "reason_code": "collecting",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "status": "collecting"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t02",
+          "source_message_id": "fc020922-6640-4857-b127-dafc0ee82aef",
+          "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "prepare_defense_card",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_prepare_defense_card_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_prepare_defense_card_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "prepare_defense_card",
+          "reason_code": "prepare_defense_card_local_collecting",
+          "operation_type": "prepare_defense_card",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "collecting",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "pending_confirmation": null,
+          "handoff_state": {
+            "skill_id": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "status": "collecting",
+            "draft": null,
+            "local_state": {
+              "flow_id": "prepare_defense_card",
+              "risk_state": {
+                "label": "Commande automatique par fatigue",
+                "status": "locked",
+                "why_status": "Risque validé par l'utilisateur.",
+                "description": "Rentrer fatigué et commander sur une application par automatisme au lieu de cuisiner.",
+                "timing_hint": "le soir au retour du travail",
+                "context_hint": "état d'épuisement",
+                "needs_user_confirmation": false
+              },
+              "route_kind": "free_card",
+              "trigger_state": {
+                "type": null,
+                "status": "missing",
+                "why_status": "Le signal précis déclencheur n'est pas encore isolé.",
+                "locked_value": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "tool_fit_state": {
+                "reason": "Le besoin concerne la protection contre une impulsion automatique (commande de livraison) lors d'un moment de fatigue, ce qui est une fonction de défense.",
+                "status": "ambiguous",
+                "why_status": "L'intention de défense est confirmée par la validation de la situation de risque.",
+                "needs_user_confirmation": false
+              },
+              "attachment_state": {
+                "kind": "free_risk_context",
+                "status": "locked",
+                "why_status": "Contexte de risque validé.",
+                "locked_value": "soirs de fatigue et commandes automatiques",
+                "plan_item_id": null,
+                "candidate_value": null,
+                "candidate_options": [],
+                "needs_user_confirmation": false
+              },
+              "subskill_history": [],
+              "last_visible_task": "handoff_ready",
+              "defense_goal_state": {
+                "value": null,
+                "status": "missing",
+                "why_status": "L'objectif alternatif n'est pas encore défini.",
+                "locked_value": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "support_need_state": {
+                "status": "locked",
+                "field_id": "support_need",
+                "why_status": "L'utilisateur a explicitement validé la formulation proposée.",
+                "locked_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                "previous_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+              "last_handoff_delivered": true,
+              "defense_response_hint_state": {
+                "status": "missing",
+                "why_status": "La réponse défensive n'est pas encore définie.",
+                "locked_value": null,
+                "strategy_hint": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              }
+            },
+            "turn_count": 2,
+            "max_turns": 8,
+            "created_at": "2026-06-09T20:18:25.813Z",
+            "updated_at": "2026-06-09T20:18:52.411Z",
+            "no_chat_mutation": true
+          },
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "active flow entry",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "proposed",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher called",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "proposed",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher decision",
+              "flow_action": "handoff_ready",
+              "visible_task_kind": "handoff_ready",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": true,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "reducer reduced",
+              "flow_action": "handoff_ready",
+              "visible_task_kind": "handoff_ready",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit",
+                "attachment",
+                "risk_situation",
+                "support_need"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "visible_prompt called",
+              "flow_action": "handoff_ready",
+              "visible_task_kind": "handoff_ready",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit",
+                "attachment",
+                "risk_situation",
+                "support_need"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.visible_agent",
+              "stage": "handoff_ready",
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "visible_prompt complete",
+              "flow_action": "handoff_ready",
+              "visible_task_kind": "handoff_ready",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit",
+                "attachment",
+                "risk_situation",
+                "support_need"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 2,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            }
+          ],
+          "ai_call_count": 2
+        },
+        "effect_ledger": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 1,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t02:blocked:defense_card.create:runtime",
+              "kind": "durable_effect",
+              "effect_type": "defense_card.create",
+              "operation_type": "prepare_defense_card",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "prepare_defense_card",
+              "status": "blocked",
+              "reason_code": "collecting",
+              "source": "tool_skill",
+              "payload_summary": {
+                "status": "collecting"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Tu peux me redire juste où je dois la saisir ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t03",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Tu peux maintenant placer cette carte dans Ressources / Défense / Cartes de défense libres. Pour le champ \"Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?\", voici la formulation à recopier : les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement.",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t03",
+            "source_message_id": "7cf8bb7c-ba89-47af-9b38-c253de58e2a2",
+            "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_defense_card",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_prepare_defense_card_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_prepare_defense_card_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "prepare_defense_card",
+            "reason_code": "destination_short",
+            "operation_type": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "handoff_delivered",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "pending_confirmation": null,
+            "handoff_state": {
+              "skill_id": "prepare_defense_card",
+              "mode": "platform_handoff",
+              "status": "collecting",
+              "draft": null,
+              "local_state": {
+                "flow_id": "prepare_defense_card",
+                "risk_state": {
+                  "label": "Commande automatique par fatigue",
+                  "status": "locked",
+                  "why_status": "Risque validé par l'utilisateur.",
+                  "description": "Rentrer fatigué et commander sur une application par automatisme au lieu de cuisiner.",
+                  "timing_hint": "le soir au retour du travail",
+                  "context_hint": "état d'épuisement",
+                  "needs_user_confirmation": false
+                },
+                "route_kind": "free_card",
+                "trigger_state": {
+                  "type": null,
+                  "status": "missing",
+                  "why_status": "Le signal précis déclencheur n'est pas encore isolé.",
+                  "locked_value": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "tool_fit_state": {
+                  "reason": "L'utilisateur a validé une situation de protection contre une impulsion (commande automatique), confirmant l'usage d'une carte de défense.",
+                  "status": "ambiguous",
+                  "why_status": "Validation explicite du contenu de défense par l'utilisateur.",
+                  "needs_user_confirmation": false
+                },
+                "attachment_state": {
+                  "kind": "free_risk_context",
+                  "status": "locked",
+                  "why_status": "Contexte de risque validé.",
+                  "locked_value": "soirs de fatigue et commandes automatiques",
+                  "plan_item_id": null,
+                  "candidate_value": null,
+                  "candidate_options": [],
+                  "needs_user_confirmation": false
+                },
+                "subskill_history": [],
+                "last_visible_task": "repeat_handoff",
+                "defense_goal_state": {
+                  "value": null,
+                  "status": "missing",
+                  "why_status": "L'objectif alternatif n'est pas encore défini.",
+                  "locked_value": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "support_need_state": {
+                  "status": "locked",
+                  "field_id": "support_need",
+                  "why_status": "L'utilisateur a explicitement validé la formulation proposée.",
+                  "locked_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                  "previous_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                  "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+                "last_handoff_delivered": true,
+                "defense_response_hint_state": {
+                  "status": "missing",
+                  "why_status": "La réponse défensive n'est pas encore définie.",
+                  "locked_value": null,
+                  "strategy_hint": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                }
+              },
+              "turn_count": 3,
+              "max_turns": 8,
+              "created_at": "2026-06-09T20:18:25.813Z",
+              "updated_at": "2026-06-09T20:19:19.399Z",
+              "no_chat_mutation": true
+            },
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "active flow entry",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": true,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher called",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher decision",
+                "flow_action": "platform_destination_followup",
+                "visible_task_kind": "repeat_handoff",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": true,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "reducer reduced",
+                "flow_action": "platform_destination_followup",
+                "visible_task_kind": "destination_short",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "visible_prompt called",
+                "flow_action": "platform_destination_followup",
+                "visible_task_kind": "destination_short",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.visible_agent",
+                "stage": "destination_short",
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "visible_prompt complete",
+                "flow_action": "platform_destination_followup",
+                "visible_task_kind": "destination_short",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 2,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              }
+            ],
+            "ai_call_count": 2,
+            "platform_handoff": {
+              "operation_type": "prepare_defense_card",
+              "status": "delivered",
+              "surface_id": "defense_cards",
+              "reason_code": "destination_short",
+              "no_chat_mutation": true,
+              "draft": null
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t03:platform_handoff:delivered:prepare_defense_card:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.prepare_defense_card",
+                "operation_type": "prepare_defense_card",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "prepare_defense_card",
+                "status": "delivered",
+                "reason_code": "destination_short",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "handoff_delivered",
+                  "surface_id": "defense_cards"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "defense_cards",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t03",
+          "source_message_id": "7cf8bb7c-ba89-47af-9b38-c253de58e2a2",
+          "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "prepare_defense_card",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_prepare_defense_card_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_prepare_defense_card_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "prepare_defense_card",
+          "reason_code": "destination_short",
+          "operation_type": "prepare_defense_card",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "handoff_delivered",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "pending_confirmation": null,
+          "handoff_state": {
+            "skill_id": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "status": "collecting",
+            "draft": null,
+            "local_state": {
+              "flow_id": "prepare_defense_card",
+              "risk_state": {
+                "label": "Commande automatique par fatigue",
+                "status": "locked",
+                "why_status": "Risque validé par l'utilisateur.",
+                "description": "Rentrer fatigué et commander sur une application par automatisme au lieu de cuisiner.",
+                "timing_hint": "le soir au retour du travail",
+                "context_hint": "état d'épuisement",
+                "needs_user_confirmation": false
+              },
+              "route_kind": "free_card",
+              "trigger_state": {
+                "type": null,
+                "status": "missing",
+                "why_status": "Le signal précis déclencheur n'est pas encore isolé.",
+                "locked_value": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "tool_fit_state": {
+                "reason": "L'utilisateur a validé une situation de protection contre une impulsion (commande automatique), confirmant l'usage d'une carte de défense.",
+                "status": "ambiguous",
+                "why_status": "Validation explicite du contenu de défense par l'utilisateur.",
+                "needs_user_confirmation": false
+              },
+              "attachment_state": {
+                "kind": "free_risk_context",
+                "status": "locked",
+                "why_status": "Contexte de risque validé.",
+                "locked_value": "soirs de fatigue et commandes automatiques",
+                "plan_item_id": null,
+                "candidate_value": null,
+                "candidate_options": [],
+                "needs_user_confirmation": false
+              },
+              "subskill_history": [],
+              "last_visible_task": "repeat_handoff",
+              "defense_goal_state": {
+                "value": null,
+                "status": "missing",
+                "why_status": "L'objectif alternatif n'est pas encore défini.",
+                "locked_value": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "support_need_state": {
+                "status": "locked",
+                "field_id": "support_need",
+                "why_status": "L'utilisateur a explicitement validé la formulation proposée.",
+                "locked_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                "previous_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+              "last_handoff_delivered": true,
+              "defense_response_hint_state": {
+                "status": "missing",
+                "why_status": "La réponse défensive n'est pas encore définie.",
+                "locked_value": null,
+                "strategy_hint": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              }
+            },
+            "turn_count": 3,
+            "max_turns": 8,
+            "created_at": "2026-06-09T20:18:25.813Z",
+            "updated_at": "2026-06-09T20:19:19.399Z",
+            "no_chat_mutation": true
+          },
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "active flow entry",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": true,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher called",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher decision",
+              "flow_action": "platform_destination_followup",
+              "visible_task_kind": "repeat_handoff",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": true,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "reducer reduced",
+              "flow_action": "platform_destination_followup",
+              "visible_task_kind": "destination_short",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "visible_prompt called",
+              "flow_action": "platform_destination_followup",
+              "visible_task_kind": "destination_short",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.visible_agent",
+              "stage": "destination_short",
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "visible_prompt complete",
+              "flow_action": "platform_destination_followup",
+              "visible_task_kind": "destination_short",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 2,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            }
+          ],
+          "ai_call_count": 2,
+          "platform_handoff": {
+            "operation_type": "prepare_defense_card",
+            "status": "delivered",
+            "surface_id": "defense_cards",
+            "reason_code": "destination_short",
+            "no_chat_mutation": true,
+            "draft": null
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t03:platform_handoff:delivered:prepare_defense_card:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.prepare_defense_card",
+              "operation_type": "prepare_defense_card",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "prepare_defense_card",
+              "status": "delivered",
+              "reason_code": "destination_short",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "handoff_delivered",
+                "surface_id": "defense_cards"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "defense_cards",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t04",
+    "auth_method": "get-jwt.sh",
+    "user": "Finalement écris plutôt : quand je rentre épuisé, j'ai besoin d'aide à ne pas ouvrir les applis de livraison par automatisme.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t04",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "On a maintenant une base solide pour ta protection. Pour finaliser cela, dirige-toi dans Ressources / Défense / Cartes de défense libres. Comme la carte n'est pas créée directement depuis notre échange, tu pourras y ajouter une nouvelle carte en utilisant cette formulation pour le champ Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? : quand je rentre épuisé, j'ai besoin d'aide à ne pas ouvrir les applis de livraison par automatisme.",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t04",
+            "source_message_id": "ed152d74-1611-4f29-bec5-1e6544370069",
+            "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_defense_card",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_prepare_defense_card_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_prepare_defense_card_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "prepare_defense_card",
+            "reason_code": "prepare_defense_card_local_collecting",
+            "operation_type": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "collecting",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "pending_confirmation": null,
+            "handoff_state": {
+              "skill_id": "prepare_defense_card",
+              "mode": "platform_handoff",
+              "status": "collecting",
+              "draft": null,
+              "local_state": {
+                "flow_id": "prepare_defense_card",
+                "risk_state": {
+                  "label": "Commande automatique par fatigue",
+                  "status": "locked",
+                  "why_status": "Risque validé par l'utilisateur.",
+                  "description": "Rentrer fatigué et commander sur une application par automatisme au lieu de cuisiner.",
+                  "timing_hint": "le soir au retour du travail",
+                  "context_hint": "état d'épuisement",
+                  "needs_user_confirmation": false
+                },
+                "route_kind": "free_card",
+                "trigger_state": {
+                  "type": null,
+                  "status": "missing",
+                  "why_status": "Non requis pour le handoff minimal.",
+                  "locked_value": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "tool_fit_state": {
+                  "reason": "L'utilisateur confirme vouloir se protéger d'un automatisme (ouverture d'applis de livraison), ce qui relève de la défense.",
+                  "status": "ambiguous",
+                  "why_status": "Besoin de protection contre une impulsion confirmé.",
+                  "needs_user_confirmation": false
+                },
+                "attachment_state": {
+                  "kind": "free_risk_context",
+                  "status": "locked",
+                  "why_status": "Contexte de risque déjà validé.",
+                  "locked_value": "soirs de fatigue et commandes automatiques",
+                  "plan_item_id": null,
+                  "candidate_value": null,
+                  "candidate_options": [],
+                  "needs_user_confirmation": false
+                },
+                "subskill_history": [],
+                "last_visible_task": "handoff_ready",
+                "defense_goal_state": {
+                  "value": null,
+                  "status": "missing",
+                  "why_status": "Non requis pour le handoff minimal.",
+                  "locked_value": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "support_need_state": {
+                  "status": "locked",
+                  "field_id": "support_need",
+                  "why_status": "L'utilisateur a fourni une formulation finale précise.",
+                  "locked_value": "quand je rentre épuisé, j'ai besoin d'aide à ne pas ouvrir les applis de livraison par automatisme.",
+                  "previous_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                  "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+                "last_handoff_delivered": true,
+                "defense_response_hint_state": {
+                  "status": "missing",
+                  "why_status": "Non requis pour le handoff minimal.",
+                  "locked_value": null,
+                  "strategy_hint": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                }
+              },
+              "turn_count": 4,
+              "max_turns": 8,
+              "created_at": "2026-06-09T20:18:25.813Z",
+              "updated_at": "2026-06-09T20:19:39.850Z",
+              "no_chat_mutation": true
+            },
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "active flow entry",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": true,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher called",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher decision",
+                "flow_action": "revise_support_need",
+                "visible_task_kind": "handoff_ready",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": true,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "reducer reduced",
+                "flow_action": "revise_support_need",
+                "visible_task_kind": "handoff_ready",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit",
+                  "attachment",
+                  "trigger",
+                  "defense_goal",
+                  "defense_response_hint",
+                  "support_need"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "visible_prompt called",
+                "flow_action": "revise_support_need",
+                "visible_task_kind": "handoff_ready",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit",
+                  "attachment",
+                  "trigger",
+                  "defense_goal",
+                  "defense_response_hint",
+                  "support_need"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.visible_agent",
+                "stage": "handoff_ready",
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "visible_prompt complete",
+                "flow_action": "revise_support_need",
+                "visible_task_kind": "handoff_ready",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [
+                  "tool_fit",
+                  "attachment",
+                  "trigger",
+                  "defense_goal",
+                  "defense_response_hint",
+                  "support_need"
+                ],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 2,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              }
+            ],
+            "ai_call_count": 2
+          },
+          "effect_ledger": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 1,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t04:blocked:defense_card.create:runtime",
+                "kind": "durable_effect",
+                "effect_type": "defense_card.create",
+                "operation_type": "prepare_defense_card",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "prepare_defense_card",
+                "status": "blocked",
+                "reason_code": "collecting",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "status": "collecting"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t04",
+          "source_message_id": "ed152d74-1611-4f29-bec5-1e6544370069",
+          "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "prepare_defense_card",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_prepare_defense_card_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_prepare_defense_card_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "prepare_defense_card",
+          "reason_code": "prepare_defense_card_local_collecting",
+          "operation_type": "prepare_defense_card",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "collecting",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "pending_confirmation": null,
+          "handoff_state": {
+            "skill_id": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "status": "collecting",
+            "draft": null,
+            "local_state": {
+              "flow_id": "prepare_defense_card",
+              "risk_state": {
+                "label": "Commande automatique par fatigue",
+                "status": "locked",
+                "why_status": "Risque validé par l'utilisateur.",
+                "description": "Rentrer fatigué et commander sur une application par automatisme au lieu de cuisiner.",
+                "timing_hint": "le soir au retour du travail",
+                "context_hint": "état d'épuisement",
+                "needs_user_confirmation": false
+              },
+              "route_kind": "free_card",
+              "trigger_state": {
+                "type": null,
+                "status": "missing",
+                "why_status": "Non requis pour le handoff minimal.",
+                "locked_value": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "tool_fit_state": {
+                "reason": "L'utilisateur confirme vouloir se protéger d'un automatisme (ouverture d'applis de livraison), ce qui relève de la défense.",
+                "status": "ambiguous",
+                "why_status": "Besoin de protection contre une impulsion confirmé.",
+                "needs_user_confirmation": false
+              },
+              "attachment_state": {
+                "kind": "free_risk_context",
+                "status": "locked",
+                "why_status": "Contexte de risque déjà validé.",
+                "locked_value": "soirs de fatigue et commandes automatiques",
+                "plan_item_id": null,
+                "candidate_value": null,
+                "candidate_options": [],
+                "needs_user_confirmation": false
+              },
+              "subskill_history": [],
+              "last_visible_task": "handoff_ready",
+              "defense_goal_state": {
+                "value": null,
+                "status": "missing",
+                "why_status": "Non requis pour le handoff minimal.",
+                "locked_value": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "support_need_state": {
+                "status": "locked",
+                "field_id": "support_need",
+                "why_status": "L'utilisateur a fourni une formulation finale précise.",
+                "locked_value": "quand je rentre épuisé, j'ai besoin d'aide à ne pas ouvrir les applis de livraison par automatisme.",
+                "previous_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+              "last_handoff_delivered": true,
+              "defense_response_hint_state": {
+                "status": "missing",
+                "why_status": "Non requis pour le handoff minimal.",
+                "locked_value": null,
+                "strategy_hint": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              }
+            },
+            "turn_count": 4,
+            "max_turns": 8,
+            "created_at": "2026-06-09T20:18:25.813Z",
+            "updated_at": "2026-06-09T20:19:39.850Z",
+            "no_chat_mutation": true
+          },
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "active flow entry",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": true,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher called",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher decision",
+              "flow_action": "revise_support_need",
+              "visible_task_kind": "handoff_ready",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": true,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "reducer reduced",
+              "flow_action": "revise_support_need",
+              "visible_task_kind": "handoff_ready",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit",
+                "attachment",
+                "trigger",
+                "defense_goal",
+                "defense_response_hint",
+                "support_need"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "visible_prompt called",
+              "flow_action": "revise_support_need",
+              "visible_task_kind": "handoff_ready",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit",
+                "attachment",
+                "trigger",
+                "defense_goal",
+                "defense_response_hint",
+                "support_need"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.visible_agent",
+              "stage": "handoff_ready",
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "visible_prompt complete",
+              "flow_action": "revise_support_need",
+              "visible_task_kind": "handoff_ready",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [
+                "tool_fit",
+                "attachment",
+                "trigger",
+                "defense_goal",
+                "defense_response_hint",
+                "support_need"
+              ],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 2,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            }
+          ],
+          "ai_call_count": 2
+        },
+        "effect_ledger": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t04",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 1,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t04:blocked:defense_card.create:runtime",
+              "kind": "durable_effect",
+              "effect_type": "defense_card.create",
+              "operation_type": "prepare_defense_card",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "prepare_defense_card",
+              "status": "blocked",
+              "reason_code": "collecting",
+              "source": "tool_skill",
+              "payload_summary": {
+                "status": "collecting"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t05",
+    "auth_method": "get-jwt.sh",
+    "user": "Ok, ajoute-la maintenant.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t05",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est une base solide pour te protéger de ce réflexe. Je ne peux pas créer la carte pour toi depuis notre échange, mais tu peux l'ajouter toi-même dans Ressources / Défense / Cartes de défense libres. Pour cela, ouvre Ressources / Défense, dans Cartes de défense libres, choisis Ajouter une carte et reprends les éléments préparés. Pour le champ Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?, tu peux copier : quand je rentre épuisé, j'ai besoin d'aide à ne pas ouvrir les applis de livraison par automatisme.",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t05",
+            "source_message_id": "c05037cc-53a5-4cb3-a188-94e8f1037468",
+            "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_defense_card",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_prepare_defense_card_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_prepare_defense_card_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "prepare_defense_card",
+            "reason_code": "apply_attempt_no_chat_mutation",
+            "operation_type": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "apply_attempt",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [
+              {
+                "type": "create_defense_card",
+                "reason_code": "chat_creation_disabled_platform_handoff"
+              }
+            ],
+            "pending_confirmation": null,
+            "handoff_state": {
+              "skill_id": "prepare_defense_card",
+              "mode": "platform_handoff",
+              "status": "apply_attempt",
+              "draft": null,
+              "local_state": {
+                "flow_id": "prepare_defense_card",
+                "risk_state": {
+                  "label": "Commande automatique par fatigue",
+                  "status": "locked",
+                  "why_status": "Risque validé par l'utilisateur.",
+                  "description": "Rentrer fatigué et commander sur une application par automatisme au lieu de cuisiner.",
+                  "timing_hint": "le soir au retour du travail",
+                  "context_hint": "état d'épuisement",
+                  "needs_user_confirmation": false
+                },
+                "route_kind": "free_card",
+                "trigger_state": {
+                  "type": null,
+                  "status": "missing",
+                  "why_status": "Non requis pour le handoff minimal.",
+                  "locked_value": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "tool_fit_state": {
+                  "reason": "L'utilisateur confirme vouloir se protéger d'un automatisme (ouverture d'applis de livraison), ce qui relève de la défense.",
+                  "status": "ambiguous",
+                  "why_status": "Besoin de protection contre une impulsion confirmé.",
+                  "needs_user_confirmation": false
+                },
+                "attachment_state": {
+                  "kind": "free_risk_context",
+                  "status": "locked",
+                  "why_status": "Contexte de risque déjà validé.",
+                  "locked_value": "soirs de fatigue et commandes automatiques",
+                  "plan_item_id": null,
+                  "candidate_value": null,
+                  "candidate_options": [],
+                  "needs_user_confirmation": false
+                },
+                "subskill_history": [],
+                "last_visible_task": "apply_attempt",
+                "defense_goal_state": {
+                  "value": null,
+                  "status": "missing",
+                  "why_status": "Non requis pour le handoff minimal.",
+                  "locked_value": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "support_need_state": {
+                  "status": "locked",
+                  "field_id": "support_need",
+                  "why_status": "L'utilisateur a fourni une formulation finale précise.",
+                  "locked_value": "quand je rentre épuisé, j'ai besoin d'aide à ne pas ouvrir les applis de livraison par automatisme.",
+                  "previous_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                  "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+                "last_handoff_delivered": true,
+                "defense_response_hint_state": {
+                  "status": "missing",
+                  "why_status": "Non requis pour le handoff minimal.",
+                  "locked_value": null,
+                  "strategy_hint": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                }
+              },
+              "turn_count": 5,
+              "max_turns": 8,
+              "created_at": "2026-06-09T20:18:25.813Z",
+              "updated_at": "2026-06-09T20:20:00.173Z",
+              "no_chat_mutation": true
+            },
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "active flow entry",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": true,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher called",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher decision",
+                "flow_action": "apply_attempt",
+                "visible_task_kind": "apply_attempt",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": true,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "reducer reduced",
+                "flow_action": "apply_attempt",
+                "visible_task_kind": "apply_attempt",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "visible_prompt called",
+                "flow_action": "apply_attempt",
+                "visible_task_kind": "apply_attempt",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.visible_agent",
+                "stage": "apply_attempt",
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "visible_prompt complete",
+                "flow_action": "apply_attempt",
+                "visible_task_kind": "apply_attempt",
+                "tool_fit": "ambiguous",
+                "support_need_status": "locked",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 2,
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_defense_card"
+              }
+            ],
+            "ai_call_count": 2,
+            "platform_handoff": {
+              "operation_type": "prepare_defense_card",
+              "status": "delivered",
+              "surface_id": "defense_cards",
+              "reason_code": "apply_attempt_no_chat_mutation",
+              "no_chat_mutation": true,
+              "draft": null
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t05:platform_handoff:delivered:prepare_defense_card:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.prepare_defense_card",
+                "operation_type": "prepare_defense_card",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "prepare_defense_card",
+                "status": "delivered",
+                "reason_code": "apply_attempt_no_chat_mutation",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "apply_attempt",
+                  "surface_id": "defense_cards"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "defense_cards",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t05",
+          "source_message_id": "c05037cc-53a5-4cb3-a188-94e8f1037468",
+          "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "prepare_defense_card",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_prepare_defense_card_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_prepare_defense_card_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "prepare_defense_card",
+          "reason_code": "apply_attempt_no_chat_mutation",
+          "operation_type": "prepare_defense_card",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "apply_attempt",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [
+            {
+              "type": "create_defense_card",
+              "reason_code": "chat_creation_disabled_platform_handoff"
+            }
+          ],
+          "pending_confirmation": null,
+          "handoff_state": {
+            "skill_id": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "status": "apply_attempt",
+            "draft": null,
+            "local_state": {
+              "flow_id": "prepare_defense_card",
+              "risk_state": {
+                "label": "Commande automatique par fatigue",
+                "status": "locked",
+                "why_status": "Risque validé par l'utilisateur.",
+                "description": "Rentrer fatigué et commander sur une application par automatisme au lieu de cuisiner.",
+                "timing_hint": "le soir au retour du travail",
+                "context_hint": "état d'épuisement",
+                "needs_user_confirmation": false
+              },
+              "route_kind": "free_card",
+              "trigger_state": {
+                "type": null,
+                "status": "missing",
+                "why_status": "Non requis pour le handoff minimal.",
+                "locked_value": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "tool_fit_state": {
+                "reason": "L'utilisateur confirme vouloir se protéger d'un automatisme (ouverture d'applis de livraison), ce qui relève de la défense.",
+                "status": "ambiguous",
+                "why_status": "Besoin de protection contre une impulsion confirmé.",
+                "needs_user_confirmation": false
+              },
+              "attachment_state": {
+                "kind": "free_risk_context",
+                "status": "locked",
+                "why_status": "Contexte de risque déjà validé.",
+                "locked_value": "soirs de fatigue et commandes automatiques",
+                "plan_item_id": null,
+                "candidate_value": null,
+                "candidate_options": [],
+                "needs_user_confirmation": false
+              },
+              "subskill_history": [],
+              "last_visible_task": "apply_attempt",
+              "defense_goal_state": {
+                "value": null,
+                "status": "missing",
+                "why_status": "Non requis pour le handoff minimal.",
+                "locked_value": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "support_need_state": {
+                "status": "locked",
+                "field_id": "support_need",
+                "why_status": "L'utilisateur a fourni une formulation finale précise.",
+                "locked_value": "quand je rentre épuisé, j'ai besoin d'aide à ne pas ouvrir les applis de livraison par automatisme.",
+                "previous_value": "les soirs où je rentre rincé, j'ouvre les applis de livraison et je pars sur une commande automatique au lieu de dîner normalement",
+                "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+              "last_handoff_delivered": true,
+              "defense_response_hint_state": {
+                "status": "missing",
+                "why_status": "Non requis pour le handoff minimal.",
+                "locked_value": null,
+                "strategy_hint": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              }
+            },
+            "turn_count": 5,
+            "max_turns": 8,
+            "created_at": "2026-06-09T20:18:25.813Z",
+            "updated_at": "2026-06-09T20:20:00.173Z",
+            "no_chat_mutation": true
+          },
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "active flow entry",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": true,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher called",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher decision",
+              "flow_action": "apply_attempt",
+              "visible_task_kind": "apply_attempt",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": true,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "reducer reduced",
+              "flow_action": "apply_attempt",
+              "visible_task_kind": "apply_attempt",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "visible_prompt called",
+              "flow_action": "apply_attempt",
+              "visible_task_kind": "apply_attempt",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.visible_agent",
+              "stage": "apply_attempt",
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "visible_prompt complete",
+              "flow_action": "apply_attempt",
+              "visible_task_kind": "apply_attempt",
+              "tool_fit": "ambiguous",
+              "support_need_status": "locked",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 2,
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_defense_card"
+            }
+          ],
+          "ai_call_count": 2,
+          "platform_handoff": {
+            "operation_type": "prepare_defense_card",
+            "status": "delivered",
+            "surface_id": "defense_cards",
+            "reason_code": "apply_attempt_no_chat_mutation",
+            "no_chat_mutation": true,
+            "draft": null
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t05",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t05:platform_handoff:delivered:prepare_defense_card:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.prepare_defense_card",
+              "operation_type": "prepare_defense_card",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "prepare_defense_card",
+              "status": "delivered",
+              "reason_code": "apply_attempt_no_chat_mutation",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "apply_attempt",
+                "surface_id": "defense_cards"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "defense_cards",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t06",
+    "auth_method": "get-jwt.sh",
+    "user": "En fait change de piste : je veux plutôt une carte d'attaque pour me mettre sur ma déclaration d'impôts demain.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t06",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Est-ce que c'est bien sur l'objectif « faire ma déclaration d'impôts demain » que tu souhaites travailler ? Pour continuer, ça se passe dans la section Cartes d’attaque : ouvre la section Cartes, choisis Carte d’attaque et reprends le brouillon proposé.",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t06",
+            "source_message_id": "15332195-9950-459e-8886-ee191fb020fa",
+            "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "prepare_attack_card",
+                "confidence_band": "high",
+                "explicitness": "explicit",
+                "ambiguity": "none",
+                "user_intent": "create",
+                "source": "prepare_defense_card_handoff"
+              }
+            ],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "note_information": {
+              "source_flow_id": "prepare_defense_card",
+              "source_flow_presentation": "Helps prepare a defense card for a moment of risk or derailment. It fills/supports the platform handoff but never creates the card.",
+              "source_flow_state_summary": "La préparation d'une carte de défense contre les commandes automatiques de repas était finalisée, mais l'utilisateur change de sujet.",
+              "handoff_reason": "bridge",
+              "target_dispatcher": "prepare_attack_card",
+              "handoff_context_for_next_dispatcher": "Souhaite finalement une carte d'attaque pour se mettre à sa déclaration d'impôts demain.",
+              "target_local_dispatcher_hint": "Initier le flow prepare_attack_card pour l'objectif 'déclaration d'impôts'.",
+              "user_words": [],
+              "structured_context": {
+                "source_flow": "prepare_defense_card",
+                "flow_action": "exit_to_global_dispatcher",
+                "current_stage": "support_need_intake",
+                "tool_fit": "ambiguous",
+                "collected_state": {
+                  "previous_support_need": "quand je rentre épuisé, j'ai besoin d'aide à ne pas ouvrir les applis de livraison par automatisme."
+                },
+                "visible_task_kind": "handoff_transition",
+                "unresolved_questions": [],
+                "confidence": "medium",
+                "evidence": [],
+                "recommended_next_focus": "Initier le flow prepare_attack_card pour l'objectif 'déclaration d'impôts'."
+              },
+              "risk_score": 0,
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              }
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "prepare_defense_card_handoff_to_prepare_attack_card"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "prepare_defense_card_handoff_to_prepare_attack_card",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "prepare_attack_card_local_confirm_target_candidate",
+            "operation_type": "prepare_attack_card",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "collecting",
+            "flow_action": "confirm_candidate",
+            "visible_task": "confirm_target_candidate",
+            "visible_task_context": {
+              "state_summary": "Cible: faire ma déclaration d'impôts demain | Piege non verrouille | Technique non verrouillee",
+              "user_words": [],
+              "field_or_stage": "confirm_target_candidate",
+              "known_values": {
+                "target": {
+                  "status": "proposed",
+                  "kind": null,
+                  "plan_item_id": null,
+                  "candidate_value": "faire ma déclaration d'impôts demain",
+                  "locked_value": null,
+                  "needs_user_confirmation": true,
+                  "why_status": "L'utilisateur a exprimé son intention de travailler sur sa déclaration d'impôts demain."
+                },
+                "blocker": {
+                  "status": "missing",
+                  "blocker_type": null,
+                  "candidate_value": null,
+                  "locked_value": null,
+                  "needs_user_confirmation": false,
+                  "why_status": "Piège manquant."
+                },
+                "technique": {
+                  "status": "missing",
+                  "technique_key": null,
+                  "technique_label": null,
+                  "explicitly_requested": false,
+                  "candidate_options": [],
+                  "fit_warning": null,
+                  "needs_user_confirmation": false,
+                  "why_status": "La technique sera sélectionnée une fois la cible et le piège clarifiés."
+                },
+                "current_field": null,
+                "activation_keyword": {
+                  "status": "not_applicable",
+                  "candidate_value": null,
+                  "locked_value": null,
+                  "needs_user_confirmation": false,
+                  "why_status": "Non applicable à ce stade."
+                }
+              },
+              "missing_or_weak_values": [
+                "target",
+                "blocker",
+                "technique"
+              ],
+              "selected_candidate": {
+                "previous_value": null
+              },
+              "handoff_data": {
+                "operation_name": "prepare_attack_card",
+                "surface_label": "Cartes d'attaque",
+                "platform_destination": "dans la section Cartes d’attaque",
+                "platform_steps": [
+                  "ouvre la section Cartes",
+                  "choisis Carte d’attaque",
+                  "reprends le brouillon proposé"
+                ],
+                "flow_kind": "free_attack_card",
+                "technique_label": null,
+                "target_value": "faire ma déclaration d'impôts demain",
+                "blocker_value": null,
+                "locked_fields": [],
+                "missing_fields": [
+                  "target",
+                  "blocker",
+                  "technique"
+                ],
+                "activation_keyword": null,
+                "no_chat_mutation": true
+              },
+              "tone_constraints": [],
+              "do_not_say": [
+                "c'est cree",
+                "je l'ai creee",
+                "je l'ai ajoutee",
+                "c'est active",
+                "dis oui et je la cree"
+              ],
+              "context_summary": null,
+              "evidence_used": [
+                "L'utilisateur demande explicitement un changement de piste vers une carte d'attaque.",
+                "L'objectif est identifié : déclaration d'impôts demain."
+              ]
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "handoff_state": {
+              "skill_id": "prepare_attack_card",
+              "mode": "platform_handoff",
+              "status": "collecting",
+              "draft": {
+                "operation_type": "prepare_attack_card",
+                "mode": "platform_handoff",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "target_summary": "faire ma déclaration d'impôts demain",
+                "blocker_summary": "",
+                "recommendation": {
+                  "technique_label": "",
+                  "why_this_technique": "La technique sera sélectionnée une fois la cible et le piège clarifiés.",
+                  "card_draft_summary": "",
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "dans la section Cartes d’attaque",
+                  "platform_steps": [
+                    "ouvre la section Cartes",
+                    "choisis Carte d’attaque",
+                    "reprends le brouillon proposé"
+                  ]
+                },
+                "missing_decisions": []
+              },
+              "source_draft": null,
+              "local_state": {
+                "flow_id": "prepare_attack_card",
+                "flow_kind": "free_attack_card",
+                "platform_destination": "dans la section Cartes d’attaque",
+                "target_state": {
+                  "status": "proposed",
+                  "kind": null,
+                  "plan_item_id": null,
+                  "candidate_value": "faire ma déclaration d'impôts demain",
+                  "locked_value": null,
+                  "needs_user_confirmation": true,
+                  "why_status": "L'utilisateur a exprimé son intention de travailler sur sa déclaration d'impôts demain."
+                },
+                "blocker_state": {
+                  "status": "missing",
+                  "blocker_type": null,
+                  "candidate_value": null,
+                  "locked_value": null,
+                  "needs_user_confirmation": false,
+                  "why_status": "Piège manquant."
+                },
+                "technique_state": {
+                  "status": "missing",
+                  "technique_key": null,
+                  "technique_label": null,
+                  "explicitly_requested": false,
+                  "candidate_options": [],
+                  "fit_warning": null,
+                  "needs_user_confirmation": false,
+                  "why_status": "La technique sera sélectionnée une fois la cible et le piège clarifiés."
+                },
+                "platform_field_order": [],
+                "platform_field_states": {},
+                "activation_keyword_state": {
+                  "status": "not_applicable",
+                  "candidate_value": null,
+                  "locked_value": null,
+                  "needs_user_confirmation": false,
+                  "why_status": "Non applicable à ce stade."
+                },
+                "current_field_id": null,
+                "last_visible_task": "confirm_target_candidate",
+                "last_handoff_delivered": false,
+                "subskill_history": []
+              },
+              "target": {
+                "kind": "personal_action",
+                "plan_item_id": null,
+                "title": "faire ma déclaration d'impôts demain"
+              },
+              "turn_count": 1,
+              "max_turns": 8,
+              "created_at": "2026-06-09T20:20:35.356Z",
+              "updated_at": "2026-06-09T20:20:35.356Z",
+              "no_chat_mutation": true
+            },
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "prepare_attack_card.local_flow",
+                "event": "db_context_pack_loaded",
+                "plan_items_count": 0,
+                "micro_memory_items_count": 0,
+                "selected_handler": "prepare_attack_card"
+              },
+              {
+                "component": "prepare_attack_card.local_flow",
+                "event": "global_dispatcher_skipped",
+                "reason_code": "active_prepare_attack_card_uses_local_dispatcher",
+                "selected_handler": "prepare_attack_card"
+              },
+              {
+                "component": "prepare_attack_card.local_flow",
+                "event": "note_information_consumed",
+                "source_flow_id": "prepare_defense_card",
+                "target_dispatcher": "prepare_attack_card",
+                "selected_handler": "prepare_attack_card"
+              },
+              {
+                "component": "prepare_attack_card.local_flow",
+                "event": "local_dispatcher start",
+                "flow_action": null,
+                "stage": null,
+                "visible_task_kind": null,
+                "current_field_id": null,
+                "technique_key": null,
+                "target_status": "missing",
+                "blocker_status": "missing",
+                "missing_fields": [],
+                "risk_assessment": null,
+                "selected_handler": "prepare_attack_card"
+              },
+              {
+                "component": "prepare_attack_card.local_flow",
+                "event": "local_dispatcher decision",
+                "flow_action": "confirm_candidate",
+                "stage": "confirm_target_candidate",
+                "visible_task_kind": "confirm_target_candidate",
+                "current_field_id": null,
+                "technique_key": null,
+                "target_status": "proposed",
+                "blocker_status": "missing",
+                "missing_fields": [],
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_attack_card"
+              },
+              {
+                "component": "prepare_attack_card.local_flow",
+                "event": "reducer reduced",
+                "flow_action": "confirm_candidate",
+                "stage": "confirm_target_candidate",
+                "visible_task_kind": "confirm_target_candidate",
+                "current_field_id": null,
+                "technique_key": null,
+                "target_status": "proposed",
+                "blocker_status": "missing",
+                "missing_fields": [],
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_attack_card"
+              },
+              {
+                "component": "prepare_attack_card.local_flow",
+                "event": "visible_stage start",
+                "flow_action": "confirm_candidate",
+                "stage": "confirm_target_candidate",
+                "visible_task_kind": "confirm_target_candidate",
+                "current_field_id": null,
+                "technique_key": null,
+                "target_status": "proposed",
+                "blocker_status": "missing",
+                "missing_fields": [],
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_attack_card"
+              },
+              {
+                "component": "visible_agent",
+                "stage": "confirm_target_candidate",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "prepare_attack_card.local_flow",
+                "event": "visible_stage complete",
+                "flow_action": "confirm_candidate",
+                "stage": "confirm_target_candidate",
+                "visible_task_kind": "confirm_target_candidate",
+                "current_field_id": null,
+                "technique_key": null,
+                "target_status": "proposed",
+                "blocker_status": "missing",
+                "missing_fields": [],
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "selected_handler": "prepare_attack_card"
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t06",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 1,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t06:blocked:attack_card.create:runtime",
+                "kind": "durable_effect",
+                "effect_type": "attack_card.create",
+                "operation_type": "prepare_attack_card",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "prepare_attack_card",
+                "status": "blocked",
+                "reason_code": "collecting",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "status": "collecting"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t06",
+          "source_message_id": "15332195-9950-459e-8886-ee191fb020fa",
+          "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [
+            {
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "explicitness": "explicit",
+              "ambiguity": "none",
+              "user_intent": "create",
+              "source": "prepare_defense_card_handoff"
+            }
+          ],
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "note_information": {
+            "source_flow_id": "prepare_defense_card",
+            "source_flow_presentation": "Helps prepare a defense card for a moment of risk or derailment. It fills/supports the platform handoff but never creates the card.",
+            "source_flow_state_summary": "La préparation d'une carte de défense contre les commandes automatiques de repas était finalisée, mais l'utilisateur change de sujet.",
+            "handoff_reason": "bridge",
+            "target_dispatcher": "prepare_attack_card",
+            "handoff_context_for_next_dispatcher": "Souhaite finalement une carte d'attaque pour se mettre à sa déclaration d'impôts demain.",
+            "target_local_dispatcher_hint": "Initier le flow prepare_attack_card pour l'objectif 'déclaration d'impôts'.",
+            "user_words": [],
+            "structured_context": {
+              "source_flow": "prepare_defense_card",
+              "flow_action": "exit_to_global_dispatcher",
+              "current_stage": "support_need_intake",
+              "tool_fit": "ambiguous",
+              "collected_state": {
+                "previous_support_need": "quand je rentre épuisé, j'ai besoin d'aide à ne pas ouvrir les applis de livraison par automatisme."
+              },
+              "visible_task_kind": "handoff_transition",
+              "unresolved_questions": [],
+              "confidence": "medium",
+              "evidence": [],
+              "recommended_next_focus": "Initier le flow prepare_attack_card pour l'objectif 'déclaration d'impôts'."
+            },
+            "risk_score": 0,
+            "no_chat_mutation": {
+              "db_write_committed": false,
+              "potion_session_created": false,
+              "scheduled_checkin_created": false,
+              "recurring_reminder_created": false,
+              "executable_confirmation_generated": false
+            }
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "prepare_attack_card",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "prepare_defense_card_handoff_to_prepare_attack_card"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "prepare_defense_card_handoff_to_prepare_attack_card",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "prepare_attack_card",
+          "reason_code": "prepare_attack_card_local_confirm_target_candidate",
+          "operation_type": "prepare_attack_card",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "collecting",
+          "flow_action": "confirm_candidate",
+          "visible_task": "confirm_target_candidate",
+          "visible_task_context": {
+            "state_summary": "Cible: faire ma déclaration d'impôts demain | Piege non verrouille | Technique non verrouillee",
+            "user_words": [],
+            "field_or_stage": "confirm_target_candidate",
+            "known_values": {
+              "target": {
+                "status": "proposed",
+                "kind": null,
+                "plan_item_id": null,
+                "candidate_value": "faire ma déclaration d'impôts demain",
+                "locked_value": null,
+                "needs_user_confirmation": true,
+                "why_status": "L'utilisateur a exprimé son intention de travailler sur sa déclaration d'impôts demain."
+              },
+              "blocker": {
+                "status": "missing",
+                "blocker_type": null,
+                "candidate_value": null,
+                "locked_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "Piège manquant."
+              },
+              "technique": {
+                "status": "missing",
+                "technique_key": null,
+                "technique_label": null,
+                "explicitly_requested": false,
+                "candidate_options": [],
+                "fit_warning": null,
+                "needs_user_confirmation": false,
+                "why_status": "La technique sera sélectionnée une fois la cible et le piège clarifiés."
+              },
+              "current_field": null,
+              "activation_keyword": {
+                "status": "not_applicable",
+                "candidate_value": null,
+                "locked_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "Non applicable à ce stade."
+              }
+            },
+            "missing_or_weak_values": [
+              "target",
+              "blocker",
+              "technique"
+            ],
+            "selected_candidate": {
+              "previous_value": null
+            },
+            "handoff_data": {
+              "operation_name": "prepare_attack_card",
+              "surface_label": "Cartes d'attaque",
+              "platform_destination": "dans la section Cartes d’attaque",
+              "platform_steps": [
+                "ouvre la section Cartes",
+                "choisis Carte d’attaque",
+                "reprends le brouillon proposé"
+              ],
+              "flow_kind": "free_attack_card",
+              "technique_label": null,
+              "target_value": "faire ma déclaration d'impôts demain",
+              "blocker_value": null,
+              "locked_fields": [],
+              "missing_fields": [
+                "target",
+                "blocker",
+                "technique"
+              ],
+              "activation_keyword": null,
+              "no_chat_mutation": true
+            },
+            "tone_constraints": [],
+            "do_not_say": [
+              "c'est cree",
+              "je l'ai creee",
+              "je l'ai ajoutee",
+              "c'est active",
+              "dis oui et je la cree"
+            ],
+            "context_summary": null,
+            "evidence_used": [
+              "L'utilisateur demande explicitement un changement de piste vers une carte d'attaque.",
+              "L'objectif est identifié : déclaration d'impôts demain."
+            ]
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "handoff_state": {
+            "skill_id": "prepare_attack_card",
+            "mode": "platform_handoff",
+            "status": "collecting",
+            "draft": {
+              "operation_type": "prepare_attack_card",
+              "mode": "platform_handoff",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "target_summary": "faire ma déclaration d'impôts demain",
+              "blocker_summary": "",
+              "recommendation": {
+                "technique_label": "",
+                "why_this_technique": "La technique sera sélectionnée une fois la cible et le piège clarifiés.",
+                "card_draft_summary": "",
+                "preserve": [],
+                "avoid": [],
+                "platform_destination": "dans la section Cartes d’attaque",
+                "platform_steps": [
+                  "ouvre la section Cartes",
+                  "choisis Carte d’attaque",
+                  "reprends le brouillon proposé"
+                ]
+              },
+              "missing_decisions": []
+            },
+            "source_draft": null,
+            "local_state": {
+              "flow_id": "prepare_attack_card",
+              "flow_kind": "free_attack_card",
+              "platform_destination": "dans la section Cartes d’attaque",
+              "target_state": {
+                "status": "proposed",
+                "kind": null,
+                "plan_item_id": null,
+                "candidate_value": "faire ma déclaration d'impôts demain",
+                "locked_value": null,
+                "needs_user_confirmation": true,
+                "why_status": "L'utilisateur a exprimé son intention de travailler sur sa déclaration d'impôts demain."
+              },
+              "blocker_state": {
+                "status": "missing",
+                "blocker_type": null,
+                "candidate_value": null,
+                "locked_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "Piège manquant."
+              },
+              "technique_state": {
+                "status": "missing",
+                "technique_key": null,
+                "technique_label": null,
+                "explicitly_requested": false,
+                "candidate_options": [],
+                "fit_warning": null,
+                "needs_user_confirmation": false,
+                "why_status": "La technique sera sélectionnée une fois la cible et le piège clarifiés."
+              },
+              "platform_field_order": [],
+              "platform_field_states": {},
+              "activation_keyword_state": {
+                "status": "not_applicable",
+                "candidate_value": null,
+                "locked_value": null,
+                "needs_user_confirmation": false,
+                "why_status": "Non applicable à ce stade."
+              },
+              "current_field_id": null,
+              "last_visible_task": "confirm_target_candidate",
+              "last_handoff_delivered": false,
+              "subskill_history": []
+            },
+            "target": {
+              "kind": "personal_action",
+              "plan_item_id": null,
+              "title": "faire ma déclaration d'impôts demain"
+            },
+            "turn_count": 1,
+            "max_turns": 8,
+            "created_at": "2026-06-09T20:20:35.356Z",
+            "updated_at": "2026-06-09T20:20:35.356Z",
+            "no_chat_mutation": true
+          },
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "db_context_pack_loaded",
+              "plan_items_count": 0,
+              "micro_memory_items_count": 0,
+              "selected_handler": "prepare_attack_card"
+            },
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "global_dispatcher_skipped",
+              "reason_code": "active_prepare_attack_card_uses_local_dispatcher",
+              "selected_handler": "prepare_attack_card"
+            },
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "note_information_consumed",
+              "source_flow_id": "prepare_defense_card",
+              "target_dispatcher": "prepare_attack_card",
+              "selected_handler": "prepare_attack_card"
+            },
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "local_dispatcher start",
+              "flow_action": null,
+              "stage": null,
+              "visible_task_kind": null,
+              "current_field_id": null,
+              "technique_key": null,
+              "target_status": "missing",
+              "blocker_status": "missing",
+              "missing_fields": [],
+              "risk_assessment": null,
+              "selected_handler": "prepare_attack_card"
+            },
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "local_dispatcher decision",
+              "flow_action": "confirm_candidate",
+              "stage": "confirm_target_candidate",
+              "visible_task_kind": "confirm_target_candidate",
+              "current_field_id": null,
+              "technique_key": null,
+              "target_status": "proposed",
+              "blocker_status": "missing",
+              "missing_fields": [],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_attack_card"
+            },
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "reducer reduced",
+              "flow_action": "confirm_candidate",
+              "stage": "confirm_target_candidate",
+              "visible_task_kind": "confirm_target_candidate",
+              "current_field_id": null,
+              "technique_key": null,
+              "target_status": "proposed",
+              "blocker_status": "missing",
+              "missing_fields": [],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_attack_card"
+            },
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "visible_stage start",
+              "flow_action": "confirm_candidate",
+              "stage": "confirm_target_candidate",
+              "visible_task_kind": "confirm_target_candidate",
+              "current_field_id": null,
+              "technique_key": null,
+              "target_status": "proposed",
+              "blocker_status": "missing",
+              "missing_fields": [],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_attack_card"
+            },
+            {
+              "component": "visible_agent",
+              "stage": "confirm_target_candidate",
+              "attempt": 1,
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "prepare_attack_card.local_flow",
+              "event": "visible_stage complete",
+              "flow_action": "confirm_candidate",
+              "stage": "confirm_target_candidate",
+              "visible_task_kind": "confirm_target_candidate",
+              "current_field_id": null,
+              "technique_key": null,
+              "target_status": "proposed",
+              "blocker_status": "missing",
+              "missing_fields": [],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "selected_handler": "prepare_attack_card"
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t06",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 1,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-prepare-defense-card-alex-2026-06-09-prepare-defense-local-post-legacy-r2-t06:blocked:attack_card.create:runtime",
+              "kind": "durable_effect",
+              "effect_type": "attack_card.create",
+              "operation_type": "prepare_attack_card",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "prepare_attack_card",
+              "status": "blocked",
+              "reason_code": "collecting",
+              "source": "tool_skill",
+              "payload_summary": {
+                "status": "collecting"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  }
+]

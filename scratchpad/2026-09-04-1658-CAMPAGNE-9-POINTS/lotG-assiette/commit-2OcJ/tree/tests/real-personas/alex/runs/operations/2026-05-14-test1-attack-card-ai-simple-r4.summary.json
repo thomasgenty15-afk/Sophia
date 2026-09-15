@@ -1,0 +1,215 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r4-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'aimerais préparer une carte d'attaque pour m'aider à faire mon sas de déchargement ce soir.",
+    "assistant": "C'est noté pour ton sas de déchargement. Pour t'aider ce soir, tu préfères quoi : préparer ton environnement à l'avance (Préparer le terrain), avoir un texte court à relire si tu hésites (Texte magique), ou un mot-clé à m'envoyer si tu sens que tu vas zapper (Mot de bascule) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "structured_ai_missing_technique",
+        "status": "missing",
+        "question": "C'est noté pour ton sas de déchargement. Pour t'aider ce soir, tu préfères quoi : préparer ton environnement à l'avance (Préparer le terrain), avoir un texte court à relire si tu hésites (Texte magique), ou un mot-clé à m'envoyer si tu sens que tu vas zapper (Mot de bascule) ?",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "intake_state": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "faire mon sas de déchargement ce soir"
+              ],
+              "confidence": "high",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "blocker": {
+              "type": "friction",
+              "evidence": [
+                "m'aider à faire mon sas"
+              ],
+              "confidence": 0.7
+            },
+            "skill_id": "prepare_attack_card",
+            "technique": {
+              "value": null,
+              "status": "ambiguous",
+              "options": [
+                {
+                  "title": "Préparer le terrain",
+                  "reason": "Idéal pour s'assurer que ton carnet est déjà prêt et ton téléphone loin avant l'heure H.",
+                  "example": "Carnet ouvert sur le bureau, téléphone dans une autre pièce dès 21h.",
+                  "description": "Retirer de la friction avant que le moment d'action arrive.",
+                  "recommended": true,
+                  "technique_key": "preparer_terrain"
+                },
+                {
+                  "title": "Le texte magique",
+                  "reason": "Utile si tu as tendance à négocier avec toi-même pour rester sur les écrans.",
+                  "example": "Un rappel de pourquoi ce sas est vital pour ton sommeil.",
+                  "description": "Un texte court à relire quand la résistance monte.",
+                  "recommended": false,
+                  "technique_key": "texte_recadrage"
+                },
+                {
+                  "title": "Mot de bascule",
+                  "reason": "Parfait si tu as besoin d'un signal rapide pour t'engager à lâcher les écrans.",
+                  "example": "M'envoyer un mot court quand tu sens que tu vas esquiver le sas.",
+                  "description": "Un mot simple à envoyer quand le moment devient fragile.",
+                  "recommended": false,
+                  "technique_key": "pre_engagement"
+                }
+              ],
+              "evidence": [],
+              "confidence": "low",
+              "fit_warning": null,
+              "explicitly_requested": false
+            },
+            "confidence": "medium",
+            "constraints": [],
+            "current_step": "technique_selection",
+            "missing_slots": [
+              "technique"
+            ],
+            "activation_keyword": {
+              "value": null,
+              "status": "not_applicable",
+              "options": [],
+              "evidence": [],
+              "confidence": "low",
+              "rejected_value": null
+            },
+            "generated_user_message": "C'est noté pour ton sas de déchargement. Pour t'aider ce soir, tu préfères quoi : préparer ton environnement à l'avance (Préparer le terrain), avoir un texte court à relire si tu hésites (Texte magique), ou un mot-clé à m'envoyer si tu sens que tu vas zapper (Mot de bascule) ?"
+          },
+          "technique_options": [
+            {
+              "title": "Préparer le terrain",
+              "reason": "Idéal pour s'assurer que ton carnet est déjà prêt et ton téléphone loin avant l'heure H.",
+              "example": "Carnet ouvert sur le bureau, téléphone dans une autre pièce dès 21h.",
+              "description": "Retirer de la friction avant que le moment d'action arrive.",
+              "recommended": true,
+              "technique_key": "preparer_terrain"
+            },
+            {
+              "title": "Le texte magique",
+              "reason": "Utile si tu as tendance à négocier avec toi-même pour rester sur les écrans.",
+              "example": "Un rappel de pourquoi ce sas est vital pour ton sommeil.",
+              "description": "Un texte court à relire quand la résistance monte.",
+              "recommended": false,
+              "technique_key": "texte_recadrage"
+            },
+            {
+              "title": "Mot de bascule",
+              "reason": "Parfait si tu as besoin d'un signal rapide pour t'engager à lâcher les écrans.",
+              "example": "M'envoyer un mot court quand tu sens que tu vas esquiver le sas.",
+              "description": "Un mot simple à envoyer quand le moment devient fragile.",
+              "recommended": false,
+              "technique_key": "pre_engagement"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Préparer le terrain",
+            "reason": "Idéal pour s'assurer que ton carnet est déjà prêt et ton téléphone loin avant l'heure H.",
+            "example": "Carnet ouvert sur le bureau, téléphone dans une autre pièce dès 21h.",
+            "description": "Retirer de la friction avant que le moment d'action arrive.",
+            "recommended": true,
+            "technique_key": "preparer_terrain"
+          },
+          {
+            "title": "Le texte magique",
+            "reason": "Utile si tu as tendance à négocier avec toi-même pour rester sur les écrans.",
+            "example": "Un rappel de pourquoi ce sas est vital pour ton sommeil.",
+            "description": "Un texte court à relire quand la résistance monte.",
+            "recommended": false,
+            "technique_key": "texte_recadrage"
+          },
+          {
+            "title": "Mot de bascule",
+            "reason": "Parfait si tu as besoin d'un signal rapide pour t'engager à lâcher les écrans.",
+            "example": "M'envoyer un mot court quand tu sens que tu vas esquiver le sas.",
+            "description": "Un mot simple à envoyer quand le moment devient fragile.",
+            "recommended": false,
+            "technique_key": "pre_engagement"
+          }
+        ],
+        "activation_keyword_options": []
+      },
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r4-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Texte magique. Le problème c'est que je commence à me raconter que je le ferai plus tard et je finis par scroller.",
+    "assistant": "Voici ton Texte Magique pour ton sas de déchargement ce soir. Il est conçu pour couper court à l'envie de scroller et à la procrastination. On valide ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Sas de déchargement : Le Texte Magique",
+          "technique": "texte_recadrage",
+          "instruction": "Lis ce texte dès que tu sens l'envie de scroller ou de remettre à plus tard.",
+          "mode_emploi": "Lis ou recopie ce texte au moment où tu sens la résistance monter, puis fais le premier geste sans réfléchir.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Ce texte court permet de faire baisser le combat intérieur quand tu commences à négocier avec toi-même.",
+          "generated_asset": "Attendre ne rendra pas la tâche plus facile, seulement ma soirée plus lourde. Je pose mon téléphone maintenant. Je fais mon sas de 5 minutes. Je serai fier de moi dans 10 minutes.",
+          "technique_title": "Le texte magique",
+          "supporting_points": [
+            "Casser la négociation mentale immédiate",
+            "Éviter le piège du scroll infini",
+            "Libérer l'esprit pour la suite de la soirée"
+          ],
+          "activation_keyword": null
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ton Texte Magique pour ton sas de déchargement ce soir. Il est conçu pour couper court à l'envie de scroller et à la procrastination. On valide ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "882e5ba8-430f-442c-bb59-8be8f88167ea",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

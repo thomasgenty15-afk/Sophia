@@ -1,0 +1,8 @@
+{
+  "user_id": "2a1e1dc1-cfe2-4ee7-927f-f1c3ce9fa0cd",
+  "email": "qa-weekly-deep-weekly-full-r2-partial_habits_mission_partial@example.com",
+  "password": "1234567",
+  "scope": "weekly-deep-partial_habits_mission_partial-weekly-full-r2",
+  "persona": "qa-weekly-deep",
+  "is_temporary_qa_connection": true
+}

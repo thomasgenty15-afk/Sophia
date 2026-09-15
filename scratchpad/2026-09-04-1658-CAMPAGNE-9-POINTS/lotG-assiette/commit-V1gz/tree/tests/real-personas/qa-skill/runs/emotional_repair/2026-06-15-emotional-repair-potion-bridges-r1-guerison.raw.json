@@ -1,0 +1,22 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r1-guerison-t01",
+    "auth_method": "refresh_token",
+    "user": "J'ai craqué hier soir sur un truc que j'avais promis de tenir, et depuis je me repasse la scène en boucle. Je me sens sale, comme si j'avais tout gâché.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r1-guerison-t02",
+    "auth_method": "refresh_token",
+    "user": "J'ai craqué hier soir sur un truc que j'avais promis de tenir, et depuis je me repasse la scène en boucle. Je me sens sale, comme si j'avais tout gâché.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

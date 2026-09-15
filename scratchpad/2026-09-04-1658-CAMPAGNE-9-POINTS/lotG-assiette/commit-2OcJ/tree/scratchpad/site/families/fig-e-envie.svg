@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-e-t fig-e-d">
+  <title id="fig-e-t">Une ligne d’envie, et la semaine qui se compose avec</title>
+  <desc id="fig-e-d">Un champ d’une seule ligne, écrit par la personne qui tient le foyer. Le
+    trait se répartit vers les sept jours de la semaine : le générateur lit cette ligne au
+    moment de composer.</desc>
+
+  <!-- FIGURE E — /families, section « l'envie de la semaine ».
+       Fait ancré : AUDIT C12 (keel_household_submit_envy, refus not_owner ;
+       lue par generate-household-meal-v1:1579-1589).
+       ⚠ CE QUI N'EST PAS DESSINÉ, ET DÉLIBÉRÉMENT : aucun retour de la semaine
+       vers la ligne. L'arbitrage n'est JAMAIS restitué à l'écran
+       (index.ts:3088-3092 ne rend pas envy_line_used) — une flèche de retour
+       serait le « conseil de famille » que l'audit §5.2 déclare mort.
+       ⚠ AUCUNE RÉCOLTE PAR MEMBRE : un seul champ, celui du maître. Dessiner
+       quatre champs qui convergent inventerait un vote.
+       Pièce chaude : l'équerre + le filet du champ. -->
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">UNE LIGNE, PUIS LA SEMAINE</text>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <rect x="24" y="56" width="432" height="64" rx="12"
+          fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+    <path d="M 40 72 L 40 104" fill="none" stroke="var(--ill-fig, #632C4C)"
+          stroke-width="2" stroke-linecap="round"/>
+    <text x="56" y="80" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">ÉCRITE PAR VOUS, EN UNE LIGNE</text>
+    <text x="56" y="104" font-size="13"
+          fill="var(--ill-ink, #23191F)">« Cette semaine, on a envie de plats qui se partagent. »</text>
+
+    <g fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1" stroke-linecap="round">
+      <path d="M 240 120 L 240 140"/>
+      <path d="M 48 140 L 432 140"/>
+      <path d="M 48 140 L 48 164"/>
+      <path d="M 112 140 L 112 164"/>
+      <path d="M 176 140 L 176 164"/>
+      <path d="M 240 140 L 240 164"/>
+      <path d="M 304 140 L 304 164"/>
+      <path d="M 368 140 L 368 164"/>
+      <path d="M 432 140 L 432 164"/>
+    </g>
+
+    <g fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="22" y="164" width="52" height="44" rx="12"/>
+      <rect x="86" y="164" width="52" height="44" rx="12"/>
+      <rect x="150" y="164" width="52" height="44" rx="12"/>
+      <rect x="214" y="164" width="52" height="44" rx="12"/>
+      <rect x="278" y="164" width="52" height="44" rx="12"/>
+      <rect x="342" y="164" width="52" height="44" rx="12"/>
+      <rect x="406" y="164" width="52" height="44" rx="12"/>
+    </g>
+
+    <text x="24" y="230" font-size="11"
+          fill="var(--ill-ink-soft, #6A5A64)">le générateur compose la semaine avec cette ligne</text>
+  </g>
+</svg>

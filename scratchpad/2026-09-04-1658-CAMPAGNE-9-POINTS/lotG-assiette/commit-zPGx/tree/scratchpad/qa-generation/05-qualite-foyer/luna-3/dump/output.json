@@ -1,0 +1,763 @@
+{
+  "request_id": "lu000003-0000-4000-8000-000000000003",
+  "resolved_by": "--request-id",
+  "user_id": "5a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T08:42:22.859Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "3de4b1f0-887b-46cb-a90a-c1d8aa801ce6",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T08:41:26.741176+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16129,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16129,
+    "user_message_chars": 18596,
+    "user_message_truncated": false,
+    "user_message_written_chars": 18596,
+    "independent_counters": {
+      "system_prompt_chars": 16129,
+      "prompt_chars": 18596
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "745381c5-cc30-48ee-ab00-5aede2f34b51",
+    "created_at": "2026-08-19T08:42:22.231188+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Courgette chickpea rice bowl\",\n      \"title\": \"Chickpeas, courgettes, peppers and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh parsley\",\n          \"quantity\": \"10 leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the two labelled table portions together until piping hot, then finish with parsley and lemon.\",\n      \"why\": \"The trade-off is a vegan shared base for Lubna, with separate finishes for Roxane and Ivar rather than one richer shared pot.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lunch_chickpea_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_lunch_chickpea_rice_zoe\"\n        },\n        {\n          \"preparation_id\": \"prep_lunch_chickpea_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_lunch_chickpea_rice_lubna\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Herby chickpea rice plate\",\n      \"title\": \"Chickpeas, courgettes, peppers and rice with herbs\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh parsley\",\n          \"quantity\": \"15 leaves\",\n          \"amount\": 15,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the labelled portion until piping hot. Put the courgettes and peppers on the plate first, then the chickpeas, then the rice, and finish with parsley and lemon.\",\n      \"why\": \"It keeps lunch warm and comforting while giving Roxane a distinct herby finish from the shared batch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lunch_chickpea_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_lunch_chickpea_rice_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil rice bowl\",\n      \"title\": \"Lentils, courgettes, peppers and rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"10 leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"half a lime\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the two labelled table portions until piping hot, then add coriander and lime.\",\n      \"why\": \"A warm one-pot dinner makes the reheatable workday plan feel comforting, with courgette as the loud vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_dinner_lentil_rice_zoe\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_dinner_lentil_rice_lubna\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Lime lentil rice plate\",\n      \"title\": \"Lentils, courgettes, peppers and rice with lime\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"15 leaves\",\n          \"amount\": 15,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"half a lime\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the labelled portion until piping hot. Put the courgettes and peppers on the plate first, then the lentils, then the rice, and finish with coriander and lime.\",\n      \"why\": \"This gives Roxane a fresh, citrusy version of the warm lentil dinner without another cooking session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_dinner_lentil_rice_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Spiced lentil rice plate\",\n      \"title\": \"Lentils, courgettes, peppers and rice with coriander\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"15 leaves\",\n          \"amount\": 15,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"half a lime\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the labelled portion until piping hot. Put the lentils and rice on the plate first, then add the courgettes and peppers, and finish with coriander and lime.\",\n      \"why\": \"It provides a separate, warmly spiced plate for Ivar while keeping the same quick, reheatable cooking session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_dinner_lentil_rice_ivar\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_lunch_chickpea_rice\",\n      \"title\": \"Chickpea courgette rice pot\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"cooked chickpeas\",\n          \"quantity\": \"600 g cooked chickpeas\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"long-grain rice\",\n          \"quantity\": \"180 g raw rice\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"2 courgettes\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 red peppers\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g chopped tomatoes\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp olive oil\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp smoked paprika\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Fry the onion, courgettes and peppers in the oil for 5 minutes. Stir in the tomatoes, chickpeas, rice, paprika and water, bring to a simmer, cover and cook until the rice is tender. Stir, then weigh the ready food into three labelled boxes.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_lunch_chickpea_rice_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 450\n        },\n        {\n          \"id\": \"box_lunch_chickpea_rice_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 450\n        },\n        {\n          \"id\": \"box_lunch_chickpea_rice_lubna\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 450\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_dinner_lentil_rice\",\n      \"title\": \"Lentil courgette rice pot\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"green lentils\",\n          \"quantity\": \"280 g raw green lentils\",\n          \"amount\": 280,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"long-grain rice\",\n          \"quantity\": \"240 g raw rice\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"2 courgettes\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 red peppers\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"600 g chopped tomatoes\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp olive oil\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"2 tsp ground cumin\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Fry the onion, courgettes and peppers in the oil for 5 minutes. Add the lentils, tomatoes, rice, cumin and water, cover and simmer until the lentils and rice are tender. Stir well, then weigh the ready food into four labelled boxes.\",\n      \"active_minutes\": 20,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_dinner_lentil_rice_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_dinner_lentil_rice_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_dinner_lentil_rice_lubna\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_dinner_lentil_rice_ivar\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 500\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_lunch_chickpea_rice\",\n        \"prep_dinner_lentil_rice\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Chop all onions, courgettes and peppers first. Start the chickpea rice pot, cover it and simmer while washing the lentils and measuring the second rice pot. Box the lunch pot as soon as it is ready, then cook and box the lentil pot, labelling every box for its member.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"cooked chickpeas\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"green lentils\",\n      \"quantity\": \"280 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"long-grain rice\",\n      \"quantity\": \"420 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"4 courgettes\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"4 red peppers\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 onions\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"fresh parsley\",\n      \"quantity\": \"1 small bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 small bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"1 lemon\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"limes\",\n      \"quantity\": \"1 lime\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"30 ml\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cumin\",\n      \"quantity\": \"2 tsp\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"portion_note\": \"At lunch and dinner, place the courgettes and peppers first, then the chickpeas or lentils, then the rice.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_lunch_chickpea_rice\",\n          \"note\": \"Use the box labelled Roxane.\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"note\": \"Use the box labelled Roxane.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\",\n      \"portion_note\": \"At lunch and dinner, put all the components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_lunch_chickpea_rice\",\n          \"note\": \"Use the box labelled Zoe.\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"note\": \"Use the box labelled Zoe.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"86129e3c-2f50-480f-a359-077165b6232b\",\n      \"portion_note\": \"At lunch and dinner, put all the components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_lunch_chickpea_rice\",\n          \"note\": \"Use the box labelled Lubna.\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"note\": \"Use the box labelled Lubna.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"portion_note\": \"At dinner, place the lentils and rice first, then add the courgettes and peppers.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"note\": \"Use the box labelled Ivar.\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Courgette chickpea rice bowl",
+          "title": "Chickpeas, courgettes, peppers and rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "fresh parsley",
+              "quantity": "10 leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the two labelled table portions together until piping hot, then finish with parsley and lemon.",
+          "why": "The trade-off is a vegan shared base for Lubna, with separate finishes for Roxane and Ivar rather than one richer shared pot.",
+          "uses": [
+            {
+              "preparation_id": "prep_lunch_chickpea_rice",
+              "servings": 1,
+              "box_id": "box_lunch_chickpea_rice_zoe"
+            },
+            {
+              "preparation_id": "prep_lunch_chickpea_rice",
+              "servings": 1,
+              "box_id": "box_lunch_chickpea_rice_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Herby chickpea rice plate",
+          "title": "Chickpeas, courgettes, peppers and rice with herbs",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "fresh parsley",
+              "quantity": "15 leaves",
+              "amount": 15,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the labelled portion until piping hot. Put the courgettes and peppers on the plate first, then the chickpeas, then the rice, and finish with parsley and lemon.",
+          "why": "It keeps lunch warm and comforting while giving Roxane a distinct herby finish from the shared batch.",
+          "uses": [
+            {
+              "preparation_id": "prep_lunch_chickpea_rice",
+              "servings": 1,
+              "box_id": "box_lunch_chickpea_rice_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Smoky lentil rice bowl",
+          "title": "Lentils, courgettes, peppers and rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "fresh coriander",
+              "quantity": "10 leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "lime",
+              "quantity": "half a lime",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the two labelled table portions until piping hot, then add coriander and lime.",
+          "why": "A warm one-pot dinner makes the reheatable workday plan feel comforting, with courgette as the loud vegetable.",
+          "uses": [
+            {
+              "preparation_id": "prep_dinner_lentil_rice",
+              "servings": 1,
+              "box_id": "box_dinner_lentil_rice_zoe"
+            },
+            {
+              "preparation_id": "prep_dinner_lentil_rice",
+              "servings": 1,
+              "box_id": "box_dinner_lentil_rice_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Lime lentil rice plate",
+          "title": "Lentils, courgettes, peppers and rice with lime",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "fresh coriander",
+              "quantity": "15 leaves",
+              "amount": 15,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "lime",
+              "quantity": "half a lime",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the labelled portion until piping hot. Put the courgettes and peppers on the plate first, then the lentils, then the rice, and finish with coriander and lime.",
+          "why": "This gives Roxane a fresh, citrusy version of the warm lentil dinner without another cooking session.",
+          "uses": [
+            {
+              "preparation_id": "prep_dinner_lentil_rice",
+              "servings": 1,
+              "box_id": "box_dinner_lentil_rice_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Spiced lentil rice plate",
+          "title": "Lentils, courgettes, peppers and rice with coriander",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "ingredients": [
+            {
+              "term": "fresh coriander",
+              "quantity": "15 leaves",
+              "amount": 15,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "lime",
+              "quantity": "half a lime",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the labelled portion until piping hot. Put the lentils and rice on the plate first, then add the courgettes and peppers, and finish with coriander and lime.",
+          "why": "It provides a separate, warmly spiced plate for Ivar while keeping the same quick, reheatable cooking session.",
+          "uses": [
+            {
+              "preparation_id": "prep_dinner_lentil_rice",
+              "servings": 1,
+              "box_id": "box_dinner_lentil_rice_ivar"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_lunch_chickpea_rice",
+          "title": "Chickpea courgette rice pot",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "cooked chickpeas",
+              "quantity": "600 g cooked chickpeas",
+              "amount": 600,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "long-grain rice",
+              "quantity": "180 g raw rice",
+              "amount": 180,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "2 courgettes",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "2 red peppers",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "400 g chopped tomatoes",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp olive oil",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp smoked paprika",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Fry the onion, courgettes and peppers in the oil for 5 minutes. Stir in the tomatoes, chickpeas, rice, paprika and water, bring to a simmer, cover and cook until the rice is tender. Stir, then weigh the ready food into three labelled boxes.",
+          "active_minutes": 15,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_lunch_chickpea_rice_roxane",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 450
+            },
+            {
+              "id": "box_lunch_chickpea_rice_zoe",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 450
+            },
+            {
+              "id": "box_lunch_chickpea_rice_lubna",
+              "member_ids": [
+                "86129e3c-2f50-480f-a359-077165b6232b"
+              ],
+              "grams": 450
+            }
+          ]
+        },
+        {
+          "id": "prep_dinner_lentil_rice",
+          "title": "Lentil courgette rice pot",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "green lentils",
+              "quantity": "280 g raw green lentils",
+              "amount": 280,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "long-grain rice",
+              "quantity": "240 g raw rice",
+              "amount": 240,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "2 courgettes",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "2 red peppers",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "600 g chopped tomatoes",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp olive oil",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "ground cumin",
+              "quantity": "2 tsp ground cumin",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Fry the onion, courgettes and peppers in the oil for 5 minutes. Add the lentils, tomatoes, rice, cumin and water, cover and simmer until the lentils and rice are tender. Stir well, then weigh the ready food into four labelled boxes.",
+          "active_minutes": 20,
+          "total_minutes": 35,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_dinner_lentil_rice_roxane",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_dinner_lentil_rice_zoe",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_dinner_lentil_rice_lubna",
+              "member_ids": [
+                "86129e3c-2f50-480f-a359-077165b6232b"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_dinner_lentil_rice_ivar",
+              "member_ids": [
+                "12362957-32c9-43a5-82ef-66b8d5732171"
+              ],
+              "grams": 500
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_lunch_chickpea_rice",
+            "prep_dinner_lentil_rice"
+          ],
+          "total_minutes": 50,
+          "run_through": "Chop all onions, courgettes and peppers first. Start the chickpea rice pot, cover it and simmer while washing the lentils and measuring the second rice pot. Box the lunch pot as soon as it is ready, then cook and box the lentil pot, labelling every box for its member."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "cooked chickpeas",
+          "quantity": "600 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "green lentils",
+          "quantity": "280 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "long-grain rice",
+          "quantity": "420 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "4 courgettes",
+          "aisle": "produce"
+        },
+        {
+          "term": "red peppers",
+          "quantity": "4 red peppers",
+          "aisle": "produce"
+        },
+        {
+          "term": "onions",
+          "quantity": "2 onions",
+          "aisle": "produce"
+        },
+        {
+          "term": "chopped tomatoes",
+          "quantity": "1 kg",
+          "aisle": "pantry"
+        },
+        {
+          "term": "fresh parsley",
+          "quantity": "1 small bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh coriander",
+          "quantity": "1 small bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemons",
+          "quantity": "1 lemon",
+          "aisle": "produce"
+        },
+        {
+          "term": "limes",
+          "quantity": "1 lime",
+          "aisle": "produce"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "30 ml",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "ground cumin",
+          "quantity": "2 tsp",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "portion_note": "At lunch and dinner, place the courgettes and peppers first, then the chickpeas or lentils, then the rice.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_lunch_chickpea_rice",
+              "note": "Use the box labelled Roxane."
+            },
+            {
+              "preparation_id": "prep_dinner_lentil_rice",
+              "note": "Use the box labelled Roxane."
+            }
+          ]
+        },
+        {
+          "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+          "portion_note": "At lunch and dinner, put all the components together on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_lunch_chickpea_rice",
+              "note": "Use the box labelled Zoe."
+            },
+            {
+              "preparation_id": "prep_dinner_lentil_rice",
+              "note": "Use the box labelled Zoe."
+            }
+          ]
+        },
+        {
+          "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+          "portion_note": "At lunch and dinner, put all the components together on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_lunch_chickpea_rice",
+              "note": "Use the box labelled Lubna."
+            },
+            {
+              "preparation_id": "prep_dinner_lentil_rice",
+              "note": "Use the box labelled Lubna."
+            }
+          ]
+        },
+        {
+          "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "portion_note": "At dinner, place the lentils and rice first, then add the courgettes and peppers.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_dinner_lentil_rice",
+              "note": "Use the box labelled Ivar."
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_0abbf9f436a0ac55006a856c3704b487d29575f592bb999b18",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-luna",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 8618,
+        "total_tokens": 16120,
+        "output_tokens": 7502,
+        "input_tokens_details": {
+          "cached_tokens": 8615,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 3266
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_0abbf9f436a0ac55006a856c37be3487d2a76eafe3f6b21bb9",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhWxtgAPtgKDazPGfCd8TjxIjDczvSIWIhlFNOFN7J8xVxp369QSAqiBS-f9pF1hLlCLrQkrVDAMtzV_zAdZ2othC-0atF3o-fZzE5kUiphyTHApbOvnHHvYMtQ72MysuhQ-6GIXtrPUDgbqPwg61YIJesicBSyA9M8W8Juagfu1bf54yX-CAbJOjcig3Ea6qaFqFWzRSbDZQfeI7KHNwXGV6iRYTr7WFDElWgco7TPdWZtwyK8qT1LFQ901PpppDnRdwX_E_t1cw6vu2KoqxVK4E3xpeuw5QTKZ-HmSjt_a8bbRmHbCxAJVU4A-5yWwWndDxrS_5Y_6UKk9MNKSf8dCjlSz1VxuB_6XyPGGXL3HXa3-ADz5VeZCRgvaDaSPO3XT6OUGP7h6-xIt_PY74j8dwjKafeKBMLiJncV0kqkBvtxNyVHq7_jURj-MR6cYdGVesFS0h9SzFKN-MKSEWIQp7e5fgConDGrVnW1UXQj6uPzf-L7igrj4rgX-REjllCIZxlrSXpedVbhbcNlR-sSO9CPWtKVn8UzS5NHYajrMCZ1CX_rXWE7-NwxjALlyX8cuwrxiSybzjrGNBtYwcTeO-kMLzworp8WP3qU9rbs4uANHW1GeZVvbM-A4bVshEah02HYrB6SFDm2BntyXL8jEtga1lcB3GE_6-iXUqn3cfoWqTMhZuS2Y6Dn23BMZ8cIexIPq8C17KQNGEvFRC0ykJAL0brx6G0zGodQf7zam7VSMCOq8AMH8GEFWe9aUXs9YSIEQo4iKpWsYAEaYTsH-mO26xMqWpxhSCKgAVfIks7wMdZDOqaJlUuSRw7JVZ4DuiRnlMzcPAONwZ5VtT17w-sM0UvFy6b74SMUJ3cXMbBsIUsjNnMpBcKY2ATzAMwYV0vbiYtyiBaNjtttnLEweovWHS0lZAVoC5caC4EuMjaZAD4VurCHGVYZsknaRwiLI2dLaig7zRLLZ5OGZ1LaWmF18sS_0Jtby69z22WwKb5ClO6Ab1QSoh5VNr_IgHHC0oOSluT7BOwvt3xYpWKJDfaTdf7yiDU6hR0JDWk0IaUMNW4XmITwvMZU7zj-_Dh3tliaTFNQ5uNtnsIvjfR8eVr1_uIHGuWjb6Wz_WhK9EHvTXNr26YyG4EXFz_TDJQWWfszUgpqezCy_Fu3cPB3LeIg4g7OVdunJhTmGxr25hh5NqWnUGQ9r7CFvzJJTrk3EQSD6EiL7jfyX9-dgE-IVwk0tIOZSXwqRhpXPO6sDjfVQTU0Refy5sDVK6xl-nE0vOgjoPxdrBmyR91GYguK_HQ0fC7ptaA5xn6fu-OXIYE7JySxsjFQcoSOGgOgCcmNVo_zSQWthLy_YLgAyeu-CrhWM371Zbsnb0WMoOX__k2DlAT_p88gxnANK-IlCVxAH4r8msDyazxw_TrUWVRraiy-PBZeE2ZDuhZoHY0OQMteoDjJAeFv2s7Ks0FuRJgtTQfELxKWv-jbxnpdvy9tnj0oWaZ0JpeHpjzxyHYIflTxvgw3IBNcIggcO5-u82eS6FDPgre0S1G1LatsgFg60p1t2Hsn7H507ZCdqhTxtBt5uPgSCgRunyACqpb8OkT15cD9WeQwJH-muIYdFdGIOejRpYaQggDD04IGl_vG-CVxrkswqsJycOQWDDMBmIkc3GbVXqrW82S7bko4nnGz4udhs3Te-7hWdP8M4T5jOww7KVK85YTy6FIb7Yvf6nc94uXcHMf1CkmeWTdOcMHUfQcknBt0ufPPPXurc3zm3jrkKulGFCoKC0b-k0CVl7B-nQJ7gqZiuzmDDaxsgXUCynmPxoGjwf6ZiZSwmvFDOGytUzzTW_THkUFGO1WJBtLGXe08OdAPXHOGKrXMyAMhisR3QmU98GeXzV1atkHbOA8iICbt5c1P0BIZu0D0trU5e__DwLw__h22jz7QGVZuqmWquLaSE4IAp2w1I_fBfjadfdZVT_Qb_9_PKIj_CeVP4dlXkss7CL8_m2cnxMbYtoknjyu0LSUjjQQ7MXAdQtIswNRW2EpZbe8C9rlbeiXrkBeqly8VCKZ9J7YXWLPn4QvymgpQ1PTloHiYdHREN0pMD3BvZrW8JTFSoWAYWRxdtDeYAruoG0E1xUaP3C9Ran_qKqgC6jz_Yoxf1dWkjAxNvmsQRSCZ3gLJlTeYcjGL5LxSTy9f-RxMdDyxCrQATWKcvAXXYJh0ybUG9kJwa1C0EZ3lJxxKV-Ea2BVyQ4hfgG1Tvm8T2zAMSY_ZHTLXxhJvk93RbhYnQiN28FXddeZK5eTUYq-TgdHupewoc_ly-ZoYjmXkx0CRpzb3_K4xFt9S1oWtnVLV9TlUdGA_2TsjsvxN8HSVP9sGgnQ-fnh-xF0U_6yx8JTqoU2WUuxopgBEEFV6vTdQB_xp93TxAsUQC0nHSJi9mvX3-Iu-FaBm4HroY8IOKrQOr1upgbXd3bT_pinOXqv8-GxDGM19tuxjUaULfSfGr7qyfPv6r_lRFCUsGeNFpEkBCkVoVoV-GVHLYPgSWNgubVcOXCxmb2dPp4LfnRc0_mW28Fus4QpwXbHSF8kqiW9p0q9WcLsFoAcGXslXBN9yDOBo_vNVbpZ9nA9pOTUBmzQIRS4bgwBtSoCrqF6n2Lh7siQh83ZmR8CAtys2aQoY6ANsPGpcl7_uGvPmNFwzOCJPqfyDJEn9CRaoCVCLUF248ykcNWAnfL5z-k5XXS0HpiecHPFew3CbNe5FJpTsy_mYM7SfVA8QRavOBBGo9cEEuKYevl8u0IcwTySOBXZv5wVtGeEnkBuMNtfAkiKSSnpTz4P6szf-drH8op6BSDXIIIO_D4mHvJ0OMksYqln8tXdSSuO9_kEbFF7z59cENmM09WPkstzxLq3lFHtYND6kG5PNj-LRIoaEfoJCxJkVNMwFadQRhURgvjGa9wV2j0oYBjm86mbc_01Jc1px_rI8FUl0qNpKz9rm_YuIAAdhRnVmb3Nea3p1jBSYsvIewb_n-ILbRjsulDA4EkGsOC9zaF4t0mDblhJKUZJG2d9jX-AHpWr3pJBNpnkwRT0XEq3BFV9VATh8mGAlcs2_Tjp-rthTu5vSlijZJ1zIJWeQwKx7bsLVTT1F8WrxwpgstPzAujE6hWL3ZXMnuV9DPyNIk3MLtsJ7wyX-w4FVkTdRunN7CVk0_BgqwbwNF0BEcg6hFvWt2FrOwGG6qpUHyaHbQfiRlikljTHP-EyIOurqazE2lzHW652vsEQoCC4_N4s4Xsgoj7bd9mezY7wndMQWGImT55GkB9NdAGBQn7O5waF8IJdezmm4VBWZiRro_erRFbLHfu7nEKlv4JgMqkd28d9oOi4DEuNdvBwcUz1qUdBmbX1OVB7uDi6yOLSwUkrq8hL1KOAFvFrBxu0UQD0Alsz8Tc0mA-LvZrfWZatxGPAp_-Co5O3-GwOlto_MDHvmlvmvy6HC-XULQ30fLtrci6WxWZRUPmtqWkBHM3Vbzyq2fxkaBcNB9U2mQfIbvgPLijn0xZZzgixmo3OHRcpkn9SaerPw6DskyBUsO-CvYnAi04VQ4ioDvNGlAE0ZFQk5pIbU4G-0qtCNYX19Kby5xUiLQv_9DUAiRLGtCZDbjcq-_4B0bVvAlklUUrojehcEvheq18YZB5jcbx5x12_f8mMQZ3uN5M5LDPrlcMwMDN3MDWyuhYYAUyeSsv-4DfKpBE54i9XuL1B8DwU_LQWkY8OagY274QtIg6_dZYgxEZAhAELcfT7_VnThzLkuBx-AcK85vg8qnrhXhTeB_icLTAPy0NL4K-m_FLlvYx_S67k-Vd_mZh8PJ-cjUBoMH-I8eibTOv92WU-N55aSzj_ULi-5rLWSJ21gM9L4dZhA9sM4-gfkbYYtT-UsMNX7R3bWoXmIla4kMpQ-_iA_26cMsWrAugmhSg9DGi4QVeTBoQChx412oj0KOvwJ2dtAEYrxBL2lERPP3gePm_cVGitWGKd-fXxMUkINjWD2n_F3jiCMCw3THgQdFDEb1sZ4hnHnMdhu7N3PdRHk6fzb_CFj_MIqDKIWTJBNSrTV3DRMKrHaog6R4j1WawywJ_QmDTWe2G4pWogZKmn4r0e6lp_AzeAO7GecBNj7vKBxNjXGzCPHhRSEwdaop3pqiTxx3xP2Y8VoJT1Z6S-cT5pN54ZRhrz6qI3n_jsExSlfSdd1Yv7WRv-0BkFQU0fkejmIL3U7hS3ANCEhCo"
+        },
+        {
+          "id": "rs_0abbf9f436a0ac55006a856c3ce95887d296e0842fd49a8e11",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhWxta5aE9R-I1rsGVcNmCQ0NjBxhYX7YIA9nKEDZvTjAYs6Gvs1HQ1rEdWeuOG0S0IDhOgNZ36yvpYQqhTm6VmOAaKPydOabnK1rjBT7Sg653IXnHhEmLqRgfDbksvMrh3TwrNmPSDXiAyGKUp7BTjtYUsZ376c7bPns6joZuqj8Pu7E5tXsBZO3PqGSuPhV-k1fhP-GW_Xm-GmHUDHHAUaJVjpZ9Rp7QhoXtI_mAQDGoi9fvAYBnj4mXb1gDHsDrf0nnKo0y0GaGT6i9CzaHXqY7GmWjL-VlpGkNbFPV42M6Mbukh8M4-7uOyylPtv-K_wBlnroZa3rxhntVgCgcmq_V6eiUl5ECXc7m7FyDbV5nfd3ItxLVKJjGGeQKcw-BKyaGUjD9fO8YY1Mo9ezMfpQqmPFkalu7y-5jcwaFU-AL1X74w75C5BfmTRBS161fSGrdH6IquWucjrqqmoPNg-Mtrx_sbWQ44bTlzcly-1yXDwRugkPnVo8JCxkdabvO6pDGb56zga3hJJIr0dx_0jDgA-_ST8oGaceVpD35xQW-hOyiMpgJOeFUvVozHEvBtbxaqZ7ck_IYJ8I2skA-A2zFW1vC9Dq1aKKQFav_y1AgEUZakWW3qsYsM9VbEgYUjk9e3XVLM9WLw_6uILfqdydUb6h1p6e10YoTJuzaW5KeheSNX_7VkPps3H3qEHuINe8BA4Qe36LtMCWO1fCuxePDzNu0R224XMjWfzM-nw8W9CD6ziXU0ZT6uwpPpcrCgA4DlaAdFsxejfWCqzUKo_m2tCdZp0OVBDExOFdbXfMJGyLC0edJf_j3_Bj7KMwlQyW1RnHNBtaLGDlsExEHLOlHUKrR8uqD-3krD0hUPHnZ489JuHHTGKjopO9Wf15ijfv_K8-XoPNqDpVSHbLerWFCDoviKR-TGDuWi7GdLDo4ZYdZFLIcrfiYgC3eRIKMHzdzcnFyWUUebqkDFh3vZDwRcehAaeILApRC5rUTWcgkNz3ULWcnCapMEhbH73sMSdqefN7pmqvQuvEddvBb3xxWcOzb8w8n0uKyVu-TOBoG6zQeTITzKK7_XfoMxRq4utTmBFlPU3sbyxfAm8VQBsphFEjZqwRZe9holzM81WA5lOrPrhzeo6pd1cTjD5WRfPpyxmtlhg3re_ktC57rguGAvOe62ESKbB3-Th5ZnY-AJE0IDuK2IN-qTid-gpecVZbP1oKlYUp5Yj1Q6BWFzii8ot6wujDpx5vy_HSbLUNpx1VuwpNxR04EHRMLqah5mX7anJ7HupSOdVa9KDzGBHqFd9dlh3Rq-jbaInNrKlCmqvemytyA1ZGv4xmlSOgoF8jG600Oz_yUMMhwV2_OUNh2JBJkJ5ezF0CPJ1SyaoOIZbj44scR1MLGnxMBUTXOWtiBJ81lH4pDaeZ7XqjiLuF0lzxnwEgjVKi43UI0ta-GPtlM4uahKriccXExNfI9gtkfnJXN6ffzv1Cnbm7zmW703olgn-Ipw_hPeGKEYJGT9JYi7_6-X6WFFzmJbwRerN7SadQCab_Weyuqwz6Sqmu4b6w0wtCPZEJRBBDpzxcjsosPFiRtbqZS5XEtaoQq5F_3VppohnyWhvQY7lGhX-Mu-Ly7bCOrU_55b8aj6TboX85PJBKCjZwLDXmsU9tf-BFtduUGw35xG975DYjI3v9zdvdF1BBaih9ovbsaNDdmd30WHGTcSWyFMSKNPe80LtlxoRPt4x4KAXY4efXsWviROwinuoMs_AGE4jdjN7vFX2tuJoajhpnTkpBRy7O-xUWx8RsG8STb1alOf0jUaQMjFaRxkRldQK9th1wGHt8VTVBZpRrToZylUV9bGLr4X9i2LEE0NGpMI0HVU1rdz5DXWIct_0c5l1N1ZeD8YD1xOqpWbFMrLvS4M_7FvzpiAoV7C4xVjFFOAV9JZQdQrPVtd81CmsnViyt7WJONz2TvbPMkbNwWSd-lfobjkJavwyTnkiJSWBaJH5MPx_Q79vxslC6thWLv5O7WbMSAf88Z4H1TFKsFAtF4PnlZw6EM3uSW6KugqPGsNVHhhzAUR9GJfhYAQbN2BXZuAhytqWHJ9YhgdXVwPCcB7Y4Q-q77bF6ha5JmkJJ17pEDpaMz5SnHUFn492OWNTY2S62revMBr2UDA-PYfh1HQfalxXxxrHvuNvShbamGJJrN-FeNN6fPckTTcfQNdSb2aYWcSBqF5amBxb_O2RVJgKGeEQdPTkGFgzhVY8dyyYIZfouGRJPSWhCjxGEHh5UBLnYA3iirAVai6_4GlH6_9LluywyWvfXNDCSeeHluDRxujOn1ZZG1iUNra4EziZd-rtDb8oZCZAfnEAMCqjsp-zwdUTCO57VGRcC9hsvAxwQ7UhfG_sNc5WeNg0zRUwNdtcSo1q-_APdhmivJd5aBr2XCuSVDKTYvgQumPvPLZ6LKu6yOJ01vD0Qi8k1EFFhl8wegDOLyaNaSDWLLPKyQLaRdvxcaSUu_9_V-Lyukxrikq0ZQxDGuIiDJoJDrloUGMB1eH-0NRWpIe_KfBgpQhwReFmmoQGcNyP8EWo7zrBm6_MU8tK9E4YBZ-wnD3VmAiYBaBBniJl5C56EJkovAOgtJx5RuWqUaN2wgDgii55kwj5NwyAep9T-RyQQPJiIriqJeUYoS4K06tWvVJ7td-pUZXU_bRmJ5okwSBClb6Xw-FD0zbwd6hGEDgsNX4KbXjLdGLUFih-2v86x7AkaYwHhEfaCwbH-aZOoC_uqmxV2qDxnSkQelUV9aXwCwrwROJltMD1i7YIs6I7KmAHnJ1Jh1-NLP4acUfx5LUySyExwmsqfm-rOl0dhyI9M4EmlXsrPU29dC8lll-heSvkvq77IHZod-4xfmyn7WCobZq5Sp67tYNMdhfz78jEv9TT2RUG33sxyOxKM7gHtIrzmbf4nWF66erR_6nrfxxdJ-Cewkek87_JHbc7XD95WGHDd34NwVvwbbdYxbivb14PoN8o20JKGuvYjpQxaxGhxiOb2MgcAFQHcXqQRs2cxRqBczowqh8LbgIH5o5LbXaCwKgp-R2tJMlvR41JWlV11NTswnlTDo1iOCUI0MtnroX8P7QET5Biw-huVTU5XaRHXtPO8-JemkBC8mkIX6EyIOD2feFuDIZ_-ZrwEsxgIlfoK8zSvlK4PQfp99L8HHkRW8VxLxDGuys3bIEsVisD3_RoDYnX3YwMDAqTbPzHJ2huCBl_hUNdmoTEdSW9ZHmhu6_PygmV_W5EUHD_hMg1x589mqPWvDMPOj-XWtqYn19FEwnV1bZ1kJz7ddMOovY0D0nfVytbRjY8VR3K2hRLitnhpin4gy46anKdXxnEKIFwL12RQ5OCLfvQzCnfdE8HJW2Qnzg4AlnN74vzfIhnJF9ISQlqsY53zqVkH4iIviC43Ob6YapSx9h3vjyNRUD0x4MmBG72rnWbdpwUWiT6f7Q6HtSY9ebbuM7gK5GRY8pYFUnUX-KvhtCXrvxig8fIzoT_wTk_0lzVSfhEa6SnVCrZmO_uCHkKcqgXOKg3pelaT1CFVpL3aGq5uEd6XRZB8eduhiz2rHdLS6SYy1tdH8QIxdvMzilqU-1WTKort3r27lz2rDW1s5UvO2qsD65XLzPA7_M8B9Rxk7yMGTywPo7aqk1Fc7x1d4b05V2K_rkU_6eHTX_Fs9ggRx8p4789cdH-_4_WlpBK7o5mrWM1TgNTZTGTsTYYw_BFC_JlF9BhEZ-bY7ayM9XXWPossLxr05rFFxH-cQtGaMaYDeUT5tLyY4vLmcUsphORgFmucHL09P85gqhrsXyU8cxKtRFp5m-mycjAvHxTKJq0lToUfra0n3VgJv_5MExrPz4yghVsnaqSF_KlxKnPC46EYuqAQcSo9CN-oxizmg1QxvDVvVUid4Sd4NiueQmKmSbNX7S2ivOFH7jKUfCTRC40O7dfJZJKbIM0hKx0OAiNLtBMTLoVLJ_rNpUMay4OpnVUKWqaY7N74xRnOg8a8M889FOZI31WkOaZ-ODGEVyTPQRQycLFPyU3LKaRp0CtkKaRUeOLsD8iuGfYHsWo4BUSCaGsVx_X1UIpjT8CnAuPcfp_zO5jEyhmuLItoluWL80tMdjfPgbanY89G5s_pwtx99D_IUqmXEKul4e6gzxRe3tXs_epqa3I8gw_7LQ=="
+        },
+        {
+          "id": "rs_0abbf9f436a0ac55006a856c424b8c87d2956bcc6b06562129",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhWxtZGuMaLYbmJ93QsDO9z2bsvSfYKFPGBkqwA9a4lC--2nu5jE5IwugEzMjYJzeu1taf4iLzPnsMdpgLENtNviD6g8BrjwI6myTcR2rtrFkZ_5H8DVdHxkcv9o6PshcbujqkEmX97Uqs1eKZ2TYYAgGqeZguGJfnQYsjvxveHsgbJiMEhMHXxgl0ymAkluD227ccHqlD-uvlewxKMCJlKx7_ieUTyMWLd16BvwTQmHEbt0KeXIa582okQ6Vcn1z5JL13L1qKstCeCFjozT37LvBBJe5oQlqS0fmXudmO2kyLJGLR1GYDzBoxWNX0C2YgDEvaDl9EdxmxU8a5JFl8L93rnIsoMDohIgxSJOMXmxYo8M3CKjOI2t_SQ6TbJ-rS5cvQzNCscQbo3IlEeGJ1CIae73QHklphbcN1okbiVQlQ9NSVttc_88YY94U9ajV_NshYUdlUepT4s7h-QXBTl62SmXMUWOknUrA41RkfUm9ry9HHyRQksQQ29_Ei8-aaX6zhQddIZRmyEMYfcCfO8Y9tqKOBez71ZMTz7y4fwFxqcRFyv6I-zONyD8i6BaXFxfO_56pKl0x34b3FkcVS5BPY_jSEoqfM6xrt-GBRWYpfmjGp0t8nrI8o9rYQ95_ja_vrK3pnfs54oSzUQ43vL_nJoIF7cNiS4OWyZF73ehm6TrWcECepcaa6E5yprr0b8lHRJjQHeWwBqW_f0cxgbleQrrBza2g91ZaYOCcyZ0tgbbaGsKB6SJzkfSPWmWX6sqAforn8-aF8PjhLxk9RmawGRa9p6SjCFuZYpo5ZaB3cuNHqsBJWZUnongY2rVptz7yILMgHAHLWPq4efsEKIE2RW9WtSisSXL72o_QntkMBRTZve2oaeceGwcr1EYjumqUk6zaTBljAehllfzgHwy8L6IXtUTDYeaa4XCBaF8M_BrCWDv0bpG7UcpnGAaE3k7iWsYJXNVKeoC6X2LS3cyY8wrtAFq6vSSFgIETPrgifzCgoBdTujfO7iYHrCVUhvLiLCszJeBpE5a56zOYNBMNq4YT8ZOedO04gJqPTR6oN1lywSbPChoEyo_Zbp34wFXQQS8Wl6CYzmiPOr5XRWRq6gK3hmKF0tbRy_t8MpehiUz5foV2ji-jM_KobUTSleaaSXK3JfA3CZmf1_W5QWnetfR31Lj_bnzRbHTT9ynbftgM5y5qlLteoORuIxFQOwbW2fh2VUgp4eJ7hVG9dBoZs0PTJeDTlzQi-SK_F4wbW5s49UHwzZ5z6A5AcGFe8uWCao45Tn7Cu_V59pGX1eX5BJrI6LGxRbxfuu2TASZW1cg3m5T7MOFBMzzmgEJZLdO78xsA7P_SaNN3ePUpTMlBc8uhLV8SHazSSEACbOXKa6wRmeeoAwSVzNn908qdCvZXOo6BTBYAAuTso7YFf0CB4uovqRNUH-a8Z1Ngz1ZItl4PefcGyv_dbf-_hpReXgriyVlDTtGTFotYwBNOmBDMTgUK_O9JiqaJU_wnLWa73Teg55I8rYxkPHx6dBgEr-yVYo1P7nzzsNcpzoPmiKeygQKSelE0GyHXUGtTAuo3hA8RrYFoolkElMru1VAK49WqiYMI_-09wsfCfbQEhtotjeKyFhE-d9Th7YAGlM28hzLBwZasUS-WN6tpM2-FP6qlu46Q95KYQwHOeoZXCdynp4TKdL0_fUWrvkMB_-SQebiMim7l5qfaI9JTklryBf1dNZPJfM_dU2yfeXm56x6gUlj04V-6nU5GFfUTwgX79tTTvjecgGdeyDQhxxeq-Nks5sBs827ZlfwENS0AMLvafBpvwCUeh8AltE935wAD7Xj8NcsrZi7EaY05vzqhti4aHyRTRJqn_YYVNaW2_2KUCdGHojh-ObXwiqTJTYRhHrtzvLfUDAj4fWosHE8rZ9t4lYFtWDeuUZ64HtHnGIhN8UzwamnbLw9rusGsfCR4FtY783asF-vUwXwspfO_Vs9NOYR9qQOYEsEvR5jLf1VfLK0TyUcP-O-OQ4n-f2Robdnn0bhQg_snHLLRUFtMoGD5Vf0S_OcWyI7eNJ1YK-BbUtlf3R2mOaYlviYJwmtSIkRWQD7Fksf1DlVsPVIbr_9LyfzUpBjIEy8vSod_6nPbMVM5w3BFMOBpA5U_QKpy6lB1dwtEuUi_LchkdCQhe7YEW2suTuvcF4G3_thCM_nJTitvUQ5kvoVVbL-A8wxuIiTIoUZhf3ygAvtSIDbFS8e0UIABWxW-6zVvknfSi8y2Z2nXlkCswylgK8Bi96hpz61UGphiO8swKE5UWRRhe0Q9LDnio5ZSfWW7SJIDJMwVKc72pZI0eU12F0cxLccrj0SUobSa3ParPzGTffwbdSfOs0eRP4lyKFpJVIu4PjhhoL9SnYY1qpWWfVwgND23j_XMD1EqxaSMuTT1QtxHs7KujXIsaDyGcGk9bw658em6I0B-cpjq7ADZj1XTrXN-sIlDRp_xjPuCgNlzwDCpxJ_3Os3bNraT8z1Pr0Da0JAFH27uwTiDze_kF9OXpa8KkF_ENSBcEkmQoeyxSa38k1NnY5sY1gy5n5YSbK6C3TGCC1vr3nopGrVfOzTmEUn09PUOuQ9DJhQvUMiTc-a21N1XPtZZj0DwZeiF2q8l0DulT8CtHUwE1RVei0exs65jtOugkzMRHmQl_sqzhMFJhFSX0_SAddSrQO7GoMgkxaHxbIg4m2F8gbfUenMQeO1jRi5bWG44XUrRbRumvCxu1kKN_pCT-rbQapqcKbpq8KlUJucjxtMe9mCPSjteX3_BEVpOLkZfLlavVO6ckHvwvN6SIWXfet72YK2Cb3T4ObSRzUNJOdyB6EIuPkGBZG21IIe4txLLyYX73dsWJSiUW3hhE4H0oP4kbiHdW6dKopjuqewwnXCE9_CFkjIP7ovqKBEeV0219lPV8eb5IyewHQioGWQlleMMF7H89fdcv9pt44iEqdz8Y1SkNZoEZAOfSevKQHICjybwgQ_UsmQ9wyzr0JkwvT3QwokE4VlEW80LxU1bKB-53Hl-ViLrbTYt9W2xw3pNjCaBdAt-cnOgj5TTcwF69q9v4OCk_Gx5KW4kxE5piyg49QMN2ITx5ZRvM-5I6Fgnf0CEw_CEAAhnL6hqUMkuMTBjQXbPB-jqaY_4PO6N_Dc79d2X7RPhScHBjCq3TaDUzteykq77WEEBBQJpWMxiFPeI0J1Oi1S1NWFrW3zwzVD5Rz-2VbBVP7DbC9GxUHfObY5xiGNXxySSGjkV9I4nkGUxgMES2x4a1FyPPew8Y4Hmsy4c_nX5fYKmmn7TkiSEyuDAjubQT2k0msIXgHgKkjUo43PSUBnEF6W2fpYA2eHNIakveAvLLkM7XpCLieKgZsnXXBmlLAoWpotZM3AckpTG2Ar5hGAR8elU_8cjzslofnYschOGpFaNNWNmh-2QUX1q28UZLTaAssPOoULf0eHTmcpjMSuMjr8iRGAC_WQMTGJI_QDNSp4yDdzOMr-XZnCFXBWQRVvZcWpwFii-c2U6UJKrVpTioMYxEUqF3Egqt5KdYZTzYEQULI6QUhIVAVOWKpXQAo-OAJfVKTuE105Faz_VoAzBlnTWM56_KxZYeoDblyZrpJ3hVaPkYUXM5Sdr6cnMdoQn5f6vvxJ-LwoIBwO8pgsfmUbDkc96mu4FNp_b4SizGL10ynjWkmrqbVG9NHJYMcNrdsQSGX9uTsCnfdmw-aZsXAxfoBW8YHnM9VBdsNABjYxCMrUeMnSHH_vI4YfULsh9bRjQxR8S4R1GtllFC5-nnGMkh3MMMs6qzkAlTxnnSVhxk3b5CSyfZxruwPgifq6qk59olLPwbiXjUISX6ZCGuT2ZxZFMTcBX08Fg_qq0l8v4DzrfPgS00UUQcHMqmpUT2mj6yMOeWLAo3_CSMxA0fgd8O24roiV9ddhTbe7FNp0S2-h5HWEjtIE3fazSei4ZQbqcMRQjRIJ0Ss36u7C9k0EQeZRKymjDwwj4t1OOxwqVk0m3OqPqWaHvc9TTdVVzhDKocMFVl496cIJvu9FvoYrJJgCASYtm8CbMOVG_MwHJyO8NDy8iS8URs_XLZVrHXp5o_V517gsKFKQ6SK9Gr_RCun0_PxpZNuJFGEj4Yr-Fw0aYuX6rTXkYFBhzC0x5oG1UkMVAHvwROcAmhH8EYN94aQ=="
+        },
+        {
+          "id": "rs_0abbf9f436a0ac55006a856c48090887d2bd222349509ceb4b",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhWxtC5NtgXTRbDJGEPtXEw-Ry7mssxB2nDJLseoljdQAw_KTPuf8c2EWryTKAv8gQyAxxX0kiI56XEwGMHqcWXvwOClY3KysKg2u15kks2maIXMlpSJyuU0l4-4TPsf1aZqmoa3bbTItx2uKxucf5WZcuN8fgL6lvN8QtuuRIARGVnIHQ3HEXzBBcewPwWn0zVBjS-kgaKBJRP4yPUIWNjD6swbxCcwe2ZsZdDEAb2mOEfF3fNBlYj5Ou-PU8lmps4duM5-U0CQZ_0QyJDVDdPuqdlj0J4qP9RYJWpU4ENMInQxboSvOZJeENfr5WKhZq29aNQLaJzG4TJ5ihOL7lBEZhFadtUJqf4k2fDlgW8hKzpN47TsRlzj0Y-nSnVN5C47X52lJwgeftunLRwNOKscPiy5OY3pECloAr_wGM6zmK7TKD1DVaNeC4gcxUSjMziAhMp-EXNERGmwW6lXlKSAdexjwJXFSz93tYDZA-6SYhDYugovv85ABLhIrjZEifRuk4YvnwPlweW6fxUBJkl5M7SbV7OsAmNU_nfslb8KCL_Wgq351l3os_dVxJ9ECT4r26OCY7CmIchkOEJ2WWmv0RrBzdRyJr9zgQwPgLU0JLQnilaLNkIlsldT6fLqQKY-T46PVaqpZ8DlE4OGYiDevydbmRKSJXAUb02ok5XHN-mhfxX-f3gZYbDlwHpkRoDnT_sRsJLsz7b9s26FKeE50gP1yC4QODoy4EPaz-kVtQJL9LB7hhDzKYh-83xFNYcnJeZbI0pW_M1OCULfE-c3HpdCYs6q6RCccitaMWslBGe0N3VLT3auoJaTAh74nFEuFRJLThdrIsc5pUDQ8Dbt36pTGEWHKALnfp2uXvzhl6TMUsag2KUxA6Bs0lD1zGZIGUkPMnpP_B71Bx469lMpmXpdwVCpaMt324Rzca6i-NqTkakzcbCTf40hWmC1j1dHTwQHp96jLJ9qa6FmXU1W6_TboJtHyn5FA31XvgKOrsBusG9MupywCjtb1B8wGm7tsTcoAZLiEaFJtvUXjyhxmml58JxEykjVQhiUJ023YOyQZUpDeXR1_akTJQI7PbZ7RIwwVX5_CxQbwQCPRpm1Q0B_aEf2rUGtE-0tqit1wrHD_h360YHMlhNSiZiUQ2Y4Jy5SHNL_fJkgmeKHYaZZSk-uKVr8WuSpjM5LqxAA8XQLTEYwv4ROo5vnmDKVeiicGUbbiabULxYujdrw6n0bNXjjfk1UcQRuoU79meUaA7pzqLXl1V_UuSOZqrV15-qyE14x62_nOJ37tW0_7_IygQWV0G0QOfsJtwRZMeBqtHlkFLrfB47Ptf8tSKhsAUNWCakLp0vwt9QAw5icxRcxK4EwSfP9hXawCXxhBjnhDV4pMf9ewP8AnmF7HfO14_mMornqGHNUx1_lXywn8gEw_oXMFacftkvBNHS8VUD52dJ1VDToWwgoG946tV0rQrmrtcTWVf-GGjh0SJXJ0apAMctn3_GPOYAFpY3R6AnfgnpZH8JJexbZzOuVXyvYi0VwtPalkSirwSBD4AIfiObQlP8VSAIUwJmeBXSsYK71uUJ8DfDK4XCEIXW2URuYN8a6ywqs9Do1x3ohV0azkBkkUNYb3NgdBM_h_O-RE5Ag__b6h9mHJ5WTlPZ7D81bvnbsy-SFC-2v4TtSRc8gZOQaWsj6flF8-ftlaFh56CUQo3yajsK-E6gCDhA-cqdHA1HuAS-O-1Z5yeJsNsWi2Znf0N8DqZGmWFmaJukZ2ZqE0iGbjdc3Q_pCcV1ner8HuU4JNTnEVooZqAeddnFbHG3sWnk18fGME05T9tenfv9Nyy7ttHlX5xrG8evmHWN7W8_yNW_neX1jmX07x8-aCDYCFkYLR63zuMocdvThxod9TQmf9nylesNYPBAHn2hyEcr0AWzVBwm0AjFbX7NG8KPstgH9Q80TFmknIETSkhzT5MqHZ9DwH0uX8jCHa0gc6c1xPHwga3mNAqxzV1pL3Rx1Hn7FavLH9FNshA-e0tkltiPXJnvm6GfYVx0u6xlpE5f47bOvVn0v3QaBY8KIVwzD4HwKHrGT5HqWyWrJWUISS2rtwZjGxkGFMJPRm69SXxFB8hwqivdhhyBMhXi1bY0Dm44C2jIPUW0NHselYidEqU-bN8yKqOCB0ZGZX6HGbR7rIQuO1ZITxPpdZ7H97s_X6HlUOKe8zACkKsMorDAeEvtItKc23YlyiOklMDWjiIWe5so7HUh_vV1BVSZneklSoYsbyYuctMJ-dafuQy_PxHR9lTbC6JRB0Hp4fFNSdyeiSVLsd6k5IomAEBfa_k_UGftE0OMPjR-K6cKbVtKs2RWOLE4uZMBBQoDm2X99eaibqGz5MNC9Vqi1Omc2jIXyqqwoGOFfjc3e_pgkEot2Q9a2FgtPiBVSOXjkjKQvGCfbuk9ANRK2LRhnx-Uni4jX7PyUni6UXARlH09XLIyM9s-AYDT-sLRWhPNdHWrsFueXaxI--twQY1BFFGgiEg3F6njTTeaFX_qSMmu54MtsBQZ_ZsQhU2q2FOcVY8PmjmmZRD79Qo1JTYJEA21aGds0mhc2WGELH56ci_B1w8pUZhKlx4fIARqSh-ra_fHKvEIQpyr1oZhXNel6TgwmScbeX0jW2HXODDXYvovYdyMAOal4rNIHkzIIzaX-5uWS8GmXR0vxhoh6XXvBfdbOFZlNZnk13URgKJFrqk8Vb82olxpiPpN4e1i3CiuKlQVqgvVU9ZrM8GJ8B0XYUfewXaaTIvjGcY2pWNsknIWwnx_EYiKLGiWSmzd-BxqpPS7Da5OuZQbK5eDdGWW9uOjmkfx9S8nKojDTCEFRARkfxDmpVBO9FwxxrboRy9gJT2dRvVKc6T_VkNfWgJMkyoXWuLOd5WNjsJ3F9E8PT-u0HRe1cwcFz9MJY8IqNSnItBagb_w_a0caneHJ0SAYEjxfYMzgHUVWwkG6il8N9HizczwiLN6qiPXV6QLuG17c9K9xUCHwZIzIgbMyUk2YbeEALwtZxLpnYpVpYRE8DHeg66OziRYOAqWZ3FK2g4fIyn4R_vuay_O2ryhEcGrW-K9itcKRkMM5ZPY1p7POJCqRI-vrg9-GPEdsP6GXQXUbJKkv50Ea6f7Ij6B-_gM0aLTYAKk2PjVScWRJjrbdcCKOrt00ct3IE8DG80nIKosGB0dNH6ktHngpGX0hGxj5KBPXmpDF6M0n27RllNf0_OlOzKKNA1YIxY-ZVMDplG_GJNVqLVKqsWdFZarwvc9wxXI8ksbLFbq56oLjqaOV4oVCaIG5KUfNd1IVdjtiJZF_O5c_p9VKTS_e43Phhq1pxNS936dcWU2LBCgvw6xZYpRsWEdc7xpulhB0OggEhwNjJKZBMCvvdUumHtJUqswyOOMScaj0Y719rSwwmwiqPG8lJMevzN4Q7AyIMoRtJutGGybMBhyXSHQNRjlfWoiLRJ5thvNQH2bAqaHFb8PVOfNyjFmCC7u-gqBrC4pc_SbldXDvrtvJwfcD6zDQUsY8RrMH-GwoYv-OiGtYjGrH6VMbFHZJ3tTd0Ws_zzE-lUkCkTfe-wjy3kHlxp4ne89GNOCTTl1rv9jCRrkQ2nEnmy9gg1QMU85iQDdhoQaqhVClUrdGgXIJwJFzC5aVsofuYGbHAYZQ0sqBPs-MCI3RUxSLDkQeMkPNCrCecd2BPx0k3W9WJnhNxFSC2T8TYqKDfLCnsALRIJxLVh8xyvnMl5DMDWxGiXze8kJHjOnvbqAzNMLE6RQkOxW8AP_2ghpn_lhjuhYks4xgQ1bIOZdgDE3d_YKhYahiG15jQqLg83BJWabvwts6uMOLAtG0P28U8OOeav8a2ffrXaK4Gv08M1VOkZHSq2_g_MZs1eJKyluY7RAbUHe0N7TJ8Gl3Jr4zJgOAMk4MfYSuJRMDDenVU0THCLvvER6VeafvI4i9uhghi5fQqgDLuGsH7HYHTTZt33JsqA0Oc_1YEU9pNhAvsJL3PNIwTDOf_iZt7HPr2ZzceichAPE7lM7FFg02efuTuxk-is09lQDHnz50UiSbEZdZ1cygElXjHHLAXGnRsKJHmEbJX4DKVy8-a0F5lOzNZGJbqxxJ_rdNThX4494jAup9NK7sl9pZaq2QR4WdwlrrIwmQp2aGFpwFjqpOgpG1uuSnNYPb5HayHRy4fHBCm_IjdBQhoR0cfktNdGnFN4GW0SEimqV_tts5wo_g6sDPLXzI3J4ofVxjibQiWiiHMB3twEWzBf1Q9qX3ItEvmmcd_36DJTWO1"
+        },
+        {
+          "id": "rs_0abbf9f436a0ac55006a856c4d9ccc87d2a76b9d081b6443af",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhWxtwozwNdQTd6cFOvhFBLOjZbnAZfGRl5YnqjEk68CNiHvMUOY4hW2NudeEyABMRDrvLQg2bv1Mw8lfRWN_DvBRNsoEH2gWWwsB-H3zuGnymP43k4ZbCGor3EmZ_K_jsAOHmhPAujhrotPaoyheERiFFW-cRKSNvoqB498fRAimt55AbW-kWFTVprCpDLbE2w6GeXNDwcPeTqeC1uMirPsDLtqxLNYBlTODuL2qMb4UCI6nFRqMF0FTxuYw0MwAoCaN5DXV5B0J8q4zI8PIq9GcJWRYBPAUzQ6R_Zt6AYYu4myXW5Ejmxb8P2iBd1YVJgtK6gShud-Su90-Zp9Jp70WOX6YOrc4Wu7ZYq4Yu91wToRLPbw48S6knaDRfQyunYv3CVvQ7umYtKLHiraqT6WHxFfEIP-0-0UYJZRCZNXY8ktul9s0ycpXHdCVuNJHLKmaTSDf7bc3Xzej06SdkDDcYWljlrwgrzjKqovlQH7DIM6O7RZd-Wt5ibXplvq0VolMjP4KXjr1Cr8IbLgcCab4FNPOD0-TJQARbMeEX3CXNuIHYaHwfhFDuQK4tzjXcPiJ9LuY_Yibau3QzFk6CVUrRwjwhDB9w6KOJp1OR7QJCdO9qWO2z83mBgq68nG05p4fHB4NvuqzTXywVuZP1Z9KHMc6JgkBjyjyfl48Iihe3yrEdxDJvjkVpsPd7AgJLA5_zTTbORL_DsZj11_hdhQj8YJG7uU14i_mUfArvkRNizbgmYereFoyot6lOSI_JbWTaNlVIgo5ldAptQsM7nOZ_8jfY3hsCKbr3-ZHn4QWhFMKxsy-zIWmC5jb1UexWXJ5o-nh5-S0FoFW9a5EY1vhLy72CqtrJzbc2SMnTLi0zcSDvHagiE3Y86ClrQJ4LNMkqlGDQ6rL6yskWcKQDibkKqOrbHYgWelIUKaMsdXSSuO4o8uhQRABfovAquqDv0w2GP2mmtq80huYZqqFrtQS7fZwgD_cvxeeOSCsf3RrdVL_IDyQtEFJYYF2_4c5qY-fgd_C5HY-oUADZkP6Pic6YDynL-P4NTHhNAl6JUjgKbEgkw11JpvLAC7VH36PcmVC0WxahjJssg7pvmUikiBuzsvWNs-oNPxXMiK3YzcIiHbf_yJ_NlCbjZTvkmoaCOwZS9xpoCGXyPwvBMq1nZ6GQyI1JuY1yBNUml-q4PoYCEkBT6o6cjUaNzFs0cHHPUyguRNiHyQwT5-LUttX-epx0zCz1EdW1TEhHEJepiUB42BXgg90WVkJLlGnsuAqkr-GRhfVmij038mCw1HxGWNSvb0Ybr8XVFihJEhT0uqfjlPAar1oqd7p8uvCXm2XBkEOdAptAnHCCuknm-vVzuuLgwJT_Hh5v4LnjzLa9A5KOnJDGnQC_lXHorpVBVofWOw2lrZRuUQWaJUrhJ7PQGswLMEJ4LFKTtwIqnFPtKAT1VAcVzWKFn9IkB-EToQvG1XDqhBRh2eUn7MVKS2L-RgzagpnuKyMqUHira9z0hXzQNkayvDDagWJBDvPpr1nlVu74RohhmPwG67VCjvBeGLIjgX9ueHgpXc9WMCHrJAH95UOyIM1qZ0OSmwqzUS7v4PIPIu8GpCGPnNpRPfHs66ZAYiIBilo9uont0_Jo-64Z-S_5rO6FEz68IW2eq-v1SzNv8zVDo0eDLUhTAQAdbuHD72eXSn9KHTyptN20DL1XJuOr_Xdz5QHLOBVqZDduyGJJMyU6urwpq--mUGsoyzyuzBnckrbK3bh0wIxnool-cDNUZV_h1-xUXWZp9F3_9M_3aIUqneGCu9LXs2KxGDyAvMl9w2Ru5UoJqc86xHuUE_u_pQVVEz41gnmEpav8l6GxAWKNLmkB5klkptgGCVX8i33XA4xQgGQXwm7OxfwUIJ0ARhtpd0eEHS8HouJdvGF_tMkwq0-vfRbHZpoXgzlDnT1ZBD8GTQc_3SRgQKa60lIXoPmzPwS3t85fn5PZaetRDi9Q8nxLLbFYH8kBN0cPS4PZnfkZ6_14AwhDSiqPX54J26yCykL4NEAdN-A7KF7_a30ZGZMjMRMksuwjLWsJzvgM4UMzJ2aYNaDSoy0v8Zw9ZJXWlJbDFkUJxJc9bThG3XTrzG6rxVfoSwikou5yH5u7mTcK2MKhkKxztvpWTTsP63U1SvvdIX5kBcyNW6-fhpDsV3P3p6gTHBzaYNMY9mqKlS_nDzaDla2UbPfYo4_JciLl5mSkjbR4y-vTVM5ES0X9j-Mbw-Oqs-m_u1hUNzRuU_Tkj_-kmsBu63gZbxFDNbSol1HkhgMNtzueZr1Hw9HWtZn0v2zi5wE4Pzh_y2srr4Wy1x9iO6OWI_ggmvMy8DGIOb5scgxTWzt3SJE9sBN0nePSwxyvJjt2rIw-KYRIJR4MuFMP3mTyg6tBWhv_uAYjJ6wdWPok_X49T3ZnCw4SDhBBC9N0Mo-3dejR5j0KyAX-dTT4dhuOBXbFQHcPQ3Th8Nt3dnOPFWP58M7XXzIJSYN8TsIAUIm8UTOZ-_VAQaXQcwdEOno9mpwmidHECYXE0u03SrtrONNWKFKLHjgfrtXXXjKoakxpwP-mWEY8T-yqhZiBnVe83aPf9xhGXyQtwhdOcMiMtjjo1zm8M-L2bX6cosr7sPYkSNgsyxEKTmj2rRdvD1BDT3sGSWOpa95_qXtZoWGctuzGY0_BVt86LuUV8vwswgp451KSDLxMP0qG6OUBzkFJZTEHReG6ly7qUCb719gRkGY6YXoySj2JuqZT9z3pv7qhCbqHcsA2RnLD3Y-l3PlsPiJkElKtLSlp_6h3fxOPCOZcAxhEHoXMG_DUoxn8fN3fqxqHNFCDJlFIH7FM8D6JY0Q9vhMUJVnrqfoCli1xJfq92pCsXTarUqVe7FZQ2nNsicRlljb1UCfnxv59f3SbgJiHmjDW72aozhbH69QjTKrX7KmqnfEZrB-w2rQp2nW0DpH8jaLbTt9lERRDKJIOjc2HLGHaUf6czOx_k7vnAmuw7QvJVdUSBFVQGV0f3jJqwQeiLBlzvEq1Gc403AN4B-1s9g--SCn81ggyFfSOyAr1tS_791kau-wLCKvyp4SpMjI7qP6JGFm-qi1j1KJYOWy4iQMPK19LEZZiUUbn2W2mcSdpyicxjR6nI8mHZJw6EHJ35ENWOL4r-eqZUIfSAJQUScgSr0gj2_u7V2_WIuqIeNPxze6ZE3btDi9YgW8Z2ETCfcNVhMZuO_ie4DRGzXTXnQlWsZWljq4DMzwQeN1NQCWQN1xRIutTnHqMX7SwgSzroz6_FnF0zFJF8bcTnEnlfr5QL00_-eBiwaotq5yroan-IzxStncFZjR5ytHF1tKFJBLsTqyC3oKpntr7qBZIf8AOAKOerUGbODT_Ceydpcj2FefdmULWFJ8IyBTpMteOhlWUj3zxTrRfAeh2rI5fner0GiyWVvVz4yk3qt_gvfgICTki2daCtBuC8Y-PcgOvqAWaBgt5K_eq3tqxfP2kXySYzonaMZHOakcwfF0HinXi5TmbdglMzapE5yV803_kgUNHnZW4DBDObUpfTMRMOKocHbADeX_I4RBIh7Wo5QIQUgcOkQUaxQpByjxFL6GpVLLAFc5VXVC9tMuYjsB7wp1cBkgD5mIernhtX376911WDLtp5bLhDPhgf7DL0OXJFaGmw5b-o47jW-gw0CiNtR1SSn9NqYIVpTrIa7bgJTeKvmPp5MXrrcAsL4M5zIwzXsvwd60EZYc4HFMGyC8gDr1ciDRUzqvzbN-HZyylZLzPUPsIb5f7f5e1PwNpvAdEpF9HurvzTll9fNQeSy9irkm0OpLa9dcIk_2MwY-Zv-hNgHUlpU-xQPad3ccl0Box6cMK_086jrWA0a2VHBNm7q45PXADqMoXZmIc53jl5a4uo94u6bmXorKL66unkTKGAkjNkKm6Rs_kPuU7ns64v9XvlD6kokqDmTnBiDDIWuibxVPJki6i73NO_pmwxyTB6Rol3qqrSXpm_hPiKXA2DJc_zFV_4Xq9kgMvmIDH5WKlQx8XpU_AbDU7UhcRItX8qFsyJ4LJs4jOPKZDQ7ue4Q="
+        },
+        {
+          "id": "rs_0abbf9f436a0ac55006a856c53497c87d287aea7cbbd65f8d2",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhWxtdQTr3UEvqdHKYDbnUKOQ7QjxkYsb8TpTBXj4cxIzSo5v-Sud1gHY9-BHiweDcps7Km3VeSSRKxkunppyODGPFHouXVuDQ2eKbN5yuU3n1Hw5Do3kg3wGwhrZKvUb5ZfdItCg0-ydB1vU9Ztsv_eiIWXVwmdR8zIlSspQEmTM6QWVUVypnI2F_0RrMFIaT7aVTMxiosdnkwQyvEL7DXIRizeU7yT4vW5rrYu-DL5BXLJ7_lCGo6z7KM7qSen6JbkUpnxd9H4sOCw5pyC8fkwQ3NRXwVrLEJb6WrwvAMz_xSFrFNumnTDkFgHF8A3qkODNpp7U5eQVVYIYWxTmawSRJ9O-BXYkE-Hany9BCP3UM_PH8hzQ_PfRnS79boiR21dVEJn9k-Omk0D2YZs9EI2KyUV6ls03H9hoFOb5X_n085inQGiUlMXnswe_U2uKw2cf1QNTJFtQZLK66G6qSnuO3LokfHupH2y9bD5K8nkASg1ikGKEOdYRrQjCxvB7Rdd5v3WnhuA532937rN9f5Kr3JUtlrQBUDU5A07OybOvI4f06tkA-VTlEsOZtJtMr4bA8JvxtXIeX-q-ImLtPLCbkrJ0ejpwE002EFLt6CDxu6oan7ypYv4q5DYPgkPmauDcuIdNsUCv1h3352pIrPwADPg3tdKEou46UKIbvI86sqvqUeBq5RTIWHg-owYfjPtTuMJr_kRbIinosd2Cu5KY5ryevLThn7lwh_Wu9XiIs2-DEsU8IQUOjEtjBmbj_zszWmhFpJ26Ol-dpZ5bJ_QB7cpzZ3QTribHpNuvtwFQeAmcE7ispN8TUv7gCznRKSM-n0Wcjf9Jjdt08XvSseQWSW-jt9Ofc7n8lOg5yevi0kA1r10I2McTZ4j5Sio5xk4axyNA07JBTRVqWDodVMOeTE7YXMu9C4ic85pZ-Bfr01FOjxI7vyr2cBEDLIcmdoft3KkWlxR7yJoApJq8jTrkmWDORERvxRfnm-rAHdbq-RjbZdTRw2-j0-0BQxIrFK1ssX9LAZIfJ9BiKE1lYYeJ3D4fd_dkude_AD93ZbwD2nEe1A-cEhM3vaUKzD2Lj9cIo-XE899Tc88BbotDLBkEjQnTSyLRvTHrrfcJQFNJ_lCqEl4lLDAit9bGhmC9w5Qv9jFVdxaJkyRdSohHJ0V1CESjK3IaiZzCJpXq7tYgYMgJa8kcLas06ncjuc1Q0JTxOaN69qYUFLpF2eyRlvwGPaU-5TgDLdFPefPYiAA2frGPZ0cB3imROf8H4lIqeUbj30E5_KG9x7Muj1dV2AcbIFhjAjOp5r-uWZBm7R8RFpYi9iW58XM8AdYhVQrKFZX4A7DTM4L_J_x4ie4PX4GdxFwLh8nSieyykB3B215Udlhv7yR3-VO4NC0hrkF3j6rHTMv--Hh_jkrot00M8Im0p140w2c_tzZNa0YtrMMCBapgFp5yJTgmCnU9brsMYU6gIIQfe4Gl0tAIWEnUOWyeivsPLMiFFf8XvJZiz3J2wE2mJ_p02zmbmP9-jpu_1bymATrVKFU5yi60KwrL9EgtZBeTwpTiL2c906Lb7CNcBG9TH1tmyVUvI3gmGwLHofObrdwF3gDn8Smg4bpMKlkvnortdyjvroTOTzqgEbr-jjjwiFUFVVUt6djedEQDJND6BXEBVqxt_76K1rAUaNXfqWzNwtkSD-EIKXuFKoXeFzmAwTWUIM_7fq9t4Oz0RxMCW6Y9yDcotqbfll-wARRRnR1Pz2xHUXB1IkPd6xbdkfPzKdVDRIuybVgqE3Xv_25O82jBBBCRTkIwIxRhSwSExkt4g9w5b4tCxsELj6Ksgdq5mAgFZdxLQ9MZdibmL87Q-va4imXb0G4aDpaWtA0_UUssTBgPg_ZZEpU1_j02l3VvvFLVlFyJYhXhRc-Cttl8F_Cvl1bMP-8der4qYPzXatFPImmfzI6c6tM4ppZXocul0v8JFt9R5aH9d6UTdb-3VpKNWaMWhLjZSNs07zoL5wlfMbxF8K490aZB4IxRdmgi1G2G7WC-P3vwbXzyCwMUhsXwsgNWuy1MGr_oK3vSv8BOpVEofmfyyaG2VJkHa23JEHpPrqNKy5e7rTNW_AQyI_3q-MY4zoM_3Ml6Lz6Ov3SYPRdelz8v8lZ-sqa73zrimbZr_pEVW0XtJzBXlSKBOLdjKJ4zw1-qPFoYieQq10XK9FT1Yj1nJoi4Mhz1UIx_COiIXtHgMcwwXtKa1K6FNM_7GUTI59KMk1gKBlw-dMowUJ1Ft_39Rbvuz4jl34CDwki_-Z1X1weuJXcH453XM_OZ8Df0JAdDgYswB5ADcwLyE5JYxpVdon_W1hhWGIRTNjDPyKBI5eDYNBFf28xb6hQ3BH15kFdlUPFv5FOENdoU45i-RtekftqFjjjdSJkqCz1j6krf6c0S6CAhAHVIvtlc9P8kvkO13cRq8SjsynXA1v12ROWH31WpulYI-MpyFo7eigdiTsyKC8rlx3YVw9XkxRDXI1L252IQ92Q43DS972xpqgDupPM-Laq_H2IK0hUpFBiohSRBqTVHmAKKzMxeR67opWqBUuE5yQHGUO4B81rMonjSTZ5UZuoC8PICRr5Wzh_rPdbDsYMU2JA-ZlaEu3hML172G1eAYN1Pjuu9xsgEudl6Ve1lwWIdW_rfzJlJyUsbvB8qW-2hrk6WQx3toxlmCyQXpEcPjPuo-jTWtgQQbDuhbFOtHJo7P1JCcp63fabvVupNJEIyhDkvz4rn1KNHhHD089OgItQHd4ddTIWDVJKbj2pTOnG6girmO-Pci2BgjonkMYRjTbo487AJrC2VCt2bwtFOHchJj71v8GUtZeSePiRbEkvU3ajBGPDMYS3pkg2MigYtYY2fjiS9Swt3sBUgWcAFznqeBzxNVIUXIhmYjuotvkSvqdBg_i6hrjKsBkkzzgMiQLTCeTahGxgJpaXUzIdKtMtCD01cnQGbs4EkWS4GMfsrqwl8dUXFUYUV5lFJ3L-VXkyFHaFvz9TCQQyo16qdUOQ4FoFwry6Ps9L10w5eYB76DhMROF6UyOGrb9ewrGt32igfpIVsSYYYih9IlNX78JmKhOUbCu27-s4stBdrutYK0UohWCfS9C_qJf3Ma6zUhG3ahyOKbCrAk6UxkB58uT3sSq7E3cU_WvC-T6SbnVscRQLHFAJsFaQv-MwvXBKOZLAXTI6MVeQqodT34H7djZXi2802W2qnJ19Yrft4YNmeHrKQ2SAbzWDUo61RJ4HuMDnk-sTCm_Dwx-O7v8_7T2jNqVE0hBBdDxOsH73m003OwYArJGAKPM9pA5Q_Ihhw3XCnYxCpuF49XIyDzZrxuDWnyFNFh0WSC7ZbbD2C0PCofns9U9cUuY6NamJWdmv7t5oqGvjADNoNj-iopuDxvLGCOkYgtxNBWKmqLlgZX6MGxs9Vv1lbZ4Tcv16nKNhnMEWM_hWPYdoCzFJKAfV6ABa2YFHKwqpEx12-fTTv33r2QQUzykAEqhnapTefZUT4LbG27QBrjX2QzIWwfV8YavGu-PxOYZlStuwD_8PR1nzB5h2ULw1JQm5qOKe_GID7hynK-Ln2V5eWz7rdgJzM7jH6-5Kux4ofn06rBh5RPMs_hvlnDdhYfKTaPlmZQ5G9uYAynwXIhmLN-j8HymgtsLvwNW-7k-VKGXZa1FZEMSlhPcPa1FRmUfYIfHa8OCsjtDtzXrSVn3yCv_1gyN8mm6JbleVag4W5c2-4RzpugDQ38gCrb1ADy0JhIt9fmcXacLQEHRqfQmKR0GiG2rC_S2MxTCnOQIFEgkxOaa4KYb-ocj3NTMznle9gF9Eu49tQfnId2xKtksL-XzXZPWIMwOAVGcVO6cTkddwZZr7C5j65V6nQuTijXaYisCgkBPTfrh1Sarn-87fAW-ZNYHpWYOYvMqAw9AjQ_3ddh1pYsL96GtObJ1dAyAj2QIU-Mrde0T7X3oMZk_6ERXlsXpkAx9TqkokLz4xSViVmjvxhoNi0nkVzhjFDDgHdFEImuthg8_SK0lvEaG2EcYkgEVAJeNDa99P9B1OEIhvPwLa8GQsA4wt4lfmYz1WOhIou3fGYLigF"
+        },
+        {
+          "id": "rs_0abbf9f436a0ac55006a856c586f7c87d2af60609210a0f452",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhWxt_MksIEXijREtXaVRUIue3uSiZzCVi9gyeM2tOlof7ciODgC_b11peJXdMFHi52FUYMuxkp9GFPlSk2SqY5S0R_nDo1mW7KehZKkSPA5Ba3srL7BQm-sC5Qk4F1E6AvoA5OcMAI9DvK2fqrreKpTSRPe2BgWDY7BcJXQCCZwi9unM5kjvjfuCZjDey75dPA9bcxgInnl7WT-YRhMDGQMZvfiWJ4dAlEbybV1rrpWNmeKjYF9tBUatL1yjp-IMZPz0aOT70kErFIgQQ4y28XbIoDqQ6teVvnQgt8dxVW8FtH9ocNJFI0hwiSVGXTQx3Z8BsLMUtYbVZZiSdzP1SjRBdfiUd0J5lZV5UoRXSFHZ_rw6pfHpUlX1UOyA38MlsOb7DAZ3Xpz_J6zYgixoor_z9UXp_MThDDHtz23OfGBzCbCMDIIOthjuEAtqC8QmfGtL_Z6W-XcSUD7e8kTUAsDfHdHhOyp7m0yinBxUSsnPI-4qusu5WsMVjbDEr6KEvsKr_3AdbHJUK6C6j-w4pBk-opX051HlhSjbS95vThknQBuSPURYOGSh6L47gDt8KhKxP1_C_DXLjXgSsC8Gp_Z2gmIItAc1RFpG3Kn3LVBRL0DBjRFwCulntyhgzsq0ogOUieKsWTOJgSEqhVbOaeIFa38vAW6N5N6UKwxji0-WQW_pV4-XPMwLpSLByfWaJastFQuo373LQQ2JZ2g8KePfd20rwXVGLY3zugYEDlcX7z-MOXZebkmVGOE0ofl4JlfpDRtYA2Y9oElo1A6e4W4nuRoYOHqP-vSyxHqA-3-nGQ_pa5fSq2N2Zer0x9b-c1V3P0a0S3cxqejxdbmz3UMe_xWKsmfbctbkg-jOHyH5oV4LYm_bmiLh_03-yat7jWAWQCAVVZpQL2vNo9SoEGtqczdu_6oJ_zv3OFwnunRn0CyjAXorLeI-mQEskfdAt4pOmBsetS1Ria1N5xVaoTr5sFRSX55zXvv-fCrd2OfrA1nOU5PwRCt7ifY3hkmWruqfW-S_um3ObyMT7_8a0jELJg7II3jZK2PmPU3DQGouVkdiDlP60Ktaq8ZdR8nbIbHtNyKWQgjasEoQhSNrDFieBIPn9zqzUQIcQRjsFfqdQDJwzC_UoPtnIybRDVGNYxF2uwIAElrBp3QL-nArARK8-naotr9i17GXtmO9zCxnWekiYog_iizjUXubMn4ewqd5uy-rmFkISe0fVleXyJG9hCBMXZy-qiSROCea342XFdZKo7P1C9wq5cSivsGQ-jpzRX6tRmYZOmM2w9sugnquIKHzGIx54W3RbdtFS8u18eayBJqolCIENbZfWsYvRLtwmK5eJtZYppOqv3LZbXIC59U_5-D6A85HhUg5pv62kx3YBaH2u7kItZSiuAcbvcp2S_Ghp3hejwI07jUaqgimByeLIsiDC47DiY98n0xOU5iT5ZXD1TJgStIv_R7C7JcCSOdZ9K19wepeqhf7MgwdgmGUJGg2nl3z2H22ZXS9h2UxybXREaTSF1t49PU7qINbU9S5D8YMxNl3Ykw84umLlkmp6CRcHkHC1j76r5ql5G_8AlFoWDfAEB9tqXBsSWxr8a6gKsL0PnUlH7IpxRlHfxRC4ZD4vcfb1AfUkjSCgiP8DTrtsHAF1URmTk5FBggje4p6V56gDlkIr3s90tYQB4ZkN3SxY9srrNf4WjZoypI_1XprPsV_QRcjKKRxO86FAmqpIDVC70LNPReb4b_wzs9cXzKd0YO2rp-V1sMbJ-vA-4Cj_zOv51A1RWbGBRjEfIJDLL7NOME4QoQBEMuscb_PklewdQfNVk9WhgUFEIm_Z02oKRwAd43WNI4H5iBNsiFP3ZxG1KHHS_7KSfiE_GqAW3jml-z3o7u_IzVj0O2GlgZ2hqULz3F8d79TA287Dhn5rOATn2GOpat6NUCGngwtXprFmPZezSpItvyF3OdAA8mS0B5PWFFdThrSbqnBTawotiiT8Rr5XZ-W7j3whn24Q2h2szNBjNSUgPcxq490dNCNHRKe5HgmJdVVoJSZeQrURpTRRTrdcj4nLfoExeCotOo_oum9Vwx5qPI7C-E="
+        },
+        {
+          "id": "msg_0abbf9f436a0ac55006a856c5a1d7887d29aaa5a41e3391d57",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Courgette chickpea rice bowl\",\n      \"title\": \"Chickpeas, courgettes, peppers and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh parsley\",\n          \"quantity\": \"10 leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the two labelled table portions together until piping hot, then finish with parsley and lemon.\",\n      \"why\": \"The trade-off is a vegan shared base for Lubna, with separate finishes for Roxane and Ivar rather than one richer shared pot.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lunch_chickpea_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_lunch_chickpea_rice_zoe\"\n        },\n        {\n          \"preparation_id\": \"prep_lunch_chickpea_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_lunch_chickpea_rice_lubna\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Herby chickpea rice plate\",\n      \"title\": \"Chickpeas, courgettes, peppers and rice with herbs\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh parsley\",\n          \"quantity\": \"15 leaves\",\n          \"amount\": 15,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the labelled portion until piping hot. Put the courgettes and peppers on the plate first, then the chickpeas, then the rice, and finish with parsley and lemon.\",\n      \"why\": \"It keeps lunch warm and comforting while giving Roxane a distinct herby finish from the shared batch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lunch_chickpea_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_lunch_chickpea_rice_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil rice bowl\",\n      \"title\": \"Lentils, courgettes, peppers and rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"10 leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"half a lime\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the two labelled table portions until piping hot, then add coriander and lime.\",\n      \"why\": \"A warm one-pot dinner makes the reheatable workday plan feel comforting, with courgette as the loud vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_dinner_lentil_rice_zoe\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_dinner_lentil_rice_lubna\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Lime lentil rice plate\",\n      \"title\": \"Lentils, courgettes, peppers and rice with lime\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"15 leaves\",\n          \"amount\": 15,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"half a lime\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the labelled portion until piping hot. Put the courgettes and peppers on the plate first, then the lentils, then the rice, and finish with coriander and lime.\",\n      \"why\": \"This gives Roxane a fresh, citrusy version of the warm lentil dinner without another cooking session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_dinner_lentil_rice_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Spiced lentil rice plate\",\n      \"title\": \"Lentils, courgettes, peppers and rice with coriander\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"15 leaves\",\n          \"amount\": 15,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"half a lime\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the labelled portion until piping hot. Put the lentils and rice on the plate first, then add the courgettes and peppers, and finish with coriander and lime.\",\n      \"why\": \"It provides a separate, warmly spiced plate for Ivar while keeping the same quick, reheatable cooking session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_dinner_lentil_rice_ivar\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_lunch_chickpea_rice\",\n      \"title\": \"Chickpea courgette rice pot\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"cooked chickpeas\",\n          \"quantity\": \"600 g cooked chickpeas\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"long-grain rice\",\n          \"quantity\": \"180 g raw rice\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"2 courgettes\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 red peppers\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g chopped tomatoes\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp olive oil\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp smoked paprika\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Fry the onion, courgettes and peppers in the oil for 5 minutes. Stir in the tomatoes, chickpeas, rice, paprika and water, bring to a simmer, cover and cook until the rice is tender. Stir, then weigh the ready food into three labelled boxes.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_lunch_chickpea_rice_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 450\n        },\n        {\n          \"id\": \"box_lunch_chickpea_rice_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 450\n        },\n        {\n          \"id\": \"box_lunch_chickpea_rice_lubna\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 450\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_dinner_lentil_rice\",\n      \"title\": \"Lentil courgette rice pot\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"green lentils\",\n          \"quantity\": \"280 g raw green lentils\",\n          \"amount\": 280,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"long-grain rice\",\n          \"quantity\": \"240 g raw rice\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"2 courgettes\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 red peppers\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"600 g chopped tomatoes\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp olive oil\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"2 tsp ground cumin\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Fry the onion, courgettes and peppers in the oil for 5 minutes. Add the lentils, tomatoes, rice, cumin and water, cover and simmer until the lentils and rice are tender. Stir well, then weigh the ready food into four labelled boxes.\",\n      \"active_minutes\": 20,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_dinner_lentil_rice_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_dinner_lentil_rice_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_dinner_lentil_rice_lubna\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_dinner_lentil_rice_ivar\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 500\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_lunch_chickpea_rice\",\n        \"prep_dinner_lentil_rice\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Chop all onions, courgettes and peppers first. Start the chickpea rice pot, cover it and simmer while washing the lentils and measuring the second rice pot. Box the lunch pot as soon as it is ready, then cook and box the lentil pot, labelling every box for its member.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"cooked chickpeas\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"green lentils\",\n      \"quantity\": \"280 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"long-grain rice\",\n      \"quantity\": \"420 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"4 courgettes\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"4 red peppers\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 onions\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"fresh parsley\",\n      \"quantity\": \"1 small bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 small bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"1 lemon\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"limes\",\n      \"quantity\": \"1 lime\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"30 ml\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cumin\",\n      \"quantity\": \"2 tsp\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"portion_note\": \"At lunch and dinner, place the courgettes and peppers first, then the chickpeas or lentils, then the rice.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_lunch_chickpea_rice\",\n          \"note\": \"Use the box labelled Roxane.\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"note\": \"Use the box labelled Roxane.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\",\n      \"portion_note\": \"At lunch and dinner, put all the components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_lunch_chickpea_rice\",\n          \"note\": \"Use the box labelled Zoe.\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"note\": \"Use the box labelled Zoe.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"86129e3c-2f50-480f-a359-077165b6232b\",\n      \"portion_note\": \"At lunch and dinner, put all the components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_lunch_chickpea_rice\",\n          \"note\": \"Use the box labelled Lubna.\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"note\": \"Use the box labelled Lubna.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"portion_note\": \"At dinner, place the lentils and rice first, then add the courgettes and peppers.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dinner_lentil_rice\",\n          \"note\": \"Use the box labelled Ivar.\"\n        }\n      ]\n    }\n  ]\n}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-household-meal-v1",
+        "user_id": "5a000000-0000-4000-8000-000000000001",
+        "request_id": "lu000003-0000-4000-8000-000000000003"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787128887,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787128941,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.\n\n== ADDITIONAL OUTPUT FIELD (household) ==\nAdd ONE more top-level key to the JSON you return:\n  \"member_portions\": [\n    { \"member_id\": \"<exact id given above>\",\n      \"portion_note\": \"how much of what goes on this plate\",\n      \"preparation_shares\": [{ \"preparation_id\": \"prep_x\", \"note\": \"...\" }] }\n  ]\nOne entry per person listed, using their EXACT member_id. Serving\ninstructions only — never a reason, a goal, a calorie count, or anything\nabout a person's body.\n\n== BOXES, ON EVERY PREPARATION (household) ==\nEach preparation carries one more key: \"boxes\".\n  \"boxes\": [{ \"id\": \"box_<preparation>_<name>\",\n              \"member_ids\": [\"<exact ids from the list above>\"],\n              \"grams\": <whole grams of READY food in that box> }]\nIds are lowercase ASCII, invented by you, and each one is used once in the\nwhole plan. The grams are what goes IN the box once cooked, not the raw\nweight of the shopping.\nA dish that eats from a box says so: each entry of its \"uses\" then carries\n\"box_id\", set to that exact box id. A box can only be cited by a meal on or\nafter the day its preparation is cooked.\n\n== WHOSE DISH IS IT (household) ==\nA dish can carry one more key: \"for_member_id\".\nThe serving plan names the people who cannot be served from the shared pot\nand orders a dish of their own. EVERY one of those dishes MUST carry\n\"for_member_id\", set to that person's EXACT member_id. It is not optional:\ntheir dish without that key is served to the whole household by mistake,\nand the person it was cooked for never sees it.\nLeave it out of every dish the table shares — a dish with\nno for_member_id is the table's dish, and that is the normal case.\n  Roxane = 5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\n  Ivar = 12362957-32c9-43a5-82ef-66b8d5732171",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T08:41:26.741176+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T08:42:22.231188+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

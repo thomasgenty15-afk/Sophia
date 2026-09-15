@@ -1,0 +1,53 @@
+{
+  "run": {
+    "run_id": "daily-reason-category-20260624-mqsc90lu",
+    "persona": "rose",
+    "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "auth_user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "start_iso": "2026-06-24T17:19:40.232Z",
+    "turns": [],
+    "target_titles": [
+      "Faire cinq minutes de respiration calme",
+      "Ranger deux papiers administratifs"
+    ],
+    "error": {
+      "message": "400 http://127.0.0.1:54321/rest/v1/conversation_turn_traces?user_id=eq.02dc9ae2-4128-412b-b0be-56712bf775a8&ts=gte.2026-06-24T17%3A19%3A40.232Z&select=request_id,response_owner,selected_handler,route_reason,raw_trace,ts&order=ts.desc&limit=20: {\"code\":\"42703\",\"details\":null,\"hint\":null,\"message\":\"column conversation_turn_traces.request_id does not exist\"}",
+      "stack": "Error: 400 http://127.0.0.1:54321/rest/v1/conversation_turn_traces?user_id=eq.02dc9ae2-4128-412b-b0be-56712bf775a8&ts=gte.2026-06-24T17%3A19%3A40.232Z&select=request_id,response_owner,selected_handler,route_reason,raw_trace,ts&order=ts.desc&limit=20: {\"code\":\"42703\",\"details\":null,\"hint\":null,\"message\":\"column conversation_turn_traces.request_id does not exist\"}\n    at jsonFetch (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_reason_category_real_20260624.mjs:109:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async rest (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_reason_category_real_20260624.mjs:118:10)\n    at async select (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_reason_category_real_20260624.mjs:131:11)\n    at async Promise.all (index 4)\n    at async collectState (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_reason_category_real_20260624.mjs:320:61)\n    at async main (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_reason_category_real_20260624.mjs:595:26)\n    at async file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_reason_category_real_20260624.mjs:650:1"
+    }
+  },
+  "cleanup": {
+    "deleted": {
+      "user_plan_item_entries": 0,
+      "whatsapp_pending_actions": 0,
+      "chat_messages": 0,
+      "scheduled_checkins": 1,
+      "user_habit_week_occurrences": 2,
+      "user_plan_items": 2,
+      "user_plans_v2": 1
+    },
+    "restored": [],
+    "verification": {
+      "pending": [],
+      "entries": [],
+      "checkin": []
+    }
+  },
+  "touched": {
+    "planIds": [
+      "c2387724-95ac-4f9c-8fe9-d969d8611295"
+    ],
+    "itemIds": [
+      "0d318f33-f0eb-4f59-a639-a1f9de80f3ae",
+      "5432f010-9d46-405b-a8a4-123a450a81bf"
+    ],
+    "occurrenceIds": [
+      "b0ae573c-a5db-4abd-a7ba-a04f5b4f520a",
+      "b6fe74ef-e83c-4ba2-a980-4dd8a92b3b2d"
+    ],
+    "checkinId": "fdb607fa-da9f-4e46-ab82-519d7a2f4dbf",
+    "pendingIds": [],
+    "entryIds": [],
+    "chatMessageIds": [],
+    "deferredCheckins": []
+  }
+}

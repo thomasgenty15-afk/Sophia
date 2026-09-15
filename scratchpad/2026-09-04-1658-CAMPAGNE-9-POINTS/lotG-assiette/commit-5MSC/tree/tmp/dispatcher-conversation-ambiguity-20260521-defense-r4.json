@@ -1,0 +1,433 @@
+{
+  "run_id": "dispatcher-conversation-ambiguity-20260521-defense-r4",
+  "created_at": "2026-05-21T09:33:15.099Z",
+  "base_url": "http://127.0.0.1:54321",
+  "qa_user": {
+    "email": "qa-dispatcher-conversation-ambiguity-20260521-defense-r4-1779355988275@example.com",
+    "user_id": "41030721-8ba9-4d09-ad58-e07e401ae262"
+  },
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "results": [
+    {
+      "id": "defense_explicit_stable",
+      "kind": "checks",
+      "trap": null,
+      "group": "defense_vs_emotion",
+      "scope": "dispatcher-conversation-ambiguity-20260521-defense-r4-defense_explicit_stable",
+      "seed_result": null,
+      "pre_results": [],
+      "sent_at": "2026-05-21T09:33:08.571Z",
+      "user_message": "Prépare une carte de défense pour ce soir quand je risque de craquer sur Instagram.",
+      "expected": {
+        "intentIncludes": [
+          "prepare_defense_card"
+        ],
+        "handlerOneOf": [
+          "prepare_defense_card"
+        ]
+      },
+      "observed": {
+        "intent_operations": [],
+        "intent_explicitness": [],
+        "opportunity_type": "none",
+        "opportunity_operation": null,
+        "opportunity_should_offer": false,
+        "opportunity_must_not_execute": true,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "blocked_paths": [],
+        "blocked_reason_codes": [],
+        "skill_entry_ids": [
+          "product_help"
+        ],
+        "skill_lifecycle_ids": [],
+        "skill_exit_ids": [],
+        "confirmation_kind": null,
+        "safety_risk_band": "low",
+        "needs_research": false,
+        "needs_research_query": null,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason": "skill_entry_signal",
+        "executed_tools": [],
+        "content": "C'est une excellente idée pour protéger ta soirée. On va préparer ça ensemble pour que tu aies un plan béton quand l'envie de scroller arrivera.\n\nPour que ce soit efficace, j'ai besoin qu'on identifie ton geste de défense : quelle micro-action de moins de 30 secondes tu peux faire à la place (poser le téléphone dans une autre pièce, ouvrir un livre, boire un verre d'eau) ? 📱\n\nUne fois qu'on aura calé les détails, tu pourras retrouver et consulter ta carte dans la section Ressources de ton tableau de bord."
+      },
+      "verdict": "fail",
+      "failures": [
+        "intentIncludes expected [\"prepare_defense_card\"], got []",
+        "handlerOneOf expected [\"prepare_defense_card\"], got product_help"
+      ],
+      "raw": {
+        "http_status": 200,
+        "ok": true,
+        "response": {
+          "ok": true,
+          "request_id": "18fa643d-299c-4006-9f59-7dbc372ca0da",
+          "user_id": "41030721-8ba9-4d09-ad58-e07e401ae262",
+          "channel": "web",
+          "scope": "dispatcher-conversation-ambiguity-20260521-defense-r4-defense_explicit_stable",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "C'est une excellente idée pour protéger ta soirée. On va préparer ça ensemble pour que tu aies un plan béton quand l'envie de scroller arrivera.\n\nPour que ce soit efficace, j'ai besoin qu'on identifie ton geste de défense : quelle micro-action de moins de 30 secondes tu peux faire à la place (poser le téléphone dans une autre pièce, ouvrir un livre, boire un verre d'eau) ? 📱\n\nUne fois qu'on aura calé les détails, tu pourras retrouver et consulter ta carte dans la section Ressources de ton tableau de bord.",
+            "mode": "companion",
+            "tool_execution": "none",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "18fa643d-299c-4006-9f59-7dbc372ca0da",
+            "user_id": "41030721-8ba9-4d09-ad58-e07e401ae262",
+            "source_message_id": "058bdf8d-f9ed-4397-9ec4-bc4179606af9",
+            "ts": "2026-05-21T09:33:15.001+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [
+                "ce soir"
+              ],
+              "risk_band": "none",
+              "reason_codes": [
+                "immediacy_tonight"
+              ],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": true,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8473,
+              "latency_ms": 4696,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 628,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "addictions.ecrans",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "Instagram usage and triggers",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  },
+                  {
+                    "key": "Instagram",
+                    "type": "topic",
+                    "priority": "medium",
+                    "query_hint": "previous mentions of Instagram or scrolling",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "taxonomy_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "18fa643d-299c-4006-9f59-7dbc372ca0da",
+              "user_id": "41030721-8ba9-4d09-ad58-e07e401ae262",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "addictions.ecrans",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "Instagram usage and triggers",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  },
+                  {
+                    "key": "Instagram",
+                    "type": "topic",
+                    "priority": "medium",
+                    "query_hint": "previous mentions of Instagram or scrolling",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "taxonomy_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {
+                  "product_help": {
+                    "reason": "product_question",
+                    "detected": true,
+                    "confidence_band": "high"
+                  }
+                },
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 0,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [],
+                "context_summary": null,
+                "previous_scores": [],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "058bdf8d-f9ed-4397-9ec4-bc4179606af9",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "skill_entry_signal",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "memory_use_kind": "none",
+              "selected_handler": "product_help",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": {
+              "output": {
+                "reply": "Carte de defense: Une carte de defense peut etre generee librement depuis Ressources, ou etre liee au plan depuis une mission ou une habitude. Elle se retrouve ensuite dans Ressources, ou elle peut etre consultee et utilisee. Processus: identifier un moment concret, reperer le piege observable, definir mon geste faisable en moins de 30 secondes, puis prevoir un plan B simple.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une mission ou habitude a une carte de defense liee. Tu peux y voir un apercu, retrouver la carte dans Ressources.\n- Dashboard > Ressources: Quand une carte de defense existe, ou quand le user veut creer une carte libre. Tu peux y creer une carte libre, consulter, exporter.\n\nLimites importantes:\n- Ne sert pas a modifier l'action du plan.\n- Ne doit pas etre presentee comme une solution globale.\n\nImportant: une carte de defense peut etre ajustee depuis la plateforme/Ressources quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, on peut aussi en preparer une nouvelle version apres confirmation.\n\nSi tu veux vraiment le faire, ce n'est pas product_help qui execute: il faut passer par le flow prepare_defense_card, avec confirmation.",
+                "status": "complete",
+                "skill_id": "product_help",
+                "diagnosis": {
+                  "locations": [
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources"
+                  ],
+                  "feature_id": "resources.defense_card",
+                  "feature_label": "Carte de defense",
+                  "operation_bridge": {
+                    "trigger_phrases": [
+                      "prepare une carte de defense",
+                      "j'ai besoin d'un plan b",
+                      "aide-moi pour le moment ou je risque de craquer"
+                    ],
+                    "skill_or_operation": "prepare_defense_card",
+                    "requires_confirmation": true
+                  }
+                },
+                "state_patch": {
+                  "summary": "Product help answered for resources.defense_card."
+                },
+                "memory_trace": {
+                  "correction_detected": false,
+                  "memory_item_ids_used": [],
+                  "memory_used_for_response": false,
+                  "correction_target_item_ids": []
+                },
+                "response_intent": "how_to",
+                "recommendation_need": {
+                  "type": "none",
+                  "needed": false,
+                  "urgency": "none",
+                  "constraints": [
+                    "product_help_does_not_execute_operations",
+                    "operation_bridge_requires_confirmation_when_present"
+                  ]
+                },
+                "operation_suggestions": [
+                  {
+                    "reason": "product_help_operation_bridge_available",
+                    "urgency": "medium",
+                    "operation_type": "prepare_defense_card",
+                    "confidence_band": "medium",
+                    "source_skill_id": "product_help",
+                    "operation_input_hint": {},
+                    "requires_user_consent": true
+                  }
+                ]
+              },
+              "reason_code": "skill_entry_signal",
+              "selected_skill_id": "product_help"
+            },
+            "tool_skill_run": null,
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "product_help",
+            "total_latency_ms": 6397,
+            "created_at": "2026-05-21T09:33:15.0029+00:00"
+          },
+          "trace_error": null
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1
+  },
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false,
+      "body": {
+        "code": "PGRST205",
+        "details": null,
+        "hint": "Perhaps you meant the table 'public.user_metrics'",
+        "message": "Could not find the table 'public.user_memories' in the schema cache"
+      }
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true,
+      "body": {}
+    }
+  ]
+}

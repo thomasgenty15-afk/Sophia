@@ -1,0 +1,52 @@
+{
+  "run_id": "daily-action-review-local-dispatcher-real-20260609202116-r1",
+  "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+  "original_profile": {
+    "id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "timezone": "Europe/Paris",
+    "whatsapp_opted_in": true,
+    "whatsapp_last_inbound_at": null,
+    "whatsapp_last_outbound_at": null,
+    "phone_number": null
+  },
+  "occurrences_available": 10,
+  "targets": [
+    {
+      "id": "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+      "week_start_date": "2026-06-08",
+      "planned_day": "tue",
+      "status": "planned",
+      "source": "default_generated",
+      "validated_at": null,
+      "updated_at": "2026-06-02T16:06:21.241+00:00",
+      "title": "Faire un sas de décompression (sans fumer)",
+      "dimension": "habits",
+      "kind": "habit",
+      "time_of_day": "evening",
+      "item_status": "active"
+    },
+    {
+      "id": "91831b6e-782b-489b-88a3-6bc44a00fa67",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "plan_item_id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+      "week_start_date": "2026-06-08",
+      "planned_day": "mon",
+      "status": "planned",
+      "source": "default_generated",
+      "validated_at": null,
+      "updated_at": "2026-06-02T16:06:21.241+00:00",
+      "title": "Préparer un plan anti-ennui",
+      "dimension": "missions",
+      "kind": "task",
+      "time_of_day": "anytime",
+      "item_status": "pending"
+    }
+  ],
+  "setup_started_at": "2026-06-09T20:21:16.230Z"
+}

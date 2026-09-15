@@ -1,0 +1,36 @@
+entrees/ref2-N2.json  sha256=dce9fe5b5ae70c6dde598a8d844915f66ad0b0b915641c6f7fcd2a357ec6acf1  source=scratchpad/2026-09-13-CIBLES-PAR-PERSONNE/references/ref2.json
+entrees/ref4-lot3a-N4.json  sha256=217126d5ef8ef67350efaf6d8842d1504c23f05dcd11496049f140c78a492411  source=scratchpad/2026-09-13-RESTE-A-FERMER/ref4-lot3a.json
+(non recopiée, trop grosse) N2-sortie-reelle.json  sha256=01c60acc3cfc7b456b74548716c0502e72a32ade65a192fe9750810427549d9c  source=scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-lot3b-2026-09-13T17-00-55-236Z.json
+(non recopiée, trop grosse) N4-sortie-reelle.json  sha256=ffea5092688ea373d01330a24013e0fc41549fc633d0053d1e650d81a5a8e278  source=scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3a-2026-09-13T17-00-38-299Z.json
+(non recopiée, trop grosse) N4-rejeu-apres-adresse.json  sha256=1575772deb8456fe4a3535227362a4ee2228b9b5d95d5ecce322701d7e4612cc  source=scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3a-2026-09-13T17-00-11-288Z.json
+a-reponses-reelles/N2-tour1.json  sha256=e50526a7a41841f940c0eb21fffe79b5e58c29adbf2494abf705b31e1e3f0c62  6891 o
+a-reponses-reelles/N4-tour1.json  sha256=e9203824338e936bb599b5dc6bf4eaf2d3dd4e0e44732565e11e976b552018bc  4678 o
+prompts/N2-appel1.input.txt  sha256=f74765bef17947984835b96c4a4bfc2d51fa07a63a976729b52122817d35bdc0  35572 o
+prompts/N2-appel1.instructions.txt  sha256=323f4ecaa28e9026522dff8d5e4c4a45c4c06d031bb178d807aa8353931307c4  21819 o
+prompts/N2-appel2.input.txt  sha256=a3bc4806832224e2dc186631613dc75a1b56cfdace988254b4c07e6c8845978f  14817 o
+prompts/N2-appel2.instructions.txt  sha256=4aa44fcb3b54f3f16f69af9aff4df4313f380522519e87d7549b17e5ed41e9c1  19162 o
+prompts/N2-appel3.input.txt  sha256=5399816a8f52e6cf7b08ca7fc9eb7187900112a2950baf88f279b8b20e9fcbc2  14942 o
+prompts/N2-appel3.instructions.txt  sha256=4aa44fcb3b54f3f16f69af9aff4df4313f380522519e87d7549b17e5ed41e9c1  19162 o
+prompts/N4-appel1.input.txt  sha256=e37d455920d7f5b78eb811971fd3e71bc3023698c298084b7df2b73783f7b258  40476 o
+prompts/N4-appel1.instructions.txt  sha256=97e74127464a34ebf7e86ace782791049ba0c09120ac2d8180bf9155ccc70c0a  22510 o
+prompts/N4-appel2.input.txt  sha256=057f0cb83c6f6e8552be03636aa3b6d036251ced7af6490f4e2fb9b7a079e344  19135 o
+prompts/N4-appel2.instructions.txt  sha256=4aa44fcb3b54f3f16f69af9aff4df4313f380522519e87d7549b17e5ed41e9c1  19162 o
+prompts/N4-appel3.input.txt  sha256=1a81a79c4517a49ecfb9d590be57adceaa5afe180e5a34b0e21bbe66204a0a26  19265 o
+prompts/N4-appel3.instructions.txt  sha256=4aa44fcb3b54f3f16f69af9aff4df4313f380522519e87d7549b17e5ed41e9c1  19162 o
+
+--- ajouté après le lot (journaux de rejeu et sauvegardes) ---
+journaux/N2-rejeu-reel-APRES-correctif.log  sha256=f153ac80c53c44d664232cea343618d0f9147531381d69acded35bc5c81975e4  125309 o
+journaux/N2-rejeu-reel-AVANT-correctif.log  sha256=d00c8668f76ecffb9354f41d03bea9ed40241dd05b09f8105b1d63e03b2b87bc  154941 o
+journaux/N4-rejeu-reel-APRES-correctif.log  sha256=6b5997471150fc0fca0d65f680b7602854382d3edfd8b2de670d03a90b3cf817  108741 o
+journaux/N4-rejeu-reel-AVANT-correctif.log  sha256=f0454a174c370ebc16bd7f32402a12b7a10925ba71acda51bbd879f75523989f  172680 o
+journaux/creation-part-absente-APRES.log  sha256=e99fbd3696474ca3712f416b7184332ef0113d2ab4dedf29e340ac8e1052a66a  148795 o
+journaux/creation-part-absente-AVANT.log  sha256=7fad3e2551c00ee2a4ef884772debfb65ad1e4b4ba5165b9db99590d9a1db740  147976 o
+sauvegardes/banc-lot-F.ts.ORIG  sha256=1a72a3f9783f9c0e12972836b9c784e199aacaea1f4d7395f759083ad0e9a0c7  152131 o
+sauvegardes/index.ts.CORRIGE  sha256=c8cba84cf85c0f7f7a976afa512f5293c3447eb78a7c82c8617b8e448ce2ecfe  1087429 o
+sauvegardes/index.ts.ORIG  sha256=fbfbf0d635016c301953d0d2b570d7c162c50980f0638e24adce45647fd681eb  1073328 o
+sauvegardes/portion_sizing_wiring_test.ts.ORIG  sha256=a37ae810d01c919ff34e5b7122b68a850607caa605dee953960a69294c4f5d17  80792 o
+
+--- catégories, telles que le lot les exige ---
+(a) réponses fournisseur ORIGINALES : a-reponses-reelles/*.json — extraites de `appels_reels[].body`, texte brut du modèle, non modifié
+(b) patches modifiés à la main : AUCUN. La seule réécriture est faite PAR LE BANC, au vol, sur la SEULE clé `base_version` (banc-lot-F.ts, crochet compositionPatch) ; elle est imprimée à chaque rejeu.
+(c) fixtures synthétiques : entrees/ref2-N2.json et entrees/ref4-lot3a-N4.json (références de plan bâties par le chantier précédent, validées par le moteur avant injection) ; et le patch FABRIQUÉ par le banc depuis la consigne, qui sert les tours NON rejoués.

@@ -1,0 +1,341 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Là ce n'est pas juste l'action placards, ni seulement le niveau actuel sur le grignotage. Je pense que tout mon plan perte de poids est trop optimiste avec ma charge de travail : le rythme du premier niveau, la suite mouvement puis repas, et l'objectif à 82 kg sur ce cycle me mettent trop de pression. Je veux garder l'objectif long terme, mais revoir la charge de tout le plan pour qu'il soit plus lent et plus réaliste.",
+    "assistant": "Je comprends tout à fait. Vouloir tout mener de front avec une grosse charge de travail, c'est le meilleur moyen de finir par tout lâcher. C'est courageux de ta part de lever le pied maintenant plutôt que d'attendre l'épuisement. \n\nOn va transformer cette pression en un rythme qui te laisse respirer. Garder l'objectif des 82 kg à long terme est une super idée, ça reste ton cap, mais on va simplement allonger la route pour que le voyage soit supportable. \n\nPour ajuster tout ça, que ce soit la vitesse des niveaux, l'enchaînement des étapes ou tes objectifs de poids, tout se passe sur ton tableau de bord. Tu pourras y revoir la structure globale de ton plan pour qu'elle colle enfin à ton emploi du temps actuel. ⚖️",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "ensemble du plan perte de poids (rythme, suite mouvement/repas, objectif 82kg)",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je ne veux pas juste aller dans le dashboard. Je te demande de me proposer ici un ajustement global du plan, avec confirmation avant de l'appliquer : garder le cap long terme, mais réduire la charge de tout le plan, pas seulement le niveau actuel.",
+    "assistant": "Avant de modifier ce niveau, qu'est-ce qui le rend trop lourd concretement, et quoi faut-il changer en premier: nombre d'actions, intensite, timing, ou priorite ? Je vois notamment dans le plan: Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "ensemble du plan / charge globale",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "operation_intent_start",
+      "plan_item_id": null,
+      "target_title": "niveau actuel",
+      "missing_slots": [
+        "current_level.reason_change"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Non, justement, ce n'est pas ce niveau seulement. Ce qui est trop lourd, c'est la charge globale du plan : objectif 82 kg trop serré pour ce cycle, progression vers mouvement puis repas trop rapide, et trop de pression hebdomadaire. La priorité à changer en premier, c'est la charge globale et le rythme du plan entier, pas une action ni ce niveau.",
+    "assistant": "Je propose d'alléger l'intensité de ton niveau actuel pour qu'il soit plus facile à suivre, sans toucher au reste de ton programme. Est-ce que cela te convient ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "rythme et charge globale du plan",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "current_level",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "intensity",
+            "reason_change": "goal_changed",
+            "load_adjustment": "lighter",
+            "level_adjustment": "reduce_load"
+          },
+          "title": "Ajustement - niveau actuel",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "niveau actuel: charge ajustée vers \"lighter\"",
+              "cible de changement: intensity"
+            ],
+            "unchanged": [
+              "le cœur du niveau reste préservé",
+              "chaque action n'est pas réécrite automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+            "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+          },
+          "scope_label": "niveau actuel",
+          "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+          "decision_basis": {
+            "evidence": [
+              "Non, justement, ce n'est pas ce niveau seulement. Ce qui est trop lourd, c'est la charge globale du plan : objectif 82 kg trop serré pour ce cycle, progression vers mouvement puis repas trop rapide, et trop de pression hebdomadaire. La priorité à changer en premier, c'est la charge globale et le rythme du plan entier, pas une action ni ce niveau.",
+              "operation_input.scope",
+              "message.reduce_load",
+              "message.wrong_focus",
+              "message.goal_changed",
+              "message.load_or_intensity"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "actions exactes du niveau a choisir pour une modification fine"
+            ],
+            "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+            "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+            "must_preserve": [
+              "intention du plan",
+              "coeur du niveau"
+            ]
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "alleger la charge du niveau actuel sans supprimer l'intention",
+          "change_rationale": {
+            "why_this_change": "Alléger intensity répond au problème \"goal_changed\" tout en gardant le cœur du niveau.",
+            "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+            "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+          },
+          "adjust_plan_result": {
+            "scope": "level",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [
+                "les actions spécifiques que tu trouves les plus pénibles pour un ajustement encore plus fin"
+              ],
+              "user_problem": "La charge actuelle est perçue comme trop lourde et génère trop de pression hebdomadaire.",
+              "expected_effect": "Une reprise plus fluide avec moins de résistance mentale et une meilleure adhésion au quotidien.",
+              "why_this_change": "Baisser l'intensité permet de maintenir l'élan sans abandonner l'objectif malgré un changement de contexte."
+            },
+            "boundaries": {
+              "explanation": "Seule l'intensité immédiate est modifiée pour réduire la friction sans dénaturer le projet final.",
+              "affected_scope": "niveau actuel uniquement",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "objectif global",
+                "structure complète du plan",
+                "autres niveaux"
+              ]
+            },
+            "applied_change": {
+              "summary": "Réduction de l'intensité du niveau actuel pour alléger la charge quotidienne.",
+              "changed_items": [
+                {
+                  "id": null,
+                  "kind": "level_setting",
+                  "after": "Allégée",
+                  "title": "Intensité du niveau",
+                  "before": "Standard",
+                  "reason": "Le rythme actuel était trop soutenu par rapport à tes besoins du moment."
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Objectif global",
+                  "reason": "L'ajustement se concentre uniquement sur la phase actuelle pour préserver la direction finale."
+                }
+              ]
+            },
+            "user_message_brief": "Intensité du niveau actuel réduite pour plus de souplesse.",
+            "user_message_detailed": "J'ai ajusté la difficulté de ton niveau actuel pour qu'il soit plus léger. Ton objectif final reste inchangé, mais le quotidien devient plus accessible pour t'enlever la pression actuelle."
+          },
+          "execution_strategy": "level_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "level_adjustment",
+            "load_adjustment",
+            "focus_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "J'ai réduit l'exigence de ton niveau actuel. L'objectif reste le même, mais le rythme est maintenant plus souple pour t'enlever cette sensation de pression. Le reste de ton organisation et tes objectifs à long terme ne bougent pas. C'est une solution intermédiaire pour te permettre de garder le cap sans t'épuiser. Je suis assez confiante sur le fait que cela va t'aider à retrouver du souffle.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je propose d'alléger l'intensité de ton niveau actuel pour qu'il soit plus facile à suivre, sans toucher au reste de ton programme. Est-ce que cela te convient ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "596aa6f9-82b7-4d09-af77-ad5e5bce5f47",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Non, n'applique pas. Ce n'est pas ce que je demande : tu me proposes encore le niveau actuel alors que je parle du plan entier.",
+    "assistant": "Ok, je n'applique pas cet ajustement.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "cancel",
+    "route_reason_code": "confirmation_no",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "plan entier",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "cancelled",
+      "reason_code": "confirmation_no",
+      "operation_id": "596aa6f9-82b7-4d09-af77-ad5e5bce5f47",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t04",
+    "trace_error": null
+  }
+]

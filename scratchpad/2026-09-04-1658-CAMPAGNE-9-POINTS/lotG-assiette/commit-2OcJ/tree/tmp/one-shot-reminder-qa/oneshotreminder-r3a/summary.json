@@ -1,0 +1,46 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-one-shot-reminder-oneshotreminder-r3a-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Rappelle-moi dans 3 minutes de sortir les oeufs du frigo.",
+    "assistant": "C’est programmé pour mardi 19 mai à 15:57 : sortir les oeufs du frigo. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "create_one_shot_reminder"
+    ],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "dans 3 minutes"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_near_term"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "create_one_shot_reminder"
+      }
+    ],
+    "pending_tool_skill_confirmation": null,
+    "tool_skill_run": null,
+    "memory_write_candidates_emitted": 0,
+    "trace_error": null
+  }
+]

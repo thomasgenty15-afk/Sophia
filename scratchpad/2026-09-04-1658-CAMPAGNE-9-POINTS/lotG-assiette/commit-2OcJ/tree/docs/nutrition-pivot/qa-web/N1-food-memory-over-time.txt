@@ -1,0 +1,150 @@
+
+══════════════════════════════════════════════════════════════════════════════
+▌ N1 — DÉCOR
+══════════════════════════════════════════════════════════════════════════════
+coach   : 1bc2dffd-9564-4a09-b153-197bdd5aeeb6
+élève   : 7d072126-cd16-4b8d-b7c0-42f7e25cc14c  (Theo, en-GB, Europe/London, fat_loss)
+plan    : publié (plan_versions + 2 plan_commitments)
+
+══════════════════════════════════════════════════════════════════════════════
+▌ S1 · lundi — la déclaration
+══════════════════════════════════════════════════════════════════════════════
+  → « I really can't stand broccoli. Never been able to eat it, the smell alone puts me off. »
+    Fair enough — broccoli is a hard no for you. For lunch, the bit that matters is a non-starchy vegetable, not that one in particular. If you’ve got another veg y
+  → « I also skip breakfast most days, I just have a black coffee. I'm never hungry in the morning. »
+    The progress figures and check-in reminders are paused on my side. It’s not a penalty, and you haven’t done anything wrong. I’m here as the human coach if you w
+  → « And I've got a big project at work for the next two weeks, so no chance of cooking in the evening. »
+    Understood — for the next two weeks, dinner needs to be zero-cook on work nights. That means lunch matters even more: protein first, then something that grew. K
+
+  ── memory_items après le memorizer ──
+  (aucun souvenir)
+
+  ── la carte: 0 proposition(s) gardée(s) ──
+
+  ── food_preferences en base (0) ──
+
+  ── ce que le générateur VOIT ──
+    practical constraints: {"cooks":true,"eating_rhythm":["breakfast","lunch","dinner"]}
+
+  ── generate-week-plan-v1 (2026-07-06) → 200 ──
+    · [nutrition]   Your rhythm is already there, so this week is about keeping it steady rather than tightening it.
+    · [nutrition]   A solid first meal makes the rest of the day easier to keep on track.
+
+══════════════════════════════════════════════════════════════════════════════
+▌ S1 · jeudi (J+3) — le revirement
+══════════════════════════════════════════════════════════════════════════════
+  → « Funny thing, I had broccoli roasted at a friend's place last night and it was actually fine. I'd eat it that way. »
+    Roasted broccoli is a fair win. That counts as a useful preference: you’re fine with it when it’s cooked like that. At lunch today, the plate still starts with 
+
+  ── memory_items après le memorizer ──
+  🍽 8c9b1956 statement  candidate   c=0.93 2026-07-09  Theo said roasted broccoli was fine and he would eat it that way.
+
+  ── la carte: 1 proposition(s) gardée(s) ──
+    + Theo said roasted broccoli was fine and he would eat it that way.
+
+  ── food_preferences en base (1) ──
+    · Theo said roasted broccoli was fine and he would eat it that way.
+
+  ── ce que le générateur VOIT ──
+    practical constraints: {"cooks":true,"eating_rhythm":["breakfast","lunch","dinner"],"food_preferences":["2026-07-09 — Theo said roasted broccoli was fine and he would eat it that way."]}
+
+══════════════════════════════════════════════════════════════════════════════
+▌ S2 · lundi (J+7) — le contexte tombe, une préférence s'ajoute
+══════════════════════════════════════════════════════════════════════════════
+  → « The work project is done, I've got my evenings back and I'm cooking again. »
+    That’s a good shift: the project’s done, your evenings are back, and cooking is back in the mix. For tonight, the useful anchor is simple: build the meal around
+  → « One thing though, porridge in the morning is a no for me, it makes me gag. »
+    Understood — porridge is off the table if it makes you gag. For breakfast, build round it instead: protein first, then something that grew.
+
+  ── memory_items après le memorizer ──
+  🍽 8c9b1956 statement  candidate   c=0.93 2026-07-09  Theo said roasted broccoli was fine and he would eat it that way.
+  🍽 11b40059 statement  active      c=0.90 2026-07-13  Theo has more free time in the evening and is cooking again.
+  🍽 f02f3bb0 statement  active      c=1.00 2026-07-13  Theo has a strong physical aversion to eating porridge for breakfast.
+
+  ── la carte: 2 proposition(s) gardée(s) ──
+    + Theo has more free time in the evening and is cooking again.
+    + Theo has a strong physical aversion to eating porridge for breakfast.
+
+  ── food_preferences en base (3) ──
+    · Theo said roasted broccoli was fine and he would eat it that way.
+    · Theo has more free time in the evening and is cooking again.
+    · Theo has a strong physical aversion to eating porridge for breakfast.
+
+  ── ce que le générateur VOIT ──
+    practical constraints: {"cooks":true,"eating_rhythm":["breakfast","lunch","dinner"],"food_preferences":["2026-07-13 — Theo has more free time in the evening and is cooking again.","2026-07-13 — Theo has a strong physical aversion to eating porridge for breakfast.","2026-07-09 — Theo said roasted broccoli was fine and he would eat it that way."]}
+
+  ── generate-week-plan-v1 (2026-07-13) → 200 ──
+    · [nutrition]   Your day already has a clear rhythm, so keeping breakfast, lunch, and dinner as proper meals will make the week easier t
+    · [nutrition]   You do not need a fussy breakfast; you need one that keeps you steady through the office morning.
+
+══════════════════════════════════════════════════════════════════════════════
+▌ S3 · lundi (J+14) — la rétractation du revirement
+══════════════════════════════════════════════════════════════════════════════
+  → « Forget what I said about broccoli. I tried it again at home and I hated it. The roasted thing was a one-off. »
+    Got it — broccoli is a hard no at home, and the roasted version was just a one-off. I’ll treat that as the clearer version going forward.
+
+  ── memory_items après le memorizer ──
+  🍽 8c9b1956 statement  candidate   c=0.93 2026-07-09  Theo said roasted broccoli was fine and he would eat it that way.
+  🍽 11b40059 statement  active      c=0.90 2026-07-13  Theo has more free time in the evening and is cooking again.
+  🍽 f02f3bb0 statement  active      c=1.00 2026-07-13  Theo has a strong physical aversion to eating porridge for breakfast.
+  🍽 1b64c364 statement  active      c=0.93 2026-07-20  Theo hates broccoli and says the roasted version was only a one-time exception
+
+  ── la carte: 1 proposition(s) gardée(s) ──
+    + Theo hates broccoli and says the roasted version was only a one-time exception.
+
+  ── food_preferences en base (4) ──
+    · Theo said roasted broccoli was fine and he would eat it that way.
+    · Theo has more free time in the evening and is cooking again.
+    · Theo has a strong physical aversion to eating porridge for breakfast.
+    · Theo hates broccoli and says the roasted version was only a one-time exception.
+
+  ── ce que le générateur VOIT ──
+    practical constraints: {"cooks":true,"eating_rhythm":["breakfast","lunch","dinner"],"food_preferences":["2026-07-20 — Theo hates broccoli and says the roasted version was only a one-time exception.","2026-07-13 — Theo has more free time in the evening and is cooking again.","2026-07-13 — Theo has a strong physical aversion to eating porridge for breakfast.","2026-07-09 — Theo said roasted broccoli was fine and he would eat it that way."]}
+
+  ── generate-week-plan-v1 (2026-07-20) → 200 ──
+    · [nutrition]   You start the workday better when breakfast actually holds you, and porridge is off the table for you.
+    · [nutrition]   You cook at home most evenings, so dinner is the easiest place to keep the day steady.
+
+══════════════════════════════════════════════════════════════════════════════
+▌ ÉTAT FINAL
+══════════════════════════════════════════════════════════════════════════════
+{
+  "cooks": true,
+  "eating_rhythm": [
+    "breakfast",
+    "lunch",
+    "dinner"
+  ],
+  "food_preferences": [
+    "Theo said roasted broccoli was fine and he would eat it that way.",
+    "Theo has more free time in the evening and is cooking again.",
+    "Theo has a strong physical aversion to eating porridge for breakfast.",
+    "Theo hates broccoli and says the roasted version was only a one-time exception."
+  ],
+  "food_preferences_origin": {
+    "theo has more free time in the evening and is cooking again.": {
+      "at": "2026-07-13",
+      "item": "11b40059-b35d-40a7-9dbf-2cb8faa2b06c"
+    },
+    "theo said roasted broccoli was fine and he would eat it that way.": {
+      "at": "2026-07-09",
+      "item": "8c9b1956-da34-4d57-a40d-cb2ee2248a75"
+    },
+    "theo has a strong physical aversion to eating porridge for breakfast.": {
+      "at": "2026-07-13",
+      "item": "f02f3bb0-bc1f-4023-930a-544a077c4b8c"
+    },
+    "theo hates broccoli and says the roasted version was only a one-time exception.": {
+      "at": "2026-07-20",
+      "item": "1b64c364-dc12-4f97-996f-c9cc11daf5c5"
+    }
+  },
+  "food_preferences_dismissed": [
+    "8c9b1956-da34-4d57-a40d-cb2ee2248a75",
+    "11b40059-b35d-40a7-9dbf-2cb8faa2b06c",
+    "f02f3bb0-bc1f-4023-930a-544a077c4b8c",
+    "1b64c364-dc12-4f97-996f-c9cc11daf5c5"
+  ]
+}
+
+student_user_id (pour inspection): 7d072126-cd16-4b8d-b7c0-42f7e25cc14c

@@ -1,0 +1,10 @@
+# FF-025 run réel — suite=a1 repeats=3 cas=1
+🟢 A1 zéro relance sur les 5 tours suivants
+    inv=edu relances=0 mentions_non_demandeuses=0
+🟢 A1 zéro relance sur les 5 tours suivants
+    inv=edu relances=0 mentions_non_demandeuses=0
+🟢 A1 zéro relance sur les 5 tours suivants
+    inv=edu relances=0 mentions_non_demandeuses=1
+    ℹ️  mention did I do ok this week? → You had 0 dishes ticked off the plan today, 0 meal photos sent, and 2 meals reported off the plan. Those are the facts I have.
+
+# élèves nettoyés: 3

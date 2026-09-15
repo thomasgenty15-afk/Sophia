@@ -1,0 +1,609 @@
+{
+    "scope": "day",
+    "dishes": [
+        {
+            "day": "wed",
+            "why": "This trades separate fresh plates for one warm pot that reheats well at work.",
+            "name": "Courgette chickpea pot",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_lunch_chickpea_pot_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_lunch_chickpea_pot"
+                }
+            ],
+            "title": "Chickpeas, courgettes, peppers and tomatoes",
+            "method": "Take one lunch box of the chickpea pot, reheat it gently in a pan, then stir through the lemon juice and finish with the parsley.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "lemon juice",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "half a lemon",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "fresh parsley",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 10,
+                    "quantity": "10 leaves",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "This gives the same warm, comforting pot a fresh green finish.",
+            "name": "Herbed chickpea bowl",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_lunch_chickpea_pot_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_lunch_chickpea_pot"
+                }
+            ],
+            "title": "Chickpeas, courgettes, peppers, tomatoes, spinach and lemon",
+            "method": "Reheat the named lunch box in a pan, fold in the spinach until just wilted, and finish with the lemon juice.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "baby spinach",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 60,
+                    "quantity": "60 g baby spinach",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon juice",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "half a lemon",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "This is a warm, filling dinner that keeps the cooking to one evening session.",
+            "name": "Smoky bean rice bowl",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_dinner_black_bean_rice_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_dinner_black_bean_rice"
+                }
+            ],
+            "title": "Black beans, brown rice, peppers, tomatoes and spinach",
+            "method": "Take one dinner box, reheat it in a pan with the lime juice, and scatter over the coriander before serving.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "lime juice",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "half a lime",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "fresh coriander",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 10,
+                    "quantity": "10 leaves",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "This turns the reheatable chilli and rice into a cooler, fresh-tasting supper.",
+            "name": "Avocado bean supper",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_dinner_black_bean_rice_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_dinner_black_bean_rice"
+                }
+            ],
+            "title": "Black beans, brown rice, peppers, tomatoes, spinach and avocado",
+            "method": "Reheat the named dinner box in a pan, then add the avocado and lime juice at the table.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 8
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "avocado",
+                    "unit": null,
+                    "state": "raw",
+                    "amount": null,
+                    "quantity": "half an avocado",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lime juice",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "half a lime",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "The warm bean-and-rice bowl puts the starch directly into the evening meal after a long day.",
+            "name": "Smoky training bowl",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_dinner_black_bean_rice_ivar",
+                    "servings": 1,
+                    "preparation_id": "prep_dinner_black_bean_rice"
+                }
+            ],
+            "title": "Black beans, brown rice, peppers, tomatoes and spinach with coriander",
+            "method": "Reheat the named dinner box in a pan, keeping the rice and beans together, then finish with lime juice and coriander.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+            "ingredients": [
+                {
+                    "term": "fresh coriander",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 15,
+                    "quantity": "15 leaves",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lime juice",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "half a lime",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "starch_follows_the_session",
+                "one_loud_vegetable"
+            ]
+        }
+    ],
+    "plan_id": "0a02b706-ca90-4f58-a642-a681610b9bf8",
+    "servings": 4,
+    "starts_on": "2026-08-19",
+    "created_at": "2026-08-19T10:18:29.878128+00:00",
+    "preparations": [
+        {
+            "id": "prep_lunch_chickpea_pot",
+            "boxes": [
+                {
+                    "id": "box_prep_lunch_chickpea_pot_roxane",
+                    "grams": 394,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_prep_lunch_chickpea_pot_zoe",
+                    "grams": 344,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_prep_lunch_chickpea_pot_lubna",
+                    "grams": 384,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                }
+            ],
+            "title": "Chickpea courgette pot",
+            "method": "Dice the onion, courgettes and peppers. Warm the oil in a large pot, soften the onion for 3 minutes, add the peppers and courgettes, then stir in the tomatoes, chickpeas, water and cumin. Simmer uncovered for 25 minutes until thick and tender, then weigh the ready pot into the three named lunch boxes.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "cooked chickpeas",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 720,
+                    "quantity": "720 g cooked chickpeas",
+                    "grams_raw": 720,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgettes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 300,
+                    "quantity": "300 g courgettes",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 red peppers",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "chopped tomatoes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 400,
+                    "quantity": "400 g chopped tomatoes",
+                    "grams_raw": 400,
+                    "in_pantry": false
+                },
+                {
+                    "term": "onion",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 onion",
+                    "grams_raw": 110,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp olive oil",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": "raw",
+                    "amount": 150,
+                    "quantity": "150 ml water",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "ground cumin",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp ground cumin",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 3,
+            "total_minutes": 35,
+            "active_minutes": 15
+        },
+        {
+            "id": "prep_dinner_black_bean_rice",
+            "boxes": [
+                {
+                    "id": "box_prep_dinner_black_bean_rice_roxane",
+                    "grams": 590,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_prep_dinner_black_bean_rice_zoe",
+                    "grams": 516,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_prep_dinner_black_bean_rice_lubna",
+                    "grams": 577,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                },
+                {
+                    "id": "box_prep_dinner_black_bean_rice_ivar",
+                    "grams": 1088,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                }
+            ],
+            "title": "Black bean chilli with brown rice",
+            "method": "Start the rice in a covered saucepan with 400 ml water. While it cooks, dice the onions and peppers, soften them in the oil in a second pot, then add the tomatoes, beans, paprika and remaining water. Simmer for 20 minutes, fold in the spinach to wilt, fluff the rice, combine the ready food and weigh it into four named dinner boxes.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "dried brown rice",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 240,
+                    "quantity": "240 g dried brown rice",
+                    "grams_raw": 240,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cooked black beans",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 960,
+                    "quantity": "960 g cooked black beans",
+                    "grams_raw": 960,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 3,
+                    "quantity": "3 red peppers",
+                    "grams_raw": 450,
+                    "in_pantry": false
+                },
+                {
+                    "term": "chopped tomatoes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 800,
+                    "quantity": "800 g chopped tomatoes",
+                    "grams_raw": 800,
+                    "in_pantry": false
+                },
+                {
+                    "term": "onion",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 onions",
+                    "grams_raw": 220,
+                    "in_pantry": false
+                },
+                {
+                    "term": "baby spinach",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 240,
+                    "quantity": "240 g baby spinach",
+                    "grams_raw": 240,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp olive oil",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": "raw",
+                    "amount": 500,
+                    "quantity": "500 ml water",
+                    "grams_raw": 500,
+                    "in_pantry": false
+                },
+                {
+                    "term": "smoked paprika",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tsp smoked paprika",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 4,
+            "total_minutes": 45,
+            "active_minutes": 20
+        }
+    ],
+    "duration_days": 1,
+    "shopping_list": [
+        {
+            "term": "cooked chickpeas",
+            "aisle": "pantry",
+            "quantity": "3 x 240 g tins"
+        },
+        {
+            "term": "cooked black beans",
+            "aisle": "pantry",
+            "quantity": "4 x 240 g tins"
+        },
+        {
+            "term": "dried brown rice",
+            "aisle": "grains",
+            "quantity": "240 g"
+        },
+        {
+            "term": "courgettes",
+            "aisle": "produce",
+            "quantity": "300 g"
+        },
+        {
+            "term": "red peppers",
+            "aisle": "produce",
+            "quantity": "5"
+        },
+        {
+            "term": "chopped tomatoes",
+            "aisle": "pantry",
+            "quantity": "3 x 400 g tins"
+        },
+        {
+            "term": "onions",
+            "aisle": "produce",
+            "quantity": "3"
+        },
+        {
+            "term": "baby spinach",
+            "aisle": "produce",
+            "quantity": "300 g"
+        },
+        {
+            "term": "lemons",
+            "aisle": "produce",
+            "quantity": "1"
+        },
+        {
+            "term": "limes",
+            "aisle": "produce",
+            "quantity": "2"
+        },
+        {
+            "term": "avocado",
+            "aisle": "produce",
+            "quantity": "1"
+        },
+        {
+            "term": "fresh parsley",
+            "aisle": "produce",
+            "quantity": "1 small bunch"
+        },
+        {
+            "term": "fresh coriander",
+            "aisle": "produce",
+            "quantity": "1 small bunch"
+        },
+        {
+            "term": "olive oil",
+            "aisle": "pantry",
+            "quantity": "1 small bottle"
+        },
+        {
+            "term": "ground cumin",
+            "aisle": "pantry",
+            "quantity": "1 small jar"
+        },
+        {
+            "term": "smoked paprika",
+            "aisle": "pantry",
+            "quantity": "1 small jar"
+        }
+    ],
+    "member_portions": [
+        {
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "display_name": "Roxane",
+            "portion_note": "At lunch and dinner, place the vegetables first, then the chickpeas or beans, then the rice; add the listed fresh side last. — Chickpea courgette pot 394 g · Black bean chilli with brown rice 590 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the Roxane lunch box.",
+                    "preparation_id": "prep_lunch_chickpea_pot"
+                },
+                {
+                    "note": "Use the Roxane dinner box.",
+                    "preparation_id": "prep_dinner_black_bean_rice"
+                }
+            ]
+        },
+        {
+            "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+            "display_name": "Zoe",
+            "portion_note": "At lunch and dinner, place all listed components together and serve the fresh finish over the top. — Chickpea courgette pot 344 g · Black bean chilli with brown rice 516 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the Zoe lunch box.",
+                    "preparation_id": "prep_lunch_chickpea_pot"
+                },
+                {
+                    "note": "Use the Zoe dinner box.",
+                    "preparation_id": "prep_dinner_black_bean_rice"
+                }
+            ]
+        },
+        {
+            "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+            "display_name": "Lubna",
+            "portion_note": "At lunch and dinner, place all listed components together and serve the fresh finish over the top. — Chickpea courgette pot 384 g · Black bean chilli with brown rice 577 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the Lubna lunch box.",
+                    "preparation_id": "prep_lunch_chickpea_pot"
+                },
+                {
+                    "note": "Use the Lubna dinner box.",
+                    "preparation_id": "prep_dinner_black_bean_rice"
+                }
+            ]
+        },
+        {
+            "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+            "display_name": "Ivar",
+            "portion_note": "At dinner, place the beans and rice first, then add the vegetables and finish with the fresh herbs and lime. — Black bean chilli with brown rice 1088 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the Ivar dinner box.",
+                    "preparation_id": "prep_dinner_black_bean_rice"
+                }
+            ]
+        }
+    ],
+    "cooking_sessions": [
+        {
+            "day": "wed",
+            "run_through": "Put the rice on first, then chop both sets of onions and peppers. Start the dinner chilli in the second pot, soften the lunch-pot vegetables in the first, and add their tomatoes and chickpeas. Let both pots simmer while the rice finishes, wilt the dinner spinach, combine the rice with the chilli, then weigh the lunch and dinner boxes straight away.",
+            "total_minutes": 50,
+            "preparation_ids": [
+                "prep_lunch_chickpea_pot",
+                "prep_dinner_black_bean_rice"
+            ]
+        }
+    ]
+}

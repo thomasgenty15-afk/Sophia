@@ -1,0 +1,89 @@
+{
+  "H2-no-composed-plan": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Nothing is composed for today. I don’t have a dinner item to give you. Open the meals screen to see or build tonight’s food.",
+      "fullChars": 24497,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "e5b95020-647e-42f8-9e9c-ff560dd97d12"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Nothing is composed for today. Open the meals screen to see or build tonight’s food.",
+      "fullChars": 24497,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "bd8e9dc0-7aad-48d3-aac2-b82d56d7d6cb"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Nothing is composed for today. You need to open the meals screen and build it there.",
+      "fullChars": 24497,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "de5753b7-376e-42f0-878b-f3ce7c8f91db"
+    }
+  ],
+  "H3-window-ended-yesterday": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Nothing is composed for tonight yet. Go to the meals screen to build it yourself.",
+      "fullChars": 24497,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "9e1f303e-7311-4690-867c-93375ca0e432"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Nothing is composed for tonight. Open the meals screen to see what Rob and Sam have set.",
+      "fullChars": 27331,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "f266ebc3-4bcf-4fe3-a466-0c942d8f3194"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Nothing is composed for today. You need to open the meals screen to build tonight’s meal.",
+      "fullChars": 24497,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "f1e61528-dc1d-45e3-b049-d96d81b4f43f"
+    }
+  ],
+  "H4-loader-failure": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Tonight’s plan only shows lunch: protein and vegetables. I don’t have a dinner line to point to, so I can’t say what’s set for tonight.",
+      "fullChars": 23135,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "54f19d18-81c1-444b-9579-b73888b8e7e7"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "fullChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "c871b7e8-600d-442f-ab3a-8f98a58f2904"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "fullChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "cdd154c7-73cc-476a-9263-78767003c97c"
+    }
+  ]
+}

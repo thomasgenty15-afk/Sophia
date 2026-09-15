@@ -1,0 +1,5 @@
+les paires « X veut ce que Y refuse » du compteur lisent aussi la note fraîche : « Léa n'aime pas, Marc adore » se mesure sur le plan qu'elle annote
+
+Depuis 22ab729c (0f) la note du brouillon est classée AVANT le plan et ses items sont dans `noteBelt`. Le compteur `preference_split` d'après ceinture construit désormais ses paires depuis les deux magasins ET la note fraîche (`pairs_from_stores`, `pairs_fresh`), avec la même règle (`splitsFrom`, une seule écriture) ; le bloc du PROMPT reste sur les magasins seuls — attendre le classifieur avant les blocs coûterait ≤ 25 s à chaque plan annoté, et la note est déjà verbatim dans le prompt. Mesuré par 0f (ASP1r/ASP2r) : sur le plan annoté, `preference_split` n'avait aucune ligne (magasins vides à cet instant) ; sur le suivant, `{pairs 1, composed 1, refuser_clean 1}` — la casserole « Asperges rôties » citée par la seule boîte de Marc à 2 repas.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

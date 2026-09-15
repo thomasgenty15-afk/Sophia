@@ -1,0 +1,441 @@
+{
+  "restored_items": [
+    {
+      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+      "ok": true
+    },
+    {
+      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+      "ok": true
+    },
+    {
+      "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+      "ok": true
+    },
+    {
+      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+      "ok": true
+    }
+  ],
+  "deleted_new_items": [],
+  "after": {
+    "user_plan_items": [
+      {
+        "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+        "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "title": "Convenir d'un signal de pause",
+        "description": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": null,
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "scheduled_days": null,
+        "time_of_day": "anytime",
+        "start_after_item_id": null,
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-001"
+          }
+        },
+        "created_at": "2026-05-12T16:44:08.371+00:00",
+        "updated_at": "2026-05-16T18:16:49.194507+00:00",
+        "activated_at": "2026-05-12T16:44:08.371+00:00",
+        "completed_at": null,
+        "phase_id": "phase-1",
+        "phase_order": 1,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_started",
+        "cards_generated_at": null
+      },
+      {
+        "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+        "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Partager un point positif",
+        "description": "une phrase simple, sans chercher à faire joli",
+        "tracking_type": "boolean",
+        "activation_order": 2,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 3,
+        "current_reps": 0,
+        "cadence_label": "3 jours / semaine",
+        "scheduled_days": null,
+        "time_of_day": "evening",
+        "start_after_item_id": null,
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-habits-001"
+          },
+          "operation_adjustments": [
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "medium",
+                  "instruction": "une phrase simple, sans chercher à faire joli",
+                  "target_reps": 3,
+                  "cadence_label": "3 jours / semaine"
+                },
+                "title": "Ajustement - Partager un point positif",
+                "confidence": "high",
+                "ack_summary": {
+                  "changed": [
+                    "ajustement de \"Partager un point positif\""
+                  ],
+                  "unchanged": [
+                    "le reste du plan n'est pas touché"
+                  ],
+                  "confidence": "high",
+                  "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+                  "follow_up_needed": null
+                },
+                "scope_label": "Partager un point positif",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "decision_basis": {
+                  "evidence": [
+                    "Je préfère finalement 3 fois par semaine, mais avec la même règle: une phrase simple, sans chercher à faire joli. Tu peux ajuster le brouillon comme ça ?",
+                    "Partager un point positif",
+                    "rebalance",
+                    "me met un peu la pression",
+                    "ça me paraît trop"
+                  ],
+                  "confidence": "high",
+                  "uncertainty": [],
+                  "user_problem": "Partager un point positif bloque parce que l'entree est trop lourde.",
+                  "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+                  "must_preserve": [
+                    "reprendre Partager un point positif apres la version mini"
+                  ]
+                },
+                "adjustment_type": "rebalance",
+                "proposed_change": "ajuster le plan de facon minimale",
+                "change_rationale": {
+                  "why_this_change": "Ajuster \"Partager un point positif\" traite le blocage identifié sans changer le reste du plan.",
+                  "success_condition": "L'action redevient faisable.",
+                  "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+                },
+                "adjust_plan_result": {
+                  "scope": "action",
+                  "rationale": {
+                    "confidence": "high",
+                    "missing_info": [],
+                    "user_problem": "L'habitude actuelle génère de la pression et semble trop lourde à exécuter quotidiennement.",
+                    "expected_effect": "Une meilleure adhésion à l'habitude grâce à une barrière à l'entrée plus basse.",
+                    "why_this_change": "L'ajustement répond directement à la demande de baisse de fréquence et de simplification du contenu."
+                  },
+                  "boundaries": {
+                    "explanation": "Le changement se limite à l'ajustement d'une habitude pour la rendre plus soutenable, sans modifier la direction générale du plan.",
+                    "affected_scope": "habitude spécifique",
+                    "global_plan_impact": "none",
+                    "explicitly_not_affected": [
+                      "objectif global",
+                      "missions ponctuelles",
+                      "structure du plan"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Réduction de la fréquence et simplification de la consigne pour l'habitude de gratitude afin de lever la pression.",
+                    "changed_items": [
+                      {
+                        "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                        "kind": "habit",
+                        "after": "3 fois par semaine. Une phrase simple, sans chercher à faire joli.",
+                        "title": "Partager un point positif",
+                        "before": "6 jours / semaine. Chaque jour, exprime une gratitude ou souligne un point positif auprès de ton partenaire.",
+                        "reason": "Réduire la friction et la fatigue décisionnelle en limitant la fréquence et l'exigence de forme.",
+                        "capability": "change_action_frequency"
+                      }
+                    ],
+                    "preserved_items": [
+                      {
+                        "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                        "kind": "action",
+                        "title": "Convenir d'un signal de pause",
+                        "reason": "Cette mission ponctuelle est essentielle pour la gestion des tensions et n'ajoute pas de charge quotidienne récurrente."
+                      }
+                    ]
+                  },
+                  "user_message_brief": "J'ai réduit la fréquence de ton habitude à 3 fois par semaine avec une consigne simplifiée.",
+                  "user_message_detailed": "Pour répondre à ton besoin de moins de pression, j'ai modifié l'action 'Partager un point positif' : elle passe de 6 à 3 fois par semaine. La consigne est désormais : 'une phrase simple, sans chercher à faire joli'. Les autres éléments de ton plan, comme la mission sur le signal de pause, restent inchangés car ils ne participent pas à cette fatigue quotidienne."
+                },
+                "execution_strategy": "patch_existing",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused",
+                  "target_reps",
+                  "cadence_label"
+                ]
+              },
+              "patch": {
+                "difficulty": "medium",
+                "instruction": "une phrase simple, sans chercher à faire joli",
+                "target_reps": 3,
+                "cadence_label": "3 jours / semaine"
+              },
+              "applied_at": "2026-05-16T14:20:15.894Z",
+              "request_id": "qa-rose-2026-05-16-adjust-plan-action-validation-r4-t06",
+              "operation_id": "a3262339-0648-40f6-953d-362dba77ca67",
+              "plan_patch_id": "d0692661-8234-4aac-b6e8-f03fcc4b1f9f",
+              "source_message_id": "acb44fd7-acfa-4889-94ce-46282b01a547"
+            }
+          ],
+          "active_operation_adjustment": {
+            "draft": {
+              "patch": {
+                "difficulty": "medium",
+                "instruction": "une phrase simple, sans chercher à faire joli",
+                "target_reps": 3,
+                "cadence_label": "3 jours / semaine"
+              },
+              "title": "Ajustement - Partager un point positif",
+              "confidence": "high",
+              "ack_summary": {
+                "changed": [
+                  "ajustement de \"Partager un point positif\""
+                ],
+                "unchanged": [
+                  "le reste du plan n'est pas touché"
+                ],
+                "confidence": "high",
+                "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+                "follow_up_needed": null
+              },
+              "scope_label": "Partager un point positif",
+              "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+              "decision_basis": {
+                "evidence": [
+                  "Je préfère finalement 3 fois par semaine, mais avec la même règle: une phrase simple, sans chercher à faire joli. Tu peux ajuster le brouillon comme ça ?",
+                  "Partager un point positif",
+                  "rebalance",
+                  "me met un peu la pression",
+                  "ça me paraît trop"
+                ],
+                "confidence": "high",
+                "uncertainty": [],
+                "user_problem": "Partager un point positif bloque parce que l'entree est trop lourde.",
+                "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+                "must_preserve": [
+                  "reprendre Partager un point positif apres la version mini"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "ajuster le plan de facon minimale",
+              "change_rationale": {
+                "why_this_change": "Ajuster \"Partager un point positif\" traite le blocage identifié sans changer le reste du plan.",
+                "success_condition": "L'action redevient faisable.",
+                "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+              },
+              "adjust_plan_result": {
+                "scope": "action",
+                "rationale": {
+                  "confidence": "high",
+                  "missing_info": [],
+                  "user_problem": "L'habitude actuelle génère de la pression et semble trop lourde à exécuter quotidiennement.",
+                  "expected_effect": "Une meilleure adhésion à l'habitude grâce à une barrière à l'entrée plus basse.",
+                  "why_this_change": "L'ajustement répond directement à la demande de baisse de fréquence et de simplification du contenu."
+                },
+                "boundaries": {
+                  "explanation": "Le changement se limite à l'ajustement d'une habitude pour la rendre plus soutenable, sans modifier la direction générale du plan.",
+                  "affected_scope": "habitude spécifique",
+                  "global_plan_impact": "none",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "missions ponctuelles",
+                    "structure du plan"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Réduction de la fréquence et simplification de la consigne pour l'habitude de gratitude afin de lever la pression.",
+                  "changed_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "after": "3 fois par semaine. Une phrase simple, sans chercher à faire joli.",
+                      "title": "Partager un point positif",
+                      "before": "6 jours / semaine. Chaque jour, exprime une gratitude ou souligne un point positif auprès de ton partenaire.",
+                      "reason": "Réduire la friction et la fatigue décisionnelle en limitant la fréquence et l'exigence de forme.",
+                      "capability": "change_action_frequency"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "title": "Convenir d'un signal de pause",
+                      "reason": "Cette mission ponctuelle est essentielle pour la gestion des tensions et n'ajoute pas de charge quotidienne récurrente."
+                    }
+                  ]
+                },
+                "user_message_brief": "J'ai réduit la fréquence de ton habitude à 3 fois par semaine avec une consigne simplifiée.",
+                "user_message_detailed": "Pour répondre à ton besoin de moins de pression, j'ai modifié l'action 'Partager un point positif' : elle passe de 6 à 3 fois par semaine. La consigne est désormais : 'une phrase simple, sans chercher à faire joli'. Les autres éléments de ton plan, comme la mission sur le signal de pause, restent inchangés car ils ne participent pas à cette fatigue quotidienne."
+              },
+              "execution_strategy": "patch_existing",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused",
+                "target_reps",
+                "cadence_label"
+              ]
+            },
+            "patch": {
+              "difficulty": "medium",
+              "instruction": "une phrase simple, sans chercher à faire joli",
+              "target_reps": 3,
+              "cadence_label": "3 jours / semaine"
+            },
+            "applied_at": "2026-05-16T14:20:15.894Z",
+            "request_id": "qa-rose-2026-05-16-adjust-plan-action-validation-r4-t06",
+            "operation_id": "a3262339-0648-40f6-953d-362dba77ca67",
+            "plan_patch_id": "d0692661-8234-4aac-b6e8-f03fcc4b1f9f",
+            "source_message_id": "acb44fd7-acfa-4889-94ce-46282b01a547"
+          }
+        },
+        "created_at": "2026-05-12T16:44:08.371+00:00",
+        "updated_at": "2026-05-16T18:16:49.20573+00:00",
+        "activated_at": "2026-05-12T16:44:08.371+00:00",
+        "completed_at": null,
+        "phase_id": "phase-1",
+        "phase_order": 1,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_started",
+        "cards_generated_at": null
+      },
+      {
+        "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+        "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+        "dimension": "clarifications",
+        "kind": "framework",
+        "status": "pending",
+        "title": "Cartographier les déclencheurs",
+        "description": "Prends 5 minutes en fin de semaine pour noter à froid ce qui a fait monter la pression, sans chercher à le résoudre tout de suite.",
+        "tracking_type": "boolean",
+        "activation_order": 3,
+        "activation_condition": {
+          "type": "after_item_completion",
+          "depends_on": [
+            "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5"
+          ]
+        },
+        "current_habit_state": null,
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "scheduled_days": null,
+        "time_of_day": "anytime",
+        "start_after_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-clarifications-001"
+          },
+          "clarification_details": {
+            "type": "one_shot",
+            "intro": "L'objectif est d'observer ce qui déclenche les tensions (argent, famille, intimité) sans en discuter à chaud avec lui.",
+            "sections": [
+              {
+                "id": "main_triggers",
+                "label": "Quels sujets ont créé de la friction cette semaine ?",
+                "input_type": "categorized_list",
+                "helper_text": "Note le sujet précis et sa catégorie globale.",
+                "placeholder": "Sujet|Catégorie (ex: Argent, Famille...)"
+              },
+              {
+                "id": "escalation_point",
+                "label": "À quel moment précis la discussion a-t-elle basculé ?",
+                "input_type": "textarea",
+                "helper_text": "Identifie le point de bascule vers la défensive.",
+                "placeholder": "Quand il a dit que... / Quand j'ai senti que..."
+              }
+            ],
+            "save_label": "Enregistrer mes observations"
+          }
+        },
+        "created_at": "2026-05-12T16:44:08.371+00:00",
+        "updated_at": "2026-05-16T18:16:49.213595+00:00",
+        "activated_at": null,
+        "completed_at": null,
+        "phase_id": "phase-1",
+        "phase_order": 1,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      },
+      {
+        "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+        "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "title": "Faire le point sur le signal de pause",
+        "description": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+        "tracking_type": "boolean",
+        "activation_order": 4,
+        "activation_condition": {
+          "type": "after_habit_traction",
+          "depends_on": [
+            "9dd77821-b33c-45b3-be5c-ae2766549a6c"
+          ],
+          "min_completions": 5
+        },
+        "current_habit_state": null,
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "scheduled_days": null,
+        "time_of_day": "anytime",
+        "start_after_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-002"
+          }
+        },
+        "created_at": "2026-05-12T16:44:08.371+00:00",
+        "updated_at": "2026-05-16T18:16:49.219055+00:00",
+        "activated_at": null,
+        "completed_at": null,
+        "phase_id": "phase-1",
+        "phase_order": 1,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_started",
+        "cards_generated_at": null
+      }
+    ],
+    "chat_messages": [],
+    "user_chat_states": []
+  }
+}

@@ -1,0 +1,346 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>/gyms — maquette de jugement</title>
+<style>
+@font-face { font-family:"Young Serif"; src:url("file:///Users/ahmedamara/Dev/Sophia%202/frontend/src/assets/fonts/youngserif-latin.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"Public Sans"; src:url("file:///Users/ahmedamara/Dev/Sophia%202/frontend/src/assets/fonts/publicsans-latin.woff2") format("woff2"); font-weight:100 900; font-display:swap; }
+:root {
+  --paper:#FBF8FA; --paper-2:#F4EFF2; --ink:#23191F; --ink-soft:#6A5A64; --line:#E3DAE0;
+  --fig-100:#EFE0E9; --fig-300:#C9A3B8; --fig-700:#632C4C; --fig-800:#4A2039; --fig-950:#24101E;
+  --font-sans:"Public Sans",system-ui,sans-serif; --font-display:"Young Serif",Georgia,serif;
+  --ill-ink:var(--ink); --ill-ink-soft:var(--ink-soft); --ill-paper:var(--paper);
+  --ill-wash:var(--fig-100); --ill-fig:var(--fig-700);
+}
+.on-dark { --ill-fig:var(--fig-300); --ill-ink-soft:var(--fig-300); }
+* { box-sizing:border-box; margin:0; }
+body { background:var(--paper); color:var(--ink); font-family:var(--font-sans); font-size:16px; line-height:1.6; }
+section { padding:44px 20px; }
+@media (min-width:640px) { section { padding:84px 32px 76px; } }
+.alt { background:var(--paper-2); }
+.dark { background:var(--fig-950); color:var(--paper); }
+.shell { max-width:1200px; margin:0 auto; }
+h1 { font-family:var(--font-display); font-size:clamp(2.05rem,1.35rem + 3.9vw,4.15rem); line-height:.99; letter-spacing:-.021em; max-width:16ch; text-wrap:balance; margin-top:16px; }
+h2 { font-family:var(--font-display); font-size:clamp(1.7rem,1.2rem + 2.1vw,2.7rem); line-height:1.06; letter-spacing:-.016em; max-width:42rem; text-wrap:balance; margin-top:12px; }
+p { max-width:62ch; }
+.lede { font-size:1.125rem; line-height:1.62; color:var(--ink-soft); margin-top:24px; }
+.body { margin-top:24px; color:var(--ink-soft); }
+.cap { margin-top:12px; font-size:.875rem; color:var(--ink-soft); }
+.dark .cap, .dark .body { color:var(--fig-300); }
+.eq { position:relative; padding-left:1.125rem; font-size:.6875rem; line-height:1.2; letter-spacing:.1em; text-transform:uppercase; font-weight:600; color:var(--ink-soft); }
+.eq::before { content:""; position:absolute; left:0; top:.18em; width:10px; height:14px; border-left:2px solid var(--fig-700); border-top:2px solid var(--fig-700); border-top-left-radius:5px; }
+.dark .eq { color:var(--fig-300); } .dark .eq::before { border-color:var(--fig-300); }
+.fig-scroll { overflow-x:auto; overscroll-behavior-x:contain; margin-top:32px; }
+.fig-scroll > svg { min-width:380px; width:100%; height:auto; }
+@media (max-width:640px) { .fig-scroll { margin-inline:-1.25rem; padding-inline:1.25rem; } }
+.grid { display:grid; gap:40px; }
+@media (min-width:1024px) { .grid { grid-template-columns:1fr auto; gap:64px; align-items:start; } .col { width:420px; } }
+.cta { display:inline-flex; align-items:center; border-radius:9999px; background:var(--fig-700); color:var(--paper); padding:12px 24px; font-weight:500; text-decoration:none; margin-top:32px; }
+</style></head><body>
+
+<section><div class="shell grid">
+  <div>
+    <p class="eq">For independent gyms &#8212; boxes, strength halls, hybrid studios</p>
+    <h1>You coach three hours a week. They eat twenty-one meals without you.</h1>
+    <p class="lede">That is where the plateau comes from, and a member who stops seeing their body change does not argue with you about it: they come less, then they come on Saturdays, then they stop coming.</p>
+    <a class="cta" href="#">Start the 14-day trial</a>
+  </div>
+  <div class="fig-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fw-t fw-d" font-family="var(--font-sans, ui-sans-serif, system-ui, sans-serif)">
+  <title id="fw-t">One member&#8217;s week: three coached sessions, twenty-one meals elsewhere</title>
+  <desc id="fw-d">A week drawn as marks. On the first row, the three sessions coached in the room. On the second, the twenty-one meals that happen where the gym is not.</desc>
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft, #6A5A64)">ONE MEMBER&#8217;S WEEK</text>
+  <g font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">
+    <text x="40" y="68">THREE HOURS IN THE ROOM</text>
+    <text x="40" y="148">TWENTY-ONE MEALS, EVERYWHERE ELSE</text>
+  </g>
+  <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink, #23191F)" stroke-width="2" stroke-linejoin="round">
+    <rect x="40" y="80" width="56" height="32" rx="4"/>
+    <rect x="160" y="80" width="56" height="32" rx="4"/>
+    <rect x="280" y="80" width="56" height="32" rx="4"/>
+  </g>
+  <g fill="var(--ill-fig, #632C4C)">
+    <rect x="61" y="160" width="14" height="14" rx="4"/> <rect x="61" y="184" width="14" height="14" rx="4"/> <rect x="61" y="208" width="14" height="14" rx="4"/>
+    <rect x="121" y="160" width="14" height="14" rx="4"/> <rect x="121" y="184" width="14" height="14" rx="4"/> <rect x="121" y="208" width="14" height="14" rx="4"/>
+    <rect x="181" y="160" width="14" height="14" rx="4"/> <rect x="181" y="184" width="14" height="14" rx="4"/> <rect x="181" y="208" width="14" height="14" rx="4"/>
+    <rect x="241" y="160" width="14" height="14" rx="4"/> <rect x="241" y="184" width="14" height="14" rx="4"/> <rect x="241" y="208" width="14" height="14" rx="4"/>
+    <rect x="301" y="160" width="14" height="14" rx="4"/> <rect x="301" y="184" width="14" height="14" rx="4"/> <rect x="301" y="208" width="14" height="14" rx="4"/>
+    <rect x="361" y="160" width="14" height="14" rx="4"/> <rect x="361" y="184" width="14" height="14" rx="4"/> <rect x="361" y="208" width="14" height="14" rx="4"/>
+    <rect x="421" y="160" width="14" height="14" rx="4"/> <rect x="421" y="184" width="14" height="14" rx="4"/> <rect x="421" y="208" width="14" height="14" rx="4"/>
+  </g>
+</svg>
+</div>
+</div></section>
+
+<section class="alt"><div class="shell">
+  <p class="eq">The arithmetic</p><h2>A tier your members pay for, on top of the membership.</h2>
+  <div class="grid"><div><p class="body">You pay 7&#160;&#8364; for each member you enrol and you set what they pay you. No platform fee, no setup fee, and you stop paying the month you turn a seat off.</p></div>
+  <div class="col"><div class="fig-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fm-t fm-d" font-family="var(--font-sans, ui-sans-serif, system-ui, sans-serif)">
+  <title id="fm-t">A worked example for a gym with 250 members</title>
+  <desc id="fm-d">Four lines of arithmetic. Thirty-seven members at 25 &#8364; each is 925 &#8364; in; seven euros each to Sophia is 259 &#8364; out; 666 &#8364; stays with the gym every month.</desc>
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft, #6A5A64)">AN EXAMPLE &#8212; A GYM WITH 250 MEMBERS</text>
+  <rect x="24" y="48" width="432" height="176" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="44" y="80" font-size="11" fill="var(--ill-ink, #23191F)">On the nutrition tier</text>
+  <text x="436" y="80" font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)">37 members</text>
+  <text x="44" y="134" font-size="11" fill="var(--ill-ink, #23191F)">They pay you 25&#160;&#8364; each</text>
+  <text x="436" y="134" font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)">925&#160;&#8364;</text>
+  <text x="44" y="162" font-size="11" fill="var(--ill-ink, #23191F)">You pay Sophia 7&#160;&#8364; each</text>
+  <text x="436" y="162" font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)">&#8722; 259&#160;&#8364;</text>
+  <text x="44" y="200" font-size="13" fill="var(--ill-ink, #23191F)">You keep, every month</text>
+  <text x="436" y="200" font-size="13" text-anchor="end" fill="var(--ill-fig, #632C4C)">666&#160;&#8364;</text>
+  <g font-size="9" fill="var(--ill-ink-soft, #6A5A64)">
+    <text x="44" y="96">15% take it up, rounded down to whole people</text>
+    <text x="44" y="216">about 8,000 &#8364; a year</text>
+  </g>
+  <g stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+    <path d="M 44 110 L 436 110"/>
+    <path d="M 44 176 L 436 176"/>
+  </g>
+</svg>
+</div>
+  <p class="cap">An example, and it says so. We do not know your take-up or the price you would set.</p></div></div>
+</div></section>
+
+<section><div class="shell">
+  <p class="eq">Every day</p><h2>It is awake at nine on a Tuesday evening. You are at home.</h2>
+  <div class="grid"><div><p class="body">Three buttons, and on anything other than All good, one follow-up asks whether it was energy, hunger or sleep.</p></div>
+  <div class="col"><div class="fig-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320"
+     role="img" aria-labelledby="ft-t ft-d" font-family="var(--font-sans, ui-sans-serif, system-ui, sans-serif)">
+  <title id="ft-t">The evening thread, as the product renders it</title>
+  <desc id="ft-d">A chat surface. Sophia asks how the day went and offers three buttons; a second question asks which axis was hard. At the bottom, the composer.</desc>
+  <path d="M 8 40 L 8 16 A 8 8 0 0 1 16 8 L 40 8" fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <rect x="8" y="8" width="464" height="304" rx="16" fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="28" y="46" font-size="15" font-weight="600" fill="var(--ill-fig, #632C4C)">Sophia</text>
+  <text x="28" y="64" font-size="9" fill="var(--ill-ink-soft, #6A5A64)">Your day-to-day, with your coach&#8217;s method behind it.</text>
+  <path d="M 24 78 L 456 78" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+    <rect x="24" y="94" width="270" height="34" rx="12"/>
+    <rect x="24" y="180" width="270" height="34" rx="12"/>
+    <rect x="24" y="266" width="344" height="32" rx="16"/>
+    <rect x="380" y="266" width="76" height="32" rx="16"/>
+  </g>
+  <g font-size="11" fill="var(--ill-ink, #23191F)">
+    <text x="40" y="116">How was today?</text>
+    <text x="40" y="202">What was hard?</text>
+    <text x="418" y="286" text-anchor="middle">Send</text>
+  </g>
+  <text x="40" y="286" font-size="11" fill="var(--ill-ink-soft, #6A5A64)">Write to Sophia</text>
+  <rect x="24" y="138" width="104" height="26" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="76" y="155" font-size="11" text-anchor="middle" fill="var(--ill-ink, #23191F)">All good</text>
+  <rect x="136" y="138" width="104" height="26" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="188" y="155" font-size="11" text-anchor="middle" fill="var(--ill-ink, #23191F)">So-so</text>
+  <rect x="248" y="138" width="104" height="26" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="300" y="155" font-size="11" text-anchor="middle" fill="var(--ill-ink, #23191F)">Rough</text>
+  <rect x="24" y="224" width="104" height="26" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="76" y="241" font-size="11" text-anchor="middle" fill="var(--ill-ink, #23191F)">Energy</text>
+  <rect x="136" y="224" width="104" height="26" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="188" y="241" font-size="11" text-anchor="middle" fill="var(--ill-ink, #23191F)">Hunger</text>
+  <rect x="248" y="224" width="104" height="26" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="300" y="241" font-size="11" text-anchor="middle" fill="var(--ill-ink, #23191F)">Sleep</text>
+</svg>
+</div>
+  <p class="cap">Every word in this thread is the product&#8217;s own.</p></div></div>
+</div></section>
+
+<section class="alt"><div class="shell">
+  <p class="eq">Every Monday</p><h2>The names worth a message, while they can still be reached.</h2>
+  <div class="grid"><div><p class="body">One page, computed from what happened and rendered from a template.</p></div>
+  <div class="col"><div class="fig-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 248" width="480" height="248"
+     role="img" aria-labelledby="fk-t fk-d" font-family="var(--font-sans, ui-sans-serif, system-ui, sans-serif)">
+  <title id="fk-t">The Monday page: the members worth a message</title>
+  <desc id="fk-d">Three members worth a message, each with the observed reason and their contact state, and on the third a plain statement that there is no number to show.</desc>
+  <path d="M 8 40 L 8 16 A 8 8 0 0 1 16 8 L 40 8" fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <rect x="8" y="8" width="464" height="232" rx="16" fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="28" y="46" font-size="15" font-weight="600" fill="var(--ill-fig, #632C4C)">This week</text>
+  <rect x="24" y="64" width="432" height="158" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="40" y="88" font-size="9" font-weight="600" letter-spacing="0.9" fill="var(--ill-ink-soft, #6A5A64)">WORTH A MESSAGE</text>
+  <path d="M 40 105 L 40 123" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="2" stroke-linecap="round"/>
+  <text x="56" y="118" font-size="11" font-weight="600" fill="var(--ill-ink, #23191F)">Chen Wei</text>
+  <text x="140" y="118" font-size="11" fill="var(--ill-ink-soft, #6A5A64)">Going quiet</text>
+  <rect x="286" y="107" width="52" height="16" rx="8" fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="312" y="118" font-size="9" text-anchor="middle" fill="var(--ill-ink-soft, #6A5A64)">slipping</text>
+  <path d="M 40 147 L 40 165" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="2" stroke-linecap="round"/>
+  <text x="56" y="160" font-size="11" font-weight="600" fill="var(--ill-ink, #23191F)">Amina Diop</text>
+  <text x="140" y="160" font-size="11" fill="var(--ill-ink-soft, #6A5A64)">Has not written in days</text>
+  <rect x="286" y="149" width="52" height="16" rx="8" fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="312" y="160" font-size="9" text-anchor="middle" fill="var(--ill-ink-soft, #6A5A64)">silent</text>
+  <path d="M 40 189 L 40 207" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="2" stroke-linecap="round"/>
+  <text x="56" y="202" font-size="11" font-weight="600" fill="var(--ill-ink, #23191F)">Luca Ferrari</text>
+  <text x="140" y="202" font-size="11" fill="var(--ill-ink-soft, #6A5A64)">Barely logged anything</text>
+  <text x="286" y="202" font-size="9" fill="var(--ill-ink-soft, #6A5A64)">no number to show</text>
+</svg>
+
+</div>
+  <p class="cap">A schematic of that page. The names are made up; the labels are the product&#8217;s own words.</p></div></div>
+</div></section>
+
+<section class="dark"><div class="shell">
+  <p class="eq">The part to be most afraid of</p>
+  <h2>An agent that answers for you is a risk. We treat it as one.</h2>
+  <div class="fig-scroll on-dark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fc-t fc-d" font-family="var(--font-sans, ui-sans-serif, system-ui, sans-serif)">
+  <title id="fc-t">One message, from the question to what was sent</title>
+  <desc id="fc-d">Three stages: a member&#8217;s question, the draft that broke a red line and was held, and the line that went out instead.</desc>
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft, #6A5A64)">ONE MESSAGE, END TO END</text>
+  <g fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+    <rect x="24" y="44" width="432" height="48" rx="12"/>
+    <rect x="24" y="104" width="432" height="48" rx="12"/>
+    <rect x="380" y="113" width="52" height="16" rx="8"/>
+  </g>
+  <text x="406" y="124" font-size="9" text-anchor="middle" fill="var(--ill-ink-soft, #6A5A64)">held</text>
+  <text x="40" y="64" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">A MEMBER ASKS</text>
+  <text x="40" y="82" font-size="11" fill="var(--ill-paper, #FBF8FA)">&#8220;Should I add a snack between lunch and dinner?&#8221;</text>
+  <text x="40" y="124" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">THE DRAFT SAID</text>
+  <text x="40" y="142" font-size="11" fill="var(--ill-ink-soft, #6A5A64)" text-decoration="line-through">&#8220;A small snack mid-afternoon can help.&#8221;</text>
+  <rect x="24" y="164" width="432" height="52" rx="12" fill="none" stroke="var(--ill-paper, #FBF8FA)" stroke-width="2"/>
+  <path d="M 40 172 L 40 208" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="56" y="184" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">WHAT WENT OUT INSTEAD</text>
+  <text x="56" y="202" font-size="11" fill="var(--ill-paper, #FBF8FA)">&#8220;Three real meals. If you are hungry, the meal before was too small.&#8221;</text>
+</svg>
+
+</div>
+  <p class="cap">Example &#8212; a gym whose method rules out grazing between meals.</p>
+</div></section>
+
+
+<style>
+.fr-appendix{background:var(--paper);padding:44px 20px}
+.fr-appendix .w{max-width:520px;margin:0 0 24px}
+.fr-appendix .w svg{width:100%;height:auto}
+.fr-appendix [data-fig="5-trace"]{background:var(--fig-950);--ill-fig:var(--fig-300);--ill-ink-soft:var(--fig-300);padding:8px;border-radius:16px}
+.fr-appendix h3{font-family:var(--font-display);font-size:1.2rem;margin-bottom:24px}
+</style>
+<section class="fr-appendix"><div class="shell"><h3>Annexe &#8212; les cinq figures avec les cha&#238;nes FR (contr&#244;le de d&#233;bordement)</h3>
+<div class="w" data-fig="1-semaine"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fw-t fw-d" font-family="var(--font-sans, ui-sans-serif, system-ui, sans-serif)">
+  <title id="fw-t">One member&#8217;s week: three coached sessions, twenty-one meals elsewhere</title>
+  <desc id="fw-d">A week drawn as marks. On the first row, the three sessions coached in the room. On the second, the twenty-one meals that happen where the gym is not.</desc>
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft, #6A5A64)">LA SEMAINE D’UN MEMBRE</text>
+  <g font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">
+    <text x="40" y="68">TROIS HEURES DANS LA SALLE</text>
+    <text x="40" y="148">VINGT ET UN REPAS, PARTOUT AILLEURS</text>
+  </g>
+  <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink, #23191F)" stroke-width="2" stroke-linejoin="round">
+    <rect x="40" y="80" width="56" height="32" rx="4"/>
+    <rect x="160" y="80" width="56" height="32" rx="4"/>
+    <rect x="280" y="80" width="56" height="32" rx="4"/>
+  </g>
+  <g fill="var(--ill-fig, #632C4C)">
+    <rect x="61" y="160" width="14" height="14" rx="4"/> <rect x="61" y="184" width="14" height="14" rx="4"/> <rect x="61" y="208" width="14" height="14" rx="4"/>
+    <rect x="121" y="160" width="14" height="14" rx="4"/> <rect x="121" y="184" width="14" height="14" rx="4"/> <rect x="121" y="208" width="14" height="14" rx="4"/>
+    <rect x="181" y="160" width="14" height="14" rx="4"/> <rect x="181" y="184" width="14" height="14" rx="4"/> <rect x="181" y="208" width="14" height="14" rx="4"/>
+    <rect x="241" y="160" width="14" height="14" rx="4"/> <rect x="241" y="184" width="14" height="14" rx="4"/> <rect x="241" y="208" width="14" height="14" rx="4"/>
+    <rect x="301" y="160" width="14" height="14" rx="4"/> <rect x="301" y="184" width="14" height="14" rx="4"/> <rect x="301" y="208" width="14" height="14" rx="4"/>
+    <rect x="361" y="160" width="14" height="14" rx="4"/> <rect x="361" y="184" width="14" height="14" rx="4"/> <rect x="361" y="208" width="14" height="14" rx="4"/>
+    <rect x="421" y="160" width="14" height="14" rx="4"/> <rect x="421" y="184" width="14" height="14" rx="4"/> <rect x="421" y="208" width="14" height="14" rx="4"/>
+  </g>
+</svg>
+</div><div class="w" data-fig="2-exemple"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fm-t fm-d" font-family="var(--font-sans, ui-sans-serif, system-ui, sans-serif)">
+  <title id="fm-t">A worked example for a gym with 250 members</title>
+  <desc id="fm-d">Four lines of arithmetic. Thirty-seven members at 25 &#8364; each is 925 &#8364; in; seven euros each to Sophia is 259 &#8364; out; 666 &#8364; stays with the gym every month.</desc>
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft, #6A5A64)">UN EXEMPLE — UNE SALLE DE 250 MEMBRES</text>
+  <rect x="24" y="48" width="432" height="176" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="44" y="80" font-size="11" fill="var(--ill-ink, #23191F)">Sur le palier nutrition</text>
+  <text x="436" y="80" font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)">37 membres</text>
+  <text x="44" y="134" font-size="11" fill="var(--ill-ink, #23191F)">Ils vous paient 25 € chacun</text>
+  <text x="436" y="134" font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)">925&#160;&#8364;</text>
+  <text x="44" y="162" font-size="11" fill="var(--ill-ink, #23191F)">Vous payez 7 € chacun à Sophia</text>
+  <text x="436" y="162" font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)">&#8722; 259&#160;&#8364;</text>
+  <text x="44" y="200" font-size="13" fill="var(--ill-ink, #23191F)">Il vous reste, chaque mois</text>
+  <text x="436" y="200" font-size="13" text-anchor="end" fill="var(--ill-fig, #632C4C)">666&#160;&#8364;</text>
+  <g font-size="9" fill="var(--ill-ink-soft, #6A5A64)">
+    <text x="44" y="96">15 % de prise, arrondi à l’entier inférieur</text>
+    <text x="44" y="216">environ 8 000 € par an</text>
+  </g>
+  <g stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+    <path d="M 44 110 L 436 110"/>
+    <path d="M 44 176 L 436 176"/>
+  </g>
+</svg>
+</div><div class="w" data-fig="3-fil-du-soir"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320"
+     role="img" aria-labelledby="ft-t ft-d" font-family="var(--font-sans, ui-sans-serif, system-ui, sans-serif)">
+  <title id="ft-t">The evening thread, as the product renders it</title>
+  <desc id="ft-d">A chat surface. Sophia asks how the day went and offers three buttons; a second question asks which axis was hard. At the bottom, the composer.</desc>
+  <path d="M 8 40 L 8 16 A 8 8 0 0 1 16 8 L 40 8" fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <rect x="8" y="8" width="464" height="304" rx="16" fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="28" y="46" font-size="15" font-weight="600" fill="var(--ill-fig, #632C4C)">Sophia</text>
+  <text x="28" y="64" font-size="9" fill="var(--ill-ink-soft, #6A5A64)">Your day-to-day, with your coach&#8217;s method behind it.</text>
+  <path d="M 24 78 L 456 78" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+    <rect x="24" y="94" width="270" height="34" rx="12"/>
+    <rect x="24" y="180" width="270" height="34" rx="12"/>
+    <rect x="24" y="266" width="344" height="32" rx="16"/>
+    <rect x="380" y="266" width="76" height="32" rx="16"/>
+  </g>
+  <g font-size="11" fill="var(--ill-ink, #23191F)">
+    <text x="40" y="116">How was today?</text>
+    <text x="40" y="202">What was hard?</text>
+    <text x="418" y="286" text-anchor="middle">Send</text>
+  </g>
+  <text x="40" y="286" font-size="11" fill="var(--ill-ink-soft, #6A5A64)">Write to Sophia</text>
+  <rect x="24" y="138" width="104" height="26" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="76" y="155" font-size="11" text-anchor="middle" fill="var(--ill-ink, #23191F)">All good</text>
+  <rect x="136" y="138" width="104" height="26" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="188" y="155" font-size="11" text-anchor="middle" fill="var(--ill-ink, #23191F)">So-so</text>
+  <rect x="248" y="138" width="104" height="26" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="300" y="155" font-size="11" text-anchor="middle" fill="var(--ill-ink, #23191F)">Rough</text>
+  <rect x="24" y="224" width="104" height="26" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="76" y="241" font-size="11" text-anchor="middle" fill="var(--ill-ink, #23191F)">Energy</text>
+  <rect x="136" y="224" width="104" height="26" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="188" y="241" font-size="11" text-anchor="middle" fill="var(--ill-ink, #23191F)">Hunger</text>
+  <rect x="248" y="224" width="104" height="26" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="300" y="241" font-size="11" text-anchor="middle" fill="var(--ill-ink, #23191F)">Sleep</text>
+</svg>
+</div><div class="w" data-fig="4-lundi"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 248" width="480" height="248"
+     role="img" aria-labelledby="fk-t fk-d" font-family="var(--font-sans, ui-sans-serif, system-ui, sans-serif)">
+  <title id="fk-t">The Monday page: the members worth a message</title>
+  <desc id="fk-d">Three members worth a message, each with the observed reason and their contact state, and on the third a plain statement that there is no number to show.</desc>
+  <path d="M 8 40 L 8 16 A 8 8 0 0 1 16 8 L 40 8" fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <rect x="8" y="8" width="464" height="232" rx="16" fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="28" y="46" font-size="15" font-weight="600" fill="var(--ill-fig, #632C4C)">This week</text>
+  <rect x="24" y="64" width="432" height="158" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="40" y="88" font-size="9" font-weight="600" letter-spacing="0.9" fill="var(--ill-ink-soft, #6A5A64)">WORTH A MESSAGE</text>
+  <path d="M 40 105 L 40 123" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="2" stroke-linecap="round"/>
+  <text x="56" y="118" font-size="11" font-weight="600" fill="var(--ill-ink, #23191F)">Chen Wei</text>
+  <text x="140" y="118" font-size="11" fill="var(--ill-ink-soft, #6A5A64)">Going quiet</text>
+  <rect x="286" y="107" width="52" height="16" rx="8" fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="312" y="118" font-size="9" text-anchor="middle" fill="var(--ill-ink-soft, #6A5A64)">slipping</text>
+  <path d="M 40 147 L 40 165" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="2" stroke-linecap="round"/>
+  <text x="56" y="160" font-size="11" font-weight="600" fill="var(--ill-ink, #23191F)">Amina Diop</text>
+  <text x="140" y="160" font-size="11" fill="var(--ill-ink-soft, #6A5A64)">Has not written in days</text>
+  <rect x="286" y="149" width="52" height="16" rx="8" fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="312" y="160" font-size="9" text-anchor="middle" fill="var(--ill-ink-soft, #6A5A64)">silent</text>
+  <path d="M 40 189 L 40 207" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="2" stroke-linecap="round"/>
+  <text x="56" y="202" font-size="11" font-weight="600" fill="var(--ill-ink, #23191F)">Luca Ferrari</text>
+  <text x="140" y="202" font-size="11" fill="var(--ill-ink-soft, #6A5A64)">Barely logged anything</text>
+  <text x="286" y="202" font-size="9" fill="var(--ill-ink-soft, #6A5A64)">no number to show</text>
+</svg>
+</div><div class="w" data-fig="5-trace"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fc-t fc-d" font-family="var(--font-sans, ui-sans-serif, system-ui, sans-serif)">
+  <title id="fc-t">One message, from the question to what was sent</title>
+  <desc id="fc-d">Three stages: a member&#8217;s question, the draft that broke a red line and was held, and the line that went out instead.</desc>
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft, #6A5A64)">UN MESSAGE, DE BOUT EN BOUT</text>
+  <g fill="none" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+    <rect x="24" y="44" width="432" height="48" rx="12"/>
+    <rect x="24" y="104" width="432" height="48" rx="12"/>
+    <rect x="380" y="113" width="52" height="16" rx="8"/>
+  </g>
+  <text x="406" y="124" font-size="9" text-anchor="middle" fill="var(--ill-ink-soft, #6A5A64)">retenu</text>
+  <text x="40" y="64" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">UN MEMBRE DEMANDE</text>
+  <text x="40" y="82" font-size="11" fill="var(--ill-paper, #FBF8FA)">« Je peux ajouter une collation entre midi et le dîner ? »</text>
+  <text x="40" y="124" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">LE BROUILLON DISAIT</text>
+  <text x="40" y="142" font-size="11" fill="var(--ill-ink-soft, #6A5A64)" text-decoration="line-through">« Une petite collation l’après-midi peut aider. »</text>
+  <rect x="24" y="164" width="432" height="52" rx="12" fill="none" stroke="var(--ill-paper, #FBF8FA)" stroke-width="2"/>
+  <path d="M 40 172 L 40 208" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="56" y="184" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">CE QUI EST PARTI À LA PLACE</text>
+  <text x="56" y="202" font-size="11" fill="var(--ill-paper, #FBF8FA)">« Trois vrais repas. Si tu as faim, le précédent était trop petit. »</text>
+</svg>
+</div></div></section>
+</body></html>

@@ -1,0 +1,14 @@
+{
+  "run_id": "daily-coaching-child-flow-20260629-r4-webhook",
+  "deleted": {
+    "entries": 3,
+    "pending": 1,
+    "chat_messages": 5,
+    "checkin": 1,
+    "occurrences": 3
+  },
+  "restored": [
+    "profiles.whatsapp_activity_timestamps",
+    "user_chat_states.temp_memory"
+  ]
+}

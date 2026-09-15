@@ -1,0 +1,22 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r1-apaisement-t01",
+    "auth_method": "refresh_token",
+    "user": "Je suis en train de monter en pression après un échange tendu. Je ne suis pas en danger, mais mon corps est à cran et je me juge de réagir aussi fort.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r1-apaisement-t02",
+    "auth_method": "refresh_token",
+    "user": "Je suis en train de monter en pression après un échange tendu. Je ne suis pas en danger, mais mon corps est à cran et je me juge de réagir aussi fort.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

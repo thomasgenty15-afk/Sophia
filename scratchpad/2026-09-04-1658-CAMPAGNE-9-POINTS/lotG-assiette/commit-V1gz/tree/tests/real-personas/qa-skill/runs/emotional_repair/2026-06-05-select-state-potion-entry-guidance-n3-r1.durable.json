@@ -1,0 +1,292 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "281ebbea-2605-4317-a4e1-9d3a39c4fced",
+        "role": "user",
+        "content": "Je veux une potion, mais je ne sais pas laquelle. Hier j'ai complètement craqué sur mon plan, et depuis je me parle très durement. Je ne sais pas si j'ai besoin de me réparer de l'épisode ou d'un peu plus de douceur envers moi.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:06:48.244108+00:00"
+      },
+      {
+        "id": "f5653405-e8d5-4609-81a2-414c25724d0d",
+        "role": "assistant",
+        "content": "Est-ce que tu veux choisir une potion pour changer ton état ou as-tu besoin d'un soutien pour te réparer émotionnellement ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-05T13:07:01.063792+00:00"
+      },
+      {
+        "id": "5b82625d-4328-4d79-853a-5bc8b9d9b0b8",
+        "role": "user",
+        "content": "Je veux choisir une potion. Je ne demande pas un soutien libre, je veux savoir laquelle correspond à cet état après le craquage.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:07:14.356995+00:00"
+      },
+      {
+        "id": "f0211920-0fd9-473d-b9b3-88aa537ce8d2",
+        "role": "assistant",
+        "content": "Pour t'aider après ce craquage et cette dureté envers toi, tu préfères une Potion de guérison ou une Potion d'amour ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "collecting",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_collecting",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_collecting",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-05T13:07:35.24118+00:00"
+      },
+      {
+        "id": "b6474eec-1be0-49da-941d-299fc143ad11",
+        "role": "user",
+        "content": "Je crois que c'est surtout après l'épisode. J'ai honte d'avoir craqué, j'ai envie de me relever proprement de ce moment plutôt que juste me parler gentiment.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:07:51.298763+00:00"
+      },
+      {
+        "id": "df535252-56dd-4016-97d9-1d9614d65061",
+        "role": "assistant",
+        "content": "Tu ressens surtout de la honte ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_clarifying",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_clarifying",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-05T13:08:38.32197+00:00"
+      },
+      {
+        "id": "c6897dba-d1e1-4952-acc3-8c2611990ea3",
+        "role": "user",
+        "content": "Oui, surtout de la honte, et aussi la peur que ce craquage veuille dire que je suis revenu en arrière.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:08:51.19872+00:00"
+      },
+      {
+        "id": "51aaf831-42a8-454b-972e-5a9acd6d570f",
+        "role": "assistant",
+        "content": "Ce que je comprends : le craquage sur ton plan ; honte\n\nJe te conseille de choisir Potion de guérison. Le shift recommandé est de te relever après ce qui a fait mal, sans rouvrir toute l'analyse.\n\nPourquoi cette potion : Tu as exprimé de la honte et la peur d'avoir reculé après un craquage. Cette potion est conçue pour t'aider à te relever de ces sentiments, à apaiser la culpabilité et à te permettre de repartir plus sereinement, sans te juger.\nPetit pas immédiat : Je comprends que tu te sentes mal après ce craquage, avec cette honte et la peur d'avoir reculé. C'est normal de ressentir ça. Prends un instant pour respirer. Ce n'est pas un échec définitif, juste un moment difficile. Tu n'es pas revenu en arrière, tu es juste en train de traverser une étape.\n\nÀ mettre dans la plateforme :\nPotion : Potion de guérison\n- Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ? le craquage sur ton plan\n- Tu ressens surtout quoi ? De la honte\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n3-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion de guérison",
+                    "immediate_step": "Je comprends que tu te sentes mal après ce craquage, avec cette honte et la peur d'avoir reculé. C'est normal de ressentir ça. Prends un instant pour respirer. Ce n'est pas un échec définitif, juste un moment difficile. Tu n'es pas revenu en arrière, tu es juste en train de traverser une étape.",
+                    "platform_steps": [
+                      "ouvre la section État / Potions",
+                      "choisis la potion recommandée",
+                      "active-la depuis la plateforme si elle te convient"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "le craquage sur ton plan",
+                          "question_id": "recent_hurt",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?"
+                        },
+                        {
+                          "value": "De la honte",
+                          "question_id": "dominant_feeling",
+                          "option_label": "De la honte",
+                          "option_value": "honte",
+                          "question_label": "Tu ressens surtout quoi ?"
+                        }
+                      ],
+                      "potion_type": "guerison",
+                      "potion_title": "Potion de guérison",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Tu as exprimé de la honte et la peur d'avoir reculé après un craquage. Cette potion est conçue pour t'aider à te relever de ces sentiments, à apaiser la culpabilité et à te permettre de repartir plus sereinement, sans te juger.",
+                    "platform_destination": "dans la section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "le craquage sur ton plan ; honte",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "Le shift recommandé est de te relever après ce qui a fait mal, sans rouvrir toute l'analyse."
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_platform_handoff_delivered",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-05T13:09:10.676913+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

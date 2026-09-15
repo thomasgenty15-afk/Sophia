@@ -1,0 +1,50 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r15-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Hier j'ai bien fait le sas, mais j'ai beaucoup hésité devant le carnet avant de démarrer. Ce soir je veux raccourcir ce passage.",
+    "assistant": "Ah je vois très bien le truc : tu l’as fait, mais le “moment carnet” t’a aspiré au démarrage. Pas grave, ça veut juste dire qu’on va réduire la friction, pas l’éliminer. 😄\n\nCe soir, objectif simple : raccourcir l’entrée.\n1) Avant d’ouvrir le carnet, règle un temps : 2 minutes chrono.\n2) Tu écris juste un titre (pas de phrase) : “Aujourd’hui / Maintenant”.\n3) Ensuite, tu passes directement à 1 seule ligne de déchargement (la plus évidente), même moche.\n\nÇa te va comme format “2 minutes puis 1 ligne”, ou tu préfères “1 minute puis juste respirer et choisir une seule mission à faire ce soir” ? 🤝",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "track_progress_plan_item"
+    ],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "Ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "track_progress_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

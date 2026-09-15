@@ -1,0 +1,232 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je repousse mon dossier de relance client depuis ce matin; quel levier Sophia tu utiliserais pour m’aider à démarrer ?",
+      "created_at": "2026-06-24T20:41:00.121892+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_red_rerun_20260624_r1b_coaching-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Tu veux te débloquer par rapport à quoi exactement ?",
+      "created_at": "2026-06-24T20:41:39.218734+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_red_rerun_20260624_r1b_coaching-t01",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Par rapport à ce dossier de relance client. Rappelle-moi dans 28 minutes d’ouvrir le premier email, et donne-moi le levier à utiliser.",
+      "created_at": "2026-06-24T20:41:49.111863+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_red_rerun_20260624_r1b_coaching-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Pour te guider juste, c’est quoi qui te bloque exactement sur ce dossier ?",
+      "created_at": "2026-06-24T20:42:19.145255+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_red_rerun_20260624_r1b_coaching-t02",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "205b2da9-300b-4c20-a1dd-126919f01314",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T20:41:39.201Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-24T20:42:19.131Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "understand_need",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Blocage au démarrage d'un dossier de relance client, mais sans confirmation du lien au plan.",
+              "target_kind": "unclear",
+              "action_title": "dossier de relance client",
+              "action_source": "ambiguous"
+            },
+            "turn_count": 2,
+            "coaching_type": "unclear",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [
+                "Confirmer si le dossier de relance client appartient à un plan actif",
+                "Identifier l'action concrète si c'est une action de plan"
+              ],
+              "primary_cause": "unclear",
+              "why_it_exists": "Le message indique une action concrète à lancer et une demande de rappel, mais il manque l'information essentielle pour savoir si on doit traiter une action de plan ou une action libre."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user demande un rappel ponctuel pour ouvrir le premier email et veut le bon levier, mais la relation de ce dossier de relance client au plan n'est pas confirmée.",
+            "candidate_features": [],
+            "last_answer_summary": "Le user demande un rappel ponctuel pour ouvrir le premier email et veut le bon levier, mais la relation de ce dossier de relance client au plan n'est pas confirmée.",
+            "parent_return_focus": null,
+            "pending_type_change": {
+              "reason": "Le message décrit un dossier de relance client et une aide au démarrage, mais la relation au plan n'est pas confirmée.",
+              "candidate_coaching_type": "unclear"
+            },
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks which coaching lever to use for a blocked start, but the plan relation is not confirmed and no concrete plan item is identified."
+            ],
+            "current_recommendation": null,
+            "last_visible_task_kind": "change_confirm_coaching_type",
+            "recommendation_decision": {
+              "why_primary": "Le type de coaching doit être confirmé avant de choisir un levier Sophia.",
+              "why_not_others": {},
+              "primary_feature": null,
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": null,
+                "surface_hint": null,
+                "user_facing_destination": null
+              },
+              "user_facing_next_step": "Dis-moi juste si c’est dans ton plan ou hors plan, et je te dirai le bon levier."
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks which coaching lever to use for a blocked start, but the plan relation is not confirmed and no concrete plan item is identified.",
+              "confidence": 0.8,
+              "coaching_type": "ambiguous",
+              "action_context": {
+                "source": "ambiguous",
+                "plan_id": null,
+                "plan_title": null,
+                "action_type": "other",
+                "action_title": "dossier de relance client",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": true,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": false
+              },
+              "emotional_state_context": {
+                "intensity": "medium",
+                "state_hint": null
+              }
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T20:41:39.201Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-24T20:42:19.131Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "understand_need",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Blocage au démarrage d'un dossier de relance client, mais sans confirmation du lien au plan.",
+              "target_kind": "unclear",
+              "action_title": "dossier de relance client",
+              "action_source": "ambiguous"
+            },
+            "turn_count": 2,
+            "coaching_type": "unclear",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [
+                "Confirmer si le dossier de relance client appartient à un plan actif",
+                "Identifier l'action concrète si c'est une action de plan"
+              ],
+              "primary_cause": "unclear",
+              "why_it_exists": "Le message indique une action concrète à lancer et une demande de rappel, mais il manque l'information essentielle pour savoir si on doit traiter une action de plan ou une action libre."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user demande un rappel ponctuel pour ouvrir le premier email et veut le bon levier, mais la relation de ce dossier de relance client au plan n'est pas confirmée.",
+            "candidate_features": [],
+            "last_answer_summary": "Le user demande un rappel ponctuel pour ouvrir le premier email et veut le bon levier, mais la relation de ce dossier de relance client au plan n'est pas confirmée.",
+            "parent_return_focus": null,
+            "pending_type_change": {
+              "reason": "Le message décrit un dossier de relance client et une aide au démarrage, mais la relation au plan n'est pas confirmée.",
+              "candidate_coaching_type": "unclear"
+            },
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks which coaching lever to use for a blocked start, but the plan relation is not confirmed and no concrete plan item is identified."
+            ],
+            "current_recommendation": null,
+            "last_visible_task_kind": "change_confirm_coaching_type",
+            "recommendation_decision": {
+              "why_primary": "Le type de coaching doit être confirmé avant de choisir un levier Sophia.",
+              "why_not_others": {},
+              "primary_feature": null,
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": null,
+                "surface_hint": null,
+                "user_facing_destination": null
+              },
+              "user_facing_next_step": "Dis-moi juste si c’est dans ton plan ou hors plan, et je te dirai le bon levier."
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks which coaching lever to use for a blocked start, but the plan relation is not confirmed and no concrete plan item is identified.",
+              "confidence": 0.8,
+              "coaching_type": "ambiguous",
+              "action_context": {
+                "source": "ambiguous",
+                "plan_id": null,
+                "plan_title": null,
+                "action_type": "other",
+                "action_title": "dossier de relance client",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": true,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": false
+              },
+              "emotional_state_context": {
+                "intensity": "medium",
+                "state_hint": null
+              }
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T20:42:19.139301+00:00"
+  }
+}

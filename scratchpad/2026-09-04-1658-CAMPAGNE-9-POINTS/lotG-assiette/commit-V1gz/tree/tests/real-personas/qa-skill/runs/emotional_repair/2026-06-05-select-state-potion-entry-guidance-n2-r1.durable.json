@@ -1,0 +1,350 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "1bafdc5c-793c-4852-8e28-5ab50afa8037",
+        "role": "user",
+        "content": "Je veux une potion, mais je ne sais pas laquelle. J'ai un truc à envoyer à quelqu'un et je tourne autour depuis deux jours, je sens de la pression mais aussi une vraie peur de le faire.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:02:42.616564+00:00"
+      },
+      {
+        "id": "53a3f719-ae8f-4d22-a1cd-5d2c56654f8a",
+        "role": "assistant",
+        "content": "Est-ce que tu veux choisir une potion pour changer ton état d'esprit ou est-ce que tu veux un soutien pour gérer cette peur et cette pression ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-05T13:03:02.556565+00:00"
+      },
+      {
+        "id": "05e38a1b-fd1e-4cdd-a60b-81d68da22280",
+        "role": "user",
+        "content": "Je veux vraiment choisir une potion. Le soutien peut attendre, là je veux comprendre quelle potion correspond à ce blocage.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:03:20.370478+00:00"
+      },
+      {
+        "id": "8cb327c4-8cb0-4df3-aa08-83815adc444d",
+        "role": "assistant",
+        "content": "Laquelle de ces deux potions te semble la plus adaptée à ton blocage : la Potion de courage ou la Potion d'apaisement ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_clarifying",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_clarifying",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-05T13:03:43.915518+00:00"
+      },
+      {
+        "id": "07c1cf0d-50cb-45b2-a031-b24a9029fd8c",
+        "role": "user",
+        "content": "C'est plutôt la peur du passage. Je ne cherche pas juste à me calmer : j'évite d'appuyer sur envoyer parce que j'ai peur de la réaction.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:04:01.65181+00:00"
+      },
+      {
+        "id": "0edb65f2-0727-4669-85f4-e3c62069ac42",
+        "role": "assistant",
+        "content": "Si je comprends bien, ce qui te bloque le plus, c'est la peur de la réaction des autres, de leur regard ? C'est bien ça ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_clarifying",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_clarifying",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-05T13:04:31.970704+00:00"
+      },
+      {
+        "id": "0dc0e743-670d-4724-8d39-0c3007682194",
+        "role": "user",
+        "content": "Oui, c'est exactement ça. J'ai peur que la personne le prenne mal, et je repousse pour éviter cette sensation.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:04:47.346918+00:00"
+      },
+      {
+        "id": "230b03cf-f359-4bdc-abc5-49e9f1d21c1f",
+        "role": "assistant",
+        "content": "Je te suis. Qu'est-ce qui te pèse le plus là-dedans ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "collecting",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_collecting",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_collecting",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-05T13:05:51.115582+00:00"
+      },
+      {
+        "id": "40a1ef8e-6ed7-49d1-8e84-ef9476badbfd",
+        "role": "user",
+        "content": "Ce qui me pèse, c'est l'anticipation du conflit. Je sais que ce message est juste, mais j'ai besoin de franchir le pas malgré l'inconfort.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:06:09.536728+00:00"
+      },
+      {
+        "id": "4b5d6daf-29a5-4dad-84bb-ddf5c9fe1472",
+        "role": "assistant",
+        "content": "Ce que je comprends : appuyer sur envoyer ; le regard des autres\n\nJe te conseille de choisir Potion de courage. Le shift recommandé est de franchir un passage évité avec un appui court.\n\nPourquoi cette potion : Tu ressens une forte appréhension à envoyer un message, craignant la réaction de l'autre et le conflit, ce qui te pousse à éviter l'action malgré sa justesse.\nPetit pas immédiat : Je comprends que l'anticipation d'un conflit et la peur du regard des autres peuvent être très lourdes. Prends un instant pour respirer. Tu n'es pas seul(e) face à ça.\n\nÀ mettre dans la plateforme :\nPotion : Potion de courage\n- Qu'est-ce que tu evites en ce moment ? appuyer sur envoyer\n- Qu'est-ce qui bloque le plus ? La peur du regard des autres\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-entry-guidance-n2-r1-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion de courage",
+                    "immediate_step": "Je comprends que l'anticipation d'un conflit et la peur du regard des autres peuvent être très lourdes. Prends un instant pour respirer. Tu n'es pas seul(e) face à ça.",
+                    "platform_steps": [
+                      "ouvre la section État / Potions",
+                      "choisis la potion recommandée",
+                      "active-la depuis la plateforme si elle te convient"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "appuyer sur envoyer",
+                          "question_id": "avoidance_target",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Qu'est-ce que tu evites en ce moment ?"
+                        },
+                        {
+                          "value": "La peur du regard des autres",
+                          "question_id": "blocker_kind",
+                          "option_label": "La peur du regard des autres",
+                          "option_value": "regard",
+                          "question_label": "Qu'est-ce qui bloque le plus ?"
+                        }
+                      ],
+                      "potion_type": "courage",
+                      "potion_title": "Potion de courage",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Tu ressens une forte appréhension à envoyer un message, craignant la réaction de l'autre et le conflit, ce qui te pousse à éviter l'action malgré sa justesse.",
+                    "platform_destination": "dans la section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "appuyer sur envoyer ; le regard des autres",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "Le shift recommandé est de franchir un passage évité avec un appui court."
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_platform_handoff_delivered",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-05T13:06:33.157743+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

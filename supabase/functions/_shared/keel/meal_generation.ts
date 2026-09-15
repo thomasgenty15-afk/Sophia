@@ -45,6 +45,13 @@ import {
   type OutputLockResult,
 } from "../../sophia-brain/skills/_shared/keel_output_locks.ts";
 import type { CoachDoctrine } from "./doctrine.ts";
+// ⟳ 2026-09-13 · LOT 1 — LE RECENSEMENT DES SURFACES, PARTAGÉ AVEC LE HANDLER.
+import {
+  collectOutputSurfaces,
+  type OutputSurface,
+  type OutputSurfaceKind,
+  outputSurfacesText,
+} from "./output_surfaces.ts";
 import {
   type SafetyConstraintTable,
   safetyConstraintsPromptBlock,
@@ -82,13 +89,14 @@ import {
   type CompositionUnit,
   gramsRawOf,
   resolveCompositionLine,
-  resolveIngredient,
   yieldFactorOf,
 } from "./food_composition.ts";
 // ⟳ LOT C (2026-09-11) — LE CONTRAT DE COMPOSITION: le catalogue montré au
 // modèle et la lecture de l'identifiant qu'il rend. Voir `composition_contract.ts`.
 import {
   type ComposablePredicate,
+  type OutputContractLine,
+  type OutputContractSite,
   readRefSlug,
   type RefOutcome,
   type RefReading,
@@ -163,7 +171,13 @@ import { type FoodGroupRef, parseFoodGroupRef, PROTEIN_SOURCES } from "./tokens.
 // Le nom de la clé n'a qu'UN site d'écriture (`INGREDIENT_GROUP_KEY`), lu par
 // l'écrivain ET par le compteur: c'est ce qui rend impossible de compter une
 // clé que personne n'écrit.
-import { ingredientGroupPayload } from "./food_group_write.ts";
+// ⟳ 2026-09-13 — `reconcileIngredientGroup`: le `ref` prime sur le `group`
+// déclaré quand il se résout, et le désaccord se COMPTE.
+import {
+  closedGroupOrNull,
+  ingredientGroupPayload,
+  reconcileIngredientGroup,
+} from "./food_group_write.ts";
 import {
   allergenGroupViolations,
   groupedIngredientCount,
@@ -171,8 +185,21 @@ import {
 import {
   type QuantitySource,
   quantitySourcePayload,
+  readQuantityFromProse,
   weighableQuantityOf,
 } from "./quantity_from_prose.ts";
+// ⟳ 2026-09-12 · ÉTAPE C3 — L'IDENTITÉ ALIMENTAIRE D'UNE LIGNE DE COURSES.
+// ⛔ Le parseur décidait de garder ou de jeter une ligne en comparant des
+// LIBELLÉS; il partage désormais son corps avec la fusion (`retry_merge.ts`),
+// et les deux comparent des identités. Voir `shopping_identity.ts`.
+import {
+  claimedIdentities,
+  foodIdentityOf,
+  freshnessGroupOf,
+  isNonPurchasableIdentity,
+  NON_PURCHASABLE_SLUGS,
+  sortShoppingLines,
+} from "./shopping_identity.ts";
 // ⟳ LOT `L26-0` — L'ARÊTE QUI MANQUAIT À `mouths_double`. Le compteur CONSTATE
 // depuis toujours: quatorze bouches servies deux fois sur les dix plans du
 // 2026-08-22, et à chaque fois la même — une mineure. La consigne l'interdit
@@ -442,6 +469,82 @@ export const DEFAULT_EATING_RHYTHM: readonly EatingOccasionSlot[] = [
   { slot: "lunch", size: null },
   { slot: "dinner", size: null },
 ];
+
+/** Les moments qu'une grille de foyer porte, et d'où ils viennent. */
+export interface HouseholdGridSlots {
+  /** Les moments de LA MAISON: ceux du maître, ou le repli s'il s'est tu. */
+  readonly base: readonly EatingOccasion[];
+  /** `base` ∪ ce que chaque bouche déclare EN PLUS. Ordre de la journée. */
+  readonly union: readonly EatingOccasion[];
+  /** Ce qu'une bouche ajoute et que la maison n'a pas. Témoin, pas décor. */
+  readonly addedByMembers: readonly EatingOccasion[];
+  /** ⛔ `true` = le maître n'a rien déclaré, la base est le repli. */
+  readonly baseIsDefault: boolean;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LES MOMENTS DE LA GRILLE D'UN FOYER — base de la maison, puis les ajouts
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── ⛔ LE DÉFAUT QU'ELLE FERME, ET IL A ÉTÉ MESURÉ (2026-09-13) ────────────
+ * La lane calculait l'union NUE des rythmes déclarés, sur la prémisse écrite
+ * en commentaire: « une bouche à `null` n'ajoute rien: elle mange aux moments
+ * de la maison, ce qui est exactement ce que l'union contient déjà. »
+ *
+ * **Cette prémisse est fausse quand la maison elle-même n'a rien déclaré.**
+ * Une bouche à `null` n'apporte AUCUN moment à l'union, et le repli
+ * `DEFAULT_EATING_RHYTHM` ne s'applique que si l'union est VIDE.
+ *
+ * Mesuré sur un foyer de quatre (compte de banc `lot2v1`): le maître ne
+ * déclare rien, trois bouches non plus, et la quatrième déclare `lunch,
+ * dinner`. L'union valait `{lunch, dinner}` — le calendrier envoyé au modèle
+ * portait **4 cases sur 6**, et les DEUX petits-déjeuners du foyer
+ * disparaissaient POUR TOUT LE MONDE parce qu'une bouche secondaire avait
+ * rempli sa carte. « Tom prend un goûter » ajoutait un moment à la maison;
+ * « Iris ne déjeune pas ici le matin » en retirait un à tous.
+ *
+ * ── LA RÈGLE ──────────────────────────────────────────────────────────────
+ *     base  = ce que le MAÎTRE a déclaré, ou `DEFAULT_EATING_RHYTHM` s'il
+ *             s'est tu ;
+ *     union = base ∪ ce que CHAQUE bouche déclare en plus.
+ *
+ * ⚠️ CE QUI NE BOUGE PAS, ET C'EST LA MOITIÉ QUI COMPTE. Un maître qui
+ * déclare `lunch, dinner` garde EXACTEMENT sa grille de deux moments: la base
+ * est la sienne, et le repli ne répond qu'à son silence. C'est le cas solo, et
+ * il ne doit pas changer d'un créneau.
+ *
+ * ⚠️ ET LA GRILLE D'UNE BOUCHE RESTE LA SIENNE. Cette fonction décide des
+ * moments que le PLAN couvre, pas de la présence de chacun case par case.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function householdGridSlots(args: {
+  /** `student_goals.practical_constraints.eating_rhythm` du maître, brut. */
+  readonly ownerRhythm: unknown;
+  /** Les moments déclarés par les bouches, bruts et à plat. */
+  readonly memberSlots: readonly unknown[];
+}): HouseholdGridSlots {
+  const duMaitre = new Set<EatingOccasion>(
+    parseEatingRhythm(args.ownerRhythm).map((o) => o.slot),
+  );
+  const baseIsDefault = duMaitre.size === 0;
+  const base = baseIsDefault
+    ? DEFAULT_EATING_RHYTHM.map((o) => o.slot)
+    : EATING_OCCASIONS.filter((s) => duMaitre.has(s));
+  const desBouches = new Set<EatingOccasion>(
+    parseEatingRhythm([...args.memberSlots]).map((o) => o.slot),
+  );
+  const enBase = new Set<EatingOccasion>(base);
+  return {
+    base,
+    union: EATING_OCCASIONS.filter((s) => enBase.has(s) || desBouches.has(s)),
+    addedByMembers: EATING_OCCASIONS.filter((s) =>
+      desBouches.has(s) && !enBase.has(s)
+    ),
+    baseIsDefault,
+  };
+}
 
 /**
  * Le rythme lu depuis `student_goals.practical_constraints.eating_rhythm`.
@@ -985,6 +1088,54 @@ export interface ShoppingItem {
   quantity: string | null;
   aisle: ShoppingAisle;
   /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-12 · ÉTAPE C3 — L'IDENTITÉ, LA QUANTITÉ ET LA BASE ACHETABLE
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE DÉFAUT QU'ELLES FERMENT, ET IL EST CHIFFRÉ. Une ligne de courses ne
+   * portait QUE du texte : `term` et `quantity` en prose. Conséquences
+   * mesurées le 2026-09-11, et elles sont trois :
+   *   ① `retry_merge.ts` décidait de garder ou de jeter une ligne en comparant
+   *      des libellés — **6 lignes sur 26 supprimées** parce que « citrons »
+   *      n'est pas « citron » ;
+   *   ② l'audit ne pouvait vérifier aucune quantité : **26 identités sur 26**
+   *      de GAIN rendaient « incomplet » — honnêtement, et sans rien
+   *      contrôler ;
+   *   ③ le groupe de fraîcheur se résolvait par le LIBELLÉ
+   *      (`foodGroupOfTerm`), donc un identifiant écrit par le modèle ne
+   *      comptait pas et la date d'achat pouvait être trop précoce.
+   *
+   * ⛔ REQUIS, JAMAIS `?`. Le compilateur est le seul recenseur d'écrivains
+   * qui ne mente pas, et le dépôt paie en boucle les champs qu'un écrivain
+   * oublie en silence (`buy_on` a coûté un tir entier). `null` veut dire
+   * « inconnu », jamais zéro.
+   *
+   * ⚠️ LE TEXTE EST DÉRIVÉ DE CES CHAMPS, plus l'inverse : `quantity` reste le
+   * champ de COMPATIBILITÉ des plans écrits avant ce lot, et le contrôle
+   * quantitatif ne dépend plus de sa réinterprétation.
+   */
+  ref: string | null;
+  /** La quantité à mettre dans le panier. `null` = non chiffrable. */
+  amount: number | null;
+  /** `g` · `ml` · `unit`. `null` quand `amount` est `null`. */
+  unit: CompositionUnit | null;
+  /**
+   * L'ÉTAT DE LA BASE ACHETABLE. `raw` est l'affirmation normale — 500 g de
+   * riz au magasin sont 500 g CRUS — et c'est elle qui permet de comparer un
+   * achat à un besoin de recette sans repasser par un rendement.
+   */
+  state: CompositionState | null;
+  /**
+   * ⛔ `false` = CETTE LIGNE NE SE MET DANS AUCUN PANIER. Aujourd'hui l'eau du
+   * robinet, et elle seule (`NON_PURCHASABLE_SLUGS`). Mesuré : 2 tirs sur 6 de
+   * la campagne du 2026-09-11 réclamaient 219 g et 287 g d'eau en
+   * `ingredient_not_bought`.
+   *
+   * ⚠️ ELLE RESTE DANS LA RECETTE ET DANS LA MESURE DE PRÉPARATION. Ce drapeau
+   * ne décide que du panier.
+   */
+  purchasable: boolean;
+  /**
    * LE JOUR OÙ CET ARTICLE S'ACHÈTE, `YYYY-MM-DD`. 2026-09-01.
    *
    * ⛔ IL N'EST PAS ÉCRIT PAR LE MODÈLE ET IL N'EST PAS CALCULÉ ICI. Il est
@@ -1354,6 +1505,31 @@ export interface GeneratedMeal {
    */
   protein_anchor_missing: string[];
   /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-12 · FERMETURE LOT 2 — LA CANDIDATE NON LIVRABLE, ET SES MORSURES
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ `null` QUAND LA SORTIE EST PROPRE. Non nul, il porte le plan que le
+   * verrou vient de VIDER — `dishes`, `preparations`, `cooking_sessions` et
+   * `shopping_list` publics valent alors `[]` — et l'endroit exact où il a
+   * mordu.
+   *
+   * ⛔ IL N'EST NI UN APERÇU NI UN PLAN ACTIVABLE, et rien ne doit le publier.
+   * Il existe pour UNE chose: qu'une réparation puisse viser l'unité en cause
+   * au lieu de refaire les six repas. Le verrou lit un texte CONCATÉNÉ; une
+   * arachide dans le dîner de samedi rendait tout le plan indisponible, et rien
+   * ne disait lequel était en cause.
+   */
+  unsafe_candidate:
+    | {
+      readonly dishes: readonly GeneratedDish[];
+      readonly preparations: readonly MealPreparation[];
+      readonly cooking_sessions: readonly CookingSession[];
+      readonly shopping_list: readonly ShoppingItem[];
+      readonly violations: readonly UnsafeViolation[];
+    }
+    | null;
+  /**
    * C2 ④ — LES CASES DE LA FENÊTRE QUE PERSONNE NE REMPLIT.
    *
    * Un CONSTAT, comme `protein_anchor_missing`: le plan est écrit tel quel, et
@@ -1427,7 +1603,19 @@ export interface GeneratedMeal {
    *                    avant toute validation.
    *   · `attributed` — ceux dont l'id a passé les deux portes.
    *   · `refused`    — ceux dont l'id a été rejeté (consigne muette, ou bouche
-   *                    hors de la liste fermée).
+   *                    hors de la liste fermée) et qui sont RESTÉS, comme plat
+   *                    de table de leur case.
+   *   · `refused_dropped` — ceux dont l'id a été rejeté alors que leur case
+   *                    portait DÉJÀ le plat de la table, et qui sont donc
+   *                    TOMBÉS: les garder aurait nommé chaque bouche de la case
+   *                    sur deux couvercles (`double`) et fait refuser le plan
+   *                    entier. Mesuré le 2026-09-14 sur 6 tirs sur 13.
+   *
+   * ⚠️ `refused_dropped` COMPTE UNE AUTRE POPULATION QUE LES QUATRE AUTRES, et
+   * c'est pour ça qu'il est nommé à part: ces plats ne sont pas dans `dishes`,
+   * donc ni dans `declared`, ni dans `attributed`, ni dans `refused`. La
+   * propriété `declared === attributed + refused` en sort intacte — la vérifier
+   * sur cinq nombres dont l'un décrit des lignes absentes ne vérifierait rien.
    *
    * ⚠️ LES QUATRE SE COMPTENT INDÉPENDAMMENT, et `refused` n'est PAS dérivé de
    * `declared - attributed`. C'est la cicatrice `withheld`/`over_cap` des voix:
@@ -1445,6 +1633,13 @@ export interface GeneratedMeal {
     declared: number;
     attributed: number;
     refused: number;
+    /**
+     * ⚠️ REQUIS, `number`, jamais `number?`. Un `?` ici serait parfaitement
+     * silencieux: le geste le plus lourd du lot — retirer un plat — ne
+     * remonterait nulle part, et un lot désarmé ressemblerait trait pour trait
+     * à un lot qui marche.
+     */
+    refused_dropped: number;
   };
   /**
    * ══════════════════════════════════════════════════════════════════════════
@@ -1572,9 +1767,14 @@ export interface GeneratedMeal {
    *                           bac amputé d'un nom reste servi aux autres, et les
    *                           deux faits appellent des suites différentes.
    *   · `items`             — les composants gardés, tous contenants confondus.
-   *   · `items_refused`     — les composants JETÉS (étiquette vide, grammes
-   *                           illisibles ou nuls, `preparation_id` qui ne
-   *                           désigne aucune casserole du plan).
+   *   · `items_in_grams` /  — la FORME par laquelle chacun a été pesé. Voir le
+   *     `items_from_ingredient` champ lui-même: un `items_from_ingredient` non
+   *                           nul dit que le prompt de ce chemin n'a pas servi
+   *                           le schéma des items.
+   *   · `items_refused`     — les composants JETÉS (étiquette vide, aucune
+   *                           quantité lisible ni en `grams` ni en forme
+   *                           d'ingrédient, `preparation_id` qui ne désigne
+   *                           aucune casserole du plan).
    *   · `capped`            — les composants dont les grammes ont été ramenés à
    *                           `BOX_MAX_GRAMS`. ⚠️ PAS un refus: le composant
    *                           reste, écrêté. Sans ce champ, un run où l'écran
@@ -1691,6 +1891,22 @@ export interface GeneratedMeal {
     names: number;
     names_refused: number;
     items: number;
+    /**
+     * ⟳ 2026-09-13 — LA FORME PAR LAQUELLE UN COMPOSANT GARDÉ A ÉTÉ PESÉ.
+     *
+     *   · `items_in_grams`       — le modèle a écrit `grams`, la clé du schéma v4;
+     *   · `items_from_ingredient`— il a écrit une forme d'INGRÉDIENT (`amount` +
+     *                              `unit` + `ref`), et le lecteur l'a pesée par le
+     *                              référentiel. ⛔ Un nombre non nul ici DIT que le
+     *                              prompt de ce chemin n'a pas servi le schéma des
+     *                              items: c'est le chemin `portion_v1`, où
+     *                              `boxSchemaBlock` est retiré pendant que le bloc
+     *                              de régime ordonne toujours une boîte.
+     *
+     * `items_in_grams + items_from_ingredient === items`, par construction.
+     */
+    items_in_grams: number;
+    items_from_ingredient: number;
     items_refused: number;
     capped: number;
     legacy_folded: number;
@@ -1830,6 +2046,11 @@ export interface GeneratedMeal {
      *   · `groups_valid`    — combien étaient du vocabulaire fermé.
      *   · `groups_refused`  — combien étaient un slug inventé. DÉCLARÉ PUIS
      *                         REFUSÉ, à ne pas confondre avec « jamais déclaré ».
+     *   · `groups_conflicting` — combien étaient VALIDES et pourtant contredits
+     *                         par le `ref` de la même ligne (2026-09-13). Le
+     *                         référentiel gagne, la ligne part corrigée, et le
+     *                         désaccord se compte: `soy_yogurt` déclaré
+     *                         `dairy_yogurt` a fait refuser un plan entier.
      *   · `group_excluded`  — combien ont mordu SUR LEUR GROUPE, sans prose.
      *   · `group_plant_only`— combien de faux la déclaration a rendus au silence.
      *   · `group_undecided` — combien sont retombés sur la prose. Tant qu'il
@@ -1838,6 +2059,7 @@ export interface GeneratedMeal {
     groups_declared: number;
     groups_valid: number;
     groups_refused: number;
+    groups_conflicting: number;
     group_excluded: number;
     group_plant_only: number;
     group_undecided: number;
@@ -1911,6 +2133,61 @@ export interface GeneratedMeal {
   };
   issues: string[];
   lock: OutputLockResult;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-12 · ÉTAPE C1 — TOUTES LES LIGNES DU PLAN, À PLAT ET SITUÉES
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LES PRÉPARATIONS EN FONT PARTIE, ET C'EST LA MOITIÉ QUI COMPTE. Sur la
+ * lane du foyer, l'essentiel de la masse vit dans les préparations: n'examiner
+ * que les plats rendrait un contrat de sortie vert au-dessus d'une casserole
+ * que personne ne sait peser. C'est la même règle que `refTally`, dont
+ * l'en-tête écrit déjà « le dénominateur est celui des identifiants, pas
+ * `ingredientCount` ».
+ *
+ * ⚠️ UNE PRÉPARATION N'A NI JOUR NI MOMENT, et on ne lui en invente pas. Elle
+ * porte son `preparationId`; le plat porte son jour, son moment et son titre.
+ * Les fondre ferait dire « samedi midi » d'une casserole servie trois fois.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function outputContractLinesOf(
+  meal: Pick<GeneratedMeal, "dishes" | "preparations">,
+): OutputContractLine[] {
+  const out: OutputContractLine[] = [];
+  const push = (site: OutputContractSite, ing: DishIngredient) => {
+    const term = String(ing?.term ?? "").trim();
+    if (term === "") return;
+    out.push({
+      site,
+      term,
+      ref: ing.ref ?? null,
+      refRefused: ing.refRefused === true,
+      amount: ing.amount ?? null,
+      unit: ing.unit ?? null,
+    });
+  };
+  for (const dish of meal.dishes ?? []) {
+    const site: OutputContractSite = {
+      day: dish.day ?? null,
+      slot: dish.slot ?? null,
+      dish: String(dish.title ?? "").trim() || null,
+      preparationId: null,
+    };
+    for (const ing of dish.ingredients ?? []) push(site, ing);
+  }
+  for (const prep of meal.preparations ?? []) {
+    const site: OutputContractSite = {
+      day: null,
+      slot: null,
+      dish: String(prep.title ?? "").trim() || null,
+      preparationId: String(prep.id ?? "").trim() || null,
+    };
+    for (const ing of prep.ingredients ?? []) push(site, ing);
+  }
+  return out;
 }
 
 /**
@@ -2467,7 +2744,20 @@ export const SOLO_BOX_BLOCK = [
 // le rapport sauce/base. Sans `components`, un bloc reste désormais NON
 // AJUSTABLE en proportions: le prompt et le moteur changent ensemble, dans le
 // même lot, et la promesse touche sa clé de schéma.
-export const MEAL_PROMPT_VERSION = "meal.en.v32_the_recipe_says_what_holds_it";
+// ⟳ v33 (2026-09-12, LOT 1) — LE MODÈLE N'ÉCRIT PLUS LA LISTE DE COURSES.
+// La clé `shopping_list` quitte le schéma de sortie, les deux lignes
+// `shopping_list[].*` quittent `MEAL_TRANSLATABLE_FIELDS`, et la consigne
+// `mode = to_shop` dit désormais d'où vient la liste. Population concernée:
+// TOUTE — le bloc vit dans `MEAL_SYSTEM_PROMPT`, donc les deux lanes.
+// Ce que ça achète est mesuré (revue de clôture C6 § 5): sur la campagne des
+// six tirs, **2 plans sur 6 ont été refusés** parce que le modèle avait oublié
+// un achat que sa propre recette demandait. La liste est maintenant PRODUITE
+// depuis les ingrédients finaux (`rebuildShoppingQuantities`), donc un oubli
+// du modèle ne peut plus coûter un plan — il se compte (`model_omitted`).
+// ⚠️ LA LECTURE RESTE. `parseGeneratedMeal` lit toujours `root.shopping_list`
+// quand elle est là: les réponses d'archive et les plans déjà écrits la
+// portent, et la refuser les rendrait illisibles.
+export const MEAL_PROMPT_VERSION = "meal.en.v33_the_recipe_writes_the_shopping_list";
 
 /**
  * ③ — CE QUE `severity` VEUT DIRE, posé JUSTE SOUS la liste qui le porte.
@@ -2893,7 +3183,31 @@ export interface MergedEater {
    * plat n'est protégé — et c'est juste, la consigne y dit « Do NOT propose
    * separate dishes ».
    */
-  dedicatedCells: readonly { day: string; slot: string }[];
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-14 · BÊTA 1A ② — CHAQUE CASE DIT **QUI** Y ATTEND UN PLAT
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE COUPLE (CASE, BOUCHE) N'EXISTAIT NULLE PART, ET C'EST CE QUI REND
+   * LE POINT 6 DE LA CLÔTURE POSSIBLE. Deux listes plates — les cases d'un
+   * côté, `dishBearerIds` de l'autre — laissent le parseur accepter un plat
+   * adressé à **Lea** sur une case où la grille attend **Nils**: les deux
+   * lectures passent, et l'obligation de Nils disparaît sans qu'aucune ligne
+   * ne s'en plaigne. Mesuré: `asked: 12 · attributed: 0`.
+   *
+   * `memberId: null` = « cette case ouvre une place, la grille ne dit pas pour
+   * qui ». C'est le chemin de FUSION, où `dishBearerIds` nomme UNE personne et
+   * où la question ne se pose pas; il reste accepté à l'octet près.
+   *
+   * ⛔ REQUIS ET NULLABLE, jamais `?`. Un `?` oublié ferait retomber toutes les
+   * cases sur `null`, c'est-à-dire sur la porte grande ouverte d'avant ce lot —
+   * une garde désarmée qui ressemble à une garde qui marche.
+   */
+  dedicatedCells: readonly {
+    day: string;
+    slot: string;
+    memberId: string | null;
+  }[];
   /**
    * ══════════════════════════════════════════════════════════════════════
    * LOT C — QUI REÇOIT CES PLATS DÉDIÉS. Les ids EXACTS, ceux du prompt.
@@ -3089,18 +3403,76 @@ export function isInPantry(
 // Le prompt
 // ---------------------------------------------------------------------------
 
-export const MEAL_SYSTEM_PROMPT =
-  `You cook for ONE student, inside the method their coach teaches.
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-13 · LOT 2 — LE PROMPT SYSTÈME, EN SECTIONS NOMMÉES
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LE DÉFAUT QUE CE DÉCOUPAGE FERME (revue du 2026-09-12, P1 §3). L'appel de
+ * réparation transmettait `built.systemPrompt`, donc CE prompt entier — qui
+ * demande un PLAN COMPLET, son `OUTPUT JSON SCHEMA` et la couverture de tous
+ * les jours — pendant que le message utilisateur exigeait un PATCH. Deux
+ * schémas contradictoires dans le même appel : le modèle peut rendre le plan
+ * que le système lui demande, et le lecteur de patch n'en tire rien.
+ *
+ * ⛔ ET LA RÉPARATION N'EST PAS UNE DÉCOUPE PAR EXPRESSION RÉGULIÈRE. Le plan
+ * l'interdit en toutes lettres. Les sections deviennent des OBJETS nommés : le
+ * prompt de composition les recolle TOUTES (la chaîne est identique au
+ * caractère près, un test l'épingle), et le prompt de réparation en choisit —
+ * par une liste fermée, lisible, qu'on peut relire.
+ *
+ * ⚠️ L'ORDRE EST LE CONTRAT. `MEAL_SYSTEM_PROMPT` est leur concaténation dans
+ * CET ordre ; changer l'ordre change le prompt.
+ */
+export const MEAL_PROMPT_SECTION_KEYS = [
+  "opening",
+  "method_first",
+  "portion_is_one_plate",
+  "stretch_starts_today",
+  "cover_whole_stretch",
+  "cook_vs_eat",
+  "cooking_sessions",
+  "keeping_window",
+  "session_time_ceiling",
+  "cook_before_eat",
+  "minutes",
+  "same_day",
+  "no_nutrition_numbers",
+  "quantity_twice",
+  "method_names_food",
+  "dish_adds_weighed",
+  "student_situation",
+  "two_modes",
+  "components",
+  "name_and_title",
+  "output_schema",
+] as const;
+export type MealPromptSectionKey = (typeof MEAL_PROMPT_SECTION_KEYS)[number];
 
-Output a single JSON object, nothing else. No prose outside the JSON, no markdown fences.
+export interface MealPromptSection {
+  readonly key: MealPromptSectionKey;
+  readonly text: string;
+}
 
-== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==
+/** Les sections, dans l'ordre où le prompt de composition les rend. */
+export const MEAL_PROMPT_SECTIONS: readonly MealPromptSection[] = [
+  {
+    key: "opening",
+    text: `You cook for ONE student, inside the method their coach teaches.
+
+Output a single JSON object, nothing else. No prose outside the JSON, no markdown fences.`,
+  },
+  {
+    key: "method_first",
+    text: `== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==
 
 Your coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.
 
-Inside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.
-
-== A PORTION IS ONE PERSON'S PLATE ==
+Inside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.`,
+  },
+  {
+    key: "portion_is_one_plate",
+    text: `== A PORTION IS ONE PERSON'S PLATE ==
 
 You are told how many people are at the table. Every quantity you write is for
 THAT many people, for the number of servings the dish actually makes — and for
@@ -3127,18 +3499,22 @@ protein food, the pulses and the fat; it does not vanish. You never tell the
 student any of this; you use it so that when the app scales your recipe, the
 plate it serves is food and not water.
 
-${PROTEIN_ANCHOR_PROMPT_LINE}
-
-== THE STRETCH STARTS TODAY ==
+${PROTEIN_ANCHOR_PROMPT_LINE}`,
+  },
+  {
+    key: "stretch_starts_today",
+    text: `== THE STRETCH STARTS TODAY ==
 
 You are told what day it is for this student, and the exact days to fill. Use
 THOSE days, in that order, and no others.
 
 A plan handed to somebody on Wednesday that starts on Monday is half expired on
 delivery — measured, and the first thing a student notices. There is no such
-thing as planning a day that has already gone.
-
-== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==
+thing as planning a day that has already gone.`,
+  },
+  {
+    key: "cover_whole_stretch",
+    text: `== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==
 
 When you are asked for several days, cover EVERY day of the stretch and every
 meal that matters in it. A plan with Monday dinner and Wednesday dinner and
@@ -3146,9 +3522,11 @@ nothing in between is not a plan — the student did not ask for a partial week,
 and holes are read as "the system gave up".
 
 Covering everything does not mean cooking everything. That is what the
-preparations below are for.
-
-== WHAT YOU COOK IS NOT WHAT YOU EAT ==
+preparations below are for.`,
+  },
+  {
+    key: "cook_vs_eat",
+    text: `== WHAT YOU COOK IS NOT WHAT YOU EAT ==
 
 This is the important one, and it is what makes a week both quick and bearable.
 
@@ -3175,9 +3553,11 @@ Rules that follow:
     plate.
   - a dish that draws on a preparation does NOT repeat its recipe. Its method is
     what you do at that meal: "reheat a portion, add the salad and the lemon".
-  - vary what you build from the same preparation. Same protein, different meal.
-
-== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==
+  - vary what you build from the same preparation. Same protein, different meal.`,
+  },
+  {
+    key: "cooking_sessions",
+    text: `== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==
 
 Give \`cooking_sessions\`: the days on which the student actually cooks, which
 preparations get made in each, and the ORDER of the gestures — "oven on for the
@@ -3185,9 +3565,11 @@ tray, rice on while it roasts, chilli simmering next to it, box four portions".
 
 Aim for two or three sessions in a week, not seven. Every preparation belongs to
 exactly one session: a preparation nobody cooks is a plan the student cannot
-follow.
-
-== NOTHING SITS IN THE FRIDGE FOR A WEEK ==
+follow.`,
+  },
+  {
+    key: "keeping_window",
+    text: `== NOTHING SITS IN THE FRIDGE FOR A WEEK ==
 
 A cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on
 Thursday means eaten by Sunday, and that is the end of it. Beyond that it is not
@@ -3206,9 +3588,11 @@ freezer rather than the fridge, write \`\"kept\": \"freezer\"\` on that entry of
 dish's \`uses\`, and say in the method that it comes out the night before. A
 frozen portion has no three-day limit; a portion you only DESCRIBE as frozen
 still has one, because nothing reads a description. Only claim the freezer when
-this kitchen has one -- the section above says what it does not have.
-
-== THE COOKING TIME THEY GAVE YOU IS A CEILING ==
+this kitchen has one -- the section above says what it does not have.`,
+  },
+  {
+    key: "session_time_ceiling",
+    text: `== THE COOKING TIME THEY GAVE YOU IS A CEILING ==
 
 When a session time is stated, the session fits inside it. It is not a target to
 approach and overshoot: it is what they actually have that evening, and a
@@ -3223,9 +3607,11 @@ There is one case where that way out does not exist: when they cook on a single
 day and the week cannot be fed from it. Then the session runs longer -- say so
 in "total_minutes", write the real number, and never pretend it fits. A session
 announced at 30 minutes that takes 55 is worse than one announced at 55: the
-first is found out at the stove, the second is a decision they can make.
-
-== NOTHING IS EATEN BEFORE IT IS COOKED ==
+first is found out at the stove, the second is a decision they can make.`,
+  },
+  {
+    key: "cook_before_eat",
+    text: `== NOTHING IS EATEN BEFORE IT IS COOKED ==
 
 A preparation must be cooked ON OR BEFORE the first day that eats from it. If
 the only cooking day you have is Sunday, then Thursday, Friday and Saturday
@@ -3233,9 +3619,11 @@ cannot live off a Sunday batch — those days cook for themselves, or they eat
 something that needs no batch at all.
 
 This is not a preference. A plan that feeds Thursday from a Sunday session is a
-plan that cannot be executed, and the student finds out at lunchtime.
-
-== HOW LONG THINGS TAKE ==
+plan that cannot be executed, and the student finds out at lunchtime.`,
+  },
+  {
+    key: "minutes",
+    text: `== HOW LONG THINGS TAKE ==
 
 Every preparation carries two numbers, and they are not the same one.
 "active_minutes" is time with your hands on it — chopping, stirring, turning.
@@ -3249,9 +3637,11 @@ ninety-minute Sunday into a scary four-hour one nobody starts.
 
 Round to the nearest five. These are estimates a cook recognises, not
 measurements — but they are the numbers somebody uses to decide whether tonight
-is possible, so a wrong one costs a skipped meal.
-
-== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==
+is possible, so a wrong one costs a skipped meal.`,
+  },
+  {
+    key: "same_day",
+    text: `== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==
 
 Every dish carries "same_day": what the student does ON THE DAY THEY EAT IT to
 get that plate in front of them, and how long that gesture takes.
@@ -3273,15 +3663,19 @@ somebody with ten minutes that dinner is out of reach, and they skip it.
 Say it on EVERY dish, including the ones where the answer is nothing. "none" and
 "cook_fresh" are answers; a missing line is a plate somebody stands in front of
 without knowing what to do. If the dish reheats, the word reheat is what they
-need to read, so write "reheat_only" and say it again plainly in "method".
-
-== NEVER PUT A NUMBER ON NUTRITION ==
+need to read, so write "reheat_only" and say it again plainly in "method".`,
+  },
+  {
+    key: "no_nutrition_numbers",
+    text: `== NEVER PUT A NUMBER ON NUTRITION ==
 
 No calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not "roughly". Nobody has measured this student.
 
-Shopping quantities are DIFFERENT and expected: "400 g chicken thighs", "2 onions", "a bunch of parsley". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.
-
-== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==
+Shopping quantities are DIFFERENT and expected: "400 g chicken thighs", "2 onions", "a bunch of parsley". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.`,
+  },
+  {
+    key: "quantity_twice",
+    text: `== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==
 
 Every ingredient carries "quantity" — the phrase a person reads, exactly as you
 write it today — AND three plain fields that repeat it:
@@ -3320,9 +3714,11 @@ takes two chicken thighs and half a lemon -- count what is countable.
 Fats, nuts and sweeteners are the strictest case: oil, butter, ghee, cream,
 nut butter, tahini, nuts, seeds, honey, syrup, chocolate.
 "A drizzle of olive oil" is a tablespoon -- write 1 and "tbsp". A spoon of oil
-weighs what a whole plate of vegetables weighs; a blank makes the dish unreadable.
-
-== THE METHOD NAMES THE FOOD, IT DOES NOT REPEAT ITS WEIGHT ==
+weighs what a whole plate of vegetables weighs; a blank makes the dish unreadable.`,
+  },
+  {
+    key: "method_names_food",
+    text: `== THE METHOD NAMES THE FOOD, IT DOES NOT REPEAT ITS WEIGHT ==
 
 Write "method" and "run_through" with the ingredients NAMED — "brown the
 chicken, add the rice and the stock" — and never with their amounts written out
@@ -3332,21 +3728,27 @@ The list of ingredients is the only place a quantity lives. The app adjusts
 those quantities after you answer, and a number left inside a sentence is not
 adjusted with them: it stays behind and contradicts the list, on the page the
 person actually cooks from. This has happened twice in this product, on two
-different sentences, and both times the prose was the half that was believed.
-
-== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==
+different sentences, and both times the prose was the half that was believed.`,
+  },
+  {
+    key: "dish_adds_weighed",
+    text: `== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==
 
 The phrase in a DISH's "quantity" is either a weight -- "100 g dried pasta",
 "40 g feta" -- or something a person can count: "half a lemon", "10 basil
 leaves", "2 eggs". "A handful", "a generous portion", "some rice" say nothing
 anybody can act on, and they are why the same dish comes out different every
-time. Salt, pepper and herbs may stay a pinch. Everything else gets a number.
+time. Salt, pepper and herbs may stay a pinch. Everything else gets a number.`,
+  },
+  {
+    key: "student_situation",
+    text: `== THE STUDENT'S SITUATION IS NOT DECORATION ==
 
-== THE STUDENT'S SITUATION IS NOT DECORATION ==
-
-They tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.
-
-== THE TWO MODES ==
+They tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.`,
+  },
+  {
+    key: "two_modes",
+    text: `== THE TWO MODES ==
 
 mode = from_pantry
   Cook with what they ALREADY have. Reach outside their list only for genuine
@@ -3355,9 +3757,13 @@ mode = from_pantry
   buy, so keep that list short and say why it is needed.
 
 mode = to_shop
-  Compose freely, then give the shopping list the dish actually needs.
-
-== SAY WHAT HOLDS THE RECIPE TOGETHER ==
+  Compose freely. Do NOT write a shopping list: it is built from the exact
+  ingredient lines of your dishes and preparations, term for term. Anything you
+  want bought must appear as an ingredient, with its quantity.`,
+  },
+  {
+    key: "components",
+    text: `== SAY WHAT HOLDS THE RECIPE TOGETHER ==
 
 The app may resize a recipe to fit somebody's plate. Scaling everything by one
 factor is safe. Changing the RATIO between a sauce and what it dresses is not:
@@ -3391,9 +3797,11 @@ a complete, correct answer, and it is better than leaving components out.
 
 A block with no components, a line with no "part", a "part_of" that names
 nothing: the whole block keeps your proportions untouched. Nothing breaks -- the
-app simply has one less way to fit the plate, and may ask you to recompose it.
-
-== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==
+app simply has one less way to fit the plate, and may ask you to recompose it.`,
+  },
+  {
+    key: "name_and_title",
+    text: `== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==
 
 They are not the same line and they do not do the same job.
 
@@ -3412,9 +3820,11 @@ Do NOT make the title pretty instead. A title that becomes "Sunshine of
 Marrakesh" no longer says what is on the plate, and nobody can cook a name. If
 you find yourself dressing up the title, that is the name -- put it in "name"
 and give the title back its plain words. And never write the same string twice:
-a "name" identical to the title is a line that says nothing.
-
-== OUTPUT JSON SCHEMA ==
+a "name" identical to the title is a line that says nothing.`,
+  },
+  {
+    key: "output_schema",
+    text: `== OUTPUT JSON SCHEMA ==
 
 {
   "dishes": [
@@ -3457,14 +3867,23 @@ a "name" identical to the title is a line that says nothing.
     { "day": "sun", "preparation_ids": ["prep_chicken", "prep_rice"],
       "total_minutes": <minutes the whole session takes, start to finish>,
       "run_through": "the order of the gestures, plainly" }
-  ],
-  "shopping_list": [
-    { "term": "...", "quantity": "..."|null,
-      "aisle": "produce"|"protein"|"dairy"|"grains"|"pantry"|"frozen"|"other" }
   ]
 }
 
-Day tokens are exactly: mon tue wed thu fri sat sun. Never translated.`;
+Day tokens are exactly: mon tue wed thu fri sat sun. Never translated.`,
+  },
+];
+
+/**
+ * LE PROMPT DE COMPOSITION — TOUTES LES SECTIONS, DANS L'ORDRE.
+ *
+ * ⛔ IL N'A PAS CHANGÉ D'UN CARACTÈRE. `meal_prompt_sections_test.ts` compare
+ * cette chaîne à l'empreinte figée avant le découpage : un lot qui déplace une
+ * section déplacerait une consigne qui a coûté des runs réels.
+ */
+export const MEAL_SYSTEM_PROMPT = MEAL_PROMPT_SECTIONS
+  .map((s) => s.text)
+  .join("\n\n");
 
 // ---------------------------------------------------------------------------
 // LES CHAMPS DU JSON DE REPAS, RANGÉS EN DEUX TAS
@@ -3493,8 +3912,21 @@ export const MEAL_TRANSLATABLE_FIELDS: readonly string[] = [
   "preparations[].ingredients[].term",
   "preparations[].ingredients[].quantity",
   "cooking_sessions[].run_through",
-  "shopping_list[].term",
-  "shopping_list[].quantity",
+  // ⟳ LOT 1 (2026-09-12) — `shopping_list[].term` ET `[].quantity` SONT PARTIS
+  // AVEC LA CLÉ QUI LES PORTAIT.
+  //
+  // ⛔ CE N'EST PAS UNE PERTE DE TRADUCTION, C'EST UN DÉPLACEMENT DE SOURCE.
+  // Le modèle n'écrit plus de liste de courses : `rebuildShoppingQuantities`
+  // la PRODUIT depuis les ingrédients. Le `term` d'une ligne produite est
+  // RECOPIÉ mot pour mot de `dishes[].ingredients[].term` /
+  // `preparations[].ingredients[].term`, qui sont deux lignes plus haut dans
+  // CETTE liste — donc déjà dans la langue de contenu du plan. La `quantity`,
+  // elle, est rendue par `renderQuantity(…, locale)`, c'est-à-dire par le même
+  // rendu que la prose des recettes : « 300 g », « 2 cuillères à soupe ».
+  //
+  // ⚠️ DEMANDER LA TRADUCTION D'UN CHAMP QUE LE SCHÉMA NE DÉCLARE PLUS serait
+  // la cicatrice `promise-and-schema-key-must-be-adjacent` prise à l'envers :
+  // une promesse sans clé. Le modèle rendrait la clé « pour obéir ».
 ];
 
 /**
@@ -5488,6 +5920,30 @@ export function refForIngredient(
   return resolveCompositionLine(composition, ing).ref;
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LE GROUPE QUE LE RÉFÉRENTIEL DONNE À CETTE LIGNE — 2026-09-13.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ PAR L'IDENTIFIANT SEULEMENT, JAMAIS PAR LE LIBELLÉ. `refForIngredient`
+ * retombe sur le terme quand aucun `ref` n'est écrit; s'en servir ici
+ * remplacerait un groupe déclaré par un groupe deviné à partir de mots — très
+ * exactement ce que le dépôt s'interdit (« laitue » n'est pas « lait »). On
+ * exige donc `source === "ref"`: l'identifiant a été LU DANS UNE LISTE, le
+ * libellé non.
+ *
+ * Rend `null` dans les trois cas où la ligne doit garder ce que le modèle a
+ * déclaré: pas d'index, pas de `ref`, `ref` inconnu.
+ */
+function referentialGroupOfLine(
+  composition: CompositionIndex | null,
+  ing: { term: string; ref: string | null; refRefused: boolean },
+): FoodGroupRef | null {
+  const resolved = resolveCompositionLine(composition, ing);
+  if (resolved.source !== "ref" || resolved.ref === null) return null;
+  return closedGroupOrNull(resolved.ref.foodGroupRef);
+}
+
 export function gramsRawForIngredient(
   composition: CompositionIndex | null,
   ing: {
@@ -5963,6 +6419,162 @@ function readKept(raw: unknown): KeptWhere {
   return String(raw ?? "").trim().toLowerCase() === "freezer" ? "freezer" : "fridge";
 }
 
+/**
+ * LE JSON D'UNE RÉPONSE MODÈLE, CLÔTURE MARKDOWN RETIRÉE.
+ *
+ * ⛔ EXPORTÉ POUR N'EXISTER QU'UNE FOIS. Depuis la fermeture du lot 1
+ * (2026-09-12), une réparation ne rend plus un plan mais un PATCH
+ * (`plan_repair_patch.ts`) : deux lecteurs, et donc deux façons de retirer
+ * les trois accents graves. Deux copies d'une même règle dont une seule reçoit
+ * la correction est un défaut que ce fichier documente déjà ailleurs.
+ *
+ * ⚠️ IL JETTE SUR DU JSON ILLISIBLE, et c'est voulu: l'appelant sait quoi
+ * faire d'un texte qu'on n'a pas su lire, ce module ne le sait pas.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+/**
+ * OÙ UNE VIOLATION A MORDU — ⟳ 2026-09-12 · FERMETURE LOT 2.
+ *
+ * ⚠️ `unlocalized` EST UNE RÉPONSE, pas une absence: le verrou a mordu sur le
+ * texte concaténé et sur aucune surface isolée. Il garde un blocage GLOBAL, et
+ * c'est la seule chose honnête à cet endroit.
+ */
+export interface UnsafeViolation {
+  /**
+   * ⟳ 2026-09-13 · LOT 1 — `cooking_session` ET `box_item` SONT NEUFS.
+   *
+   * ⛔ Le déroulé d'une session n'était contrôlé nulle part (revue du
+   * 2026-09-12, P1 §2) ; les libellés de contenant l'étaient sous le nom
+   * `portion_note`, ce qui rendait un relevé illisible. Les familles viennent
+   * maintenant de `OUTPUT_SURFACE_KINDS`, et ce type les recopie parce qu'il
+   * en porte deux de plus, qui ne sont pas des surfaces de texte.
+   */
+  readonly where: OutputSurfaceKind | "declared_group" | "unlocalized";
+  /** L'index dans `dishes`, quand la surface en est un. */
+  readonly index: number | null;
+  /** L'index dans `cooking_sessions`, quand la surface en est une. */
+  readonly sessionIndex: number | null;
+  readonly day: string | null;
+  readonly slot: string | null;
+  readonly title: string | null;
+  readonly memberId: string | null;
+  readonly preparationId: string | null;
+  /**
+   * ⛔ LES CASSEROLES QUE LA SURFACE PORTE OU TIRE, et les BOUCHES qu'elles
+   * nourrissent — toutes, sur toutes les dates. Une session partagée n'est pas
+   * attribuable à une personne : on nomme l'ensemble concerné plutôt que le
+   * premier membre rencontré.
+   */
+  readonly preparationIds: readonly string[];
+  readonly memberIds: readonly string[];
+  /** Le terme en cause, ou l'extrait de la note. */
+  readonly term: string | null;
+  /** Les jetons qui ont mordu. ⛔ Pour le journal, jamais pour l'écran. */
+  readonly tokens: readonly string[];
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * OÙ LE VERROU DE SORTIE MORD — SURFACE PAR SURFACE
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ POURQUOI ELLE EXISTE. `applyKeelOutputLocks` lit UN SEUL TEXTE: tous les
+ * plats, toutes les casseroles, toutes les notes et toute la liste concaténés.
+ * Quand il mord, on sait QUE le plan est dangereux et pas OÙ — donc la seule
+ * réponse possible était de tout jeter. Une arachide dans le dîner de samedi
+ * rendait les six repas indisponibles.
+ *
+ * ⛔ ELLE NE REMPLACE PAS LE VERROU, ELLE LE REJOUE PAR SURFACE. Le même
+ * appel, les mêmes contraintes, la même doctrine — une seconde détection
+ * écrite à côté finirait par diverger, et c'est celle qu'on regarde le moins
+ * qui laisserait passer l'arachide.
+ *
+ * ⛔ ET ELLE EST APPELÉE DEUX FOIS DANS LE PRODUIT: par le parseur, pour
+ * nommer les morsures du premier jet; et par le générateur AVANT LA
+ * LIVRAISON, sur le plan réellement écrit. La seconde est la ceinture qui
+ * rend la première utilisable — « la sécurité s'applique même si le budget
+ * modèle est épuisé ».
+ *
+ * ⚠️ `unlocalized` QUAND RIEN N'EST TROUVÉ ET QUE `globalTokens` N'EST PAS
+ * VIDE: le verrou a mordu sur le texte concaténé et sur aucune surface isolée.
+ * On garde un blocage global plutôt que d'accuser au hasard.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function localizeOutputLockBites(args: {
+  /**
+   * ⛔ LES SURFACES, RECENSÉES UNE FOIS PAR `collectOutputSurfaces`. Ce
+   * paramètre a remplacé cinq listes de champs recopiées par l'appelant, et
+   * c'est le défaut fermé : le texte concaténé du verrou global et cette
+   * localisation descendent désormais du MÊME recensement, donc ils ne peuvent
+   * plus oublier des champs différents.
+   */
+  readonly surfaces: readonly OutputSurface[];
+  readonly groupBites: readonly {
+    readonly bearer: string;
+    readonly term: string;
+    readonly foodGroup: string;
+    readonly allergenRef: string;
+  }[];
+  /** Les jetons du verrou GLOBAL. Vide = il n'a pas mordu sur l'ensemble. */
+  readonly globalTokens: readonly string[];
+  readonly safetyConstraints: readonly StudentSafetyConstraint[] | null;
+  readonly doctrine: Pick<CoachDoctrine, "forbidden" | "foods"> | null;
+}): UnsafeViolation[] {
+  const violations: UnsafeViolation[] = [];
+  const mord = (text: string): string[] | null => {
+    if (String(text ?? "").trim() === "") return null;
+    const r = applyKeelOutputLocks({
+      text,
+      isKeelStudent: true,
+      safetyConstraints: args.safetyConstraints,
+      doctrine: args.doctrine,
+    });
+    const propre = r.reason === "clean" || r.reason.startsWith("disarmed");
+    return propre ? null : r.tokens;
+  };
+  const vide = {
+    index: null,
+    sessionIndex: null,
+    day: null,
+    slot: null,
+    title: null,
+    memberId: null,
+    preparationId: null,
+    preparationIds: [] as readonly string[],
+    memberIds: [] as readonly string[],
+    term: null,
+  } as const;
+  for (const s of args.surfaces) {
+    const tokens = mord(s.text);
+    if (tokens === null) continue;
+    violations.push({ where: s.kind, ...s.address, tokens });
+  }
+  // ⛔ LA SECONDE CEINTURE EST DÉJÀ LOCALISÉE: elle nomme le PORTEUR et le
+  // groupe déclaré. On la reprend telle quelle plutôt que de la rejouer.
+  for (const bite of args.groupBites) {
+    violations.push({
+      ...vide,
+      where: "declared_group",
+      title: bite.bearer,
+      term: bite.term,
+      tokens: [bite.allergenRef, bite.foodGroup],
+    });
+  }
+  if (violations.length === 0 && args.globalTokens.length > 0) {
+    violations.push({ ...vide, where: "unlocalized", tokens: args.globalTokens });
+  }
+  return violations;
+}
+
+export function decodeModelJson(raw: unknown): unknown {
+  if (typeof raw !== "string") return raw;
+  return JSON.parse(
+    raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""),
+  );
+}
+
 export function parseGeneratedMeal(
   raw: unknown,
   args: {
@@ -6308,12 +6920,7 @@ export function parseGeneratedMeal(
   const unquantifiedTerms: string[] = [];
   let ingredientCount = 0;
 
-  let parsed: unknown = raw;
-  if (typeof raw === "string") {
-    parsed = JSON.parse(
-      raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""),
-    );
-  }
+  const parsed: unknown = decodeModelJson(raw);
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
     throw new Error("[keel/meal] model output is not a JSON object");
   }
@@ -6347,10 +6954,28 @@ export function parseGeneratedMeal(
   // assumé que pour les grammes: l'instrumentation ne doit jamais coûter un
   // dîner. Le repli est celui d'avant (`MAX_FRIDGE_DAYS` côté vagues) et il se
   // COMPTE.
-  const foodGroupOfTerm = (term: string): FoodGroupRef | null => {
-    if (!args.composition) return null;
-    return resolveIngredient(args.composition, term)?.foodGroupRef ?? null;
-  };
+  //
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · ÉTAPE C3 — LE DERNIER LECTEUR DE MESURE PARTANT DU LIBELLÉ
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ CE QU'IL FAISAIT, ET IL A ÉTÉ NOMMÉ PAR DEUX CHANTIERS SANS ÊTRE FERMÉ
+  // (`NON-BRANCHE.md` ⑥) : `resolveIngredient(term)`, c'est-à-dire le LIBELLÉ
+  // seul. Un identifiant écrit par le modèle (`ref: pita_wholemeal`) ne
+  // comptait pas, et « pita complète » n'a aucun alias — donc `null`, donc
+  // `MAX_FRIDGE_DAYS` côté vagues, donc une date d'achat potentiellement trop
+  // précoce que personne ne regarde.
+  //
+  // ⛔ LE GROUPE VIENT DÉSORMAIS DE LA RÉFÉRENCE DE LA LIGNE, par le résolveur
+  // unique du lot A — l'identifiant d'abord, le terme ensuite, rien du tout
+  // quand l'identifiant a été refusé. C'est le point 6 de C3, mot pour mot.
+  //
+  // ⚠️ `null` QUAND LE RÉFÉRENTIEL EST ABSENT, et c'est le même fail-open
+  // assumé qu'avant : l'instrumentation ne doit jamais coûter un dîner. Le
+  // repli est celui d'avant, et il se COMPTE (`rawWindowCounts`).
+  const foodGroupOfLine = (
+    line: { term: string; ref?: string | null; refRefused?: boolean },
+  ): FoodGroupRef | null => freshnessGroupOf(args.composition ?? null, line);
 
   // ── ② LA FENÊTRE CUITE: OÙ TOMBE UN JOUR DANS LA FENÊTRE DU PLAN ────────
   // Hissé hors de la queue de la fonction, où la règle vivait, parce qu'elle
@@ -6400,6 +7025,24 @@ export function parseGeneratedMeal(
    */
   const sessionOverruns: { day: string; minutes: number; declared: number }[] = [];
   let freezerWithoutOne = 0;
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LES PLATS TOMBÉS PARCE QU'UN `for_member_id` REFUSÉ EN AURAIT FAIT UN
+   * SECOND PLAT DE TABLE. Mesuré le 2026-09-14, 6 tirs sur 13.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⚠️ IL NE PEUT PAS VIVRE DANS `keptOwnerFacts`, et c'est exactement pourquoi
+   * il existe. Les cinq tableaux parallèles décrivent les plats GARDÉS; un plat
+   * tombé n'y a pas de ligne. Sans ce nombre, le geste le plus lourd du lot —
+   * retirer un plat que le modèle a écrit — serait le seul qui ne se compte
+   * nulle part, et « un compteur qui ne peut plus bouger est pire qu'absent »
+   * vaut d'abord pour celui qui n'existe pas.
+   *
+   * ⚠️ IL SORT À CÔTÉ DES QUATRE AUTRES, PAS DEDANS: `declared === attributed +
+   * refused` est une PROPRIÉTÉ testée sur la population gardée, et y verser une
+   * population différente la casserait sans rien dire.
+   */
+  let ownerRefusedDropped = 0;
   /**
    * SA POPULATION À LUI — les liens (casserole, repas) que la fenêtre du cuit a
    * pu situer dans le temps.
@@ -6574,6 +7217,11 @@ export function parseGeneratedMeal(
     groups_declared: 0,
     groups_valid: 0,
     groups_refused: 0,
+    // ⛔ COMBIEN DE GROUPES VALIDES LE RÉFÉRENTIEL A DÛ CORRIGER (2026-09-13).
+    // Sans ce nombre, un moteur qui réconcilie et un moteur qui a perdu sa
+    // réconciliation rendent exactement le même plan livré: on ne verrait la
+    // différence qu'au prochain 422 sur une bouche végane.
+    groups_conflicting: 0,
     // Ce que la déclaration a FAIT, une fois arrivée à la ceinture. Sans ces
     // trois-là, un champ parfaitement rempli et un champ parfaitement ignoré
     // rendraient le même verdict — la cicatrice « un champ collecté sans
@@ -6592,6 +7240,24 @@ export function parseGeneratedMeal(
   /** Les COMPOSANTS gardés, et ceux jetés. Même discipline. */
   let boxItems = 0;
   let boxItemsRefused = 0;
+  /**
+   * ⟳ 2026-09-13 — PAR QUELLE FORME UN COMPOSANT GARDÉ A ÉTÉ PESÉ.
+   *
+   * ⛔ DEUX SACS DISTINCTS, ET C'EST LA CICATRICE « un champ déclaré par le
+   * modèle demande un compteur ». `items` seul confond « le modèle a écrit
+   * `grams`, comme le schéma v4 le demande » et « le modèle a écrit une forme
+   * d'ingrédient, et le lecteur l'a convertie par le référentiel ». Les deux
+   * appellent des suites OPPOSÉES: la première ne demande rien, la seconde dit
+   * que le prompt de ce chemin n'a pas servi son schéma. Sans la séparation, un
+   * lot désarmé — le prompt qui cesse de nommer la clé — ressemble exactement à
+   * un lot qui marche.
+   *
+   * ⚠️ `items = items_in_grams + items_from_ingredient`, par construction: ce
+   * sont deux chemins exclusifs du même item gardé, pas deux mesures du même
+   * nombre.
+   */
+  let boxItemsInGrams = 0;
+  let boxItemsFromIngredientForm = 0;
   /**
    * LES CONTENANTS RECONSTRUITS DEPUIS UN `box` SINGULIER v2.
    *
@@ -6704,12 +7370,32 @@ export function parseGeneratedMeal(
       // terme libre, c'est-à-dire au chemin qui a confondu raisin frais et sec.
       const prepReading = readRefSlug(ing.ref, args.composition, composable);
       refTally[prepReading.outcome]++;
+      const prepStructured = readStructuredQuantity(
+        ing,
+        args.composition,
+        term,
+        prepReading,
+      );
+      // ⛔ LA MÊME RÉCONCILIATION QUE SUR UN PLAT — 2026-09-13. Les
+      // préparations sont 32 % des lignes d'ingrédient de la base, et
+      // `finalPlanGate` PLIE la casserole dans le plat qui la cite
+      // (`foldedFoods`): ne réparer que les plats aurait laissé un tiers des
+      // lignes refuser le plan sur un groupe que leur propre `ref` dément.
+      const prepGroupOfLine = reconcileIngredientGroup(
+        prepGroup.group,
+        referentialGroupOfLine(args.composition, {
+          term,
+          ref: prepStructured.ref,
+          refRefused: prepStructured.refRefused,
+        }),
+      );
+      if (prepGroupOfLine.conflicting) regimeBelt.groups_conflicting++;
       prepIngredients.push({
         term,
         quantity,
         in_pantry: isInPantry(term, args.pantry),
-        ...readStructuredQuantity(ing, args.composition, term, prepReading),
-        group: prepGroup.group,
+        ...prepStructured,
+        group: prepGroupOfLine.group,
         // ⟳ LOT D — le composant culinaire cité par la ligne, transporté tel quel.
         part: readPart(ing),
       });
@@ -6809,6 +7495,42 @@ export function parseGeneratedMeal(
       `${c.day}/${c.slot}`
     ),
   );
+
+  /**
+   * ⟳ 2026-09-14 · BÊTA 1A ② — LES BOUCHES QUE **CETTE CASE-CI** ATTEND.
+   *
+   * Une entrée par case réclamée. `null` dans l'ensemble = « la grille ouvre
+   * la place sans nommer personne » (chemin de fusion), et alors la case
+   * accepte n'importe quel porteur de la liste fermée, comme avant ce lot.
+   */
+  const dedicatedOwnersAt = new Map<string, Set<string | null>>();
+  for (const c of (args.merge === null ? [] : args.merge.dedicatedCells)) {
+    const key = `${c.day}/${c.slot}`;
+    const set = dedicatedOwnersAt.get(key) ?? new Set<string | null>();
+    set.add(c.memberId);
+    dedicatedOwnersAt.set(key, set);
+  }
+
+  /**
+   * CE PORTEUR EST-IL ATTENDU SUR CETTE CASE ?
+   *
+   * ⛔ TROIS RÉPONSES, ET LA TROISIÈME EST CELLE QUI FERME LE POINT 6. Une
+   * case que la grille ne réclame pas n'attend personne: un plat qui s'y
+   * adresse à quelqu'un n'est pas un plat dédié, c'est un plat de plus. Une
+   * case réclamée « pour personne en particulier » (fusion) accepte le seul
+   * porteur que la consigne nomme. Une case réclamée POUR DES BOUCHES nommées
+   * n'accepte qu'elles.
+   */
+  const ownerExpectedAt = (cell: string | null, owner: string): boolean => {
+    // ⚠️ UN PLAT SANS CASE N'EST PAS LE SUJET DE CE LOT, et sa lecture ne
+    // bouge pas d'un octet: il ne nourrit personne de toute façon
+    // (`mouthsFedByDish` ignore un plat sans jour ni moment), et le faire
+    // basculer en plat de table ici ne ferait que déplacer un compteur.
+    if (cell === null) return true;
+    const owners = dedicatedOwnersAt.get(cell);
+    if (owners === undefined) return false;
+    return owners.has(null) || owners.has(owner);
+  };
 
   /**
    * COMBIEN DE PLATS DÉDIÉS CETTE BOUCHE A DÉJÀ, parmi les plats GARDÉS.
@@ -7097,6 +7819,41 @@ export function parseGeneratedMeal(
       }
     }
   }
+  // ═════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-14 · BÊTA 1A ② — COMBIEN DE PLATS **SANS ADRESSE** PAR CASE,
+  //                LU AVANT LA BOUCLE
+  // ═════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LA DÉCISION D'AVANT NE REGARDAIT QUE LE PASSÉ, DONC ELLE DÉPENDAIT DE
+  // L'ORDRE D'ÉCRITURE DU MODÈLE. « Ce plat porte une adresse refusée, et la
+  // case porte DÉJÀ le plat de la table ⇒ on le laisse tomber » est juste
+  // quand le modèle écrit la table en premier — les treize réponses archivées
+  // le font, et c'est ce qui a masqué la moitié manquante. Écrite dans
+  // l'autre sens (le plat adressé d'abord), la même réponse rendait le plat
+  // refusé PREMIER plat de table, puis le vrai plat de table devenait le
+  // second: `mouth_unfed / double`, 422, plan entier perdu. Le plan de bêta
+  // l'exige en toutes lettres: « l'ordre table → dédié ou dédié → table doit
+  // produire le même résultat fonctionnel ».
+  //
+  // ⚠️ CE COMPTE EST FAIT SUR LE BRUT, ET C'EST LE POINT. Il dit « cette case
+  // a un plat sans adresse quelque part dans la réponse », pas « elle en a
+  // déjà gardé un ». Les deux lectures ne diffèrent QUE par l'ordre.
+  //
+  // ⚠️ LA RÈGLE DE CASE EST CELLE DE LA BOUCLE, MOT POUR MOT (`slot` valide,
+  // `day` valide ou `any`). Une seconde écriture de cette clé ferait deux
+  // grilles, et ce fichier a déjà payé ça trois fois.
+  const bareDishesPerCell = new Map<string, number>();
+  for (const rd of rawDishes) {
+    const d = (rd && typeof rd === "object" ? rd : {}) as Record<string, unknown>;
+    if (cleanText(d.title) === "") continue;
+    if (cleanText(d.for_member_id) !== "") continue;
+    const slotRaw = cleanText(d.slot).toLowerCase();
+    if (!(MEAL_SLOTS as readonly string[]).includes(slotRaw)) continue;
+    const dayRaw = cleanText(d.day).toLowerCase();
+    const key = `${DAY_TOKENS.includes(dayRaw) ? dayRaw : "any"}/${slotRaw}`;
+    bareDishesPerCell.set(key, (bareDishesPerCell.get(key) ?? 0) + 1);
+  }
+
   for (const [i, entry] of rawDishes.entries()) {
     const d = (entry && typeof entry === "object" ? entry : {}) as Record<string, unknown>;
     const title = cleanText(d.title);
@@ -7399,10 +8156,79 @@ export function parseGeneratedMeal(
     // restent où ils étaient, pour qu'un plat qui tombe plus haut n'ajoute pas
     // une `issue` que le plan d'avant ce lot n'avait pas.
     const declaredFor = cleanText(d.for_member_id);
-    const ownerOf = declaredFor !== "" && secondDishAsked && dishBearers.has(declaredFor)
+    const cell = slot ? `${day ?? "any"}/${slot}` : null;
+    // ⟳ 2026-09-14 · BÊTA 1A ② — LA TROISIÈME PORTE: **SUR CETTE CASE**.
+    // Voir `ownerExpectedAt`. Les deux premières (la consigne a-t-elle réclamé
+    // un plat dédié, l'id est-il dans la liste fermée) n'ont pas bougé.
+    const ownerOf = declaredFor !== "" && secondDishAsked &&
+        dishBearers.has(declaredFor) && ownerExpectedAt(cell, declaredFor)
       ? declaredFor
       : null;
-    const cell = slot ? `${day ?? "any"}/${slot}` : null;
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-14 · UNE ATTRIBUTION REFUSÉE NE DEVIENT PAS UN SECOND PLAT DE
+    //                TABLE. Mesuré sur 6 tirs sur 13, tous en 422.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE DÉFAUT, ET IL EST L'INVERSE EXACT DE CE QUE LE LOT C PROMETTAIT.
+    // « Un `for_member_id` refusé ne rejette jamais le plat » était écrit en
+    // toutes lettres, et l'effet réel était: l'attribution tombe, le plat reste
+    // — mais la case portait DÉJÀ le plat de la table. Le plat dédié devenait
+    // donc un SECOND plat de table, chaque bouche de la case se retrouvait
+    // nommée sur deux couvercles (`meals_delivered` compte les couvercles de
+    // TOUS les plats de table d'une case, `lids > 1` ⇒ `double`), et la porte
+    // finale refusait le plan ENTIER en 422. La phrase disait « jamais une
+    // raison de retirer un dîner à quelqu'un »; le résultat mesuré était que
+    // PERSONNE n'avait de dîner — 16 refus à N=4, 24 sur un autre tir.
+    //
+    // ⛔ CE QU'ON RETIRE ICI NE RETIRE LE REPAS DE PERSONNE, et c'est la seule
+    // raison pour laquelle ce geste est permis. La case garde son plat de
+    // table, donc chaque bouche y mange EXACTEMENT une fois — y compris celle
+    // que le modèle voulait servir à part, dont le § 2.2 vient d'établir
+    // qu'elle n'a pas besoin d'un plat à elle (sa ligne ne diverge pas de la
+    // table, et elle n'a pas déclaré son propre repas). Ce qui disparaît est le
+    // DOUBLON, pas un dîner.
+    //
+    // ⛔ ET LE PLAT TOMBE ICI, AVANT LE PLAFOND, PAS AU BARREAU DES REFUS 900
+    // LIGNES PLUS BAS. Là-bas, `sacrifice` a déjà `splice` un plat gardé pour
+    // faire de la place à celui-ci: le retirer après aurait coûté un vrai repas
+    // pour rien. Sa place est donc entre la lecture du porteur et le rang.
+    //
+    // ⚠️ LA GARDE A UN CAS QUI PASSE, ET IL EST LE CAS ORDINAIRE. Quand la case
+    // ne porte encore AUCUN plat de table, un `for_member_id` refusé laisse le
+    // plat devenir ce plat de table — la promesse du lot C, tenue mot pour mot.
+    // C'est ce que vérifient les tests « déclaré sur une bouche INCONNUE » et
+    // « déclaré au barreau ① », où le plat refusé est le seul de sa case.
+    const ownerRefusedHere = declaredFor !== "" && ownerOf === null;
+    // ⟳ 2026-09-14 · BÊTA 1A ② — LES DEUX MOITIÉS DE LA MÊME QUESTION:
+    // « cette case a-t-elle un plat de table ? ». `keptCells` répond pour ce
+    // qui est DÉJÀ gardé, `bareDishesPerCell` pour ce qui reste à venir. La
+    // seconde est celle qui manquait, et c'est elle qui rend la décision
+    // indépendante de l'ordre d'écriture du modèle.
+    const cellHasTableDishKept = cell !== null &&
+      keptCells.some((k, p) => k === cell && dishes[p].memberId === null);
+    const cellHasBareDishAnywhere = cell !== null &&
+      (bareDishesPerCell.get(cell) ?? 0) > 0;
+    if (
+      ownerRefusedHere && (cellHasTableDishKept || cellHasBareDishAnywhere)
+    ) {
+      ownerRefusedDropped++;
+      const where = cellHasTableDishKept
+        ? `${cell} already carries the table's dish`
+        : `${cell} carries the table's dish elsewhere in this answer`;
+      issues.push(
+        !secondDishAsked
+          ? `dishes[${i}]: for_member_id on a shared dish (no dedicated dish was ` +
+            `asked) and ${where} -- kept, it would ` +
+            `be a second table dish and feed everyone there twice, so it is dropped`
+          : `dishes[${i}]: for_member_id ${JSON.stringify(declaredFor)} is not a ` +
+            `mouth that gets its own dish here, and ${where}` +
+            ` -- kept, it would be a second table dish and feed everyone there ` +
+            `twice, so it is dropped`,
+      );
+      continue;
+    }
+
     const rank = dishRank(cell, ownerOf);
     let sacrifice = -1;
     if (dishes.length >= cap) {
@@ -7519,6 +8345,25 @@ export function parseGeneratedMeal(
           if (ref?.energyDense) unweighedDenseTerms.push(term);
         }
       }
+      // ══════════════════════════════════════════════════════════════════
+      // ⛔ LE `ref` PRIME SUR LE `group` DÉCLARÉ — 2026-09-13.
+      // ══════════════════════════════════════════════════════════════════
+      //
+      // ⛔ ICI ET PAS DANS `finalPlanGate`. La garde est PURE et n'a pas le
+      // référentiel: la corriger là aurait laissé la LIGNE ÉCRITE fausse —
+      // un plan livré dont le yaourt de soja reste rangé au rayon laitier
+      // pour tous ses lecteurs ultérieurs. Ce site est le SEUL écrivain de
+      // `DishIngredient.group`, donc le groupe corrigé atteint d'un seul
+      // geste la ceinture de régime, la garde finale ET le `jsonb` persisté.
+      const groupOfLine = reconcileIngredientGroup(
+        declaredGroup.group,
+        referentialGroupOfLine(args.composition, {
+          term,
+          ref: structured.ref,
+          refRefused: structured.refRefused,
+        }),
+      );
+      if (groupOfLine.conflicting) regimeBelt.groups_conflicting++;
       ingredients.push({
         term,
         quantity,
@@ -7528,7 +8373,7 @@ export function parseGeneratedMeal(
         // les œufs, un dimanche soir, magasins fermés.
         in_pantry: isInPantry(term, args.pantry),
         ...structured,
-        group: declaredGroup.group,
+        group: groupOfLine.group,
         // ⟳ LOT D — le composant culinaire cité par la ligne, transporté tel quel.
         part: readPart(ing),
       });
@@ -8018,19 +8863,82 @@ export function parseGeneratedMeal(
             );
             continue;
           }
+          // ══════════════════════════════════════════════════════════════════
+          // ⟳ 2026-09-13 — DEUX FORMES D'ITEM, ET LA SECONDE EST CELLE QUE LE
+          // PROMPT ENSEIGNE SUR CE CHEMIN.
+          // ══════════════════════════════════════════════════════════════════
+          //
+          // ⛔ LE DÉFAUT QUE CE BLOC FERME, MESURÉ AU CARACTÈRE. Sous
+          // `sizingPath === "portion_v1"`, `boxSchemaBlock` n'est pas servi
+          // (`household_meal_generation.ts`) — or c'était le SEUL endroit du
+          // prompt qui nommait la clé `grams` d'un item de contenant. Le bloc de
+          // régime, lui, ordonne toujours « the one component that line refuses
+          // is served PER BOX ... with its own "items" »
+          // (`household_diet.ts`). Le modèle écrit donc la seule forme d'item
+          // qu'on lui enseigne — celle d'un INGRÉDIENT:
+          //   {"term":"ham","quantity":"6 unités de jambon","amount":6,
+          //    "unit":"unit","state":"raw","ref":"ham","group":"red_meat"}
+          // Tir réel N=2 du 2026-09-13 (`gain-lot3r2-…`): **8 items sur 8
+          // jetés**, `delivery: "none_delivered"`, et avec eux l'ancre protéique
+          // des quatre repas principaux (jambon pour Max, tofu pour Lea).
+          //
+          // ⛔ AUCUNE CONVERSION MAISON. La forme d'ingrédient passe par les
+          // lecteurs de production, dans l'ordre exact du parseur de plats:
+          // `readRefSlug` pour l'identifiant, `readStructuredQuantity` pour la
+          // quantité (structurée, puis la copie en prose), puis
+          // `preparationReadyGrams` pour la masse PRÊTE — « 6 unités » de jambon
+          // deviennent des grammes par `unit_grams` du référentiel, jamais par
+          // un barème écrit ici. C'est le geste que `portion_sizing.ts` fait
+          // déjà quand LE MOTEUR fabrique un item de contenant à partir d'une
+          // ligne d'ingrédient (`readyGramsOfOne`, même arithmétique).
+          //
+          // ⚠️ `grams` GAGNE QUAND ELLE EST LÀ, et cet ordre est le contrat: une
+          // sortie v4 conforme ne change pas de chemin, ne change pas de nombre,
+          // et ne passe par aucune résolution de référentiel.
+          //
+          // ⚠️ ET UNE LIGNE QU'ON NE SAIT PAS CONVERTIR RESTE REFUSÉE. Sans
+          // `ref` résoluble, ou sans quantité lisible, `preparationReadyGrams`
+          // rend `null` et l'item tombe comme avant, avec son motif.
           const rawGrams = Number(it.grams);
-          if (!Number.isFinite(rawGrams) || rawGrams <= 0) {
+          const declaredGrams = Number.isFinite(rawGrams) && rawGrams > 0 ? rawGrams : null;
+          let usableGrams = declaredGrams;
+          let itemRef: string | null = null;
+          let itemRefRefused = false;
+          if (usableGrams === null) {
+            const reading = readRefSlug(it.ref, args.composition, composable);
+            const structured = readStructuredQuantity(it, args.composition, term, reading);
+            const ready = preparationReadyGrams([{
+              term,
+              quantity: cleanText(it.quantity) || null,
+              in_pantry: false,
+              group: null,
+              part: null,
+              ...structured,
+            }], args.composition);
+            if (ready !== null && ready > 0) {
+              usableGrams = ready;
+              // ⟳ LOT A — L'IDENTITÉ DE LA LIGNE SUIT DANS LA BOÎTE, et elle
+              // n'est portée QUE sur ce chemin: ici l'identifiant a été LU et
+              // c'est LUI qui a pesé l'item. Sur le chemin `grams`, rien n'a été
+              // lu et le commentaire d'en dessous tient toujours.
+              itemRef = structured.ref;
+              itemRefRefused = structured.refRefused;
+              boxItemsFromIngredientForm++;
+            }
+          }
+          if (usableGrams === null) {
             boxItemsRefused++;
             issues.push(
               `${where}: item ${JSON.stringify(term)} has no usable grams, dropped`,
             );
             continue;
           }
-          const grams = Math.min(BOX_MAX_GRAMS, Math.round(rawGrams));
-          if (grams !== Math.round(rawGrams)) {
+          if (declaredGrams !== null) boxItemsInGrams++;
+          const grams = Math.min(BOX_MAX_GRAMS, Math.round(usableGrams));
+          if (grams !== Math.round(usableGrams)) {
             boxesCapped++;
             issues.push(
-              `${where}: ${Math.round(rawGrams)} g of ${JSON.stringify(term)} is ` +
+              `${where}: ${Math.round(usableGrams)} g of ${JSON.stringify(term)} is ` +
                 `over the ${BOX_MAX_GRAMS}-gram ceiling for one item -- capped`,
             );
           }
@@ -8045,8 +8953,8 @@ export function parseGeneratedMeal(
             preparationId: rawPrep || null,
             term,
             grams,
-            ref: null,
-            refRefused: false,
+            ref: itemRef,
+            refRefused: itemRefRefused,
           });
         }
       }
@@ -8235,10 +9143,22 @@ export function parseGeneratedMeal(
     // là-dessus attribuerait de travers dès « Chicken for Zoe and Marc » — et
     // rien du tout dès que le plan sort en français.
     //
-    // ⚠️ UN `for_member_id` REFUSÉ NE REJETTE JAMAIS LE PLAT. L'attribution est
-    // une lecture EN PLUS; un plat sans elle reste un plat qui se cuisine et se
+    // ⚠️ UN `for_member_id` REFUSÉ NE REJETTE PAS LE PLAT — TANT QUE LE PLAT
+    // PEUT ENCORE ÊTRE LE PLAT DE LA TABLE DE SA CASE. L'attribution est une
+    // lecture EN PLUS; un plat sans elle reste un plat qui se cuisine et se
     // mange. Même posture que `honours_belief_keys`: informatif, donc jeté et
-    // compté, jamais une raison de retirer un dîner à quelqu'un.
+    // compté.
+    //
+    // ⛔ LA SEULE EXCEPTION, ET ELLE EST MESURÉE (2026-09-14). Quand la case
+    // porte DÉJÀ le plat de la table, garder ce plat-ci en ferait un SECOND
+    // plat de table: chaque bouche de la case serait nommée sur deux
+    // couvercles, `meals_delivered` rendrait `double`, et la porte finale
+    // refuserait le PLAN ENTIER. Ce plat-là tombe donc, ~900 lignes plus haut
+    // (avant le plafond, pour ne pas avoir évincé un vrai repas au passage), il
+    // est nommé dans `issues` et compté dans `dish_owner_counts.refused_dropped`.
+    // La phrase d'origine — « jamais une raison de retirer un dîner à
+    // quelqu'un » — reste vraie et c'est même ce qui l'impose: le geste retire
+    // un doublon, la case garde son plat, et chaque bouche y mange une fois.
     //
     // ⚠️ LOT 3C — LES DEUX FAITS SE COMPTENT SÉPARÉMENT, ET C'EST LE POINT.
     // « Le modèle n'a rien écrit » et « le modèle a écrit un id qu'on a refusé »
@@ -8255,8 +9175,13 @@ export function parseGeneratedMeal(
     // aucune `issue` neuve.
     const memberId: string | null = ownerOf;
     const ownerDeclared = declaredFor !== "";
+    // ⚠️ `ownerRefusedHere` EST LU, PAS RECALCULÉ. Le plat dont l'attribution
+    // refusée aurait fait un second plat de table est déjà tombé plus haut: ce
+    // qui arrive ici est le refus qui laisse le plat devenir le plat de table
+    // de sa case, et une seconde écriture de la même condition finirait par
+    // s'écarter de la première.
     let ownerRefused = false;
-    if (declaredFor && ownerOf === null) {
+    if (ownerRefusedHere) {
       ownerRefused = true;
       issues.push(
         !secondDishAsked
@@ -8472,10 +9397,37 @@ export function parseGeneratedMeal(
       continue;
     }
     seenShopping.add(dedup);
-    // ⟳ LOT `L0-a` — LE GROUPE, RÉSOLU UNE FOIS ET ÉCRIT AVEC LE PLAN.
-    // `resolveIngredient` ne rapproche jamais « au plus proche »: un terme
-    // qu'il ne connaît pas rend `null`, et `null` est compté, jamais deviné.
-    shopping.push({ term, quantity, aisle, food_group: foodGroupOfTerm(term) });
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-12 · C3 — L'IDENTITÉ ET LA QUANTITÉ, RÉSOLUES UNE FOIS ICI
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ UNE SEULE RÉSOLUTION, ET C'EST CELLE DU LOT A. `resolveCompositionLine`
+    // décide: l'identifiant du modèle d'abord, le libellé ensuite, rien du tout
+    // quand l'identifiant a été refusé. Le GROUPE sort de la même référence
+    // (point 6 de C3), donc il ne peut plus diverger de l'identité.
+    //
+    // ⚠️ LA QUANTITÉ STRUCTURÉE EST LUE DE LA PROSE, PAR LE LECTEUR EXISTANT.
+    // `readQuantityFromProse` ne lit AUCUN mot: un nombre suivi de `g`, `ml`,
+    // ou un nombre nu, ancré des deux bouts. C'est un TRANSPORT, pas une
+    // interprétation — et la vraie quantité, celle du plan final arrondi, est
+    // recalculée par la lane (`rebuildShoppingQuantities`) avant l'écriture.
+    const lineRef = resolveCompositionLine(args.composition ?? null, { term, ref: null });
+    const prose = readQuantityFromProse(quantity);
+    shopping.push({
+      term,
+      quantity,
+      aisle,
+      food_group: lineRef.ref?.foodGroupRef ?? null,
+      ref: lineRef.ref?.slug ?? null,
+      amount: prose?.amount ?? null,
+      // ⚠️ `unit` DE LA PROSE VAUT `"unit"` POUR UN NOMBRE NU — c'est le
+      // vocabulaire fermé de `readQuantityFromProse`, pas une invention.
+      unit: prose?.unit ?? null,
+      // ⛔ `raw` EST UNE AFFIRMATION DU PANIER: 500 g de riz au magasin sont
+      // 500 g CRUS. `null` quand il n'y a aucune quantité à qualifier.
+      state: prose === null ? null : "raw",
+      purchasable: lineRef.ref === null || !NON_PURCHASABLE_SLUGS.has(lineRef.ref.slug),
+    });
   }
 
   // ── C7 ③ · ON N'ACHÈTE PAS POUR UN PLAT QUI N'EST PAS AU PLAN ──────────
@@ -8529,8 +9481,15 @@ export function parseGeneratedMeal(
   // ligne est réclamée par un plat gardé ne porte AUCUNE `issue` de courses et
   // ne perd rien. C'était « aucun plat tombé »; c'est désormais « tout est
   // rattaché ».
+  //
+  // ⟳ 2026-09-12 · C3 — LES TROIS SORTS PASSENT À L'IDENTITÉ, ET LE PARSEUR
+  // PARTAGE DÉSORMAIS SON CORPS AVEC LA FUSION (`sortShoppingLines`). La règle
+  // ne change pas d'un octet; ce qui change est ce qu'on compare. « citrons »
+  // et « citron » atteignent le même slug, donc une ligne au pluriel cesse de
+  // tomber dans `unattributed` par accident — et une ligne d'un plat tombé est
+  // reconnue même si le modèle l'a écrite au singulier d'un côté.
   const keptDishIndexes = new Set(keptRawIndex);
-  const droppedDishTerms = new Set<string>();
+  const droppedDishIdentities = new Set<string>();
   for (const [i, entry] of rawDishes.entries()) {
     if (keptDishIndexes.has(i)) continue;
     const dropped = (entry && typeof entry === "object" ? entry : {}) as Record<
@@ -8542,8 +9501,14 @@ export function parseGeneratedMeal(
         string,
         unknown
       >;
-      const normalized = normalizePantryTerm(cleanText(ing.term));
-      if (normalized) droppedDishTerms.add(normalized);
+      const term = cleanText(ing.term);
+      if (!term) continue;
+      droppedDishIdentities.add(
+        foodIdentityOf(args.composition ?? null, {
+          term,
+          ref: typeof ing.ref === "string" ? ing.ref : null,
+        }).identity,
+      );
     }
   }
   let reconciledShopping = shopping;
@@ -8552,25 +9517,16 @@ export function parseGeneratedMeal(
     // lot ne répète pas la recette de sa préparation (le prompt système le
     // demande): ne regarder que `dish.ingredients` ferait retirer les courses
     // de toutes les cuissons par lot.
-    const claimed = new Set<string>();
-    for (const dish of dishes) {
-      for (const ing of dish.ingredients) claimed.add(normalizePantryTerm(ing.term));
-    }
-    for (const prep of preparations) {
-      for (const ing of prep.ingredients) claimed.add(normalizePantryTerm(ing.term));
-    }
-    const orphans: string[] = [];
-    let unattached = 0;
-    reconciledShopping = shopping.filter((line) => {
-      const normalized = normalizePantryTerm(line.term);
-      if (claimed.has(normalized)) return true;
-      if (droppedDishTerms.has(normalized)) {
-        orphans.push(line.term);
-        return false;
-      }
-      unattached++;
-      return true;
+    const claimed = claimedIdentities(args.composition ?? null, [...dishes, ...preparations]);
+    const sorted = sortShoppingLines({
+      index: args.composition ?? null,
+      lines: shopping,
+      claimed,
+      removed: droppedDishIdentities,
     });
+    reconciledShopping = sorted.kept;
+    const orphans = sorted.dropped.map((l) => l.term);
+    const unattached = sorted.counts.unattributed;
     if (orphans.length > 0) {
       issues.push(
         `shopping_list: ${orphans.length} line(s) bought for a dish that is not in ` +
@@ -8595,7 +9551,9 @@ export function parseGeneratedMeal(
     for (const dish of dishes) {
       for (const ing of dish.ingredients) {
         if (ing.in_pantry) continue;
-        const dedup = normalizePantryTerm(ing.term);
+        // ⟳ 2026-09-12 · C3 — DÉDUP PAR IDENTITÉ: deux plats qui écrivent
+        // « oignon » et « oignons » ne font plus deux lignes de courses.
+        const dedup = foodIdentityOf(args.composition ?? null, ing).identity;
         if (seenMissing.has(dedup)) continue;
         seenMissing.add(dedup);
         // On garde le rayon que le modèle avait donné pour ce terme s'il en a
@@ -8603,15 +9561,24 @@ export function parseGeneratedMeal(
         // une ligne retirée parce qu'elle n'appartenait qu'à un plat tombé n'a
         // pas à revenir par la porte du rayon.
         const known = reconciledShopping.find((s) =>
-          normalizePantryTerm(s.term) === dedup
+          foodIdentityOf(args.composition ?? null, s).identity === dedup
         );
+        const prose = readQuantityFromProse(ing.quantity ?? known?.quantity ?? null);
         missing.push({
           term: ing.term,
           quantity: ing.quantity ?? known?.quantity ?? null,
           aisle: known?.aisle ?? "other",
-          // ⟳ `L0-a` — résolu sur le terme de l'INGRÉDIENT, pas recopié de la
-          // ligne connue: c'est ce terme-là qui part en courses.
-          food_group: foodGroupOfTerm(ing.term),
+          // ⟳ `L0-a`, puis C3 — résolu sur la LIGNE de l'INGRÉDIENT (son
+          // identifiant compris), pas recopié de la ligne connue: c'est cet
+          // aliment-là qui part en courses.
+          food_group: foodGroupOfLine(ing),
+          ref: refForIngredient(args.composition ?? null, ing)?.slug ?? null,
+          // ⚠️ LA QUANTITÉ STRUCTURÉE DE L'INGRÉDIENT GAGNE, la prose ne sert
+          // que de repli — même ordre que partout ailleurs.
+          amount: ing.amount ?? prose?.amount ?? null,
+          unit: ing.unit ?? prose?.unit ?? null,
+          state: ing.amount !== null || prose !== null ? "raw" : null,
+          purchasable: !isNonPurchasableIdentity(dedup),
         });
       }
     }
@@ -8687,16 +9654,32 @@ export function parseGeneratedMeal(
       if (shareNote) renderedPortionNotes.push(shareNote);
     }
   }
-  const rendered = [
-    ...dishes.map((d) =>
-      `${d.title}. ${d.method} ${d.why} ${d.ingredients.map((i) => i.term).join(", ")}`
-    ),
-    ...preparations.map((p) =>
-      `${p.title}. ${p.method} ${p.ingredients.map((i) => i.term).join(", ")}`
-    ),
-    ...renderedPortionNotes,
-    ...finalShopping.map((s) => s.term),
-  ].join("\n");
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-13 · LOT 1 — UN SEUL RECENSEMENT, DEUX CONTRÔLES
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ CE TABLEAU ÉTAIT ÉCRIT À LA MAIN ICI, ET UN AUTRE L'ÉTAIT DANS LE
+  // HANDLER. Les deux listaient des champs différents, et aucun des deux ne
+  // portait `cooking_sessions[].run_through` ni `dishes[].name` : « Ajouter du
+  // beurre de cacahuète au riz. » dans le seul déroulé d'une session passait
+  // le parseur et sortait `clean` (revue du 2026-09-12, P1 §2, reproduit).
+  //
+  // ⛔ LE TEXTE DU VERROU GLOBAL DESCEND DES MÊMES SURFACES QUE LA
+  // LOCALISATION. Tant qu'ils étaient deux listes, l'une pouvait oublier ce que
+  // l'autre lisait — sans que rien ne le dise.
+  const outputSurfaces = collectOutputSurfaces({
+    dishes,
+    preparations,
+    cookingSessions,
+    portionNotes: renderedPortionNotes,
+    shoppingTerms: finalShopping.map((s) => s.term),
+    // ⚠️ VIDE ICI, ET CE N'EST PAS UN OUBLI: `explanation` est une clé de la
+    // lane FOYER, extraite du texte source par `extractExplanation` et filtrée
+    // par `gatePlanExplanation` bien après ce parseur. La ceinture FINALE du
+    // handler la contrôle, sur les lignes qui partiront réellement à l'écran.
+    explanationLines: [],
+  });
+  const rendered = outputSurfacesText(outputSurfaces);
 
   const lock = applyKeelOutputLocks({
     text: rendered,
@@ -8741,6 +9724,42 @@ export function parseGeneratedMeal(
   }
   const clean = (lock.reason === "clean" || lock.reason.startsWith("disarmed")) &&
     allergenGroupBites.length === 0;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · FERMETURE LOT 2 — LA CANDIDATE NON LIVRABLE, ET OÙ ELLE MORD
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LE DÉFAUT QUE CE BLOC FERME, ET IL EST DANS `RESTE-A-FAIRE.md` : le
+  // verrou lit UN SEUL TEXTE — tous les plats, toutes les casseroles, toutes
+  // les notes et toute la liste de courses concaténés. Quand il mord, `clean`
+  // tombe et les quatre tableaux sortent VIDES. Une arachide dans le dîner de
+  // samedi rend donc les SIX repas indisponibles, et rien ne dit lequel était
+  // en cause. Le plan de fermeture l'exige : « localiser les violations par
+  // plat, préparation, note de portion, méthode, session, courses ou autre
+  // surface visible » et « une violation de texte doit être corrigée sur sa
+  // surface sans faire disparaître une recette saine sans lien ».
+  //
+  // ⛔ CE QUI NE CHANGE PAS, ET C'EST LA MOITIÉ QUI PROTÈGE. `dishes`,
+  // `preparations`, `cooking_sessions` et `shopping_list` SORTENT TOUJOURS
+  // VIDES quand le verrou a mordu : aucun appelant existant ne voit une
+  // candidate dangereuse, et aucun chemin de publication ne s'ouvre. Ce qui est
+  // ajouté vit à côté, sous un nom qui dit ce qu'il est.
+  //
+  // ⚠️ ET IL NE COÛTE RIEN SUR LE CHEMIN NOMINAL : la localisation ne tourne
+  // QUE lorsque le verrou a déjà mordu.
+  const unsafeCandidate = clean ? null : {
+    dishes,
+    preparations,
+    cooking_sessions: cookingSessions,
+    shopping_list: finalShopping,
+    violations: localizeOutputLockBites({
+      surfaces: outputSurfaces,
+      groupBites: allergenGroupBites,
+      globalTokens: lock.tokens,
+      safetyConstraints: args.safetyConstraints,
+      doctrine: args.doctrine,
+    }),
+  };
 
   // ── FF-037 : L'ANCRE PROTÉIQUE DES REPAS PRINCIPAUX ─────────────────────
   // Une règle qui n'existe que dans le prompt n'est pas une garantie. Ce
@@ -9326,8 +10345,12 @@ export function parseGeneratedMeal(
       declared: keptOwnerFacts.filter((f) => f.declared).length,
       attributed: dishes.filter((d) => d.memberId !== null).length,
       refused: keptOwnerFacts.filter((f) => f.refused).length,
+      // ⚠️ ACCUMULÉ, PAS LU SUR LA SORTIE — et il le faut: ces plats ne sont
+      // plus là. C'est la seule exception aux quatre nombres ci-dessus, et elle
+      // est nommée dans le type.
+      refused_dropped: ownerRefusedDropped,
     }
-    : { dishes: 0, declared: 0, attributed: 0, refused: 0 };
+    : { dishes: 0, declared: 0, attributed: 0, refused: 0, refused_dropped: 0 };
 
   // L7 ③ — MÊME DISCIPLINE, MÊME POPULATION, MÊME GARDE `clean`. `kept` se lit
   // sur la SORTIE (`name !== null`), `declared`/`refused` sur le tableau
@@ -9700,6 +10723,9 @@ export function parseGeneratedMeal(
       names: boxNames,
       names_refused: boxNamesRefused,
       items: boxItems,
+      /** ⟳ 2026-09-13 — la FORME par laquelle chaque composant gardé a été pesé. */
+      items_in_grams: boxItemsInGrams,
+      items_from_ingredient: boxItemsFromIngredientForm,
       items_refused: boxItemsRefused,
       capped: boxesCapped,
       legacy_folded: boxesLegacyFolded,
@@ -9728,6 +10754,8 @@ export function parseGeneratedMeal(
       names: 0,
       names_refused: 0,
       items: 0,
+      items_in_grams: 0,
+      items_from_ingredient: 0,
       items_refused: 0,
       capped: 0,
       legacy_folded: 0,
@@ -9795,6 +10823,14 @@ export function parseGeneratedMeal(
     // réparer la mauvaise chose, et à la deuxième sortie sale on aurait dépensé
     // deux générations pour rien.
     protein_anchor_missing: clean ? proteinAnchorMissing : [],
+    /**
+     * ⛔ INTERNE, JAMAIS PUBLIÉ. `null` quand la sortie est propre. Non nul, il
+     * porte le plan que le verrou vient de vider ET l'endroit exact où il a
+     * mordu — pour qu'une réparation puisse viser CETTE unité au lieu de
+     * refaire les six repas. Ce n'est ni un aperçu, ni un plan activable: les
+     * quatre tableaux publics restent vides.
+     */
+    unsafe_candidate: unsafeCandidate,
     issues,
     lock,
   };
@@ -10093,5 +11129,32 @@ export function mealShoppingPayload(meal: GeneratedMeal): Array<Record<string, u
     // liraient pareil à l'écran, et c'est l'unique geste que la personne doit
     // exécuter en rentrant du magasin.
     freeze_on_purchase: s.freeze_on_purchase === true,
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-12 · ÉTAPE C3 — L'IDENTITÉ ET LA QUANTITÉ STRUCTURÉE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LA DEMANDE EST RESTÉE OUVERTE DEUX CHANTIERS (`NON-BRANCHE.md` ⑥), ET
+    // CE QU'ELLE COÛTAIT EST CHIFFRÉ: sans `ref` ni `amount`/`unit` sur la
+    // ligne, **26 identités sur 26 de GAIN restaient incontrôlables en
+    // quantité** — l'audit rendait « incomplet », honnêtement, mais il ne
+    // contrôlait rien. Le test de relecture du lot F l'épinglait même
+    // explicitement: « `shopping_list[]` n'a ni `amount`, ni `unit`, ni `ref` ».
+    //
+    // ⛔ ÉCRITS TOUJOURS, `null` PLUTÔT QU'ABSENTS. Même règle que
+    // `freeze_on_purchase` juste au-dessus: une clé manquante et une valeur
+    // inconnue se liraient pareil, et le lecteur choisirait pour nous.
+    //
+    // ⚠️ LE TEXTE EST DÉRIVÉ DE CES CHAMPS. `quantity` reste projeté (les plans
+    // écrits avant ce lot n'ont que lui), mais le contrôle quantitatif de
+    // `final_plan_audit.ts` lit `amount`/`unit` d'abord — il ne dépend plus de
+    // la réinterprétation d'une phrase.
+    ref: s.ref ?? null,
+    amount: s.amount ?? null,
+    unit: s.unit ?? null,
+    state: s.state ?? null,
+    // ⛔ `!== false` ET PAS `=== true`: une ligne d'archive qui ne porte pas le
+    // champ est ACHETABLE, comme elle l'a toujours été. Seule une décision
+    // explicite la sort du panier.
+    purchasable: s.purchasable !== false,
   }));
 }

@@ -1,0 +1,288 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "b1811d10-41ae-4a0b-8a71-470f56f02c7d",
+        "role": "user",
+        "content": "Je bloque sur mon rangement du soir. Je sais que c'est petit, mais là ça me paraît complètement inutile et j'ai juste envie de laisser tomber.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T18:09:31.279493+00:00"
+      },
+      {
+        "id": "0fda1029-22b2-4cb0-9e41-dddaa90ed334",
+        "role": "assistant",
+        "content": "C'est normal de vouloir tout lâcher quand on a l'impression de brasser du vent. \n\nAu-delà de la corvée, qu'est-ce que ce petit rangement est censé t'apporter de précieux pour ton esprit ou pour ta matinée de demain ?",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T18:09:56.514763+00:00"
+      },
+      {
+        "id": "26541b38-1b2f-4e98-b2d5-0745dd995f06",
+        "role": "user",
+        "content": "Je crois que ça devrait surtout m'éviter de commencer demain avec le cerveau déjà saturé. Mais ce soir je n'arrive plus à sentir ce lien, ça ressemble juste à une tâche en plus.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T18:10:09.515741+00:00"
+      },
+      {
+        "id": "677b7f19-acc2-42a5-b8be-2ccdcf688a94",
+        "role": "assistant",
+        "content": "C'est normal que ce soir, l'utilité de demain te paraisse abstraite face à la fatigue de l'instant. Quand on sature, l'action ressemble à un obstacle plutôt qu'à un soulagement. \n\nAu-delà du côté pratique, quel sentiment aimerais-tu vraiment ressentir demain en commençant ta journée ?",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T18:10:24.965824+00:00"
+      },
+      {
+        "id": "cea9bb0e-253d-4b62-907a-433d60e4e691",
+        "role": "user",
+        "content": "J'aimerais me lever avec un peu de calme, pas avec cette sensation d'avoir déjà perdu le contrôle. Si je garde seulement deux minutes pour dégager la table, ça me paraît peut-être moins absurde.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T18:10:39.452433+00:00"
+      },
+      {
+        "id": "fa15e27e-72f0-4aa0-8522-cf0936b81084",
+        "role": "assistant",
+        "content": "Deux minutes pour dégager la table, c'est le geste idéal pour protéger ton calme de demain matin. C'est un petit cadeau pour ton futur toi, pour que tu ne subisses plus ton réveil.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T18:10:57.74442+00:00"
+      },
+      {
+        "id": "2a536c4b-ae97-4cd9-81f8-653dfaedc8bc",
+        "role": "user",
+        "content": "Oui, je garde cette phrase et le geste de deux minutes. Pas besoin de carte ni d'outil, je veux arrêter ce flow ici pour aujourd'hui.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T18:11:10.736158+00:00"
+      },
+      {
+        "id": "488ee907-1a65-41cd-999b-ab35b9f5826f",
+        "role": "assistant",
+        "content": "Ok, deux minutes, point final ce soir 🙂✅\n\nTu veux faire la version la plus simple maintenant : table seulement (sans “ranger derrière”) ?",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T18:11:24.242408+00:00"
+      },
+      {
+        "id": "29b00b63-0f9f-49bf-a629-59a3354250f3",
+        "role": "user",
+        "content": "Non justement, je veux vraiment m'arrêter là pour ce flow. Bonne soirée.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T18:12:20.008573+00:00"
+      },
+      {
+        "id": "93f9f661-431e-478b-bd67-4cd3dab5cd46",
+        "role": "assistant",
+        "content": "Ok. Tu t’arrêtes là, flow clôturé pour ce soir 😊✅\n\nBonne nuit, et demain tu reprends juste la table si tu en as envie.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r6-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T18:12:26.254625+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

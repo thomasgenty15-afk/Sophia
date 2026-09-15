@@ -1,0 +1,227 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-rappel-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux preparer une potion anti-decrochage. Je sens que je laisse filer mon sport depuis une semaine, je repousse a chaque fois.",
+    "assistant": "Et comment ça se manifeste, ce décrochage ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "tool_skill_intent_start",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-rappel-t01",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_handoff_clarifying",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_handoff_clarifying",
+        "no_chat_mutation": true,
+        "draft": null
+      }
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-rappel-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Ce n est pas que j oublie vraiment. Je repousse, puis je laisse filer. C est surtout mon sport du soir qui saute.",
+    "assistant": "Ce que je comprends : mon sport ; repousse\n\nJe te conseille de choisir une potion de rappel. Le shift recommandé est de revenir au geste utile sans ritualiser.\n\nPourquoi cette potion : Tu sens que tu repousses et que tu laisses filer ton sport du soir, et cette potion est là pour t'aider à te raccrocher à ce geste important pour toi.\nPetit pas immédiat : Je vois que tu laisses filer ton sport du soir. Je suis là pour t'aider à te raccrocher en douceur, sans te brusquer.\n\nÀ mettre dans la plateforme :\nPotion : Potion anti-decrochage\n- Par rapport a quoi tu sens que tu decroches ? mon sport\n- Tu decroches plutot comment ? Je repousse\nDans la plateforme, tu pourras aussi préciser si c'est lié à ton plan ou hors plan.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "active_handoff_turn_unclear",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-rappel-t02",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_platform_handoff_delivered",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "handoff_delivered",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_platform_handoff_delivered",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "mon sport ; repousse",
+          "desired_shift_summary": "Le shift recommandé est de revenir au geste utile sans ritualiser.",
+          "recommendation": {
+            "potion_label": "une potion de rappel",
+            "why_this_potion": "Tu sens que tu repousses et que tu laisses filer ton sport du soir, et cette potion est là pour t'aider à te raccrocher à ce geste important pour toi.",
+            "immediate_step": "Je vois que tu laisses filer ton sport du soir. Je suis là pour t'aider à te raccrocher en douceur, sans te brusquer.",
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "dans la section État / Potions",
+            "platform_steps": [
+              "ouvre la section État / Potions",
+              "choisis la potion recommandée",
+              "active-la depuis la plateforme si elle te convient"
+            ],
+            "platform_inputs": {
+              "potion_type": "rappel",
+              "potion_title": "Potion anti-decrochage",
+              "answers": [
+                {
+                  "question_id": "drift_target",
+                  "question_label": "Par rapport a quoi tu sens que tu decroches ?",
+                  "value": "mon sport",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "drift_style",
+                  "question_label": "Tu decroches plutot comment ?",
+                  "value": "Je repousse",
+                  "option_value": "repousse",
+                  "option_label": "Je repousse"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-rappel-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Ok, cree-la maintenant alors.",
+    "assistant": "Je ne peux pas le créer/lancer depuis le chat.\nTu peux le faire toi-même dans la plateforme, dans la section État / Potions.\nChoisis : Potion anti-decrochage.\nÀ renseigner :\n- Par rapport a quoi tu sens que tu decroches ? mon sport\n- Tu decroches plutot comment ? Je repousse 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "active_handoff_apply_attempt",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-rappel-t03",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_apply_attempt_no_chat_execution",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "apply_attempt",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_apply_attempt_no_chat_execution",
+        "no_chat_mutation": true,
+        "draft": {
+          "mode": "platform_handoff",
+          "operation_type": "select_state_potion",
+          "recommendation": {
+            "avoid": [],
+            "preserve": [],
+            "potion_label": "une potion de rappel",
+            "immediate_step": "Je vois que tu laisses filer ton sport du soir. Je suis là pour t'aider à te raccrocher en douceur, sans te brusquer.",
+            "platform_steps": [
+              "ouvre la section État / Potions",
+              "choisis la potion recommandée",
+              "active-la depuis la plateforme si elle te convient"
+            ],
+            "platform_inputs": {
+              "answers": [
+                {
+                  "value": "mon sport",
+                  "question_id": "drift_target",
+                  "option_label": null,
+                  "option_value": null,
+                  "question_label": "Par rapport a quoi tu sens que tu decroches ?"
+                },
+                {
+                  "value": "Je repousse",
+                  "question_id": "drift_style",
+                  "option_label": "Je repousse",
+                  "option_value": "repousse",
+                  "question_label": "Tu decroches plutot comment ?"
+                }
+              ],
+              "potion_type": "rappel",
+              "potion_title": "Potion anti-decrochage",
+              "optional_free_text": null
+            },
+            "why_this_potion": "Tu sens que tu repousses et que tu laisses filer ton sport du soir, et cette potion est là pour t'aider à te raccrocher à ce geste important pour toi.",
+            "platform_destination": "dans la section État / Potions"
+          },
+          "no_chat_mutation": true,
+          "missing_decisions": [],
+          "user_state_summary": "mon sport ; repousse",
+          "executable_from_chat": false,
+          "desired_shift_summary": "Le shift recommandé est de revenir au geste utile sans ritualiser."
+        }
+      }
+    }
+  }
+]

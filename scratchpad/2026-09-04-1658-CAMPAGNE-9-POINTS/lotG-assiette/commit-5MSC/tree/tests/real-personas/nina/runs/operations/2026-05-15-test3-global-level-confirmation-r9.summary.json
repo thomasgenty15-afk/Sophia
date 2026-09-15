@@ -1,0 +1,165 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r9-t01-93b99347-b49c-41c4-8c0d-caba48d6d2ad",
+    "status": 200,
+    "ok": true,
+    "user": "Je crois que le bloc grignotage me bloque surtout le soir. Ce n’est pas une action en particulier, c’est le niveau entier qui me donne l’impression d’avoir trop de petites décisions quand je suis déjà crevée.",
+    "assistant": "Je comprends, la fatigue du soir rend tout plus lourd. Pour alléger ce bloc sur le grignotage, qu'est-ce qui t'aiderait le plus : simplifier l'habitude du 'choix du brut' ou réduire la réflexion sur le décodage de tes envies ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "current_level.adjustment_type",
+        "current_level.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "turn_frame_tool_skill_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "bloc grignotage / niveau entier",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high",
+        "operation_input": {
+          "scope": {
+            "kind": "current_level",
+            "label": "Reprendre le contrôle sur le grignotage",
+            "status": "identified",
+            "evidence": [
+              "bloc grignotage",
+              "niveau entier"
+            ]
+          },
+          "target_granularity": {
+            "value": "current_level",
+            "status": "identified",
+            "evidence": [
+              "Ce n’est pas une action en particulier, c’est le niveau entier"
+            ],
+            "confidence": "high",
+            "negative_evidence": []
+          }
+        },
+        "adjust_plan_scope": "current_level"
+      }
+    ],
+    "trace_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r9-t01-93b99347-b49c-41c4-8c0d-caba48d6d2ad",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r9-t02-3dc5390a-3d4e-495b-b202-167a2e661787",
+    "status": 200,
+    "ok": true,
+    "user": "Les deux, en fait. Je veux garder le niveau, mais enlever la partie décision du soir : le choix du brut doit être décidé avant, et le décodage doit rester une seule question simple.",
+    "assistant": "C'est très clair : on garde l'objectif du niveau mais on déplace la décision du choix du brut en amont pour protéger tes soirées, tout en gardant le décodage très minimaliste. Je prépare une proposition concrète pour ajuster ces deux actions ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "turn_frame_tool_skill_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "Reprendre le contrôle sur le grignotage",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high",
+        "operation_input": {
+          "scope": {
+            "kind": "current_level",
+            "label": "Reprendre le contrôle sur le grignotage",
+            "status": "identified",
+            "evidence": [
+              "bloc grignotage",
+              "niveau entier"
+            ]
+          },
+          "payload": {
+            "affected_items": {
+              "status": "identified",
+              "values": [
+                "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf"
+              ],
+              "evidence": [
+                "choix du brut",
+                "décodage"
+              ]
+            },
+            "adjustment_type": {
+              "status": "identified",
+              "evidence": [
+                "enlever la partie décision du soir",
+                "décidé avant",
+                "une seule question simple"
+              ]
+            }
+          },
+          "target_granularity": {
+            "value": "current_level",
+            "status": "identified",
+            "evidence": [
+              "Je veux garder le niveau",
+              "Ce n’est pas une action en particulier, c’est le niveau entier"
+            ],
+            "confidence": "high"
+          }
+        },
+        "adjust_plan_scope": "current_level"
+      }
+    ],
+    "trace_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r9-t02-3dc5390a-3d4e-495b-b202-167a2e661787",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r9-t03-42d61c66-f5cf-4cb9-98bd-42466eb8c5e8",
+    "status": 500,
+    "ok": null,
+    "user": "Oui, prépare-la, mais ne l’applique pas. Je veux d’abord voir précisément les deux changements et pourquoi ça aiderait.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "tool_skill_run": null,
+    "pending_tool_skill_confirmation": null,
+    "turn_frame_tool_skill_intents": null,
+    "trace_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r9-t03-42d61c66-f5cf-4cb9-98bd-42466eb8c5e8",
+    "trace_error": null
+  }
+]

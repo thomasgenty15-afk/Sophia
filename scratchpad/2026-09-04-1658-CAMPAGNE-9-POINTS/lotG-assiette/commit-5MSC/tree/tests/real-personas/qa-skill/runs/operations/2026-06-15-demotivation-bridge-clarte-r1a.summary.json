@@ -1,0 +1,31 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1a-t01",
+    "status": 502,
+    "ok": null,
+    "user": "Je fais encore mes actions, mais elles sonnent creux. Au départ mon plan santé devait me reconnecter à de l'énergie et à de la présence, et là je coche juste des cases sans sentir le pourquoi.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason": null,
+    "active_flow_arbitration": null,
+    "local_flow_action": null,
+    "local_visible_task_kind": null,
+    "note_information": null,
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": null,
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": null,
+    "trace_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1a-t01",
+    "trace_error": null,
+    "operation_flow_run": null
+  }
+]

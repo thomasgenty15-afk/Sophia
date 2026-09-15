@@ -1,0 +1,44 @@
+{
+  "run_id": "product_help_retest_20260622_r1",
+  "turn": 1,
+  "user_message": "J'hésite entre ajuster mon plan et faire une carte d'attaque : dans Sophia, ça sert à quoi chacun ?",
+  "http_status": 200,
+  "ok": true,
+  "reply_content": "L’ajustement du plan sert quand le fond du plan ne colle plus : trop lourd, mal placé, devenu invalide ou à revoir.\nLa carte d’attaque sert à préparer le passage à l’action : rendre le premier geste plus simple, plus clair et moins coûteux.\n\nEn bref : plan à revoir = ajustement ; action à préparer = carte d’attaque.",
+  "response_owner": "product_help",
+  "selected_handler": "product_help",
+  "reason_code": "product_help_signal",
+  "direct_effects": [],
+  "skill_signals": {
+    "product_help": {
+      "detected": true,
+      "confidence_band": "high",
+      "reason": "product_help_question"
+    }
+  },
+  "skill_run": {
+    "selected_skill_id": "product_help",
+    "reason_code": "product_help_signal",
+    "status": "complete",
+    "latency_ms": 4668
+  },
+  "effect_ledger": {
+    "turn_id": "8e300bb2-3f20-4db5-a454-43c1d9af0419",
+    "counts": {
+      "requested": 0,
+      "allowed": 0,
+      "blocked": 0,
+      "committed": 0,
+      "failed": 0,
+      "proposed": 0,
+      "delivered": 0,
+      "cancelled": 0,
+      "superseded": 0,
+      "asked": 0,
+      "resolved": 0,
+      "topic_change": 0
+    },
+    "entries": []
+  },
+  "executed_tools": []
+}

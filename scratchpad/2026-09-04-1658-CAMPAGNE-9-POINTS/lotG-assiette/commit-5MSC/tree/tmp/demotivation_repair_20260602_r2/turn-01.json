@@ -1,0 +1,769 @@
+{
+  "ok": true,
+  "request_id": "demotivation_repair_20260602_r2-t01",
+  "user_id": "85c5cbc9-47f2-41a5-83e5-aa8c8073d7e4",
+  "channel": "web",
+  "scope": "qa-demotivation-repair-demotivation_repair_20260602_r2",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Ce blanc est souvent une réaction quand l'esprit sature de relancer des efforts qui semblent ne pas tenir. On ne va rien forcer ni modifier pour l'instant. Est-ce que cette impression que tout s'éteint arrive dès le premier geste ou après quelques jours ? 🙂",
+    "mode": "companion",
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "demotivation_repair_20260602_r2-t01",
+        "source_message_id": "eed04abc-c868-45f7-9f56-cdcad77ab635",
+        "user_id": "85c5cbc9-47f2-41a5-83e5-aa8c8073d7e4",
+        "channel": "web",
+        "safety": {
+          "risk_band": "low",
+          "reason_codes": [],
+          "evidence": [
+            "le user précise explicitement : pas une crise, pas de danger"
+          ]
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "detected": false,
+              "weight": 3.5,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "detected": false,
+              "weight": 2.5,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "anger_or_profanity",
+              "detected": false,
+              "weight": 2,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "repetition_or_correction",
+              "detected": false,
+              "weight": 1.5,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "typographic_intensity",
+              "detected": false,
+              "weight": 0.7,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "active_flow_pressure",
+              "detected": false,
+              "weight": 1,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "previous_risk",
+              "detected": false,
+              "weight": 10,
+              "contribution": 0,
+              "evidence": null
+            }
+          ],
+          "context_summary": null,
+          "flow_exit_context": null
+        },
+        "direct_effects": [],
+        "tool_skill_intents": [],
+        "tool_skill_opportunity": {
+          "type": "state_potion",
+          "operation_type": "select_state_potion",
+          "surface_id": "potion.state",
+          "suggested_question_intent": "offer_state_potion",
+          "confidence_band": "medium",
+          "should_offer": false,
+          "prop_reason": "user_feels_blank_and_stuck_before_action",
+          "source_span": "sens juste un gros blanc",
+          "target_hint": null,
+          "target_status": "none",
+          "offer_timing": "never",
+          "must_not_execute": true
+        },
+        "skill_signals": {
+          "entry": {
+            "demotivation_repair": {
+              "detected": true,
+              "confidence_band": "high",
+              "reason": "user_expresses_futility_and_loss_of_momentum"
+            }
+          },
+          "lifecycle": {},
+          "exit": {}
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_fallback_disabled"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_fallback_disabled"
+        },
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "targeted",
+          "memory_mode": "light",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "small",
+          "targets": [
+            {
+              "type": "domain_key",
+              "key": "psychologie.motivation",
+              "query_hint": "perte d'élan et sentiment d'extinction",
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first",
+              "priority": "medium",
+              "entity_type": null
+            },
+            {
+              "type": "domain_key",
+              "key": "habitudes.reprise_apres_echec",
+              "query_hint": "tout ce que je relance finit par s'eteindre",
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first",
+              "priority": "medium",
+              "entity_type": null
+            }
+          ],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        },
+        "confirmation_response": null
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "conversation_handler",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "skill_entry_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "none",
+          "active_owner": "none",
+          "selected_owner": "none",
+          "resume_policy": "none",
+          "reason_code": "no_active_flow"
+        },
+        "selected_handler": "demotivation_repair"
+      },
+      "turn_agenda_summary": {
+        "task_count": 1,
+        "owners": [
+          "state_potion_handoff"
+        ],
+        "operation_types": [
+          "select_state_potion"
+        ],
+        "constraints": {},
+        "tasks": [
+          {
+            "task_id": "opportunity:select_state_potion",
+            "kind": "platform_handoff",
+            "owner": "state_potion_handoff",
+            "operation_type": "select_state_potion",
+            "intent": "create",
+            "source": "dispatcher",
+            "status": "proposed",
+            "reason_code": "skill_recommended_platform_action"
+          }
+        ]
+      },
+      "skill_run": {
+        "selected_skill_id": "demotivation_repair",
+        "reason_code": "skill_entry_signal",
+        "output": {
+          "skill_id": "demotivation_repair",
+          "status": "continue",
+          "response_intent": "loss_of_meaning",
+          "memory_trace": {
+            "memory_used_for_response": false,
+            "memory_item_ids_used": [],
+            "correction_detected": false,
+            "correction_target_item_ids": []
+          },
+          "reply": "Ce blanc est souvent une réaction quand l'esprit sature de relancer des efforts qui semblent ne pas tenir. On ne va rien forcer ni modifier pour l'instant. Est-ce que cette impression que tout s'éteint arrive dès le premier geste ou après quelques jours ?",
+          "diagnosis": {
+            "intent": "loss_of_meaning",
+            "phase": "diagnose",
+            "motivation_state": "loss_of_meaning",
+            "action_readiness": "none",
+            "constraints": [
+              "no_potion",
+              "no_tool",
+              "no_plan_edit",
+              "one_question_max",
+              "short_reply",
+              "do_not_moralize",
+              "do_not_modify_plan_yet"
+            ],
+            "response_contract": {
+              "max_questions": 1,
+              "allow_plan_edit": false,
+              "allow_tool_suggestion": false,
+              "allow_potion_suggestion": false,
+              "allow_attack_card_suggestion": false,
+              "allow_concrete_action": true,
+              "tone": "grounded"
+            },
+            "intake_status": "structured"
+          },
+          "recommendation_need": {
+            "needed": false,
+            "type": "none",
+            "urgency": "none",
+            "constraints": [
+              "no_potion",
+              "no_tool",
+              "no_plan_edit",
+              "one_question_max",
+              "short_reply",
+              "do_not_moralize",
+              "do_not_modify_plan_yet"
+            ]
+          },
+          "operation_suggestions": [],
+          "memory_write_candidates": [
+            {
+              "kind": "statement",
+              "content_text": "L'utilisateur ressent un 'gros blanc' devant son plan et a l'impression que ses initiatives finissent par s'éteindre systématiquement.",
+              "evidence_source_ids": [
+                "eed04abc-c868-45f7-9f56-cdcad77ab635"
+              ],
+              "confidence_band": "medium",
+              "sensitivity_level": 1,
+              "persistence_rationale": "Capture le sentiment de futilité actuel sans en faire un trait de caractère permanent.",
+              "should_persist_default": false,
+              "anti_identity_freeze_checked": true,
+              "scope_hint": "session"
+            }
+          ],
+          "effects": {
+            "requested": [
+              {
+                "type": "memory_write_candidate",
+                "kind": "statement",
+                "should_persist_default": false
+              }
+            ],
+            "allowed": [
+              {
+                "type": "memory_write_candidate",
+                "reason_code": "candidate_only_not_committed"
+              }
+            ],
+            "blocked": [],
+            "committed": []
+          },
+          "state_patch": {
+            "diagnostic_focus": "momentum_loss",
+            "intake_status": "structured",
+            "demotivation_repair_decision": {
+              "skill_id": "demotivation_repair",
+              "intent": "loss_of_meaning",
+              "phase": "diagnose",
+              "motivation_state": "loss_of_meaning",
+              "action_readiness": "none",
+              "constraints": [
+                "no_potion",
+                "no_tool",
+                "no_plan_edit",
+                "one_question_max",
+                "short_reply",
+                "do_not_moralize",
+                "do_not_modify_plan_yet"
+              ],
+              "response_contract": {
+                "max_questions": 1,
+                "allow_plan_edit": false,
+                "allow_tool_suggestion": false,
+                "allow_potion_suggestion": false,
+                "allow_attack_card_suggestion": false,
+                "allow_concrete_action": true,
+                "tone": "grounded"
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [
+                {
+                  "source_text": "L'utilisateur ressent un 'gros blanc' devant son plan et a l'impression que ses initiatives finissent par s'éteindre systématiquement.",
+                  "should_persist_default": false,
+                  "anti_identity_freeze_checked": true,
+                  "sensitivity_level": 1,
+                  "reason": "Capture le sentiment de futilité actuel sans en faire un trait de caractère permanent."
+                }
+              ],
+              "reply": "Ce blanc est souvent une réaction quand l'esprit sature de relancer des efforts qui semblent ne pas tenir. On ne va rien forcer ni modifier pour l'instant. Est-ce que cette impression que tout s'éteint arrive dès le premier geste ou après quelques jours ?",
+              "state_patch": {
+                "diagnostic_focus": "momentum_loss"
+              }
+            }
+          }
+        }
+      },
+      "effect_ledger": {
+        "turn_id": "demotivation_repair_20260602_r2-t01",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 1,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": [
+          {
+            "effect_id": "demotivation_repair_20260602_r2-t01:agenda:proposed:opportunity:select_state_potion",
+            "kind": "platform_handoff",
+            "effect_type": "platform_handoff.select_state_potion",
+            "operation_type": "select_state_potion",
+            "operation_id": null,
+            "committed_id": null,
+            "tool_id": "state_potion_handoff",
+            "status": "proposed",
+            "reason_code": "skill_recommended_platform_action",
+            "source": "dispatcher",
+            "payload_summary": {
+              "task_id": "opportunity:select_state_potion",
+              "source": "dispatcher",
+              "evidence": [
+                "medium",
+                "user_feels_blank_and_stuck_before_action"
+              ],
+              "user_goal_summary": null,
+              "recommended_next_step": "open_platform_surface"
+            },
+            "db_ref": null,
+            "error_message": null,
+            "surface_id": "state_potions",
+            "no_chat_mutation": true,
+            "committed": false,
+            "executed_tool": false,
+            "owner": null,
+            "ambiguity_kind": null,
+            "selected_candidate_id": null
+          }
+        ]
+      },
+      "response_owner": "conversation_handler"
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "demotivation_repair_20260602_r2-t01",
+      "source_message_id": "eed04abc-c868-45f7-9f56-cdcad77ab635",
+      "user_id": "85c5cbc9-47f2-41a5-83e5-aa8c8073d7e4",
+      "channel": "web",
+      "safety": {
+        "risk_band": "low",
+        "reason_codes": [],
+        "evidence": [
+          "le user précise explicitement : pas une crise, pas de danger"
+        ]
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [
+          {
+            "signal": "system_misunderstanding",
+            "detected": false,
+            "weight": 3.5,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "explicit_stop_or_abandon",
+            "detected": false,
+            "weight": 2.5,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "anger_or_profanity",
+            "detected": false,
+            "weight": 2,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "repetition_or_correction",
+            "detected": false,
+            "weight": 1.5,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "typographic_intensity",
+            "detected": false,
+            "weight": 0.7,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "active_flow_pressure",
+            "detected": false,
+            "weight": 1,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "previous_risk",
+            "detected": false,
+            "weight": 10,
+            "contribution": 0,
+            "evidence": null
+          }
+        ],
+        "context_summary": null,
+        "flow_exit_context": null
+      },
+      "direct_effects": [],
+      "tool_skill_intents": [],
+      "tool_skill_opportunity": {
+        "type": "state_potion",
+        "operation_type": "select_state_potion",
+        "surface_id": "potion.state",
+        "suggested_question_intent": "offer_state_potion",
+        "confidence_band": "medium",
+        "should_offer": false,
+        "prop_reason": "user_feels_blank_and_stuck_before_action",
+        "source_span": "sens juste un gros blanc",
+        "target_hint": null,
+        "target_status": "none",
+        "offer_timing": "never",
+        "must_not_execute": true
+      },
+      "skill_signals": {
+        "entry": {
+          "demotivation_repair": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "user_expresses_futility_and_loss_of_momentum"
+          }
+        },
+        "lifecycle": {},
+        "exit": {}
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_fallback_disabled"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_fallback_disabled"
+      },
+      "memory_plan": {
+        "response_intent": "reflection",
+        "reasoning_complexity": "low",
+        "context_need": "targeted",
+        "memory_mode": "light",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "small",
+        "targets": [
+          {
+            "type": "domain_key",
+            "key": "psychologie.motivation",
+            "query_hint": "perte d'élan et sentiment d'extinction",
+            "expansion_policy": null,
+            "retrieval_policy": "taxonomy_first",
+            "priority": "medium",
+            "entity_type": null
+          },
+          {
+            "type": "domain_key",
+            "key": "habitudes.reprise_apres_echec",
+            "query_hint": "tout ce que je relance finit par s'eteindre",
+            "expansion_policy": null,
+            "retrieval_policy": "taxonomy_first",
+            "priority": "medium",
+            "entity_type": null
+          }
+        ],
+        "retrieval_policy": "semantic_first",
+        "plan_confidence": 0.7
+      },
+      "confirmation_response": null
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "conversation_handler",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "skill_entry_signal",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "active_flow_arbitration": {
+        "decision": "none",
+        "active_owner": "none",
+        "selected_owner": "none",
+        "resume_policy": "none",
+        "reason_code": "no_active_flow"
+      },
+      "selected_handler": "demotivation_repair"
+    },
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "state_potion_handoff"
+      ],
+      "operation_types": [
+        "select_state_potion"
+      ],
+      "constraints": {},
+      "tasks": [
+        {
+          "task_id": "opportunity:select_state_potion",
+          "kind": "platform_handoff",
+          "owner": "state_potion_handoff",
+          "operation_type": "select_state_potion",
+          "intent": "create",
+          "source": "dispatcher",
+          "status": "proposed",
+          "reason_code": "skill_recommended_platform_action"
+        }
+      ]
+    },
+    "skill_run": {
+      "selected_skill_id": "demotivation_repair",
+      "reason_code": "skill_entry_signal",
+      "output": {
+        "skill_id": "demotivation_repair",
+        "status": "continue",
+        "response_intent": "loss_of_meaning",
+        "memory_trace": {
+          "memory_used_for_response": false,
+          "memory_item_ids_used": [],
+          "correction_detected": false,
+          "correction_target_item_ids": []
+        },
+        "reply": "Ce blanc est souvent une réaction quand l'esprit sature de relancer des efforts qui semblent ne pas tenir. On ne va rien forcer ni modifier pour l'instant. Est-ce que cette impression que tout s'éteint arrive dès le premier geste ou après quelques jours ?",
+        "diagnosis": {
+          "intent": "loss_of_meaning",
+          "phase": "diagnose",
+          "motivation_state": "loss_of_meaning",
+          "action_readiness": "none",
+          "constraints": [
+            "no_potion",
+            "no_tool",
+            "no_plan_edit",
+            "one_question_max",
+            "short_reply",
+            "do_not_moralize",
+            "do_not_modify_plan_yet"
+          ],
+          "response_contract": {
+            "max_questions": 1,
+            "allow_plan_edit": false,
+            "allow_tool_suggestion": false,
+            "allow_potion_suggestion": false,
+            "allow_attack_card_suggestion": false,
+            "allow_concrete_action": true,
+            "tone": "grounded"
+          },
+          "intake_status": "structured"
+        },
+        "recommendation_need": {
+          "needed": false,
+          "type": "none",
+          "urgency": "none",
+          "constraints": [
+            "no_potion",
+            "no_tool",
+            "no_plan_edit",
+            "one_question_max",
+            "short_reply",
+            "do_not_moralize",
+            "do_not_modify_plan_yet"
+          ]
+        },
+        "operation_suggestions": [],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "content_text": "L'utilisateur ressent un 'gros blanc' devant son plan et a l'impression que ses initiatives finissent par s'éteindre systématiquement.",
+            "evidence_source_ids": [
+              "eed04abc-c868-45f7-9f56-cdcad77ab635"
+            ],
+            "confidence_band": "medium",
+            "sensitivity_level": 1,
+            "persistence_rationale": "Capture le sentiment de futilité actuel sans en faire un trait de caractère permanent.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true,
+            "scope_hint": "session"
+          }
+        ],
+        "effects": {
+          "requested": [
+            {
+              "type": "memory_write_candidate",
+              "kind": "statement",
+              "should_persist_default": false
+            }
+          ],
+          "allowed": [
+            {
+              "type": "memory_write_candidate",
+              "reason_code": "candidate_only_not_committed"
+            }
+          ],
+          "blocked": [],
+          "committed": []
+        },
+        "state_patch": {
+          "diagnostic_focus": "momentum_loss",
+          "intake_status": "structured",
+          "demotivation_repair_decision": {
+            "skill_id": "demotivation_repair",
+            "intent": "loss_of_meaning",
+            "phase": "diagnose",
+            "motivation_state": "loss_of_meaning",
+            "action_readiness": "none",
+            "constraints": [
+              "no_potion",
+              "no_tool",
+              "no_plan_edit",
+              "one_question_max",
+              "short_reply",
+              "do_not_moralize",
+              "do_not_modify_plan_yet"
+            ],
+            "response_contract": {
+              "max_questions": 1,
+              "allow_plan_edit": false,
+              "allow_tool_suggestion": false,
+              "allow_potion_suggestion": false,
+              "allow_attack_card_suggestion": false,
+              "allow_concrete_action": true,
+              "tone": "grounded"
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [
+              {
+                "source_text": "L'utilisateur ressent un 'gros blanc' devant son plan et a l'impression que ses initiatives finissent par s'éteindre systématiquement.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true,
+                "sensitivity_level": 1,
+                "reason": "Capture le sentiment de futilité actuel sans en faire un trait de caractère permanent."
+              }
+            ],
+            "reply": "Ce blanc est souvent une réaction quand l'esprit sature de relancer des efforts qui semblent ne pas tenir. On ne va rien forcer ni modifier pour l'instant. Est-ce que cette impression que tout s'éteint arrive dès le premier geste ou après quelques jours ?",
+            "state_patch": {
+              "diagnostic_focus": "momentum_loss"
+            }
+          }
+        }
+      }
+    },
+    "effect_ledger": {
+      "turn_id": "demotivation_repair_20260602_r2-t01",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 1,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": [
+        {
+          "effect_id": "demotivation_repair_20260602_r2-t01:agenda:proposed:opportunity:select_state_potion",
+          "kind": "platform_handoff",
+          "effect_type": "platform_handoff.select_state_potion",
+          "operation_type": "select_state_potion",
+          "operation_id": null,
+          "committed_id": null,
+          "tool_id": "state_potion_handoff",
+          "status": "proposed",
+          "reason_code": "skill_recommended_platform_action",
+          "source": "dispatcher",
+          "payload_summary": {
+            "task_id": "opportunity:select_state_potion",
+            "source": "dispatcher",
+            "evidence": [
+              "medium",
+              "user_feels_blank_and_stuck_before_action"
+            ],
+            "user_goal_summary": null,
+            "recommended_next_step": "open_platform_surface"
+          },
+          "db_ref": null,
+          "error_message": null,
+          "surface_id": "state_potions",
+          "no_chat_mutation": true,
+          "committed": false,
+          "executed_tool": false,
+          "owner": null,
+          "ambiguity_kind": null,
+          "selected_candidate_id": null
+        }
+      ]
+    },
+    "response_owner": "conversation_handler"
+  },
+  "trace_error": null
+}

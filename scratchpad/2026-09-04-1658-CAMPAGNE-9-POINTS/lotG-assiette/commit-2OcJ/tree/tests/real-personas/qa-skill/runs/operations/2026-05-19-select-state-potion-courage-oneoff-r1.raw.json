@@ -1,0 +1,38 @@
+[
+  {
+    "turn": 1,
+    "request_id": "2026-05-19-select-state-potion-courage-oneoff-r1-t01",
+    "user": "Sophia, je veux une potion de courage pour mon appel client de mercredi 20 mai 2026 à 10h. J'ai peur d'être jugé et la première marche c'est juste d'appuyer sur appeler puis dire la première phrase.",
+    "http_status": 504,
+    "body": {
+      "message": "The upstream server is timing out"
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "2026-05-19-select-state-potion-courage-oneoff-r1-t02",
+    "user": "Je relance : j'aimerais une potion de courage pour mon appel client mercredi 20 mai 2026 à 10h. Ce qui me bloque c'est le regard de l'autre ; mon premier pas, c'est appuyer sur appeler et dire la première phrase.",
+    "http_status": 504,
+    "body": {
+      "message": "The upstream server is timing out"
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "2026-05-19-select-state-potion-courage-oneoff-r1-t03",
+    "user": "Je retente : je veux une potion de courage pour l'appel client de mercredi 20 mai 2026 à 10h. Le blocage, c'est le regard de l'autre ; le premier pas, c'est appuyer sur appeler et dire ma première phrase.",
+    "http_status": 504,
+    "body": {
+      "message": "The upstream server is timing out"
+    }
+  },
+  {
+    "turn": 4,
+    "request_id": "2026-05-19-select-state-potion-courage-oneoff-r1-t04",
+    "user": "Après redémarrage du runtime local, je retente : je veux une potion de courage pour l'appel client de mercredi 20 mai 2026 à 10h. Le blocage, c'est le regard de l'autre ; le premier pas, c'est appuyer sur appeler et dire ma première phrase.",
+    "http_status": 504,
+    "body": {
+      "message": "The upstream server is timing out"
+    }
+  }
+]

@@ -1,0 +1,1715 @@
+{
+  "result": {
+    "runId": "daily-full-two-plans-20260612133925-r1",
+    "runDir": "/Users/ahmedamara/Dev/Sophia 2/tmp/daily-full-two-plans-20260612133925-r1",
+    "turns": [
+      {
+        "label": "t1",
+        "requestId": "daily-full-two-plans-20260612133925-r1-t1",
+        "userText": "Respiration calme : oui, j’ai fait cinq minutes. Papiers administratifs : oui aussi, j’ai rangé deux courriers dans le bon dossier.",
+        "http": {
+          "status": 200,
+          "body": {
+            "ok": true,
+            "request_id": "daily-full-two-plans-20260612133925-r1-t1"
+          }
+        },
+        "messages": [
+          {
+            "id": "63ae1446-1d7d-4899-a910-257eddf36a87",
+            "role": "user",
+            "content": "Respiration calme : oui, j’ai fait cinq minutes. Papiers administratifs : oui aussi, j’ai rangé deux courriers dans le bon dossier.",
+            "metadata": {
+              "channel": "whatsapp",
+              "wa_from": "+33698360907",
+              "wa_type": "text",
+              "request_id": "7ba8b2ee-79f2-492a-8d47-e59e9ecc4682",
+              "wa_message_id": "wamid_daily-full-two-plans-20260612133925-r1_t1",
+              "wa_profile_name": "Rose QA",
+              "wa_interactive_id": null,
+              "webhook_request_id": "daily-full-two-plans-20260612133925-r1-t1",
+              "wa_interactive_title": null,
+              "daily_action_review_v1": {
+                "stop_reason": "all_required_slots_filled",
+                "skill_status": "complete",
+                "occurrence_ids": [
+                  "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                  "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                ],
+                "pending_action_id": "6581fc5c-c472-47da-861c-c96069cfbcd9",
+                "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+                "structured_extraction_id": "6581fc5c-c472-47da-861c-c96069cfbcd9",
+                "structured_extraction_status": "complete"
+              },
+              "structured_extraction_id": "6581fc5c-c472-47da-861c-c96069cfbcd9",
+              "structured_extraction_source": "daily_action_review_v1"
+            },
+            "created_at": "2026-06-12T13:39:45.939927+00:00",
+            "scope": "whatsapp"
+          },
+          {
+            "id": "1bad3a65-553a-4387-8cb1-abde3689173d",
+            "role": "assistant",
+            "content": "[\n  \"Bravo pour tes cinq minutes de respiration et pour avoir classé ces deux courriers. Comment te sens-tu après avoir accompli cela ?\"\n]",
+            "metadata": {
+              "source": "daily_action_review",
+              "channel": "whatsapp",
+              "purpose": "action_evening_review",
+              "is_proactive": false,
+              "event_context": "action_evening_review_v2",
+              "outbound_tracking_id": "ce938248-9c7e-4b52-b56a-dc5cf51f4d94",
+              "wa_outbound_message_id": "wamid_DISABLED"
+            },
+            "created_at": "2026-06-12T13:40:00.856678+00:00",
+            "scope": "whatsapp"
+          }
+        ],
+        "pendingSnapshot": [
+          {
+            "id": "6581fc5c-c472-47da-861c-c96069cfbcd9",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "kind": "scheduled_checkin",
+            "status": "done",
+            "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+            "payload": {
+              "targets": [
+                {
+                  "kind": "task",
+                  "title": "Faire cinq minutes de respiration calme",
+                  "plan_id": "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+                  "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                  "dimension": "missions",
+                  "planned_day": "fri",
+                  "time_of_day": "anytime",
+                  "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                  "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                  "tracking_type": "boolean",
+                  "week_start_date": "2026-06-08",
+                  "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                  "reviewed_local_date": "2026-06-12",
+                  "original_planned_day": null
+                },
+                {
+                  "kind": "task",
+                  "title": "Ranger deux papiers administratifs",
+                  "plan_id": "a0f9667e-f702-42fe-86d5-df7f1ad29900",
+                  "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                  "dimension": "missions",
+                  "planned_day": "fri",
+                  "time_of_day": "anytime",
+                  "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                  "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                  "tracking_type": "boolean",
+                  "week_start_date": "2026-06-08",
+                  "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                  "reviewed_local_date": "2026-06-12",
+                  "original_planned_day": null
+                }
+              ],
+              "timezone": "Europe/Paris",
+              "local_date": "2026-06-12",
+              "completed_at": "2026-06-12T13:39:45.999Z",
+              "message_mode": "conversation",
+              "review_state": {
+                "items": {
+                  "36b79cb1-225e-412b-98c4-b9d8ff72a85c": {
+                    "title": "Faire cinq minutes de respiration calme",
+                    "outcome": "completed",
+                    "plan_id": "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+                    "confidence": "high",
+                    "plan_label": null,
+                    "action_type": "mission",
+                    "reason_text": null,
+                    "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                    "evidence_text": "j’ai fait cinq minutes",
+                    "missing_slots": [],
+                    "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                    "still_relevant": "unknown",
+                    "reason_category": "none",
+                    "matched_user_text": "Respiration calme : oui, j’ai fait cinq minutes."
+                  },
+                  "fd55b1ed-803a-4161-873c-8b696685a1f0": {
+                    "title": "Ranger deux papiers administratifs",
+                    "outcome": "completed",
+                    "plan_id": "a0f9667e-f702-42fe-86d5-df7f1ad29900",
+                    "confidence": "high",
+                    "plan_label": null,
+                    "action_type": "mission",
+                    "reason_text": null,
+                    "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                    "evidence_text": "j’ai rangé deux courriers dans le bon dossier",
+                    "missing_slots": [],
+                    "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                    "still_relevant": "unknown",
+                    "reason_category": "none",
+                    "matched_user_text": "Papiers administratifs : oui aussi, j’ai rangé deux courriers dans le bon dossier."
+                  }
+                },
+                "intent": "answer_review",
+                "source": "daily_action_review_v1",
+                "status": "complete",
+                "skill_id": "daily_action_review_v1",
+                "constraints": [
+                  "one_question_max",
+                  "no_solution_first",
+                  "no_tool_suggestion",
+                  "no_plan_adjustment",
+                  "no_potion",
+                  "no_guilt",
+                  "respect_user_stopped",
+                  "do_not_mark_without_evidence",
+                  "do_not_apply_without_complete_slots"
+                ],
+                "effect_plan": {
+                  "allowed": true,
+                  "effects": [
+                    {
+                      "type": "log_daily_action_review",
+                      "source": "daily_action_review_v1",
+                      "outcome": "completed",
+                      "reason_text": null,
+                      "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                      "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                      "still_relevant": null,
+                      "reason_category": "none"
+                    },
+                    {
+                      "type": "log_daily_action_review",
+                      "source": "daily_action_review_v1",
+                      "outcome": "completed",
+                      "reason_text": null,
+                      "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                      "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                      "still_relevant": null,
+                      "reason_category": "none"
+                    }
+                  ]
+                },
+                "stop_reason": "all_required_slots_filled",
+                "next_question": null,
+                "last_user_text": "Respiration calme : oui, j’ai fait cinq minutes. Papiers administratifs : oui aussi, j’ai rangé deux courriers dans le bon dossier.",
+                "should_apply_effects": true,
+                "next_question_targets": [],
+                "generated_user_message": null,
+                "remaining_occurrence_ids": [],
+                "asked_occurrence_ids_history": [
+                  [
+                    "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                    "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                  ]
+                ],
+                "current_focus_occurrence_ids": [
+                  "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                  "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                ],
+                "action_intelligence_by_occurrence_id": {}
+              },
+              "draft_message": "Tu en es où avec “Faire cinq minutes de respiration calme” et “Ranger deux papiers administratifs” aujourd’hui ?",
+              "event_context": "action_evening_review_v2",
+              "occurrence_ids": [
+                "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "fd55b1ed-803a-4161-873c-8b696685a1f0"
+              ],
+              "chat_capability": "daily_action_review",
+              "grouping_reason": "priority",
+              "week_start_date": "2026-06-08",
+              "asked_occurrence_ids": [
+                "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "fd55b1ed-803a-4161-873c-8b696685a1f0"
+              ],
+              "action_evening_review": true,
+              "missing_occurrence_ids": [],
+              "already_resolved_targets": [],
+              "initial_note_information": {
+                "evidence": [
+                  "event_context=action_evening_review_v2",
+                  "process-checkins selected and persisted daily review targets"
+                ],
+                "confidence": "high",
+                "risk_score": 0,
+                "source_flow": "process_checkins",
+                "handoff_reason": "bridge",
+                "source_flow_id": "process_checkins.action_evening_review_v2",
+                "collected_state": {
+                  "timezone": "Europe/Paris",
+                  "local_date": "2026-06-12",
+                  "event_context": "action_evening_review_v2",
+                  "target_titles": [
+                    "Faire cinq minutes de respiration calme",
+                    "Ranger deux papiers administratifs"
+                  ],
+                  "week_start_date": "2026-06-08",
+                  "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+                  "target_occurrence_ids": [
+                    "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                    "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                  ],
+                  "already_resolved_occurrence_ids": []
+                },
+                "no_chat_mutation": {
+                  "db_write_committed": false,
+                  "potion_session_created": false,
+                  "scheduled_checkin_created": false,
+                  "recurring_reminder_created": false,
+                  "executable_confirmation_generated": false
+                },
+                "target_dispatcher": "daily_action_review_v1",
+                "structured_context": {
+                  "targets": [
+                    {
+                      "kind": "task",
+                      "title": "Faire cinq minutes de respiration calme",
+                      "dimension": "missions",
+                      "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                      "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c"
+                    },
+                    {
+                      "kind": "task",
+                      "title": "Ranger deux papiers administratifs",
+                      "dimension": "missions",
+                      "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                      "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                    }
+                  ],
+                  "source_flow": "process_checkins",
+                  "event_context": "action_evening_review_v2",
+                  "chat_capability": "daily_action_review",
+                  "pending_action_kind": "scheduled_checkin"
+                },
+                "active_flow_summary": "System opened daily review for the selected action targets.",
+                "unresolved_questions": [
+                  "Which selected actions were completed, partial, or missed today.",
+                  "If partial or missed, the evidence/reason needed by the reducer."
+                ],
+                "user_message_summary": null,
+                "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+                "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+                "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+                "target_local_dispatcher_hint": "daily_action_review_v1",
+                "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+              },
+              "daily_review_effects_result": {
+                "failed_effects": [],
+                "committed_effects": [
+                  {
+                    "type": "log_daily_action_review",
+                    "source": "daily_action_review_v1",
+                    "outcome": "completed",
+                    "entry_id": "11639ca5-4c0e-4771-8984-370879ae5edb",
+                    "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                    "commit_status": "inserted",
+                    "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                    "reason_category": "none"
+                  },
+                  {
+                    "type": "log_daily_action_review",
+                    "source": "daily_action_review_v1",
+                    "outcome": "completed",
+                    "entry_id": "938045ae-5478-4bd1-9009-af1c6c1ffcf8",
+                    "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                    "commit_status": "inserted",
+                    "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                    "reason_category": "none"
+                  }
+                ]
+              },
+              "not_yet_asked_occurrence_ids": []
+            },
+            "expires_at": "2026-06-13T07:39:42.631+00:00",
+            "created_at": "2026-06-12T13:39:42.632591+00:00",
+            "processed_at": "2026-06-12T13:39:55.049+00:00",
+            "not_before": null
+          }
+        ]
+      },
+      {
+        "label": "postclose",
+        "requestId": "daily-full-two-plans-20260612133925-r1-postclose",
+        "userText": "Merci, c’est tout pour le daily. On reprend tranquillement demain.",
+        "http": {
+          "status": 200,
+          "body": {
+            "ok": true,
+            "request_id": "daily-full-two-plans-20260612133925-r1-postclose"
+          }
+        },
+        "messages": [
+          {
+            "id": "114422b4-f0d9-4f9f-90e8-59eb58127679",
+            "role": "user",
+            "content": "Merci, c’est tout pour le daily. On reprend tranquillement demain.",
+            "metadata": {
+              "channel": "whatsapp",
+              "wa_from": "+33698360907",
+              "wa_type": "text",
+              "request_id": "898287df-b939-4431-bef7-34cf87746403",
+              "wa_message_id": "wamid_daily-full-two-plans-20260612133925-r1_postclose",
+              "wa_profile_name": "Rose QA",
+              "wa_interactive_id": null,
+              "webhook_request_id": "daily-full-two-plans-20260612133925-r1-postclose",
+              "wa_interactive_title": null
+            },
+            "created_at": "2026-06-12T13:40:01.709327+00:00",
+            "scope": "whatsapp"
+          },
+          {
+            "id": "e7fcfb37-5bf9-45c7-8067-c373e911b195",
+            "role": "assistant",
+            "content": "Parfait, bravo d’avoir clôturé ton daily proprement 👌 Repose-toi et demain on repart sur la suite, sans pression. 😊\n\n<!--fil_rouge_whatsapp: Daily terminé aujourd’hui (respiration + papiers validés). Demain = reprise tranquille du plan, en gardant le cap discipline/action.-->",
+            "metadata": {
+              "channel": "whatsapp",
+              "purpose": "whatsapp_default_brain_reply",
+              "is_proactive": false,
+              "multi_message_count": 1,
+              "multi_message_index": 0,
+              "has_hidden_fil_rouge": false,
+              "outbound_tracking_id": "e464a0a5-5d8b-4095-b734-50006e90af98",
+              "reply_to_wa_message_id": "wamid_daily-full-two-plans-20260612133925-r1_postclose",
+              "wa_outbound_message_id": "wamid_DISABLED"
+            },
+            "created_at": "2026-06-12T13:40:06.081941+00:00",
+            "scope": "whatsapp"
+          }
+        ],
+        "pendingSnapshot": [
+          {
+            "id": "6581fc5c-c472-47da-861c-c96069cfbcd9",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "kind": "scheduled_checkin",
+            "status": "done",
+            "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+            "payload": {
+              "targets": [
+                {
+                  "kind": "task",
+                  "title": "Faire cinq minutes de respiration calme",
+                  "plan_id": "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+                  "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                  "dimension": "missions",
+                  "planned_day": "fri",
+                  "time_of_day": "anytime",
+                  "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                  "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                  "tracking_type": "boolean",
+                  "week_start_date": "2026-06-08",
+                  "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                  "reviewed_local_date": "2026-06-12",
+                  "original_planned_day": null
+                },
+                {
+                  "kind": "task",
+                  "title": "Ranger deux papiers administratifs",
+                  "plan_id": "a0f9667e-f702-42fe-86d5-df7f1ad29900",
+                  "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                  "dimension": "missions",
+                  "planned_day": "fri",
+                  "time_of_day": "anytime",
+                  "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                  "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                  "tracking_type": "boolean",
+                  "week_start_date": "2026-06-08",
+                  "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                  "reviewed_local_date": "2026-06-12",
+                  "original_planned_day": null
+                }
+              ],
+              "timezone": "Europe/Paris",
+              "local_date": "2026-06-12",
+              "completed_at": "2026-06-12T13:39:45.999Z",
+              "message_mode": "conversation",
+              "review_state": {
+                "items": {
+                  "36b79cb1-225e-412b-98c4-b9d8ff72a85c": {
+                    "title": "Faire cinq minutes de respiration calme",
+                    "outcome": "completed",
+                    "plan_id": "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+                    "confidence": "high",
+                    "plan_label": null,
+                    "action_type": "mission",
+                    "reason_text": null,
+                    "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                    "evidence_text": "j’ai fait cinq minutes",
+                    "missing_slots": [],
+                    "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                    "still_relevant": "unknown",
+                    "reason_category": "none",
+                    "matched_user_text": "Respiration calme : oui, j’ai fait cinq minutes."
+                  },
+                  "fd55b1ed-803a-4161-873c-8b696685a1f0": {
+                    "title": "Ranger deux papiers administratifs",
+                    "outcome": "completed",
+                    "plan_id": "a0f9667e-f702-42fe-86d5-df7f1ad29900",
+                    "confidence": "high",
+                    "plan_label": null,
+                    "action_type": "mission",
+                    "reason_text": null,
+                    "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                    "evidence_text": "j’ai rangé deux courriers dans le bon dossier",
+                    "missing_slots": [],
+                    "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                    "still_relevant": "unknown",
+                    "reason_category": "none",
+                    "matched_user_text": "Papiers administratifs : oui aussi, j’ai rangé deux courriers dans le bon dossier."
+                  }
+                },
+                "intent": "answer_review",
+                "source": "daily_action_review_v1",
+                "status": "complete",
+                "skill_id": "daily_action_review_v1",
+                "constraints": [
+                  "one_question_max",
+                  "no_solution_first",
+                  "no_tool_suggestion",
+                  "no_plan_adjustment",
+                  "no_potion",
+                  "no_guilt",
+                  "respect_user_stopped",
+                  "do_not_mark_without_evidence",
+                  "do_not_apply_without_complete_slots"
+                ],
+                "effect_plan": {
+                  "allowed": true,
+                  "effects": [
+                    {
+                      "type": "log_daily_action_review",
+                      "source": "daily_action_review_v1",
+                      "outcome": "completed",
+                      "reason_text": null,
+                      "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                      "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                      "still_relevant": null,
+                      "reason_category": "none"
+                    },
+                    {
+                      "type": "log_daily_action_review",
+                      "source": "daily_action_review_v1",
+                      "outcome": "completed",
+                      "reason_text": null,
+                      "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                      "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                      "still_relevant": null,
+                      "reason_category": "none"
+                    }
+                  ]
+                },
+                "stop_reason": "all_required_slots_filled",
+                "next_question": null,
+                "last_user_text": "Respiration calme : oui, j’ai fait cinq minutes. Papiers administratifs : oui aussi, j’ai rangé deux courriers dans le bon dossier.",
+                "should_apply_effects": true,
+                "next_question_targets": [],
+                "generated_user_message": null,
+                "remaining_occurrence_ids": [],
+                "asked_occurrence_ids_history": [
+                  [
+                    "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                    "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                  ]
+                ],
+                "current_focus_occurrence_ids": [
+                  "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                  "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                ],
+                "action_intelligence_by_occurrence_id": {}
+              },
+              "draft_message": "Tu en es où avec “Faire cinq minutes de respiration calme” et “Ranger deux papiers administratifs” aujourd’hui ?",
+              "event_context": "action_evening_review_v2",
+              "occurrence_ids": [
+                "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "fd55b1ed-803a-4161-873c-8b696685a1f0"
+              ],
+              "chat_capability": "daily_action_review",
+              "grouping_reason": "priority",
+              "week_start_date": "2026-06-08",
+              "asked_occurrence_ids": [
+                "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "fd55b1ed-803a-4161-873c-8b696685a1f0"
+              ],
+              "action_evening_review": true,
+              "missing_occurrence_ids": [],
+              "already_resolved_targets": [],
+              "initial_note_information": {
+                "evidence": [
+                  "event_context=action_evening_review_v2",
+                  "process-checkins selected and persisted daily review targets"
+                ],
+                "confidence": "high",
+                "risk_score": 0,
+                "source_flow": "process_checkins",
+                "handoff_reason": "bridge",
+                "source_flow_id": "process_checkins.action_evening_review_v2",
+                "collected_state": {
+                  "timezone": "Europe/Paris",
+                  "local_date": "2026-06-12",
+                  "event_context": "action_evening_review_v2",
+                  "target_titles": [
+                    "Faire cinq minutes de respiration calme",
+                    "Ranger deux papiers administratifs"
+                  ],
+                  "week_start_date": "2026-06-08",
+                  "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+                  "target_occurrence_ids": [
+                    "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                    "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                  ],
+                  "already_resolved_occurrence_ids": []
+                },
+                "no_chat_mutation": {
+                  "db_write_committed": false,
+                  "potion_session_created": false,
+                  "scheduled_checkin_created": false,
+                  "recurring_reminder_created": false,
+                  "executable_confirmation_generated": false
+                },
+                "target_dispatcher": "daily_action_review_v1",
+                "structured_context": {
+                  "targets": [
+                    {
+                      "kind": "task",
+                      "title": "Faire cinq minutes de respiration calme",
+                      "dimension": "missions",
+                      "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                      "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c"
+                    },
+                    {
+                      "kind": "task",
+                      "title": "Ranger deux papiers administratifs",
+                      "dimension": "missions",
+                      "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                      "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                    }
+                  ],
+                  "source_flow": "process_checkins",
+                  "event_context": "action_evening_review_v2",
+                  "chat_capability": "daily_action_review",
+                  "pending_action_kind": "scheduled_checkin"
+                },
+                "active_flow_summary": "System opened daily review for the selected action targets.",
+                "unresolved_questions": [
+                  "Which selected actions were completed, partial, or missed today.",
+                  "If partial or missed, the evidence/reason needed by the reducer."
+                ],
+                "user_message_summary": null,
+                "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+                "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+                "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+                "target_local_dispatcher_hint": "daily_action_review_v1",
+                "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+              },
+              "daily_review_effects_result": {
+                "failed_effects": [],
+                "committed_effects": [
+                  {
+                    "type": "log_daily_action_review",
+                    "source": "daily_action_review_v1",
+                    "outcome": "completed",
+                    "entry_id": "11639ca5-4c0e-4771-8984-370879ae5edb",
+                    "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                    "commit_status": "inserted",
+                    "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                    "reason_category": "none"
+                  },
+                  {
+                    "type": "log_daily_action_review",
+                    "source": "daily_action_review_v1",
+                    "outcome": "completed",
+                    "entry_id": "938045ae-5478-4bd1-9009-af1c6c1ffcf8",
+                    "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                    "commit_status": "inserted",
+                    "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                    "reason_category": "none"
+                  }
+                ]
+              },
+              "not_yet_asked_occurrence_ids": []
+            },
+            "expires_at": "2026-06-13T07:39:42.631+00:00",
+            "created_at": "2026-06-12T13:39:42.632591+00:00",
+            "processed_at": "2026-06-12T13:39:55.049+00:00",
+            "not_before": null
+          }
+        ]
+      }
+    ],
+    "errors": [],
+    "cleanup": null,
+    "opening": {
+      "processRes": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "processed": 1,
+          "flushed_deferred": 0,
+          "delivered_rendez_vous": 0,
+          "processed_access_notifications": 0,
+          "processed_proactive_candidates": 0,
+          "request_id": "daily-full-two-plans-20260612133925-r1-process"
+        }
+      },
+      "afterOpenCheckin": {
+        "id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "event_context": "action_evening_review_v2",
+        "draft_message": "Tu en es où avec “Faire cinq minutes de respiration calme” et “Ranger deux papiers administratifs” aujourd’hui ?",
+        "scheduled_for": "2026-06-12T13:38:25.833+00:00",
+        "status": "awaiting_user",
+        "created_at": "2026-06-12T13:39:25.833702+00:00",
+        "processed_at": "2026-06-12T13:39:42.636+00:00",
+        "message_mode": "dynamic",
+        "message_payload": {
+          "source": "qa_process_checkins_daily_full_two_plans",
+          "version": 2,
+          "weekday": "fri",
+          "timezone": "Europe/Paris",
+          "qa_run_id": "daily-full-two-plans-20260612133925-r1",
+          "local_date": "2026-06-12",
+          "plan_item_ids": [
+            "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+            "2c7dc879-a7db-44ca-906a-ac77c449e566"
+          ],
+          "occurrence_ids": [
+            "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+            "fd55b1ed-803a-4161-873c-8b696685a1f0"
+          ],
+          "transformations": [
+            {
+              "title": "QA Plan respiration",
+              "plan_id": "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526"
+            },
+            {
+              "title": "QA Plan administratif",
+              "plan_id": "a0f9667e-f702-42fe-86d5-df7f1ad29900",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526"
+            }
+          ],
+          "week_start_date": "2026-06-08",
+          "reviewed_local_date": "2026-06-12",
+          "selected_review_window": "qa_today_non_late_two_plans",
+          "evening_review_local_time": "20:30"
+        },
+        "origin": "action_review",
+        "delivery_attempt_count": 1,
+        "delivery_last_error": null,
+        "delivery_last_error_at": null,
+        "delivery_last_request_id": "3fc13db9-9724-48fc-9634-a8fc47c1dd14",
+        "recurring_reminder_id": null
+      },
+      "pendings": [
+        {
+          "id": "6581fc5c-c472-47da-861c-c96069cfbcd9",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "kind": "scheduled_checkin",
+          "status": "pending",
+          "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+          "payload": {
+            "targets": [
+              {
+                "kind": "task",
+                "title": "Faire cinq minutes de respiration calme",
+                "plan_id": "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+                "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                "dimension": "missions",
+                "planned_day": "fri",
+                "time_of_day": "anytime",
+                "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "tracking_type": "boolean",
+                "week_start_date": "2026-06-08",
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "reviewed_local_date": "2026-06-12",
+                "original_planned_day": null
+              },
+              {
+                "kind": "task",
+                "title": "Ranger deux papiers administratifs",
+                "plan_id": "a0f9667e-f702-42fe-86d5-df7f1ad29900",
+                "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                "dimension": "missions",
+                "planned_day": "fri",
+                "time_of_day": "anytime",
+                "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                "tracking_type": "boolean",
+                "week_start_date": "2026-06-08",
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "reviewed_local_date": "2026-06-12",
+                "original_planned_day": null
+              }
+            ],
+            "timezone": "Europe/Paris",
+            "local_date": "2026-06-12",
+            "message_mode": "conversation",
+            "review_state": {
+              "items": {
+                "36b79cb1-225e-412b-98c4-b9d8ff72a85c": {
+                  "title": "Faire cinq minutes de respiration calme",
+                  "outcome": null,
+                  "plan_id": "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+                  "confidence": "low",
+                  "plan_label": null,
+                  "action_type": "mission",
+                  "reason_text": null,
+                  "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                  "evidence_text": null,
+                  "missing_slots": [
+                    "outcome"
+                  ],
+                  "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                  "still_relevant": "unknown",
+                  "reason_category": null,
+                  "matched_user_text": null
+                },
+                "fd55b1ed-803a-4161-873c-8b696685a1f0": {
+                  "title": "Ranger deux papiers administratifs",
+                  "outcome": null,
+                  "plan_id": "a0f9667e-f702-42fe-86d5-df7f1ad29900",
+                  "confidence": "low",
+                  "plan_label": null,
+                  "action_type": "mission",
+                  "reason_text": null,
+                  "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                  "evidence_text": null,
+                  "missing_slots": [
+                    "outcome"
+                  ],
+                  "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                  "still_relevant": "unknown",
+                  "reason_category": null,
+                  "matched_user_text": null
+                }
+              },
+              "intent": "open_review",
+              "source": "daily_action_review_v1",
+              "status": "collecting",
+              "skill_id": "daily_action_review_v1",
+              "constraints": [
+                "one_question_max",
+                "no_solution_first",
+                "no_tool_suggestion",
+                "no_plan_adjustment",
+                "no_potion",
+                "no_guilt",
+                "respect_user_stopped",
+                "do_not_mark_without_evidence",
+                "do_not_apply_without_complete_slots"
+              ],
+              "effect_plan": {
+                "allowed": false,
+                "effects": []
+              },
+              "stop_reason": null,
+              "next_question": null,
+              "should_apply_effects": false,
+              "next_question_targets": [
+                "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "fd55b1ed-803a-4161-873c-8b696685a1f0"
+              ],
+              "generated_user_message": null,
+              "remaining_occurrence_ids": [],
+              "asked_occurrence_ids_history": [
+                [
+                  "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                  "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                ]
+              ],
+              "current_focus_occurrence_ids": [
+                "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "fd55b1ed-803a-4161-873c-8b696685a1f0"
+              ],
+              "action_intelligence_by_occurrence_id": {}
+            },
+            "draft_message": "Tu en es où avec “Faire cinq minutes de respiration calme” et “Ranger deux papiers administratifs” aujourd’hui ?",
+            "event_context": "action_evening_review_v2",
+            "occurrence_ids": [
+              "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+              "fd55b1ed-803a-4161-873c-8b696685a1f0"
+            ],
+            "chat_capability": "daily_action_review",
+            "grouping_reason": "priority",
+            "week_start_date": "2026-06-08",
+            "asked_occurrence_ids": [
+              "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+              "fd55b1ed-803a-4161-873c-8b696685a1f0"
+            ],
+            "action_evening_review": true,
+            "already_resolved_targets": [],
+            "initial_note_information": {
+              "evidence": [
+                "event_context=action_evening_review_v2",
+                "process-checkins selected and persisted daily review targets"
+              ],
+              "confidence": "high",
+              "risk_score": 0,
+              "source_flow": "process_checkins",
+              "handoff_reason": "bridge",
+              "source_flow_id": "process_checkins.action_evening_review_v2",
+              "collected_state": {
+                "timezone": "Europe/Paris",
+                "local_date": "2026-06-12",
+                "event_context": "action_evening_review_v2",
+                "target_titles": [
+                  "Faire cinq minutes de respiration calme",
+                  "Ranger deux papiers administratifs"
+                ],
+                "week_start_date": "2026-06-08",
+                "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+                "target_occurrence_ids": [
+                  "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                  "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                ],
+                "already_resolved_occurrence_ids": []
+              },
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              },
+              "target_dispatcher": "daily_action_review_v1",
+              "structured_context": {
+                "targets": [
+                  {
+                    "kind": "task",
+                    "title": "Faire cinq minutes de respiration calme",
+                    "dimension": "missions",
+                    "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                    "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c"
+                  },
+                  {
+                    "kind": "task",
+                    "title": "Ranger deux papiers administratifs",
+                    "dimension": "missions",
+                    "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                    "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                  }
+                ],
+                "source_flow": "process_checkins",
+                "event_context": "action_evening_review_v2",
+                "chat_capability": "daily_action_review",
+                "pending_action_kind": "scheduled_checkin"
+              },
+              "active_flow_summary": "System opened daily review for the selected action targets.",
+              "unresolved_questions": [
+                "Which selected actions were completed, partial, or missed today.",
+                "If partial or missed, the evidence/reason needed by the reducer."
+              ],
+              "user_message_summary": null,
+              "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+              "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+              "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+              "target_local_dispatcher_hint": "daily_action_review_v1",
+              "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+            },
+            "not_yet_asked_occurrence_ids": []
+          },
+          "expires_at": "2026-06-13T07:39:42.631+00:00",
+          "created_at": "2026-06-12T13:39:42.632591+00:00",
+          "processed_at": null,
+          "not_before": null
+        }
+      ],
+      "openMsgs": [
+        {
+          "id": "a00fd695-8b19-4f38-8b3b-ba55f244fd6d",
+          "role": "assistant",
+          "content": "Tu en es où avec “Faire cinq minutes de respiration calme” et “Ranger deux papiers administratifs” aujourd’hui ?",
+          "metadata": {
+            "to": "+33698360907",
+            "source": "scheduled_checkin",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "request_id": "3fc13db9-9724-48fc-9634-a8fc47c1dd14",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "plan_item_ids": [
+              "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+              "2c7dc879-a7db-44ca-906a-ac77c449e566"
+            ],
+            "occurrence_ids": [
+              "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+              "fd55b1ed-803a-4161-873c-8b696685a1f0"
+            ],
+            "require_opted_in": true,
+            "whatsapp_buttons": [],
+            "whatsapp_template": null,
+            "simulated_whatsapp": true,
+            "original_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+            "outbound_tracking_id": "65f082b4-fe43-49da-84b6-91b350c95f43",
+            "wa_outbound_message_id": "wamid_WEB_SIM_3fc13db9-9724-48fc-9634-a8fc47c1dd14",
+            "simulation_bypassed_phone": false,
+            "simulation_bypassed_opt_in": null,
+            "already_resolved_occurrence_ids": []
+          },
+          "created_at": "2026-06-12T13:39:42.624064+00:00",
+          "scope": "whatsapp"
+        }
+      ]
+    },
+    "afterDaily": {
+      "pending": {
+        "id": "6581fc5c-c472-47da-861c-c96069cfbcd9",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "kind": "scheduled_checkin",
+        "status": "done",
+        "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+        "payload": {
+          "targets": [
+            {
+              "kind": "task",
+              "title": "Faire cinq minutes de respiration calme",
+              "plan_id": "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "missions",
+              "planned_day": "fri",
+              "time_of_day": "anytime",
+              "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+              "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-08",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-12",
+              "original_planned_day": null
+            },
+            {
+              "kind": "task",
+              "title": "Ranger deux papiers administratifs",
+              "plan_id": "a0f9667e-f702-42fe-86d5-df7f1ad29900",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "missions",
+              "planned_day": "fri",
+              "time_of_day": "anytime",
+              "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+              "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-06-08",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-06-12",
+              "original_planned_day": null
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "local_date": "2026-06-12",
+          "completed_at": "2026-06-12T13:39:45.999Z",
+          "message_mode": "conversation",
+          "review_state": {
+            "items": {
+              "36b79cb1-225e-412b-98c4-b9d8ff72a85c": {
+                "title": "Faire cinq minutes de respiration calme",
+                "outcome": "completed",
+                "plan_id": "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": null,
+                "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                "evidence_text": "j’ai fait cinq minutes",
+                "missing_slots": [],
+                "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": "Respiration calme : oui, j’ai fait cinq minutes."
+              },
+              "fd55b1ed-803a-4161-873c-8b696685a1f0": {
+                "title": "Ranger deux papiers administratifs",
+                "outcome": "completed",
+                "plan_id": "a0f9667e-f702-42fe-86d5-df7f1ad29900",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": null,
+                "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                "evidence_text": "j’ai rangé deux courriers dans le bon dossier",
+                "missing_slots": [],
+                "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": "Papiers administratifs : oui aussi, j’ai rangé deux courriers dans le bon dossier."
+              }
+            },
+            "intent": "answer_review",
+            "source": "daily_action_review_v1",
+            "status": "complete",
+            "skill_id": "daily_action_review_v1",
+            "constraints": [
+              "one_question_max",
+              "no_solution_first",
+              "no_tool_suggestion",
+              "no_plan_adjustment",
+              "no_potion",
+              "no_guilt",
+              "respect_user_stopped",
+              "do_not_mark_without_evidence",
+              "do_not_apply_without_complete_slots"
+            ],
+            "effect_plan": {
+              "allowed": true,
+              "effects": [
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                  "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                  "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                }
+              ]
+            },
+            "stop_reason": "all_required_slots_filled",
+            "next_question": null,
+            "last_user_text": "Respiration calme : oui, j’ai fait cinq minutes. Papiers administratifs : oui aussi, j’ai rangé deux courriers dans le bon dossier.",
+            "should_apply_effects": true,
+            "next_question_targets": [],
+            "generated_user_message": null,
+            "remaining_occurrence_ids": [],
+            "asked_occurrence_ids_history": [
+              [
+                "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "fd55b1ed-803a-4161-873c-8b696685a1f0"
+              ]
+            ],
+            "current_focus_occurrence_ids": [
+              "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+              "fd55b1ed-803a-4161-873c-8b696685a1f0"
+            ],
+            "action_intelligence_by_occurrence_id": {}
+          },
+          "draft_message": "Tu en es où avec “Faire cinq minutes de respiration calme” et “Ranger deux papiers administratifs” aujourd’hui ?",
+          "event_context": "action_evening_review_v2",
+          "occurrence_ids": [
+            "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+            "fd55b1ed-803a-4161-873c-8b696685a1f0"
+          ],
+          "chat_capability": "daily_action_review",
+          "grouping_reason": "priority",
+          "week_start_date": "2026-06-08",
+          "asked_occurrence_ids": [
+            "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+            "fd55b1ed-803a-4161-873c-8b696685a1f0"
+          ],
+          "action_evening_review": true,
+          "missing_occurrence_ids": [],
+          "already_resolved_targets": [],
+          "initial_note_information": {
+            "evidence": [
+              "event_context=action_evening_review_v2",
+              "process-checkins selected and persisted daily review targets"
+            ],
+            "confidence": "high",
+            "risk_score": 0,
+            "source_flow": "process_checkins",
+            "handoff_reason": "bridge",
+            "source_flow_id": "process_checkins.action_evening_review_v2",
+            "collected_state": {
+              "timezone": "Europe/Paris",
+              "local_date": "2026-06-12",
+              "event_context": "action_evening_review_v2",
+              "target_titles": [
+                "Faire cinq minutes de respiration calme",
+                "Ranger deux papiers administratifs"
+              ],
+              "week_start_date": "2026-06-08",
+              "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+              "target_occurrence_ids": [
+                "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "fd55b1ed-803a-4161-873c-8b696685a1f0"
+              ],
+              "already_resolved_occurrence_ids": []
+            },
+            "no_chat_mutation": {
+              "db_write_committed": false,
+              "potion_session_created": false,
+              "scheduled_checkin_created": false,
+              "recurring_reminder_created": false,
+              "executable_confirmation_generated": false
+            },
+            "target_dispatcher": "daily_action_review_v1",
+            "structured_context": {
+              "targets": [
+                {
+                  "kind": "task",
+                  "title": "Faire cinq minutes de respiration calme",
+                  "dimension": "missions",
+                  "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                  "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c"
+                },
+                {
+                  "kind": "task",
+                  "title": "Ranger deux papiers administratifs",
+                  "dimension": "missions",
+                  "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                  "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                }
+              ],
+              "source_flow": "process_checkins",
+              "event_context": "action_evening_review_v2",
+              "chat_capability": "daily_action_review",
+              "pending_action_kind": "scheduled_checkin"
+            },
+            "active_flow_summary": "System opened daily review for the selected action targets.",
+            "unresolved_questions": [
+              "Which selected actions were completed, partial, or missed today.",
+              "If partial or missed, the evidence/reason needed by the reducer."
+            ],
+            "user_message_summary": null,
+            "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+            "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+            "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+            "target_local_dispatcher_hint": "daily_action_review_v1",
+            "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+          },
+          "daily_review_effects_result": {
+            "failed_effects": [],
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "11639ca5-4c0e-4771-8984-370879ae5edb",
+                "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                "commit_status": "inserted",
+                "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "938045ae-5478-4bd1-9009-af1c6c1ffcf8",
+                "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                "commit_status": "inserted",
+                "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "not_yet_asked_occurrence_ids": []
+        },
+        "expires_at": "2026-06-13T07:39:42.631+00:00",
+        "created_at": "2026-06-12T13:39:42.632591+00:00",
+        "processed_at": "2026-06-12T13:39:55.049+00:00",
+        "not_before": null
+      },
+      "entries": [
+        {
+          "id": "11639ca5-4c0e-4771-8984-370879ae5edb",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "plan_id": "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+          "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+          "entry_kind": "checkin",
+          "outcome": "completed",
+          "value_numeric": null,
+          "value_text": null,
+          "difficulty_level": null,
+          "blocker_hint": null,
+          "created_at": "2026-06-12T13:39:45.999+00:00",
+          "effective_at": "2026-06-12T12:00:00+00:00",
+          "metadata": {
+            "source": "daily_action_review_v1",
+            "channel": "whatsapp",
+            "action_id": null,
+            "dimension": "missions",
+            "confidence": "high",
+            "local_date": "2026-06-12",
+            "reason_text": null,
+            "evidence_text": "j’ai fait cinq minutes",
+            "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+            "daily_decision": "completed",
+            "outcome_source": "free_text",
+            "rescheduled_to": null,
+            "still_relevant": null,
+            "reason_category": "none",
+            "matched_user_text": "Respiration calme : oui, j’ai fait cinq minutes.",
+            "occurrence_status": "done",
+            "pending_action_id": "6581fc5c-c472-47da-861c-c96069cfbcd9",
+            "reschedule_decision": null,
+            "completed_part_label": null,
+            "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+            "source_event_context": "action_evening_review_v2",
+            "continuation_planned_day": null,
+            "continuation_plan_item_id": null,
+            "continuation_occurrence_id": null,
+            "continuation_cards_decision": null
+          }
+        },
+        {
+          "id": "938045ae-5478-4bd1-9009-af1c6c1ffcf8",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "plan_id": "a0f9667e-f702-42fe-86d5-df7f1ad29900",
+          "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+          "entry_kind": "checkin",
+          "outcome": "completed",
+          "value_numeric": null,
+          "value_text": null,
+          "difficulty_level": null,
+          "blocker_hint": null,
+          "created_at": "2026-06-12T13:39:45.999+00:00",
+          "effective_at": "2026-06-12T12:00:00+00:00",
+          "metadata": {
+            "source": "daily_action_review_v1",
+            "channel": "whatsapp",
+            "action_id": null,
+            "dimension": "missions",
+            "confidence": "high",
+            "local_date": "2026-06-12",
+            "reason_text": null,
+            "evidence_text": "j’ai rangé deux courriers dans le bon dossier",
+            "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+            "daily_decision": "completed",
+            "outcome_source": "free_text",
+            "rescheduled_to": null,
+            "still_relevant": null,
+            "reason_category": "none",
+            "matched_user_text": "Papiers administratifs : oui aussi, j’ai rangé deux courriers dans le bon dossier.",
+            "occurrence_status": "done",
+            "pending_action_id": "6581fc5c-c472-47da-861c-c96069cfbcd9",
+            "reschedule_decision": null,
+            "completed_part_label": null,
+            "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+            "source_event_context": "action_evening_review_v2",
+            "continuation_planned_day": null,
+            "continuation_plan_item_id": null,
+            "continuation_occurrence_id": null,
+            "continuation_cards_decision": null
+          }
+        }
+      ],
+      "occurrences": [
+        {
+          "id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+          "status": "done",
+          "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83"
+        },
+        {
+          "id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+          "status": "done",
+          "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566"
+        }
+      ]
+    },
+    "afterPostClose": {
+      "pending": [
+        {
+          "id": "6581fc5c-c472-47da-861c-c96069cfbcd9",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "kind": "scheduled_checkin",
+          "status": "done",
+          "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+          "payload": {
+            "targets": [
+              {
+                "kind": "task",
+                "title": "Faire cinq minutes de respiration calme",
+                "plan_id": "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+                "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                "dimension": "missions",
+                "planned_day": "fri",
+                "time_of_day": "anytime",
+                "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "tracking_type": "boolean",
+                "week_start_date": "2026-06-08",
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "reviewed_local_date": "2026-06-12",
+                "original_planned_day": null
+              },
+              {
+                "kind": "task",
+                "title": "Ranger deux papiers administratifs",
+                "plan_id": "a0f9667e-f702-42fe-86d5-df7f1ad29900",
+                "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                "dimension": "missions",
+                "planned_day": "fri",
+                "time_of_day": "anytime",
+                "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                "tracking_type": "boolean",
+                "week_start_date": "2026-06-08",
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "reviewed_local_date": "2026-06-12",
+                "original_planned_day": null
+              }
+            ],
+            "timezone": "Europe/Paris",
+            "local_date": "2026-06-12",
+            "completed_at": "2026-06-12T13:39:45.999Z",
+            "message_mode": "conversation",
+            "review_state": {
+              "items": {
+                "36b79cb1-225e-412b-98c4-b9d8ff72a85c": {
+                  "title": "Faire cinq minutes de respiration calme",
+                  "outcome": "completed",
+                  "plan_id": "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+                  "confidence": "high",
+                  "plan_label": null,
+                  "action_type": "mission",
+                  "reason_text": null,
+                  "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                  "evidence_text": "j’ai fait cinq minutes",
+                  "missing_slots": [],
+                  "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                  "still_relevant": "unknown",
+                  "reason_category": "none",
+                  "matched_user_text": "Respiration calme : oui, j’ai fait cinq minutes."
+                },
+                "fd55b1ed-803a-4161-873c-8b696685a1f0": {
+                  "title": "Ranger deux papiers administratifs",
+                  "outcome": "completed",
+                  "plan_id": "a0f9667e-f702-42fe-86d5-df7f1ad29900",
+                  "confidence": "high",
+                  "plan_label": null,
+                  "action_type": "mission",
+                  "reason_text": null,
+                  "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                  "evidence_text": "j’ai rangé deux courriers dans le bon dossier",
+                  "missing_slots": [],
+                  "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                  "still_relevant": "unknown",
+                  "reason_category": "none",
+                  "matched_user_text": "Papiers administratifs : oui aussi, j’ai rangé deux courriers dans le bon dossier."
+                }
+              },
+              "intent": "answer_review",
+              "source": "daily_action_review_v1",
+              "status": "complete",
+              "skill_id": "daily_action_review_v1",
+              "constraints": [
+                "one_question_max",
+                "no_solution_first",
+                "no_tool_suggestion",
+                "no_plan_adjustment",
+                "no_potion",
+                "no_guilt",
+                "respect_user_stopped",
+                "do_not_mark_without_evidence",
+                "do_not_apply_without_complete_slots"
+              ],
+              "effect_plan": {
+                "allowed": true,
+                "effects": [
+                  {
+                    "type": "log_daily_action_review",
+                    "source": "daily_action_review_v1",
+                    "outcome": "completed",
+                    "reason_text": null,
+                    "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                    "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                    "still_relevant": null,
+                    "reason_category": "none"
+                  },
+                  {
+                    "type": "log_daily_action_review",
+                    "source": "daily_action_review_v1",
+                    "outcome": "completed",
+                    "reason_text": null,
+                    "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                    "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                    "still_relevant": null,
+                    "reason_category": "none"
+                  }
+                ]
+              },
+              "stop_reason": "all_required_slots_filled",
+              "next_question": null,
+              "last_user_text": "Respiration calme : oui, j’ai fait cinq minutes. Papiers administratifs : oui aussi, j’ai rangé deux courriers dans le bon dossier.",
+              "should_apply_effects": true,
+              "next_question_targets": [],
+              "generated_user_message": null,
+              "remaining_occurrence_ids": [],
+              "asked_occurrence_ids_history": [
+                [
+                  "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                  "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                ]
+              ],
+              "current_focus_occurrence_ids": [
+                "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "fd55b1ed-803a-4161-873c-8b696685a1f0"
+              ],
+              "action_intelligence_by_occurrence_id": {}
+            },
+            "draft_message": "Tu en es où avec “Faire cinq minutes de respiration calme” et “Ranger deux papiers administratifs” aujourd’hui ?",
+            "event_context": "action_evening_review_v2",
+            "occurrence_ids": [
+              "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+              "fd55b1ed-803a-4161-873c-8b696685a1f0"
+            ],
+            "chat_capability": "daily_action_review",
+            "grouping_reason": "priority",
+            "week_start_date": "2026-06-08",
+            "asked_occurrence_ids": [
+              "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+              "fd55b1ed-803a-4161-873c-8b696685a1f0"
+            ],
+            "action_evening_review": true,
+            "missing_occurrence_ids": [],
+            "already_resolved_targets": [],
+            "initial_note_information": {
+              "evidence": [
+                "event_context=action_evening_review_v2",
+                "process-checkins selected and persisted daily review targets"
+              ],
+              "confidence": "high",
+              "risk_score": 0,
+              "source_flow": "process_checkins",
+              "handoff_reason": "bridge",
+              "source_flow_id": "process_checkins.action_evening_review_v2",
+              "collected_state": {
+                "timezone": "Europe/Paris",
+                "local_date": "2026-06-12",
+                "event_context": "action_evening_review_v2",
+                "target_titles": [
+                  "Faire cinq minutes de respiration calme",
+                  "Ranger deux papiers administratifs"
+                ],
+                "week_start_date": "2026-06-08",
+                "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+                "target_occurrence_ids": [
+                  "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                  "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                ],
+                "already_resolved_occurrence_ids": []
+              },
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              },
+              "target_dispatcher": "daily_action_review_v1",
+              "structured_context": {
+                "targets": [
+                  {
+                    "kind": "task",
+                    "title": "Faire cinq minutes de respiration calme",
+                    "dimension": "missions",
+                    "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                    "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c"
+                  },
+                  {
+                    "kind": "task",
+                    "title": "Ranger deux papiers administratifs",
+                    "dimension": "missions",
+                    "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                    "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0"
+                  }
+                ],
+                "source_flow": "process_checkins",
+                "event_context": "action_evening_review_v2",
+                "chat_capability": "daily_action_review",
+                "pending_action_kind": "scheduled_checkin"
+              },
+              "active_flow_summary": "System opened daily review for the selected action targets.",
+              "unresolved_questions": [
+                "Which selected actions were completed, partial, or missed today.",
+                "If partial or missed, the evidence/reason needed by the reducer."
+              ],
+              "user_message_summary": null,
+              "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+              "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+              "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+              "target_local_dispatcher_hint": "daily_action_review_v1",
+              "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+            },
+            "daily_review_effects_result": {
+              "failed_effects": [],
+              "committed_effects": [
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "entry_id": "11639ca5-4c0e-4771-8984-370879ae5edb",
+                  "plan_item_id": "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+                  "commit_status": "inserted",
+                  "occurrence_id": "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "entry_id": "938045ae-5478-4bd1-9009-af1c6c1ffcf8",
+                  "plan_item_id": "2c7dc879-a7db-44ca-906a-ac77c449e566",
+                  "commit_status": "inserted",
+                  "occurrence_id": "fd55b1ed-803a-4161-873c-8b696685a1f0",
+                  "reason_category": "none"
+                }
+              ]
+            },
+            "not_yet_asked_occurrence_ids": []
+          },
+          "expires_at": "2026-06-13T07:39:42.631+00:00",
+          "created_at": "2026-06-12T13:39:42.632591+00:00",
+          "processed_at": "2026-06-12T13:39:55.049+00:00",
+          "not_before": null
+        }
+      ],
+      "messages": [
+        {
+          "id": "a00fd695-8b19-4f38-8b3b-ba55f244fd6d",
+          "role": "assistant",
+          "content": "Tu en es où avec “Faire cinq minutes de respiration calme” et “Ranger deux papiers administratifs” aujourd’hui ?",
+          "metadata": {
+            "to": "+33698360907",
+            "source": "scheduled_checkin",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "request_id": "3fc13db9-9724-48fc-9634-a8fc47c1dd14",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "plan_item_ids": [
+              "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+              "2c7dc879-a7db-44ca-906a-ac77c449e566"
+            ],
+            "occurrence_ids": [
+              "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+              "fd55b1ed-803a-4161-873c-8b696685a1f0"
+            ],
+            "require_opted_in": true,
+            "whatsapp_buttons": [],
+            "whatsapp_template": null,
+            "simulated_whatsapp": true,
+            "original_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+            "outbound_tracking_id": "65f082b4-fe43-49da-84b6-91b350c95f43",
+            "wa_outbound_message_id": "wamid_WEB_SIM_3fc13db9-9724-48fc-9634-a8fc47c1dd14",
+            "simulation_bypassed_phone": false,
+            "simulation_bypassed_opt_in": null,
+            "already_resolved_occurrence_ids": []
+          },
+          "created_at": "2026-06-12T13:39:42.624064+00:00",
+          "scope": "whatsapp"
+        },
+        {
+          "id": "63ae1446-1d7d-4899-a910-257eddf36a87",
+          "role": "user",
+          "content": "Respiration calme : oui, j’ai fait cinq minutes. Papiers administratifs : oui aussi, j’ai rangé deux courriers dans le bon dossier.",
+          "metadata": {
+            "channel": "whatsapp",
+            "wa_from": "+33698360907",
+            "wa_type": "text",
+            "request_id": "7ba8b2ee-79f2-492a-8d47-e59e9ecc4682",
+            "wa_message_id": "wamid_daily-full-two-plans-20260612133925-r1_t1",
+            "wa_profile_name": "Rose QA",
+            "wa_interactive_id": null,
+            "webhook_request_id": "daily-full-two-plans-20260612133925-r1-t1",
+            "wa_interactive_title": null,
+            "daily_action_review_v1": {
+              "stop_reason": "all_required_slots_filled",
+              "skill_status": "complete",
+              "occurrence_ids": [
+                "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+                "fd55b1ed-803a-4161-873c-8b696685a1f0"
+              ],
+              "pending_action_id": "6581fc5c-c472-47da-861c-c96069cfbcd9",
+              "scheduled_checkin_id": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+              "structured_extraction_id": "6581fc5c-c472-47da-861c-c96069cfbcd9",
+              "structured_extraction_status": "complete"
+            },
+            "structured_extraction_id": "6581fc5c-c472-47da-861c-c96069cfbcd9",
+            "structured_extraction_source": "daily_action_review_v1"
+          },
+          "created_at": "2026-06-12T13:39:45.939927+00:00",
+          "scope": "whatsapp"
+        },
+        {
+          "id": "1bad3a65-553a-4387-8cb1-abde3689173d",
+          "role": "assistant",
+          "content": "[\n  \"Bravo pour tes cinq minutes de respiration et pour avoir classé ces deux courriers. Comment te sens-tu après avoir accompli cela ?\"\n]",
+          "metadata": {
+            "source": "daily_action_review",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "ce938248-9c7e-4b52-b56a-dc5cf51f4d94",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          },
+          "created_at": "2026-06-12T13:40:00.856678+00:00",
+          "scope": "whatsapp"
+        },
+        {
+          "id": "114422b4-f0d9-4f9f-90e8-59eb58127679",
+          "role": "user",
+          "content": "Merci, c’est tout pour le daily. On reprend tranquillement demain.",
+          "metadata": {
+            "channel": "whatsapp",
+            "wa_from": "+33698360907",
+            "wa_type": "text",
+            "request_id": "898287df-b939-4431-bef7-34cf87746403",
+            "wa_message_id": "wamid_daily-full-two-plans-20260612133925-r1_postclose",
+            "wa_profile_name": "Rose QA",
+            "wa_interactive_id": null,
+            "webhook_request_id": "daily-full-two-plans-20260612133925-r1-postclose",
+            "wa_interactive_title": null
+          },
+          "created_at": "2026-06-12T13:40:01.709327+00:00",
+          "scope": "whatsapp"
+        },
+        {
+          "id": "e7fcfb37-5bf9-45c7-8067-c373e911b195",
+          "role": "assistant",
+          "content": "Parfait, bravo d’avoir clôturé ton daily proprement 👌 Repose-toi et demain on repart sur la suite, sans pression. 😊\n\n<!--fil_rouge_whatsapp: Daily terminé aujourd’hui (respiration + papiers validés). Demain = reprise tranquille du plan, en gardant le cap discipline/action.-->",
+          "metadata": {
+            "channel": "whatsapp",
+            "purpose": "whatsapp_default_brain_reply",
+            "is_proactive": false,
+            "multi_message_count": 1,
+            "multi_message_index": 0,
+            "has_hidden_fil_rouge": false,
+            "outbound_tracking_id": "e464a0a5-5d8b-4095-b734-50006e90af98",
+            "reply_to_wa_message_id": "wamid_daily-full-two-plans-20260612133925-r1_postclose",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          },
+          "created_at": "2026-06-12T13:40:06.081941+00:00",
+          "scope": "whatsapp"
+        }
+      ]
+    },
+    "logs": "[Info] [process-checkins] request_id=daily-full-two-plans-20260612133925-r1-process due_checkins=1\n[Info] {\"tag\":\"openai_http\",\"request_id\":\"daily-full-two-plans-20260612133925-r1-process\",\"source\":\"scheduled_checkins:dynamic_whatsapp\",\"model\":\"gpt-5.2\",\"status\":200,\"ok\":true,\"duration_ms\":15557,\"timeout_ms\":240000,\"attempt\":1,\"chain_index\":0}\n[Info] {\"tag\":\"openai_result\",\"request_id\":\"daily-full-two-plans-20260612133925-r1-process\",\"source\":\"scheduled_checkins:dynamic_whatsapp\",\"model\":\"gpt-5.2\",\"json_mode\":false,\"tool_choice\":\"auto\",\"has_tools\":false,\"outcome\":\"text\",\"attempt\":1,\"chain_index\":0}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":null,\"phase\":\"request_start\",\"elapsed_ms\":1,\"method\":\"POST\",\"pathname\":\"/whatsapp-webhook\",\"transport\":\"loopback\",\"loopback\":true}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":null,\"phase\":\"before_signature_verification\",\"elapsed_ms\":1}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":null,\"phase\":\"after_signature_verification\",\"elapsed_ms\":2,\"signature_ok\":true,\"payload_bytes\":689}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":null,\"phase\":\"payload_parsed\",\"elapsed_ms\":5,\"inbound_count\":1,\"statuses_count\":0}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":null,\"phase\":\"before_get_admin_client\",\"elapsed_ms\":5}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":null,\"phase\":\"after_get_admin_client\",\"elapsed_ms\":13}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":\"7ba8b2ee-79f2-492a-8d47-e59e9ecc4682\",\"phase\":\"message_start\",\"elapsed_ms\":0,\"wa_message_id\":\"wamid_daily-full-two-plans-20260612133925-r1_t1\",\"wa_type\":\"text\"}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":\"7ba8b2ee-79f2-492a-8d47-e59e9ecc4682\",\"phase\":\"before_profile_lookup\",\"elapsed_ms\":1}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":\"7ba8b2ee-79f2-492a-8d47-e59e9ecc4682\",\"phase\":\"after_profile_lookup\",\"elapsed_ms\":37,\"candidates_count\":1}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":\"7ba8b2ee-79f2-492a-8d47-e59e9ecc4682\",\"phase\":\"before_dedup_insert\",\"elapsed_ms\":37}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":\"7ba8b2ee-79f2-492a-8d47-e59e9ecc4682\",\"phase\":\"after_dedup_insert\",\"elapsed_ms\":62}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":\"7ba8b2ee-79f2-492a-8d47-e59e9ecc4682\",\"phase\":\"before_pending_handler\",\"elapsed_ms\":150}\n[Info] {\"tag\":\"gemini_result\",\"request_id\":\"7ba8b2ee-79f2-492a-8d47-e59e9ecc4682\",\"source\":\"daily_action_review.local_dispatcher\",\"model\":\"gemini-3-flash-preview\",\"json_mode\":true,\"tool_choice\":\"auto\",\"has_tools\":false,\"outcome\":\"text\"}\n[Info] {\"tag\":\"gemini_result\",\"request_id\":\"7ba8b2ee-79f2-492a-8d47-e59e9ecc4682\",\"source\":\"daily_action_review.visible.commit_success\",\"model\":\"gemini-3-flash-preview\",\"json_mode\":true,\"tool_choice\":\"auto\",\"has_tools\":false,\"outcome\":\"text\"}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":\"7ba8b2ee-79f2-492a-8d47-e59e9ecc4682\",\"phase\":\"after_pending_handler\",\"elapsed_ms\":15039,\"handled\":true}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-t1\",\"process_id\":null,\"phase\":\"request_done\",\"elapsed_ms\":15052,\"inbound_count\":1,\"statuses_count\":0}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":null,\"phase\":\"request_start\",\"elapsed_ms\":0,\"method\":\"POST\",\"pathname\":\"/whatsapp-webhook\",\"transport\":\"loopback\",\"loopback\":true}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":null,\"phase\":\"before_signature_verification\",\"elapsed_ms\":0}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":null,\"phase\":\"after_signature_verification\",\"elapsed_ms\":0,\"signature_ok\":true,\"payload_bytes\":628}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":null,\"phase\":\"payload_parsed\",\"elapsed_ms\":0,\"inbound_count\":1,\"statuses_count\":0}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":null,\"phase\":\"before_get_admin_client\",\"elapsed_ms\":0}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":null,\"phase\":\"after_get_admin_client\",\"elapsed_ms\":1}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":\"898287df-b939-4431-bef7-34cf87746403\",\"phase\":\"message_start\",\"elapsed_ms\":0,\"wa_message_id\":\"wamid_daily-full-two-plans-20260612133925-r1_postclose\",\"wa_type\":\"text\"}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":\"898287df-b939-4431-bef7-34cf87746403\",\"phase\":\"before_profile_lookup\",\"elapsed_ms\":0}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":\"898287df-b939-4431-bef7-34cf87746403\",\"phase\":\"after_profile_lookup\",\"elapsed_ms\":4,\"candidates_count\":1}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":\"898287df-b939-4431-bef7-34cf87746403\",\"phase\":\"before_dedup_insert\",\"elapsed_ms\":4}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":\"898287df-b939-4431-bef7-34cf87746403\",\"phase\":\"after_dedup_insert\",\"elapsed_ms\":7}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":\"898287df-b939-4431-bef7-34cf87746403\",\"phase\":\"before_pending_handler\",\"elapsed_ms\":29}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":\"898287df-b939-4431-bef7-34cf87746403\",\"phase\":\"after_pending_handler\",\"elapsed_ms\":41,\"handled\":false}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":\"898287df-b939-4431-bef7-34cf87746403\",\"phase\":\"before_optin_bilan_handler\",\"elapsed_ms\":41}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":\"898287df-b939-4431-bef7-34cf87746403\",\"phase\":\"after_optin_bilan_handler\",\"elapsed_ms\":41,\"handled\":false}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":\"898287df-b939-4431-bef7-34cf87746403\",\"phase\":\"before_reply_with_brain\",\"elapsed_ms\":42}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":\"898287df-b939-4431-bef7-34cf87746403\",\"phase\":\"after_reply_with_brain\",\"elapsed_ms\":4394}\n[Info] [whatsapp-webhook] trace {\"request_id\":\"daily-full-two-plans-20260612133925-r1-postclose\",\"process_id\":null,\"phase\":\"request_done\",\"elapsed_ms\":4395,\"inbound_count\":1,\"statuses_count\":0}\n",
+    "ok": true
+  },
+  "touched": {
+    "qaPhone": "+33698360907",
+    "planIds": [
+      "f3bbe1dd-9cc7-44cb-8621-3dc718e9e2d8",
+      "a0f9667e-f702-42fe-86d5-df7f1ad29900"
+    ],
+    "itemIds": [
+      "ad0ae17a-59fe-4497-90cb-0302ced78d83",
+      "2c7dc879-a7db-44ca-906a-ac77c449e566"
+    ],
+    "occurrenceIds": [
+      "36b79cb1-225e-412b-98c4-b9d8ff72a85c",
+      "fd55b1ed-803a-4161-873c-8b696685a1f0"
+    ],
+    "checkinId": "e7e37f8d-1818-4467-aae7-1c085d2461a9",
+    "pendingIds": [
+      "6581fc5c-c472-47da-861c-c96069cfbcd9"
+    ],
+    "entryIds": [
+      "11639ca5-4c0e-4771-8984-370879ae5edb",
+      "938045ae-5478-4bd1-9009-af1c6c1ffcf8"
+    ],
+    "dedupWamids": [
+      "wamid_daily-full-two-plans-20260612133925-r1_t1",
+      "wamid_daily-full-two-plans-20260612133925-r1_postclose"
+    ]
+  }
+}

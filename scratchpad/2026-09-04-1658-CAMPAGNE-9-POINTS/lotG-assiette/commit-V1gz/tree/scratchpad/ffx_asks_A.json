@@ -1,0 +1,106 @@
+{
+  "today": "2026-08-08",
+  "timezone": "Asia/Bangkok",
+  "created": [
+    "99e69eec-daf2-4746-9501-d974e8ac1ae2",
+    "e473ca20-2525-4b1c-ab3c-60ad6b15e912",
+    "c80e9335-fb77-4b91-9da8-06c72c2464b2",
+    "275ce8fa-8987-437b-952d-a7bc07e8ceb7",
+    "d3adaced-aca5-46cf-8422-4b221009296f",
+    "dc6c2d62-6e5f-41f1-b4f1-e9a7559f388c"
+  ],
+  "results": {
+    "A": [
+      {
+        "run": 1,
+        "userId": "99e69eec-daf2-4746-9501-d974e8ac1ae2",
+        "trace": [
+          {
+            "step": "photo",
+            "out": "Okay. On record for dinner today: no line was marked for that meal yet, and lunch still has protein and vegetables as the two open items.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "precision",
+            "out": "On record for lunch today: protein is now covered. Vegetables at lunch are still the open item.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "reco",
+            "out": "{\"outcome\":\"silent\",\"reason\":\"daily_ask_budget\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "practice",
+            "out": "{\"source\":\"composed\",\"reason\":\"\",\"practiceMode\":\"remind\",\"body\":\"Bud, today you ticked off chicken and greens and beef and root vegetables, and you had one off-plan meal. Sit down to eat, away from a screen.\"}",
+            "ledgerAfter": 1
+          }
+        ],
+        "finalLedger": [
+          "photo_invitation|2026-08-08|chat|-|If you have a photo of it, send it over: even a rough one te"
+        ],
+        "verdict": "GREEN"
+      },
+      {
+        "run": 2,
+        "userId": "c80e9335-fb77-4b91-9da8-06c72c2464b2",
+        "trace": [
+          {
+            "step": "photo",
+            "out": "Protein at dinner is still the anchor; the pizza gives you the meal, not the structure. If you want, I can help you frame the next meal around protein and vegetables.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "precision",
+            "out": "Protein at lunch is the anchor. Chicken fits that line.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "reco",
+            "out": "{\"outcome\":\"silent\",\"reason\":\"daily_ask_budget\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "practice",
+            "out": "{\"source\":\"composed\",\"reason\":\"\",\"practiceMode\":\"remind\",\"body\":\"Bud, you ticked off chicken and greens and beef and root vegetables. One meal was reported off the plan, and the practice of sitting down to eat, away from a screen, was the point for today.\"}",
+            "ledgerAfter": 1
+          }
+        ],
+        "finalLedger": [
+          "photo_invitation|2026-08-08|chat|-|If you have a photo of it, send it over: even a rough one te"
+        ],
+        "verdict": "GREEN"
+      },
+      {
+        "run": 3,
+        "userId": "d3adaced-aca5-46cf-8422-4b221009296f",
+        "trace": [
+          {
+            "step": "photo",
+            "out": "Protein first at dinner: pizza can sit around a protein anchor, not replace it. If you want, I can help you turn that into the next meal without making a big deal of it.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "precision",
+            "out": "Noted — protein at lunch is covered.",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "reco",
+            "out": "{\"outcome\":\"silent\",\"reason\":\"daily_ask_budget\"}",
+            "ledgerAfter": 1
+          },
+          {
+            "step": "practice",
+            "out": "{\"source\":\"composed\",\"reason\":\"\",\"practiceMode\":\"remind\",\"body\":\"Bud, you ticked off chicken and greens and beef and root vegetables, and you had one meal off the plan. Sit down to eat, away from a screen.\"}",
+            "ledgerAfter": 1
+          }
+        ],
+        "finalLedger": [
+          "photo_invitation|2026-08-08|chat|-|If you have a photo of it, send it over: even a rough one te"
+        ],
+        "verdict": "GREEN"
+      }
+    ]
+  }
+}

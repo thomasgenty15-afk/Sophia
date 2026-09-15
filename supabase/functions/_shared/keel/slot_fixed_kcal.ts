@@ -47,6 +47,29 @@ export interface SlotFixedKcal {
   /** Les kcal à retrancher, par moment nommé. Un moment absent = rien à retrancher. */
   bySlot: Map<string, number>;
   /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-12 · ÉTAPE C1 — LES **PROTÉINES** DU MÊME APPORT, PAR MOMENT.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LA MÊME LIGNE, LA MÊME RÉSOLUTION, LE MÊME PASSAGE. Elle n'est pas
+   * calculée ailleurs ni plus tard : `nutrientsOf` rend l'énergie ET la
+   * protéine du même `resolveIngredients`, et les séparer en deux lectures
+   * ferait deux réponses le jour où la résolution change. Le plan de clôture
+   * l'exige en toutes lettres : « mesurer calories **et** protéines des apports
+   * fixes depuis leurs références ».
+   *
+   * ⚠️ MÊMES ABSTENTIONS, EXACTEMENT. Un apport `loose` n'entre pas ici (son
+   * énergie ne se retranche nulle part, donc sa protéine non plus — retrancher
+   * l'une sans l'autre rendrait une exigence protéique plus basse sur une
+   * énergie inchangée). Un apport illisible ne retranche rien du tout.
+   *
+   * ⚠️ UNE PROTÉINE INCONNUE N'EST PAS ZÉRO. `nutrientsOf` peut rendre une
+   * énergie sans protéine ; ce moment-là n'est alors PAS posé dans cette carte,
+   * et `proteinUnknown` le compte. Poser `0` ferait dire « ce pot n'apporte
+   * aucune protéine » à propos d'un pot qu'on n'a pas su lire.
+   */
+  proteinBySlot: Map<string, number>;
+  /**
    * Les kcal des apports SANS moment. ⛔ Jamais retranchées — rendues pour que
    * l'appelant puisse les journaliser. Un chiffre qu'on ignore doit être
    * visible, sinon « on n'a rien ignoré » et « on a ignoré 400 kcal » se
@@ -64,6 +87,13 @@ export interface SlotFixedKcal {
     loose: number;
     /** N'a pas lieu ce jour-là. */
     off_day: number;
+    /**
+     * ⟳ 2026-09-12 · C1 — apports dont l'ÉNERGIE est lisible et la PROTÉINE
+     * non. Ils retranchent des kcal et zéro gramme de protéine, et ce compteur
+     * est la seule chose qui distingue « le pot n'en apporte pas » de « on n'a
+     * pas su lire ».
+     */
+    protein_unknown: number;
   };
 }
 
@@ -76,7 +106,10 @@ export interface SlotFixedKcal {
  * l'identique. C'est ce qui rend cette lecture additive au sens strict — et
  * c'est la propriété que `fixed_intakes.ts` a payée pour obtenir.
  */
-function intakeKcal(index: CompositionIndex, intake: FixedIntake): number | null {
+function intakeNutrients(
+  index: CompositionIndex,
+  intake: FixedIntake,
+): { kcal: number; proteinG: number | null } | null {
   const r = resolveIngredients(index, [{
     term: intake.foodRef,
     amount: intake.amount,
@@ -87,7 +120,15 @@ function intakeKcal(index: CompositionIndex, intake: FixedIntake): number | null
   }]);
   if (r.resolved.length === 0) return null;
   const n = nutrientsOf(r.resolved);
-  return n === "unknown" ? null : n.energyKcal;
+  if (n === "unknown") return null;
+  // ⛔ `null` ET JAMAIS ZÉRO. `nutrientsOf` rend `proteinG: null` quand la table
+  // ne porte pas la colonne; le convertir en `0` ferait dire « ce pot n'apporte
+  // aucune protéine » de quelque chose qu'on n'a pas su lire — et c'est la
+  // direction d'erreur qui abaisse un plancher médical.
+  const protein = typeof n.proteinG === "number" && Number.isFinite(n.proteinG)
+    ? n.proteinG
+    : null;
+  return { kcal: n.energyKcal, proteinG: protein };
 }
 
 export function fixedIntakeSlotKcal(args: {
@@ -103,9 +144,19 @@ export function fixedIntakeSlotKcal(args: {
   dayToken: string | null;
 }): SlotFixedKcal {
   const bySlot = new Map<string, number>();
-  const counts = { declared: 0, referential: 0, unresolved: 0, loose: 0, off_day: 0 };
+  const proteinBySlot = new Map<string, number>();
+  const counts = {
+    declared: 0,
+    referential: 0,
+    unresolved: 0,
+    loose: 0,
+    off_day: 0,
+    protein_unknown: 0,
+  };
   let looseKcal = 0;
-  if (args.intakes.length === 0) return { bySlot, looseKcal, counts };
+  if (args.intakes.length === 0) {
+    return { bySlot, proteinBySlot, looseKcal, counts };
+  }
 
   const index = augmentedIndexFor(args.index, args.intakes);
   for (const intake of args.intakes) {
@@ -113,8 +164,8 @@ export function fixedIntakeSlotKcal(args: {
       counts.off_day++;
       continue;
     }
-    const kcal = intakeKcal(index, intake);
-    if (kcal === null) {
+    const n = intakeNutrients(index, intake);
+    if (n === null) {
       counts.unresolved++;
       continue;
     }
@@ -122,10 +173,21 @@ export function fixedIntakeSlotKcal(args: {
     else counts.referential++;
     if (intake.placement === "loose") {
       counts.loose++;
-      looseKcal += kcal;
+      looseKcal += n.kcal;
       continue;
     }
-    bySlot.set(intake.slot, (bySlot.get(intake.slot) ?? 0) + kcal);
+    bySlot.set(intake.slot, (bySlot.get(intake.slot) ?? 0) + n.kcal);
+    // ⛔ LA PROTÉINE NE SE POSE QUE SI ELLE EST LUE. Un moment absent de
+    // `proteinBySlot` veut dire « rien à retrancher ici »; un `0` posé
+    // voudrait dire la même chose, et c'est précisément pourquoi on ne le
+    // pose pas: `protein_unknown` doit rester distinguable d'un vrai zéro.
+    if (n.proteinG === null) counts.protein_unknown++;
+    else {
+      proteinBySlot.set(
+        intake.slot,
+        (proteinBySlot.get(intake.slot) ?? 0) + n.proteinG,
+      );
+    }
   }
-  return { bySlot, looseKcal, counts };
+  return { bySlot, proteinBySlot, looseKcal, counts };
 }

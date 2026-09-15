@@ -1,0 +1,184 @@
+{
+  "requestId": "qa-product_help_stateful_server_owned_20260615_r1-t07",
+  "http_status": 200,
+  "ok": true,
+  "assistant": "Entendu, on laisse la carte de côté. Tu retrouveras tes rappels récurrents (que j'appelle des **Initiatives**) dans ton **Dashboard**, sous l'onglet **Initiatives**. C'est là que tu peux les consulter, les modifier ou en créer de nouveaux.",
+  "response_owner": "product_help",
+  "selected_handler": "product_help",
+  "route_reason": "skill_entry_signal",
+  "skill_id": "product_help",
+  "skill_status": "complete",
+  "diagnosis": {
+    "local_flow": true,
+    "flow_action": "answer_destination",
+    "mode": "inline",
+    "target": {
+      "kind": "feature_catalog",
+      "feature_id": "initiatives",
+      "object_type": "recurring_reminder",
+      "object_ref": null,
+      "confidence": "high"
+    },
+    "grounding": {
+      "catalog_feature_ids": [
+        "initiatives",
+        "dashboard.reminders"
+      ],
+      "surface_ids": [
+        "initiatives"
+      ],
+      "db_sources_required": false,
+      "db_sources_used": [],
+      "active_flow_used": true,
+      "missing_grounding_reason": null
+    },
+    "bridge": {
+      "needed": false,
+      "operation_type": null,
+      "kind": null,
+      "executable": false,
+      "why": null
+    },
+    "visible_task": "answer_destination",
+    "return_to_parent_flow": true,
+    "exit_to_global_dispatcher": false,
+    "note_information": null,
+    "reason_code": "product_help_local_answer_destination",
+    "reducer_trace": {
+      "flow_action": "answer_destination",
+      "visible_task": "answer_destination",
+      "selected_target": {
+        "kind": "feature_catalog",
+        "feature_id": "initiatives",
+        "object_type": "recurring_reminder",
+        "object_ref": null,
+        "confidence": "high"
+      },
+      "selected_option": "initiatives",
+      "pending_state_present": false,
+      "direct_handoff_flag": false,
+      "candidate_list_summary": [
+        {
+          "id": "dashboard.plan",
+          "label": "Plan"
+        },
+        {
+          "id": "plan.weekly_planning_validation",
+          "label": "Validation de la semaine"
+        },
+        {
+          "id": "plan.clarifications",
+          "label": "Clarifications"
+        },
+        {
+          "id": "plan.missions",
+          "label": "Missions"
+        },
+        {
+          "id": "plan.habits",
+          "label": "Habitudes"
+        },
+        {
+          "id": "plan.adjustment",
+          "label": "Ajustement du plan"
+        }
+      ],
+      "constraint_list": [
+        "helpful",
+        "clear",
+        "short",
+        "natural",
+        "non_mutating",
+        "do not try to resume the attack card flow",
+        "do not mention creating a reminder yet",
+        "Ne dis pas que Sophia a cree, modifie, annule, active, programme ou enregistre quelque chose.",
+        "Ne mentionne pas JSON, dispatcher, reducer, prompt, DB, table ou outil interne."
+      ],
+      "readiness": {
+        "bridge_needed": false,
+        "bridge_operation": null,
+        "note_information_present": false
+      },
+      "blocked_effects_reason_codes": [],
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "product_help_local_state",
+          "active_product_surface",
+          "active_product_topic",
+          "source_flow_context",
+          "parent_flow_context",
+          "product_help_subskill_history",
+          "suspended_flow_snapshot",
+          "exit_memo",
+          "handoff_note",
+          "last_answered_product_question",
+          "skill_id",
+          "mode",
+          "status",
+          "product_help_state.stage",
+          "product_help_state.last_intent",
+          "product_help_state.last_target",
+          "product_help_state.last_answer_summary",
+          "product_help_state.last_catalog_feature_ids",
+          "product_help_state.last_locations",
+          "product_help_state.parent_flow_context",
+          "product_help_state.turn_count",
+          "product_help_state.max_turns",
+          "product_help_state.updated_at"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [],
+        "preserved_fields": [],
+        "restored_fields": [],
+        "cleared_fields": [
+          "product_help_local_state"
+        ],
+        "rejected_changes": []
+      }
+    },
+    "state_mutation_audit": {
+      "server_owned_fields": [
+        "product_help_local_state",
+        "active_product_surface",
+        "active_product_topic",
+        "source_flow_context",
+        "parent_flow_context",
+        "product_help_subskill_history",
+        "suspended_flow_snapshot",
+        "exit_memo",
+        "handoff_note",
+        "last_answered_product_question",
+        "skill_id",
+        "mode",
+        "status",
+        "product_help_state.stage",
+        "product_help_state.last_intent",
+        "product_help_state.last_target",
+        "product_help_state.last_answer_summary",
+        "product_help_state.last_catalog_feature_ids",
+        "product_help_state.last_locations",
+        "product_help_state.parent_flow_context",
+        "product_help_state.turn_count",
+        "product_help_state.max_turns",
+        "product_help_state.updated_at"
+      ],
+      "modified_fields_declared": [],
+      "clear_fields_declared": [],
+      "applied_fields": [],
+      "preserved_fields": [],
+      "restored_fields": [],
+      "cleared_fields": [
+        "product_help_local_state"
+      ],
+      "rejected_changes": []
+    },
+    "evidence": [
+      "user asks where to find recurring reminders",
+      "initiatives catalog entry matches recurring reminders",
+      "user explicitly abandons attack card"
+    ]
+  },
+  "direct_effects": [],
+  "tool_skill_run": null
+}

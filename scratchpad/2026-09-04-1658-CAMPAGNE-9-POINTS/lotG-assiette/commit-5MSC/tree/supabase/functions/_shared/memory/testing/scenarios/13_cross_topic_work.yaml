@@ -1,0 +1,63 @@
+{
+  "id": "13_cross_topic_work",
+  "description": "Global work-profile lookup should retrieve work memories without unrelated family details.",
+  "scenario_version": 1,
+  "initial_state": {
+    "memory_items": [
+      {
+        "id": "seed_work_execution",
+        "kind": "statement",
+        "content_text": "Le user dit procrastiner au travail quand la tache est floue.",
+        "status": "active",
+        "topic_slug": "travail_execution",
+        "domain_keys": ["travail.performance", "habitudes.procrastination"],
+      },
+      {
+        "id": "seed_family_noise",
+        "kind": "fact",
+        "content_text": "Le frere du user s'appelle Samir.",
+        "status": "active",
+        "topic_slug": "famille_samir",
+        "domain_keys": ["relations.famille"],
+      },
+    ],
+  },
+  "turns": [
+    {
+      "user": "Qu'est-ce que tu sais de mon rapport au travail ?",
+      "expect": {
+        "retrieval_mode": "cross_topic_lookup",
+        "topic_decision": "stay",
+        "payload_contains": [
+          { "kind": "statement", "contains": "procrastiner au travail" },
+        ],
+        "payload_does_not_contain": [
+          { "kind": "fact", "contains": "Samir" },
+        ],
+      },
+    },
+    {
+      "user": "Je veux comprendre pourquoi j'evite les gros sujets pro.",
+      "expect": {
+        "retrieval_mode": "cross_topic_lookup",
+        "created_items": [
+          {
+            "kind": "statement",
+            "contains": ["evite", "gros sujets pro"],
+            "domain_keys_any_of": ["travail.performance", "travail.charge"],
+          },
+        ],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

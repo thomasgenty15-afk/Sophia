@@ -1,0 +1,13 @@
+import { createClient } from "jsr:@supabase/supabase-js@2";
+import { loadDayFacts } from "../supabase/functions/_shared/keel/daily_recap_io.ts";
+import { groundedSupportBlock, supportGround, detectDiscouragementTurn } from "../supabase/functions/_shared/keel/grounded_support.ts";
+const persona = JSON.parse(await Deno.readTextFile(Deno.args[0]));
+const admin = createClient("http://127.0.0.1:54321", Deno.env.get("QA_SERVICE_KEY")!, { auth: { persistSession: false } });
+const localDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+const facts = await loadDayFacts(admin, { userId: persona.userId, localDate });
+console.log("localDate =", localDate);
+console.log("dayFacts  =", JSON.stringify(facts));
+console.log("ground    =", supportGround(facts, null));
+console.log("discouragement('cette semaine a été horrible, j'ai rien tenu') =", JSON.stringify(detectDiscouragementTurn("cette semaine a été horrible, j'ai rien tenu")));
+console.log("---- bloc ----");
+console.log(groundedSupportBlock(facts, supportGround(facts, null)));

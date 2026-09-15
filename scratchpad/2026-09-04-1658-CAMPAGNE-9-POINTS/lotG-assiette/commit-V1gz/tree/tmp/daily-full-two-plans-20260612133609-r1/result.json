@@ -1,0 +1,56 @@
+{
+  "result": {
+    "runId": "daily-full-two-plans-20260612133609-r1",
+    "runDir": "/Users/ahmedamara/Dev/Sophia 2/tmp/daily-full-two-plans-20260612133609-r1",
+    "turns": [],
+    "errors": [
+      {
+        "message": "POST user_plans_v2 409 {\"code\":\"23505\",\"details\":\"Key (transformation_id, version)=(d3e847f5-0664-475d-9303-9b79a3759526, 1) already exists.\",\"hint\":null,\"message\":\"duplicate key value violates unique constraint \\\"user_plans_v2_transformation_version_key\\\"\"}",
+        "stack": "Error: POST user_plans_v2 409 {\"code\":\"23505\",\"details\":\"Key (transformation_id, version)=(d3e847f5-0664-475d-9303-9b79a3759526, 1) already exists.\",\"hint\":null,\"message\":\"duplicate key value violates unique constraint \\\"user_plans_v2_transformation_version_key\\\"\"}\n    at rest ([stdin]:19:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async post ([stdin]:24:41)\n    at async [stdin]:66:3"
+      }
+    ],
+    "cleanup": {
+      "deleted": {
+        "plans": 0
+      },
+      "restoredDueRows": [
+        "8363fc9a-540b-4756-945b-eafdd7fc0f0f",
+        "666976c4-762d-4014-8eb0-c00a6b75f951"
+      ],
+      "errors": [],
+      "verification": {
+        "qaCheckin": 0,
+        "qaPending": 0,
+        "qaEntries": 0,
+        "qaPlans": 0,
+        "qaMessages": 0,
+        "profile": {
+          "phone_number": null,
+          "phone_verified_at": null,
+          "phone_invalid": false,
+          "whatsapp_opted_in": true,
+          "whatsapp_state": null,
+          "onboarding_completed": true,
+          "trial_end": "2026-06-16T14:44:21.425091+00:00",
+          "access_tier": "trial",
+          "whatsapp_last_inbound_at": null,
+          "whatsapp_last_outbound_at": null
+        }
+      }
+    },
+    "ok": false
+  },
+  "touched": {
+    "qaPhone": "+33698809256",
+    "planIds": [
+      "b3f8c7f9-e11b-4e1b-bf17-956a95ce1e1c",
+      "6df59b1c-84e0-404a-bb21-fef76d02401e"
+    ],
+    "itemIds": [],
+    "occurrenceIds": [],
+    "checkinId": null,
+    "pendingIds": [],
+    "entryIds": [],
+    "dedupWamids": []
+  }
+}

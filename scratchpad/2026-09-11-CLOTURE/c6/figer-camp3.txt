@@ -1,0 +1,10 @@
+── DEMANDE FIGÉE ─────────────────────────────────────────────
+   tir            3 · PERTE · grand appétit · journées entières
+   requête        b6dba4b5-b65d-4137-815e-459639eddb21
+   bouches        1
+     · Paul   d22beab8-af90-4b6b-b0fc-2e1b02031e77 · 178 cm · 88 kg · male · appétit large · objectif fat_loss · léger [] · apports []
+   jours          ["sat","sun","mon"]
+   cases attendues 9 ({"d22beab8-af90-4b6b-b0fc-2e1b02031e77":9}) · FIGÉE AVANT L'APPEL
+   étapes         premier jet oui · réparations 1 · prompt oui · journal 34 ligne(s)
+
+   écrit : /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-CLOTURE/fixtures/campagne-tir3-c6-2026-09-12T01-50-23-146Z-c0.json

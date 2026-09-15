@@ -1,0 +1,136 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r56-level-increase-rhythm-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Finalement je me sens plus solide. J'aimerais augmenter un peu le rythme du niveau actuel, mais sans sauter d'étape ni accélérer tout le plan.",
+    "assistant": "Super que tu te sentes plus solide ! Pour augmenter le rythme de ton niveau actuel sans sauter d'étapes, on peut par exemple :\n*   Augmenter la fréquence de l'habitude \"Partager un point positif\" pour cette semaine.\n*   Avancer la mission \"Noter le déclencheur (mot-clé)\" (prévue semaine prochaine).\n*   Avancer la mission \"Faire le point sur le signal de pause\" (prévue semaine 3).\n\nQuelles actions concrètes voudrais-tu ajuster ? Et d'ailleurs, avez-vous déjà eu l'occasion d'utiliser le signal de pause que vous avez convenu ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "current_level.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer d'ajouter des tâches qui ne sont pas directement liées aux objectifs du niveau actuel ou qui n'ont pas été prévues dans la progression.",
+          "Suggérer de modifier l'ordre des niveaux ou des phases du plan global."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+          "La nature et l'intention de chaque tâche individuelle, même si leur fréquence ou leur timing est ajusté.",
+          "La contrainte de ne pas 'sauter d'étape ni accélérer tout le plan'."
+        ],
+        "warnings": [
+          "Éviter d'introduire des tâches entièrement nouvelles qui ne sont pas déjà prévues dans le niveau, car cela pourrait modifier la nature du travail en cours.",
+          "Ne pas suggérer de sauter des étapes ou de passer prématurément au niveau suivant, car cela irait à l'encontre de la contrainte explicite de l'utilisateur.",
+          "Ne pas augmenter le nombre de tâches concurrentes de manière excessive, ce qui pourrait mener à une surcharge plutôt qu'à un rythme plus soutenu et gérable."
+        ],
+        "confidence": "medium",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Le rôle de l'action doit rester cohérent avec son intention initiale. Un pont minimal peut être créé si nécessaire pour l'intégrer plus tôt, mais la nature de l'action ne doit pas changer sans demande explicite.",
+          "Guidelines niveau: Toute augmentation de rythme doit se faire dans le respect de la charge et du rythme intrinsèque du niveau courant. Il ne s'agit pas d'une baisse temporaire globale, et les limites de fin de niveau ainsi que le cœur des objectifs du niveau doivent être préservés.",
+          "Guidelines whole_plan: La trajectoire globale du plan, sa cohérence, les prérequis entre les phases, l'ordre des phases, ainsi que l'objectif général et le questionnaire initial doivent rester stables."
+        ],
+        "observation": "L'utilisateur exprime un sentiment de solidité accrue et souhaite capitaliser sur cet élan en augmentant le rythme au sein du niveau actuel. La demande est de densifier l'activité sans pour autant brûler les étapes ou déséquilibrer la trajectoire globale du plan. Il s'agit de trouver le juste équilibre entre l'ambition de l'utilisateur et la progression structurée du plan.",
+        "recommendation": "Proposer d'intensifier les actions existantes ou d'avancer des tâches prévues dans le niveau actuel, en veillant à ce que cela renforce les objectifs d'apprentissage du niveau sans en altérer la nature ou la séquence logique.",
+        "options_to_discuss": [
+          "Augmenter la fréquence de l'habitude 'Partager un point positif' pour la semaine en cours, en la rapprochant de sa cadence maximale.",
+          "Avancer la tâche 'Noter le déclencheur (mot-clé)' de la semaine 2 à la semaine actuelle, pour commencer l'observation plus tôt.",
+          "Avancer la tâche 'Faire le point sur le signal de pause' de la semaine 3 à la semaine actuelle, sous réserve que le signal ait déjà été utilisé au moins une fois."
+        ],
+        "questions_to_clarify": [
+          "Quel type de rythme souhaites-tu augmenter ? Est-ce la fréquence des actions, l'intensité des interactions, ou l'introduction de nouvelles observations ?",
+          "Le signal de pause a-t-il déjà été utilisé depuis que vous l'avez convenu ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer d'ajouter des tâches qui ne sont pas directement liées aux objectifs du niveau actuel ou qui n'ont pas été prévues dans la progression.",
+        "Suggérer de modifier l'ordre des niveaux ou des phases du plan global."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+        "La nature et l'intention de chaque tâche individuelle, même si leur fréquence ou leur timing est ajusté.",
+        "La contrainte de ne pas 'sauter d'étape ni accélérer tout le plan'."
+      ],
+      "warnings": [
+        "Éviter d'introduire des tâches entièrement nouvelles qui ne sont pas déjà prévues dans le niveau, car cela pourrait modifier la nature du travail en cours.",
+        "Ne pas suggérer de sauter des étapes ou de passer prématurément au niveau suivant, car cela irait à l'encontre de la contrainte explicite de l'utilisateur.",
+        "Ne pas augmenter le nombre de tâches concurrentes de manière excessive, ce qui pourrait mener à une surcharge plutôt qu'à un rythme plus soutenu et gérable."
+      ],
+      "confidence": "medium",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Le rôle de l'action doit rester cohérent avec son intention initiale. Un pont minimal peut être créé si nécessaire pour l'intégrer plus tôt, mais la nature de l'action ne doit pas changer sans demande explicite.",
+        "Guidelines niveau: Toute augmentation de rythme doit se faire dans le respect de la charge et du rythme intrinsèque du niveau courant. Il ne s'agit pas d'une baisse temporaire globale, et les limites de fin de niveau ainsi que le cœur des objectifs du niveau doivent être préservés.",
+        "Guidelines whole_plan: La trajectoire globale du plan, sa cohérence, les prérequis entre les phases, l'ordre des phases, ainsi que l'objectif général et le questionnaire initial doivent rester stables."
+      ],
+      "observation": "L'utilisateur exprime un sentiment de solidité accrue et souhaite capitaliser sur cet élan en augmentant le rythme au sein du niveau actuel. La demande est de densifier l'activité sans pour autant brûler les étapes ou déséquilibrer la trajectoire globale du plan. Il s'agit de trouver le juste équilibre entre l'ambition de l'utilisateur et la progression structurée du plan.",
+      "recommendation": "Proposer d'intensifier les actions existantes ou d'avancer des tâches prévues dans le niveau actuel, en veillant à ce que cela renforce les objectifs d'apprentissage du niveau sans en altérer la nature ou la séquence logique.",
+      "options_to_discuss": [
+        "Augmenter la fréquence de l'habitude 'Partager un point positif' pour la semaine en cours, en la rapprochant de sa cadence maximale.",
+        "Avancer la tâche 'Noter le déclencheur (mot-clé)' de la semaine 2 à la semaine actuelle, pour commencer l'observation plus tôt.",
+        "Avancer la tâche 'Faire le point sur le signal de pause' de la semaine 3 à la semaine actuelle, sous réserve que le signal ait déjà été utilisé au moins une fois."
+      ],
+      "questions_to_clarify": [
+        "Quel type de rythme souhaites-tu augmenter ? Est-ce la fréquence des actions, l'intensité des interactions, ou l'introduction de nouvelles observations ?",
+        "Le signal de pause a-t-il déjà été utilisé depuis que vous l'avez convenu ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r56-level-increase-rhythm-t01",
+    "trace_error": null
+  }
+]

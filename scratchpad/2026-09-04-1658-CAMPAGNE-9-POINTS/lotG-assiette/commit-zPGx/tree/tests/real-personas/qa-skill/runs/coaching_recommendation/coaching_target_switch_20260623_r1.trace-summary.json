@@ -1,0 +1,222 @@
+[
+  {
+    "turn": 1,
+    "http_status": 200,
+    "user": "J'ai un mail perso à envoyer qui n'est pas dans mon plan, et je bloque à démarrer. Dans Sophia, je dois plutôt faire une carte d'attaque ou ajuster mon plan ?",
+    "assistant": "Carte d’attaque, clairement. C’est le bon levier pour un blocage ponctuel sur une action hors plan : tu traites le démarrage sans toucher à la structure globale du plan. ✉️\n\nSi tu veux, je peux aussi te dire quand ça vaut plutôt le coup d’ajuster le plan.",
+    "response_owner": "normal_reply",
+    "route_reason": "product_help_exit_to_global",
+    "active_flow_arbitration": {
+      "decision": "minimal_global_dispatcher",
+      "active_owner": "none",
+      "selected_owner": "product_help",
+      "resume_policy": "none",
+      "reason_code": "product_help_signal"
+    },
+    "selected_skill_id": "product_help",
+    "skill_reason_code": "product_help_signal",
+    "skill_status": "exit",
+    "exit_target": "global",
+    "exit_note": {
+      "source_flow_id": "product_help",
+      "handoff_reason": "topic_change",
+      "target_dispatcher": "global"
+    },
+    "direct_effects": [],
+    "durable_effect": "none"
+  },
+  {
+    "turn": 2,
+    "http_status": 200,
+    "user": "Ok, aide-moi vraiment à choisir le bon soutien de coaching pour ce mail perso : je procrastine, je ne sais pas si c'est plutôt un problème de démarrage, de risque de lâcher ou d'organisation.",
+    "assistant": "Pour ce cas, je te mettrais sur une carte d’attaque.\n\nPourquoi : le problème principal, c’est le passage à l’action sur un mail unique.  \n- démarrage : oui, très probablement  \n- risque de lâcher : secondaire  \n- organisation : pas le cœur du sujet ici\n\nDonc le bon soutien, c’est celui qui t’aide à enclencher et tenir le fil sur une action ponctuelle, sans remodeler ton plan. ✉️",
+    "response_owner": "normal_reply",
+    "route_reason": "coaching_recommendation_exit_to_global",
+    "active_flow_arbitration": {
+      "decision": "minimal_global_dispatcher",
+      "active_owner": "none",
+      "selected_owner": "coaching_recommendation",
+      "resume_policy": "none",
+      "reason_code": "coaching_recommendation_signal"
+    },
+    "selected_skill_id": "coaching_recommendation",
+    "skill_reason_code": "coaching_recommendation_signal",
+    "skill_status": "exit",
+    "exit_target": "global",
+    "exit_note": {
+      "source_flow_id": "coaching_recommendation",
+      "handoff_reason": "topic_change",
+      "target_dispatcher": "global",
+      "user_message_summary": "Le user veut choisir le bon soutien de coaching pour un mail perso hors plan, avec un blocage mêlant démarrage, risque de lâcher et organisation.",
+      "collected_state": {
+        "user_need_summary": "The user wants help choosing the right coaching support for a personal email outside the plan, with uncertainty between starting, dropping off, and organization.",
+        "candidate_features": [],
+        "current_recommendation": "attack_card",
+        "parent_context": null,
+        "dispatcher_signal_context": {
+          "coaching_type": "ambiguous",
+          "confidence": 0.86,
+          "activation_checks": {
+            "is_coaching_need": true,
+            "is_about_plan_action": false,
+            "is_about_non_plan_action": true,
+            "is_about_emotional_state": false,
+            "has_concrete_plan_action": false,
+            "needs_type_confirmation": true
+          },
+          "action_context": {
+            "source": "free",
+            "plan_item_id": null,
+            "action_title": "mail perso",
+            "plan_id": null,
+            "plan_title": null,
+            "action_type": "other"
+          },
+          "emotional_state_context": {
+            "state_hint": "procrastination / uncertainty",
+            "intensity": "medium"
+          },
+          "reason": "The user wants help choosing the right coaching support for a personal email outside the plan, with uncertainty between starting, dropping off, and organization."
+        }
+      },
+      "evidence": [
+        "The user says the email is personal and not in the plan.",
+        "The user reports procrastination and uncertainty between starting, dropping off, and organization.",
+        "The dispatcher signal context identifies a non-plan action with ambiguous coaching target."
+      ]
+    },
+    "direct_effects": [],
+    "durable_effect": "none"
+  },
+  {
+    "turn": 3,
+    "http_status": 200,
+    "user": "Reste avec moi sur ce choix, j'ai deux cas à comparer. Premier cas : le mail perso hors plan, je veux juste savoir quel soutien choisir et ensuite je te donnerai un cas dans mon plan.",
+    "assistant": "Pour ce mail perso hors plan, je partirais sur une carte d’attaque libre, technique Preparer le terrain : tu facilites le démarrage en réduisant ce qui te freine avant d’écrire.\n\nL’ajustement du plan ne convient pas ici, parce que le sujet n’est pas une action du plan mais un mail perso à lancer.",
+    "response_owner": "coaching_recommendation",
+    "route_reason": "coaching_recommendation_signal",
+    "active_flow_arbitration": {
+      "decision": "minimal_global_dispatcher",
+      "active_owner": "none",
+      "selected_owner": "coaching_recommendation",
+      "resume_policy": "none",
+      "reason_code": "coaching_recommendation_signal"
+    },
+    "selected_skill_id": "coaching_recommendation",
+    "skill_reason_code": "coaching_recommendation_signal",
+    "skill_status": "continue",
+    "exit_note": null,
+    "direct_effects": [],
+    "durable_effect": "none"
+  },
+  {
+    "turn": 4,
+    "http_status": 200,
+    "user": "Deuxième cas : dans mon plan j'ai préparer le dossier mutuelle, et je bloque pareil avant de m'y mettre. Là tu choisirais quoi ?",
+    "assistant": "Carte d’attaque aussi.\n\nLà, tu es sur une action concrète de ton plan avec un blocage de démarrage, donc le bon soutien reste celui qui t’aide à enclencher l’action sans toucher au plan lui-même. ✅",
+    "response_owner": "normal_reply",
+    "route_reason": "coaching_recommendation_exit_to_global",
+    "active_flow_arbitration": {
+      "decision": "continue_active",
+      "active_owner": "coaching_recommendation",
+      "selected_owner": "coaching_recommendation",
+      "resume_policy": "resume_active",
+      "reason_code": "active_coaching_recommendation"
+    },
+    "selected_skill_id": "coaching_recommendation",
+    "skill_reason_code": "active_coaching_recommendation",
+    "skill_status": "exit",
+    "exit_target": "global",
+    "exit_note": {
+      "source_flow_id": "coaching_recommendation",
+      "handoff_reason": "topic_change",
+      "target_dispatcher": "global",
+      "user_message_summary": "Le user compare un blocage de démarrage sur une action du plan et veut savoir quel soutien choisir.",
+      "collected_state": {
+        "user_need_summary": "Le user veut comparer les soutiens de coaching pour un mail perso hors plan afin de choisir le bon levier.",
+        "candidate_features": [
+          {
+            "feature": "attack_card",
+            "fit": "high",
+            "why": "Le problème est un blocage avant de démarrer une action concrète du plan; une carte d'attaque aide à enclencher l'action sans modifier le plan.",
+            "destination_hint": null
+          }
+        ],
+        "current_recommendation": "attack_card",
+        "parent_context": null,
+        "dispatcher_signal_context": {
+          "reason": "The user wants to compare coaching support for a personal mail outside the plan; this is a concrete non-plan action, not product help or feature feedback.",
+          "category": "free_action_coaching",
+          "confidence": 0.88,
+          "failure_mode": "unclear",
+          "coaching_type": "no_plan_action",
+          "action_context": {
+            "source": "free",
+            "plan_id": null,
+            "action_title": "mail perso à envoyer",
+            "plan_item_id": null
+          },
+          "activation_checks": {
+            "is_coaching_need": true,
+            "is_about_plan_action": false,
+            "needs_type_confirmation": false,
+            "has_concrete_plan_action": false,
+            "is_about_emotional_state": false,
+            "is_about_non_plan_action": true
+          },
+          "priority_features": [],
+          "emotional_state_context": null
+        }
+      },
+      "evidence": [
+        "Le user mentionne explicitement une action présente dans son plan.",
+        "Le user décrit un blocage avant de commencer, ce qui correspond à un launch_blocker.",
+        "Le contexte canonique indique que pour une action concrète du plan, la carte d'attaque est prioritaire pour préparer l'entrée dans l'action."
+      ]
+    },
+    "direct_effects": [],
+    "durable_effect": "none"
+  },
+  {
+    "turn": 5,
+    "http_status": 200,
+    "user": "Oui je parle bien de préparer le dossier mutuelle dans mon plan, pas du mail perso. Si je veux juste commencer demain, tu me conseilles quoi ?",
+    "assistant": "Je partirais sur une carte d’attaque, technique Préparer le terrain : elle te facilite le tout premier pas demain en réduisant la friction autour du dossier mutuelle.",
+    "response_owner": "coaching_recommendation",
+    "route_reason": "coaching_recommendation_signal",
+    "active_flow_arbitration": {
+      "decision": "minimal_global_dispatcher",
+      "active_owner": "none",
+      "selected_owner": "coaching_recommendation",
+      "resume_policy": "none",
+      "reason_code": "coaching_recommendation_signal"
+    },
+    "selected_skill_id": "coaching_recommendation",
+    "skill_reason_code": "coaching_recommendation_signal",
+    "skill_status": "continue",
+    "exit_note": null,
+    "direct_effects": [],
+    "durable_effect": "none"
+  },
+  {
+    "turn": 6,
+    "http_status": 200,
+    "user": "Et je la crée où cette carte pour le dossier mutuelle ?",
+    "assistant": "Depuis **Dashboard > Plan**, ouvre l’action **préparer le dossier mutuelle**, puis prépare une **carte d’attaque** depuis cette action. Pour un blocage de démarrage, c’est le bon levier. Ensuite, la carte sera retrouvable dans **Dashboard > Ressources** si tu veux la consulter.",
+    "response_owner": "coaching_recommendation",
+    "route_reason": "active_coaching_recommendation",
+    "active_flow_arbitration": {
+      "decision": "continue_active",
+      "active_owner": "coaching_recommendation",
+      "selected_owner": "coaching_recommendation",
+      "resume_policy": "resume_active",
+      "reason_code": "active_coaching_recommendation"
+    },
+    "selected_skill_id": "coaching_recommendation",
+    "skill_reason_code": "active_coaching_recommendation",
+    "skill_status": "continue",
+    "exit_note": null,
+    "direct_effects": [],
+    "durable_effect": "none"
+  }
+]

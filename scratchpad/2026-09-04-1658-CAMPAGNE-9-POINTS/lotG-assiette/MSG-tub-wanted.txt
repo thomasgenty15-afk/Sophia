@@ -1,0 +1,17 @@
+le compteur « bac commun seul » compare au besoin des moments que les bacs couvrent, pas à la journée entière
+
+FC4 (2026-09-06 16:50), par bouche-jour en bac seul : les bacs déjeuner + dîner sont à 85–92 % du
+besoin de ces deux moments (1 060 kcal pour 1 111–1 146 chez Claire et Nora ; 50 % le mardi,
+`factor_clamped` : le bac du modèle était sous le tiers). Ce qui manque à la journée, ce sont le
+petit-déjeuner, les collations et le coucher, servis à table SANS boîte pour personne — attribués à
+personne, dette d'aucun bac. Comparé à la journée entière, `tub_estimate` faisait lire 18/18
+journées ≥ 200 kcal sous le besoin là où les bacs faisaient leur part.
+
+`unmetDemand` reçoit désormais, pour ces journées, `{ servedKcal, wantedKcal }` où `wantedKcal`
+est la part de la cible de la bouche sur les moments que SES bacs couvrent (`slotPlanTargets`,
+cible d'entretien comme `potFactorFor`). L'index relit les bacs après dimensionnement, note les
+moments qu'ils couvrent, et calcule ce besoin. Un bac illisible reste `null`, jamais zéro.
+Les moments servis à table restent hors compteur, exprès : `lost_slots` ne compte que ce que la
+table sert à d'AUTRES bouches en boîte.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

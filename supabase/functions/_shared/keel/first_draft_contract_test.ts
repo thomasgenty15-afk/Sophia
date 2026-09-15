@@ -355,6 +355,7 @@ Deno.test("⛔ C3 CÂBLAGE — la ligne de case porte la bande commune, dans le 
     habits: [],
     habitNote: null,
     requiredDensity: null,
+    proteinBrief: null,
   };
   const marc = { ...julie, memberId: "m-b", displayName: "Marc" };
   const densityFor = (min: number, max: number, aim: number): RequiredDensity => ({

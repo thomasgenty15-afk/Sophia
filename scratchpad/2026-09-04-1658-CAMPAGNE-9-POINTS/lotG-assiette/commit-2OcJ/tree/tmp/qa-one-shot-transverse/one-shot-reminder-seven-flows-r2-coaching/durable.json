@@ -1,0 +1,223 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "146ebce3-3f00-462b-a7fa-c39bd1c08076",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T08:40:00+00:00",
+      "event_context": "one_shot_reminder:lancer_ce_bloc_sans_telephone",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: lancer ce bloc sans téléphone.",
+        "parse_source": "payload",
+        "request_text": "Rappelle-moi aussi demain à 08h40 de lancer ce bloc sans téléphone.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: lancer ce bloc sans téléphone.",
+        "source_message_id": null,
+        "reminder_instruction": "lancer ce bloc sans téléphone"
+      },
+      "created_at": "2026-06-24T13:12:55.539182+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "J'ai besoin d'une recommandation concrète pour éviter de repousser mon bloc de travail demain matin. Rappelle-moi aussi demain à 08h40 de lancer ce bloc sans téléphone.",
+      "created_at": "2026-06-24T13:12:51.605039+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r2-coaching-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C'est noté pour demain à 08h40 : je te rappellerai de lancer ce bloc sans téléphone. Pour te guider proprement, tu veux te débloquer par rapport à quoi exactement ?",
+      "created_at": "2026-06-24T13:13:22.991056+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r2-coaching-t01",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "30520c71-663d-4682-87a2-9fd2b95a55ae",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T13:13:22.966Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T13:13:22.966Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "understand_need",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Le user demande une recommandation concrète pour ne pas repousser un bloc de travail, mais aucune action de plan précise n'est fournie; le besoin reste de confirmer si l'on parle d'une action du plan, d'une action hors plan ou d'un état émotionnel lié au bloc.",
+              "target_kind": "unclear",
+              "action_title": null,
+              "action_source": "ambiguous"
+            },
+            "turn_count": 1,
+            "coaching_type": "unclear",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "The user wants coaching help for an identifiable work-blocking problem, but no specific plan action is provided in context."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user demande une recommandation concrète pour ne pas repousser un bloc de travail, mais aucune action de plan précise n'est fournie; le besoin reste de confirmer si l'on parle d'une action du plan, d'une action hors plan ou d'un état émotionnel lié au bloc.",
+            "candidate_features": [],
+            "last_answer_summary": "Le user demande une recommandation concrète pour ne pas repousser un bloc de travail, mais aucune action de plan précise n'est fournie; le besoin reste de confirmer si l'on parle d'une action du plan, d'une action hors plan ou d'un état émotionnel lié au bloc.",
+            "parent_return_focus": null,
+            "pending_type_change": {
+              "reason": "The user wants coaching help for an identifiable work-blocking problem, but no specific plan action is provided in context.",
+              "candidate_coaching_type": "unclear"
+            },
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "The user wants coaching help for an identifiable work-blocking problem, but no specific plan action is provided in context."
+            ],
+            "current_recommendation": null,
+            "last_visible_task_kind": "change_confirm_coaching_type",
+            "recommendation_decision": {
+              "why_primary": null,
+              "why_not_others": {},
+              "primary_feature": null,
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": null,
+                "surface_hint": null,
+                "user_facing_destination": null
+              },
+              "user_facing_next_step": null
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "The user wants coaching help for an identifiable work-blocking problem, but no specific plan action is provided in context.",
+              "confidence": 0.82,
+              "coaching_type": "ambiguous",
+              "action_context": {
+                "source": "ambiguous",
+                "plan_id": null,
+                "plan_title": null,
+                "action_type": "other",
+                "action_title": null,
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": true,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": false
+              },
+              "emotional_state_context": {
+                "intensity": "medium",
+                "state_hint": null
+              }
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T13:13:22.966Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T13:13:22.966Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "understand_need",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Le user demande une recommandation concrète pour ne pas repousser un bloc de travail, mais aucune action de plan précise n'est fournie; le besoin reste de confirmer si l'on parle d'une action du plan, d'une action hors plan ou d'un état émotionnel lié au bloc.",
+              "target_kind": "unclear",
+              "action_title": null,
+              "action_source": "ambiguous"
+            },
+            "turn_count": 1,
+            "coaching_type": "unclear",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "The user wants coaching help for an identifiable work-blocking problem, but no specific plan action is provided in context."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user demande une recommandation concrète pour ne pas repousser un bloc de travail, mais aucune action de plan précise n'est fournie; le besoin reste de confirmer si l'on parle d'une action du plan, d'une action hors plan ou d'un état émotionnel lié au bloc.",
+            "candidate_features": [],
+            "last_answer_summary": "Le user demande une recommandation concrète pour ne pas repousser un bloc de travail, mais aucune action de plan précise n'est fournie; le besoin reste de confirmer si l'on parle d'une action du plan, d'une action hors plan ou d'un état émotionnel lié au bloc.",
+            "parent_return_focus": null,
+            "pending_type_change": {
+              "reason": "The user wants coaching help for an identifiable work-blocking problem, but no specific plan action is provided in context.",
+              "candidate_coaching_type": "unclear"
+            },
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "The user wants coaching help for an identifiable work-blocking problem, but no specific plan action is provided in context."
+            ],
+            "current_recommendation": null,
+            "last_visible_task_kind": "change_confirm_coaching_type",
+            "recommendation_decision": {
+              "why_primary": null,
+              "why_not_others": {},
+              "primary_feature": null,
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": null,
+                "surface_hint": null,
+                "user_facing_destination": null
+              },
+              "user_facing_next_step": null
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "The user wants coaching help for an identifiable work-blocking problem, but no specific plan action is provided in context.",
+              "confidence": 0.82,
+              "coaching_type": "ambiguous",
+              "action_context": {
+                "source": "ambiguous",
+                "plan_id": null,
+                "plan_title": null,
+                "action_type": "other",
+                "action_title": null,
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": true,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": false
+              },
+              "emotional_state_context": {
+                "intensity": "medium",
+                "state_hint": null
+              }
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T13:13:22.982043+00:00"
+  }
+}

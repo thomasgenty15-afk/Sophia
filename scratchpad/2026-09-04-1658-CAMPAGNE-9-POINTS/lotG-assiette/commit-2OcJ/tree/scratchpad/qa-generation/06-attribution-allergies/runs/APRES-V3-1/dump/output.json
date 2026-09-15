@@ -1,0 +1,1167 @@
+{
+  "request_id": "a3000001-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000012",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T00:38:42.212Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "2cf05d8a-0ec5-4aaf-9f8b-a611ee62ab3c",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T00:32:28.824345+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16134,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16134,
+    "user_message_chars": 17773,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17773,
+    "independent_counters": {
+      "system_prompt_chars": 16134,
+      "prompt_chars": 17773
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "39199f0b-cdad-4f74-9538-fa57f8ace3e6",
+    "created_at": "2026-08-19T00:38:41.585592+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Buttery Scrambled Eggs on Toast\",\n      \"title\": \"Soft scrambled eggs on wholemeal toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Whisk the eggs and scramble them gently in a pan with the butter. Toast the bread and serve immediately.\",\n      \"why\": \"A warm, protein-focused start for Marceau that requires no oven.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      }\n    },\n    {\n      \"name\": \"Sunflower Seed Butter Toast\",\n      \"title\": \"Wholemeal toast with sunflower seed butter\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toast the bread and spread generously with the sunflower seed butter.\",\n      \"why\": \"A safe, high-energy alternative to one of the foods on your medical list for Bertille.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Light Scrambled Eggs on Toast\",\n      \"title\": \"Soft scrambled eggs on a single slice of toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Scramble the eggs in butter and serve on a single slice of toasted bread.\",\n      \"why\": \"Maintains the protein anchor while respecting Ysoline's smaller starch requirement.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      }\n    },\n    {\n      \"name\": \"Zesty Stovetop Lemon Chicken\",\n      \"title\": \"Pan-seared lemon chicken with green beans and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Assemble the pre-cooked chicken, green beans, and rice. Squeeze fresh lemon over the top.\",\n      \"why\": \"A loud vegetable lunch that uses the stovetop to avoid the broken oven.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Muscle Gain Lemon Chicken Bowl\",\n      \"title\": \"Hearty pan-seared lemon chicken and extra rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Assemble the chicken and rice, ensuring a larger portion of both as requested. Finish with lemon.\",\n      \"why\": \"Fuels Bertille's muscle gain with increased protein and starch shares.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Lemon Chicken and Green Bean Plate\",\n      \"title\": \"Lemon chicken with extra beans and light rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Assemble the chicken and rice, prioritizing the green beans and a smaller rice portion.\",\n      \"why\": \"Honours Ysoline's need for generous vegetables and a smaller starch share.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Golden Spinach and Lentil Dhal\",\n      \"title\": \"Warm coconut dhal with spinach and flatbread\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal flatbread\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the dhal in a pan until bubbling. Warm the flatbread in a dry pan and serve.\",\n      \"why\": \"A warm, comforting dinner that avoids the oven and features a loud vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lentil_dhal\",\n          \"servings\": 1,\n          \"box_id\": \"box_dhal_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      }\n    },\n    {\n      \"name\": \"Hearty Spinach Dhal Feast\",\n      \"title\": \"Large portion of coconut dhal with extra flatbread\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal flatbread\",\n          \"quantity\": \"1.5 units\",\n          \"amount\": 1.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat a generous portion of dhal and serve with extra warm flatbread.\",\n      \"why\": \"Provides the larger starch and protein shares Bertille needs for her goal.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lentil_dhal\",\n          \"servings\": 1,\n          \"box_id\": \"box_dhal_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      }\n    },\n    {\n      \"name\": \"Vibrant Spinach and Lentil Bowl\",\n      \"title\": \"Spinach-rich dhal with a small flatbread\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal flatbread\",\n          \"quantity\": \"0.5 unit\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the dhal, ensuring plenty of spinach is included, and serve with half a flatbread.\",\n      \"why\": \"Focuses on generous vegetables and a reduced starch share for Ysoline.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lentil_dhal\",\n          \"servings\": 1,\n          \"box_id\": \"box_dhal_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      }\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_beans\",\n      \"title\": \"Pan-Seared Lemon Chicken and Beans\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs\",\n          \"quantity\": \"6 units\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"2 cloves\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Season chicken. Heat oil in a large pan and sear chicken thighs until golden and cooked through. Remove chicken, then sauté green beans and garlic in the same pan until tender. Stir in honey and a splash of water to glaze. Combine and box.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_boiled_rice\",\n      \"title\": \"Fluffy Boiled Rice\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"white rice\",\n          \"quantity\": \"225 g\",\n          \"amount\": 225,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse rice and boil in salted water until tender. Drain and box.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_lentil_dhal\",\n      \"title\": \"Coconut, Spinach and Lentil Dhal\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"red lentils\",\n          \"quantity\": \"225 g\",\n          \"amount\": 225,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"coconut milk\",\n          \"quantity\": \"400 ml\",\n          \"amount\": 400,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"turmeric\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté turmeric in oil, add lentils, coconut milk, and 200ml water. Simmer until lentils are soft. Stir in spinach until wilted. Box.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_dhal_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_dhal_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_dhal_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken_beans\",\n        \"prep_boiled_rice\",\n        \"prep_lentil_dhal\"\n      ],\n      \"total_minutes\": 45,\n      \"run_through\": \"Start the rice boiling and the dhal simmering. While they cook, sear the chicken thighs in a large pan. Once the chicken is done, sauté the beans in the same pan. Wilt the spinach into the dhal last. Box all three components into the named containers.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"wholemeal bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chicken thighs\",\n      \"quantity\": \"6 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"red lentils\",\n      \"quantity\": \"225 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"white rice\",\n      \"quantity\": \"225 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"fresh spinach\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"coconut milk\",\n      \"quantity\": \"400 ml\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"wholemeal flatbreads\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"butter\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"500 ml\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"turmeric\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"Larger protein and starch shares for muscle gain; no celeriac.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_beans\",\n          \"note\": \"A larger share of chicken thighs\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_rice\",\n          \"note\": \"A larger share of rice\"\n        },\n        {\n          \"preparation_id\": \"prep_lentil_dhal\",\n          \"note\": \"A larger share of dhal\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"Standard balanced portion.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_beans\",\n          \"note\": \"A standard share of chicken and beans\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_rice\",\n          \"note\": \"A standard share of rice\"\n        },\n        {\n          \"preparation_id\": \"prep_lentil_dhal\",\n          \"note\": \"A standard share of dhal\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Generous vegetables, full protein, smaller starch share; no tree nuts or fennel.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_beans\",\n          \"note\": \"Full chicken share with extra green beans\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_rice\",\n          \"note\": \"A smaller share of rice\"\n        },\n        {\n          \"preparation_id\": \"prep_lentil_dhal\",\n          \"note\": \"Full dhal share with extra spinach\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Buttery Scrambled Eggs on Toast",
+          "title": "Soft scrambled eggs on wholemeal toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Whisk the eggs and scramble them gently in a pan with the butter. Toast the bread and serve immediately.",
+          "why": "A warm, protein-focused start for Marceau that requires no oven.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          }
+        },
+        {
+          "name": "Sunflower Seed Butter Toast",
+          "title": "Wholemeal toast with sunflower seed butter",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "sunflower seed butter",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the bread and spread generously with the sunflower seed butter.",
+          "why": "A safe, high-energy alternative to one of the foods on your medical list for Bertille.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          }
+        },
+        {
+          "name": "Light Scrambled Eggs on Toast",
+          "title": "Soft scrambled eggs on a single slice of toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Scramble the eggs in butter and serve on a single slice of toasted bread.",
+          "why": "Maintains the protein anchor while respecting Ysoline's smaller starch requirement.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          }
+        },
+        {
+          "name": "Zesty Stovetop Lemon Chicken",
+          "title": "Pan-seared lemon chicken with green beans and rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Assemble the pre-cooked chicken, green beans, and rice. Squeeze fresh lemon over the top.",
+          "why": "A loud vegetable lunch that uses the stovetop to avoid the broken oven.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_beans",
+              "servings": 1,
+              "box_id": "box_chicken_marceau"
+            },
+            {
+              "preparation_id": "prep_boiled_rice",
+              "servings": 1,
+              "box_id": "box_rice_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          }
+        },
+        {
+          "name": "Muscle Gain Lemon Chicken Bowl",
+          "title": "Hearty pan-seared lemon chicken and extra rice",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Assemble the chicken and rice, ensuring a larger portion of both as requested. Finish with lemon.",
+          "why": "Fuels Bertille's muscle gain with increased protein and starch shares.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_beans",
+              "servings": 1,
+              "box_id": "box_chicken_bertille"
+            },
+            {
+              "preparation_id": "prep_boiled_rice",
+              "servings": 1,
+              "box_id": "box_rice_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          }
+        },
+        {
+          "name": "Lemon Chicken and Green Bean Plate",
+          "title": "Lemon chicken with extra beans and light rice",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Assemble the chicken and rice, prioritizing the green beans and a smaller rice portion.",
+          "why": "Honours Ysoline's need for generous vegetables and a smaller starch share.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_beans",
+              "servings": 1,
+              "box_id": "box_chicken_ysoline"
+            },
+            {
+              "preparation_id": "prep_boiled_rice",
+              "servings": 1,
+              "box_id": "box_rice_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          }
+        },
+        {
+          "name": "Golden Spinach and Lentil Dhal",
+          "title": "Warm coconut dhal with spinach and flatbread",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "wholemeal flatbread",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the dhal in a pan until bubbling. Warm the flatbread in a dry pan and serve.",
+          "why": "A warm, comforting dinner that avoids the oven and features a loud vegetable.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_dhal",
+              "servings": 1,
+              "box_id": "box_dhal_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          }
+        },
+        {
+          "name": "Hearty Spinach Dhal Feast",
+          "title": "Large portion of coconut dhal with extra flatbread",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "wholemeal flatbread",
+              "quantity": "1.5 units",
+              "amount": 1.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat a generous portion of dhal and serve with extra warm flatbread.",
+          "why": "Provides the larger starch and protein shares Bertille needs for her goal.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_dhal",
+              "servings": 1,
+              "box_id": "box_dhal_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          }
+        },
+        {
+          "name": "Vibrant Spinach and Lentil Bowl",
+          "title": "Spinach-rich dhal with a small flatbread",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "wholemeal flatbread",
+              "quantity": "0.5 unit",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the dhal, ensuring plenty of spinach is included, and serve with half a flatbread.",
+          "why": "Focuses on generous vegetables and a reduced starch share for Ysoline.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_dhal",
+              "servings": 1,
+              "box_id": "box_dhal_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          }
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken_beans",
+          "title": "Pan-Seared Lemon Chicken and Beans",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "chicken thighs",
+              "quantity": "6 units",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "green beans",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "honey",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "2 cloves",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Season chicken. Heat oil in a large pan and sear chicken thighs until golden and cooked through. Remove chicken, then sauté green beans and garlic in the same pan until tender. Stir in honey and a splash of water to glaze. Combine and box.",
+          "active_minutes": 15,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_chicken_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_chicken_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 200
+            }
+          ]
+        },
+        {
+          "id": "prep_boiled_rice",
+          "title": "Fluffy Boiled Rice",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "white rice",
+              "quantity": "225 g",
+              "amount": 225,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse rice and boil in salted water until tender. Drain and box.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 180
+            }
+          ]
+        },
+        {
+          "id": "prep_lentil_dhal",
+          "title": "Coconut, Spinach and Lentil Dhal",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "red lentils",
+              "quantity": "225 g",
+              "amount": 225,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "coconut milk",
+              "quantity": "400 ml",
+              "amount": 400,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "fresh spinach",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "turmeric",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Sauté turmeric in oil, add lentils, coconut milk, and 200ml water. Simmer until lentils are soft. Stir in spinach until wilted. Box.",
+          "active_minutes": 10,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_dhal_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_dhal_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_dhal_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 300
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken_beans",
+            "prep_boiled_rice",
+            "prep_lentil_dhal"
+          ],
+          "total_minutes": 45,
+          "run_through": "Start the rice boiling and the dhal simmering. While they cook, sear the chicken thighs in a large pan. Once the chicken is done, sauté the beans in the same pan. Wilt the spinach into the dhal last. Box all three components into the named containers."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "eggs",
+          "quantity": "4 units",
+          "aisle": "dairy"
+        },
+        {
+          "term": "wholemeal bread",
+          "quantity": "1 loaf",
+          "aisle": "pantry"
+        },
+        {
+          "term": "sunflower seed butter",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chicken thighs",
+          "quantity": "6 units",
+          "aisle": "protein"
+        },
+        {
+          "term": "red lentils",
+          "quantity": "225 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "white rice",
+          "quantity": "225 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "fresh spinach",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "green beans",
+          "quantity": "400 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemons",
+          "quantity": "3 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "coconut milk",
+          "quantity": "400 ml",
+          "aisle": "pantry"
+        },
+        {
+          "term": "wholemeal flatbreads",
+          "quantity": "3 units",
+          "aisle": "pantry"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "honey",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "butter",
+          "quantity": "250 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "500 ml",
+          "aisle": "pantry"
+        },
+        {
+          "term": "turmeric",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "portion_note": "Larger protein and starch shares for muscle gain; no celeriac.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_beans",
+              "note": "A larger share of chicken thighs"
+            },
+            {
+              "preparation_id": "prep_boiled_rice",
+              "note": "A larger share of rice"
+            },
+            {
+              "preparation_id": "prep_lentil_dhal",
+              "note": "A larger share of dhal"
+            }
+          ]
+        },
+        {
+          "member_id": "2a937736-693a-45f1-97a6-110f535ae004",
+          "portion_note": "Standard balanced portion.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_beans",
+              "note": "A standard share of chicken and beans"
+            },
+            {
+              "preparation_id": "prep_boiled_rice",
+              "note": "A standard share of rice"
+            },
+            {
+              "preparation_id": "prep_lentil_dhal",
+              "note": "A standard share of dhal"
+            }
+          ]
+        },
+        {
+          "member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "portion_note": "Generous vegetables, full protein, smaller starch share; no tree nuts or fennel.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_beans",
+              "note": "Full chicken share with extra green beans"
+            },
+            {
+              "preparation_id": "prep_boiled_rice",
+              "note": "A smaller share of rice"
+            },
+            {
+              "preparation_id": "prep_lentil_dhal",
+              "note": "Full dhal share with extra spinach"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Buttery Scrambled Eggs on Toast\",\n      \"title\": \"Soft scrambled eggs on wholemeal toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Whisk the eggs and scramble them gently in a pan with the butter. Toast the bread and serve immediately.\",\n      \"why\": \"A warm, protein-focused start for Marceau that requires no oven.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      }\n    },\n    {\n      \"name\": \"Sunflower Seed Butter Toast\",\n      \"title\": \"Wholemeal toast with sunflower seed butter\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toast the bread and spread generously with the sunflower seed butter.\",\n      \"why\": \"A safe, high-energy alternative to one of the foods on your medical list for Bertille.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Light Scrambled Eggs on Toast\",\n      \"title\": \"Soft scrambled eggs on a single slice of toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Scramble the eggs in butter and serve on a single slice of toasted bread.\",\n      \"why\": \"Maintains the protein anchor while respecting Ysoline's smaller starch requirement.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      }\n    },\n    {\n      \"name\": \"Zesty Stovetop Lemon Chicken\",\n      \"title\": \"Pan-seared lemon chicken with green beans and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Assemble the pre-cooked chicken, green beans, and rice. Squeeze fresh lemon over the top.\",\n      \"why\": \"A loud vegetable lunch that uses the stovetop to avoid the broken oven.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Muscle Gain Lemon Chicken Bowl\",\n      \"title\": \"Hearty pan-seared lemon chicken and extra rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Assemble the chicken and rice, ensuring a larger portion of both as requested. Finish with lemon.\",\n      \"why\": \"Fuels Bertille's muscle gain with increased protein and starch shares.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Lemon Chicken and Green Bean Plate\",\n      \"title\": \"Lemon chicken with extra beans and light rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Assemble the chicken and rice, prioritizing the green beans and a smaller rice portion.\",\n      \"why\": \"Honours Ysoline's need for generous vegetables and a smaller starch share.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Golden Spinach and Lentil Dhal\",\n      \"title\": \"Warm coconut dhal with spinach and flatbread\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal flatbread\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the dhal in a pan until bubbling. Warm the flatbread in a dry pan and serve.\",\n      \"why\": \"A warm, comforting dinner that avoids the oven and features a loud vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lentil_dhal\",\n          \"servings\": 1,\n          \"box_id\": \"box_dhal_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      }\n    },\n    {\n      \"name\": \"Hearty Spinach Dhal Feast\",\n      \"title\": \"Large portion of coconut dhal with extra flatbread\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal flatbread\",\n          \"quantity\": \"1.5 units\",\n          \"amount\": 1.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat a generous portion of dhal and serve with extra warm flatbread.\",\n      \"why\": \"Provides the larger starch and protein shares Bertille needs for her goal.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lentil_dhal\",\n          \"servings\": 1,\n          \"box_id\": \"box_dhal_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      }\n    },\n    {\n      \"name\": \"Vibrant Spinach and Lentil Bowl\",\n      \"title\": \"Spinach-rich dhal with a small flatbread\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal flatbread\",\n          \"quantity\": \"0.5 unit\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the dhal, ensuring plenty of spinach is included, and serve with half a flatbread.\",\n      \"why\": \"Focuses on generous vegetables and a reduced starch share for Ysoline.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lentil_dhal\",\n          \"servings\": 1,\n          \"box_id\": \"box_dhal_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      }\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_beans\",\n      \"title\": \"Pan-Seared Lemon Chicken and Beans\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs\",\n          \"quantity\": \"6 units\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"2 cloves\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Season chicken. Heat oil in a large pan and sear chicken thighs until golden and cooked through. Remove chicken, then sauté green beans and garlic in the same pan until tender. Stir in honey and a splash of water to glaze. Combine and box.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_boiled_rice\",\n      \"title\": \"Fluffy Boiled Rice\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"white rice\",\n          \"quantity\": \"225 g\",\n          \"amount\": 225,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse rice and boil in salted water until tender. Drain and box.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_lentil_dhal\",\n      \"title\": \"Coconut, Spinach and Lentil Dhal\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"red lentils\",\n          \"quantity\": \"225 g\",\n          \"amount\": 225,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"coconut milk\",\n          \"quantity\": \"400 ml\",\n          \"amount\": 400,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"turmeric\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté turmeric in oil, add lentils, coconut milk, and 200ml water. Simmer until lentils are soft. Stir in spinach until wilted. Box.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_dhal_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_dhal_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_dhal_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken_beans\",\n        \"prep_boiled_rice\",\n        \"prep_lentil_dhal\"\n      ],\n      \"total_minutes\": 45,\n      \"run_through\": \"Start the rice boiling and the dhal simmering. While they cook, sear the chicken thighs in a large pan. Once the chicken is done, sauté the beans in the same pan. Wilt the spinach into the dhal last. Box all three components into the named containers.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"wholemeal bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chicken thighs\",\n      \"quantity\": \"6 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"red lentils\",\n      \"quantity\": \"225 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"white rice\",\n      \"quantity\": \"225 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"fresh spinach\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"coconut milk\",\n      \"quantity\": \"400 ml\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"wholemeal flatbreads\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"butter\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"500 ml\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"turmeric\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"Larger protein and starch shares for muscle gain; no celeriac.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_beans\",\n          \"note\": \"A larger share of chicken thighs\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_rice\",\n          \"note\": \"A larger share of rice\"\n        },\n        {\n          \"preparation_id\": \"prep_lentil_dhal\",\n          \"note\": \"A larger share of dhal\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"Standard balanced portion.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_beans\",\n          \"note\": \"A standard share of chicken and beans\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_rice\",\n          \"note\": \"A standard share of rice\"\n        },\n        {\n          \"preparation_id\": \"prep_lentil_dhal\",\n          \"note\": \"A standard share of dhal\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Generous vegetables, full protein, smaller starch share; no tree nuts or fennel.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_beans\",\n          \"note\": \"Full chicken share with extra green beans\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_rice\",\n          \"note\": \"A smaller share of rice\"\n        },\n        {\n          \"preparation_id\": \"prep_lentil_dhal\",\n          \"note\": \"Full dhal share with extra spinach\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "4PqEaq7qHeWJxN8P1cSNqQs",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 19450,
+        "promptTokenCount": 8872,
+        "thoughtsTokenCount": 5005,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8872
+          }
+        ],
+        "candidatesTokenCount": 5573
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T00:32:28.824345+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:32:29.313628+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:32:32.28192+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:32:32.290848+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:32:32.293754+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:33:32.315481+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:33:32.324935+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:33:32.868958+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:33:37.129524+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:33:37.13786+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:33:37.143588+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:33:37.147178+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:37.174146+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:37.197914+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:39.123219+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:39.130491+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:39.137376+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:39.142874+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:35:39.153094+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:35:39.158553+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 3,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:35:39.677248+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 3,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:35:49.881777+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 4,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:35:49.891054+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:35:49.899838+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:35:49.904071+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:36:49.935952+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:36:49.958859+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 4,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:36:56.531942+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 5,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:36:56.535954+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 5,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:36:56.539124+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 5,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:36:56.541546+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 5,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:37:47.910039+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 5,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:37:47.945128+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:37:48.582906+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:37:52.345289+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:37:52.350295+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:37:52.35635+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:38:41.585592+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

@@ -29,7 +29,7 @@ const MONDAY = "2026-08-03";
 // l'omission rendait — les assertions de ce fichier ne bougent pas d'un jour.
 // Ce que le mot ajoute est qu'un appelant ne peut plus se taire par mégarde.
 function item(term: string, aisle: TestAisle): TestItem {
-  return { term, quantity: null, aisle, food_group: null };
+  return { term, quantity: null, aisle, food_group: null, ref: null };
 }
 
 Deno.test("un plan de 7 jours avec une cuisson tardive produit DEUX vagues", () => {
@@ -429,7 +429,7 @@ Deno.test("sans fenêtre, aucune affectation", () => {
 // d'un groupe change.
 
 function grouped(term: string, aisle: TestAisle, foodGroup: string | null): TestItem {
-  return { term, quantity: null, aisle, food_group: foodGroup };
+  return { term, quantity: null, aisle, food_group: foodGroup, ref: null };
 }
 
 Deno.test("le poulet du vendredi ne s'achète plus le mardi, mais le jeudi", () => {
@@ -526,20 +526,86 @@ Deno.test("MUTATION — sans groupe, on retombe sur MAX_FRIDGE_DAYS, et ça se C
   );
 });
 
-Deno.test("un groupe non périssable au rayon périssable ne déplace rien", () => {
-  // `PERISHABLE_AISLES` reste la porte extérieure: ce lot change la LARGEUR de
-  // la fenêtre, pas la liste de ce qui en a une.
+Deno.test("⟳ la CONSERVATION décide, plus le rayon — et les deux sens le prouvent", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · FERMETURE LOT 2 — CE TEST DISAIT L'INVERSE, ET C'ÉTAIT LE
+  //                DÉFAUT
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Il épinglait « `PERISHABLE_AISLES` reste la porte extérieure : ce lot
+  // change la LARGEUR de la fenêtre, pas la liste de ce qui en a une ».
+  //
+  // ⛔ CETTE PORTE-LÀ A REFUSÉ UN PLAN RÉEL. La GARDE FINALE, elle, ne lisait
+  // pas le rayon : elle appliquait la fenêtre du GROUPE à toute ligne qui en
+  // portait un. Deux lectures d'un même fait, et elles ont divergé — le thon en
+  // conserve du tir 3 (2026-09-12) était daté comme stable et refusé comme du
+  // poisson frais. Il n'y a plus qu'une lecture, `keepingOf`, et les deux sites
+  // l'appellent.
+  //
+  // ① CE QU'ON SAIT SE GARDER NE BOUGE PLUS, quel que soit son groupe.
+  const conserve = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    runs: null,
+    freezer: false,
+    shoppingList: [{
+      term: "thon en conserve",
+      aisle: "pantry",
+      // ⛔ LE MÊME GROUPE QUE LE POISSON FRAIS — le référentiel n'a pas de
+      // colonne de conservation, et c'est tout le problème.
+      food_group: "white_fish",
+      ref: "tuna_tinned",
+    }],
+    preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["thon en conserve"] }],
+  });
+  assertEquals(conserve.length, 1);
+  assertEquals(
+    conserve[0].buyOn,
+    MONDAY,
+    "une conserve suit encore la fenêtre du poisson frais",
+  );
+
+  // ② ET CE QUI A UNE FENÊTRE LA SUIT, MÊME HORS D'UN RAYON « PÉRISSABLE ».
+  //    C'est l'autre moitié de l'alignement : la garde finale refusait
+  //    exactement ce cas-là pendant que la datation l'ignorait.
+  const frais = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    runs: null,
+    freezer: false,
+    shoppingList: [{
+      term: "thon frais",
+      aisle: "pantry",
+      food_group: "white_fish",
+      ref: "tuna_fresh",
+    }],
+    preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["thon frais"] }],
+  });
+  assertEquals(frais.length, 1);
+  assertEquals(
+    frais[0].buyOn,
+    "2026-08-06",
+    "le poisson frais s'achète la veille de sa cuisson, où qu'il soit rangé",
+  );
+});
+
+Deno.test("⟳ une ligne SANS identité garde le repli historique, et le rayon le choisit", () => {
+  // ⛔ « INCONNU » N'EST PAS « STABLE ». Une ligne sans groupe (les plans
+  // d'avant `L0-a`) garde le comportement d'avant — `MAX_FRIDGE_DAYS` quand son
+  // rayon dit du frais. Le retirer ferait acheter du poulet le lundi pour le
+  // samedi sous prétexte qu'on ne sait pas ce que c'est.
   const waves = planGroceryWaves({
     startsOn: MONDAY,
     durationDays: 7,
     runs: null,
     freezer: false,
-    shoppingList: [grouped("riz", "pantry", "white_fish")],
-    preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["riz"] }],
+    shoppingList: [item("mystère", "protein")],
+    preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["mystère"] }],
   });
   assertEquals(waves.length, 1);
-  assertEquals(waves[0].buyOn, MONDAY, "le rayon `pantry` n'a pas de fenêtre");
+  assertEquals(waves[0].buyOn, "2026-08-04", "le repli de trois jours a disparu");
 });
+
 
 // ---------------------------------------------------------------------------
 // A1 (chantier-0903/CUISINE, 2026-09-03) — `servesCookOn` SUR LA PREMIÈRE VAGUE
@@ -563,8 +629,8 @@ Deno.test("A1 — la PREMIÈRE vague ne porte pas de phrase, même tombée aprè
     runs: null,
     freezer: false,
     shoppingList: [
-      { term: "salade", quantity: null, aisle: "produce", food_group: "leafy_greens" },
-      { term: "poisson", quantity: null, aisle: "protein", food_group: "fish" },
+      { term: "salade", quantity: null, aisle: "produce", food_group: "leafy_greens", ref: null },
+      { term: "poisson", quantity: null, aisle: "protein", food_group: "fish", ref: null },
     ],
     preparations: [
       { id: "p1", cookOn: "sat", ingredientTerms: ["salade"] },
@@ -596,8 +662,8 @@ Deno.test("A1 — la vague du RANG 0 (la veille) reste muette, la suivante parle
     runs: null,
     freezer: false,
     shoppingList: [
-      { term: "lentilles", quantity: null, aisle: "pantry", food_group: null },
-      { term: "poulet", quantity: null, aisle: "protein", food_group: "poultry" },
+      { term: "lentilles", quantity: null, aisle: "pantry", food_group: null, ref: null },
+      { term: "poulet", quantity: null, aisle: "protein", food_group: "poultry", ref: null },
     ],
     preparations: [
       { id: "p1", cookOn: "sun", ingredientTerms: ["lentilles"] },
@@ -629,8 +695,8 @@ const LATE_COOK: WavePreparation[] = [
   { id: "p2", cookOn: "sat", ingredientTerms: ["poulet"] },
 ];
 const TWO_LINES: TestItem[] = [
-  { term: "lentilles", quantity: null, aisle: "pantry", food_group: null },
-  { term: "poulet", quantity: null, aisle: "protein", food_group: null },
+  { term: "lentilles", quantity: null, aisle: "pantry", food_group: null, ref: null },
+  { term: "poulet", quantity: null, aisle: "protein", food_group: null, ref: null },
 ];
 
 Deno.test("⛔ LOT C — UNE course + congélateur: UNE vague, et le poulet est marqué", () => {
@@ -684,10 +750,10 @@ Deno.test("⛔ LOT C — LA PROPRIÉTÉ: ce que le repli déplace est TOUJOURS h
     runs: 2,
     freezer: true,
     shoppingList: [
-      { term: "lentilles", quantity: null, aisle: "pantry", food_group: "legumes" },
-      { term: "fromage", quantity: null, aisle: "dairy", food_group: "dairy_cheese" },
-      { term: "poisson", quantity: null, aisle: "protein", food_group: "white_fish" },
-      { term: "poulet", quantity: null, aisle: "protein", food_group: "poultry" },
+      { term: "lentilles", quantity: null, aisle: "pantry", food_group: "legumes", ref: null },
+      { term: "fromage", quantity: null, aisle: "dairy", food_group: "dairy_cheese", ref: null },
+      { term: "poisson", quantity: null, aisle: "protein", food_group: "white_fish", ref: null },
+      { term: "poulet", quantity: null, aisle: "protein", food_group: "poultry", ref: null },
     ],
     preparations: [
       { id: "p1", cookOn: "mon", ingredientTerms: ["lentilles"] },
@@ -798,9 +864,9 @@ Deno.test("⛔ LOT C — LA SALADE NE SE CONGÈLE PAS, et sa vague survit", () =
     runs: 1,
     freezer: true,
     shoppingList: [
-      { term: "lentilles", quantity: null, aisle: "pantry", food_group: "legumes" },
-      { term: "salade verte", quantity: null, aisle: "produce", food_group: "leafy_greens" },
-      { term: "poisson", quantity: null, aisle: "protein", food_group: "white_fish" },
+      { term: "lentilles", quantity: null, aisle: "pantry", food_group: "legumes", ref: null },
+      { term: "salade verte", quantity: null, aisle: "produce", food_group: "leafy_greens", ref: null },
+      { term: "poisson", quantity: null, aisle: "protein", food_group: "white_fish", ref: null },
     ],
     preparations: [
       { id: "p1", cookOn: "mon", ingredientTerms: ["lentilles"] },
@@ -843,8 +909,8 @@ Deno.test("⛔ LOT C — la liste des incongelables, sur les groupes qu'elle peu
       runs: 1,
       freezer: true,
       shoppingList: [
-        { term: "lentilles", quantity: null, aisle: "pantry", food_group: "legumes" },
-        { term: "sujet", quantity: null, aisle: "produce", food_group: group },
+        { term: "lentilles", quantity: null, aisle: "pantry", food_group: "legumes", ref: null },
+        { term: "sujet", quantity: null, aisle: "produce", food_group: group, ref: null },
       ],
       preparations: [
         { id: "p1", cookOn: "mon", ingredientTerms: ["lentilles"] },

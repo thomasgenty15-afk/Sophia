@@ -65,7 +65,7 @@ function planRow(): Record<string, unknown> {
       { day: "wed", preparation_ids: ["prep_a"], run_through: "Oven on." },
     ],
     shopping_list: [
-      { term: "chicken thighs", aisle: "protein", quantity: "600 g", food_group: "poultry" },
+      { term: "chicken thighs", aisle: "protein", quantity: "600 g", food_group: "poultry", ref: null },
     ],
   };
 }

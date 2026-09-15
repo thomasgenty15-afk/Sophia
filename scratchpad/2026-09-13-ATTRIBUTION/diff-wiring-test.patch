@@ -1,0 +1,180 @@
+--- scratchpad/2026-09-13-ATTRIBUTION/sauvegardes/portion_sizing_wiring_test.ts.ORIG	2026-09-13 22:47:54
++++ supabase/functions/_shared/keel/portion_sizing_wiring_test.ts	2026-09-13 22:50:29
+@@ -736,7 +736,7 @@
+     "l'unité n'est plus portée par sa charge",
+   );
+   assert(
+-    SRC.includes("if (plat !== undefined) parsedByUnit.set(unitId, plat);"),
++    SRC.includes("parsedByUnit.set(unitId, plat);"),
+     "le plat parsé n'est plus rangé sous son unité",
+   );
+   // ⛔ ET L'ADRESSE DE RETOUR RESTE UNIQUE, contrôlée par `patchDishPayloads`:
+@@ -1015,13 +1015,50 @@
+   assert(!fn.includes("retry.preparations.map((p) => p)") && !fn.includes("preparations = args.retry"), "l'épissage importe des casseroles non autorisées");
+ });
+ 
+-Deno.test("⛔ CÂBLAGE ㊱ — « bloqué » inclut le plat DÉJÀ réparé une fois sans effet", () => {
+-  // Mesuré au tir CATCH1 : le frais restait réécrivable à la lettre, mais le
+-  // budget d'une relance par plat était épuisé et l'assiette restait dehors.
+-  // Sans cette clause, l'entrée de dernier recours ne part jamais sur le cas
+-  // qui la justifie : « on a essayé, ça n'a pas suffi ».
+-  assert(SRC.includes("const dejaDemande = outOfBoundsN.some((x) => x.i === i);"), "un plat déjà demandé n'est pas reconnu");
+-  assert(SRC.includes("if ((!freshOk && !potsOk) || dejaDemande) {"), "le budget épuisé ne rend pas la personne bloquée");
++Deno.test("⛔ CÂBLAGE ㊱ — « bloqué » ne peut pas vouloir dire « déjà demandé » sur ce site", () => {
++  // ══════════════════════════════════════════════════════════════════════
++  // ⟳ 2026-09-13 · LOT 1 D'ATTRIBUTION — CE TEST ÉPINGLAIT UNE PRÉMISSE MORTE
++  // ══════════════════════════════════════════════════════════════════════
++  //
++  // ⛔ CE QU'IL EXIGEAIT, ET POURQUOI C'ÉTAIT FAUX DEPUIS LE 2026-09-12 :
++  //
++  //     const dejaDemande = outOfBoundsN.some((x) => x.i === i);
++  //     if ((!freshOk && !potsOk) || dejaDemande) { … }
++  //
++  // Écrit au tir CATCH1, quand ce site RAPPELAIT le modèle : « on a essayé, ça
++  // n'a pas suffi ». Depuis la fermeture C4, `runDensityRepair` ne rappelle
++  // plus personne — il dépose sa consigne — et RIEN n'est remesuré entre
++  // `outOfBoundsN` et cette ligne : `measured` est le même objet. `dejaDemande`
++  // était donc VRAI pour tout plat hors bornes, et chaque mangeur hors bornes
++  // se voyait réserver un complément sans qu'aucune demande soit partie.
++  // Mesuré sur les deux appels réels du 2026-09-13 (`stuck_dishes: 0`,
++  // `fresh_frozen: 0`, et pourtant `residual_stuck` = `residual_eaters`).
++  //
++  // ⛔ CE QUI LE REMPLACE, ET IL A UN CAS QUI PASSE : on ne réserve un
++  // complément que si la recomposition COMMUNE ne peut pas servir la personne.
++  assert(!SRC.includes("const dejaDemande ="), "la prémisse morte est revenue");
++  assert(
++    SRC.includes("const rienAReecrire = !freshOk && !potsOk;") &&
++      SRC.includes("const couloirVide = sharedCorridorEmpty(i);") &&
++      SRC.includes("if (rienAReecrire || couloirVide) {"),
++    "la décision ne tient plus qu'à ce qui reste réécrivable et au couloir commun",
++  );
++  // ⛔ ET LA FAISABILITÉ COMMUNE EST CALCULÉE AVEC LES FONCTIONS DU MOTEUR,
++  // pas avec une seconde table : `densityCorridorFor` par assiette,
++  // `mergeCorridors` pour les croiser.
++  assert(
++    SRC.includes("const sharedCorridorEmpty = (dishIndex: number): boolean => {") &&
++      SRC.includes("commun = commun === null ? c : mergeCorridors(commun, c);") &&
++      SRC.includes('return commun !== null && commun.incompatible === "empty_intersection";'),
++    "l'intersection des couloirs n'est pas le contrôle de faisabilité",
++  );
++  // ⛔ ET ON COMPTE LES DEUX CÔTÉS. « on a réservé » et « on a laissé la
++  // recomposition commune faire » ne doivent pas se relire pareil.
++  assert(
++    SRC.includes("repairs.residual_recomposable++;") &&
++      SRC.includes("residual_stuck_by: { nothing_rewritable: 0, empty_corridor: 0 },"),
++    "le motif du blocage n'est pas compté",
++  );
+ });
+ 
+ 
+@@ -1060,7 +1097,24 @@
+     bloc.includes('(d as { complementsShared?: true }).complementsShared === true &&'),
+     "le retrait ne vise pas que les compléments: un plat partagé pourrait tomber",
+   );
+-  assert(bloc.includes("insolubles.has(String(d.title ?? \"\"))"), "le retrait ne lit pas les titres insolubles mesurés");
++  // ⟳ 2026-09-13 · LOT 1 D'ATTRIBUTION — L'ADRESSE, PLUS LE TITRE. La
++  // référence N=4 porte le MÊME titre à mon/lunch et à tue/lunch : « retirer
++  // par titre » a retiré les deux plats que le modèle venait de réparer.
++  assert(!bloc.includes("insolubles.has(String(d.title"), "le retrait relit les titres");
++  assert(
++    bloc.includes("insolubles.has(") && bloc.includes('${String(d.day ?? "")}|${String(d.slot ?? "")}|${'),
++    "le retrait ne vise pas la case ET le porteur",
++  );
++  // ⛔ ET LES LIGNES D'APPLICATION SUIVENT LA REMESURE. Sans ça, retirer un
++  // plat décale les rangs et `applySizingForEaters` pose les contenants du
++  // plat n° k sur le plat n° k+1 (mesuré au rejeu du tir N=4, 2026-09-13).
++  const apres = SRC.slice(i, i + 1800);
++  assert(
++    apres.includes("measured = shadowSizing();") &&
++      apres.includes("rows.length = 0;") &&
++      apres.includes("rows.push(...((measured.applyRows ?? []) as EaterRowForApply[]));"),
++    "les lignes d'application restent figées sur la mesure d'avant le retrait",
++  );
+   assert(bloc.includes("dedicated.rejected.unsolvable += aRetirer.length;"), "le retrait n'est pas compté");
+   assert(bloc.includes("measured = shadowSizing();"), "le plan n'est pas remesuré après le retrait");
+ });
+@@ -1080,7 +1134,7 @@
+   assert(bloc.includes("if (!fed.complementByDish[c.i]) continue;"), "le passage ne part pas des compléments de la grille");
+   assert(bloc.includes('Object.assign(sRow, { factor: split.sharedFactor, personCookedG: split.sharedG, verdict: "in_bounds", unmetKcal: 0 });'), "la part partagée n'est pas rabotée");
+   assert(bloc.includes('Object.assign(cRow, { factor: split.complementFactor, personCookedG: split.complementG, verdict: "in_bounds", unmetKcal: 0 });'), "le complément n'est pas dimensionné à la différence");
+-  assert(bloc.includes("complement.unsolvable_titles.push("), "un complément qui ne résout pas n'est pas nommé");
++  assert(bloc.includes("complement.unsolvable_cells.push("), "un complément qui ne résout pas n'est pas nommé");
+   // ③ la lane RETIRE le complément qui ne résout pas, et remesure.
+   // ⟳ 2026-09-12 · FERMETURE LOT 1 — le retrait a changé de site (le plat est
+   // maintenant ajouté par un patch, au tour d'avant) mais pas de nature.
+@@ -1329,5 +1383,75 @@
+   assert(
+     SRC.includes("sized || !dishMeasurable ? null : recipeShareReasonFor"),
+     "un plat illisible doit refermer la part de recette",
++  );
++});
++
++// ═══════════════════════════════════════════════════════════════════════════
++// ⟳ 2026-09-13 · LOT 1 D'ATTRIBUTION — LES DEUX PERTES DE LA FUSION, ÉPINGLÉES
++// ═══════════════════════════════════════════════════════════════════════════
++
++Deno.test("⛔ CÂBLAGE ㊵ — le porteur d'une unité de patch est le NÔTRE, reposé après le parseur", () => {
++  // ⛔ CE QUI DISPARAISSAIT, ET OÙ. `patchDishPayloads` efface ce que le modèle
++  // aurait écrit et repose `for_member_id` depuis la table des unités : c'est
++  // le SERVEUR qui adresse. `parseGeneratedMeal` le relit ensuite comme s'il
++  // venait du modèle et le jette quand la personne n'est pas dans
++  // `dishBearerIds`, ou quand la consigne du premier jet n'avait pas réclamé de
++  // plat dédié. Mesuré au rejeu gratuit du tir N=2 du 2026-09-13 :
++  //
++  //   dishes[0]: for_member_id "62b33b69…" is not a mouth that gets its own
++  //              dish, dropped
++  //
++  // Les compléments devenaient des plats de TABLE, chaque bouche se retrouvait
++  // nommée sur deux couvercles à la même case, et la garde finale rendait
++  // `mouth_unfed` avec `unfed:double`. Un repas rendu absent par notre propre
++  // écriture.
++  const i = SRC.indexOf("parsedByUnit.set(unitId, plat);");
++  assert(i > 0, "le plat parsé n'est plus rangé sous son unité");
++  const bloc = SRC.slice(Math.max(0, i - 900), i + 200);
++  assert(
++    bloc.includes("const unite = c4Units.byId.get(unitId) ?? null;") &&
++      bloc.includes("if (unite !== null && unite.ownerId !== null) {") &&
++      bloc.includes("(plat as { memberId: string | null }).memberId = unite.ownerId;"),
++    "l'adresse posée par le serveur n'est pas restaurée après le parseur",
++  );
++  // ⛔ JAMAIS DE PORTEUR OÙ L'UNITÉ N'EN A PAS : donner un porteur à un plat de
++  // la maison le retirerait à tous les autres.
++  assert(
++    !bloc.includes("plat.memberId = unite.ownerId ?? "),
++    "un plat de la maison pourrait recevoir un porteur",
+   );
++  // ⛔ ET C'EST COMPTÉ. Un `0` sur un patch qui porte des compléments dit que
++  // le parseur a gardé l'adresse ; un nombre > 0 dit combien de repas ont été
++  // sauvés. Sans ce compteur, le correctif serait invérifiable en réel.
++  assert(
++    SRC.includes('tag: "keel.household_meal.patch_owner_restored"') &&
++      SRC.includes("restored: ownersRestored,"),
++    "la restauration de l'adresse n'est pas comptée",
++  );
+ });
++
++Deno.test("⛔ CÂBLAGE ㊶ — `complementsShared` se pose sur le plat CRÉÉ, par identité", () => {
++  // ⛔ LE GESTE RETIRÉ : un `find` sur `jour/moment/porteur`. À une case où la
++  // personne a DÉJÀ son plat dédié, ce triplet désigne DEUX plats — l'ancien et
++  // le complément qu'on vient de créer — et `find` rend le PREMIER. Mesuré au
++  // rejeu gratuit du tir N=4 du 2026-09-13 : la marque tombait sur U4 et U10,
++  // les deux plats que le modèle venait de réécrire ; le contrôle du complément
++  // les a jugés insolubles et la lane les a RETIRÉS. La réparation disparaissait
++  // et les compléments restaient.
++  const i = SRC.indexOf("for (const unitId of c4Fusion.created) {");
++  assert(i > 0, "la marque des compléments n'est plus posée");
++  const bloc = SRC.slice(i, i + 1400);
++  assert(
++    !bloc.includes("String(d.memberId ?? \"\") === String(unite.ownerId ?? \"\")"),
++    "la marque se repose par adresse : deux plats de la même case sont à nouveau confondus",
++  );
++  assert(
++    bloc.includes("const attendu = parsedByUnit.get(unitId);") &&
++      bloc.includes("(c4Fusion.plan.dishes as readonly unknown[]).includes(attendu)"),
++    "le plat créé n'est plus reconnu par sa référence",
++  );
++  assert(
++    bloc.includes('tag: "keel.household_meal.complement_unmarked"'),
++    "un complément créé qu'on ne retrouve pas reste silencieux",
++  );
++});

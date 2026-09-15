@@ -1,0 +1,2133 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t01",
+    "user": "Cette semaine je sens que le niveau est un peu trop intense. Je veux garder le niveau, mais ralentir le rythme global, pas juste modifier une seule action.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-complex-postfix-r50-level-reduce-rhythm",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Pour ralentir le rythme global de cette semaine, quels sont les éléments qui te semblent les plus lourds ou que tu aimerais alléger ? Par exemple, l'habitude \"Partager un point positif\" ou la clarification \"Cartographier les déclencheurs\" ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "3e83331c-0fb8-47b3-bc4d-5d0396151254",
+        "ts": "2026-05-19T17:02:53.032+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11293,
+          "latency_ms": 5103,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 765,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Cette semaine je sens que le niveau est un peu trop intense. Je veux garder le niveau, mais ralentir le rythme global, pas juste modifier une seule action.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Cette semaine je sens que le niveau est un peu trop intense. Je veux garder le niveau, mais ralentir le rythme global, pas juste modifier une seule action.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "3e83331c-0fb8-47b3-bc4d-5d0396151254",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "le niveau / le rythme global",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "le niveau actuel",
+                  "status": "identified",
+                  "evidence": [
+                    "le niveau est un peu trop intense",
+                    "ralentir le rythme global"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "le niveau est un peu trop intense",
+                    "ralentir le rythme global",
+                    "pas juste modifier une seule action"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": []
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "current_level.affected_items"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de supprimer une action entièrement sans explorer d'abord la simplification ou la réduction de fréquence.",
+              "Suggérer une pause globale du plan sans comprendre les raisons profondes de la surcharge.",
+              "Faire des suppositions sur la cause de l'intensité sans poser de questions directes."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+              "La structure et la séquence globales du plan.",
+              "L'intention derrière chaque action, même si son exécution est modifiée."
+            ],
+            "warnings": [
+              "Éviter de proposer de sauter le niveau actuel ou de le modifier de manière drastique, car l'utilisateur souhaite 'garder le niveau'.",
+              "Ne pas se limiter à un ajustement d'une seule action, car la demande porte sur le 'rythme global'.",
+              "Ne pas altérer la nature ou l'objectif principal du niveau 'Désamorcer et recréer de la sécurité'."
+            ],
+            "confidence": "medium",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+              "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+              "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+            ],
+            "observation": "L'utilisateur exprime un sentiment de surcharge globale pour le niveau en cours et souhaite une réduction du rythme général, au-delà d'un simple ajustement d'action. Il y a une volonté de maintenir le cap du niveau, mais de le rendre plus soutenable.",
+            "recommendation": "Identifier les leviers d'ajustement de la charge globale du niveau, en priorisant la réduction de la friction et de l'intensité sans altérer l'objectif fondamental du niveau. Il s'agit de trouver un équilibre entre la progression et la capacité de l'utilisateur à s'engager.",
+            "options_to_discuss": [
+              "Réduire la fréquence des habitudes récurrentes pour la semaine en cours.",
+              "Simplifier la portée ou la durée des missions ou clarifications spécifiques.",
+              "Mettre en pause temporairement un élément moins critique pour le reste de la semaine.",
+              "Réévaluer la charge perçue de chaque élément pour identifier les ajustements à fort impact."
+            ],
+            "questions_to_clarify": [
+              "Quels sont les éléments spécifiques ou les moments de la semaine qui contribuent le plus à ce sentiment d'intensité ?",
+              "Quel serait un rythme 'moins intense' pour vous ? (ex: moins de tâches quotidiennes, des durées plus courtes, moins d'effort cognitif requis)",
+              "Y a-t-il un type d'activité (habitudes, missions, réflexions) qui vous semble plus lourd que les autres en ce moment ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 23426,
+        "created_at": "2026-05-19T17:02:53.034378+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t02",
+    "user": "Le plus lourd c'est le cumul : signal de pause + point positif + observation des déclencheurs. Je veux une version plus respirable du niveau, pas supprimer ces repères.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-complex-postfix-r50-level-reduce-rhythm",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Si je comprends bien, tu souhaites alléger le niveau actuel pour le rendre plus respirable, en particulier concernant le signal de pause, le point positif et l'observation des déclencheurs, sans pour autant supprimer ces repères. Est-ce que je peux te préparer une proposition concrète pour alléger ces éléments ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "e271eb0e-09b2-4a22-89f0-de4b297c1546",
+        "ts": "2026-05-19T17:03:43.606+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13971,
+          "latency_ms": 12938,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 1029,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Le plus lourd c'est le cumul : signal de pause + point positif + observation des déclencheurs. Je veux une version plus respirable du niveau, pas supprimer ces ",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Le plus lourd c'est le cumul : signal de pause + point positif + observation des déclencheurs. Je veux une version plus respirable du niveau, pas supprimer ces ",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "reason": "user_provides_missing_slot_for_active_tool_skill",
+              "skill_id": "adjust_plan_item",
+              "signal_type": "continue_skill",
+              "confidence_band": "high"
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "e271eb0e-09b2-4a22-89f0-de4b297c1546",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "le niveau",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "le niveau actuel",
+                  "status": "identified",
+                  "evidence": [
+                    "le niveau est un peu trop intense",
+                    "ralentir le rythme global",
+                    "pas juste modifier une seule action"
+                  ]
+                },
+                "payload": {
+                  "reason": {
+                    "status": "missing",
+                    "evidence": []
+                  },
+                  "scope_kind": "current_level",
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "ne pas supprimer ces repères"
+                    ],
+                    "evidence": [
+                      "pas supprimer ces repères"
+                    ]
+                  },
+                  "change_target": {
+                    "status": "identified",
+                    "evidence": [
+                      "ralentir le rythme global",
+                      "version plus respirable du niveau"
+                    ]
+                  },
+                  "reason_change": {
+                    "status": "identified",
+                    "evidence": [
+                      "le niveau est un peu trop intense",
+                      "Le plus lourd c'est le cumul"
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "07f63c87-82fb-471b-8d90-0848e5b06026"
+                    ],
+                    "evidence": [
+                      "signal de pause",
+                      "point positif",
+                      "observation des déclencheurs"
+                    ]
+                  },
+                  "adjustment_type": {
+                    "value": "reduce_load",
+                    "status": "identified",
+                    "evidence": [
+                      "trop intense",
+                      "ralentir le rythme global",
+                      "plus respirable"
+                    ]
+                  }
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "Je veux une version plus respirable du niveau"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": []
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "draft_generation_confirmation"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de supprimer une action entièrement sans explorer d'abord la simplification ou la réduction de fréquence.",
+              "Suggérer une pause globale du plan sans comprendre les raisons profondes de la surcharge.",
+              "Faire des suppositions sur la cause de l'intensité sans poser de questions directes."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+              "La présence de 'Convenir d'un signal de pause' et de son suivi.",
+              "La présence de 'Partager un point positif'.",
+              "La présence de 'Cartographier les déclencheurs'.",
+              "L'intention fondamentale derrière chaque action (ex: le signal pour la pause, le positif pour l'ancrage, la cartographie pour la compréhension des déclencheurs)."
+            ],
+            "warnings": [
+              "Ne pas proposer de supprimer entièrement 'Convenir d'un signal de pause', 'Partager un point positif' ou 'Cartographier les déclencheurs', car l'utilisateur souhaite conserver ces 'repères'.",
+              "Éviter de suggérer une pause complète du niveau ou un changement drastique de son objectif, car la demande est de le rendre 'plus respirable', pas de l'interrompre.",
+              "Ne pas altérer la nature ou le rôle essentiel de chaque action, même si leur exécution est simplifiée."
+            ],
+            "confidence": "medium",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+              "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+              "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+            ],
+            "observation": "L'utilisateur exprime un sentiment de surcharge lié à la combinaison de plusieurs actions clés du niveau en cours. Il ne souhaite pas supprimer ces actions, qu'il considère comme des repères essentiels, mais cherche à rendre le niveau globalement plus 'respirable'. La demande porte sur une réduction de la charge cumulative, pas sur l'élimination d'éléments fondamentaux.",
+            "recommendation": "Explorer des stratégies pour alléger la charge perçue des actions 'Convenir d'un signal de pause', 'Partager un point positif' et 'Cartographier les déclencheurs', en privilégiant la simplification, la réduction de fréquence ou l'étalement, tout en maintenant leur présence et leur intention fondamentale au sein du niveau.",
+            "options_to_discuss": [
+              "Réduire la fréquence de l'habitude 'Partager un point positif' pour la semaine en cours, même si elle a déjà été ajustée.",
+              "Simplifier la portée ou la durée de la mission 'Faire le point sur le signal de pause' ou de la clarification 'Cartographier les déclencheurs' pour cette semaine.",
+              "Proposer de décaler légèrement la mission 'Faire le point sur le signal de pause' à la semaine suivante si elle n'est pas encore critique.",
+              "Explorer des versions 'mini' ou des instructions encore plus allégées pour 'Cartographier les déclencheurs' afin de réduire l'effort cognitif."
+            ],
+            "questions_to_clarify": [
+              "Quand vous parlez de 'cumul', est-ce la fréquence de ces actions, le temps qu'elles demandent, ou l'effort mental qu'elles représentent qui est le plus lourd ?",
+              "Parmi ces trois éléments ('signal de pause', 'point positif', 'observation des déclencheurs'), y en a-t-il un qui vous semble plus difficile à alléger que les autres, ou un qui est absolument non négociable dans sa forme actuelle ?",
+              "Si nous devions alléger un de ces 'repères' pour cette semaine, lequel aurait le plus grand impact sur votre sentiment de 'respirabilité' ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 38272,
+        "created_at": "2026-05-19T17:03:43.607815+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t03",
+    "user": "Oui, prépare un brouillon sans appliquer. Je veux par exemple garder le signal de pause, mais rendre le point positif moins fréquent et l'observation des déclencheurs moins lourde.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-complex-postfix-r50-level-reduce-rhythm",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends que tu veux alléger le niveau actuel pour le rendre plus respirable, en gardant le signal de pause.\n\nPour l'habitude \"Partager un point positif\", tu avais déjà réduit la fréquence à 3 fois par semaine et simplifié la consigne. Quelle fréquence \"moins fréquente\" te semblerait vraiment plus facile à tenir et soutenable ?\n\nConcernant \"Cartographier les déclencheurs\", c'est une clarification qui sert de repère pour tes observations. Je ne peux pas modifier sa structure directement. Pour la rendre \"moins lourde\", qu'est-ce qui la rend difficile pour toi ? Est-ce le temps que ça prend, l'effort de réflexion, ou le fait de devoir écrire les choses en détail ? Comment aimerais-tu simplifier l'action concrète d'observer les déclencheurs ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "4fd50269-ef08-4f2e-b7a2-c4780531810e",
+        "ts": "2026-05-19T17:05:23.996+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 15166,
+          "latency_ms": 10905,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 1056,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "4fd50269-ef08-4f2e-b7a2-c4780531810e",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "le niveau",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "le niveau actuel",
+                  "status": "identified",
+                  "evidence": [
+                    "le niveau est un peu trop intense",
+                    "ralentir le rythme global",
+                    "pas juste modifier une seule action",
+                    "Je veux une version plus respirable du niveau"
+                  ]
+                },
+                "payload": {
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "ne pas supprimer ces repères",
+                      "garder le signal de pause",
+                      "sans appliquer"
+                    ],
+                    "evidence": [
+                      "pas supprimer ces repères",
+                      "garder le signal de pause",
+                      "sans appliquer"
+                    ]
+                  },
+                  "change_target": {
+                    "status": "identified",
+                    "evidence": [
+                      "ralentir le rythme global",
+                      "version plus respirable du niveau",
+                      "point positif moins fréquent",
+                      "observation des déclencheurs moins lourde"
+                    ]
+                  },
+                  "reason_change": {
+                    "status": "identified",
+                    "evidence": [
+                      "le niveau est un peu trop intense",
+                      "Le plus lourd c'est le cumul : signal de pause + point positif + observation des déclencheurs."
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      "Convenir d'un signal de pause",
+                      "Partager un point positif",
+                      "Cartographier les déclencheurs"
+                    ],
+                    "evidence": [
+                      "signal de pause",
+                      "point positif",
+                      "observation des déclencheurs"
+                    ]
+                  },
+                  "adjustment_type": {
+                    "value": "reduce_load",
+                    "status": "identified",
+                    "evidence": [
+                      "trop intense",
+                      "ralentir le rythme global",
+                      "plus respirable"
+                    ]
+                  }
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "le niveau est un peu trop intense",
+                    "ralentir le rythme global",
+                    "pas juste modifier une seule action",
+                    "Je veux une version plus respirable du niveau"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": []
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "reason": "user confirms draft preparation but adds new constraints for the draft content and explicitly states not to apply it yet",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "draft_generation_retry_needed"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de supprimer une action entièrement sans explorer d'abord la simplification ou la réduction de fréquence.",
+              "Suggérer une pause globale du plan sans comprendre les raisons profondes de la surcharge.",
+              "Faire des suppositions sur la cause de l'intensité sans poser de questions directes."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+              "La présence de 'Convenir d'un signal de pause' et de son suivi.",
+              "La présence de 'Partager un point positif'.",
+              "La présence de 'Cartographier les déclencheurs'.",
+              "L'intention fondamentale derrière chaque action (ex: le signal pour la pause, le positif pour l'ancrage, la cartographie pour la compréhension des déclencheurs)."
+            ],
+            "warnings": [
+              "Ne pas proposer de supprimer entièrement 'Convenir d'un signal de pause', 'Partager un point positif' ou 'Cartographier les déclencheurs', car l'utilisateur souhaite conserver ces 'repères'.",
+              "Éviter de suggérer une pause complète du niveau ou un changement drastique de son objectif, car la demande est de le rendre 'plus respirable', pas de l'interrompre.",
+              "Ne pas altérer la nature ou le rôle essentiel de chaque action, même si leur exécution est simplifiée."
+            ],
+            "confidence": "medium",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+              "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+              "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+            ],
+            "observation": "L'utilisateur confirme le besoin d'alléger la charge du niveau actuel, en ciblant spécifiquement la fréquence de l'habitude de partage positif et la perception de 'lourdeur' de l'observation des déclencheurs. Il souhaite maintenir la présence de ces repères essentiels, y compris le signal de pause, mais dans une forme plus 'respirable' et moins exigeante.",
+            "recommendation": "Proposer des ajustements concrets pour réduire la fréquence de 'Partager un point positif' et simplifier la tâche de 'Cartographier les déclencheurs', tout en s'assurant que ces modifications répondent précisément à la source de la surcharge perçue par l'utilisateur et préservent l'intention pédagogique de chaque action.",
+            "options_to_discuss": [
+              "Pour 'Partager un point positif', réduire la fréquence à 1 ou 2 fois par semaine, compte tenu des ajustements déjà effectués.",
+              "Pour 'Cartographier les déclencheurs', simplifier la tâche en ne demandant qu'une seule observation rapide, sans détails complexes, ou en réduisant le nombre de champs à remplir.",
+              "Pour 'Cartographier les déclencheurs', proposer de transformer l'observation écrite en une simple réflexion mentale rapide en fin de semaine, sans nécessité de la formaliser."
+            ],
+            "questions_to_clarify": [
+              "Pour 'Partager un point positif', vous aviez déjà réduit la fréquence à 3 fois par semaine et simplifié la consigne. Quelle fréquence 'moins fréquente' vous semblerait vraiment plus facile à tenir et soutenable ?",
+              "Concernant 'Cartographier les déclencheurs', qu'est-ce qui la rend 'lourde' pour vous spécifiquement ? Est-ce le temps que cela prend, l'effort de réflexion, ou le fait de devoir écrire les choses en détail ?",
+              "Y a-t-il une de ces actions ('point positif', 'observation des déclencheurs') que vous souhaiteriez alléger en priorité ou d'une manière très spécifique ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 76226,
+        "created_at": "2026-05-19T17:05:23.998786+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t04",
+    "user": "Mets 'Partager un point positif' à 2 jours cette semaine. Pour les déclencheurs, je veux juste noter un mot-clé quand ça déborde, pas faire une analyse complète.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t04",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-complex-postfix-r50-level-reduce-rhythm",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je dois reprendre le brouillon pour tes ajustements. Pour l'action 'Cartographier les déclencheurs', tu as dit vouloir noter un mot-clé quand ça déborde, sans analyse complète. Est-ce que tu veux que je simplifie les questions actuelles ('Quels sujets ont créé de la friction cette semaine ?' et 'À quel moment précis la discussion a-t-elle basculé ?') pour qu'elles demandent juste un mot-clé, ou que je les remplace par une seule question plus simple ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t04",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "2a5378c1-6734-4fe7-b440-de6ded8f5e92",
+        "ts": "2026-05-19T17:07:14.732+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 15924,
+          "latency_ms": 22636,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 1190,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Partager un point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Cartographier les déclencheurs",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t04",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Partager un point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Cartographier les déclencheurs",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "skill_id": "adjust_plan_item",
+              "state_change_reason": "user_provided_slot_value"
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1.6,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "2a5378c1-6734-4fe7-b440-de6ded8f5e92",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Partager un point positif et Cartographier les déclencheurs",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "le niveau actuel",
+                  "status": "identified",
+                  "evidence": [
+                    "continuation of previous turns about level adjustment"
+                  ]
+                },
+                "payload": {
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "ne pas supprimer ces repères",
+                      "garder le signal de pause",
+                      "sans appliquer"
+                    ]
+                  },
+                  "change_target": {
+                    "status": "identified",
+                    "evidence": [
+                      "ralentir le rythme global",
+                      "version plus respirable du niveau",
+                      "point positif moins fréquent",
+                      "observation des déclencheurs moins lourde"
+                    ]
+                  },
+                  "reason_change": {
+                    "status": "identified",
+                    "evidence": [
+                      "le niveau est un peu trop intense",
+                      "Le plus lourd c'est le cumul : signal de pause + point positif + observation des déclencheurs."
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      "Convenir d'un signal de pause",
+                      "Partager un point positif",
+                      "Cartographier les déclencheurs"
+                    ],
+                    "evidence": [
+                      "signal de pause",
+                      "point positif",
+                      "observation des déclencheurs"
+                    ]
+                  },
+                  "adjustment_type": {
+                    "value": "reduce_load",
+                    "status": "identified",
+                    "evidence": [
+                      "trop intense",
+                      "ralentir le rythme global",
+                      "plus respirable"
+                    ]
+                  },
+                  "item_adjustments": [
+                    {
+                      "kind": "habit",
+                      "item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "target_reps": {
+                        "value": 2,
+                        "status": "identified",
+                        "evidence": [
+                          "Mets 'Partager un point positif' à 2 jours cette semaine."
+                        ]
+                      }
+                    },
+                    {
+                      "kind": "clarification",
+                      "item_id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                      "instruction": {
+                        "value": "noter un mot-clé quand ça déborde",
+                        "status": "identified",
+                        "evidence": [
+                          "je veux juste noter un mot-clé quand ça déborde, pas faire une analyse complète."
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "continuation of previous turns about level adjustment"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "draft_generation_retry_needed"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Demander des précisions sur le 'pourquoi' de ces ajustements, l'intention de réduction de charge étant claire.",
+              "Proposer de supprimer entièrement 'Partager un point positif' ou 'Cartographier les déclencheurs'.",
+              "Suggérer d'autres modifications au plan ou au niveau qui n'ont pas été explicitement demandées par l'utilisateur à ce stade."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+              "La présence de l'action 'Convenir d'un signal de pause' et son rôle.",
+              "La présence de l'habitude 'Partager un point positif' et son intention d'ancrage positif.",
+              "La présence de l'action 'Cartographier les déclencheurs' et son intention de compréhension des tensions.",
+              "L'intention fondamentale de chaque action, même après ajustement de sa forme ou de sa fréquence."
+            ],
+            "warnings": [
+              "Ne pas tenter de rouvrir la discussion sur la nécessité de ces ajustements, car l'utilisateur a été très explicite.",
+              "Éviter de proposer des alternatives aux modifications spécifiquement demandées pour la fréquence ou la simplification.",
+              "S'assurer que la simplification de 'Cartographier les déclencheurs' ne vide pas l'action de son sens initial d'identification des points de tension."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+              "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+              "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+            ],
+            "observation": "L'utilisateur fournit des instructions directes et précises pour alléger la charge du niveau actuel, en ciblant spécifiquement la fréquence de l'habitude de partage positif et la simplification de l'observation des déclencheurs. Il exprime clairement le désir de conserver ces actions comme des repères, mais sous une forme plus gérable et moins exigeante.",
+            "recommendation": "Procéder à l'application des ajustements demandés pour 'Partager un point positif' et 'Cartographier les déclencheurs'. S'assurer que la modification de l'instruction pour 'Cartographier les déclencheurs' reflète fidèlement la demande de 'noter un mot-clé' sans analyse complète, tout en maintenant l'intention de base de l'identification des déclencheurs.",
+            "options_to_discuss": [],
+            "questions_to_clarify": []
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 100583,
+        "created_at": "2026-05-19T17:07:14.734638+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t05",
+    "user": "Remplace par une seule question plus simple : 'quel mot-clé résume le déclencheur ?'. Montre-moi le brouillon final sans appliquer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t05",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-complex-postfix-r50-level-reduce-rhythm",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, je te mets le brouillon final (version plus respirable) sans l’appliquer. 😌\n\n1) Habitude : Partager un point positif\n- Fréquence : 2 jours cette semaine\n- (On garde l’idée de repère positif, mais on baisse le volume à tenir.)\n\n2) Clarification : Cartographier les déclencheurs\n- Objectif : pas d’analyse complète\n- Consigne simplifiée (une seule question) :\n“Quel mot-clé résume le déclencheur ?”\n- Quand ça “déborde” : tu notes juste ce mot-clé (pas plus).\n\n3) Signal de pause\n- On le garde tel quel (sans toucher au repère).\n\nTu veux que je formate ça en checklist ultra courte “à lire en 10 secondes” ou tu préfères garder ce format ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t05",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "cec528ef-fedb-4fb0-ad14-1002ee173ab9",
+        "ts": "2026-05-19T17:07:44.17+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11963,
+          "latency_ms": 5619,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 688,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Cartographier les déclencheurs",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t05",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Cartographier les déclencheurs",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0.9,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,1,1.6;decay=0.55;recovery=0",
+                "contribution": 0.9
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              1,
+              1.6
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "cec528ef-fedb-4fb0-ad14-1002ee173ab9",
+          "tool_skill_intents": [],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "reason": "user_refines_pending_adjustment_and_requests_draft_not_application",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "defense_card",
+            "surface_id": "defense_card",
+            "prop_reason": "user_mentions_recurrent_risk_or_trigger",
+            "source_span": "declencheur ?'. montre-moi le brouillon final sans appliquer.",
+            "target_hint": "Remplace par une seule question plus simple : 'quel mot-clé résume le déclencheur ?'. Montre-moi le brouillon final sans appliquer.",
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "missing",
+            "operation_type": "prepare_defense_card",
+            "confidence_band": "medium",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_defense_card"
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 8170,
+        "created_at": "2026-05-19T17:07:44.173826+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t06",
+    "user": "Oui, valide ce brouillon : point positif à 2 jours cette semaine, une seule question mot-clé pour les déclencheurs, signal de pause inchangé.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t06",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-complex-postfix-r50-level-reduce-rhythm",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "J'ai bien compris l'ajustement. Je te prépare une proposition concrète, et rien n'est appliqué tant que tu ne confirmes pas clairement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t06",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "0fdf0ea7-9413-45db-bfea-a16698166e29",
+        "ts": "2026-05-19T17:08:15.775+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 16111,
+          "latency_ms": 8771,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 1034,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t06",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1,1,1.6,0.9;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              1,
+              1.6,
+              0.9
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "0fdf0ea7-9413-45db-bfea-a16698166e29",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "ce brouillon",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "le niveau actuel",
+                  "status": "identified",
+                  "evidence": [
+                    "continuation of previous turns about level adjustment"
+                  ]
+                },
+                "payload": {
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "ne pas supprimer ces repères",
+                      "garder le signal de pause",
+                      "sans appliquer"
+                    ]
+                  },
+                  "change_target": {
+                    "status": "identified",
+                    "evidence": [
+                      "ralentir le rythme global",
+                      "version plus respirable du niveau",
+                      "point positif moins fréquent",
+                      "observation des déclencheurs moins lourde"
+                    ]
+                  },
+                  "reason_change": {
+                    "status": "identified",
+                    "evidence": [
+                      "le niveau est un peu trop intense",
+                      "Le plus lourd c'est le cumul : signal de pause + point positif + observation des déclencheurs."
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      "Convenir d'un signal de pause",
+                      "Partager un point positif",
+                      "Cartographier les déclencheurs"
+                    ],
+                    "evidence": [
+                      "signal de pause",
+                      "point positif",
+                      "observation des déclencheurs"
+                    ]
+                  },
+                  "adjustment_type": {
+                    "value": "reduce_load",
+                    "status": "identified",
+                    "evidence": [
+                      "trop intense",
+                      "ralentir le rythme global",
+                      "plus respirable"
+                    ]
+                  },
+                  "item_adjustments": [
+                    {
+                      "kind": "habit",
+                      "item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "target_reps": {
+                        "value": 2,
+                        "status": "identified",
+                        "evidence": [
+                          "Mets 'Partager un point positif' à 2 jours cette semaine."
+                        ]
+                      }
+                    },
+                    {
+                      "kind": "clarification",
+                      "item_id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                      "instruction": {
+                        "value": "noter un mot-clé quand ça déborde",
+                        "status": "identified",
+                        "evidence": [
+                          "je veux juste noter un mot-clé quand ça déborde, pas faire une analyse complète."
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "continuation of previous turns about level adjustment"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": []
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "yes",
+            "reason": "user explicitly confirms the draft",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "draft_review_decision",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Demander des précisions sur le 'pourquoi' de ces ajustements, l'intention de réduction de charge étant claire et validée.",
+              "Proposer de supprimer entièrement 'Partager un point positif' ou 'Cartographier les déclencheurs', car l'utilisateur souhaite les conserver comme repères.",
+              "Suggérer d'autres modifications au plan ou au niveau qui n'ont pas été explicitement demandées par l'utilisateur à ce stade."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+              "La présence de l'action 'Convenir d'un signal de pause' et son rôle essentiel dans la gestion des tensions.",
+              "La présence de l'habitude 'Partager un point positif' et son intention d'ancrage positif, même avec une fréquence réduite.",
+              "La présence de l'action 'Cartographier les déclencheurs' et son intention de compréhension des tensions, même avec une instruction simplifiée.",
+              "L'intention fondamentale de chaque action, même après ajustement de sa forme ou de sa fréquence."
+            ],
+            "warnings": [
+              "Ne pas tenter de rouvrir la discussion sur la nécessité de ces ajustements, car l'utilisateur a été très explicite et a validé le brouillon.",
+              "Éviter de proposer des alternatives aux modifications spécifiquement demandées pour la fréquence ou la simplification.",
+              "S'assurer que la simplification de 'Cartographier les déclencheurs' ne vide pas l'action de son sens initial d'identification des points de tension, mais la rend plus accessible."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+              "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+              "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+            ],
+            "observation": "L'utilisateur valide explicitement les ajustements proposés pour alléger la charge du niveau actuel, en confirmant la fréquence de l'habitude de partage positif et la simplification de l'observation des déclencheurs. Il réaffirme également que le signal de pause doit rester inchangé, ce qui renforce la clarté de ses attentes.",
+            "recommendation": "Procéder à l'application des ajustements tels que validés par l'utilisateur. S'assurer que la modification de l'instruction pour 'Cartographier les déclencheurs' reflète précisément la demande de 'noter un mot-clé' sans analyse complète, tout en maintenant l'intention fondamentale d'identifier les points de tension. Confirmer la réduction de 'Partager un point positif' à 2 jours par semaine.",
+            "options_to_discuss": [],
+            "questions_to_clarify": []
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 20413,
+        "created_at": "2026-05-19T17:08:15.777626+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

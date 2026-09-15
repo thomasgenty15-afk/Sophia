@@ -1,0 +1,26 @@
+quand une bouche veut ce qu'une autre refuse, le brief demande le composant séparé par boîte — et le compte ; le plafond du bac voit le cran de la note datée
+
+Rapport 0f §10 (« Léa n'aime pas les asperges mais Marc adore, deux versions ? ») : au plan
+suivant, `food.exclude asperges@Léa` et `food.prefer asperges@Marc` sont servis, et le modèle
+évite l'asperge pour TOUTE la table — l'exclusion honorée en mettant la table sur la ligne de
+Léa, la préférence sans effet. La boîte d'échange existe pour les régimes et les exclusions ;
+personne ne demandait au modèle « la version de Marc ».
+
+`household_meal_generation.ts` (v31_one_wants_what_another_refuses) : bloc « ONE PERSON WANTS
+WHAT ANOTHER REFUSES », armé par les paires prefer@X / exclude@Y (même terme normalisé, bouches
+différentes, jamais une exclusion de table) — la base commune SANS, le composant dans une
+préparation à part ou frais, cité par la boîte de qui le veut, jamais par celle de qui le
+refuse ; vide sans paire, prompt d'hier au caractère près. L'index construit les paires depuis
+les deux magasins (durable + prochain plan) et compte, après ceinture, relances et recours,
+`preference_split {pairs, wanters, composed, refuser_clean, refuser_bitten}` avec le matcher du
+dépôt (`dishBitesExclusion`, items de la boîte et casseroles citées ; le texte de la préférence
+tokenisé comme une exclusion — même tokenisation, pas un second moteur). Six pins de version.
+
+`pot_demand.ts` : le plafond de masse du bac voit le cran de la note datée (`mealKcal ×
+(1 + boost)`) — sur N3d, trois bacs bornés `density` reprenaient d'une main ce que la note
+donnait de l'autre ; même geste que 6f9385d3 côté ancre.
+
+Reste, avec 0f : lire aussi les items de la NOTE FRAÎCHE dans les paires, pour que « Léa n'aime
+pas, Marc adore » fasse la boîte d'échange sur le plan qu'elle annote, pas au suivant.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

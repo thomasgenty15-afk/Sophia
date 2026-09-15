@@ -1,0 +1,293 @@
+{
+  "userId": "5e1412ce-cfea-487c-8209-23f4dda7533f",
+  "chat_messages": [
+    {
+      "id": "5d085c82-dbbb-4dee-b8c9-fec27bfbb4fb",
+      "role": "user",
+      "content": "Je bloque sur un mail perso à envoyer, mais ce n’est pas dans mon plan. Je veux juste me débloquer maintenant sans toucher au plan.",
+      "scope": "coaching_ui_grounding_20260623_r1",
+      "created_at": "2026-06-22T22:48:34.139386+00:00"
+    },
+    {
+      "id": "c7074beb-6e4b-414e-8b38-105a8f8664d2",
+      "role": "assistant",
+      "content": "Je partirais sur une carte d’attaque libre, technique Preparer le terrain : ouvre ton brouillon, enlève tout ce qui distrait, puis pose juste les 3 infos à écrire pour rendre le démarrage simple.\n\nSi tu veux la retrouver ensuite, va dans Dashboard > Ressources puis choisis ou crée ce type de carte.",
+      "scope": "coaching_ui_grounding_20260623_r1",
+      "created_at": "2026-06-22T22:48:55.965887+00:00"
+    },
+    {
+      "id": "0a4d935f-ffeb-4e3f-ad94-a497b8a3cf14",
+      "role": "user",
+      "content": "Ok, cette carte d’attaque libre, je la crée où exactement dans Sophia ?",
+      "scope": "coaching_ui_grounding_20260623_r1",
+      "created_at": "2026-06-22T22:49:07.759219+00:00"
+    },
+    {
+      "id": "2578363c-77b2-439d-8a35-072cfbe824a1",
+      "role": "assistant",
+      "content": "Va dans Dashboard > Ressources, puis ouvre la section des cartes d’attaque pour en choisir une ou en créer une nouvelle. Pour ton mail, je partirais sur une carte d’attaque libre, technique Préparer le terrain : ça t’aide à te mettre dans de bonnes conditions avant d’écrire, sans toucher au reste.",
+      "scope": "coaching_ui_grounding_20260623_r1",
+      "created_at": "2026-06-22T22:49:17.489137+00:00"
+    },
+    {
+      "id": "fd6584a3-a840-4771-ac2b-2cf8660b60f6",
+      "role": "user",
+      "content": "Et si finalement c’est pour une action de mon plan, envoyer le dossier mutuelle, je prépare la carte au même endroit ou ailleurs ?",
+      "scope": "coaching_ui_grounding_20260623_r1",
+      "created_at": "2026-06-22T22:49:27.069202+00:00"
+    },
+    {
+      "id": "bb3458f2-bdab-4714-a5b6-08e2e36717d6",
+      "role": "assistant",
+      "content": "Oui, ce n’est pas au même endroit.\n\n- Pour une action hors plan : tu vas dans Ressources et tu choisis une carte d’attaque libre.\n- Pour une action du plan : tu pars depuis l’action concernée dans le Plan, puis la carte se retrouve ensuite dans Ressources.\n\nDonc ici, pour ton mail perso, reste sur Ressources. Si c’était le dossier mutuelle, tu la préparerais depuis l’action du Plan.",
+      "scope": "coaching_ui_grounding_20260623_r1",
+      "created_at": "2026-06-22T22:49:50.022642+00:00"
+    },
+    {
+      "id": "2d9670fd-a607-48f5-83c8-b984adf2630d",
+      "role": "user",
+      "content": "Ok on change de cible : c’est bien l’action de mon plan envoyer le dossier mutuelle qui bloque au démarrage. Où je prépare sa carte d’attaque ?",
+      "scope": "coaching_ui_grounding_20260623_r1",
+      "created_at": "2026-06-22T22:50:02.052532+00:00"
+    },
+    {
+      "id": "0a571c0e-220c-4892-bfd7-f33752f788f2",
+      "role": "assistant",
+      "content": "Oui, pour l’action de ton plan « envoyer le dossier mutuelle », c’est bien une carte d’attaque liée à cette action. Tu veux surtout savoir où la préparer, ou où la retrouver ensuite ?",
+      "scope": "coaching_ui_grounding_20260623_r1",
+      "created_at": "2026-06-22T22:50:15.795119+00:00"
+    },
+    {
+      "id": "3556be7c-38f3-406f-a4aa-bb54312a318a",
+      "role": "user",
+      "content": "Je parle bien de la préparer, pas juste de la retrouver.",
+      "scope": "coaching_ui_grounding_20260623_r1",
+      "created_at": "2026-06-22T22:50:25.692406+00:00"
+    },
+    {
+      "id": "f0a4a2ff-97cc-44be-a743-cd213ae2ecba",
+      "role": "assistant",
+      "content": "Oui, pour une action hors plan, tu la prépares depuis Ressources. Mais pour te guider proprement : qu’est-ce qui bloque au démarrage de ton mail ?",
+      "scope": "coaching_ui_grounding_20260623_r1",
+      "created_at": "2026-06-22T22:50:44.924489+00:00"
+    },
+    {
+      "id": "5b78283f-c4e5-42d4-8e02-9cd303c462ec",
+      "role": "user",
+      "content": "On met les cartes de côté. Là c’est plutôt une pression globale, pas liée à une action précise. Si tu me conseilles une potion, je la trouve où ?",
+      "scope": "coaching_ui_grounding_20260623_r1",
+      "created_at": "2026-06-22T22:50:54.712686+00:00"
+    },
+    {
+      "id": "6d136e2b-21c6-4024-a082-807869bf1005",
+      "role": "assistant",
+      "content": "Oui — pour une pression globale, la potion la plus adaptée ici est plutôt l’**apaisement**.\n\nTu la trouves dans **Dashboard > Ressources > Potions**. Ensuite, tu choisis celle qui correspond à ton état et tu peux l’ouvrir depuis là.",
+      "scope": "coaching_ui_grounding_20260623_r1",
+      "created_at": "2026-06-22T22:51:05.704629+00:00"
+    }
+  ],
+  "states": [
+    {
+      "user_id": "5e1412ce-cfea-487c-8209-23f4dda7533f",
+      "scope": "coaching_ui_grounding_20260623_r1",
+      "temp_memory": {
+        "__active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "coaching_recommendation",
+          "started_at": "2026-06-22T22:48:55.954Z",
+          "turn_count": 4,
+          "updated_at": "2026-06-22T22:51:05.697Z",
+          "working_state": {
+            "coaching_recommendation_local_state": {
+              "stage": "followup",
+              "max_turns": 4,
+              "difficulty": {
+                "summary": "Le user décrit une pression globale non liée à une action précise et demande où trouver une potion.",
+                "target_kind": "emotional_state",
+                "action_title": null,
+                "action_source": "ambiguous"
+              },
+              "turn_count": 4,
+              "coaching_type": "emotional",
+              "cause_analysis": {
+                "confidence": "medium",
+                "missing_info": [],
+                "primary_cause": "emotional_overload",
+                "why_it_exists": "La demande décrit un état intérieur global, sans lien avec une action concrète du plan. Dans ce cas, la potion est le levier autorisé et adapté."
+              },
+              "parent_flow_id": null,
+              "user_need_summary": "Le user décrit une pression globale non liée à une action précise et demande où trouver une potion.",
+              "candidate_features": [
+                {
+                  "fit": "high",
+                  "why": "Le dernier message décrit une pression globale non liée à une action précise et demande où trouver la potion. La potion d’apaisement est la plus pertinente pour une montée de pression, et la destination canonique est Dashboard > Ressources > Potions.",
+                  "feature": "state_potion",
+                  "destination_hint": "Dashboard > Ressources"
+                }
+              ],
+              "last_answer_summary": "Le dernier message décrit une pression globale non liée à une action précise et demande où trouver la potion. La potion d’apaisement est la plus pertinente pour une montée de pression, et la destination canonique est Dashboard > Ressources > Potions.",
+              "parent_return_focus": null,
+              "pending_type_change": null,
+              "unresolved_question": null,
+              "parent_state_summary": null,
+              "last_visible_decision": {
+                "lever": "state_potion",
+                "reason": "Le dernier message décrit une pression globale non liée à une action précise et demande où trouver la potion. La potion d’apaisement est la plus pertinente pour une montée de pression, et la destination canonique est Dashboard > Ressources > Potions.",
+                "variant": null,
+                "confidence": "high",
+                "potion_type": "apaisement"
+              },
+              "parent_action_context": null,
+              "coaching_type_evidence": [
+                "User asks to get unstuck on a concrete non-plan action (a personal email) and explicitly says it is not part of the plan."
+              ],
+              "current_recommendation": {
+                "fit": "high",
+                "why": "Le dernier message décrit une pression globale non liée à une action précise et demande où trouver la potion. La potion d’apaisement est la plus pertinente pour une montée de pression, et la destination canonique est Dashboard > Ressources > Potions.",
+                "feature": "state_potion",
+                "destination_hint": "Dashboard > Ressources"
+              },
+              "last_visible_task_kind": "emotion_coaching",
+              "recommendation_decision": {
+                "why_primary": "Le dernier message décrit une pression globale non liée à une action précise et demande où trouver la potion. La potion d’apaisement est la plus pertinente pour une montée de pression, et la destination canonique est Dashboard > Ressources > Potions.",
+                "why_not_others": {},
+                "primary_feature": "state_potion",
+                "secondary_feature": null,
+                "platform_destination": {
+                  "label": "potion",
+                  "surface_hint": "Dashboard > Ressources",
+                  "user_facing_destination": "surface=Dashboard > Ressources; section=Potions; object_type=potion; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis aller dans la section Potions"
+                },
+                "user_facing_next_step": "Va dans Dashboard > Ressources, puis ouvre la section Potions. Choisis la potion qui correspond à ton état, puis active-la ou réactive-la depuis là."
+              },
+              "coaching_type_confidence": "high",
+              "secondary_recommendation": null,
+              "dispatcher_signal_context": {
+                "reason": "User asks to get unstuck on a concrete non-plan action (a personal email) and explicitly says it is not part of the plan.",
+                "category": "emotional_state_coaching",
+                "confidence": 0.82,
+                "failure_mode": "unclear",
+                "coaching_type": "emotional",
+                "action_context": null,
+                "activation_checks": {
+                  "is_coaching_need": true,
+                  "is_about_plan_action": false,
+                  "needs_type_confirmation": false,
+                  "has_concrete_plan_action": false,
+                  "is_about_emotional_state": true,
+                  "is_about_non_plan_action": false
+                },
+                "priority_features": [],
+                "emotional_state_context": {
+                  "intensity": null,
+                  "state_hint": null
+                }
+              }
+            }
+          }
+        },
+        "__active_conversation_skill_v1": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "coaching_recommendation",
+          "started_at": "2026-06-22T22:48:55.954Z",
+          "turn_count": 4,
+          "updated_at": "2026-06-22T22:51:05.697Z",
+          "working_state": {
+            "coaching_recommendation_local_state": {
+              "stage": "followup",
+              "max_turns": 4,
+              "difficulty": {
+                "summary": "Le user décrit une pression globale non liée à une action précise et demande où trouver une potion.",
+                "target_kind": "emotional_state",
+                "action_title": null,
+                "action_source": "ambiguous"
+              },
+              "turn_count": 4,
+              "coaching_type": "emotional",
+              "cause_analysis": {
+                "confidence": "medium",
+                "missing_info": [],
+                "primary_cause": "emotional_overload",
+                "why_it_exists": "La demande décrit un état intérieur global, sans lien avec une action concrète du plan. Dans ce cas, la potion est le levier autorisé et adapté."
+              },
+              "parent_flow_id": null,
+              "user_need_summary": "Le user décrit une pression globale non liée à une action précise et demande où trouver une potion.",
+              "candidate_features": [
+                {
+                  "fit": "high",
+                  "why": "Le dernier message décrit une pression globale non liée à une action précise et demande où trouver la potion. La potion d’apaisement est la plus pertinente pour une montée de pression, et la destination canonique est Dashboard > Ressources > Potions.",
+                  "feature": "state_potion",
+                  "destination_hint": "Dashboard > Ressources"
+                }
+              ],
+              "last_answer_summary": "Le dernier message décrit une pression globale non liée à une action précise et demande où trouver la potion. La potion d’apaisement est la plus pertinente pour une montée de pression, et la destination canonique est Dashboard > Ressources > Potions.",
+              "parent_return_focus": null,
+              "pending_type_change": null,
+              "unresolved_question": null,
+              "parent_state_summary": null,
+              "last_visible_decision": {
+                "lever": "state_potion",
+                "reason": "Le dernier message décrit une pression globale non liée à une action précise et demande où trouver la potion. La potion d’apaisement est la plus pertinente pour une montée de pression, et la destination canonique est Dashboard > Ressources > Potions.",
+                "variant": null,
+                "confidence": "high",
+                "potion_type": "apaisement"
+              },
+              "parent_action_context": null,
+              "coaching_type_evidence": [
+                "User asks to get unstuck on a concrete non-plan action (a personal email) and explicitly says it is not part of the plan."
+              ],
+              "current_recommendation": {
+                "fit": "high",
+                "why": "Le dernier message décrit une pression globale non liée à une action précise et demande où trouver la potion. La potion d’apaisement est la plus pertinente pour une montée de pression, et la destination canonique est Dashboard > Ressources > Potions.",
+                "feature": "state_potion",
+                "destination_hint": "Dashboard > Ressources"
+              },
+              "last_visible_task_kind": "emotion_coaching",
+              "recommendation_decision": {
+                "why_primary": "Le dernier message décrit une pression globale non liée à une action précise et demande où trouver la potion. La potion d’apaisement est la plus pertinente pour une montée de pression, et la destination canonique est Dashboard > Ressources > Potions.",
+                "why_not_others": {},
+                "primary_feature": "state_potion",
+                "secondary_feature": null,
+                "platform_destination": {
+                  "label": "potion",
+                  "surface_hint": "Dashboard > Ressources",
+                  "user_facing_destination": "surface=Dashboard > Ressources; section=Potions; object_type=potion; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis aller dans la section Potions"
+                },
+                "user_facing_next_step": "Va dans Dashboard > Ressources, puis ouvre la section Potions. Choisis la potion qui correspond à ton état, puis active-la ou réactive-la depuis là."
+              },
+              "coaching_type_confidence": "high",
+              "secondary_recommendation": null,
+              "dispatcher_signal_context": {
+                "reason": "User asks to get unstuck on a concrete non-plan action (a personal email) and explicitly says it is not part of the plan.",
+                "category": "emotional_state_coaching",
+                "confidence": 0.82,
+                "failure_mode": "unclear",
+                "coaching_type": "emotional",
+                "action_context": null,
+                "activation_checks": {
+                  "is_coaching_need": true,
+                  "is_about_plan_action": false,
+                  "needs_type_confirmation": false,
+                  "has_concrete_plan_action": false,
+                  "is_about_emotional_state": true,
+                  "is_about_non_plan_action": false
+                },
+                "priority_features": [],
+                "emotional_state_context": {
+                  "intensity": null,
+                  "state_hint": null
+                }
+              }
+            }
+          }
+        }
+      },
+      "updated_at": "2026-06-22T22:51:05.701555+00:00"
+    }
+  ],
+  "traces_by_user": [],
+  "traces_by_turn": [],
+  "scheduled_checkins": []
+}

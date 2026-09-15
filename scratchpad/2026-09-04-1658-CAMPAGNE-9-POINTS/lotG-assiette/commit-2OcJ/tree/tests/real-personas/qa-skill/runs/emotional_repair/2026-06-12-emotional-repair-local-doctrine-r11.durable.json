@@ -1,0 +1,42 @@
+{
+  "chat_messages": {
+    "status": 401,
+    "ok": false,
+    "body": {
+      "code": "PGRST301",
+      "details": "None of the keys was able to decode the JWT",
+      "hint": null,
+      "message": "No suitable key or wrong key type"
+    }
+  },
+  "memory_items": {
+    "status": 401,
+    "ok": false,
+    "body": {
+      "code": "PGRST301",
+      "details": "None of the keys was able to decode the JWT",
+      "hint": null,
+      "message": "No suitable key or wrong key type"
+    }
+  },
+  "scheduled_checkins": {
+    "status": 401,
+    "ok": false,
+    "body": {
+      "code": "PGRST301",
+      "details": "None of the keys was able to decode the JWT",
+      "hint": null,
+      "message": "No suitable key or wrong key type"
+    }
+  },
+  "user_recurring_reminders": {
+    "status": 401,
+    "ok": false,
+    "body": {
+      "code": "PGRST301",
+      "details": "None of the keys was able to decode the JWT",
+      "hint": null,
+      "message": "No suitable key or wrong key type"
+    }
+  }
+}

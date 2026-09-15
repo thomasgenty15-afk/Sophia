@@ -1,0 +1,164 @@
+{
+  "id": "2ab8a495-51cc-41d8-9780-f83fc5b42677",
+  "user_id": "8d6d727e-e7ca-4b62-9864-2ae23b031049",
+  "household_id": "4123e479-f62a-4a3c-912e-5c7cb5c1f15a",
+  "plan_kind": "household",
+  "starts_on": "2026-08-17",
+  "duration_days": 3,
+  "servings": 3,
+  "member_portions": [
+    {
+      "member_id": "30730edf-846c-4ea4-901d-39c9caaf7fee",
+      "display_name": "Paul",
+      "portion_note": "Balanced share: one full portion of the protein, a standard scoop of starch, and an even helping of vegetables.",
+      "preparation_shares": [
+        {
+          "note": "Take one adult serving of chicken and vegetables.",
+          "preparation_id": "prep_chicken"
+        },
+        {
+          "note": "Add a full side portion of vegetables.",
+          "preparation_id": "prep_roast_veg"
+        },
+        {
+          "note": "Take one adult serving with rice.",
+          "preparation_id": "prep_lentils"
+        },
+        {
+          "note": "Add a standard scoop of rice.",
+          "preparation_id": "prep_rice"
+        }
+      ]
+    },
+    {
+      "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+      "display_name": "Lea",
+      "portion_note": "Child-size share: a smaller scoop of the main dish with a little of each side.",
+      "preparation_shares": [
+        {
+          "note": "Serve a smaller piece of chicken with some vegetables.",
+          "preparation_id": "prep_chicken"
+        },
+        {
+          "note": "Add a small side of vegetables.",
+          "preparation_id": "prep_roast_veg"
+        },
+        {
+          "note": "Serve a small bowl with some rice.",
+          "preparation_id": "prep_lentils"
+        },
+        {
+          "note": "Add a small scoop of rice.",
+          "preparation_id": "prep_rice"
+        }
+      ]
+    },
+    {
+      "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+      "display_name": "Nina",
+      "portion_note": "Generous vegetables, with balanced protein and starch on the plate.",
+      "preparation_shares": [
+        {
+          "note": "Serve a full protein portion.",
+          "preparation_id": "prep_chicken"
+        },
+        {
+          "note": "Pile on extra vegetables.",
+          "preparation_id": "prep_roast_veg"
+        },
+        {
+          "note": "Serve a balanced bowl with plenty of vegetables alongside.",
+          "preparation_id": "prep_lentils"
+        },
+        {
+          "note": "Keep the rice portion standard.",
+          "preparation_id": "prep_rice"
+        }
+      ]
+    }
+  ],
+  "generated_from": {
+    "goal": "health",
+    "intent": "replace_current",
+    "issues": [
+      "member_away_all_window:8183690c-96c2-4ded-a818-f1edc36862c0"
+    ],
+    "coach_id": "45ea87eb-2eac-4ffb-89af-7c3328a05125",
+    "household": {
+      "id": "4123e479-f62a-4a3c-912e-5c7cb5c1f15a",
+      "hand": {
+        "taken": [],
+        "partial": [
+          {
+            "reason": "personal_plan_partial_window",
+            "plan_id": "0b585522-fce5-4dfa-a5ec-c3d307b7276e",
+            "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+            "starts_on": "2026-08-19",
+            "validated_at": "2026-08-12T01:07:24.087532+00:00",
+            "duration_days": 3
+          }
+        ]
+      },
+      "presence": {
+        "members": [
+          {
+            "away": [
+              {
+                "day": "mon",
+                "slots": []
+              },
+              {
+                "day": "tue",
+                "slots": []
+              },
+              {
+                "day": "wed",
+                "slots": []
+              }
+            ],
+            "self": [],
+            "household": [
+              {
+                "day": "mon",
+                "slots": []
+              },
+              {
+                "day": "tue",
+                "slots": []
+              },
+              {
+                "day": "wed",
+                "slots": []
+              }
+            ],
+            "member_id": "8183690c-96c2-4ded-a818-f1edc36862c0"
+          }
+        ],
+        "deserted": [],
+        "servings": 3
+      },
+      "envy_week": "2026-08-17",
+      "minor_count": 2,
+      "member_count": 4,
+      "envy_line_used": false,
+      "accountless_count": 2,
+      "restriction_count": 0,
+      "unknown_age_count": 1
+    },
+    "belief_keys": [
+      "protein_anchor"
+    ],
+    "hunger_days": 0,
+    "prompt_version": "meal.en.v8_distinct_health_direction+household.v2_presence",
+    "doctrine_reason": "loaded",
+    "doctrine_version": 1,
+    "satiety_priority": false,
+    "hunger_window_end": "2026-08-12",
+    "hunger_window_days": 7,
+    "hunger_window_start": "2026-08-06",
+    "protein_anchor_retry": false,
+    "protein_anchor_missing": []
+  },
+  "retired_at": null,
+  "created_at": "2026-08-12T01:08:04.011026+00:00"
+}

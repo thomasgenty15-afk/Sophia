@@ -1,0 +1,20 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r52-level-add-week-postfix-t01",
+    "user": "Je crois que le niveau actuel va trop vite pour moi. J'aimerais rajouter une semaine au niveau, sans changer l'objectif global ni refaire tout le plan.",
+    "status": 500,
+    "body": {
+      "error": "supabaseUrl is required.",
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r52-level-add-week-postfix-t01",
+      "qa_diagnostic": {
+        "source": "test-send-message",
+        "category": "router_or_app",
+        "reason": "unknown",
+        "provider": "unknown",
+        "retryable": false,
+        "note": "Unhandled application/router failure while running QA endpoint."
+      }
+    }
+  }
+]

@@ -357,8 +357,15 @@ export function exclusionRetryInstruction(
     }`
   );
   return [
-    "⛔ SOME DISHES BREAK A LINE THIS TABLE ASKED FOR. Rewrite ONLY these dishes; leave every other dish exactly as it is, same titles, same days, same slots:",
+    // ⟳ 2026-09-12 · FERMETURE LOT 1 — « laisse tous les autres plats
+    // identiques » N'EST PLUS UNE CONSIGNE, c'est une garde: le patch ne porte
+    // que les unités autorisées. Le redire ici ferait croire au modèle qu'il
+    // doit recopier les autres plats, qu'il n'a pas sous les yeux.
+    "⛔ SOME DISHES BREAK A LINE THIS TABLE ASKED FOR:",
     ...lines,
-    "Replace the offending ingredient with something else that fits the same slot and the same effort. Do NOT drop the dish, do NOT shorten the plan, and do NOT mention the change in any \"why\" — this is a taste, not a medical rule.",
+    // ⟳ 2026-09-13 · LOT 1 — « do NOT shorten the plan » A ÉTÉ RETIRÉ: il
+    // suppose qu'on rend un PLAN, et ce texte part dans une instruction qui
+    // demande un PATCH. Ce qui reste porte sur le plat nommé, et rien d'autre.
+    "Replace the offending ingredient with something else that fits the same slot and the same effort. Do NOT drop the dish, and do NOT mention the change in any \"why\" — this is a taste, not a medical rule.",
   ].join("\n");
 }

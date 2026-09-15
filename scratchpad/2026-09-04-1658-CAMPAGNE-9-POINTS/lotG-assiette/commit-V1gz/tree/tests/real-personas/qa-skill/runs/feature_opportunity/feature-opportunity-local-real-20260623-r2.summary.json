@@ -1,0 +1,218 @@
+{
+  "run_id": "feature-opportunity-local-real-20260623-r2",
+  "persona": "qa-skill",
+  "connection_name": "feature_opportunity_feature-opportunity-local-real-20260623-r2",
+  "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+  "email": "qa-qa-skill-feature-opportunity-feature-opportunity-local-real-20260623-r2@example.com",
+  "scope": "qa-feature-opportunity-local-real-20260623-r2",
+  "updated_at": "2026-06-22T22:51:21.822Z",
+  "raw_path": "tests/real-personas/qa-skill/runs/feature_opportunity/feature-opportunity-local-real-20260623-r2.raw.json",
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+      "user_message": "Le vendredi avant l’apéro avec mes collègues, je finis presque toujours par reprendre une clope alors que j’avais décidé de ne pas en acheter.",
+      "http_status": 200,
+      "assistant_message": "Le bon point d’entrée, c’est les initiatives : ton déclencheur est récurrent et très lié à un moment précis. On peut partir du vendredi avant l’apéro pour repérer ce qui te fait craquer juste avant.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_signal",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-22T22:50:14.348Z",
+          "turn_count": 1,
+          "updated_at": "2026-06-22T22:50:14.348Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "initiatives",
+              "max_turns": 3,
+              "turn_count": 1,
+              "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "Le vendredi avant l’apéro avec les collègues, l’utilisateur retombe presque systématiquement sur l’achat d’une clope alors qu’il avait décidé de ne pas en acheter.",
+              "dispatcher_signal_context": {
+                "feature": "initiatives",
+                "priority_reason": "Repeated context fits initiatives.",
+                "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                "opportunity_kind": "recurring_context",
+                "user_problem_summary": "The user reports a repeated pre-event smoking trigger in a recurring Friday context."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 2
+    },
+    {
+      "turn": 2,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+      "user_message": "Initiative, ça veut dire quoi concrètement dans Sophia, et où est-ce que je la règle si je veux préparer ce moment moi-même ?",
+      "http_status": 200,
+      "assistant_message": "Concrètement, une initiative sert à préparer à l’avance un moment récurrent ou délicat, comme ton vendredi avant l’apéro.\n\nTu peux la régler dans la section Initiatives de Sophia, avec l’instruction, le contexte, l’heure, les jours actifs et la destination.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "active_feature_opportunity",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-22T22:50:14.348Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-22T22:50:30.632Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "initiatives",
+              "max_turns": 3,
+              "turn_count": 2,
+              "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "L’utilisateur a un déclencheur récurrent juste avant l’apéro du vendredi et veut comprendre ce que signifie 'initiative' dans Sophia ainsi que où la préparer lui-même.",
+              "dispatcher_signal_context": {
+                "feature": "initiatives",
+                "priority_reason": "Repeated context fits initiatives.",
+                "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                "opportunity_kind": "recurring_context",
+                "user_problem_summary": "The user reports a repeated pre-event smoking trigger in a recurring Friday context."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 4
+    },
+    {
+      "turn": 3,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r2-t03",
+      "user_message": "Ok, autre sujet : c’est quoi la différence entre une carte d’attaque et une carte de défense ?",
+      "http_status": 200,
+      "assistant_message": "Une carte d’attaque sert à agir avant la tentation ou le problème, pour réduire le risque qu’il arrive.  \nUne carte de défense sert à réagir quand le moment critique est déjà là, pour éviter de céder ou limiter la casse.\n\nEn gros :\n- attaque = prévention\n- défense = réponse sur le moment\n\nSi tu veux, je peux te donner un exemple concret sur ton vendredi avant l’apéro 🙂",
+      "short_trace": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_exit_to_global",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 6
+    },
+    {
+      "turn": 4,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r2-t04",
+      "user_message": "D’ailleurs, dans nos échanges, tu me poses souvent trop de questions. J’aimerais que Sophia soit plus directe quand je bloque.",
+      "http_status": 200,
+      "assistant_message": "Oui, ça relève de tes préférences de coaching. Tu peux régler Sophia pour qu’elle soit plus directe et qu’elle pose moins de questions quand tu bloques.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_signal",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-22T22:51:06.928Z",
+          "turn_count": 1,
+          "updated_at": "2026-06-22T22:51:06.928Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "coach_preferences",
+              "max_turns": 3,
+              "turn_count": 1,
+              "trigger_context": "Tu me poses souvent trop de questions / j’aimerais que Sophia soit plus directe quand je bloque.",
+              "opportunity_kind": "coach_style_feedback",
+              "user_problem_summary": "L’utilisateur souhaite que Sophia soit plus directe et moins interrogative quand il bloque.",
+              "dispatcher_signal_context": {
+                "feature": "coach_preferences",
+                "priority_reason": "Retour explicite sur le style de coaching de Sophia.",
+                "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+                "opportunity_kind": "coach_style_feedback",
+                "user_problem_summary": "L’utilisateur souhaite un style d’accompagnement plus direct et moins interrogatif."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 8
+    },
+    {
+      "turn": 5,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r2-t05",
+      "user_message": "Et je règle ça où exactement ? Je veux juste savoir l’endroit, pas que tu l’appliques depuis le chat.",
+      "http_status": 200,
+      "assistant_message": "Ça se règle dans les préférences de coaching, sur le style d’accompagnement. Cherche l’option liée au ton, à la directivité ou au nombre de questions.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "active_feature_opportunity",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-22T22:51:06.928Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-22T22:51:21.792Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "coach_preferences",
+              "max_turns": 3,
+              "turn_count": 2,
+              "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+              "opportunity_kind": "coach_style_feedback",
+              "user_problem_summary": "L’utilisateur souhaite que Sophia soit plus directe et moins interrogative quand il bloque.",
+              "dispatcher_signal_context": {
+                "feature": "coach_preferences",
+                "priority_reason": "Retour explicite sur le style de coaching de Sophia.",
+                "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+                "opportunity_kind": "coach_style_feedback",
+                "user_problem_summary": "L’utilisateur souhaite un style d’accompagnement plus direct et moins interrogatif."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 10
+    }
+  ]
+}

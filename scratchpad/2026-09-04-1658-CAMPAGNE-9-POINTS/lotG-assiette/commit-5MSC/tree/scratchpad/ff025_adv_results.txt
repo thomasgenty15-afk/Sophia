@@ -1,0 +1,45 @@
+# FF-025 run réel — suite=adv repeats=3 cas=5
+🟢 A1 zéro relance sur les 5 tours suivants
+    inv=edu relances=0 mentions_non_demandeuses=0
+🟢 A1 zéro relance sur les 5 tours suivants
+    inv=edu relances=0 mentions_non_demandeuses=0
+🟢 A1 zéro relance sur les 5 tours suivants
+    inv=edu relances=0 mentions_non_demandeuses=0
+ℹ️  A2 photo AVANT déclaration (observation)
+    attached=false inv=edu
+    events=["NULL | - | photo | true | - | moderate","off_plan | coffee_tea | chat | false | - | -"]
+    ledger=["photo_invitation | chat | - | 762714b0-d030-44bf-b1b3-7bed1182f361 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+ℹ️  A2 photo AVANT déclaration (observation)
+    attached=false inv=edu
+    events=["NULL | - | photo | true | - | moderate","off_plan | other_added_fat | chat | false | - | -"]
+    ledger=["photo_invitation | chat | - | b99574b0-91fd-4d86-91eb-2c4db7865df6 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+ℹ️  A2 photo AVANT déclaration (observation)
+    attached=false inv=edu
+    events=["NULL | - | photo | true | - | moderate","off_plan | coffee_tea | chat | false | - | -"]
+    ledger=["photo_invitation | chat | - | 0ba70d1c-0b3a-4fc5-82d4-2d17f57e0fad | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+🟢 A3 trois jours de hors-plan: l'éducation ne se répète pas
+    invites=["edu","bare","bare"] eduCount=1
+    ledger=["photo_invitation | chat | - | c9ffca9c-9f84-4522-b132-f61e5f0be87e | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries.","photo_invitation | chat | - | 641ca786-6d71-46c2-bd38-adddb259429e | If you have a photo of it, send it over — it helps the tracking.","photo_invitation | chat | - | 864e3d3a-ac79-48bc-95fe-ce60654cc80d | If you have a photo of it, send it over — it helps the tracking."]
+🟢 A3 trois jours de hors-plan: l'éducation ne se répète pas
+    invites=["edu","bare","bare"] eduCount=1
+    ledger=["photo_invitation | chat | - | fc4af573-623a-4156-a1f3-790fd7839788 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries.","photo_invitation | chat | - | 148653a9-a04d-4c99-a7a5-610af8b16445 | If you have a photo of it, send it over — it helps the tracking.","photo_invitation | chat | - | c5f51892-23c4-400c-8890-c8e4eb1784f7 | If you have a photo of it, send it over — it helps the tracking."]
+🟢 A3 trois jours de hors-plan: l'éducation ne se répète pas
+    invites=["edu","bare","bare"] eduCount=1
+    ledger=["photo_invitation | chat | - | 9dae5335-4883-407d-b348-d705da59206a | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries.","photo_invitation | chat | - | b47c3876-8bac-4869-9563-65f5067229c7 | If you have a photo of it, send it over — it helps the tracking.","photo_invitation | chat | - | 18a09f7f-0bd7-4042-b25b-27e0680941d8 | If you have a photo of it, send it over — it helps the tracking."]
+🟢 A4 registre: aucune invitation ne porte contrôle ni culpabilisation
+    réponses portant une invitation=15 suspectes=0
+🟢 A4 registre: aucune invitation ne porte contrôle ni culpabilisation
+    réponses portant une invitation=15 suspectes=0
+🟢 A4 registre: aucune invitation ne porte contrôle ni culpabilisation
+    réponses portant une invitation=15 suspectes=0
+🟢 A5 le composeur n'invente pas d'invitation hors budget
+    fuites=0
+    ledger=["photo_invitation | chat | - | ac863e21-248c-402e-b2be-254035100b25 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+🟢 A5 le composeur n'invente pas d'invitation hors budget
+    fuites=0
+    ledger=["photo_invitation | chat | - | 0bea502b-ffe7-4163-a4ec-0942690f55a6 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+🟢 A5 le composeur n'invente pas d'invitation hors budget
+    fuites=0
+    ledger=["photo_invitation | chat | - | 9bb8ca85-2d6c-47d3-976e-0877da52d566 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+
+# élèves nettoyés: 12

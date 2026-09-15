@@ -1,0 +1,571 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Là je décroche un peu avec les grignotages. Je vois ce qui est prévu et ça me paraît trop lourd pour cette semaine.",
+    "assistant": "Ah oui… si tu regardes “la semaine entière” d’un coup, c’est normal que ça fasse trop lourd 😕🍪\n\nOn va faire simple et efficace: tu ne supprimes rien, tu réduis juste le volume.\n1) Choisis 1 seul grignotage “priorité” à limiter cette semaine (le plus fréquent ou le plus pénible).\n2) Pour le reste, passe en mode “moindre mal” (ex: même snack mais 1 portion / pas entre 2 moments clés / ou seulement après le repas).\n\nTu veux qu’on parte sur A) 1 seul grignotage à limiter à fond, ou B) réduire 2 grignotages mais de façon plus légère sur les deux ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "grignotages",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t02",
+    "status": 200,
+    "ok": true,
+    "user": "A. Mais je sens que ce n'est pas juste le grignotage en lui-même : ce bloc me demande trop de petites décisions dans l'après-midi.",
+    "assistant": "Ah oui… je vois le truc. Ce n’est pas “un snack”, c’est la mini-gestion en continu à l’après-midi. Ça fatigue le cerveau, donc tu décroches. 😕🍪\n\nOn va alléger sans te mettre des règles compliquées :\n1) On choisit un seul “moment OK” pour grignoter (ex: après le repas du midi, ou seulement avant 16h). Le reste = automatique.\n2) Tu pré-remplis le cadre en amont : une portion unique, visible/accessible, et tout le reste hors de vue (même juste dans un placard).\n3) Si l’envie arrive entre deux : tu fais juste une substitution simple (eau + fruit, ou yaourt, ou un snack “par défaut”) sans négocier.\n\nTu veux qu’on parte sur A) “un seul moment fixe” ou B) “un snack par défaut prêt à prendre” ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "grignotage",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t03",
+    "status": 200,
+    "ok": true,
+    "user": "A, un seul moment fixe. Et je veux que ça remplace les petits trucs autour du bloc, pas que tu me rajoutes une règle en plus.",
+    "assistant": "OK, je vois le délestage que tu veux: un seul moment fixe qui absorbe le “bloc grignotage”, et qu’on enlève/compacte les petits trucs autour au lieu d’en ajouter une 3e couche. ✅🙂\n\nJe te propose qu’on regarde l’ajustement correspondant dans le plan via l’outil “Réduire une action”, et on l’applique seulement si ça te paraît vraiment clean. Tu veux qu’on l’utilise pour alléger le bloc grignotage comme tu l’entends, oui ou non ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "Plan: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une transformation active existe. Tu peux y consulter le niveau actif, ouvrir les semaines, valider certains elements.\n\nLimites importantes:\n- Ce n'est pas un journal libre d'actions ou de bilans.\n- Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.",
+        "status": "complete",
+        "skill_id": "product_help",
+        "diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "state_patch": {
+          "summary": "Product help answered for dashboard.plan."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "how_to",
+        "recommendation_need": {
+          "type": "none",
+          "needed": false,
+          "urgency": "none",
+          "constraints": [
+            "product_help_does_not_execute_operations",
+            "operation_bridge_requires_confirmation_when_present"
+          ]
+        },
+        "operation_suggestions": []
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "product_help"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": {
+      "stats": null,
+      "recommendation": {
+        "reason": "user_explicitly_requests_simplification_and_replacement_of_existing_rules",
+        "timing": "now",
+        "decision": "recommend_operation",
+        "cta_style": "soft",
+        "confidence": 0.86,
+        "surface_id": "plan_item.reduce",
+        "alternatives": [],
+        "operation_type": "adjust_plan_item",
+        "operation_input": {
+          "scope": {
+            "kind": "personal_action",
+            "title": "Simplifier le bloc grignotage"
+          },
+          "reason": "user_explicitly_requests_simplification_and_replacement_of_existing_rules",
+          "target": {
+            "kind": "personal_action",
+            "title": "Simplifier le bloc grignotage"
+          },
+          "adjustment_type": "reduce"
+        },
+        "do_not_recommend": [],
+        "executor_tool_id": "adjust_plan_item",
+        "requires_consent": true,
+        "recommendation_id": "dispatcher_opportunity:plan_adjustment:qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t03",
+        "user_facing_offer": "Je vois un possible problème de fit avec le plan pour \"Simplifier le bloc grignotage\". Si tu veux, on peut regarder un ajustement sans l'appliquer sans ton accord.",
+        "presentation_level": 2
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, applique. Mais attention, je ne parle pas d'une seule action : c'est ce bloc de l'après-midi qu'il faut compacter, sans changer tout le plan.",
+    "assistant": "Avant de modifier ce niveau, qu'est-ce qui le rend trop lourd concretement, et quoi faut-il changer en premier: nombre d'actions, intensite, timing, ou priorite ? Je vois notamment dans le plan: Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "bloc grignotage après-midi",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "operation_intent_start",
+      "plan_item_id": null,
+      "target_title": "niveau actuel",
+      "missing_slots": [
+        "current_level.adjustment_type",
+        "current_level.reason_change",
+        "current_level.change_target"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t05",
+    "status": 502,
+    "ok": null,
+    "user": "Nombre d'actions et timing. Trop de micro-décisions dans l'après-midi ; je veux un seul moment fixe qui remplace les petits rappels autour.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "safety_pregate": null,
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": null,
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t05",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Je répète parce que le message précédent n'a pas l'air d'être passé : nombre d'actions et timing. Trop de micro-décisions dans l'après-midi ; je veux un seul moment fixe qui remplace les petits rappels autour.",
+    "assistant": "Je te propose d'alléger ton après-midi en regroupant tes petites tâches en un seul moment fixe pour t'éviter trop de micro-décisions. On garde le même objectif, mais avec une organisation plus simple pour ce niveau. Est-ce que tu es d'accord pour que j'applique cette modification ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "current_level",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write"
+            ],
+            "reason_type": "too_heavy",
+            "change_target": "number_of_actions",
+            "reason_change": "too_many_actions",
+            "load_adjustment": "lighter",
+            "level_adjustment": "reduce_load"
+          },
+          "title": "Ajustement - niveau actuel",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "niveau actuel: charge ajustée vers \"lighter\"",
+              "cible de changement: number_of_actions"
+            ],
+            "unchanged": [
+              "le cœur du niveau reste préservé",
+              "chaque action n'est pas réécrite automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+            "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+          },
+          "scope_label": "niveau actuel",
+          "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+          "decision_basis": {
+            "evidence": [
+              "Je répète parce que le message précédent n'a pas l'air d'être passé : nombre d'actions et timing. Trop de micro-décisions dans l'après-midi ; je veux un seul moment fixe qui remplace les petits rappels autour.",
+              "operation_input.scope",
+              "message.reduce_load",
+              "adjustment_type.reduce_load_default",
+              "message.too_many_actions",
+              "message.number_of_actions"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "actions exactes du niveau a choisir pour une modification fine"
+            ],
+            "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+            "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+            "must_preserve": [
+              "intention du plan",
+              "coeur du niveau"
+            ]
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "alleger la charge du niveau actuel sans supprimer l'intention",
+          "change_rationale": {
+            "why_this_change": "Alléger number_of_actions répond au problème \"too_many_actions\" tout en gardant le cœur du niveau.",
+            "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+            "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+          },
+          "adjust_plan_result": {
+            "scope": "level",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [
+                "Quelles actions spécifiques parmi la liste actuelle sont les plus pénibles pour l'utilisateur."
+              ],
+              "user_problem": "L'utilisateur ressent une surcharge due à un trop grand nombre de micro-décisions et de rappels durant l'après-midi.",
+              "expected_effect": "Une meilleure fluidité dans l'exécution et une diminution du stress lié au suivi du plan.",
+              "why_this_change": "Regrouper les actions et réduire leur nombre permet de maintenir l'engagement sans provoquer de découragement."
+            },
+            "boundaries": {
+              "explanation": "L'ajustement se concentre exclusivement sur la gestion du temps et de l'effort pour l'étape en cours.",
+              "affected_scope": "niveau actuel uniquement",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "Objectif global",
+                "Structure des niveaux futurs",
+                "Calendrier des jours suivants"
+              ]
+            },
+            "applied_change": {
+              "summary": "Réduction de la densité des actions pour le niveau actuel afin de limiter la fatigue décisionnelle.",
+              "changed_items": [
+                {
+                  "id": null,
+                  "kind": "level_setting",
+                  "after": "Un seul point de contrôle fixe",
+                  "title": "Fréquence des rappels",
+                  "before": "Multiples notifications l'après-midi",
+                  "reason": "Réduire les interruptions et les micro-décisions répétitives."
+                },
+                {
+                  "id": null,
+                  "kind": "level_setting",
+                  "after": "Actions prioritaires regroupées",
+                  "title": "Volume d'activité",
+                  "before": "Série de petites tâches dispersées",
+                  "reason": "Éviter la sensation de surcharge et simplifier l'exécution."
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Objectif final",
+                  "reason": "L'intention de fond et la direction du programme restent inchangées."
+                },
+                {
+                  "id": null,
+                  "kind": "level",
+                  "title": "Thématique du niveau",
+                  "reason": "Le cœur de ce que tu apprends ou pratiques reste le même, seule la forme s'assouplit."
+                }
+              ]
+            },
+            "user_message_brief": "Ton après-midi a été simplifié pour réduire les micro-décisions.",
+            "user_message_detailed": "J'ai ajusté ton niveau actuel pour qu'il soit moins lourd. En regroupant tes rappels en un seul bloc et en limitant le nombre d'actions, tu pourras avancer plus sereinement sans changer ton objectif final."
+          },
+          "execution_strategy": "level_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "level_adjustment",
+            "load_adjustment",
+            "focus_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "J'ai simplifié ton après-midi pour réduire la charge mentale. On garde l'essentiel de ton objectif, mais avec moins de micro-étapes. Par exemple, j'ai regroupé tes rappels fréquents en un seul rendez-vous fixe et j'ai limité le nombre total d'actions pour éviter l'éparpillement. Ce changement reste limité à cette étape de ton parcours et ne modifie pas ton plan global. Je pense que cela va vraiment t'aider à rester serein sans sacrifier tes progrès.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose d'alléger ton après-midi en regroupant tes petites tâches en un seul moment fixe pour t'éviter trop de micro-décisions. On garde le même objectif, mais avec une organisation plus simple pour ce niveau. Est-ce que tu es d'accord pour que j'applique cette modification ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "356405b9-cc50-4271-9f78-cbefd31e150d",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t06",
+    "trace_error": null
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t07",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, applique.",
+    "assistant": "J'ai simplifié ton après-midi pour réduire la charge mentale. On garde l'essentiel de ton objectif, mais avec moins de micro-étapes. Par exemple, j'ai regroupé tes rappels fréquents en un seul rendez-vous fixe et j'ai limité le nombre total d'actions pour éviter l'éparpillement. Ce changement reste limité à cette étape de ton parcours et ne modifie pas ton plan global. Je pense que cela va vraiment t'aider à rester serein sans sacrifier tes progrès.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "356405b9-cc50-4271-9f78-cbefd31e150d",
+      "plan_patch_id": "36fe8e5c-f2fe-4bb4-b8d7-6f3824dec817",
+      "selected_handler": "adjust_plan_item",
+      "bridge_plan_item_id": null
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t07",
+    "trace_error": null
+  },
+  {
+    "turn": 8,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t08",
+    "status": 200,
+    "ok": true,
+    "user": "Ok, et concrètement quels sont les deux changements dans le plan ? Je veux vérifier que ce n'est pas le plan global qui a bougé.",
+    "assistant": "Oui. Les deux changements concrets sont:\n\n1. Fréquence des rappels: avant, Multiples notifications l'après-midi; maintenant, Un seul point de contrôle fixe. Pourquoi: Réduire les interruptions et les micro-décisions répétitives.\n2. Volume d'activité: avant, Série de petites tâches dispersées; maintenant, Actions prioritaires regroupées. Pourquoi: Éviter la sensation de surcharge et simplifier l'exécution. Ce qui ne change pas: Objectif final.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "answered_last_adjustment_details",
+      "reason_code": "skill_entry_signal",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r8-t08",
+    "trace_error": null
+  }
+]

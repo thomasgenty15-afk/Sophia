@@ -1,0 +1,127 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "6235e038-f8d5-4ebb-a009-1baa702ac2d4",
+      "status": "pending",
+      "scheduled_for": "2026-06-23T18:34:52.417+00:00",
+      "event_context": "one_shot_reminder:du_dimanche_soir_et_dis_moi_aussi_ou_je_regle_la_destination",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: du dimanche soir, et dis-moi aussi ou je regle la destination Plan actuel ou Base de vie sans le faire a ma place.",
+        "parse_source": "local_parser",
+        "request_text": "Initiative, ok. Rappelle-moi dans 30 minutes de noter le message du dimanche soir, et dis-moi aussi ou je regle la destination Plan actuel ou Base de vie sans le faire a ma place.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: du dimanche soir, et dis-moi aussi ou je regle la destination Plan actuel ou Base de vie sans le faire a ma place.",
+        "source_message_id": null,
+        "reminder_instruction": "du dimanche soir, et dis-moi aussi ou je regle la destination Plan actuel ou Base de vie sans le faire a ma place"
+      },
+      "created_at": "2026-06-23T18:04:52.421719+00:00"
+    }
+  ],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Chaque dimanche soir, je finis par improviser ma semaine et je perds le rythme. J ai l impression que Sophia devrait avoir une fonctionnalite pour preparer ce moment recurrent, mais je ne sais pas laquelle.",
+      "created_at": "2026-06-23T18:04:35.674553+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_atomic_20260623_r1-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui : la bonne fonctionnalité, c’est initiatives. Elle sert justement à préparer un moment récurrent comme ton dimanche soir, avec un message, un contexte, une heure et des jours actifs pour t’aider à garder le rythme.\n\nSi tu veux, je peux t’aider à formuler ce qu’elle devrait dire pour ce moment.",
+      "created_at": "2026-06-23T18:04:43.373116+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_atomic_20260623_r1-t01",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Initiative, ok. Rappelle-moi dans 30 minutes de noter le message du dimanche soir, et dis-moi aussi ou je regle la destination Plan actuel ou Base de vie sans le faire a ma place.",
+      "created_at": "2026-06-23T18:04:52.396046+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_atomic_20260623_r1-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Je te le rappelle mardi 23 juin à 20:34.\nPour la destination, c’est dans la configuration de l’initiative, dans la section Initiatives : tu choisis soit Plan actuel soit Base de vie selon l’endroit où tu veux l’ancrer. Si tu veux, je peux t’aider à choisir lequel convient le mieux à ton dimanche soir.",
+      "created_at": "2026-06-23T18:05:00.645941+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_atomic_20260623_r1-t02",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "a71282ed-cacf-4554-aea5-345908d22852",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-23T18:04:43.354Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-23T18:05:00.631Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 2,
+            "trigger_context": "chaque dimanche soir",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "The user wants help preparing a recurring Sunday evening moment and asked where to set the destination between Plan actuel and Base de vie.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated weekly context fits initiatives.",
+              "trigger_context": "chaque dimanche soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "The user improvises their week every Sunday evening and loses rhythm; they suggest Sophia should help prepare this recurring moment."
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-23T18:04:43.354Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-23T18:05:00.631Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 2,
+            "trigger_context": "chaque dimanche soir",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "The user wants help preparing a recurring Sunday evening moment and asked where to set the destination between Plan actuel and Base de vie.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated weekly context fits initiatives.",
+              "trigger_context": "chaque dimanche soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "The user improvises their week every Sunday evening and loses rhythm; they suggest Sophia should help prepare this recurring moment."
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-23T18:05:00.639887+00:00"
+  }
+}

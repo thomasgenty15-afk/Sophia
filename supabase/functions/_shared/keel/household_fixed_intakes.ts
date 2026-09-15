@@ -95,6 +95,25 @@ export interface HouseholdFixedIntakes {
   /** LE COÛT, compté et non supposé. Un vrai décompte d'allers-retours. */
   reads: number;
   /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-12 · ÉTAPE C1 — COMBIEN DE BOUCHES **AVEC COMPTE** ONT ÉTÉ
+   * SERVIES PAR LA COLONNE ORPHELINE, faute d'une source canonique remplie.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ IL EXISTE PARCE QUE LE REPLI DOIT SE COMPTER. Le tir n° 5 du 2026-09-11
+   * a écrit `[{breakfast, 200 g, greek_yogurt}]` dans
+   * `household_members.fixed_intakes` d'un TITULAIRE pendant que
+   * `student_goals.practical_constraints.fixed_intakes` valait `[]` : la cible
+   * du petit-déjeuner est restée **613,50 kcal**, celle d'un tir sans apport.
+   * La porte est réparée (migration `20260912090000`), mais les lignes déjà
+   * écrites existent — et un repli qui ne se compte pas se lit exactement comme
+   * une absence de repli.
+   *
+   * `0` = personne n'a eu besoin du repli. Au-dessus de zéro, une ligne réelle
+   * porte encore sa déclaration du mauvais côté.
+   */
+  legacyFallback: number;
+  /**
    * COMBIEN D'APPORTS CHAQUE BOUCHE A DÉCLARÉS — par `member_id`.
    *
    * ⟳ 2026-09-04, pour FF-060. `intakes` est une liste À PLAT, entrelacée sous
@@ -215,6 +234,32 @@ export async function loadHouseholdFixedIntakes(
 
   // EN PARALLÈLE, et chaque bouche porte son propre `try`: un échec n'emporte
   // pas les autres. Même patron que `loadHouseholdMemberBodies`.
+  /**
+   * ⟳ 2026-09-12 · C1 — LA LECTURE D'UNE COLONNE MEMBRE, ÉCRITE UNE FOIS.
+   *
+   * Les deux branches (bouche sans compte, repli du titulaire) lisaient le même
+   * `household_members.fixed_intakes` avec le même parseur; la recopier aurait
+   * fait deux lectures qui divergent au premier ajustement, ce que l'en-tête de
+   * ce module interdit déjà pour `parseFixedIntakes`.
+   */
+  const readMemberColumn = async (mouth: HouseholdIntakeMouth) => {
+    const res = await counted
+      .from("household_members")
+      .select("fixed_intakes")
+      .eq("member_id", mouth.memberId)
+      .maybeSingle();
+    if (res.error) throw new Error(String(res.error.message ?? res.error));
+    const parse = parseFixedIntakes(
+      (res.data as { fixed_intakes?: unknown } | null)?.fixed_intakes,
+    );
+    let demoted = 0;
+    const intakes = parse.intakes.map((intake) => {
+      if (intake.placement === "at_slot" && intake.replacesMeal) demoted++;
+      return attributedIntake(intake, mouth.displayName);
+    });
+    return { intakes, discarded: parse.discarded, demoted };
+  };
+
   const loaded = await Promise.all(
     params.mouths.map(async (mouth) => {
       const empty = {
@@ -223,6 +268,7 @@ export async function loadHouseholdFixedIntakes(
         discarded: 0,
         demoted: 0,
         issues: [] as string[],
+        legacyFallback: 0,
       };
       // ── ⛔ UNE BOUCHE SANS COMPTE A SON PROPRE STOCK DEPUIS LE 2026-08-19 ──
       //
@@ -242,26 +288,11 @@ export async function loadHouseholdFixedIntakes(
       // ajustement, et l'écart se serait vu dans une assiette.
       if (!mouth.userId) {
         try {
-          const res = await counted
-            .from("household_members")
-            .select("fixed_intakes")
-            .eq("member_id", mouth.memberId)
-            .maybeSingle();
-          if (res.error) throw new Error(String(res.error.message ?? res.error));
-          const parse = parseFixedIntakes(
-            (res.data as { fixed_intakes?: unknown } | null)?.fixed_intakes,
-          );
-          let demoted = 0;
-          const intakes = parse.intakes.map((intake) => {
-            if (intake.placement === "at_slot" && intake.replacesMeal) demoted++;
-            return attributedIntake(intake, mouth.displayName);
-          });
           return {
             mouth,
-            intakes,
-            discarded: parse.discarded,
-            demoted,
+            ...(await readMemberColumn(mouth)),
             issues: [] as string[],
+            legacyFallback: 0,
           };
         } catch (error) {
           // MÊME DISCIPLINE QUE LA BRANCHE D'À CÔTÉ: un échec de lecture ne
@@ -291,12 +322,60 @@ export async function loadHouseholdFixedIntakes(
           if (intake.placement === "at_slot" && intake.replacesMeal) demoted++;
           return attributedIntake(intake, mouth.displayName);
         });
+        // ══════════════════════════════════════════════════════════════════
+        // ⟳ 2026-09-12 · C1 — LE REPLI DOCUMENTÉ, ET IL NE S'ADDITIONNE PAS
+        // ══════════════════════════════════════════════════════════════════
+        //
+        // ⛔ PRIORITÉ EXPLICITE À LA SOURCE CANONIQUE. Ce n'est PAS une union:
+        // deux déclarations du même pot compteraient le même yaourt deux fois,
+        // c'est-à-dire retrancheraient 2×200 g d'une cible de petit-déjeuner.
+        // La règle est « si la source canonique dit quelque chose, elle a
+        // raison, et la colonne membre n'est même pas interrogée ».
+        //
+        // ⚠️ LE REPLI NE COÛTE UNE REQUÊTE QUE QUAND IL SERT. Un foyer sain
+        // (porte réparée, migration `20260912090000` appliquée) fait
+        // exactement le même nombre d'allers-retours qu'avant ce lot.
+        //
+        // ⛔ ET IL EST COMPTÉ (`legacyFallback`). Le tir n° 5 du 2026-09-11
+        // avait sa déclaration du mauvais côté et la cible n'a pas bougé de
+        // 613,50: un repli muet aurait réparé le symptôme en effaçant la trace
+        // du défaut. On répare, et on dit qu'on a réparé.
+        if (parse.intakes.length > 0 || parse.discarded > 0) {
+          return {
+            mouth,
+            intakes,
+            discarded: parse.discarded,
+            demoted,
+            issues: [] as string[],
+            legacyFallback: 0,
+          };
+        }
+        const legacy = await readMemberColumn(mouth);
+        if (legacy.intakes.length === 0 && legacy.discarded === 0) {
+          return {
+            mouth,
+            intakes,
+            discarded: parse.discarded,
+            demoted,
+            issues: [] as string[],
+            legacyFallback: 0,
+          };
+        }
+        console.warn(JSON.stringify({
+          tag: "keel.household_meal.fixed_intakes_legacy_column",
+          member_id: mouth.memberId,
+          intakes: legacy.intakes.length,
+          effect:
+            "apport lu depuis `household_members.fixed_intakes` d'une bouche AVEC compte " +
+            "(source canonique vide) — porte réparée le 2026-09-12, ligne pas encore réécrite",
+        }));
         return {
           mouth,
-          intakes,
-          discarded: parse.discarded,
-          demoted,
-          issues: [] as string[],
+          intakes: legacy.intakes,
+          discarded: legacy.discarded,
+          demoted: legacy.demoted,
+          issues: [`fixed_intakes_legacy_column:${mouth.memberId}`],
+          legacyFallback: 1,
         };
       } catch (error) {
         console.warn(JSON.stringify({
@@ -332,6 +411,7 @@ export async function loadHouseholdFixedIntakes(
     dropped,
     issues: loaded.flatMap((e) => e.issues),
     reads: tally.reads,
+    legacyFallback: loaded.reduce((n, e) => n + e.legacyFallback, 0),
     byMouth,
     perMouth,
   };

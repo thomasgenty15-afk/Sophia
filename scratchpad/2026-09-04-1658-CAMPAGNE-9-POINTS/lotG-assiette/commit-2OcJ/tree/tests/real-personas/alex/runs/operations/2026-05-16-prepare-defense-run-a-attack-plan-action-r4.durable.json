@@ -1,0 +1,838 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "4d8c29cb-d246-4eac-8818-1e7b99142edf",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "source": "system",
+        "scope_kind": "transformation",
+        "transformation_id": null,
+        "cycle_id": "14c636ab-a639-47f6-afa1-a8733a80f625",
+        "content": {
+          "impulses": [
+            {
+              "label": "Vérifier le téléphone",
+              "triggers": [
+                {
+                  "label": "Faire le sas de déchargement",
+                  "plan_b": "Si telephone en main, le poser dans l'entree sans ouvrir d'appli, puis fermer le carnet.",
+                  "signal": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+                  "situation": "Fin du sas de déchargement",
+                  "trigger_id": "5a9907e1-35f8-430a-b0ca-4beae2b7de6b",
+                  "illustration": null,
+                  "defense_response": "Ecrire une ligne max dans le carnet, puis poser le telephone dans l'entree.",
+                  "difficulty_preview": "Casse l'automatisme de consultation immédiate en éloignant l'objet."
+                }
+              ],
+              "impulse_id": "434af741-75f9-499f-9203-ebc6cf2b9d46",
+              "generic_defense": "Poser le téléphone."
+            }
+          ],
+          "difficulty_map_summary": null
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Faire le sas de déchargement",
+              "plan_b": "Si telephone en main, le poser dans l'entree sans ouvrir d'appli, puis fermer le carnet.",
+              "signal": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+              "trigger": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+              "situation": "Fin du sas de déchargement",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Casse l'automatisme de consultation immédiate en éloignant l'objet.",
+              "fallback_plan": "Si telephone en main, le poser dans l'entree sans ouvrir d'appli, puis fermer le carnet.",
+              "impulse_label": "Vérifier le téléphone",
+              "risk_situation": "Fin du sas de déchargement",
+              "generic_defense": "Poser le téléphone.",
+              "defense_response": "Ecrire une ligne max dans le carnet, puis poser le telephone dans l'entree."
+            },
+            "output_schema": "defense_card_draft_v1",
+            "operation_type": "prepare_defense_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ta carte de défense :\nLe moment : Fin du sas de déchargement\nLe piège : Si je ne regarde pas maintenant, je vais oublier un truc important\nMon geste : Ecrire une ligne max dans le carnet, puis poser le telephone dans l'entree.\nPlan B : Si telephone en main, le poser dans l'entree sans ouvrir d'appli, puis fermer le carnet.\nOn valide ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t08",
+          "operation_id": "66c5f624-f71f-4235-9836-9ab6c8124e0b",
+          "operation_type": "prepare_defense_card",
+          "risk_situation": {
+            "label": "Fin du sas de déchargement",
+            "description": "Le moment où le carnet est fermé et le téléphone à portée.",
+            "timing_hint": "immédiatement après le sas",
+            "context_hint": null
+          },
+          "source_message_id": "7c99e2a3-44c8-4d56-8a86-90de9062cbae"
+        },
+        "generated_at": "2026-05-15T17:51:57.23+00:00",
+        "last_updated_at": "2026-05-15T17:51:57.23+00:00"
+      },
+      {
+        "id": "b204897d-a245-464e-8f33-e234c6498242",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "source": "system",
+        "scope_kind": "transformation",
+        "transformation_id": null,
+        "cycle_id": "14c636ab-a639-47f6-afa1-a8733a80f625",
+        "content": {
+          "title": "Sas de déchargement : Fin de session",
+          "trigger": "Peur d'avoir oublié un détail important.",
+          "techniques": [
+            {
+              "technique_key": "operation_defense_card",
+              "generated_result": {
+                "title": "Sas de déchargement : Fin de session",
+                "trigger": "Peur d'avoir oublié un détail important.",
+                "target_label": "Faire le sas de déchargement",
+                "why_it_helps": "Cela coupe les notifications et rend l'écran invisible, brisant le cycle de l'impulsion.",
+                "fallback_plan": "Prendre une grande inspiration et s'éloigner 1 minute.",
+                "risk_situation": "Au moment de fermer le carnet, l'envie de reprendre le téléphone surgit.",
+                "defense_response": "Je mets le téléphone en mode avion et je le pose écran contre table."
+              }
+            }
+          ],
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Cela coupe les notifications et rend l'écran invisible, brisant le cycle de l'impulsion.",
+          "fallback_plan": "Prendre une grande inspiration et s'éloigner 1 minute.",
+          "risk_situation": "Au moment de fermer le carnet, l'envie de reprendre le téléphone surgit.",
+          "operation_draft": {
+            "title": "Sas de déchargement : Fin de session",
+            "trigger": "Peur d'avoir oublié un détail important.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Cela coupe les notifications et rend l'écran invisible, brisant le cycle de l'impulsion.",
+            "fallback_plan": "Prendre une grande inspiration et s'éloigner 1 minute.",
+            "risk_situation": "Au moment de fermer le carnet, l'envie de reprendre le téléphone surgit.",
+            "defense_response": "Je mets le téléphone en mode avion et je le pose écran contre table."
+          },
+          "defense_response": "Je mets le téléphone en mode avion et je le pose écran contre table."
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Sas de déchargement : Fin de session",
+              "trigger": "Peur d'avoir oublié un détail important.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Cela coupe les notifications et rend l'écran invisible, brisant le cycle de l'impulsion.",
+              "fallback_plan": "Prendre une grande inspiration et s'éloigner 1 minute.",
+              "risk_situation": "Au moment de fermer le carnet, l'envie de reprendre le téléphone surgit.",
+              "defense_response": "Je mets le téléphone en mode avion et je le pose écran contre table."
+            },
+            "output_schema": "defense_card_draft_v1",
+            "operation_type": "prepare_defense_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ta carte de défense :\n\n🎯 Cible : Faire le sas de déchargement\n⚠️ Risque : Reprendre le téléphone par peur d'un oubli\n🛡️ Action : Je mets le téléphone en mode avion et je le pose écran contre table.\n\nOn valide cette version ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-t04",
+          "operation_id": "f5e7dcb7-b85a-4a25-956e-f48e3c224907",
+          "operation_type": "prepare_defense_card",
+          "risk_situation": {
+            "label": "Fermeture du carnet",
+            "description": "Reprendre le téléphone immédiatement après avoir fini de noter ses pensées par peur d'avoir oublié un détail.",
+            "timing_hint": "Fin du sas de déchargement",
+            "context_hint": "Juste après avoir fermé le carnet"
+          },
+          "source_message_id": "794b5aec-69f4-4b61-b54d-57c7cb20406c"
+        },
+        "generated_at": "2026-05-15T10:22:53.498+00:00",
+        "last_updated_at": "2026-05-15T10:22:53.498+00:00"
+      },
+      {
+        "id": "ae26fc60-9381-4960-8129-2ad4c85c3bc2",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "source": "system",
+        "scope_kind": "transformation",
+        "transformation_id": null,
+        "cycle_id": "14c636ab-a639-47f6-afa1-a8733a80f625",
+        "content": {
+          "title": "Le piège des '2 minutes'",
+          "trigger": "La pensée : 'Allez, juste deux minutes de téléphone'.",
+          "techniques": [
+            {
+              "technique_key": "operation_defense_card",
+              "generated_result": {
+                "title": "Le piège des '2 minutes'",
+                "trigger": "La pensée : 'Allez, juste deux minutes de téléphone'.",
+                "target_label": "Faire le sas de déchargement",
+                "why_it_helps": "Cela casse l'automatisme et protège ton sommeil en évitant la stimulation visuelle.",
+                "fallback_plan": "Si j'ai déjà le téléphone en main, je lance un minuteur de 1 minute pour le poser immédiatement.",
+                "risk_situation": "Après le carnet, la tentation de regarder le téléphone 'juste deux minutes'.",
+                "defense_response": "Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer."
+              }
+            }
+          ],
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Cela casse l'automatisme et protège ton sommeil en évitant la stimulation visuelle.",
+          "fallback_plan": "Si j'ai déjà le téléphone en main, je lance un minuteur de 1 minute pour le poser immédiatement.",
+          "risk_situation": "Après le carnet, la tentation de regarder le téléphone 'juste deux minutes'.",
+          "operation_draft": {
+            "title": "Le piège des '2 minutes'",
+            "trigger": "La pensée : 'Allez, juste deux minutes de téléphone'.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Cela casse l'automatisme et protège ton sommeil en évitant la stimulation visuelle.",
+            "fallback_plan": "Si j'ai déjà le téléphone en main, je lance un minuteur de 1 minute pour le poser immédiatement.",
+            "risk_situation": "Après le carnet, la tentation de regarder le téléphone 'juste deux minutes'.",
+            "defense_response": "Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer."
+          },
+          "defense_response": "Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer."
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Le piège des '2 minutes'",
+              "trigger": "La pensée : 'Allez, juste deux minutes de téléphone'.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Cela casse l'automatisme et protège ton sommeil en évitant la stimulation visuelle.",
+              "fallback_plan": "Si j'ai déjà le téléphone en main, je lance un minuteur de 1 minute pour le poser immédiatement.",
+              "risk_situation": "Après le carnet, la tentation de regarder le téléphone 'juste deux minutes'.",
+              "defense_response": "Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer."
+            },
+            "output_schema": "defense_card_draft_v1",
+            "operation_type": "prepare_defense_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ton filet de sécurité :\n\n🚩 Risque : Juste 2 min de téléphone après le carnet.\n🛡️ Action : Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer.\n💡 Pourquoi : Pour casser l'automatisme et protéger ton calme.\n\nOn valide cette carte ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-medium-t02",
+          "operation_id": "a53203ee-e8a0-42ec-b27a-28f4f30e77e7",
+          "operation_type": "prepare_defense_card",
+          "risk_situation": {
+            "label": "Le piège du 'juste deux minutes' après le sas",
+            "description": "L'utilisateur finit son carnet de déchargement mais replonge dans son téléphone par automatisme ou tentation.",
+            "timing_hint": "Le soir, immédiatement après le rituel du carnet",
+            "context_hint": "Fin de journée, transition vers le sommeil"
+          },
+          "source_message_id": "adca663b-1e38-47f7-b126-f0403e37f1cb"
+        },
+        "generated_at": "2026-05-15T10:21:13.249+00:00",
+        "last_updated_at": "2026-05-15T10:21:13.249+00:00"
+      },
+      {
+        "id": "c75d96f6-abd4-4451-ac4d-a7d175469da6",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "source": "system",
+        "scope_kind": "transformation",
+        "transformation_id": null,
+        "cycle_id": "14c636ab-a639-47f6-afa1-a8733a80f625",
+        "content": {
+          "title": "Protection du Sas du Soir",
+          "trigger": "Impulsion de vérifier une dernière info ou notification.",
+          "techniques": [
+            {
+              "technique_key": "operation_defense_card",
+              "generated_result": {
+                "title": "Protection du Sas du Soir",
+                "trigger": "Impulsion de vérifier une dernière info ou notification.",
+                "target_label": "Faire le sas de déchargement",
+                "why_it_helps": "Cela brise le cycle de la dopamine et protège ton endormissement.",
+                "fallback_plan": "Ouvrir un livre papier ou boire un verre d'eau.",
+                "risk_situation": "Rallumer le téléphone juste après avoir fermé le carnet.",
+                "defense_response": "Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute."
+              }
+            }
+          ],
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Cela brise le cycle de la dopamine et protège ton endormissement.",
+          "fallback_plan": "Ouvrir un livre papier ou boire un verre d'eau.",
+          "risk_situation": "Rallumer le téléphone juste après avoir fermé le carnet.",
+          "operation_draft": {
+            "title": "Protection du Sas du Soir",
+            "trigger": "Impulsion de vérifier une dernière info ou notification.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Cela brise le cycle de la dopamine et protège ton endormissement.",
+            "fallback_plan": "Ouvrir un livre papier ou boire un verre d'eau.",
+            "risk_situation": "Rallumer le téléphone juste après avoir fermé le carnet.",
+            "defense_response": "Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute."
+          },
+          "defense_response": "Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute."
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Protection du Sas du Soir",
+              "trigger": "Impulsion de vérifier une dernière info ou notification.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Cela brise le cycle de la dopamine et protège ton endormissement.",
+              "fallback_plan": "Ouvrir un livre papier ou boire un verre d'eau.",
+              "risk_situation": "Rallumer le téléphone juste après avoir fermé le carnet.",
+              "defense_response": "Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute."
+            },
+            "output_schema": "defense_card_draft_v1",
+            "operation_type": "prepare_defense_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ton projet de carte :\n\n🎯 Cible : Faire le sas de déchargement\n⚠️ Risque : Rallumer le téléphone après le carnet\n⚡ Réponse : Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute.\n\nEst-ce que cette stratégie te convient pour protéger ton sommeil ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-simple-t02",
+          "operation_id": "598808b3-c0e2-443f-bb23-aa052b398446",
+          "operation_type": "prepare_defense_card",
+          "risk_situation": {
+            "label": "Rallumer le téléphone après le carnet",
+            "description": "Risque de rompre le sas de déchargement en reprenant l'écran juste après l'écriture.",
+            "timing_hint": "Soir, juste après le rituel du carnet",
+            "context_hint": "Fin du sas de déchargement"
+          },
+          "source_message_id": "655c7889-d58d-4fba-9648-96c38bf43e7f"
+        },
+        "generated_at": "2026-05-15T10:20:11.692+00:00",
+        "last_updated_at": "2026-05-15T10:20:11.692+00:00"
+      }
+    ]
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+        "title": "Préparer ta zone de déchargement",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "cards_status": "ready",
+        "defense_card_id": null,
+        "attack_card_id": "21e4d499-71bc-4777-a648-98ec33ec42b7",
+        "description": "Choisis un carnet physique (pas de téléphone) et un stylo. Pose-les dans une autre pièce que ta chambre, ou sur un bureau éloigné du lit. Fixe-toi une heure de coupure, idéalement 45 minutes avant l'heure où tu aimerais dormir.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "evening",
+        "updated_at": "2026-05-16T14:44:36.193023+00:00"
+      },
+      {
+        "id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "title": "Faire le sas de déchargement",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "cards_status": "ready",
+        "defense_card_id": "4d8c29cb-d246-4eac-8818-1e7b99142edf",
+        "attack_card_id": "b183a27c-67c8-434d-b192-adb9f04776a6",
+        "description": "À ton heure de coupure, arrête les écrans stimulants. Prends 5 minutes avec ton carnet pour noter tout ce qui te passe par la tête : to-do du lendemain, idées de projets, choses à ne pas oublier. Une fois écrit, c'est sauvegardé, ton cerveau peut lâcher.",
+        "target_reps": 6,
+        "current_reps": 0,
+        "cadence_label": "6 soirs / semaine",
+        "time_of_day": "evening",
+        "updated_at": "2026-05-15T17:51:57.235216+00:00"
+      },
+      {
+        "id": "8d321c6c-ce4b-440f-b7b1-69e1a17ff835",
+        "title": "Repérer les pièges de l'hypervigilance",
+        "dimension": "clarifications",
+        "kind": "exercise",
+        "status": "pending",
+        "cards_status": "ready",
+        "defense_card_id": null,
+        "attack_card_id": "81340b70-49a0-45f4-a459-208557a1c3ea",
+        "description": "Prends 3 minutes pour identifier ce qui te donne envie de reprendre ton téléphone ou de retravailler après avoir fait ton sas.",
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-13T13:47:44.277267+00:00"
+      },
+      {
+        "id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+        "title": "Bilan et ajustement du sas",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Fais le point sur ton rituel. Est-ce que l'heure de coupure est réaliste ? Est-ce que le carnet suffit à te rassurer ? Ajuste l'heure ou le format pour que ce moment devienne naturel et sans friction.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "f4fd93fb-0c62-467c-9c65-9c91d079fc21",
+        "role": "user",
+        "content": "Ce soir je veux vraiment préparer la zone de déchargement. Le truc fragile, c’est que je vais sûrement me dire que sortir un carnet et un stylo, c’est trop petit pour le faire maintenant, et repousser.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T14:41:45.488637+00:00"
+      },
+      {
+        "id": "dd9643f7-3348-409d-8aef-1035947b5872",
+        "role": "assistant",
+        "content": "Ok, je te vois venir: ton cerveau te vend le “c’est trop petit” pour te faire repousser 😅 Alors qu’en vrai, c’est exactement le genre de micro-entrée qui débloque.\n\nFais juste ça maintenant, sans réfléchir:\n1) Prends le carnet + le stylo (2 minutes max)  \n2) Écris en haut: “Déchargement — ce soir”  \n3) Lâche 3 trucs en vrac, même moches ou incomplets\n\nAprès, tu choisis seulement: tu continues ou tu stoppe. Mais au moins, tu as commencé. Tu veux partir sur 3 items faciles A) “mental” B) “tâches” ou C) “émotions” ? 😊",
+        "scope": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-16T14:41:58.737017+00:00"
+      },
+      {
+        "id": "7a1f76eb-a84a-4d0d-bf68-eb4374e67a31",
+        "role": "user",
+        "content": "Je veux plutôt préparer une carte d’attaque pour l’action du plan “Préparer ta zone de déchargement”. Je veux qu’elle attaque le réflexe “je le ferai plus tard”, mais je n’ai pas encore choisi la technique.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T14:42:12.71866+00:00"
+      },
+      {
+        "id": "52c4a88e-4089-4964-9190-051c2aa78a3b",
+        "role": "assistant",
+        "content": "C'est noté pour l'action « Préparer ta zone de déchargement » et ce réflexe de remettre à plus tard. Pour t'aider à passer à l'acte, quelle approche te tente le plus ?\n\n1. **Le texte magique** : un court texte à relire pour stopper la négociation intérieure.\n2. **Mantra de force** : une phrase courte à te répéter pour renforcer ta détermination.\n3. **Mot de bascule** : un mot simple à m'envoyer dès que tu sens que tu vas esquiver pour que je t'aide à basculer.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "technique",
+                "needed": true,
+                "reason": "structured_ai_missing_technique",
+                "status": "missing",
+                "question": "C'est noté pour l'action « Préparer ta zone de déchargement » et ce réflexe de remettre à plus tard. Pour t'aider à passer à l'acte, quelle approche te tente le plus ?\n\n1. **Le texte magique** : un court texte à relire pour stopper la négociation intérieure.\n2. **Mantra de force** : une phrase courte à te répéter pour renforcer ta détermination.\n3. **Mot de bascule** : un mot simple à m'envoyer dès que tu sens que tu vas esquiver pour que je t'aide à basculer.",
+                "known_slots": {
+                  "target": {
+                    "kind": "plan_item",
+                    "title": "Préparer ta zone de déchargement",
+                    "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+                  },
+                  "intake_state": {
+                    "target": {
+                      "kind": "plan_item",
+                      "title": "Préparer ta zone de déchargement",
+                      "status": "identified",
+                      "evidence": [
+                        "Je veux plutôt préparer une carte d’attaque pour l’action du plan “Préparer ta zone de déchargement”"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+                    },
+                    "blocker": {
+                      "type": "procrastination",
+                      "evidence": [
+                        "je le ferai plus tard"
+                      ],
+                      "confidence": 0.9
+                    },
+                    "skill_id": "prepare_attack_card",
+                    "technique": {
+                      "value": null,
+                      "status": "missing",
+                      "options": [
+                        {
+                          "title": "Le texte magique",
+                          "reason": "Parfait pour contrer la négociation intérieure du « je le ferai plus tard ».",
+                          "example": "Un texte de 3 lignes à relire quand tu commences à négocier.",
+                          "description": "Un texte court à relire ou recopier quand la résistance monte.",
+                          "recommended": true,
+                          "technique_key": "texte_recadrage"
+                        },
+                        {
+                          "title": "Mantra de force",
+                          "reason": "Pour muscler ta volonté juste avant de préparer ton carnet.",
+                          "example": "Une phrase courte qui te remet dans ton axe.",
+                          "description": "Une phrase courte à répéter pour renforcer le rapport à l'action.",
+                          "recommended": false,
+                          "technique_key": "mantra_force"
+                        },
+                        {
+                          "title": "Mot de bascule",
+                          "reason": "Si tu sens que tu vas esquiver, tu m'envoies ce mot et je t'aide à ne pas lâcher.",
+                          "example": "Envoyer BASCULE quand tu sens que tu vas procrastiner.",
+                          "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+                          "recommended": true,
+                          "technique_key": "pre_engagement"
+                        }
+                      ],
+                      "evidence": [
+                        "je n’ai pas encore choisi la technique"
+                      ],
+                      "confidence": "medium",
+                      "fit_warning": null,
+                      "explicitly_requested": false
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "technique_selection",
+                    "missing_slots": [
+                      "technique"
+                    ],
+                    "activation_keyword": {
+                      "value": null,
+                      "status": "missing",
+                      "options": [],
+                      "evidence": [],
+                      "confidence": "low",
+                      "rejected_value": null
+                    },
+                    "generated_user_message": "C'est noté pour l'action « Préparer ta zone de déchargement » et ce réflexe de remettre à plus tard. Pour t'aider à passer à l'acte, quelle approche te tente le plus ?\n\n1. **Le texte magique** : un court texte à relire pour stopper la négociation intérieure.\n2. **Mantra de force** : une phrase courte à te répéter pour renforcer ta détermination.\n3. **Mot de bascule** : un mot simple à m'envoyer dès que tu sens que tu vas esquiver pour que je t'aide à basculer."
+                  },
+                  "technique_options": [
+                    {
+                      "title": "Le texte magique",
+                      "reason": "Parfait pour contrer la négociation intérieure du « je le ferai plus tard ».",
+                      "example": "Un texte de 3 lignes à relire quand tu commences à négocier.",
+                      "description": "Un texte court à relire ou recopier quand la résistance monte.",
+                      "recommended": true,
+                      "technique_key": "texte_recadrage"
+                    },
+                    {
+                      "title": "Mantra de force",
+                      "reason": "Pour muscler ta volonté juste avant de préparer ton carnet.",
+                      "example": "Une phrase courte qui te remet dans ton axe.",
+                      "description": "Une phrase courte à répéter pour renforcer le rapport à l'action.",
+                      "recommended": false,
+                      "technique_key": "mantra_force"
+                    },
+                    {
+                      "title": "Mot de bascule",
+                      "reason": "Si tu sens que tu vas esquiver, tu m'envoies ce mot et je t'aide à ne pas lâcher.",
+                      "example": "Envoyer BASCULE quand tu sens que tu vas procrastiner.",
+                      "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+                      "recommended": true,
+                      "technique_key": "pre_engagement"
+                    }
+                  ]
+                },
+                "technique_options": [
+                  {
+                    "title": "Le texte magique",
+                    "reason": "Parfait pour contrer la négociation intérieure du « je le ferai plus tard ».",
+                    "example": "Un texte de 3 lignes à relire quand tu commences à négocier.",
+                    "description": "Un texte court à relire ou recopier quand la résistance monte.",
+                    "recommended": true,
+                    "technique_key": "texte_recadrage"
+                  },
+                  {
+                    "title": "Mantra de force",
+                    "reason": "Pour muscler ta volonté juste avant de préparer ton carnet.",
+                    "example": "Une phrase courte qui te remet dans ton axe.",
+                    "description": "Une phrase courte à répéter pour renforcer le rapport à l'action.",
+                    "recommended": false,
+                    "technique_key": "mantra_force"
+                  },
+                  {
+                    "title": "Mot de bascule",
+                    "reason": "Si tu sens que tu vas esquiver, tu m'envoies ce mot et je t'aide à ne pas lâcher.",
+                    "example": "Envoyer BASCULE quand tu sens que tu vas procrastiner.",
+                    "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+                    "recommended": true,
+                    "technique_key": "pre_engagement"
+                  }
+                ],
+                "activation_keyword_options": []
+              },
+              "missing_slots": [
+                "technique"
+              ],
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        },
+        "created_at": "2026-05-16T14:42:30.200912+00:00"
+      },
+      {
+        "id": "467e2b74-6dd8-48f5-aeb5-7f5d0663fbb5",
+        "role": "user",
+        "content": "Le texte magique me parle plus que le mot de bascule. Je veux un texte très court, pas motivant façon grand discours : juste un truc qui me fait sortir le carnet et le stylo avant de négocier.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T14:42:40.229043+00:00"
+      },
+      {
+        "id": "a1a58ed1-364d-4ad3-833c-15fcbc3e511a",
+        "role": "assistant",
+        "content": "Voici ton texte magique pour : Préparer ta zone de déchargement.\n« Pose le stylo sur le papier. Ne réfléchis pas à la suite, ouvre juste le carnet maintenant. »\nRecopie ou relis ce texte dès que tu sens la résistance monter pour faire le premier geste.\nÇa te convient pour ta carte d'attaque ?",
+        "scope": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Zone de déchargement",
+                  "technique": "texte_recadrage",
+                  "instruction": "Relis ce texte dès que tu commences à négocier avec toi-même.",
+                  "mode_emploi": "Recopie ou relis ce texte dès que tu sens la résistance monter pour faire le premier geste.",
+                  "target_label": "Préparer ta zone de déchargement",
+                  "why_it_helps": "Ce texte court court-circuite la réflexion pour te ramener au geste concret.",
+                  "generated_asset": "Pose le stylo sur le papier. Ne réfléchis pas à la suite, ouvre juste le carnet maintenant.",
+                  "technique_title": "Le texte magique",
+                  "supporting_points": [
+                    "Évite la négociation mentale",
+                    "Déclenche le premier geste physique",
+                    "Simplifie l'entrée dans l'action"
+                  ],
+                  "activation_keyword": null
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici ton texte magique pour : Préparer ta zone de déchargement.\n« Pose le stylo sur le papier. Ne réfléchis pas à la suite, ouvre juste le carnet maintenant. »\nRecopie ou relis ce texte dès que tu sens la résistance monter pour faire le premier geste.\nÇa te convient pour ta carte d'attaque ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "a7758bdf-d631-4739-8862-98a588e454f7",
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        },
+        "created_at": "2026-05-16T14:43:00.206653+00:00"
+      },
+      {
+        "id": "0e07d8fe-382a-4fc2-aa53-f039b4567ada",
+        "role": "user",
+        "content": "C’est presque ça, mais je veux éviter “résistance” et “monter”. Ça me fait trop dramatique. Mets plutôt l’idée : je sors juste le carnet et le stylo, même si je n’écris qu’une ligne.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T14:43:09.302425+00:00"
+      },
+      {
+        "id": "f3ebc66b-6257-4779-82a4-69d95c3ae9e4",
+        "role": "assistant",
+        "content": "Voici ton brouillon :\n*Le geste simple* (Le texte magique)\n\"Je sors juste le carnet et le stylo. Même si je n'écris qu'une ligne, le geste est fait.\"\nRelis ce texte quand tu hésites, puis sors ton matériel sans réfléchir.\nÇa te convient pour ta carte ?",
+        "scope": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Le geste simple",
+                  "technique": "texte_recadrage",
+                  "instruction": "Relis ce texte dès que tu commences à négocier avec toi-même.",
+                  "mode_emploi": "Relis ce texte quand tu hésites, puis sors ton matériel sans réfléchir.",
+                  "target_label": "Préparer ta zone de déchargement",
+                  "why_it_helps": "Cela réduit l'effort perçu en se focalisant sur le premier geste concret.",
+                  "generated_asset": "Je sors juste le carnet et le stylo. Même si je n'écris qu'une ligne, le geste est fait.",
+                  "technique_title": "Le texte magique",
+                  "supporting_points": [
+                    "Action minimale",
+                    "Zéro pression",
+                    "Engagement physique"
+                  ],
+                  "activation_keyword": null
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici ton brouillon :\n*Le geste simple* (Le texte magique)\n\"Je sors juste le carnet et le stylo. Même si je n'écris qu'une ligne, le geste est fait.\"\nRelis ce texte quand tu hésites, puis sors ton matériel sans réfléchir.\nÇa te convient pour ta carte ?"
+              },
+              "status": "pending_confirmation_updated",
+              "operation_id": "d333810f-70f8-435a-b2de-87b177b857bd",
+              "selected_handler": "prepare_attack_card",
+              "draft_review_decision": null,
+              "previous_operation_id": "a7758bdf-d631-4739-8862-98a588e454f7"
+            }
+          }
+        },
+        "created_at": "2026-05-16T14:43:27.546555+00:00"
+      },
+      {
+        "id": "6bc17586-f563-4226-9af7-ae8d4f4878c4",
+        "role": "user",
+        "content": "Avant de valider, confirme-moi juste un point : cette carte sera bien rattachée à l’action du plan “Préparer ta zone de déchargement”, pas créée comme une carte libre ?",
+        "scope": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T14:43:48.862634+00:00"
+      },
+      {
+        "id": "018f6cc9-5c12-43a1-89a2-78d6548f43d2",
+        "role": "assistant",
+        "content": "Voici ton brouillon :\n*Le geste simple* (Le texte magique)\n\"Je sors juste le carnet et le stylo. Même si je n'écris qu'une ligne, le geste est fait.\"\nRelis ce texte quand tu hésites, puis sors ton matériel sans réfléchir.\nÇa te convient pour ta carte ?",
+        "scope": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "draft_review_details",
+              "operation_id": "d333810f-70f8-435a-b2de-87b177b857bd",
+              "selected_handler": "prepare_attack_card",
+              "draft_review_decision": {
+                "decision": "explain",
+                "evidence": [
+                  "L'utilisateur demande confirmation du rattachement de la carte à l'action du plan."
+                ],
+                "confidence": "high"
+              }
+            }
+          }
+        },
+        "created_at": "2026-05-16T14:44:11.181291+00:00"
+      },
+      {
+        "id": "3936f13b-4b55-4e68-9fd3-39d996b477e1",
+        "role": "user",
+        "content": "Oui, tu peux créer cette carte d’attaque comme ça.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T14:44:24.36948+00:00"
+      },
+      {
+        "id": "13607c76-43dc-42fd-a94b-316eddb2d067",
+        "role": "assistant",
+        "content": "C'est fait. J'ai créé cette carte d'attaque :\n\nLe geste simple\nTechnique : Le texte magique\nJe sors juste le carnet et le stylo. Même si je n'écris qu'une ligne, le geste est fait.\n\nMode d'emploi : Relis ce texte quand tu hésites, puis sors ton matériel sans réfléchir.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-16-run-a-attack-plan-action-r4-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "executed",
+              "operation_id": "d333810f-70f8-435a-b2de-87b177b857bd",
+              "attack_card_id": "21e4d499-71bc-4777-a648-98ec33ec42b7",
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        },
+        "created_at": "2026-05-16T14:44:36.202338+00:00"
+      }
+    ]
+  }
+}

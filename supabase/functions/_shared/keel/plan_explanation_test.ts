@@ -227,12 +227,27 @@ Deno.test("sans terme, rien ne bouge ; le plafond de huit lignes tient", () => {
   assertEquals(out.added, 1);
 });
 
-Deno.test("CÂBLAGE — la lane foyer réconcilie l'explication après une fusion « préférence contre exclusion »", async () => {
+Deno.test("CÂBLAGE — la lane foyer retire les phrases qui décrivent un plat remplacé", async () => {
   const src = await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
-  assert(/mergedExplanationRetries\.push\(\{ text: retryResult, terms: /.test(src), "la fusion n'enregistre plus le texte de la relance et ses termes");
-  assert(/reconcileExplanationAfterMerge\(\{/.test(src), "l'explication n'est plus réconciliée après une fusion");
+  // ⛔ LE DÉFAUT MESURÉ (ASP6, 2026-09-06): l'explication de la base
+  // contredisait le plan — « les asperges n'ont pas été retenues » sous trois
+  // boîtes d'asperges.
+  //
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — MÊME GARDE, AUTRE DÉCLENCHEUR. Il n'y a
+  // plus de fusion par parties; une RÉPARATION remplace des unités, et une
+  // phrase qui décrit un plat remplacé est pire qu'une phrase absente.
+  assert(/reconcileExplanationAfterMerge\(\{/.test(src), "l'explication n'est plus réconciliée");
   const at = src.indexOf("reconcileExplanationAfterMerge({");
+  const bloc = src.slice(at, at + 700);
+  assert(bloc.includes("terms: c4ChangedTitles,"), "les titres remplacés n'alimentent plus la réconciliation");
+  // ⛔ RIEN N'ENTRE: un patch ne rend aucune prose de plan, et lui en demander
+  // une ferait réécrire la logique de la semaine pour une correction locale.
+  assert(bloc.includes("retry: []"), "on redemande de la prose au modèle");
+  assert(
+    /for \(const unitId of c4Fusion\.units\) \{/.test(src),
+    "les titres remplacés ne sont plus retenus avant la mutation du plan",
+  );
   const site = src.indexOf('tag: "keel.household_meal.plan_explanation"');
   assert(at > -1 && site > at, "la réconciliation ne précède plus le journal de l'explication");
-  assert(/merged_dropped: explanationMerge\.dropped,/.test(src) && /merged_added: explanationMerge\.added,/.test(src), "le journal ne compte pas ce que la fusion a retiré et ajouté");
+  assert(/merged_dropped: explanationMerge\.dropped,/.test(src) && /merged_added: explanationMerge\.added,/.test(src), "le journal ne compte pas ce que la réconciliation a retiré et ajouté");
 });

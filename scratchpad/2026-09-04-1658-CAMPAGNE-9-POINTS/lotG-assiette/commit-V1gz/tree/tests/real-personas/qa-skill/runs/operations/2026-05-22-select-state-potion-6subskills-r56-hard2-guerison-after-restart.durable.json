@@ -1,0 +1,255 @@
+[
+  {
+    "potion": "guerison",
+    "user_id": "180de409-d9b7-47d9-bc76-70dd361b5834",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r56_hard2_guerison_after_restart_guerison",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "731c2285-32ee-4867-a4c4-0616c1dc5e28",
+          "potion_type": "guerison",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "67cb75b9-f453-47a7-ac9c-cf3d5da7dab8",
+          "transformation_id": null,
+          "content": {
+            "title": "Repartir proprement après un ratage",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Reprendre doucement après un ratage",
+              "evidence": [
+                "J'ai raté mon bloc hier.",
+                "Je me suis parlé durement.",
+                "Le moment le plus marquant c'est quand j'ai fermé le document en faisant comme si de rien n'était."
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "matin",
+              "target_plan_item_id": "271dd725-94ab-481d-991c-dc633dad7712",
+              "related_plan_item_id": "271dd725-94ab-481d-991c-dc633dad7712",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Repartir proprement après un ratage",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Le soutien demandé est lié à un état général de réparation après un ratage, avec un besoin de stabilité chaque matin.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "08:30",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "08:30",
+                "reason_for_time": "Le matin reste un bon moment pour remettre les choses à plat avant que la journée ne charge le jugement.",
+                "reminder_instruction": "Un rappel matinal pour désamorcer la honte et revenir à un geste simple, sans dramatiser."
+              },
+              "potion_type": "guerison",
+              "opening_prompt": "Qu'est-ce qui t'a le plus abîmé hier : le bloc raté, la façon dont tu t'es parlé, ou le moment où tu as fermé le document ?",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Reprendre doucement après un ratage",
+                "evidence": [
+                  "J'ai raté mon bloc hier.",
+                  "Je me suis parlé durement.",
+                  "Le moment le plus marquant c'est quand j'ai fermé le document en faisant comme si de rien n'était."
+                ],
+                "recurrence_hint": "quotidien",
+                "date_or_window_hint": "matin",
+                "target_plan_item_id": "271dd725-94ab-481d-991c-dc633dad7712",
+                "related_plan_item_id": "271dd725-94ab-481d-991c-dc633dad7712",
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Parce que tu parles d'un ratage concret, d'auto-jugement et de fatigue : il faut d'abord réparer le climat intérieur avant de chercher à forcer quoi que ce soit.",
+              "expected_duration": "short",
+              "potion_info_message": "Cette potion t'aide à te relever sans t'enfoncer dans la honte. Le rappel restera le matin à 08:30, pendant 7 jours, pour t'aider à revenir à un geste plus juste sans te brusquer.",
+              "instant_support_message": "Là, tu n'as pas besoin d'en faire plus. Le sujet, c'est juste de remettre un peu de tenue dans ce qui s'est abîmé hier, sans rajouter de pression."
+            },
+            "why_this_potion": "Parce que tu parles d'un ratage concret, d'auto-jugement et de fatigue : il faut d'abord réparer le climat intérieur avant de chercher à forcer quoi que ce soit.",
+            "potion_info_message": "Cette potion t'aide à te relever sans t'enfoncer dans la honte. Le rappel restera le matin à 08:30, pendant 7 jours, pour t'aider à revenir à un geste plus juste sans te brusquer.",
+            "instant_support_message": "Là, tu n'as pas besoin d'en faire plus. Le sujet, c'est juste de remettre un peu de tenue dans ce qui s'est abîmé hier, sans rajouter de pression."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Le soutien demandé est lié à un état général de réparation après un ratage, avec un besoin de stabilité chaque matin.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Reprendre doucement après un ratage",
+              "evidence": [
+                "J'ai raté mon bloc hier.",
+                "Je me suis parlé durement.",
+                "Le moment le plus marquant c'est quand j'ai fermé le document en faisant comme si de rien n'était."
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "matin",
+              "target_plan_item_id": "271dd725-94ab-481d-991c-dc633dad7712",
+              "related_plan_item_id": "271dd725-94ab-481d-991c-dc633dad7712",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "08:30",
+            "reason_for_time": "Le matin reste un bon moment pour remettre les choses à plat avant que la journée ne charge le jugement.",
+            "reminder_instruction": "Un rappel matinal pour désamorcer la honte et revenir à un geste simple, sans dramatiser."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r56_hard2_guerison_after_restart-guerison-t05-a1",
+            "operation_id": "a509cb1b-ab87-441b-81ef-332e39d19845",
+            "operation_type": "select_state_potion",
+            "source_message_id": "8cad89f2-0196-4255-985a-cf7e88defc91"
+          },
+          "generated_at": "2026-05-22T10:29:34.847+00:00",
+          "last_updated_at": "2026-05-22T10:29:34.847+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "8874f42d-ce4d-4cfe-bd83-11c978438ac3",
+          "message_instruction": "Un rappel matinal pour désamorcer la honte et revenir à un geste simple, sans dramatiser.",
+          "rationale": "Le soutien demandé est lié à un état général de réparation après un ratage, avec un besoin de stabilité chaque matin.",
+          "local_time_hhmm": "08:30",
+          "scheduled_days": [
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "731c2285-32ee-4867-a4c4-0616c1dc5e28",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r56_hard2_guerison_after_restart-guerison-t05-a1",
+            "operation_id": "a509cb1b-ab87-441b-81ef-332e39d19845",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Le soutien demandé est lié à un état général de réparation après un ratage, avec un besoin de stabilité chaque matin.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Reprendre doucement après un ratage",
+              "evidence": [
+                "J'ai raté mon bloc hier.",
+                "Je me suis parlé durement.",
+                "Le moment le plus marquant c'est quand j'ai fermé le document en faisant comme si de rien n'était."
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "matin",
+              "target_plan_item_id": "271dd725-94ab-481d-991c-dc633dad7712",
+              "related_plan_item_id": "271dd725-94ab-481d-991c-dc633dad7712",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "271dd725-94ab-481d-991c-dc633dad7712",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-22T10:29:34.847+00:00",
+          "created_at": "2026-05-22T10:29:34.852267+00:00",
+          "updated_at": "2026-05-22T10:29:34.852267+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "7e0bd0b5-c7ee-4ebd-838f-cecf689749e4",
+          "recurring_reminder_id": "8874f42d-ce4d-4cfe-bd83-11c978438ac3",
+          "event_context": "recurring_reminder:8874f42d-ce4d-4cfe-bd83-11c978438ac3:potion:731c2285-32ee-4867-a4c4-0616c1dc5e28:2026-05-23",
+          "draft_message": "Un rappel matinal pour désamorcer la honte et revenir à un geste simple, sans dramatiser.",
+          "scheduled_for": "2026-05-23T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-22T10:29:34.856592+00:00"
+        },
+        {
+          "id": "cc3b8e87-cdf4-485d-aa4c-eed3ff311a0d",
+          "recurring_reminder_id": "8874f42d-ce4d-4cfe-bd83-11c978438ac3",
+          "event_context": "recurring_reminder:8874f42d-ce4d-4cfe-bd83-11c978438ac3:potion:731c2285-32ee-4867-a4c4-0616c1dc5e28:2026-05-24",
+          "draft_message": "Un rappel matinal pour désamorcer la honte et revenir à un geste simple, sans dramatiser.",
+          "scheduled_for": "2026-05-24T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-22T10:29:34.856592+00:00"
+        },
+        {
+          "id": "8ee8ce13-d722-4f5b-8304-0e5ebd6fe2f7",
+          "recurring_reminder_id": "8874f42d-ce4d-4cfe-bd83-11c978438ac3",
+          "event_context": "recurring_reminder:8874f42d-ce4d-4cfe-bd83-11c978438ac3:potion:731c2285-32ee-4867-a4c4-0616c1dc5e28:2026-05-25",
+          "draft_message": "Un rappel matinal pour désamorcer la honte et revenir à un geste simple, sans dramatiser.",
+          "scheduled_for": "2026-05-25T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-22T10:29:34.856592+00:00"
+        },
+        {
+          "id": "0f04c643-e154-40ed-9d17-19537420fda6",
+          "recurring_reminder_id": "8874f42d-ce4d-4cfe-bd83-11c978438ac3",
+          "event_context": "recurring_reminder:8874f42d-ce4d-4cfe-bd83-11c978438ac3:potion:731c2285-32ee-4867-a4c4-0616c1dc5e28:2026-05-26",
+          "draft_message": "Un rappel matinal pour désamorcer la honte et revenir à un geste simple, sans dramatiser.",
+          "scheduled_for": "2026-05-26T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-22T10:29:34.856592+00:00"
+        },
+        {
+          "id": "9a19a5b0-a927-45a2-b049-1e9e43bddace",
+          "recurring_reminder_id": "8874f42d-ce4d-4cfe-bd83-11c978438ac3",
+          "event_context": "recurring_reminder:8874f42d-ce4d-4cfe-bd83-11c978438ac3:potion:731c2285-32ee-4867-a4c4-0616c1dc5e28:2026-05-27",
+          "draft_message": "Un rappel matinal pour désamorcer la honte et revenir à un geste simple, sans dramatiser.",
+          "scheduled_for": "2026-05-27T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-22T10:29:34.856592+00:00"
+        },
+        {
+          "id": "2390aa0a-d65a-41b2-b93d-702506276496",
+          "recurring_reminder_id": "8874f42d-ce4d-4cfe-bd83-11c978438ac3",
+          "event_context": "recurring_reminder:8874f42d-ce4d-4cfe-bd83-11c978438ac3:potion:731c2285-32ee-4867-a4c4-0616c1dc5e28:2026-05-28",
+          "draft_message": "Un rappel matinal pour désamorcer la honte et revenir à un geste simple, sans dramatiser.",
+          "scheduled_for": "2026-05-28T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-22T10:29:34.856592+00:00"
+        },
+        {
+          "id": "44fb6922-ead7-4c45-8339-25b65298b301",
+          "recurring_reminder_id": "8874f42d-ce4d-4cfe-bd83-11c978438ac3",
+          "event_context": "recurring_reminder:8874f42d-ce4d-4cfe-bd83-11c978438ac3:potion:731c2285-32ee-4867-a4c4-0616c1dc5e28:2026-05-29",
+          "draft_message": "Un rappel matinal pour désamorcer la honte et revenir à un geste simple, sans dramatiser.",
+          "scheduled_for": "2026-05-29T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-22T10:29:34.856592+00:00"
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,691 @@
+{
+    "id": "3faf8d9f-4ac9-49e8-8409-2837ff78bb00",
+    "dishes": [
+        {
+            "day": "wed",
+            "why": "This is a large, simple breakfast anchored by skyr, with crisp cucumber as the loud vegetable.",
+            "name": "Cool cucumber skyr crunch",
+            "slot": "breakfast",
+            "uses": [
+            ],
+            "title": "Skyr, oats, cucumber and rye crispbreads",
+            "method": "Stir the oats and pepper into the skyr. Add the diced cucumber and eat with the crispbreads.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "plain unsweetened skyr",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 300,
+                    "quantity": "300 g",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "rolled oats",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 60,
+                    "quantity": "60 g",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 200,
+                    "quantity": "200 g",
+                    "grams_raw": 200,
+                    "in_pantry": false
+                },
+                {
+                    "term": "unsweetened rye crispbreads",
+                    "unit": "unit",
+                    "state": "cooked",
+                    "amount": 2,
+                    "quantity": "2 crispbreads",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "black pepper",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a pinch",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "The lentils provide a cheap vegetarian anchor for a small lunch while smoked paprika answers this week's craving.",
+            "name": "Smoky lentil crispbreads",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": null,
+                    "servings": 1,
+                    "preparation_id": "prep_smoky_lentils"
+                }
+            ],
+            "title": "Smoked-paprika lentils, cucumber and rye crispbreads",
+            "method": "Spoon one freshly cooked portion of lentils into a bowl. Add diced cucumber and use the crispbreads for scooping.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 3
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 150,
+                    "quantity": "150 g",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "unsweetened rye crispbreads",
+                    "unit": "unit",
+                    "state": "cooked",
+                    "amount": 2,
+                    "quantity": "2 crispbreads",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "Warm lentils prevent dinner becoming a cold salad plate, while peppery radishes make the vegetable unmistakable.",
+            "name": "Creamy smoky lentil bowl",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": null,
+                    "servings": 1,
+                    "preparation_id": "prep_smoky_lentils"
+                }
+            ],
+            "title": "Warm smoked-paprika lentils, radishes, skyr and rye bread",
+            "method": "Reheat one portion of lentils until piping hot if it has cooled. Top with skyr and sliced radishes, then serve with the rye bread.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "radishes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "plain unsweetened skyr",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 150,
+                    "quantity": "150 g",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "unsweetened rye bread",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 80,
+                    "quantity": "80 g",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "Cottage cheese makes this substantial enough for the student's large breakfast, with crisp seasonal vegetables on top.",
+            "name": "Radish cottage cheese stack",
+            "slot": "breakfast",
+            "uses": [
+            ],
+            "title": "Cottage cheese, radishes, cucumber and rye bread",
+            "method": "Spread the cottage cheese over the bread and season with pepper. Add sliced radishes and cucumber.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "plain cottage cheese",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 300,
+                    "quantity": "300 g",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "radishes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 150,
+                    "quantity": "150 g",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 150,
+                    "quantity": "150 g",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "unsweetened rye bread",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 100,
+                    "quantity": "100 g",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "black pepper",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a pinch",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "This turns Wednesday's lentils into a compact small lunch that can travel easily on a driving day.",
+            "name": "Smoky lentil wrap",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": null,
+                    "servings": 1,
+                    "preparation_id": "prep_smoky_lentils"
+                }
+            ],
+            "title": "Smoked-paprika lentils and cucumber in a wholemeal wrap",
+            "method": "Spread one cold portion of the thick lentils over the wrap, add diced cucumber and roll firmly.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "plain wholemeal wrap without sweeteners",
+                    "unit": "unit",
+                    "state": "cooked",
+                    "amount": 1,
+                    "quantity": "1 wrap",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "The hot lentils give dinner its required warm element, while the cool cottage cheese changes the batch into a distinct plate.",
+            "name": "Hot lentils with cool curds",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": null,
+                    "servings": 1,
+                    "preparation_id": "prep_smoky_lentils"
+                }
+            ],
+            "title": "Warm smoked-paprika lentils, cottage cheese, cucumber and rye bread",
+            "method": "Reheat one portion of lentils until piping hot. Spoon over the cottage cheese, add diced cucumber and serve with the rye bread.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "plain cottage cheese",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 120,
+                    "quantity": "120 g",
+                    "grams_raw": 120,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 150,
+                    "quantity": "150 g",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "unsweetened rye bread",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 80,
+                    "quantity": "80 g",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "fri",
+            "why": "The egg cakes provide the proper smoked-paprika crust requested and make a substantial breakfast before the changed night run.",
+            "name": "Paprika breakfast cakes",
+            "slot": "breakfast",
+            "uses": [
+                {
+                    "box_id": null,
+                    "servings": 1,
+                    "preparation_id": "prep_paprika_egg_cakes"
+                }
+            ],
+            "title": "Crisp egg, potato and courgette cakes with skyr and cucumber",
+            "method": "Put one freshly cooked serving of cakes on the plate. Add the skyr and diced cucumber alongside so the crisp crust stays intact.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 3
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "plain unsweetened skyr",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 200,
+                    "quantity": "200 g",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 150,
+                    "quantity": "150 g",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "fri",
+            "why": "The second serving becomes a quick small lunch before the night shift, without creating food for the written-off evening.",
+            "name": "Crisp cake lunch box",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": null,
+                    "servings": 1,
+                    "preparation_id": "prep_paprika_egg_cakes"
+                }
+            ],
+            "title": "Egg, potato and courgette cakes with cottage cheese and radishes",
+            "method": "Reheat one serving of cakes until hot. Pack or plate them with the cottage cheese and sliced radishes.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "plain cottage cheese",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 120,
+                    "quantity": "120 g",
+                    "grams_raw": 120,
+                    "in_pantry": false
+                },
+                {
+                    "term": "radishes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        }
+    ],
+    "starts_on": "2026-08-19",
+    "preparations": [
+        {
+            "id": "prep_smoky_lentils",
+            "boxes": [
+            ],
+            "title": "Thick smoked-paprika lentils with courgettes",
+            "method": "Dice the courgettes. Heat the oil in a large saucepan, cook the courgettes for 5 minutes, then stir in the paprika and cumin. Add the rinsed lentils and water. Simmer for about 15 minutes, stirring occasionally, until the lentils are soft and thick. Season, eat one portion and divide the other three between covered containers; refrigerate promptly.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "red lentils",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 320,
+                    "quantity": "320 g",
+                    "grams_raw": 320,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgettes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 800,
+                    "quantity": "800 g",
+                    "grams_raw": 800,
+                    "in_pantry": false
+                },
+                {
+                    "term": "sunflower oil",
+                    "unit": "tbsp",
+                    "state": null,
+                    "amount": 1,
+                    "quantity": "1 tbsp",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "pure smoked paprika",
+                    "unit": "tbsp",
+                    "state": null,
+                    "amount": 1,
+                    "quantity": "1 tbsp",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "ground cumin",
+                    "unit": "tsp",
+                    "state": null,
+                    "amount": 2,
+                    "quantity": "2 tsp",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": null,
+                    "amount": 900,
+                    "quantity": "900 ml",
+                    "grams_raw": 900,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a pinch",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "black pepper",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a pinch",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 4,
+            "total_minutes": 25,
+            "active_minutes": 10
+        },
+        {
+            "id": "prep_paprika_egg_cakes",
+            "boxes": [
+            ],
+            "title": "Crisp smoked-paprika egg and courgette cakes",
+            "method": "Coarsely grate the potatoes and courgettes, then squeeze them firmly in a clean tea towel. Mix with the eggs, oats, smoked paprika, salt and pepper. Heat the oil in a large frying pan. Shape eight thin cakes and fry in two batches for about 4 minutes on each side, pressing them flat so they develop a proper crust. Serve four for breakfast and refrigerate the other four promptly for lunch.",
+            "cook_on": "fri",
+            "ingredients": [
+                {
+                    "term": "eggs",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 eggs",
+                    "grams_raw": 220,
+                    "in_pantry": false
+                },
+                {
+                    "term": "potatoes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 400,
+                    "quantity": "400 g",
+                    "grams_raw": 400,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgettes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 300,
+                    "quantity": "300 g",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "rolled oats",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 60,
+                    "quantity": "60 g",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                },
+                {
+                    "term": "pure smoked paprika",
+                    "unit": "tsp",
+                    "state": null,
+                    "amount": 2,
+                    "quantity": "2 tsp",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "sunflower oil",
+                    "unit": "tbsp",
+                    "state": null,
+                    "amount": 1,
+                    "quantity": "1 tbsp",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a pinch",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "black pepper",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a pinch",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 2,
+            "total_minutes": 25,
+            "active_minutes": 25
+        }
+    ],
+    "duration_days": 3,
+    "generated_from": {
+        "goal": "fat_loss",
+        "boxes": {
+            "boxes": 0,
+            "capped": 0,
+            "refused": 0,
+            "sum_over": 0,
+            "with_boxes": 0,
+            "mouth_slots": 0,
+            "sum_checked": 0,
+            "preparations": 2,
+            "mouths_double": 0,
+            "mouths_unboxed": 0,
+            "sum_unverifiable": 0
+        },
+        "names": {
+            "kept": 8,
+            "dishes": 8,
+            "refused": 0,
+            "declared": 8
+        },
+        "access": {
+            "state": "coach_seat",
+            "household": false,
+            "coach_solvent": true,
+            "app_write_access": true
+        },
+        "intent": "replace_current",
+        "issues": [
+            "structured_quantity_missing: 2/24 ingredients"
+        ],
+        "box_uses": {
+            "uses": 6,
+            "cited": 0,
+            "refused": 0,
+            "resolved": 0
+        },
+        "coach_id": "1e000000-0000-4000-8000-0000000000c1",
+        "same_day": {
+            "dishes": 8,
+            "invalid": 0,
+            "declared": 8,
+            "minutes_missing": 0
+        },
+        "rationale": {
+            "lines": [
+                "This plan covers 3 days, starting Wednesday 2026-08-19.",
+                "A session is set for Wednesday: you cook on Monday and Friday, and nothing cooked then can feed the days before it. It is a day you did not ask for.",
+                "One meal is skipped, you marked it away from home.",
+                "The shopping budget is 88.",
+                "To stay inside it, expensive proteins give first, then out-of-season produce, then variety — never the portions."
+            ],
+            "refusal": null
+        },
+        "belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+        ],
+        "empty_slots": [
+        ],
+        "hunger_days": 0,
+        "fixed_intakes": [
+            {
+                "days": [
+                    "mon",
+                    "wed",
+                    "fri"
+                ],
+                "slot": null,
+                "unit": "g",
+                "label": "Barleycup malt drink",
+                "amount": 44,
+                "food_ref": "declared_barleycup_malt_drink",
+                "replaces_meal": false
+            }
+        ],
+        "day_properties": [
+        ],
+        "prompt_version": "meal.en.v13_what_they_can_actually_do",
+        "request_report": {
+            "lines": [
+            ],
+            "refusal": null
+        },
+        "doctrine_reason": "loaded",
+        "doctrine_version": 1,
+        "satiety_priority": false,
+        "hunger_window_end": "2026-08-18",
+        "hunger_window_days": 7,
+        "hunger_window_start": "2026-08-12",
+        "protein_anchor_retry": false,
+        "protein_anchor_missing": [
+        ],
+        "unquantified_dish_ingredients": {
+            "ingredients": 24,
+            "unquantified": 2
+        }
+    }
+}

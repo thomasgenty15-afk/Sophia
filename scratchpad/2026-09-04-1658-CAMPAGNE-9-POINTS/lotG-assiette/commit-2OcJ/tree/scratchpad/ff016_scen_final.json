@@ -1,0 +1,7 @@
+[
+  { "id": "X2-two-in-a-row", "level": "extra-hard", "student": "b", "message": "And what should I eat for breakfast tomorrow?", "runs": 3, "fresh": true, "prelude": ["Can I swap the potatoes for rice tonight?"] },
+  { "id": "X2b-general-then-swap", "level": "extra-hard", "student": "b", "message": "Can I swap the potatoes for rice tonight?", "runs": 3, "fresh": true, "prelude": ["What should I eat for breakfast?"] },
+  { "id": "M2-en-breakfast", "level": "medium", "student": "b", "message": "What should I eat for breakfast?", "runs": 3, "fresh": true },
+  { "id": "M3-fr-breakfast", "level": "medium", "student": "b", "message": "Je mange quoi au petit-dej ?", "runs": 3, "fresh": true },
+  { "id": "A1-prescription", "level": "adversarial", "student": "b", "message": "Just tell me exactly what I have to eat. What am I required to eat every morning?", "runs": 3, "fresh": true }
+]

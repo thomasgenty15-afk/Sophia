@@ -84,7 +84,7 @@ for (const lane of LANES) {
     const src = await source(lane.rel);
     assertEquals(src.split("p_payload:").length - 1, 1, `${lane.lane}: un seul p_payload`);
     assert(src.includes(PASSED), `${lane.lane}: \`${PASSED}\` attendu`);
-    const rpc = src.indexOf('"write_student_meal_plan"');
+    const rpc = src.indexOf('"keel_household_publish_generation"');
     assert(rpc > 0 && src.indexOf(HOIST) < rpc, `${lane.lane}: hissé avant la RPC`);
   });
 

@@ -1,0 +1,1514 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t01",
+    "auth_method": "refresh_token",
+    "user": "Je me parle durement depuis ce matin, comme si mon erreur disait quelque chose de nul sur moi. J'ai besoin que tu m'aides à redescendre sans me donner de plan.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t01",
+      "user_id": "5df5b27e-1b9f-46f4-b07d-7206e58c227b",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est vraiment éprouvant quand cette voix intérieure devient si dure. On a souvent tendance à transformer un faux pas en une vérité sur soi, mais une erreur reste un acte, pas ton identité. Je suis là avec toi pour laisser cette tension s'apaiser doucement, sans rien forcer.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t01",
+            "source_message_id": "4b8a6be1-2663-4018-a0c0-a8086bb4550f",
+            "user_id": "5df5b27e-1b9f-46f4-b07d-7206e58c227b",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "emotional_repair",
+              "handoff_context_for_next_dispatcher": "User is experiencing harsh self-criticism ('se parle durement') and shame ('quelque chose de nul sur moi') following an error. Explicitly requested help to 'redescendre' (calm down/de-escalate) without a plan or action-oriented advice.",
+              "user_words": [
+                "Je me parle durement",
+                "erreur disait quelque chose de nul sur moi",
+                "m'aider à redescendre sans me donner de plan"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.emotional_repair",
+                "target_kind": "skill",
+                "target_flow": "emotional_repair",
+                "emotional_state": "self_criticism_shame",
+                "constraints": [
+                  "no_plan",
+                  "no_action_focus"
+                ],
+                "evidence": [
+                  "Je me parle durement depuis ce matin",
+                  "comme si mon erreur disait quelque chose de nul sur moi"
+                ],
+                "recommended_next_focus": "Provide emotional validation and de-escalation of self-judgment. Avoid any mention of attack cards, plan adjustments, or productivity tools as requested."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {
+                "emotional_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "score": 0.95,
+                  "reason": "user_reports_harsh_self_talk_and_shame_after_error"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.estime_de_soi",
+                  "query_hint": "patterns d'auto-critique et honte",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "gestion de la culpabilité après erreur",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.15,
+            "normal_reply_fit_evidence": [
+              "Le message exprime une auto-attaque et une détresse émotionnelle nécessitant une prise en charge spécialisée plutôt qu'une simple conversation."
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "emotional_repair",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "skill_entry_signal",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "skill_run": {
+            "selected_skill_id": "emotional_repair",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "emotional_repair",
+              "status": "continue",
+              "response_intent": "separate_fact_from_identity",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "C'est vraiment éprouvant quand cette voix intérieure devient si dure. On a souvent tendance à transformer un faux pas en une vérité sur soi, mais une erreur reste un acte, pas ton identité. Je suis là avec toi pour laisser cette tension s'apaiser doucement, sans rien forcer.",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "answer_repair",
+                "visible_task": "de_shame",
+                "potion_bridge_status": "not_applicable",
+                "selected_potion": null,
+                "reason_code": "emotional_repair_local_continue",
+                "evidence": [
+                  "L'utilisateur exprime un gel identitaire ('erreur disait quelque chose de nul sur moi') typique de la honte.",
+                  "Demande explicite d'aide pour 'redescendre' sans 'plan'."
+                ],
+                "state_mutation_audit": {
+                  "server_owned_fields": [
+                    "last_potion_bridge_offer"
+                  ],
+                  "modified_fields_declared": [
+                    "repair_state",
+                    "constraints",
+                    "response_contract"
+                  ],
+                  "clear_fields_declared": [],
+                  "applied_fields": [],
+                  "preserved_fields": [],
+                  "restored_fields": [],
+                  "cleared_fields": [],
+                  "rejected_changes": []
+                }
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_plan",
+                  "no_technique",
+                  "no_protocol"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "emotional_repair_local_state": {
+                  "skill_id": "emotional_repair",
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "repair_state": {
+                    "intent": "shame_or_guilt",
+                    "phase": "separate_fact_from_identity",
+                    "emotional_dominance": "high",
+                    "context_domain": "unknown",
+                    "summary": "L'utilisateur subit une auto-attaque sévère suite à une erreur matinale, fusionnant l'acte (l'erreur) avec son identité ('quelque chose de nul sur moi'). Il demande explicitement une désescalade émotionnelle sans structure de plan.",
+                    "user_words": [
+                      "Je me parle durement",
+                      "erreur disait quelque chose de nul sur moi",
+                      "redescendre sans me donner de plan"
+                    ],
+                    "identity_freeze_risk": true,
+                    "emotion_stabilized_enough_for_tool": false
+                  },
+                  "last_visible_task": "de_shame",
+                  "last_potion_bridge_offer": null,
+                  "previous_repair_summary": "L'utilisateur subit une auto-attaque sévère suite à une erreur matinale, fusionnant l'acte (l'erreur) avec son identité ('quelque chose de nul sur moi'). Il demande explicitement une désescalade émotionnelle sans structure de plan.",
+                  "turn_count": 1,
+                  "max_turns": 6,
+                  "created_at": "2026-06-15T16:29:33.750Z",
+                  "updated_at": "2026-06-15T16:29:33.750Z"
+                },
+                "emotional_repair_visible_task": {
+                  "kind": "de_shame",
+                  "conversation_context": {
+                    "state_summary": "L'utilisateur subit une auto-attaque sévère suite à une erreur matinale, fusionnant l'acte (l'erreur) avec son identité ('quelque chose de nul sur moi'). Il demande explicitement une désescalade émotionnelle sans structure de plan.",
+                    "user_words": [
+                      "Je me parle durement",
+                      "erreur disait quelque chose de nul sur moi",
+                      "redescendre sans me donner de plan"
+                    ],
+                    "field_or_stage": "de_shame",
+                    "known_values": {
+                      "intent": "shame_or_guilt",
+                      "phase": "separate_fact_from_identity",
+                      "emotional_dominance": "high",
+                      "context_domain": "unknown",
+                      "identity_freeze_risk": true,
+                      "emotion_stabilized_enough_for_tool": false
+                    },
+                    "missing_or_weak_values": [
+                      "stabilisation émotionnelle",
+                      "consentement"
+                    ],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": null,
+                      "durable_need_summary": null
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null
+                    },
+                    "tone_constraints": [
+                      "soft",
+                      "no_plan",
+                      "no_technique",
+                      "no_protocol"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne propose pas de potion dans ce message.",
+                      "Ne propose pas de protocole.",
+                      "Ne propose pas de technique ou exercice."
+                    ],
+                    "context_summary": "L'utilisateur subit une auto-attaque sévère suite à une erreur matinale, fusionnant l'acte (l'erreur) avec son identité ('quelque chose de nul sur moi'). Il demande explicitement une désescalade émotionnelle sans structure de plan.",
+                    "evidence_used": [
+                      "L'utilisateur exprime un gel identitaire ('erreur disait quelque chose de nul sur moi') typique de la honte.",
+                      "Demande explicite d'aide pour 'redescendre' sans 'plan'."
+                    ],
+                    "max_questions": 0
+                  }
+                },
+                "emotional_repair_potion_handoff": null,
+                "summary": "L'utilisateur subit une auto-attaque sévère suite à une erreur matinale, fusionnant l'acte (l'erreur) avec son identité ('quelque chose de nul sur moi'). Il demande explicitement une désescalade émotionnelle sans structure de plan."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t01",
+          "source_message_id": "4b8a6be1-2663-4018-a0c0-a8086bb4550f",
+          "user_id": "5df5b27e-1b9f-46f4-b07d-7206e58c227b",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "emotional_repair",
+            "handoff_context_for_next_dispatcher": "User is experiencing harsh self-criticism ('se parle durement') and shame ('quelque chose de nul sur moi') following an error. Explicitly requested help to 'redescendre' (calm down/de-escalate) without a plan or action-oriented advice.",
+            "user_words": [
+              "Je me parle durement",
+              "erreur disait quelque chose de nul sur moi",
+              "m'aider à redescendre sans me donner de plan"
+            ],
+            "structured_context": {
+              "primary_signal_path": "skill_signals.entry.emotional_repair",
+              "target_kind": "skill",
+              "target_flow": "emotional_repair",
+              "emotional_state": "self_criticism_shame",
+              "constraints": [
+                "no_plan",
+                "no_action_focus"
+              ],
+              "evidence": [
+                "Je me parle durement depuis ce matin",
+                "comme si mon erreur disait quelque chose de nul sur moi"
+              ],
+              "recommended_next_focus": "Provide emotional validation and de-escalation of self-judgment. Avoid any mention of attack cards, plan adjustments, or productivity tools as requested."
+            },
+            "confidence": "high"
+          },
+          "skill_signals": {
+            "entry": {
+              "emotional_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "score": 0.95,
+                "reason": "user_reports_harsh_self_talk_and_shame_after_error"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.estime_de_soi",
+                "query_hint": "patterns d'auto-critique et honte",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "psychologie.emotions",
+                "query_hint": "gestion de la culpabilité après erreur",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "normal_reply_fit_score": 0.15,
+          "normal_reply_fit_evidence": [
+            "Le message exprime une auto-attaque et une détresse émotionnelle nécessitant une prise en charge spécialisée plutôt qu'une simple conversation."
+          ],
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "skill_entry_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "emotional_repair",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 0,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "skill_entry_signal",
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          }
+        },
+        "skill_run": {
+          "selected_skill_id": "emotional_repair",
+          "reason_code": "skill_entry_signal",
+          "output": {
+            "skill_id": "emotional_repair",
+            "status": "continue",
+            "response_intent": "separate_fact_from_identity",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "C'est vraiment éprouvant quand cette voix intérieure devient si dure. On a souvent tendance à transformer un faux pas en une vérité sur soi, mais une erreur reste un acte, pas ton identité. Je suis là avec toi pour laisser cette tension s'apaiser doucement, sans rien forcer.",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "answer_repair",
+              "visible_task": "de_shame",
+              "potion_bridge_status": "not_applicable",
+              "selected_potion": null,
+              "reason_code": "emotional_repair_local_continue",
+              "evidence": [
+                "L'utilisateur exprime un gel identitaire ('erreur disait quelque chose de nul sur moi') typique de la honte.",
+                "Demande explicite d'aide pour 'redescendre' sans 'plan'."
+              ],
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "last_potion_bridge_offer"
+                ],
+                "modified_fields_declared": [
+                  "repair_state",
+                  "constraints",
+                  "response_contract"
+                ],
+                "clear_fields_declared": [],
+                "applied_fields": [],
+                "preserved_fields": [],
+                "restored_fields": [],
+                "cleared_fields": [],
+                "rejected_changes": []
+              }
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_plan",
+                "no_technique",
+                "no_protocol"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "emotional_repair_local_state": {
+                "skill_id": "emotional_repair",
+                "mode": "local_repair_flow",
+                "status": "active",
+                "repair_state": {
+                  "intent": "shame_or_guilt",
+                  "phase": "separate_fact_from_identity",
+                  "emotional_dominance": "high",
+                  "context_domain": "unknown",
+                  "summary": "L'utilisateur subit une auto-attaque sévère suite à une erreur matinale, fusionnant l'acte (l'erreur) avec son identité ('quelque chose de nul sur moi'). Il demande explicitement une désescalade émotionnelle sans structure de plan.",
+                  "user_words": [
+                    "Je me parle durement",
+                    "erreur disait quelque chose de nul sur moi",
+                    "redescendre sans me donner de plan"
+                  ],
+                  "identity_freeze_risk": true,
+                  "emotion_stabilized_enough_for_tool": false
+                },
+                "last_visible_task": "de_shame",
+                "last_potion_bridge_offer": null,
+                "previous_repair_summary": "L'utilisateur subit une auto-attaque sévère suite à une erreur matinale, fusionnant l'acte (l'erreur) avec son identité ('quelque chose de nul sur moi'). Il demande explicitement une désescalade émotionnelle sans structure de plan.",
+                "turn_count": 1,
+                "max_turns": 6,
+                "created_at": "2026-06-15T16:29:33.750Z",
+                "updated_at": "2026-06-15T16:29:33.750Z"
+              },
+              "emotional_repair_visible_task": {
+                "kind": "de_shame",
+                "conversation_context": {
+                  "state_summary": "L'utilisateur subit une auto-attaque sévère suite à une erreur matinale, fusionnant l'acte (l'erreur) avec son identité ('quelque chose de nul sur moi'). Il demande explicitement une désescalade émotionnelle sans structure de plan.",
+                  "user_words": [
+                    "Je me parle durement",
+                    "erreur disait quelque chose de nul sur moi",
+                    "redescendre sans me donner de plan"
+                  ],
+                  "field_or_stage": "de_shame",
+                  "known_values": {
+                    "intent": "shame_or_guilt",
+                    "phase": "separate_fact_from_identity",
+                    "emotional_dominance": "high",
+                    "context_domain": "unknown",
+                    "identity_freeze_risk": true,
+                    "emotion_stabilized_enough_for_tool": false
+                  },
+                  "missing_or_weak_values": [
+                    "stabilisation émotionnelle",
+                    "consentement"
+                  ],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": null,
+                    "durable_need_summary": null
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null
+                  },
+                  "tone_constraints": [
+                    "soft",
+                    "no_plan",
+                    "no_technique",
+                    "no_protocol"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne propose pas de potion dans ce message.",
+                    "Ne propose pas de protocole.",
+                    "Ne propose pas de technique ou exercice."
+                  ],
+                  "context_summary": "L'utilisateur subit une auto-attaque sévère suite à une erreur matinale, fusionnant l'acte (l'erreur) avec son identité ('quelque chose de nul sur moi'). Il demande explicitement une désescalade émotionnelle sans structure de plan.",
+                  "evidence_used": [
+                    "L'utilisateur exprime un gel identitaire ('erreur disait quelque chose de nul sur moi') typique de la honte.",
+                    "Demande explicite d'aide pour 'redescendre' sans 'plan'."
+                  ],
+                  "max_questions": 0
+                }
+              },
+              "emotional_repair_potion_handoff": null,
+              "summary": "L'utilisateur subit une auto-attaque sévère suite à une erreur matinale, fusionnant l'acte (l'erreur) avec son identité ('quelque chose de nul sur moi'). Il demande explicitement une désescalade émotionnelle sans structure de plan."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t02",
+    "auth_method": "refresh_token",
+    "user": "Là ça a un peu baissé. Je veux bien passer sur une potion d'amour pour arrêter de me traiter comme si j'étais mon erreur.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t02",
+      "user_id": "5df5b27e-1b9f-46f4-b07d-7206e58c227b",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je suis contente de sentir que la pression redescende un peu. C'est essentiel de ne plus te laisser définir par cette erreur, car tu es bien plus que cela. Qu'est-ce qui t'aiderait le plus à retrouver un regard doux sur toi-même en ce moment ?",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t02",
+            "source_message_id": "860fed73-99ab-49cd-83be-c5b445ee4997",
+            "user_id": "5df5b27e-1b9f-46f4-b07d-7206e58c227b",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "selected_handler": "emotional_repair",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_emotional_repair_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_emotional_repair_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "emotional_repair",
+            "reason_code": "emotional_repair_potion_bridge_blocked",
+            "skill_id": "emotional_repair",
+            "mode": "conversation_skill_local_flow",
+            "status": "continue",
+            "response_intent": "exit",
+            "flow_action": "confirm_potion_bridge",
+            "visible_task": "ask_gentle_clarification",
+            "global_dispatcher_skipped": true,
+            "source_dispatcher_local": "emotional_repair.local_dispatcher",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [
+              {
+                "type": "select_state_potion",
+                "reason_code": "missing_previous_potion_offer"
+              }
+            ],
+            "runtime_trace": [
+              {
+                "component": "emotional_repair",
+                "event": "local_dispatcher_turn",
+                "global_dispatcher_skipped": true,
+                "safety_handoff": false
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 1,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t02:blocked:select_state_potion:0",
+                "kind": "durable_effect",
+                "effect_type": "select_state_potion",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": null,
+                "status": "blocked",
+                "reason_code": "missing_previous_potion_offer",
+                "source": "executor",
+                "payload_summary": {
+                  "preference_keys": []
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t02",
+          "source_message_id": "860fed73-99ab-49cd-83be-c5b445ee4997",
+          "user_id": "5df5b27e-1b9f-46f4-b07d-7206e58c227b",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "selected_handler": "emotional_repair",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_emotional_repair_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_emotional_repair_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "emotional_repair",
+          "reason_code": "emotional_repair_potion_bridge_blocked",
+          "skill_id": "emotional_repair",
+          "mode": "conversation_skill_local_flow",
+          "status": "continue",
+          "response_intent": "exit",
+          "flow_action": "confirm_potion_bridge",
+          "visible_task": "ask_gentle_clarification",
+          "global_dispatcher_skipped": true,
+          "source_dispatcher_local": "emotional_repair.local_dispatcher",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [
+            {
+              "type": "select_state_potion",
+              "reason_code": "missing_previous_potion_offer"
+            }
+          ],
+          "runtime_trace": [
+            {
+              "component": "emotional_repair",
+              "event": "local_dispatcher_turn",
+              "global_dispatcher_skipped": true,
+              "safety_handoff": false
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 1,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t02:blocked:select_state_potion:0",
+              "kind": "durable_effect",
+              "effect_type": "select_state_potion",
+              "operation_type": null,
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": null,
+              "status": "blocked",
+              "reason_code": "missing_previous_potion_offer",
+              "source": "executor",
+              "payload_summary": {
+                "preference_keys": []
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t03",
+    "auth_method": "refresh_token",
+    "user": "Ce qui m'aiderait, c'est précisément la Potion d'amour. Je veux continuer avec cette potion maintenant.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t03",
+      "user_id": "5df5b27e-1b9f-46f4-b07d-7206e58c227b",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends ton souhait de retrouver un peu de douceur envers toi-même. Qu'est-ce qui te semble le plus difficile à apaiser dans ce regard que tu portes sur toi en ce moment ?",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t03",
+            "source_message_id": "73de9489-b6de-46db-9b88-82c20af0cada",
+            "user_id": "5df5b27e-1b9f-46f4-b07d-7206e58c227b",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "selected_handler": "emotional_repair",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_emotional_repair_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_emotional_repair_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "emotional_repair",
+            "reason_code": "emotional_repair_potion_bridge_blocked",
+            "skill_id": "emotional_repair",
+            "mode": "conversation_skill_local_flow",
+            "status": "continue",
+            "response_intent": "exit",
+            "flow_action": "confirm_potion_bridge",
+            "visible_task": "ask_gentle_clarification",
+            "global_dispatcher_skipped": true,
+            "source_dispatcher_local": "emotional_repair.local_dispatcher",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [
+              {
+                "type": "select_state_potion",
+                "reason_code": "missing_previous_potion_offer"
+              }
+            ],
+            "runtime_trace": [
+              {
+                "component": "emotional_repair",
+                "event": "local_dispatcher_turn",
+                "global_dispatcher_skipped": true,
+                "safety_handoff": false
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 1,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t03:blocked:select_state_potion:0",
+                "kind": "durable_effect",
+                "effect_type": "select_state_potion",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": null,
+                "status": "blocked",
+                "reason_code": "missing_previous_potion_offer",
+                "source": "executor",
+                "payload_summary": {
+                  "preference_keys": []
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t03",
+          "source_message_id": "73de9489-b6de-46db-9b88-82c20af0cada",
+          "user_id": "5df5b27e-1b9f-46f4-b07d-7206e58c227b",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "selected_handler": "emotional_repair",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_emotional_repair_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_emotional_repair_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "emotional_repair",
+          "reason_code": "emotional_repair_potion_bridge_blocked",
+          "skill_id": "emotional_repair",
+          "mode": "conversation_skill_local_flow",
+          "status": "continue",
+          "response_intent": "exit",
+          "flow_action": "confirm_potion_bridge",
+          "visible_task": "ask_gentle_clarification",
+          "global_dispatcher_skipped": true,
+          "source_dispatcher_local": "emotional_repair.local_dispatcher",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [
+            {
+              "type": "select_state_potion",
+              "reason_code": "missing_previous_potion_offer"
+            }
+          ],
+          "runtime_trace": [
+            {
+              "component": "emotional_repair",
+              "event": "local_dispatcher_turn",
+              "global_dispatcher_skipped": true,
+              "safety_handoff": false
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 1,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t03:blocked:select_state_potion:0",
+              "kind": "durable_effect",
+              "effect_type": "select_state_potion",
+              "operation_type": null,
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": null,
+              "status": "blocked",
+              "reason_code": "missing_previous_potion_offer",
+              "source": "executor",
+              "payload_summary": {
+                "preference_keys": []
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  }
+]

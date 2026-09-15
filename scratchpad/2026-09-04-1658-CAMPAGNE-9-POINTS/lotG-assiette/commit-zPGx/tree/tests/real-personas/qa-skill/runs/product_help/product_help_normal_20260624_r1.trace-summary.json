@@ -1,0 +1,122 @@
+[
+  {
+    "turn": 1,
+    "http_status": 200,
+    "user": "Dans Sophia, c'est quoi la différence entre une carte d'attaque et une carte de défense ? Je veux juste comprendre, pas créer quoi que ce soit.",
+    "assistant": "Oui :\n- Carte d’attaque = t’aider à démarrer l’action, en réduisant la friction du premier pas.\n- Carte de défense = te protéger d’un risque au moment où ça peut dérailler, avec une réponse simple ou un plan B.\n\nEn bref : l’attaque répond à « comment je m’y mets ? », la défense à « qu’est-ce qui peut me faire dévier ? ».",
+    "response_owner": "product_help",
+    "route_reason": "product_help_signal",
+    "selected_handler": "product_help",
+    "active_flow_arbitration": {
+      "decision": "minimal_global_dispatcher",
+      "active_owner": "none",
+      "selected_owner": "product_help",
+      "resume_policy": "none",
+      "reason_code": "product_help_signal"
+    },
+    "selected_skill_id": "product_help",
+    "skill_reason_code": "product_help_signal",
+    "skill_status": "complete",
+    "exit_target": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "durable_effect": "none",
+    "executed_tools": []
+  },
+  {
+    "turn": 2,
+    "http_status": 200,
+    "user": "Et si je veux juste voir où ça se trouve dans l'app, les cartes libres sont dans quel endroit ?",
+    "assistant": "Les cartes libres se trouvent dans Dashboard > Ressources. Là, tu retrouves les cartes d’attaque et de défense quand elles existent. En bref : attaque = préparer l’action, défense = gérer le risque ou le piège sur le moment.",
+    "response_owner": "product_help",
+    "route_reason": "product_help_signal",
+    "selected_handler": "product_help",
+    "active_flow_arbitration": {
+      "decision": "minimal_global_dispatcher",
+      "active_owner": "none",
+      "selected_owner": "product_help",
+      "resume_policy": "none",
+      "reason_code": "product_help_signal"
+    },
+    "selected_skill_id": "product_help",
+    "skill_reason_code": "product_help_signal",
+    "skill_status": "complete",
+    "exit_target": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "durable_effect": "none",
+    "executed_tools": []
+  },
+  {
+    "turn": 3,
+    "http_status": 200,
+    "user": "Ok. Et les potions, c'est quoi leur rôle exactement ? Elles remplacent les cartes ou c'est autre chose ?",
+    "assistant": "Les potions ne remplacent pas les cartes.\n\nUne carte d’attaque ou de défense sert à agir face à une situation concrète. Une potion, elle, sert plutôt à t’aider quand un état intérieur prend trop de place : peur, fatigue, honte, stress, manque de clarté.\n\nEn bref : cartes = action ; potion = soutien de l’état intérieur.",
+    "response_owner": "product_help",
+    "route_reason": "product_help_signal",
+    "selected_handler": "product_help",
+    "active_flow_arbitration": {
+      "decision": "minimal_global_dispatcher",
+      "active_owner": "none",
+      "selected_owner": "product_help",
+      "resume_policy": "none",
+      "reason_code": "product_help_signal"
+    },
+    "selected_skill_id": "product_help",
+    "skill_reason_code": "product_help_signal",
+    "skill_status": "complete",
+    "exit_target": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "durable_effect": "none",
+    "executed_tools": []
+  },
+  {
+    "turn": 4,
+    "http_status": 200,
+    "user": "Je crois que je mélange encore : une carte liée à une action du plan, je la retrouve plutôt depuis le Plan ou depuis Ressources ?",
+    "assistant": "Plutôt depuis le Plan : ouvre la mission ou l’habitude concernée. Une fois la carte liée existante, tu la retrouves aussi dans Ressources, rangée par niveau.",
+    "response_owner": "product_help",
+    "route_reason": "product_help_signal",
+    "selected_handler": "product_help",
+    "active_flow_arbitration": {
+      "decision": "minimal_global_dispatcher",
+      "active_owner": "none",
+      "selected_owner": "product_help",
+      "resume_policy": "none",
+      "reason_code": "product_help_signal"
+    },
+    "selected_skill_id": "product_help",
+    "skill_reason_code": "product_help_signal",
+    "skill_status": "complete",
+    "exit_target": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "durable_effect": "none",
+    "executed_tools": []
+  },
+  {
+    "turn": 5,
+    "http_status": 200,
+    "user": "Donc si je te pose juste des questions pour comprendre l'app, tu m'expliques sans créer ni modifier de carte, c'est bien ça ?",
+    "assistant": "Oui, c’est ça. Je peux t’expliquer l’app et les différences entre les éléments, sans créer ni modifier de carte.",
+    "response_owner": "product_help",
+    "route_reason": "product_help_signal",
+    "selected_handler": "product_help",
+    "active_flow_arbitration": {
+      "decision": "minimal_global_dispatcher",
+      "active_owner": "none",
+      "selected_owner": "product_help",
+      "resume_policy": "none",
+      "reason_code": "product_help_signal"
+    },
+    "selected_skill_id": "product_help",
+    "skill_reason_code": "product_help_signal",
+    "skill_status": "complete",
+    "exit_target": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "durable_effect": "none",
+    "executed_tools": []
+  }
+]

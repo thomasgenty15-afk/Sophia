@@ -1,0 +1,517 @@
+[
+  {
+    "term": "pepper",
+    "n": 28,
+    "dense": false
+  },
+  {
+    "term": "garlic powder",
+    "n": 17,
+    "dense": false
+  },
+  {
+    "term": "cooked chicken thigh meat",
+    "n": 6,
+    "dense": false
+  },
+  {
+    "term": "butter or olive oil",
+    "n": 5,
+    "dense": true
+  },
+  {
+    "term": "egg noodles",
+    "n": 5,
+    "dense": false
+  },
+  {
+    "term": "tuna tins",
+    "n": 5,
+    "dense": false
+  },
+  {
+    "term": "turkey chilli",
+    "n": 5,
+    "dense": false
+  },
+  {
+    "term": "cooked chicken thigh and pepper batch",
+    "n": 4,
+    "dense": false
+  },
+  {
+    "term": "butter or oil",
+    "n": 4,
+    "dense": true
+  },
+  {
+    "term": "breadcrumbs",
+    "n": 4,
+    "dense": false
+  },
+  {
+    "term": "cooked chicken thighs from preparation",
+    "n": 4,
+    "dense": false
+  },
+  {
+    "term": "wholegrain crackers",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "tzatziki",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "roasted vegetables",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "grated cheese",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "plum",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "turkey chili from batch",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "fajita seasoning",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "marinara sauce",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "pickle",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "cooked chicken thigh batch",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "tuna in spring water",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "beef and bean chilli",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "turkey pasta bake",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "cooked turkey chilli",
+    "n": 3,
+    "dense": false
+  },
+  {
+    "term": "cauliflower rice",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "mixed greens",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "pitta bread",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "turkey and bean chilli batch",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "lettuce leaves",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "whole grain bread",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "mixed salad greens",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "lean beef strips",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "italian herbs",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "fruit",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "hot sauce",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "farro",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "cooked rice batch",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "cooked lentil soup batch",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "cooked turkey chilli batch",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "vegetable stock cube",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "turkey bean chilli with rice",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "side salad",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "sesame oil or olive oil",
+    "n": 2,
+    "dense": true
+  },
+  {
+    "term": "rocket or spinach",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "wholemeal pita",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "baked potato",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "roast vegetables",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "large tortilla wraps",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "mixed seeds",
+    "n": 2,
+    "dense": true
+  },
+  {
+    "term": "cooked rice from preparation",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "cooked turkey chilli from preparation",
+    "n": 2,
+    "dense": false
+  },
+  {
+    "term": "protein powder",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "ice",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "fresh dill or parsley",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "whole grain crackers",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "fresh mint or parsley",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "whole grain toast",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "plum or peach",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "dill or parsley",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "dry lentils",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "dry rice",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "wholemeal tortilla wrap",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "wholewheat wrap",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "chicken thigh fillets",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "wholewheat pita",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "sub roll",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "corn tortillas",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "shredded cabbage slaw",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "pickled red onion",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "greens",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "sandwich bread",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "slaw",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "tuna cans",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "taco seasoning",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "beef and bean bowl",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "pitta breads",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "green or puy lentils",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "bay leaf",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "pork sausages",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "turkey breast slices",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "wholegrain toast",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "beef strips",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "chili flakes",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "dill",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "dried dill",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "mixed beans",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "whole wheat wraps",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "turkey slices",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "extra grated cheese",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "bagel",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "chilli sauce",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "chicken curry",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "penne pasta",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "wholemeal pitta breads",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "red bell peppers",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "lemon wedge",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "chicken stock cube",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "rice cakes",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "crackers",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "baking potato",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "canned beans",
+    "n": 1,
+    "dense": false
+  },
+  {
+    "term": "wholewheat couscous",
+    "n": 1,
+    "dense": false
+  }
+]

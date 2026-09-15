@@ -1,0 +1,12 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r19-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Le soir, le bloc anti-grignotage me paraît trop dense. Je veux garder le même cap, mais réduire la charge du niveau pour cette semaine.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

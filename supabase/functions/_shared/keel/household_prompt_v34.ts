@@ -67,6 +67,16 @@ import {
   densityFragment,
 } from "./household_portions.ts";
 import type { RequiredDensity, SlotDensity } from "./portion_sizing.ts";
+// ⟳ 2026-09-12 · ÉTAPE C4 — le plancher protéique atteint le PREMIER JET.
+// ⛔ Le rendu vit dans le même module que le calcul, pour la raison qui a fait
+// vivre `densityFragment` dans `household_portions.ts`: deux rédactions du même
+// nombre finiraient par diverger, et c'est celle qu'on relit le moins qui
+// partirait au modèle.
+import {
+  PROTEIN_CONSEQUENCE,
+  proteinFragment,
+  type ProteinMouthBrief,
+} from "./plan_protein_brief.ts";
 import { buildHouseholdVoices } from "./household_voices.ts";
 import { buildEnvyBlock } from "./household_envies.ts";
 import { traditionBlock } from "./household_traditions.ts";
@@ -153,6 +163,24 @@ export interface HouseholdPromptV34Input extends HouseholdPromptInput {
          * fait servir 850 g à un adolescent.
          */
         requiredDensity: RequiredDensity | null;
+        /**
+         * ══════════════════════════════════════════════════════════════════
+         * ⟳ 2026-09-12 · ÉTAPE C4 — LE PLANCHER PROTÉIQUE, AVANT LA PREMIÈRE
+         * GÉNÉRATION
+         * ══════════════════════════════════════════════════════════════════
+         *
+         * ⛔ REQUIS-NULLABLE, jamais optionnel — exactement la même raison que
+         * `requiredDensity` juste au-dessus, et la même cicatrice: « paramètre
+         * de garde optionnel = garde désarmée ». Une clé absente se relirait
+         * « pas de plancher » là où la vraie réponse peut être « personne ne
+         * l'a calculé », et c'est ce silence-là qui a coûté quatre plans sur
+         * six à la campagne du 2026-09-11.
+         *
+         * ⚠️ `null` OU MUET = RIEN NE SORT. Une bouche protégée (plancher TCA,
+         * mineur) rend `silence: "protected"` et aucun chiffre ne paraît en
+         * face de son nom — la règle de `RequiredDensity.floorOnly`.
+         */
+        proteinBrief: ProteinMouthBrief | null;
       }
     >
   >;
@@ -195,6 +223,20 @@ function cardFor(
      * fonction de rendu, `densityFragment`, et pas une seconde rédaction.
      */
     density: string;
+    /**
+     * ⟳ 2026-09-12 · ÉTAPE C4 — LA PROTÉINE DE CE QUI EST SERVI LÀ, EN GRAMMES.
+     *
+     * ⛔ ELLE MANQUAIT, ET C'ÉTAIT LA CAUSE MESURÉE DES QUATRE PLANS SOUS
+     * PLANCHER. Le prompt portait une DENSITÉ — une grandeur d'énergie — et la
+     * ligne « a starch, a protein, a fat » du bloc de recette, c'est-à-dire
+     * très exactement la « phrase vague » que le plan de clôture interdit
+     * d'employer « comme substitut à la cible numérique disponible ».
+     *
+     * ⚠️ CE N'EST PAS UN FAIT DE CORPS, pour la même raison que la densité:
+     * c'est une propriété du PLAT servi à ce moment-là. Même rendu partagé
+     * (`proteinFragment`), jamais une seconde rédaction.
+     */
+    protein: string;
   },
 ): string[] {
   const out: string[] = [`== ${m.displayName} (${m.memberId}) ==`];
@@ -223,6 +265,12 @@ function cardFor(
   // de tout ce qui précède (ce qu'elle mange, et quand). La mettre en tête la
   // ferait lire comme une préférence.
   if (extras.density !== "") out.push(` ${extras.density.replace(/^\s*—\s*/, "— ")}`);
+  // ⛔ JUSTE APRÈS LA DENSITÉ, ET JAMAIS AVANT. Les deux parlent du même plat:
+  // la densité dit combien d'énergie tient dans 100 g, la protéine dit de quoi
+  // ces grammes sont faits. Séparées par autre chose, elles se liraient comme
+  // deux contraintes sans rapport — et ce dépôt a mesuré ce que coûte une
+  // consigne détachée de la phrase qui la porte (0 % de conformité).
+  if (extras.protein !== "") out.push(` ${extras.protein.replace(/^\s*—\s*/, "— ")}`);
   return out;
 }
 
@@ -459,6 +507,9 @@ export function buildHouseholdPromptBlocksV34(
         density: densityFragment(
           input.cardFacts[m.memberId]?.requiredDensity?.named ?? [],
         ),
+        // ⟳ 2026-09-12 · ÉTAPE C4 — le plancher protéique de cette bouche,
+        // réparti sur ses cases couvertes. Muet quand elle est protégée.
+        protein: proteinFragment(input.cardFacts[m.memberId]?.proteinBrief ?? null),
       }),
     );
   }
@@ -487,6 +538,9 @@ export function buildHouseholdPromptBlocksV34(
   const anyDensity = input.members.some((m) =>
     (input.cardFacts[m.memberId]?.requiredDensity?.named ?? []).length > 0
   );
+  const anyProtein = input.members.some((m) =>
+    (input.cardFacts[m.memberId]?.proteinBrief?.slots ?? []).length > 0
+  );
   const consequences: string[] = [
     ...(anyRhythm
       ? [
@@ -496,6 +550,11 @@ export function buildHouseholdPromptBlocksV34(
       : []),
     ...(anyHabit ? [...HABIT_CONSEQUENCE] : []),
     ...(anyDensity ? [...DENSITY_CONSEQUENCE] : []),
+    // ⛔ GARDÉE PAR SON FAIT, comme les trois autres. « Une conséquence servie
+    // sans le fait qui l'appelle est du bruit, et le bruit dévalue les consignes
+    // qui l'entourent » — et une table où personne ne porte de plancher
+    // apprendrait qu'il existe une grandeur qu'on impose parfois.
+    ...(anyProtein ? [...PROTEIN_CONSEQUENCE] : []),
   ];
   if (consequences.length > 0) cards.push("", ...consequences);
 

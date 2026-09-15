@@ -143,8 +143,17 @@ export type CompositionState = (typeof COMPOSITION_STATES)[number];
  * pareil, et ce module ne prétend pas le contraire — il convertit un VOLUME,
  * puis applique la densité de l'aliment comme pour n'importe quel `ml`.
  */
-const TBSP_ML = 15;
-const TSP_ML = 5;
+// ⟳ C2 (2026-09-12) — EXPORTÉES POUR ÊTRE ÉPINGLÉES, PAS POUR ÊTRE RECOPIÉES.
+// L'arrondi (`quantity_render.ts`) doit convertir une cuillère fractionnaire en
+// millilitres AVANT d'arrondir — le plan l'écrit: « convertir les cuillères vers
+// g/ml avant arrondi, avec les conversions CONNUES DU RÉFÉRENTIEL ». Ce module
+// est celui du référentiel; `quantity_render.ts` est importé par le navigateur
+// et ne peut pas le tirer derrière lui, alors il en recopie les deux nombres et
+// un test compare les deux copies (`quantity_render_test.ts` ⑬). Sans cet
+// export, la comparaison serait impossible et la copie deviendrait une seconde
+// source — exactement ce que le dépôt paie en boucle.
+export const TBSP_ML = 15;
+export const TSP_ML = 5;
 
 /**
  * DENSITÉ PAR DÉFAUT, pour passer d'un millilitre à un gramme: 1 g/ml.

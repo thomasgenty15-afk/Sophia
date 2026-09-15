@@ -1,0 +1,9 @@
+{
+  "requestId": "product-help-to-prepare-defense-20260612-r1-t01",
+  "status": 401,
+  "user": "Je confonds un peu : une carte de défense, ça sert à quoi dans Sophia ? Explique-moi juste, sans en créer une.",
+  "body": {
+    "error": "Unauthorized",
+    "request_id": "product-help-to-prepare-defense-20260612-r1-t01"
+  }
+}

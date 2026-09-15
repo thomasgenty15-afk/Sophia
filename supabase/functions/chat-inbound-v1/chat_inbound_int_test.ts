@@ -245,16 +245,30 @@ Deno.test({
     const student = await makeStudent();
     try {
       const clientId = uid();
+      // ⟳ LA CHARGE A CHANGÉ DE FAMILLE, PAS LE TEST DE SENS. Elle était
+      // `KEEL_PULSE_HARD`, et le pouls du soir est DÉSARMÉ depuis le
+      // 2026-09-07 (`DETERMINISTIC_BUTTON_PREFIXES`, ligne annotée): il n'a
+      // plus de lecteur, donc plus d'écriture à observer. Ce test-ci est le
+      // seul à prouver qu'un tap traverse HTTP et touche la base; le laisser
+      // sur une famille morte le rendait rouge en disant « le produit est
+      // cassé », ce qui est faux, et le réparer en retirant l'assertion
+      // d'écriture aurait perdu la seule couverture de bout en bout.
+      //
+      // `KEEL_SLOTMEAL_mute` est choisi parce qu'il écrit une colonne du
+      // produit (`profiles.slot_meal_ask_enabled`) SANS aucune fixture: les
+      // autres familles armées exigent un plan, un repas ou une série de
+      // poids, et un test de transport ne doit pas dépendre d'un générateur.
+      const today = new Date().toISOString().slice(0, 10);
       const body = {
         client_message_id: clientId,
         kind: "button",
-        button_payload: "KEEL_PULSE_HARD",
-        text: "Rough",
+        button_payload: `KEEL_SLOTMEAL_mute|${today}|dinner`,
+        text: "Ne plus me demander à chaque repas",
       };
 
       const first = await post(student.accessToken, body);
       assertEquals(first.status, 200);
-      assertEquals(first.json?.handled_by, "daily_pulse_level");
+      assertEquals(first.json?.handled_by, "keel_slot_meal_mute");
 
       // LE REJEU: même corps, même id ⇒ pas de second tour.
       const replay = await post(student.accessToken, body);
@@ -271,14 +285,19 @@ Deno.test({
       assertEquals(inbound, 1, "le rejeu n'a pas rejoué le tour");
 
       // Le tap a RÉELLEMENT écrit dans la table du produit.
-      const { data: checkin } = await db
-        .from("student_daily_checkins")
-        .select("overall,axis")
-        .eq("user_id", student.id)
+      const { data: profile } = await db
+        .from("profiles")
+        .select("slot_meal_ask_enabled")
+        .eq("id", student.id)
         .maybeSingle();
-      assertEquals((checkin as { overall?: string } | null)?.overall, "hard");
+      assertEquals(
+        (profile as { slot_meal_ask_enabled?: boolean | null } | null)
+          ?.slot_meal_ask_enabled,
+        false,
+        "l'extinction est en base, pas seulement dans l'accusé",
+      );
 
-      // Et l'élève a reçu un accusé + la question d'axe armée de ses boutons.
+      // Et l'élève a reçu son accusé — l'écriture se DIT, c'est le pilier.
       const { data: replies } = await db
         .from("chat_messages")
         .select("content,metadata")
@@ -288,12 +307,55 @@ Deno.test({
       const rows = (replies ?? []) as Array<
         { content: string; metadata: Record<string, unknown> }
       >;
-      assert(rows.length >= 1, "au moins un accusé");
-      const armed = rows.find((r) =>
-        Array.isArray(r.metadata?.buttons) &&
-        (r.metadata.buttons as unknown[]).length > 0
+      assertEquals(rows.length, 1, "un accusé, et un seul");
+      assert(rows[0].content.trim().length > 0, "l'accusé porte du texte");
+    } finally {
+      await cleanup(student.id);
+    }
+  },
+});
+
+Deno.test({
+  name: "http: BOUTON d'une famille DÉSARMÉE — accusé honnête, zéro écriture",
+  ignore: SKIP,
+  fn: async () => {
+    // L'AUTRE MOITIÉ DU DÉSARMEMENT, ET ELLE N'ÉTAIT TESTÉE QUE PURE.
+    // `disarmed_families_wiring_test.ts` prouve qu'aucun lecteur n'est câblé
+    // sur `KEEL_PULSE_`; il ne prouve pas ce que la personne REÇOIT. Or les
+    // bulles déjà envoyées portent encore ces boutons, et un tap dessus ne
+    // doit ni écrire, ni descendre au dispatcher — une charge qu'on n'a pas
+    // su lire n'est pas une phrase d'élève (garde terminale du module).
+    const student = await makeStudent();
+    try {
+      const res = await post(student.accessToken, {
+        client_message_id: uid(),
+        kind: "button",
+        button_payload: "KEEL_PULSE_HARD",
+        text: "Rough",
+      });
+      assertEquals(res.status, 200);
+      assertEquals(res.json?.handled_by, "keel_unusable_button_payload");
+
+      const db = admin();
+      const { count: checkins } = await db
+        .from("student_daily_checkins")
+        .select("user_id", { count: "exact", head: true })
+        .eq("user_id", student.id);
+      assertEquals(checkins, 0, "un tap désarmé n'écrit rien");
+
+      const { data: replies } = await db
+        .from("chat_messages")
+        .select("content")
+        .eq("user_id", student.id)
+        .eq("role", "assistant");
+      const rows = (replies ?? []) as Array<{ content: string }>;
+      assertEquals(rows.length, 1, "la personne est prévenue, une fois");
+      // Le texte exact importe: il dit « rien n'a été enregistré ». Un accusé
+      // qui laisserait croire à une écriture serait un `phantom_commit`.
+      assert(
+        /rien n'a été enregistré|nothing has been saved/.test(rows[0].content),
+        `l'accusé doit dire que rien n'est écrit — reçu: ${rows[0].content}`,
       );
-      assert(armed, "la question d'axe arrive armée de ses boutons");
     } finally {
       await cleanup(student.id);
     }
@@ -460,6 +522,128 @@ Deno.test({
         "chat_last_inbound_at est renseigné",
       );
     } finally {
+      await cleanup(student.id);
+    }
+  },
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// LE REPAS TAPÉ EN TEXTE LIBRE — ON REND LA MAIN, ET ON N'ÉCRIT RIEN
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * ⚠️ LE CRÉNEAU EST NOMMÉ DANS LA PHRASE, EXPRÈS. Sans « ce midi », le créneau
+ * viendrait de l'heure qu'il est au moment du test — et l'épreuve dirait des
+ * choses différentes à 13 h et à 20 h, quand elle ne dirait pas « aucun
+ * créneau » à 3 h du matin. Ce qu'on vérifie ici est le TRANSPORT et le zéro
+ * écriture; la table des heures est éprouvée à part, en pur.
+ */
+Deno.test({
+  name: "http: REPAS TAPÉ — deux boutons, et AUCUNE ligne écrite",
+  ignore: SKIP,
+  fn: async () => {
+    const student = await makeStudent();
+    const db = admin();
+    try {
+      const res = await post(student.accessToken, {
+        client_message_id: uid(),
+        kind: "text",
+        // 🔴 « pizza » N'EST DANS AUCUNE ENTRÉE DU LEXIQUE FERMÉ. C'est
+        // délibéré: si cette phrase-là rend la main, c'est bien la PORTE du
+        // plancher qui arme la lane, et pas son lexique.
+        text: "j'ai mangé une pizza ce midi",
+      });
+      assertEquals(res.status, 200);
+      assertEquals(res.json?.handled_by, "keel_meal_text_redirect");
+
+      // ── LE CŒUR DE LA DÉCISION: ZÉRO FAIT ─────────────────────────────
+      //
+      // Le tour s'arrête AVANT le moteur, donc le plancher ne tourne pas. Si
+      // cette assertion tombe, la personne aura deux lignes pour un repas dès
+      // qu'elle touchera un des deux boutons — celle-ci, muette, et celle du
+      // bouton, complète.
+      const { count: facts } = await db
+        .from("protocol_events")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", student.id);
+      assertEquals(facts, 0, "rendre la main n'écrit AUCUN fait");
+
+      // ── LA BULLE, ET SES DEUX BOUTONS ─────────────────────────────────
+      const { data: replies } = await db
+        .from("chat_messages")
+        .select("content,metadata")
+        .eq("user_id", student.id)
+        .eq("role", "assistant");
+      const rows = (replies ?? []) as Array<
+        { content: string; metadata: Record<string, unknown> }
+      >;
+      assertEquals(rows.length, 1, "une bulle, et une seule");
+      assertEquals(rows[0].metadata?.purpose, "keel_meal_text_redirect");
+      assert(
+        rows[0].content.includes("déjeuner"),
+        `la bulle doit NOMMER le repas dont elle parle — reçu: ${
+          rows[0].content
+        }`,
+      );
+
+      // ⚠️ `chat_messages.metadata.buttons` porte les OBJETS `{payload,label}`,
+      // là où le ledger `outbound_messages` n'en garde que les charges. C'est
+      // la forme que relit `slotsAskedToday`, et s'en écarter ici ferait passer
+      // une épreuve sur une structure que la production n'écrit pas.
+      const buttons = (rows[0].metadata?.buttons ?? []) as Array<
+        { payload?: unknown }
+      >;
+      assertEquals(
+        buttons.map((b) => String(b?.payload)).sort(),
+        [
+          // Le créneau NOMMÉ dans la phrase voyage dans les deux jetons: rien
+          // en aval n'aura à le deviner une seconde fois.
+          "KEEL_SLOTMEAL_describe|" + parisToday() + "|lunch",
+          "KEEL_SLOTMEAL_photo|" + parisToday() + "|lunch",
+        ].sort(),
+      );
+    } finally {
+      await db.from("protocol_events").delete().eq("user_id", student.id);
+      await cleanup(student.id);
+    }
+  },
+});
+
+/** Le jour local de l'élève de test, qui est à Europe/Paris (`makeStudent`). */
+function parisToday(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+Deno.test({
+  name: "http: UNE QUESTION descend au moteur — elle n'est pas redirigée",
+  ignore: SKIP,
+  fn: async () => {
+    // ⛔ CE QUE CETTE ÉPREUVE PROTÈGE EST UNE CONVERSATION. La lane REMPLACE la
+    // réponse: si elle mordait sur les questions, « j'ai mangé une pizza,
+    // c'est grave ? » recevrait deux boutons et aucune réponse.
+    //
+    // ⚠️ ON N'ASSERTE PAS CE QUE LE MOTEUR RÉPOND — il coûte un appel modèle
+    // et il a son épreuve `e2e` dédiée. On asserte seulement que ce n'est PAS
+    // nous qui avons pris le tour.
+    const student = await makeStudent();
+    const db = admin();
+    try {
+      const res = await post(student.accessToken, {
+        client_message_id: uid(),
+        kind: "text",
+        text: "j'ai mangé une pizza ce midi, c'est grave ?",
+      });
+      assert(
+        res.json?.handled_by !== "keel_meal_text_redirect",
+        "une question doit descendre au moteur",
+      );
+    } finally {
+      await db.from("protocol_events").delete().eq("user_id", student.id);
       await cleanup(student.id);
     }
   },

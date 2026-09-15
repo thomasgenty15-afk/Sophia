@@ -1,0 +1,24 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-one-shot-reminder-oneshotreminder-r3c-t01",
+    "status": 504,
+    "ok": null,
+    "user": "Dis-moi demain à 6h30 qu'il faut que je me bouge les fesses.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "safety_pregate": null,
+    "direct_effects": null,
+    "pending_tool_skill_confirmation": null,
+    "tool_skill_run": null,
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  }
+]

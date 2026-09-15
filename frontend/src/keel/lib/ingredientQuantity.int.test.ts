@@ -36,6 +36,13 @@ import {
   ingredientQuantityState,
   ingredientQuantityText,
 } from "./ingredientQuantity";
+// ⟳ C2 (2026-09-12) — L'ARRONDI DU MOTEUR, APPELÉ DEPUIS LE BANC DU FRONT.
+// Le même module que `ingredientQuantity.ts` importe : une fixture arrondie à
+// la main prouverait que le TEST sait écrire « 459 », pas que le moteur l'écrit.
+import {
+  finalizePlanQuantities,
+  planQuantityLines,
+} from "../../../../supabase/functions/_shared/keel/quantity_render.ts";
 
 /** `/app/plan` n'est pas une page routée par langue: l'écran rend en anglais. */
 function atPath(path: string): void {
@@ -337,12 +344,15 @@ describe("④ le bloc du jour rend recette ET courses depuis le payload final", 
     expect(html).toContain("38.52 g de tahini");
     expect(html).not.toContain("100 g de tahini");
     expect(html).toContain('aria-expanded="false"');
-    // ⛔ CE QUE CE TEST NE PROUVE PAS, ET IL FAUT LE DIRE: `shopping_list[]` ne
-    // porte AUCUNE donnée structurée — ni `amount`, ni `unit`, ni `ref`. Sa
-    // quantité est une prose que le moteur réécrit par `scaleShoppingList`, et
-    // l'écran ne peut rien en dériver. Agréger les courses par identité
-    // alimentaire et contrôler la SUFFISANCE des quantités est le lot E.
-    expect(Object.keys(relu[0])).not.toContain("amount");
+    // ⟳ 2026-09-12 · C3 — CE QUE CE TEST NE PROUVAIT PAS EST DEVENU VRAI.
+    // Il disait : « `shopping_list[]` ne porte AUCUNE donnée structurée — ni
+    // `amount`, ni `unit`, ni `ref` ; sa quantité est une prose que le moteur
+    // réécrit par `scaleShoppingList`, et l'écran ne peut rien en dériver ».
+    // Le lecteur porte désormais les champs ; sur ce plan d'ARCHIVE, écrit
+    // avant C3, ils valent `null` — « inconnu », jamais zéro.
+    expect(Object.keys(relu[0])).toContain("amount");
+    expect(relu[0].amount).toBeNull();
+    expect(relu[0].ref).toBeNull();
   });
 
   it("⛔ le cas qui mord: un champ laissé tomber par le lecteur se voit", () => {
@@ -384,5 +394,133 @@ describe("⑤ l'état de lecture est explicite, et la virgule suit la page", () 
     // comparerait au même attendu passerait sur une locale codée en dur.
     atPath("/app/plan");
     expect(ingredientQuantityText(huile)).not.toContain("0,77");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ C2 (2026-09-12) — CE QUE L'ÉCRAN REND APRÈS L'ARRONDI
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ LA FIXTURE N'EST PAS ÉCRITE À LA MAIN. Elle est produite en appelant
+// `finalizePlanQuantities` — LA fonction du moteur — sur les payloads du lot C
+// ci-dessus. C'est la seule façon de prouver « données calculées = cuisine =
+// écran » : un payload arrondi tapé au clavier prouverait que le test sait
+// écrire « 459 », pas que le moteur l'écrit.
+//
+// ⛔ `.ts` ET `createElement`, comme tout ce fichier : un `.tsx` ne serait
+// jamais collecté par `vitest.config.ts`, et le test passerait pour vert en
+// n'existant pas.
+describe("⑥ après l'arrondi, l'écran ne montre plus une seule fraction", () => {
+  /** Le poids d'une pièce, relevé dans `food_composition_refs` le 2026-09-12. */
+  const pieceGrams = (l: { ref?: string | null }): number | null =>
+    l.ref === "lemon" ? 60 : l.ref === "egg" ? 55 : null;
+
+  function arrondi<T>(value: T): T {
+    const copie = JSON.parse(JSON.stringify(value)) as {
+      dishes?: { ingredients?: unknown[] }[];
+      preparations?: { ingredients?: unknown[] }[];
+    };
+    finalizePlanQuantities(
+      planQuantityLines(
+        (copie.dishes ?? []) as never[],
+        (copie.preparations ?? []) as never[],
+      ),
+      "en",
+      pieceGrams,
+    );
+    return copie as T;
+  }
+
+  it("la casserole rend 459 g et 12 ml, jamais 458.66 ni 0.77 tbsp", () => {
+    const plan = arrondi({
+      dishes: [],
+      preparations: [PREP_CHICKEN_FINAL, PREP_LENTILS_FINAL],
+    });
+    const chicken = prepCard(plan.preparations[0]);
+    expect(chicken).toContain("459 g de cuisses de poulet désossées");
+    // ⛔ LE CAS QUI MORD : le nombre d'avant n'est nulle part dans le HTML.
+    expect(chicken).not.toContain("458.66");
+    // ⚠️ LA PINCÉE EST TOUJOURS LÀ, et toujours en toutes lettres : une absence
+    // de mesure ne devient jamais un zéro.
+    expect(chicken).toContain("une pincée de sel");
+
+    const lentils = prepCard(plan.preparations[1]);
+    // 0,7703 cuillère à soupe × 15 ml = 11,55 → 12 ml. Et l'UNITÉ est écrite.
+    expect(lentils).toContain("12 ml");
+    expect(lentils).not.toContain("0.77");
+    // ⛔ ET SURTOUT PAS « 1 tbsp » : arrondir la cuillère elle-même aurait
+    // versé 15 ml pour une recette qui en demande 11,55.
+    expect(lentils).not.toContain("1 tbsp");
+  });
+
+  it("⛔ APRÈS RECHARGEMENT, l'écran du jour ne porte aucune fraction décimale", () => {
+    const plan = arrondi({
+      dishes: [{
+        ...DISH_FINAL,
+        ingredients: [
+          ...DISH_FINAL.ingredients,
+          // « la moitié d'un citron » : 0,4599 pièce, qui tomberait à zéro.
+          {
+            term: "citron",
+            quantity: "la moitié d’un citron",
+            amount: 0.459927797833935,
+            unit: "unit",
+            state: "raw",
+            grams_raw: 27.6,
+            ref: "lemon",
+            ref_refused: false,
+            in_pantry: false,
+          },
+        ],
+      }],
+      preparations: [PREP_LENTILS_FINAL],
+    });
+    const dishes = readDishes(reload(plan.dishes));
+    const html = markup(
+      createElement(PlanDayBlock, {
+        group: { day: "2026-09-12", dishes },
+        date: "2026-09-12",
+        today: "2026-09-12",
+        preparations: readPreparations(reload(plan.preparations)),
+        allDishes: dishes,
+        cookingSessions: [{
+          day: "2026-09-12",
+          preparation_ids: ["prep_lentils"],
+          run_through: "",
+          total_minutes: 35,
+        }],
+        wave: {
+          buyOn: "2026-09-12",
+          servesCookOn: "2026-09-12",
+          indices: [0, 1],
+          freezeIndices: [0, 1],
+        },
+        shoppingList: readShopping(reload(SHOPPING_FINAL)),
+        moments: [],
+        timingLine: null,
+        portions: [],
+      } as never),
+    );
+    // Le citron n'a pas disparu, et il est devenu une masse mesurable.
+    expect(html).toContain("28 g");
+    expect(html).toContain("citron");
+    // ⛔ LA GARDE DU PLAN, SUR LE HTML SERVI : aucune ligne quantitative
+    // affichée ne porte de fraction décimale. On ne regarde que les textes de
+    // quantité, pas la page entière — une date « 2026-09-12 » n'est pas une
+    // quantité.
+    for (const ing of [...plan.dishes[0].ingredients, ...plan.preparations[0].ingredients]) {
+      const texte = ingredientQuantityText(ing as never);
+      if (texte === null) continue;
+      if (typeof (ing as { amount?: unknown }).amount !== "number") continue;
+      expect(texte).not.toMatch(/\d[.,]\d/);
+    }
+  });
+
+  it("⛔ le cas qui mord: SANS arrondi, la même garde tombe", () => {
+    const brut = { ...DISH_FINAL.ingredients[0], amount: 38.52, quantity: "38.52 g de tahini" };
+    expect(ingredientQuantityText(brut as never)).toMatch(/\d[.,]\d/);
+    // … et l'état de lecture reste « structured » des deux côtés : ce n'est pas
+    // l'arrondi qui répare la lecture, c'est le lot C. Les deux sont distincts.
+    expect(ingredientQuantityState(brut as never)).toBe("structured");
   });
 });

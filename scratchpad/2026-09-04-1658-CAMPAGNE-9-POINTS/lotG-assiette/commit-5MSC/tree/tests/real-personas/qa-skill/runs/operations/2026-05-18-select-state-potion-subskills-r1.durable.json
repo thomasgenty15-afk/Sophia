@@ -1,0 +1,262 @@
+{
+  "runId": "20260518_subskills_r1",
+  "persona": "qa-skill",
+  "connectionName": "state_potion_direct_20260518_subskills_r1",
+  "connectionPath": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/connections/state_potion_direct_20260518_subskills_r1.json",
+  "user_id": "fb3ebd06-9e85-487c-8aba-af62548ac617",
+  "email": "qa-qa-skill-state_potion_direct_20260518_subskills_r1-1779122812583@example.com",
+  "scope": "qa-state-potion-20260518_subskills_r1",
+  "last_turn": 5,
+  "auth": {
+    "method": "refresh_token_then_auth_user_verify",
+    "verified": true,
+    "is_test_persona": true
+  },
+  "latest": {
+    "potionSessions": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "7fe292b6-a69e-4d66-befb-90a19fc05629",
+          "user_id": "fb3ebd06-9e85-487c-8aba-af62548ac617",
+          "cycle_id": "05109fef-f4eb-4ee7-aa2b-ac90f3889afd",
+          "transformation_id": null,
+          "phase_id": null,
+          "potion_type": "courage",
+          "source": "system",
+          "status": "completed",
+          "questionnaire_schema": [],
+          "questionnaire_answers": {},
+          "free_text": "Tu as surtout besoin de quoi pour cet appel ? Un premier pas concret, un regain de force, ou la permission d'y aller doucement ?",
+          "content": {
+            "title": "Un élan pour ton appel",
+            "operation_draft": {
+              "title": "Un élan pour ton appel",
+              "follow_up": {
+                "duration_days": 7,
+                "local_time_hhmm": "09:30",
+                "reason_for_time": "C'est un bon moment pour trouver l'élan nécessaire avant que la journée ne s'accélère.",
+                "reminder_instruction": "Un petit mot pour t'aider à garder le cap sur ton appel et à agir malgré l'inconfort."
+              },
+              "potion_type": "courage",
+              "opening_prompt": "Tu as surtout besoin de quoi pour cet appel ? Un premier pas concret, un regain de force, ou la permission d'y aller doucement ?",
+              "why_this_potion": "Parce que la peur du jugement te bloque pour cet appel important et que tu as besoin d'un soutien pour transformer cette hésitation en un mouvement simple.",
+              "expected_duration": "short",
+              "potion_info_message": "Je vais t'accompagner avec cette potion de courage. Pendant 7 jours, je t'enverrai un petit mot chaque matin pour t'aider à ne pas rester dans l'évitement et à garder ton élan.",
+              "instant_support_message": "C'est normal de sentir cette appréhension. Le but n'est pas de ne plus avoir peur, mais de faire ce premier pas avec elle. Tu n'as pas besoin d'être parfait, juste d'appuyer sur appeler et de dire cette première phrase."
+            },
+            "why_this_potion": "Parce que la peur du jugement te bloque pour cet appel important et que tu as besoin d'un soutien pour transformer cette hésitation en un mouvement simple.",
+            "potion_info_message": "Je vais t'accompagner avec cette potion de courage. Pendant 7 jours, je t'enverrai un petit mot chaque matin pour t'aider à ne pas rester dans l'évitement et à garder ton élan.",
+            "instant_support_message": "C'est normal de sentir cette appréhension. Le but n'est pas de ne plus avoir peur, mais de faire ce premier pas avec elle. Tu n'as pas besoin d'être parfait, juste d'appuyer sur appeler et de dire cette première phrase."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "local_time_hhmm": "09:30",
+            "reason_for_time": "C'est un bon moment pour trouver l'élan nécessaire avant que la journée ne s'accélère.",
+            "reminder_instruction": "Un petit mot pour t'aider à garder le cap sur ton appel et à agir malgré l'inconfort."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-20260518_subskills_r1-t05",
+            "operation_id": "99caed36-fffd-49b5-b682-cee7008d4dff",
+            "operation_type": "select_state_potion",
+            "source_message_id": "a42335df-8a1a-4f4e-af06-8078ced54b7b"
+          },
+          "generated_at": "2026-05-18T16:50:45.505+00:00",
+          "last_updated_at": "2026-05-18T16:50:45.505+00:00",
+          "scope_kind": "out_of_plan"
+        }
+      ]
+    },
+    "reminders": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "49aacb56-d485-4f99-8f15-9565a9371f5c",
+          "user_id": "fb3ebd06-9e85-487c-8aba-af62548ac617",
+          "message_instruction": "Un petit mot pour t'aider à garder le cap sur ton appel et à agir malgré l'inconfort.",
+          "rationale": "Suivi 7 jours pour Un élan pour ton appel",
+          "local_time_hhmm": "09:30",
+          "scheduled_days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ],
+          "status": "active",
+          "deactivated_at": null,
+          "last_drafted_at": null,
+          "last_draft_message": null,
+          "created_at": "2026-05-18T16:50:45.509622+00:00",
+          "updated_at": "2026-05-18T16:50:45.509622+00:00",
+          "unanswered_probe_count": 0,
+          "probe_last_sent_at": null,
+          "probe_paused_at": null,
+          "personalization_level": 1,
+          "context_policy": {},
+          "classification_reason": null,
+          "last_classified_at": null,
+          "cycle_id": "05109fef-f4eb-4ee7-aa2b-ac90f3889afd",
+          "transformation_id": null,
+          "scope_kind": "out_of_plan",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "7fe292b6-a69e-4d66-befb-90a19fc05629",
+          "starts_at": "2026-05-18T16:50:45.505+00:00",
+          "ends_at": null,
+          "ended_reason": null,
+          "archived_at": null,
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-20260518_subskills_r1-t05",
+            "operation_id": "99caed36-fffd-49b5-b682-cee7008d4dff",
+            "operation_type": "select_state_potion"
+          },
+          "target_kind": "none",
+          "target_plan_item_id": null,
+          "target_action_family_key": null,
+          "target_generated_temp_id": null,
+          "target_binding_policy": "none",
+          "target_lifecycle_policy": "independent"
+        }
+      ]
+    },
+    "checkins": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "052238e3-883e-4f73-97f9-0925fffd0c9a",
+          "user_id": "fb3ebd06-9e85-487c-8aba-af62548ac617",
+          "event_context": "recurring_reminder:49aacb56-d485-4f99-8f15-9565a9371f5c:potion:7fe292b6-a69e-4d66-befb-90a19fc05629:2026-05-19",
+          "draft_message": "Un petit mot pour t'aider à garder le cap sur ton appel et à agir malgré l'inconfort.",
+          "scheduled_for": "2026-05-19T09:30:00+00:00",
+          "status": "pending",
+          "created_at": "2026-05-18T16:50:45.513136+00:00",
+          "processed_at": null,
+          "message_mode": "static",
+          "message_payload": {},
+          "origin": "unknown",
+          "delivery_attempt_count": 0,
+          "delivery_last_error": null,
+          "delivery_last_error_at": null,
+          "delivery_last_request_id": null,
+          "recurring_reminder_id": "49aacb56-d485-4f99-8f15-9565a9371f5c"
+        },
+        {
+          "id": "ef77c46e-0221-4fec-900d-2bd4a316a9a8",
+          "user_id": "fb3ebd06-9e85-487c-8aba-af62548ac617",
+          "event_context": "recurring_reminder:49aacb56-d485-4f99-8f15-9565a9371f5c:potion:7fe292b6-a69e-4d66-befb-90a19fc05629:2026-05-20",
+          "draft_message": "Un petit mot pour t'aider à garder le cap sur ton appel et à agir malgré l'inconfort.",
+          "scheduled_for": "2026-05-20T09:30:00+00:00",
+          "status": "pending",
+          "created_at": "2026-05-18T16:50:45.513136+00:00",
+          "processed_at": null,
+          "message_mode": "static",
+          "message_payload": {},
+          "origin": "unknown",
+          "delivery_attempt_count": 0,
+          "delivery_last_error": null,
+          "delivery_last_error_at": null,
+          "delivery_last_request_id": null,
+          "recurring_reminder_id": "49aacb56-d485-4f99-8f15-9565a9371f5c"
+        },
+        {
+          "id": "008d6cf1-15e8-4500-8345-2c1d52b1dbca",
+          "user_id": "fb3ebd06-9e85-487c-8aba-af62548ac617",
+          "event_context": "recurring_reminder:49aacb56-d485-4f99-8f15-9565a9371f5c:potion:7fe292b6-a69e-4d66-befb-90a19fc05629:2026-05-21",
+          "draft_message": "Un petit mot pour t'aider à garder le cap sur ton appel et à agir malgré l'inconfort.",
+          "scheduled_for": "2026-05-21T09:30:00+00:00",
+          "status": "pending",
+          "created_at": "2026-05-18T16:50:45.513136+00:00",
+          "processed_at": null,
+          "message_mode": "static",
+          "message_payload": {},
+          "origin": "unknown",
+          "delivery_attempt_count": 0,
+          "delivery_last_error": null,
+          "delivery_last_error_at": null,
+          "delivery_last_request_id": null,
+          "recurring_reminder_id": "49aacb56-d485-4f99-8f15-9565a9371f5c"
+        },
+        {
+          "id": "132ab3bd-8b32-48f4-88d9-0e19f8d72ff2",
+          "user_id": "fb3ebd06-9e85-487c-8aba-af62548ac617",
+          "event_context": "recurring_reminder:49aacb56-d485-4f99-8f15-9565a9371f5c:potion:7fe292b6-a69e-4d66-befb-90a19fc05629:2026-05-22",
+          "draft_message": "Un petit mot pour t'aider à garder le cap sur ton appel et à agir malgré l'inconfort.",
+          "scheduled_for": "2026-05-22T09:30:00+00:00",
+          "status": "pending",
+          "created_at": "2026-05-18T16:50:45.513136+00:00",
+          "processed_at": null,
+          "message_mode": "static",
+          "message_payload": {},
+          "origin": "unknown",
+          "delivery_attempt_count": 0,
+          "delivery_last_error": null,
+          "delivery_last_error_at": null,
+          "delivery_last_request_id": null,
+          "recurring_reminder_id": "49aacb56-d485-4f99-8f15-9565a9371f5c"
+        },
+        {
+          "id": "35f050a5-a7c1-4b78-8375-e85e1567d148",
+          "user_id": "fb3ebd06-9e85-487c-8aba-af62548ac617",
+          "event_context": "recurring_reminder:49aacb56-d485-4f99-8f15-9565a9371f5c:potion:7fe292b6-a69e-4d66-befb-90a19fc05629:2026-05-23",
+          "draft_message": "Un petit mot pour t'aider à garder le cap sur ton appel et à agir malgré l'inconfort.",
+          "scheduled_for": "2026-05-23T09:30:00+00:00",
+          "status": "pending",
+          "created_at": "2026-05-18T16:50:45.513136+00:00",
+          "processed_at": null,
+          "message_mode": "static",
+          "message_payload": {},
+          "origin": "unknown",
+          "delivery_attempt_count": 0,
+          "delivery_last_error": null,
+          "delivery_last_error_at": null,
+          "delivery_last_request_id": null,
+          "recurring_reminder_id": "49aacb56-d485-4f99-8f15-9565a9371f5c"
+        },
+        {
+          "id": "f12ac76e-0d61-4cfc-9bc5-eac35f2f2f48",
+          "user_id": "fb3ebd06-9e85-487c-8aba-af62548ac617",
+          "event_context": "recurring_reminder:49aacb56-d485-4f99-8f15-9565a9371f5c:potion:7fe292b6-a69e-4d66-befb-90a19fc05629:2026-05-24",
+          "draft_message": "Un petit mot pour t'aider à garder le cap sur ton appel et à agir malgré l'inconfort.",
+          "scheduled_for": "2026-05-24T09:30:00+00:00",
+          "status": "pending",
+          "created_at": "2026-05-18T16:50:45.513136+00:00",
+          "processed_at": null,
+          "message_mode": "static",
+          "message_payload": {},
+          "origin": "unknown",
+          "delivery_attempt_count": 0,
+          "delivery_last_error": null,
+          "delivery_last_error_at": null,
+          "delivery_last_request_id": null,
+          "recurring_reminder_id": "49aacb56-d485-4f99-8f15-9565a9371f5c"
+        },
+        {
+          "id": "afa32032-78e1-4afb-b218-c1f692994139",
+          "user_id": "fb3ebd06-9e85-487c-8aba-af62548ac617",
+          "event_context": "recurring_reminder:49aacb56-d485-4f99-8f15-9565a9371f5c:potion:7fe292b6-a69e-4d66-befb-90a19fc05629:2026-05-25",
+          "draft_message": "Un petit mot pour t'aider à garder le cap sur ton appel et à agir malgré l'inconfort.",
+          "scheduled_for": "2026-05-25T09:30:00+00:00",
+          "status": "pending",
+          "created_at": "2026-05-18T16:50:45.513136+00:00",
+          "processed_at": null,
+          "message_mode": "static",
+          "message_payload": {},
+          "origin": "unknown",
+          "delivery_attempt_count": 0,
+          "delivery_last_error": null,
+          "delivery_last_error_at": null,
+          "delivery_last_request_id": null,
+          "recurring_reminder_id": "49aacb56-d485-4f99-8f15-9565a9371f5c"
+        }
+      ]
+    }
+  }
+}

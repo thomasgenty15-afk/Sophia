@@ -1,0 +1,41 @@
+{
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "system_runtime_snapshots": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "ae3d062d-93fb-4025-9e95-7feba27204dc",
+        "user_id": "9041016b-4a09-4e58-8e35-cddf795cdb67",
+        "cycle_id": null,
+        "transformation_id": null,
+        "snapshot_type": "memory_retrieval_executed_v2",
+        "payload": {
+          "intent": "answer_user_now",
+          "user_id": "9041016b-4a09-4e58-8e35-cddf795cdb67",
+          "cycle_id": null,
+          "hit_count": 0,
+          "budget_tier": "full",
+          "tokens_used": 0,
+          "layers_loaded": [],
+          "transformation_id": null
+        },
+        "created_at": "2026-05-06T14:26:13.305145+00:00"
+      }
+    ]
+  }
+}

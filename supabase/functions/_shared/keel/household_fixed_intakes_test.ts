@@ -193,11 +193,106 @@ Deno.test("⛔ une bouche SANS COMPTE a maintenant SON stock, donc SA requête",
   assertEquals(onlyLeo.reads, 1);
   assertEquals(onlyLeo.intakes, []);
 
-  // Trois bouches, trois allers-retours — deux comptes et une ligne membre.
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · ÉTAPE C1 — LE COÛT A CHANGÉ, ET IL EST DIT
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // Ana a sa déclaration dans la source canonique: UNE requête, comme avant.
+  // Léo n'a pas de compte: UNE requête sur sa ligne, comme avant. MARC a un
+  // compte et une source canonique VIDE — le repli documenté va donc regarder
+  // `household_members.fixed_intakes`, et ça coûte une SECONDE requête.
+  //
+  // ⛔ LA DIRECTION EST CHOISIE, ET C'EST L'INVERSE DU DÉFAUT DU TIR N° 5:
+  // une requête de plus par bouche dont la source canonique est vide contre
+  // une déclaration perdue en silence. Le repli est COMPTÉ (`legacyFallback`),
+  // donc son coût se lit dans le journal au lieu de se deviner.
   const all = await loadHouseholdFixedIntakes(stubDb(goals()), {
     mouths: MOUTHS,
   });
-  assertEquals(all.reads, 3);
+  assertEquals(all.reads, 4);
+  assertEquals(all.legacyFallback, 0, "aucune colonne orpheline ici");
+});
+
+// ---------------------------------------------------------------------------
+// ⟳ 2026-09-12 · ÉTAPE C1 — LA SOURCE CANONIQUE GAGNE, ET RIEN NE S'ADDITIONNE
+// ---------------------------------------------------------------------------
+//
+// LE DÉFAUT, AVEC SON CHIFFRE: tir n° 5 du 2026-09-11.
+// `household_members.fixed_intakes = [{breakfast, 200 g, greek_yogurt}]` sur la
+// ligne du TITULAIRE, `student_goals.practical_constraints.fixed_intakes = []`.
+// La cible du petit-déjeuner est restée 613,50 kcal — celle d'un tir SANS
+// apport. La porte est réparée (migration `20260912090000`); ce bloc-ci garde
+// le LECTEUR.
+
+Deno.test("⛔ C1 · un apport orphelin d'un TITULAIRE est lu, et il est compté", async () => {
+  const orpheline = {
+    ...goals({
+      student_goals: [
+        { user_id: ANA, practical_constraints: { fixed_intakes: [] } },
+      ],
+      household_members: [
+        {
+          member_id: ANA_MEMBER,
+          fixed_intakes: [shakerJson({ label: "yaourt grec", food_ref: "greek_yogurt" })],
+        },
+      ],
+    }),
+  };
+  const got = await loadHouseholdFixedIntakes(stubDb(orpheline), {
+    mouths: [MOUTHS[0]],
+  });
+  // ⛔ LE CAS QUI MORD: avant ce lot, `intakes` valait `[]` et la cible ne
+  // bougeait pas d'un kcal.
+  assertEquals(got.intakes.length, 1);
+  assertEquals(got.intakes[0].label, "Ana: yaourt grec");
+  assertEquals(got.legacyFallback, 1, "le repli se COMPTE, il n'est pas muet");
+  assertEquals(got.issues, [`fixed_intakes_legacy_column:${ANA_MEMBER}`]);
+  assertEquals(got.reads, 2, "canonique d'abord, colonne membre ensuite");
+});
+
+Deno.test("⛔ C1 · les deux sources ne S'ADDITIONNENT jamais — la canonique gagne", async () => {
+  // Les deux côtés portent une déclaration. Additionner ferait retrancher DEUX
+  // pots d'une seule cible de petit-déjeuner, dans le sens qui fait maigrir un
+  // plan.
+  const deuxCotes = goals({
+    student_goals: [
+      {
+        user_id: ANA,
+        practical_constraints: { fixed_intakes: [shakerJson({ label: "le vrai" })] },
+      },
+    ],
+    household_members: [
+      {
+        member_id: ANA_MEMBER,
+        fixed_intakes: [shakerJson({ label: "le vieux", food_ref: "greek_yogurt" })],
+      },
+    ],
+  });
+  const got = await loadHouseholdFixedIntakes(stubDb(deuxCotes), {
+    mouths: [MOUTHS[0]],
+  });
+  assertEquals(got.intakes.length, 1, "⛔ un seul apport, jamais deux");
+  assertEquals(got.intakes[0].label, "Ana: le vrai");
+  assertEquals(got.legacyFallback, 0);
+  // LE CAS QUI PASSE SANS COÛTER: la colonne orpheline n'est même pas lue.
+  assertEquals(got.reads, 1);
+});
+
+Deno.test("⛔ C1 · une bouche SANS compte ne lit JAMAIS la source canonique", async () => {
+  // La symétrie du repli s'arrête ici, et c'est voulu: Léo n'a pas de ligne
+  // `student_goals`, et aller la chercher serait une requête garantie vide.
+  const stock = goals({
+    household_members: [
+      { member_id: LEO_MEMBER, fixed_intakes: [shakerJson({ label: "sa collation" })] },
+    ],
+  });
+  const got = await loadHouseholdFixedIntakes(stubDb(stock), {
+    mouths: [MOUTHS[2]],
+  });
+  assertEquals(got.intakes.length, 1);
+  assertEquals(got.intakes[0].label, "Léo: sa collation");
+  assertEquals(got.reads, 1);
+  assertEquals(got.legacyFallback, 0, "ce n'est pas un repli, c'est SON stock");
 });
 
 // ---------------------------------------------------------------------------

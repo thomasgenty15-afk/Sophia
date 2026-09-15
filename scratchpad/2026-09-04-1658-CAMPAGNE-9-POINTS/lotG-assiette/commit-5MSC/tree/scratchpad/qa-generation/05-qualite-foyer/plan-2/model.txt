@@ -1,0 +1,6 @@
+generate-household-meal-v1 | gpt-5.4-mini | attempt_start | 16129 | 19078 | 2026-08-19 03:49:14.224268+00
+generate-household-meal-v1 | gpt-5.4-mini | retryable_status | - | - | 2026-08-19 03:49:14.909985+00
+generate-household-meal-v1 | gemini-3-flash-preview | attempt_start | - | - | 2026-08-19 03:49:18.961375+00
+generate-household-meal-v1 | gemini-3-flash-preview | limiter_wait_start | - | - | 2026-08-19 03:49:18.96764+00
+generate-household-meal-v1 | gemini-3-flash-preview | limiter_acquired | - | - | 2026-08-19 03:49:18.972511+00
+generate-household-meal-v1 | gemini-3-flash-preview | success | - | - | 2026-08-19 03:50:17.7875+00

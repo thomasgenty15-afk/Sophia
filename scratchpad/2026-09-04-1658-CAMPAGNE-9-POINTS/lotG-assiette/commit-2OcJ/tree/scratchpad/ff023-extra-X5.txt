@@ -1,0 +1,39 @@
+
+==============================================================================
+▌ X5 — course temp_memory — élève 7837e89e-34d9-4f64-97c6-fd4f1c82a694
+==============================================================================
+AVANT (après tour texte) : {"conversation_locale": "en-US", "__last_turn_risk_band": "none", "companion_question_rhythm": {"preference": "normal", "recent_turns": [0], "last_updated_at": "2026-08-08T03:24:40.607Z", "last_turn_had_question": false, "turns_since_last_question": 1}, "__conversation_risk_scores": [0]}
+
+— offset     0 ms — img=poulet-riz-br photo:HTTP 200 texte:HTTP 200 | flow photo présent: true | recent_turns: [0, 0]
+  état: {"conversation_locale": "en-US", "__last_turn_risk_band": "low", "companion_question_rhythm": {"preference": "normal", "recent_turns": [0, 0], "last_updated_at": "2026-08-08T03:24:44.137Z", "last_turn_had_question": false, "turns_since_last_question": 2}, "__conversation_risk_scores": [0, 2], "__kee
+
+— offset  4000 ms — img=saumon-sauce- photo:HTTP 200 texte:HTTP 200 | flow photo présent: true | recent_turns: [0, 0, 0]
+  état: {"conversation_locale": "en-US", "__last_turn_risk_band": "none", "companion_question_rhythm": {"preference": "normal", "recent_turns": [0, 0, 0], "last_updated_at": "2026-08-08T03:25:01.669Z", "last_turn_had_question": false, "turns_since_last_question": 3}, "__conversation_risk_scores": [0, 2, 0],
+
+— offset  9000 ms — img=pomme-entiere photo:HTTP 200 texte:HTTP 200 | flow photo présent: false | recent_turns: [0, 0, 0, 0]
+  état: {"conversation_locale": "en-US", "__last_turn_risk_band": "low", "companion_question_rhythm": {"preference": "normal", "recent_turns": [0, 0, 0, 0], "last_updated_at": "2026-08-08T03:25:25.248Z", "last_turn_had_question": false, "turns_since_last_question": 4}, "__conversation_risk_scores": [0, 2, 0
+
+— offset 13000 ms — img=poulet-riz-br photo:HTTP 200 texte:HTTP 200 | flow photo présent: false | recent_turns: [0, 0, 0, 0, 0]
+  état: {"conversation_locale": "en-US", "__last_turn_risk_band": "none", "companion_question_rhythm": {"preference": "normal", "recent_turns": [0, 0, 0, 0, 0], "last_updated_at": "2026-08-08T03:25:41.371Z", "last_turn_had_question": false, "turns_since_last_question": 5}, "__conversation_risk_scores": [0, 
+
+FIL EN BASE (l'historique, LUI, ne se perd pas — il est en table) :
+  2026-08-08T03:24:37.407+00:00 | user      | I had grilled chicken and broccoli for lunch today.
+  2026-08-08T03:24:40.64+00:00 | assistant | Noted — lunch is in for today.
+  2026-08-08T03:24:40.916+00:00 | user      | race probe at 0 ms: I really can't stand cooked mushrooms
+  2026-08-08T03:24:44.161+00:00 | assistant | Marlow doesn’t use mushrooms as a target. You’re saying cooked mushrooms are a h
+  2026-08-08T03:24:53.145166+00:00 | user      | [photo]
+  2026-08-08T03:24:53.147+00:00 | assistant | I see grilled chicken breast, brown rice, broccoli. I can see "Protein at lunch"
+  2026-08-08T03:24:57.874+00:00 | user      | race probe at 4000 ms: I really can't stand cooked mushrooms
+  2026-08-08T03:25:01.698+00:00 | assistant | Understood — cooked mushrooms are a hard no for you. That doesn’t change the lun
+  2026-08-08T03:25:11.411593+00:00 | user      | [photo]
+  2026-08-08T03:25:11.413+00:00 | assistant | I see cooked salmon fillet with dill, couscous, green beans with black pepper, b
+  2026-08-08T03:25:20.724+00:00 | user      | race probe at 9000 ms: I really can't stand cooked mushrooms
+  2026-08-08T03:25:23.631786+00:00 | user      | [photo]
+  2026-08-08T03:25:23.633+00:00 | assistant | I see red apple. I have not attached it to a line on your plan - it is on file f
+  2026-08-08T03:25:25.273+00:00 | assistant | Understood — cooked mushrooms are a hard no for you. That doesn’t change the lun
+  2026-08-08T03:25:25.546585+00:00 | user      | [photo]
+  2026-08-08T03:25:25.547+00:00 | assistant | I already have that photo — it is the same one, so I have not logged it twice.
+  2026-08-08T03:25:38.498+00:00 | user      | race probe at 13000 ms: I really can't stand cooked mushrooms
+  2026-08-08T03:25:41.391+00:00 | assistant | Understood — cooked mushrooms are a hard no for you. That leaves the lunch ancho
+
+TOUR SUIVANT : You just sent a photo, and you told me you really can’t stand cooked mushrooms.

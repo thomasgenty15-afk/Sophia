@@ -1,0 +1,262 @@
+{
+  "ok": true,
+  "run_id": "r1",
+  "scope": "qa-momentum-machine-real-2026-05-06-r1",
+  "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+  "started_at": "2026-05-06T09:34:30.202Z",
+  "ended_at": "2026-05-06T09:35:47.173Z",
+  "counts": {
+    "turns_attempted": 12,
+    "turns_recorded": 10,
+    "successful_turns": 9,
+    "observability_events": 66,
+    "momentum_events": 12
+  },
+  "final_state": {
+    "current_mode": "companion",
+    "unprocessed_msg_count": 9,
+    "last_interaction_at": "2026-05-06T09:35:44.243+00:00",
+    "momentum_current_state": "soutien_emotionnel",
+    "momentum_state_reason": "emotional_load_high",
+    "recommended_posture": "support",
+    "dimensions": {
+      "engagement": "high",
+      "execution_traction": "unknown",
+      "emotional_load": "medium",
+      "consent": "open"
+    },
+    "pending_transition": null,
+    "metrics": {
+      "last_user_turn_at": "2026-05-06T09:35:44.243Z",
+      "last_user_turn_quality": "substantive",
+      "days_since_last_user_message": 0
+    }
+  },
+  "state_events": [
+    {
+      "at": "2026-05-06T09:34:38.062406+00:00",
+      "request_id": "qa-momentum-machine-real-2026-05-06-r1-t01",
+      "event_name": "router_momentum_state_applied",
+      "source_component": "router",
+      "state_before": "friction_legere",
+      "state_after": "friction_legere",
+      "state_reason": "engaged_but_not_clearly_progressing",
+      "dimensions": {
+        "consent": "open",
+        "engagement": "high",
+        "progression": "unknown",
+        "emotional_load": "low"
+      },
+      "pending_transition": null
+    },
+    {
+      "at": "2026-05-06T09:34:46.004721+00:00",
+      "request_id": "qa-momentum-machine-real-2026-05-06-r1-t02",
+      "event_name": "router_momentum_state_applied",
+      "source_component": "router",
+      "state_before": "friction_legere",
+      "state_after": "friction_legere",
+      "state_reason": "engaged_but_not_clearly_progressing",
+      "dimensions": {
+        "consent": "open",
+        "engagement": "high",
+        "progression": "unknown",
+        "emotional_load": "low"
+      },
+      "pending_transition": null
+    },
+    {
+      "at": "2026-05-06T09:34:55.521881+00:00",
+      "request_id": "qa-momentum-machine-real-2026-05-06-r1-t03",
+      "event_name": "router_momentum_state_applied",
+      "source_component": "router",
+      "state_before": "friction_legere",
+      "state_after": "friction_legere",
+      "state_reason": "engaged_but_not_clearly_progressing",
+      "dimensions": {
+        "consent": "open",
+        "engagement": "high",
+        "progression": "unknown",
+        "emotional_load": "low"
+      },
+      "pending_transition": null
+    },
+    {
+      "at": "2026-05-06T09:35:04.675797+00:00",
+      "request_id": "qa-momentum-machine-real-2026-05-06-r1-t04",
+      "event_name": "router_momentum_state_applied",
+      "source_component": "router",
+      "state_before": "friction_legere",
+      "state_after": "friction_legere",
+      "state_reason": "engaged_but_not_clearly_progressing",
+      "dimensions": {
+        "consent": "open",
+        "engagement": "high",
+        "progression": "unknown",
+        "emotional_load": "low"
+      },
+      "pending_transition": null
+    },
+    {
+      "at": "2026-05-06T09:35:12.409038+00:00",
+      "request_id": "qa-momentum-machine-real-2026-05-06-r1-t05",
+      "event_name": "router_momentum_state_applied",
+      "source_component": "router",
+      "state_before": "friction_legere",
+      "state_after": "friction_legere",
+      "state_reason": "engaged_but_not_clearly_progressing",
+      "dimensions": {
+        "consent": "open",
+        "engagement": "high",
+        "progression": "unknown",
+        "emotional_load": "low"
+      },
+      "pending_transition": null
+    },
+    {
+      "at": "2026-05-06T09:35:19.05217+00:00",
+      "request_id": "qa-momentum-machine-real-2026-05-06-r1-t06",
+      "event_name": "router_momentum_state_applied",
+      "source_component": "router",
+      "state_before": "friction_legere",
+      "state_after": "friction_legere",
+      "state_reason": "engaged_but_not_clearly_progressing",
+      "dimensions": {
+        "consent": "open",
+        "engagement": "medium",
+        "progression": "unknown",
+        "emotional_load": "low"
+      },
+      "pending_transition": null
+    },
+    {
+      "at": "2026-05-06T09:35:27.746297+00:00",
+      "request_id": "qa-momentum-machine-real-2026-05-06-r1-t07",
+      "event_name": "router_momentum_state_applied",
+      "source_component": "router",
+      "state_before": "friction_legere",
+      "state_after": "soutien_emotionnel",
+      "state_reason": "emotional_load_high",
+      "dimensions": {
+        "consent": "open",
+        "engagement": "high",
+        "progression": "unknown",
+        "emotional_load": "high"
+      },
+      "pending_transition": null
+    },
+    {
+      "at": "2026-05-06T09:35:27.75088+00:00",
+      "request_id": "qa-momentum-machine-real-2026-05-06-r1-t07",
+      "event_name": "momentum_transition_confirmed",
+      "source_component": "router",
+      "state_before": "friction_legere",
+      "state_after": "soutien_emotionnel",
+      "state_reason": "emotional_load_high",
+      "dimensions": {
+        "consent": "open",
+        "engagement": "high",
+        "progression": "unknown",
+        "emotional_load": "high"
+      },
+      "pending_transition": null
+    },
+    {
+      "at": "2026-05-06T09:35:35.431577+00:00",
+      "request_id": "qa-momentum-machine-real-2026-05-06-r1-t08",
+      "event_name": "router_momentum_state_applied",
+      "source_component": "router",
+      "state_before": "soutien_emotionnel",
+      "state_after": "soutien_emotionnel",
+      "state_reason": "emotional_load_high",
+      "dimensions": {
+        "consent": "open",
+        "engagement": "high",
+        "progression": "unknown",
+        "emotional_load": "medium"
+      },
+      "pending_transition": {
+        "reason": "engaged_but_not_clearly_progressing",
+        "source": "router",
+        "last_seen_at": "2026-05-06T09:35:35.424Z",
+        "target_state": "friction_legere",
+        "confirmations": 1,
+        "first_seen_at": "2026-05-06T09:35:35.424Z"
+      }
+    },
+    {
+      "at": "2026-05-06T09:35:35.436585+00:00",
+      "request_id": "qa-momentum-machine-real-2026-05-06-r1-t08",
+      "event_name": "momentum_transition_pending",
+      "source_component": "router",
+      "state_before": "soutien_emotionnel",
+      "state_after": "soutien_emotionnel",
+      "state_reason": "emotional_load_high",
+      "dimensions": {
+        "consent": "open",
+        "engagement": "high",
+        "progression": "unknown",
+        "emotional_load": "medium"
+      },
+      "pending_transition": {
+        "reason": "engaged_but_not_clearly_progressing",
+        "source": "router",
+        "last_seen_at": "2026-05-06T09:35:35.424Z",
+        "target_state": "friction_legere",
+        "confirmations": 1,
+        "first_seen_at": "2026-05-06T09:35:35.424Z"
+      }
+    },
+    {
+      "at": "2026-05-06T09:35:44.249479+00:00",
+      "request_id": "qa-momentum-machine-real-2026-05-06-r1-t09",
+      "event_name": "router_momentum_state_applied",
+      "source_component": "router",
+      "state_before": "soutien_emotionnel",
+      "state_after": "soutien_emotionnel",
+      "state_reason": "emotional_load_high",
+      "dimensions": {
+        "consent": "open",
+        "engagement": "high",
+        "progression": "unknown",
+        "emotional_load": "medium"
+      },
+      "pending_transition": {
+        "reason": "engaged_but_not_clearly_progressing",
+        "source": "router",
+        "last_seen_at": "2026-05-06T09:35:44.243Z",
+        "target_state": "friction_legere",
+        "confirmations": 2,
+        "first_seen_at": "2026-05-06T09:35:35.424Z"
+      }
+    },
+    {
+      "at": "2026-05-06T09:35:44.253716+00:00",
+      "request_id": "qa-momentum-machine-real-2026-05-06-r1-t09",
+      "event_name": "momentum_transition_pending",
+      "source_component": "router",
+      "state_before": "soutien_emotionnel",
+      "state_after": "soutien_emotionnel",
+      "state_reason": "emotional_load_high",
+      "dimensions": {
+        "consent": "open",
+        "engagement": "high",
+        "progression": "unknown",
+        "emotional_load": "medium"
+      },
+      "pending_transition": {
+        "reason": "engaged_but_not_clearly_progressing",
+        "source": "router",
+        "last_seen_at": "2026-05-06T09:35:44.243Z",
+        "target_state": "friction_legere",
+        "confirmations": 2,
+        "first_seen_at": "2026-05-06T09:35:35.424Z"
+      }
+    }
+  ],
+  "files": {
+    "raw": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/momentum_machine/2026-05-06-momentum-machine-real-r1.raw.json",
+    "summary": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/momentum_machine/2026-05-06-momentum-machine-real-r1.summary.json",
+    "proof": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/momentum_machine/2026-05-06-momentum-machine-real-r1.proof.json"
+  }
+}

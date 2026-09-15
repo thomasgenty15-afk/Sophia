@@ -1,0 +1,26 @@
+[
+  {
+    "table": "scheduled_checkins",
+    "status": 200,
+    "count": 0,
+    "error": null
+  },
+  {
+    "table": "user_potion_sessions",
+    "status": 200,
+    "count": 0,
+    "error": null
+  },
+  {
+    "table": "memory_items",
+    "status": 200,
+    "count": 0,
+    "error": null
+  },
+  {
+    "table": "user_topic_memories",
+    "status": 200,
+    "count": 0,
+    "error": null
+  }
+]

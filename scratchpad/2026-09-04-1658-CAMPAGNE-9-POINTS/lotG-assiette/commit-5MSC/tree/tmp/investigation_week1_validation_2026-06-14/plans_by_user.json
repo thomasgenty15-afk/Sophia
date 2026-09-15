@@ -1,0 +1,764 @@
+{
+  "ok": true,
+  "status": 200,
+  "count": "0-1/2",
+  "body": [
+    {
+      "id": "a31d8112-22c1-4ae6-8f00-83af149fdf17",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "status": "active",
+      "title": "Dégager du temps pour ta passion",
+      "created_at": "2026-06-14T12:55:10.862+00:00",
+      "updated_at": "2026-06-14T12:57:34.011831+00:00",
+      "activated_at": "2026-06-14T12:57:32.226+00:00",
+      "cycle_id": "7235a580-386d-4b0d-a5b9-a157bf7781da",
+      "transformation_id": "135841cf-0f48-4afe-be9f-091854b93704",
+      "content": {
+        "title": "Dégager du temps pour ta passion",
+        "phases": [
+          {
+            "items": [
+              {
+                "kind": "task",
+                "title": "Préparer ton matériel de trajet",
+                "payload": {},
+                "temp_id": "gen-p1-missions-001",
+                "dimension": "missions",
+                "description": "Télécharge tes textes, tes audios ou tes notes sur ton téléphone pour que tout soit accessible hors ligne. Le but est de dégainer ton travail en 2 secondes dans les transports dès demain.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 1,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "habit",
+                "title": "Le studio mobile (Trajets)",
+                "payload": {},
+                "temp_id": "gen-p1-habits-001",
+                "dimension": "habits",
+                "description": "Utilise 20 minutes de ton trajet (matin ou soir) pour mémoriser un texte, écouter une compo ou écrire. Pas de réseaux, juste ta passion.",
+                "target_reps": 4,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": "4 trajets / semaine",
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 2,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "habit",
+                "title": "Le bloc profond du week-end",
+                "payload": {},
+                "temp_id": "gen-p1-habits-002",
+                "dimension": "habits",
+                "description": "Fais une vraie session de pratique (musique, chant, écriture) sur un créneau que tu as bloqué à l'avance. C'est ton temps de création pur.",
+                "target_reps": 2,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": "2 blocs / week-end",
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 2,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "task",
+                "title": "Sanctuariser l'agenda du week-end",
+                "payload": {},
+                "temp_id": "gen-p1-missions-002",
+                "dimension": "missions",
+                "description": "Bloque officiellement tes créneaux de pratique du week-end dans ton agenda pour éviter que des sollicitations sociales ne les grignotent.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 3,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "framework",
+                "title": "Bilan d'énergie du nouveau rythme",
+                "payload": {
+                  "clarification_details": {
+                    "type": "one_shot",
+                    "intro": "Tu as testé le déplacement de ta pratique sur les trajets et le week-end. Faisons le point sur ce qui fonctionne.",
+                    "sections": [
+                      {
+                        "id": "energy_level",
+                        "label": "Comment te sens-tu physiquement avec ce rythme ?",
+                        "input_type": "text",
+                        "helper_text": "Sois honnête sur ton niveau de fatigue.",
+                        "placeholder": "Ex: Fatiguée mais satisfaite, ou épuisée..."
+                      },
+                      {
+                        "id": "best_moment",
+                        "label": "Quel a été ton meilleur moment de pratique cette semaine ?",
+                        "input_type": "text",
+                        "helper_text": "Identifie ce qu'il faut absolument garder.",
+                        "placeholder": "Le trajet du mardi matin, le bloc du samedi..."
+                      }
+                    ],
+                    "save_label": "Enregistrer le bilan"
+                  }
+                },
+                "temp_id": "gen-p1-clarifications-001",
+                "dimension": "clarifications",
+                "description": "Prends 5 minutes pour évaluer si ce rythme te permet de tenir tes 20h sans puiser dans tes réserves de sommeil.",
+                "target_reps": null,
+                "time_of_day": "evening",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 4,
+                "support_function": null,
+                "activation_condition": null
+              }
+            ],
+            "title": "Exploiter les zones libres (Trajets & Week-ends)",
+            "phase_id": "phase-1",
+            "heartbeat": {
+              "unit": "créneaux/semaine",
+              "title": "Créneaux de passion validés",
+              "target": 6,
+              "current": null,
+              "tracking_mode": "inferred"
+            },
+            "rationale": "Puisque tes soirées de semaine sont bloquées par le Cours Florent, c'est le week-end et pendant tes déplacements que se trouvent les 3 heures manquantes.",
+            "phase_order": 1,
+            "why_this_now": "C'est la seule façon réaliste d'augmenter ton volume de pratique sans te mener au burn-out avant septembre.",
+            "phase_objective": "Déplacer l'effort sur les moments où tu es vraiment disponible pour atteindre tes 20h sans sacrifier ton sommeil.",
+            "duration_guidance": "3 semaines",
+            "phase_metric_target": "Ce niveau de plan vise à atteindre directement les 20h de pratique globale en validant 6 créneaux dédiés (trajets + week-end) hors de tes heures au Cours Florent.",
+            "how_this_phase_works": "On installe des micro-sessions dans les transports et on bloque de vrais rendez-vous avec toi-même le week-end.",
+            "maintained_foundation": [],
+            "what_this_phase_targets": "Les temps morts de ta semaine et la protection de ton week-end."
+          }
+        ],
+        "version": 3,
+        "cycle_id": "7235a580-386d-4b0d-a5b9-a157bf7781da",
+        "metadata": {
+          "phase_1_preview": {
+            "title": "Faire le point sur ton ambition",
+            "heartbeat": "Pourquoi clarifié",
+            "rationale": "Avant de courir partout, on pose clairement pourquoi cette admission à la RADA change tout et ce que tu veux vraiment accomplir.",
+            "phase_objective": "Te donner une base solide pour la suite : savoir d'où tu pars, ce que tu veux vraiment retrouver ou protéger, et avoir une raison claire à laquelle te raccrocher quand la fatigue se fera sentir."
+          },
+          "schedule_anchor": {
+            "version": 1,
+            "timezone": "Europe/Paris",
+            "week_starts_on": "monday",
+            "anchor_week_end": "2026-06-14",
+            "generated_at_utc": "2026-06-14T12:57:32.226Z",
+            "anchor_local_date": "2026-06-14",
+            "anchor_week_start": "2026-06-08",
+            "anchor_local_human": "dimanche 14 juin 2026 à 14:57",
+            "anchor_display_start": "2026-06-14",
+            "is_partial_anchor_week": true,
+            "days_remaining_in_anchor_week": 1
+          },
+          "plan_adjustment_context": {
+            "phase_reasoning": [
+              {
+                "phase_id": "phase-1",
+                "phase_order": 1,
+                "role_in_plan": "Trouver les heures manquantes là où elles existent vraiment (trajets et week-ends) sans toucher aux soirées de semaine.",
+                "why_before_next": "Tant que le volume horaire n'est pas atteint via une méthode tenable, il est inutile de travailler sur l'optimisation de la récupération.",
+                "slowdown_signals": [
+                  "Les trajets sont trop bruyants ou épuisants pour travailler",
+                  "Le week-end est mangé par la récupération du manque de sommeil"
+                ],
+                "user_signals_used": [
+                  "Absence du domicile de 8h à 23h30 du lundi au jeudi",
+                  "Besoin d'atteindre 20h de pratique",
+                  "Admission à la RADA en septembre"
+                ],
+                "acceleration_signals": [
+                  "Les textes sont mémorisés plus vite que prévu",
+                  "Les blocs du week-end sont fluides et ressourçants"
+                ],
+                "prerequisite_for_next_phase": "Avoir validé que la pratique dans les transports et le week-end est tenable sur plusieurs semaines."
+              }
+            ],
+            "global_reasoning": {
+              "sequencing_logic": "On exploite d'abord les zones blanches (trajets, week-ends) pour atteindre le volume d'heures, puis on sécurisera la récupération physique.",
+              "slowdown_signals": [
+                "Fatigue extrême le week-end",
+                "Incapacité à se concentrer dans les transports",
+                "Le sommeil passe sous les 7 heures"
+              ],
+              "main_problem_model": "L'utilisatrice a un emploi du temps saturé de 8h à 23h30 du lundi au jeudi. Le blocage n'est pas un manque de volonté, mais une impossibilité physique d'ajouter des choses le soir en semaine.",
+              "acceleration_signals": [
+                "Les trajets sont facilement utilisés",
+                "L'énergie le week-end est excellente",
+                "Les 20h sont atteintes sans effort"
+              ],
+              "why_not_faster_initially": "Elle frôle déjà l'épuisement. Ajouter des contraintes en semaine la ferait craquer."
+            }
+          }
+        },
+        "strategy": {
+          "core_principle": null,
+          "identity_shift": null,
+          "main_constraint": "Ne rien ajouter comme charge active du lundi au jeudi après 23h30.",
+          "success_definition": "Atteindre 20h de pratique hebdomadaire en utilisant exclusivement les trajets et les week-ends, sans amputer le sommeil."
+        },
+        "user_summary": "Tes journées du lundi au jeudi sont déjà pleines à craquer. On va arrêter de te demander l'impossible le soir. À la place, on va transformer tes temps de transport en sessions de travail mental et sanctuariser tes week-ends pour tes sessions de musique et d'écriture.",
+        "plan_blueprint": {
+          "levels": [
+            {
+              "title": "Protéger la récupération en semaine",
+              "phase_id": "phase-2",
+              "intention": "Puisque tu es dehors de 8h à 23h30, on va optimiser ton sommeil et tes repas pour que tu tiennes ce rythme intense sans t'épuiser.",
+              "level_order": 3,
+              "preview_summary": "Une fois les heures de pratique trouvées, on s'assure que ton corps suit le rythme du lundi au jeudi.",
+              "estimated_duration_weeks": 2
+            },
+            {
+              "title": "Transition RADA",
+              "phase_id": "phase-3",
+              "intention": "Préparer logistiquement et mentalement ton départ pour Londres afin de basculer sereinement vers ton identité d'actrice à plein temps.",
+              "level_order": 4,
+              "preview_summary": "On ancre définitivement ton identité professionnelle et on prépare le terrain pour septembre.",
+              "estimated_duration_weeks": 3
+            }
+          ],
+          "global_objective": "Atteindre 20h de pratique hebdomadaire et préparer la transition vers la RADA.",
+          "estimated_levels_count": 2
+        },
+        "primary_metric": {
+          "unit": "heures/semaine",
+          "label": "Heures consacrées à ta passion",
+          "baseline_value": "17",
+          "success_target": "20",
+          "measurement_mode": "absolute_value"
+        },
+        "duration_months": 2,
+        "journey_context": {
+          "part_number": 1,
+          "is_multi_part": true,
+          "continuation_hint": "Transition vers l'identité d'actrice professionnelle",
+          "estimated_total_parts": 2,
+          "estimated_total_duration_months": 6
+        },
+        "global_objective": "Atteindre 20h de pratique hebdomadaire en utilisant exclusivement les trajets et les week-ends, sans amputer le sommeil.",
+        "internal_summary": "L'utilisatrice a un emploi du temps saturé de 8h à 23h30 du lundi au jeudi. Le plan précédent échouait car il ciblait les soirées. Ce nouveau plan pivote vers l'exploitation des temps de transport (mémorisation) et la sanctuarisation stricte des week-ends (pratique profonde) pour combler le gap de 3h manquant vers son objectif de 20h, tout en préparant son départ pour la RADA.",
+        "timeline_summary": "On commence par récupérer 3 à 4 heures dans tes trajets et tes week-ends, puis on sécurisera ta récupération physique avant de préparer ton départ pour Londres.",
+        "key_understanding": "Tu ne peux pas étirer tes journées de semaine. Ton temps de pratique supplémentaire doit se trouver dans les interstices (trajets) et les blocs libres (week-end), en les protégeant farouchement.",
+        "progression_logic": "On arrête de chercher du temps là où il n'y en a pas. On va d'abord transformer tes trajets en studio mobile et bloquer tes week-ends pour la pratique profonde, avant de sécuriser ta récupération physique globale.",
+        "situation_context": "Du lundi au jeudi, tu enchaînes le cabinet de 8h à 19h puis le Cours Florent jusqu'à 22h30. Tes journées sont des marathons et tu n'es pas chez toi avant 23h30.",
+        "transformation_id": "135841cf-0f48-4afe-be9f-091854b93704",
+        "mechanism_analysis": "Chercher à dégager du temps le soir en semaine est une impasse physique et logistique. Le manque de temps vient du fait que les vraies fenêtres disponibles (tes temps de trajet et tes week-ends) ne sont pas encore sanctuarisées comme des temps de création officiels.",
+        "current_level_runtime": {
+          "title": "Exploiter les zones libres (Trajets & Week-ends)",
+          "weeks": [
+            {
+              "focus": "Profiter du jour restant pour faire un bloc profond et préparer la semaine.",
+              "title": "Lancer la machine ce week-end",
+              "week_order": 1,
+              "action_focus": [
+                "Faire ta session profonde aujourd'hui",
+                "Préparer tes textes/audios sur ton téléphone"
+              ],
+              "mission_days": [
+                "dimanche"
+              ],
+              "reps_summary": "1 bloc validé",
+              "success_signal": "Tu as ton matériel prêt pour ton trajet de lundi matin.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-habits-002",
+                  "weekly_reps": 1,
+                  "weekly_cadence_label": "1 bloc aujourd'hui",
+                  "weekly_description_override": "Fais un vrai bloc de pratique aujourd'hui pour marquer le coup."
+                },
+                {
+                  "temp_id": "gen-p1-missions-001"
+                }
+              ],
+              "progression_note": "La semaine est presque finie, on se concentre juste sur une belle session aujourd'hui et la préparation de tes trajets de demain.",
+              "weekly_target_label": "1 bloc profond ce dimanche",
+              "weekly_target_value": 1
+            },
+            {
+              "focus": "Commencer à utiliser tes trajets en semaine et protéger ton prochain week-end.",
+              "title": "Activer le studio mobile",
+              "week_order": 2,
+              "action_focus": [
+                "Utiliser 3 trajets pour mémoriser ou écouter",
+                "Bloquer ton agenda du week-end dès jeudi"
+              ],
+              "mission_days": [
+                "jeudi"
+              ],
+              "reps_summary": "5 créneaux validés",
+              "success_signal": "Tu ne vois plus tes trajets comme une perte de temps.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 3,
+                  "weekly_cadence_label": "3 trajets cette semaine",
+                  "weekly_description_override": "Utilise 3 de tes trajets cette semaine pour avancer sur tes textes ou ta musique."
+                },
+                {
+                  "temp_id": "gen-p1-habits-002",
+                  "weekly_reps": 2,
+                  "weekly_cadence_label": "2 blocs ce week-end",
+                  "weekly_description_override": "Tiens tes 2 blocs profonds ce week-end."
+                },
+                {
+                  "temp_id": "gen-p1-missions-002"
+                }
+              ],
+              "progression_note": "On intègre la pratique dans tes déplacements et on sanctuarise ton week-end à l'avance.",
+              "weekly_target_label": "3 trajets utiles et 2 blocs le week-end",
+              "weekly_target_value": 5
+            },
+            {
+              "focus": "Tenir le rythme complet et faire le point sur ton énergie.",
+              "title": "Atteindre le rythme de croisière",
+              "week_order": 3,
+              "action_focus": [
+                "Valider tes 6 créneaux de la semaine",
+                "Faire le bilan d'énergie dimanche soir"
+              ],
+              "mission_days": [
+                "dimanche"
+              ],
+              "reps_summary": "6 créneaux validés",
+              "success_signal": "Tu as atteint tes 20h de pratique sans avoir eu besoin de veiller tard en semaine.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 4,
+                  "weekly_cadence_label": "4 trajets cette semaine",
+                  "weekly_description_override": "Passe à 4 trajets utiles cette semaine."
+                },
+                {
+                  "temp_id": "gen-p1-habits-002",
+                  "weekly_reps": 2,
+                  "weekly_cadence_label": "2 blocs ce week-end",
+                  "weekly_description_override": "Maintiens tes 2 blocs profonds ce week-end."
+                },
+                {
+                  "temp_id": "gen-p1-clarifications-001"
+                }
+              ],
+              "progression_note": "On monte à 4 trajets utiles pour atteindre le volume cible, et on vérifie que la fatigue reste gérable.",
+              "weekly_target_label": "4 trajets utiles et 2 blocs le week-end",
+              "weekly_target_value": 6
+            }
+          ],
+          "phase_id": "phase-1",
+          "heartbeat": {
+            "unit": "créneaux/semaine",
+            "title": "Créneaux de passion validés",
+            "target": 6,
+            "current": null,
+            "tracking_mode": "inferred"
+          },
+          "rationale": "Puisque tes soirées de semaine sont bloquées par le Cours Florent, c'est le week-end et pendant tes déplacements que se trouvent les 3 heures manquantes.",
+          "level_order": 1,
+          "review_focus": [
+            "Les trajets sont-ils vraiment exploitables ?",
+            "Le week-end permet-il une vraie récupération malgré les blocs de pratique ?"
+          ],
+          "why_this_now": "C'est la seule façon réaliste d'augmenter ton volume de pratique sans te mener au burn-out avant septembre.",
+          "duration_weeks": 3,
+          "phase_objective": "Déplacer l'effort sur les moments où tu es vraiment disponible pour atteindre tes 20h sans sacrifier ton sommeil.",
+          "phase_metric_target": "Ce niveau de plan vise à atteindre directement les 20h de pratique globale en validant 6 créneaux dédiés (trajets + week-end) hors de tes heures au Cours Florent.",
+          "how_this_phase_works": "On installe des micro-sessions dans les transports et on bloque de vrais rendez-vous avec toi-même le week-end.",
+          "maintained_foundation": [],
+          "what_this_phase_targets": "Les temps morts de ta semaine et la protection de ton week-end."
+        },
+        "inspiration_narrative": "Imagine tes trajets non plus comme une fatigue, mais comme ton sas de création. Le week-end, tu ne cherches plus quand pratiquer : tes blocs sont posés, intouchables. Tu arrives à tes 20h de pratique avec la sensation d'être déjà dans la peau d'une actrice professionnelle, prête pour Londres."
+      }
+    },
+    {
+      "id": "1b9bbb7f-87d2-40d6-bfa8-d323a03446f6",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "status": "archived",
+      "title": "Dégager du temps pour ta passion",
+      "created_at": "2026-06-14T12:33:37.799+00:00",
+      "updated_at": "2026-06-14T12:57:32.49329+00:00",
+      "activated_at": "2026-06-14T12:38:59.917+00:00",
+      "cycle_id": "7235a580-386d-4b0d-a5b9-a157bf7781da",
+      "transformation_id": "135841cf-0f48-4afe-be9f-091854b93704",
+      "content": {
+        "title": "Dégager du temps pour ta passion",
+        "phases": [
+          {
+            "items": [
+              {
+                "kind": "task",
+                "title": "Fixer ton couvre-feu professionnel",
+                "payload": {},
+                "temp_id": "gen-p1-missions-001",
+                "dimension": "missions",
+                "description": "Définis une heure précise (ex: 19h00) qui marque la fin absolue de ta journée de travail. Mets une alarme sur ton téléphone. Quand elle sonne, tu fermes tout.",
+                "target_reps": null,
+                "time_of_day": "afternoon",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 1,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "habit",
+                "title": "Respecter le couvre-feu pro",
+                "payload": {},
+                "temp_id": "gen-p1-habits-001",
+                "dimension": "habits",
+                "description": "Dès que ton heure limite est atteinte, coupe les notifications pro et ferme ton ordinateur. Ce temps t'appartient désormais.",
+                "target_reps": 5,
+                "time_of_day": "evening",
+                "support_mode": null,
+                "cadence_label": "5 jours / semaine",
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 2,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "task",
+                "title": "Sanctuariser les blocs du week-end",
+                "payload": {},
+                "temp_id": "gen-p1-missions-002",
+                "dimension": "missions",
+                "description": "Puisque le week-end est ton meilleur levier, bloque 2 gros créneaux dédiés à ta passion dans ton agenda dès aujourd'hui, comme s'il s'agissait de rendez-vous médicaux.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 3,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "task",
+                "title": "Reprogrammer la musique",
+                "payload": {},
+                "temp_id": "gen-p1-missions-003",
+                "dimension": "missions",
+                "description": "Pour éviter les conflits avec tes voisins et protéger tes 7-8h de sommeil, décide d'une heure limite (ex: 21h) pour tes sessions de chant et d'instrument.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 4,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "framework",
+                "title": "Auditer les débordements",
+                "payload": {
+                  "clarification_details": {
+                    "type": "one_shot",
+                    "intro": "Quand tu n'arrives pas à dire non à une sollicitation tardive, quel est le vrai moteur ? Identifie la faille pour mieux la contrer la prochaine fois.",
+                    "sections": [
+                      {
+                        "id": "overflow_reason",
+                        "label": "Quelle a été la principale cause de débordement cette semaine ?",
+                        "input_type": "list",
+                        "helper_text": "Liste les raisons réelles, sans te juger.",
+                        "placeholder": "Urgence d'un collègue, peur de mal faire, mauvaise estimation du temps..."
+                      },
+                      {
+                        "id": "boundary_fix",
+                        "label": "Quelle phrase type peux-tu utiliser pour dire non la prochaine fois ?",
+                        "input_type": "text",
+                        "helper_text": "Prépare ta parade à l'avance.",
+                        "placeholder": "Je m'en occupe dès demain matin à la première heure."
+                      }
+                    ],
+                    "save_label": "Enregistrer l'analyse"
+                  }
+                },
+                "temp_id": "gen-p1-clarifications-001",
+                "dimension": "clarifications",
+                "description": "Prends 5 minutes pour analyser ce qui t'a empêché de couper le travail à l'heure cette semaine.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 5,
+                "support_function": null,
+                "activation_condition": null
+              }
+            ],
+            "title": "Poser la limite professionnelle",
+            "phase_id": "phase-1",
+            "heartbeat": {
+              "unit": "jours/semaine",
+              "title": "Jours avec couvre-feu pro respecté",
+              "target": 5,
+              "current": null,
+              "tracking_mode": "inferred"
+            },
+            "rationale": "Avant d'ajouter des heures, il faut arrêter l'hémorragie d'énergie. Poser un couvre-feu professionnel strict est le levier le plus puissant pour récupérer tes soirées.",
+            "phase_order": 1,
+            "why_this_now": "Parce que tu ne pourras pas tenir 20h de pratique de qualité si tes soirées restent imprévisibles et épuisantes.",
+            "phase_objective": "Installer une heure de fin de travail non négociable pour sanctuariser ton temps libre.",
+            "duration_guidance": "3 semaines",
+            "phase_metric_target": "Pas encore de cible directe sur les 20h de pratique ; ce niveau de plan prépare le terrain en visant 5 jours par semaine avec une fin de travail strictement respectée.",
+            "how_this_phase_works": "On installe un couvre-feu professionnel strict et on réorganise tes sessions bruyantes pour protéger ton sommeil.",
+            "maintained_foundation": [],
+            "what_this_phase_targets": "Le débordement du travail sur ta vie personnelle et ton épuisement mental."
+          }
+        ],
+        "version": 3,
+        "cycle_id": "7235a580-386d-4b0d-a5b9-a157bf7781da",
+        "metadata": {
+          "phase_1_preview": {
+            "title": "Clarifier ton point d'ancrage",
+            "heartbeat": "Pourquoi clarifié",
+            "rationale": "Avant de bousculer ton emploi du temps, il faut mettre au clair ce qui te pousse à viser la RADA et ce qui te draine aujourd'hui.",
+            "phase_objective": "Te donner une base solide : comprendre pourquoi tu acceptes que le travail déborde, et te reconnecter à l'urgence de ta vocation artistique."
+          },
+          "schedule_anchor": {
+            "version": 1,
+            "timezone": "Europe/Paris",
+            "week_starts_on": "monday",
+            "anchor_week_end": "2026-06-14",
+            "generated_at_utc": "2026-06-14T12:38:59.917Z",
+            "anchor_local_date": "2026-06-14",
+            "anchor_week_start": "2026-06-08",
+            "anchor_local_human": "dimanche 14 juin 2026 à 14:38",
+            "anchor_display_start": "2026-06-14",
+            "is_partial_anchor_week": true,
+            "days_remaining_in_anchor_week": 1
+          },
+          "plan_adjustment_context": {
+            "phase_reasoning": [
+              {
+                "phase_id": "phase-1",
+                "phase_order": 1,
+                "role_in_plan": "Créer une barrière étanche entre le travail et la vie personnelle pour récupérer de la bande passante mentale.",
+                "why_before_next": "Tant que les soirées sont imprévisibles et épuisantes, toute tentative d'optimisation (comme travailler ses textes dans les transports) sera vécue comme une corvée de plus.",
+                "slowdown_signals": [
+                  "Incapacité à dire non aux urgences de dernière minute",
+                  "La limite pro crée trop d'anxiété"
+                ],
+                "user_signals_used": [
+                  "Épuisement mental après la journée",
+                  "Imprévisibilité de l'emploi du temps",
+                  "Difficulté à dire non aux sollicitations"
+                ],
+                "acceleration_signals": [
+                  "La limite est tenue facilement dès la première semaine complète",
+                  "L'utilisatrice demande spontanément à utiliser ses temps de trajet"
+                ],
+                "prerequisite_for_next_phase": "Être capable de couper le travail à une heure fixe au moins 4 jours par semaine."
+              }
+            ],
+            "global_reasoning": {
+              "sequencing_logic": "Il est dangereux d'ajouter 3h de pratique sans d'abord colmater la fuite d'énergie. On pose d'abord la limite pro, puis on optimise les temps morts (transports), puis on stabilise.",
+              "slowdown_signals": [
+                "Le travail continue de déborder malgré l'alarme",
+                "Le sommeil passe sous la barre des 7h",
+                "Sensation de culpabilité face aux collègues"
+              ],
+              "main_problem_model": "L'utilisatrice a déjà un volume de pratique très élevé (17h) mais le fait au détriment de son énergie et de son sommeil à cause d'un travail qui déborde.",
+              "acceleration_signals": [
+                "Le couvre-feu pro est respecté sans effort",
+                "L'énergie mentale remonte significativement le soir",
+                "Les 17h actuelles sont vécues sans fatigue excessive"
+              ],
+              "why_not_faster_initially": "Aller plus vite en forçant les 20h tout de suite mènerait au burn-out avant même l'entrée à la RADA."
+            }
+          }
+        },
+        "strategy": {
+          "core_principle": null,
+          "identity_shift": null,
+          "main_constraint": "Ne jamais sacrifier le sommeil pour ajouter des heures de pratique.",
+          "success_definition": "Atteindre 20h de pratique hebdomadaire avec des nuits de 7-8h et des soirées libérées du travail."
+        },
+        "user_summary": "Tu es déjà très engagée, mais au prix de ton énergie. Nous allons sanctuariser tes soirées en posant des limites fermes avec ton travail, pour que tu puisses atteindre tes 20h de pratique sereinement et sans sacrifier ton sommeil.",
+        "plan_blueprint": {
+          "levels": [
+            {
+              "title": "Optimiser les temps interstitiels",
+              "phase_id": "phase-2",
+              "intention": "Utiliser tes temps de transport (20 min) pour la mémorisation et l'écriture afin d'augmenter ton volume sans toucher à tes soirées.",
+              "level_order": 2,
+              "preview_summary": "Une fois tes soirées protégées, on transforme tes trajets en sessions de travail productives.",
+              "estimated_duration_weeks": 3
+            },
+            {
+              "title": "Stabiliser l'écosystème avant le départ",
+              "phase_id": "phase-3",
+              "intention": "Ancrer la routine des 20h de pratique tout en garantissant 7 à 8h de sommeil par nuit, pour préparer la transition vers Londres.",
+              "level_order": 3,
+              "preview_summary": "On consolide ton rythme de future professionnelle pour que l'équilibre devienne naturel.",
+              "estimated_duration_weeks": 4
+            }
+          ],
+          "global_objective": "Atteindre 20h de pratique hebdomadaire avec un sommeil préservé et des limites professionnelles respectées.",
+          "estimated_levels_count": 2
+        },
+        "primary_metric": {
+          "unit": "heures/semaine",
+          "label": "Heures consacrées à ta passion",
+          "baseline_value": "17",
+          "success_target": "20",
+          "measurement_mode": "absolute_value"
+        },
+        "duration_months": 3,
+        "journey_context": {
+          "part_number": 1,
+          "is_multi_part": true,
+          "continuation_hint": "Transition vers l'identité d'actrice professionnelle",
+          "estimated_total_parts": 2,
+          "estimated_total_duration_months": 6
+        },
+        "global_objective": "Atteindre 20h de pratique hebdomadaire avec des nuits de 7-8h et des soirées libérées du travail.",
+        "internal_summary": "L'utilisatrice pratique déjà 17h/semaine mais subit un épuisement mental dû au débordement du travail sur la vie perso. Le plan (Transformation 1 sur 2) se concentre d'abord sur la protection de l'énergie et la pose de limites professionnelles avant de chercher à augmenter le volume horaire. Le rythme demandé est intense, mais l'approche doit rester protectrice.",
+        "timeline_summary": "En 3 semaines, tu vas sanctuariser tes soirées en posant une limite stricte à ton travail, ce qui te redonnera l'énergie nécessaire pour ta passion.",
+        "key_understanding": "Le temps pour ta passion ne se 'trouve' pas, il se protège. Pour atteindre 20h sans t'épuiser avant la RADA, la limite professionnelle doit devenir rigide.",
+        "progression_logic": "On commence par poser une limite stricte sur tes horaires de travail pour récupérer tes soirées et ton énergie. Ensuite, on optimisera tes temps de transport, puis on stabilisera le rythme global pour que tu sois prête pour Londres.",
+        "situation_context": "Tu consacres déjà 17h par semaine à ta passion entre le Cours Florent, la musique et l'écriture, ce qui est énorme. Mais tu frôles l'épuisement : le travail déborde, ton emploi du temps est imprévisible, et tu essaies de compenser tard le soir au détriment de ton sommeil et de tes voisins.",
+        "transformation_id": "135841cf-0f48-4afe-be9f-091854b93704",
+        "mechanism_analysis": "Tu traites ta passion comme une variable d'ajustement qui doit rentrer 'après le reste'. Résultat : ton incapacité à dire non aux sollicitations professionnelles grignote tes soirées, et tu n'as plus d'énergie mentale quand tu t'y mets enfin.",
+        "current_level_runtime": {
+          "title": "Poser la limite professionnelle",
+          "weeks": [
+            {
+              "focus": "La semaine est presque finie. Profite de ce dimanche pour poser les règles de la semaine prochaine.",
+              "title": "Le premier coup d'arrêt",
+              "week_order": 1,
+              "action_focus": [
+                "Définir ton heure limite",
+                "Couper à l'heure aujourd'hui"
+              ],
+              "mission_days": [
+                "dimanche"
+              ],
+              "reps_summary": "1 coupure nette",
+              "success_signal": "L'alarme est programmée pour demain et tu as réussi à déconnecter aujourd'hui.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-missions-001"
+                },
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 1,
+                  "weekly_cadence_label": "1 jour cette semaine",
+                  "weekly_description_override": "Pour ce dimanche, coupe toute préparation ou charge mentale pro à l'heure fixée."
+                }
+              ],
+              "progression_note": "Semaine très courte : on se concentre sur la mise en place de l'alarme et un premier test immédiat.",
+              "weekly_target_label": "1 jour avec couvre-feu pro respecté",
+              "weekly_target_value": 1
+            },
+            {
+              "focus": "Faire respecter la limite en semaine et sécuriser les gros blocs du week-end.",
+              "title": "Défendre le territoire",
+              "week_order": 2,
+              "action_focus": [
+                "Respecter l'alarme de fin de journée",
+                "Bloquer les créneaux du week-end dans l'agenda"
+              ],
+              "mission_days": [
+                "lundi"
+              ],
+              "reps_summary": "4 jours tenus",
+              "success_signal": "Tu ressens un vrai soulagement en fin de journée car la soirée t'appartient.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 4,
+                  "weekly_cadence_label": "4 jours cette semaine",
+                  "weekly_description_override": "Dès que l'alarme sonne, tu fermes l'ordinateur pro. Vise 4 réussites cette semaine."
+                },
+                {
+                  "temp_id": "gen-p1-missions-002"
+                }
+              ],
+              "progression_note": "On passe à la vraie semaine de travail. L'objectif est de tenir la ligne 4 jours sur 5.",
+              "weekly_target_label": "4 jours avec couvre-feu pro respecté",
+              "weekly_target_value": 4
+            },
+            {
+              "focus": "Tenir la limite toute la semaine et ajuster tes horaires de pratique pour protéger ton sommeil.",
+              "title": "Ancrer la frontière",
+              "week_order": 3,
+              "action_focus": [
+                "Tenir le couvre-feu 5 jours",
+                "Reprogrammer les sessions bruyantes",
+                "Auditer ce qui bloque encore"
+              ],
+              "mission_days": [
+                "mercredi",
+                "vendredi"
+              ],
+              "reps_summary": "5 jours tenus",
+              "success_signal": "La coupure devient automatique et tu ne te couches plus à des heures impossibles.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 5,
+                  "weekly_cadence_label": "5 jours cette semaine",
+                  "weekly_description_override": "Maintiens la coupure stricte tous les jours de la semaine travaillée."
+                },
+                {
+                  "temp_id": "gen-p1-missions-003"
+                },
+                {
+                  "temp_id": "gen-p1-clarifications-001"
+                }
+              ],
+              "progression_note": "On vise la semaine complète de protection pro, et on réorganise la musique pour éviter les nuits trop courtes.",
+              "weekly_target_label": "5 jours avec couvre-feu pro respecté",
+              "weekly_target_value": 5
+            }
+          ],
+          "phase_id": "phase-1",
+          "heartbeat": {
+            "unit": "jours/semaine",
+            "title": "Jours avec couvre-feu pro respecté",
+            "target": 5,
+            "current": null,
+            "tracking_mode": "inferred"
+          },
+          "rationale": "Tu es déjà à 17h de pratique, ce qui prouve ta détermination. Le vrai frein actuel est l'épuisement. On doit d'abord couper la fuite d'énergie liée au travail.",
+          "level_order": 1,
+          "review_focus": [
+            "As-tu réussi à fermer l'ordinateur à l'heure prévue ?",
+            "Ressens-tu un peu plus d'énergie mentale le soir ?"
+          ],
+          "why_this_now": "Parce que tu ne pourras pas tenir 20h de pratique de qualité si tes soirées restent imprévisibles et épuisantes.",
+          "duration_weeks": 3,
+          "phase_objective": "Installer une heure de fin de travail non négociable pour sanctuariser ton temps libre.",
+          "phase_metric_target": "Pas encore de cible directe sur les 20h de pratique ; ce niveau de plan prépare le terrain en visant 5 jours par semaine avec une fin de travail strictement respectée.",
+          "how_this_phase_works": "On installe un couvre-feu professionnel strict et on réorganise tes sessions bruyantes pour protéger ton sommeil.",
+          "maintained_foundation": [],
+          "what_this_phase_targets": "Le débordement du travail sur ta vie personnelle et ton épuisement mental."
+        },
+        "inspiration_narrative": "Imagine-toi en septembre, arrivant à Londres avec une énergie intacte. Tu ne cours plus après le temps : tes journées sont structurées, tes soirées t'appartiennent, et tu crées sans culpabilité ni fatigue écrasante. Tu as déjà l'étoffe et le rythme d'une actrice professionnelle."
+      }
+    }
+  ]
+}

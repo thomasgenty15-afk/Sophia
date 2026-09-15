@@ -1,0 +1,1541 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t01",
+    "user": "J'ai lu les niveaux plus loin dans le plan et j'ai l'impression que la partie besoins simples et la partie sujets sensibles se chevauchent trop. Je veux une vraie marche entre les deux, pas deux phases floues. Tu peux ajuster la structure globale ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "80346898-de1f-43f4-a544-950dbf6a7a6e",
+        "ts": "2026-05-21T09:14:40.031+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 12572,
+          "latency_ms": 7955,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 719,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "plan_structure",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveaux besoins simples et sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "plan_structure",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveaux besoins simples et sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "80346898-de1f-43f4-a544-950dbf6a7a6e",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "structure globale (besoins simples vs sujets sensibles)",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "structure globale"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "ajuster la structure globale",
+                    "partie besoins simples et la partie sujets sensibles se chevauchent trop"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "niveau de transition explicite entre besoins simples et sujets sensibles",
+                  "ne pas laisser deux phases floues",
+                  "whole_plan_change_family:split_merge_restructure",
+                  "whole_plan_candidate_operation:split_or_merge_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "whole_plan_directional_draft_ready",
+                  "preserve_plan_intent",
+                  "coach_observation:La demande ne porte pas sur un contenu local mais sur une couture de trajectoire: les deux blocs actuels semblent trop proches dans leur fonction, ce qui brouille le passage d’un travail de base vers des sujets plus sensibles. Le besoin implicite est moins d’ajouter du contenu que de rendre lisible la montée en intensité, avec une étape-charnière qui sécurise le passage.",
+                  "coach_recommendation:Orienter la réponse vers une restructuration légère de la trajectoire globale, en explicitant une phase-pont ou une marche de transition entre les besoins simples et les sujets sensibles. L’enjeu coaching est de préserver l’intention du plan tout en séparant clairement les rôles de chaque étape: d’abord stabiliser et simplifier, ensuite seulement préparer l’entrée dans des sujets plus chargés.",
+                  "coach_warning:Éviter de répondre comme s’il s’agissait seulement d’un ajustement de formulation; la difficulté est structurelle.",
+                  "coach_warning:Ne pas fusionner les deux phases sous prétexte de fluidité: cela risquerait d’effacer la progression recherchée.",
+                  "coach_warning:Éviter d’introduire une montée trop abrupte vers les sujets sensibles sans sas intermédiaire.",
+                  "coach_warning:Ne pas promettre que le chevauchement est déjà résolu si la structure ne distingue pas encore clairement les fonctions.",
+                  "coach_preserve:La logique générale de désamorçage et de sécurité.",
+                  "coach_preserve:La progression graduelle déjà installée dans le plan.",
+                  "coach_preserve:Les objectifs initiaux du parcours et la cohérence émotionnelle du chemin.",
+                  "coach_preserve:Les actions qui servent de base sans surcharge.",
+                  "coach_preserve:Le principe de ne pas exposer trop tôt aux sujets sensibles.",
+                  "coach_avoid:Proposer une simple reformulation sans changement de structure.",
+                  "coach_avoid:Supprimer l’un des deux blocs sans vérifier si la fonction de transition est couverte.",
+                  "coach_avoid:Ajouter des sujets sensibles plus tôt dans le plan.",
+                  "coach_avoid:Diluer la distinction entre stabilisation et exploration.",
+                  "coach_avoid:Parler comme si la solution était déjà validée définitivement.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:Traiter la demande comme une question de trajectoire globale, pas comme une micro-modification locale.",
+                  "coach_guideline:Préserver l’intention de sécurité avant toute montée en intensité.",
+                  "coach_guideline:Faire apparaître une marche lisible entre les niveaux: prérequis, transition, puis ouverture.",
+                  "coach_guideline:Éviter toute proposition qui mélange les fonctions des phases.",
+                  "coach_guideline:Si un pont est proposé, il doit servir de sas et non de nouvelle phase floue.",
+                  "coach_guideline:Garder le coeur du plan intact: progression, protection de la sécurité, et montée graduelle.",
+                  "coach_guideline:Distinguer ce qui est humainement pertinent (sentiment de chevauchement, besoin de clarté) de ce qui est techniquement faisable (restructuration, insertion, scission).",
+                  "whole_plan_change_family:split_merge_restructure",
+                  "whole_plan_candidate_operation:split_or_merge_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "coach_trajectory_hypothesis:La trajectoire actuelle semble aller d’une sécurisation de base vers des sujets plus sensibles, mais sans sas assez net; une restructuration peut introduire une marche intermédiaire pour rendre la montée plus lisible et soutenable.",
+                  "whole_plan_change_family:split_merge_restructure",
+                  "whole_plan_candidate_operation:split_or_merge_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "affected_item:Désamorcer et recréer de la sécurité",
+                  "affected_item:Observer sans attaquer"
+                ],
+                "reason_type": "bad_fit",
+                "change_target": "global_load",
+                "reason_change": "context_changed"
+              },
+              "title": "Ajuster la trajectoire du plan",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+                ],
+                "unchanged": [
+                  "Objectif global du plan",
+                  "Actions de soutien existantes sauf changement explicitement validé"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+              "decision_basis": {
+                "evidence": [
+                  "J'ai lu les niveaux plus loin dans le plan et j'ai l'impression que la partie besoins simples et la partie sujets sensibles se chevauchent trop. Je veux une vraie marche entre les deux, pas deux phases floues. Tu peux ajuster la structure globale ?",
+                  "structure globale",
+                  "marche entre les deux phases",
+                  "deterministic whole-plan structural/family signal",
+                  "deterministic whole-plan fit/complexity signal",
+                  "la partie besoins simples et la partie sujets sensibles se chevauchent trop",
+                  "je veux une vraie marche entre les deux",
+                  "vraie marche entre les deux",
+                  "ajuster la structure globale"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+              "change_rationale": {
+                "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                "success_condition": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+                "expected_mechanism": "Le user demande une structure plus lisible entre deux phases futures proches."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+                  "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+                  "why_this_change": "Le user demande une structure plus lisible entre deux phases futures proches."
+                },
+                "boundaries": {
+                  "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                  "affected_scope": "trajectoire globale du plan",
+                  "global_plan_impact": "requires_review",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "identité du plan",
+                    "demande de ne pas transformer cela en simple ajustement d'action"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                      "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "title": "Partager un point positif",
+                      "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                    }
+                  ],
+                  "trajectory_change": {
+                    "after": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+                    "before": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+                    "inserted_step": "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                    "coaching_reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                    "reordered_steps": [
+                      "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                      "Garder une marche claire avant d'aborder les sujets sensibles"
+                    ],
+                    "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+                  }
+                },
+                "user_message_brief": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                "user_message_detailed": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+          },
+          "status": "draft_review",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "27f11d09-8010-4778-9d29-9305fa0b3aa0",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer une simple reformulation sans changement de structure.",
+              "Supprimer l’un des deux blocs sans vérifier si la fonction de transition est couverte.",
+              "Ajouter des sujets sensibles plus tôt dans le plan.",
+              "Diluer la distinction entre stabilisation et exploration.",
+              "Parler comme si la solution était déjà validée définitivement."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "La logique générale de désamorçage et de sécurité.",
+              "La progression graduelle déjà installée dans le plan.",
+              "Les objectifs initiaux du parcours et la cohérence émotionnelle du chemin.",
+              "Les actions qui servent de base sans surcharge.",
+              "Le principe de ne pas exposer trop tôt aux sujets sensibles."
+            ],
+            "warnings": [
+              "Éviter de répondre comme s’il s’agissait seulement d’un ajustement de formulation; la difficulté est structurelle.",
+              "Ne pas fusionner les deux phases sous prétexte de fluidité: cela risquerait d’effacer la progression recherchée.",
+              "Éviter d’introduire une montée trop abrupte vers les sujets sensibles sans sas intermédiaire.",
+              "Ne pas promettre que le chevauchement est déjà résolu si la structure ne distingue pas encore clairement les fonctions."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter la demande comme une question de trajectoire globale, pas comme une micro-modification locale.",
+              "Préserver l’intention de sécurité avant toute montée en intensité.",
+              "Faire apparaître une marche lisible entre les niveaux: prérequis, transition, puis ouverture.",
+              "Éviter toute proposition qui mélange les fonctions des phases.",
+              "Si un pont est proposé, il doit servir de sas et non de nouvelle phase floue.",
+              "Garder le coeur du plan intact: progression, protection de la sécurité, et montée graduelle.",
+              "Distinguer ce qui est humainement pertinent (sentiment de chevauchement, besoin de clarté) de ce qui est techniquement faisable (restructuration, insertion, scission)."
+            ],
+            "observation": "La demande ne porte pas sur un contenu local mais sur une couture de trajectoire: les deux blocs actuels semblent trop proches dans leur fonction, ce qui brouille le passage d’un travail de base vers des sujets plus sensibles. Le besoin implicite est moins d’ajouter du contenu que de rendre lisible la montée en intensité, avec une étape-charnière qui sécurise le passage.",
+            "change_family": "split_merge_restructure",
+            "recommendation": "Orienter la réponse vers une restructuration légère de la trajectoire globale, en explicitant une phase-pont ou une marche de transition entre les besoins simples et les sujets sensibles. L’enjeu coaching est de préserver l’intention du plan tout en séparant clairement les rôles de chaque étape: d’abord stabiliser et simplifier, ensuite seulement préparer l’entrée dans des sujets plus chargés.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Insérer une phase-pont dédiée à la préparation avant l’entrée dans les sujets sensibles.",
+              "Revoir l’ordre des niveaux pour que les besoins simples servent explicitement de prérequis.",
+              "Scinder la partie \"sujets sensibles\" en deux sous-marches: préparation puis exploration.",
+              "Renforcer la frontière de fin du niveau \"besoins simples\" avec un critère de passage explicite.",
+              "Clarifier le rôle de chaque phase: apprentissage de base, consolidation, puis ouverture graduelle."
+            ],
+            "candidate_operation": "split_or_merge_phase",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire actuelle semble aller d’une sécurisation de base vers des sujets plus sensibles, mais sans sas assez net; une restructuration peut introduire une marche intermédiaire pour rendre la montée plus lisible et soutenable.",
+            "must_not_execute_reason": null
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 20659,
+        "created_at": "2026-05-21T09:14:40.032884+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t02",
+    "user": "Ca me va, mais je veux eviter une etape pont en plus si ce n'est pas necessaire. Je prefere garder deux niveaux distincts : besoins simples, puis sujets sensibles. Ne l'applique pas encore.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je dois reprendre le brouillon proprement. Pour garder deux niveaux sans étape-pont, tu veux que la séparation soit marquée par quoi : un critère de passage, une règle de fin du niveau « besoins simples », ou une consigne d’entrée dans les sujets sensibles ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "bf069677-923d-4eba-836c-cb23d67736d8",
+        "ts": "2026-05-21T09:15:35.086+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13038,
+          "latency_ms": 3196,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 591,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "structure_globale",
+                "type": "level",
+                "priority": null,
+                "query_hint": "niveaux besoins simples vs sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "structure_globale",
+                "type": "level",
+                "priority": null,
+                "query_hint": "niveaux besoins simples vs sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "bf069677-923d-4eba-836c-cb23d67736d8",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "normal_reply_default",
+          "draft_review": true,
+          "operation_id": "27f11d09-8010-4778-9d29-9305fa0b3aa0",
+          "missing_slots": [
+            "draft_generation_retry_needed"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer d’emblée une phase-pont dédiée.",
+              "Supprimer la distinction entre les deux niveaux.",
+              "Répondre comme si le plan devait être appliqué immédiatement.",
+              "Multiplier les changements de structure alors que le user demande de la sobriété.",
+              "Créer un chevauchement supplémentaire entre les deux niveaux."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "La distinction entre 'besoins simples' et 'sujets sensibles'.",
+              "La progression graduelle du plan.",
+              "L’intention de sécurité et de désamorçage avant l’exploration.",
+              "La cohérence globale du parcours et l’objectif de fond.",
+              "Le souhait du user de ne pas surcharger la structure."
+            ],
+            "warnings": [
+              "Ne pas proposer automatiquement une étape-pont supplémentaire.",
+              "Ne pas fusionner les deux niveaux au nom de la fluidité.",
+              "Ne pas transformer la correction en refonte plus large que demandé.",
+              "Ne pas parler comme si l’architecture finale était déjà décidée; la demande est encore en attente de validation.",
+              "Ne pas déplacer les sujets sensibles plus tôt sous prétexte de mieux marquer la transition."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter la demande comme un arbitrage de finesse structurelle, pas comme une refonte du plan.",
+              "Privilégier une frontière nette plutôt qu’un ajout de contenu.",
+              "Si un pont est évoqué, le présenter comme option conditionnelle et non comme nécessité.",
+              "Préserver deux niveaux distincts tant que le user ne demande pas explicitement une séquence en trois temps.",
+              "Distinguer ce qui est humainement pertinent (besoin de clarté, refus de flou) de ce qui est techniquement faisable (reordonner, renforcer une frontière, ajouter ou non un sas).",
+              "Raisonner en seuils de passage, critères de fin de niveau et charge émotionnelle, pas seulement en intitulés de phases.",
+              "Garder le plan compact: une séparation claire suffit si elle sert la lisibilité sans ajouter de lourdeur."
+            ],
+            "observation": "Le user ne remet pas en cause la logique générale du plan; il affine la forme de la transition. Il veut conserver deux niveaux séparés, avec une frontière lisible, mais sans créer une étape intermédiaire supplémentaire si elle n'apporte pas de valeur. Le vrai enjeu est donc la sobriété structurelle: distinguer sans alourdir.",
+            "change_family": "split_merge_restructure",
+            "recommendation": "Rester sur une restructuration minimale de la trajectoire globale: préserver deux niveaux distincts, renforcer leur frontière par un critère de passage ou une coupure nette, et éviter d'inventer une phase-pont par défaut. La réponse suivante doit faire sentir que la marche existe, mais qu’elle peut être portée par une séparation claire plutôt que par un nouveau bloc.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Garder deux niveaux distincts et expliciter un critère de passage entre eux.",
+              "Renforcer la fin du niveau 'besoins simples' pour qu’elle prépare sans devenir une nouvelle phase.",
+              "Marquer l’entrée dans les sujets sensibles par une consigne de cadre, sans ajouter de bloc intermédiaire.",
+              "Si nécessaire, ajouter un sas très léger intégré à la fin du premier niveau plutôt qu’une étape autonome.",
+              "Vérifier si la séparation doit être portée par le contenu, le rythme, ou le niveau de charge émotionnelle."
+            ],
+            "candidate_operation": "split_or_merge_phase",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire actuelle peut rester en deux niveaux, avec une séparation plus nette entre les besoins simples et les sujets sensibles; la prochaine itération devrait préciser la frontière sans créer de phase supplémentaire sauf nécessité démontrée.",
+            "must_not_execute_reason": "Le user demande une correction de principe mais refuse explicitement toute application immédiate; il faut donc formuler une option structurelle sans l’exécuter."
+          },
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "pre_validation_concrete_constraint_requires_revision"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 43242,
+        "created_at": "2026-05-21T09:15:35.087266+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t03",
+    "user": "Marque la separation par un critere de passage : on passe aux sujets sensibles seulement quand on arrive a faire une demande simple sans tension forte deux fois de suite. Ne l'applique pas encore, montre-moi le brouillon.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je dois reprendre le brouillon proprement avant de te le montrer. Pour la règle de passage, tu veux que les 2 demandes simples sans tension forte soient comptées sur 2 fois d’affilée, ou sur 2 réussites dans une même période ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "3312eb1f-77e8-4248-9de1-876135d5cd32",
+        "ts": "2026-05-21T09:16:46.107+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13174,
+          "latency_ms": 16284,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 750,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "structure et contenu des niveaux besoins simples et sujets sensibles",
+                "type": "level",
+                "priority": null,
+                "query_hint": "structure et contenu des niveaux besoins simples et sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "structure et contenu des niveaux besoins simples et sujets sensibles",
+                "type": "level",
+                "priority": null,
+                "query_hint": "structure et contenu des niveaux besoins simples et sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1.6,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "3312eb1f-77e8-4248-9de1-876135d5cd32",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "structure globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "besoins simples",
+                    "sujets sensibles"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "ajuster la structure globale",
+                    "separation par un critere de passage"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "draft_review": true,
+          "operation_id": "27f11d09-8010-4778-9d29-9305fa0b3aa0",
+          "missing_slots": [
+            "draft_generation_retry_needed"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer un pont supplémentaire implicite ou explicite.",
+              "Changer la nature des niveaux au lieu de leur règle de bascule.",
+              "Présenter le critère comme une vérité définitive sans brouillon.",
+              "Noyer la transition dans plusieurs conditions complexes.",
+              "Répondre comme si le plan devait être réécrit entièrement."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "Les deux niveaux distincts: besoins simples puis sujets sensibles.",
+              "L’intention de sécurité et de progressivité.",
+              "L’absence d’étape-pont si elle n’est pas utile.",
+              "Le fait que le plan ne soit pas encore appliqué.",
+              "La logique de stabilisation avant montée en intensité."
+            ],
+            "warnings": [
+              "Éviter d’ajouter une phase intermédiaire alors que le user a explicitement demandé à ne pas en créer une si elle n’est pas nécessaire.",
+              "Éviter de reformuler la séparation en termes vagues du type « quand ça ira mieux » ou « quand ce sera plus fluide ».",
+              "Ne pas déplacer des sujets sensibles plus tôt dans le plan pour compenser le manque de lisibilité.",
+              "Ne pas faire comme si la règle de passage était déjà validée et appliquée: la demande est encore au stade du brouillon.",
+              "Ne pas confondre critère de passage et critère de réussite globale du plan."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Rester sur une modification de trajectoire globale, pas sur un patch local d’action.",
+              "Mettre en avant la fonction du critère: protéger la transition, pas durcir le plan.",
+              "Conserver deux niveaux distincts et faire porter la clarté sur la porte d’entrée du second.",
+              "Écrire une règle de passage observable, simple et cohérente avec le besoin de sécurité.",
+              "Ne pas ajouter de structure inutile si le user demande explicitement de l’éviter.",
+              "Distinguer ce qui est humainement pertinent: besoin de certitude et de lisibilité, de ce qui est techniquement faisable: formuler un seuil mesurable.",
+              "Garder le coeur du plan inchangé: progression graduelle, sécurité d’abord, sujets sensibles ensuite.",
+              "Si un critère est proposé, il doit être formulé comme un seuil de transition, pas comme une injonction morale ou émotionnelle."
+            ],
+            "observation": "La demande ne vise plus à ajouter une étape ni à modifier le contenu des niveaux, mais à rendre la frontière de passage objectivable: le user veut une règle simple, répétable et non floue pour autoriser l’entrée dans les sujets sensibles seulement après deux réussites stables sur des demandes simples. Le besoin réel est une séparation lisible sans sur-architecturer le plan.",
+            "change_family": "success_criteria_change",
+            "recommendation": "Orienter le brouillon vers une clarification du critère de passage, en gardant exactement deux niveaux distincts et en évitant toute étape-pont supplémentaire. Le bon angle coaching est de transformer le ressenti de flou en règle de transition mesurable, tout en préservant le rôle de stabilisation du premier niveau.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Définir précisément ce que signifie une « demande simple sans tension forte ».",
+              "Choisir si le critère se compte sur deux occurrences consécutives ou sur deux réussites dans une fenêtre de temps.",
+              "Décider si le passage se fait automatiquement après le critère ou s’il déclenche seulement une réévaluation.",
+              "Préciser si le critère concerne les deux personnes ou seulement la stabilité du user dans l’échange.",
+              "Vérifier si le critère doit s’appliquer à tous les sujets simples ou seulement à certains contextes."
+            ],
+            "candidate_operation": "change_success_criteria",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire actuelle reste en deux niveaux, mais le passage est trop subjectif; la trajectoire possible est de garder cette structure tout en ajoutant un seuil de bascule clair basé sur la stabilité répétée dans les demandes simples.",
+            "must_not_execute_reason": "Le user demande explicitement de ne pas l’appliquer encore et seulement de voir le brouillon; il faut donc rester au niveau de proposition structurée, sans exécution."
+          },
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "pre_validation_concrete_constraint_requires_revision"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 59366,
+        "created_at": "2026-05-21T09:16:46.108718+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t04",
+    "user": "Deux fois d'affilee. C'est exactement ce que je voulais dire. Maintenant prepare le brouillon de modification sans l'appliquer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t04",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je dois reprendre le brouillon proprement avant de te le montrer. Pour le critère de passage, tu veux compter les 2 demandes simples sans tension forte sur 2 fois d’affilée, ou sur 2 réussites dans une même période ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t04",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "fd080dc5-c92a-42b6-80c1-9dad5b5754f8",
+        "ts": "2026-05-21T09:17:38.174+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "Maintenant"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13384,
+          "latency_ms": 4395,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 784,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "transition_besoins_simples_sujets_sensibles",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et niveaux",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r98-whole-plan-split-merge-postfix-t04",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "transition_besoins_simples_sujets_sensibles",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et niveaux",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1.9,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,1.6;decay=0.55;recovery=0",
+                "contribution": 0.9
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              1.6
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "fd080dc5-c92a-42b6-80c1-9dad5b5754f8",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "structure globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "structure globale"
+                  ]
+                },
+                "constraints": {
+                  "value": "critère de passage : 2 fois d'affilée sans tension forte",
+                  "status": "identified",
+                  "evidence": [
+                    "Deux fois d'affilee",
+                    "faire une demande simple sans tension forte deux fois de suite"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "structure globale",
+                    "partie besoins simples et la partie sujets sensibles"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "draft_review": true,
+          "operation_id": "27f11d09-8010-4778-9d29-9305fa0b3aa0",
+          "missing_slots": [
+            "draft_generation_retry_needed"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer une simple reformulation sans impact structurel.",
+              "Laisser entendre que le plan est déjà modifié.",
+              "Fusionner les deux blocs au nom de la fluidité.",
+              "Accélérer l'entrée dans les sujets sensibles.",
+              "Effacer la marche de passage que le user veut précisément rendre lisible."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L'objectif global du plan.",
+              "La logique de progression par étapes.",
+              "La sécurité émotionnelle avant l'entrée dans les sujets sensibles.",
+              "La distinction entre stabilisation et exploration.",
+              "Les actions déjà utiles comme base de soutien."
+            ],
+            "warnings": [
+              "Ne pas reformuler seulement en surface: le user demande une structure, pas un habillage lexical.",
+              "Ne pas appliquer le changement comme s'il était validé; il faut rester au stade du brouillon.",
+              "Ne pas ajouter une nouvelle phase floue qui recrée le problème de chevauchement.",
+              "Ne pas supprimer un des deux blocs sans expliquer comment la fonction de passage est maintenue.",
+              "Ne pas présenter la marche de transition comme un contenu supplémentaire si elle sert seulement de sas."
+            ],
+            "readiness": "needs_confirmation",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter la demande comme une question de trajectoire globale, pas comme un micro-ajustement local.",
+              "Présenter le brouillon comme une proposition de structure, jamais comme une application.",
+              "Mettre en avant le rôle de chaque bloc: base, transition, puis ouverture.",
+              "Garder la séparation fonctionnelle entre besoins simples et sujets sensibles.",
+              "Si une transition est mentionnée, la décrire comme un sas de passage et non comme un nouveau niveau flou.",
+              "Préserver l'intention initiale du plan et la sécurité avant toute intensification.",
+              "Expliquer ce qui change et ce qui reste stable, de façon lisible et concrète.",
+              "Distinguer clairement le besoin humain de clarté de ce qui est techniquement faisable dans la structure du plan.",
+              "Ne pas promettre de résultat définitif tant que le user n'a pas validé le brouillon.",
+              "Préparer une version qui facilite la validation, pas une exécution anticipée."
+            ],
+            "observation": "La demande ne cherche plus à diagnostiquer la structure du plan: le user a confirmé l'intention, rejeté l'application immédiate et demande maintenant un brouillon visible d'une restructuration globale. Le vrai enjeu est de transformer un besoin de lisibilité entre deux blocs en proposition de trajectoire sans exécuter, en gardant la séparation nette entre besoins simples et sujets sensibles.",
+            "change_family": "split_merge_restructure",
+            "recommendation": "Produire un brouillon de restructuration, pas une exécution: formuler clairement la marche de transition, expliciter le rôle de chaque bloc, et montrer ce qui reste stable. Le coaching doit privilégier la cohérence de trajectoire et la préservation de l'intention, tout en laissant la porte ouverte à validation avant tout changement effectif.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Conserver deux niveaux distincts et ajouter un critère de passage explicite entre eux.",
+              "Insérer une courte phase de transition qui sert de sas sans devenir un troisième bloc autonome.",
+              "Renforcer la fin du niveau de base avec une règle de consolidation avant l'accès aux sujets sensibles.",
+              "Reclasser certains éléments pour qu'ils servent de prérequis plutôt que de contenu parallèle.",
+              "Rédiger le brouillon en mode 'avant / après / ce qui ne change pas' pour rendre la trajectoire lisible."
+            ],
+            "candidate_operation": "split_or_merge_phase",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire actuelle va d'une base de sécurité vers des sujets plus sensibles, mais le passage manque de lisibilité; une restructuration peut rendre cette montée plus nette sans modifier l'objectif.",
+            "must_not_execute_reason": "Le user demande explicitement de montrer le brouillon sans l'appliquer; il faut donc rester en proposition structurée et attendre une validation explicite avant tout changement effectif."
+          },
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "approval_with_new_concrete_constraint_requires_revision"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 39088,
+        "created_at": "2026-05-21T09:17:38.177637+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

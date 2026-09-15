@@ -1,0 +1,5 @@
+generate-household-meal-v1 | gpt-5.4-mini | attempt_start | 16134 | 15401 | 2026-08-18 23:30:52.540775+00
+generate-household-meal-v1 | gpt-5.4-mini | success | - | - | 2026-08-18 23:31:21.440725+00
+generate-household-meal-v1.protein_anchor_retry | gpt-5.4-mini | attempt_start | 16134 | 15728 | 2026-08-18 23:31:21.472644+00
+generate-household-meal-v1.protein_anchor_retry | gpt-5.4-mini | success | - | - | 2026-08-18 23:32:12.207156+00
+generate-household-meal-v1 | gpt-5.6-luna | attempt_start | 16669 | 21390 | 2026-08-19 10:10:54.40616+00

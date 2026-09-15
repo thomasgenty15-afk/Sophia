@@ -1,0 +1,222 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "fa473315-585d-40cb-9371-da26e2cf99e5",
+      "user_id": "2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "event_context": "one_shot_reminder:prendre_le_sac_de_sport_et_partir_sans_negocier",
+      "draft_message": null,
+      "scheduled_for": "2026-05-22T05:40:00+00:00",
+      "status": "pending",
+      "created_at": "2026-05-21T09:17:42.234863+00:00",
+      "processed_at": null,
+      "message_mode": "dynamic",
+      "message_payload": {
+        "source": "companion_one_shot_reminder_tool",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de prendre le sac de sport et partir sans negocier.",
+        "parse_source": "strict_absolute",
+        "request_text": "Ok je fais la respiration 2 minutes. Programme-moi aussi un rappel demain a 7h40: prendre le sac de sport et partir sans negocier.",
+        "parse_details": {
+          "now_utc": "2026-05-21T09:17:42.211Z",
+          "timezone": "Europe/Paris",
+          "algorithm": "strict_absolute_hard_path_pure_calendar_v2",
+          "day_offset": 1,
+          "local_time_hhmm": "07:40",
+          "scheduled_for_utc": "2026-05-22T05:40:00.000Z"
+        },
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: prendre le sac de sport et partir sans negocier.",
+        "reminder_instruction": "prendre le sac de sport et partir sans negocier"
+      },
+      "origin": "rendez_vous",
+      "delivery_attempt_count": 0,
+      "delivery_last_error": null,
+      "delivery_last_error_at": null,
+      "delivery_last_request_id": null,
+      "recurring_reminder_id": null
+    }
+  ],
+  "user_attack_cards": [],
+  "user_defense_cards": [],
+  "user_defense_wins": {
+    "code": "42703",
+    "details": null,
+    "hint": null,
+    "message": "column user_defense_wins.user_id does not exist"
+  },
+  "user_profile_facts": [
+    {
+      "user_id": "2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "scope": "global",
+      "key": "coach.tone",
+      "value": {
+        "label": "Bienveillant ferme",
+        "value": "warm_direct"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:14:29.46962+00:00",
+      "updated_at": "2026-05-21T09:14:29.46962+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "scope": "global",
+      "key": "coach.challenge_level",
+      "value": {
+        "label": "Équilibré",
+        "value": "balanced"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:14:29.46962+00:00",
+      "updated_at": "2026-05-21T09:14:29.46962+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "scope": "global",
+      "key": "coach.feedback_style",
+      "value": {
+        "label": "Positif puis amélioration",
+        "value": "positive_then_fix"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:14:29.46962+00:00",
+      "updated_at": "2026-05-21T09:14:29.46962+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "scope": "global",
+      "key": "coach.talk_propensity",
+      "value": {
+        "label": "Équilibrée",
+        "value": "balanced"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:14:29.46962+00:00",
+      "updated_at": "2026-05-21T09:14:29.46962+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "scope": "global",
+      "key": "coach.message_length",
+      "value": {
+        "label": "Courte",
+        "value": "short"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:14:29.46962+00:00",
+      "updated_at": "2026-05-21T09:14:29.46962+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "scope": "global",
+      "key": "coach.message_format",
+      "value": {
+        "label": "Mix adaptatif",
+        "value": "adaptive"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:14:29.46962+00:00",
+      "updated_at": "2026-05-21T09:14:29.46962+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "scope": "global",
+      "key": "coach.primary_focus",
+      "value": {
+        "label": "Discipline / action",
+        "value": "discipline"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:14:29.46962+00:00",
+      "updated_at": "2026-05-21T09:14:29.46962+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "scope": "global",
+      "key": "coach.emotional_personalization",
+      "value": {
+        "label": "Chaleureux",
+        "value": "warm"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:14:29.46962+00:00",
+      "updated_at": "2026-05-21T09:14:29.46962+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "scope": "global",
+      "key": "coach.question_tendency",
+      "value": {
+        "label": "Normale",
+        "value": "normal"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:14:29.46962+00:00",
+      "updated_at": "2026-05-21T09:14:29.46962+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    }
+  ],
+  "trace_count": null,
+  "chat_message_count": 30
+}

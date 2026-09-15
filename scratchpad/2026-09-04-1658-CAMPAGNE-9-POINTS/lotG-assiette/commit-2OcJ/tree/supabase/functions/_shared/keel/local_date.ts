@@ -1,0 +1,214 @@
+/**
+ * LA JOURNÉE LOCALE DE L'ÉLÈVE — une seule implémentation.
+ *
+ * Cette fonction existait DEUX fois, à l'identique, dans
+ * `meal-photo-upload-v1/index.ts` et dans le webhook WhatsApp (aujourd'hui
+ * supprimé). La troisième copie était sur le point d'être écrite pour la
+ * génération de repas; c'est le signal habituel qu'elle appartient à `_shared`.
+ *
+ * POURQUOI ELLE JETTE PLUTÔT QUE DE REPLIER SUR UTC (R7). Un fuseau inconnu qui
+ * se résout silencieusement en UTC classe un fait au mauvais jour — et ce dépôt
+ * a déjà payé toute une famille de bugs nocturnes qui commencent exactement là.
+ * Mieux vaut un tour qui échoue bruyamment qu'un dîner rangé la veille.
+ *
+ * PURE MODULE: pas d'I/O, pas d'horloge propre (l'appelant passe `now`).
+ */
+
+import { type DayToken, parseDayToken } from "./tokens.ts";
+
+/** `YYYY-MM-DD` dans le fuseau donné. Jette sur un fuseau vide ou inconnu. */
+export function localDateInZone(timezone: string, now: Date): string {
+  const zone = String(timezone ?? "").trim();
+  if (!zone) throw new Error("[keel/local_date] empty timezone (R7)");
+  let formatted: string;
+  try {
+    formatted = new Intl.DateTimeFormat("en-CA", {
+      timeZone: zone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(now);
+  } catch (error) {
+    throw new Error(
+      `[keel/local_date] unknown timezone ${JSON.stringify(zone)}`,
+      { cause: error },
+    );
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(formatted)) {
+    throw new Error(
+      `[keel/local_date] unresolvable local date for ${JSON.stringify(zone)}`,
+    );
+  }
+  return formatted;
+}
+
+/**
+ * L'HEURE LOCALE DE L'ÉLÈVE, en minutes depuis minuit.
+ *
+ * MÊME POSTURE QUE `localDateInZone`: jette sur un fuseau vide ou inconnu
+ * plutôt que de replier sur UTC. « 21 h » et « 23 h » ne demandent pas le même
+ * plan, et se tromper d'un fuseau fait composer un dîner déjà mangé.
+ *
+ * ── UNE SEULE HORLOGE, ET LA SECONDE EST CONNUE ───────────────────────────
+ * `reengagement_io.ts::localHourFor` (`:98`) lit la même heure, par le même
+ * `Intl`, avec une posture OPPOSÉE ET VOULUE: il rend `null` sur un fuseau
+ * illisible, parce qu'une relance proactive sur une heure inconnue enverrait un
+ * message à quelqu'un qui dort. Ici, l'heure décide de la COMPOSITION d'un
+ * plan, et une composition muette vaut mieux qu'une composition fausse.
+ * Les deux ne peuvent pas être la même fonction; elles peuvent être le même
+ * calcul. `localHourFor` reste à replier sur celle-ci — ce n'est pas le lot qui
+ * écrit ces lignes qui possède `reengagement_io.ts`.
+ *
+ * `hourCycle: "h23"` et pas `hour12: false`: sur certaines ICU, `hour12: false`
+ * rend « 24 » à minuit — et « 24 » traverse `Number.isFinite` sans broncher.
+ */
+export function localMinuteInZone(timezone: string, now: Date): number {
+  const zone = String(timezone ?? "").trim();
+  if (!zone) throw new Error("[keel/local_date] empty timezone (R7)");
+  let parts: Intl.DateTimeFormatPart[];
+  try {
+    parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: zone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(now);
+  } catch (error) {
+    throw new Error(
+      `[keel/local_date] unknown timezone ${JSON.stringify(zone)}`,
+      { cause: error },
+    );
+  }
+  const hour = Number(parts.find((p) => p.type === "hour")?.value);
+  const minute = Number(parts.find((p) => p.type === "minute")?.value);
+  if (
+    !Number.isInteger(hour) || !Number.isInteger(minute) ||
+    hour < 0 || hour > 23 || minute < 0 || minute > 59
+  ) {
+    throw new Error(
+      `[keel/local_date] unresolvable local time for ${JSON.stringify(zone)}`,
+    );
+  }
+  return hour * 60 + minute;
+}
+
+/**
+ * L'HEURE LOCALE, en heures pleines (`0`..`23`).
+ *
+ * DÉRIVÉE de `localMinuteInZone`, jamais recalculée: deux lectures de la même
+ * horloge divergent sur les bords (changement d'heure, fuseaux à demi-heure),
+ * et c'est exactement le genre d'écart qu'aucun test ne rattrape.
+ */
+export function localHourInZone(timezone: string, now: Date): number {
+  return Math.floor(localMinuteInZone(timezone, now) / 60);
+}
+
+/**
+ * Le jeton de jour (`mon`..`sun`) d'une date locale.
+ *
+ * Passe par `parseDayToken`, donc un jour hors vocabulaire jette au lieu de
+ * devenir `mon` par défaut — le défaut qui ferait commencer une semaine au
+ * mauvais endroit sans que personne ne le voie.
+ */
+export function dayTokenInZone(timezone: string, now: Date): DayToken {
+  const localDate = localDateInZone(timezone, now);
+  // `T12:00:00Z` et pas minuit: à minuit, un décalage de fuseau d'une heure
+  // renvoie la veille. Midi est à douze heures de chaque bord.
+  const weekday = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC",
+    weekday: "short",
+  }).format(new Date(`${localDate}T12:00:00Z`));
+  return parseDayToken(weekday.toLowerCase());
+}
+
+/**
+ * Le jeton de jour d'une DATE (et non d'un instant + fuseau).
+ *
+ * Miroir serveur de `frontend/src/keel/api/dates.ts::dayTokenOf`, et pour la
+ * même raison que le reste de ce module: la règle qui dit quel jour de semaine
+ * porte une date ne doit exister qu'une fois par côté, sinon les deux dérivent
+ * sur les bords (minuit, changement d'heure) là où c'est invérifiable.
+ *
+ * Midi UTC et pas minuit: à minuit, un décalage d'une heure renvoie la veille.
+ */
+export function dayTokenOfDate(date: string): DayToken {
+  const d = new Date(`${String(date ?? "").trim()}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) {
+    throw new Error(`[keel/local_date] "${date}" is not a real calendar date`);
+  }
+  const week: DayToken[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  return week[d.getUTCDay()];
+}
+
+/** La date décalée de `days` jours. Même ancrage à midi, même raison. */
+export function addDays(date: string, days: number): string {
+  const d = new Date(`${String(date ?? "").trim()}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) {
+    throw new Error(`[keel/local_date] "${date}" is not a real calendar date`);
+  }
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Le nombre de jours de `from` à `to`, négatif si `to` précède `from`.
+ *
+ * Même ancrage à midi que `addDays`, et c'est ce qui compte: une soustraction
+ * de deux `Date` à minuit rend 0,958 jour la nuit d'un changement d'heure, et
+ * un `Math.round` sur un décompte de jours est le genre d'arrondi qui décale
+ * une cadence d'un jour deux fois par an sans que rien ne le signale.
+ */
+export function daysBetween(from: string, to: string): number {
+  const a = new Date(`${String(from ?? "").trim()}T12:00:00Z`);
+  const b = new Date(`${String(to ?? "").trim()}T12:00:00Z`);
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) {
+    throw new Error(`[keel/local_date] "${from}" → "${to}" is not a real range`);
+  }
+  return Math.round((b.getTime() - a.getTime()) / 86_400_000);
+}
+
+/**
+ * Les jetons de jour à partir d'aujourd'hui, en avançant.
+ *
+ * C'est ce qui fait qu'un plan demandé un mercredi commence MERCREDI. Sans lui,
+ * le modèle repart de lundi par habitude et rend trois jours déjà passés —
+ * défaut mesuré, et l'élève lit un plan dont la moitié est périmée à la
+ * livraison.
+ */
+export function daysFrom(start: DayToken, count: number): DayToken[] {
+  const week: DayToken[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+  const at = week.indexOf(start);
+  if (at < 0) return week.slice(0, Math.max(0, count));
+  const out: DayToken[] = [];
+  for (let i = 0; i < Math.max(0, count); i++) {
+    out.push(week[(at + i) % 7]);
+  }
+  return out;
+}
+
+/**
+ * D'AUJOURD'HUI À DIMANCHE INCLUS — la semaine EN COURS, et pas sept jours.
+ *
+ * ── LE DÉFAUT ─────────────────────────────────────────────────────────────
+ * `daysFrom(today, 7)` remplit sept jours glissants. Généré un jeudi, le plan
+ * couvrait jeudi→mercredi, donc lundi, mardi et mercredi de la semaine
+ * SUIVANTE. L'écran s'appelle « My week's plan », l'élève lit une semaine, et
+ * il en recevait une qui débordait sur la prochaine — avec des courses pour
+ * dix jours et des plats qu'il ne ferait jamais.
+ *
+ * La semaine se termine DIMANCHE, comme partout ailleurs dans ce dépôt
+ * (`currentMonday`, `week_start`). Un plan fait le jeudi couvre donc quatre
+ * jours, et c'est correct: c'est ce qu'il reste de la semaine.
+ *
+ * ── LE DIMANCHE, IL RESTE UN JOUR ─────────────────────────────────────────
+ * Et on le rend tel quel plutôt que d'enchaîner sur la semaine d'après. Étendre
+ * en douce ferait qu'un plan « de la semaine » signifierait deux choses selon
+ * le jour où on clique — et l'élève qui veut sa semaine suivante la génère le
+ * lundi, ce que la copie de l'écran peut dire.
+ */
+export function daysUntilSunday(start: DayToken): DayToken[] {
+  const week: DayToken[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+  const at = week.indexOf(start);
+  if (at < 0) return week;
+  return week.slice(at);
+}

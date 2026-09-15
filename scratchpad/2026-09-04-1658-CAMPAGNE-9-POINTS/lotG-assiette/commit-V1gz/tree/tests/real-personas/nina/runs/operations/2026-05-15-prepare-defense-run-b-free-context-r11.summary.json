@@ -1,0 +1,69 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r11-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Ce soir je vois un moment à protéger, même si ce n’est pas dans mon plan officiel : en rentrant, le téléphone finit près du canapé, je scrolle, puis l’envie de snack arrive. J’aimerais juste éviter que ça démarre.",
+    "assistant": "Voici ta carte de défense :\nLe moment : Le soir, en rentrant, le téléphone est près du canapé.\nLe piège : Le téléphone est près du canapé, je commence à scroller.\nMon geste : Ranger le téléphone directement en rentrant.\nPlan B : Si je commence à scroller, je pose le téléphone et je me lève.\nOn valide ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Défense contre le grignotage du soir",
+          "plan_b": "Si je commence à scroller, je pose le téléphone et je me lève.",
+          "signal": "Le téléphone est près du canapé, je commence à scroller.",
+          "trigger": "Le téléphone finit près du canapé, je scrolle, puis l’envie de snack arrive.",
+          "situation": "Le soir, en rentrant, le téléphone est près du canapé.",
+          "target_label": "Grignotage après le scrolling",
+          "why_it_helps": "Évite le déclencheur du scrolling et l'envie de grignoter.",
+          "fallback_plan": "Si je commence à scroller, je pose le téléphone et je me lève.",
+          "impulse_label": "Envie de grignoter",
+          "risk_situation": "Le soir, en rentrant, le téléphone est près du canapé.",
+          "generic_defense": "Éloigner le déclencheur",
+          "defense_response": "Ranger le téléphone directement en rentrant."
+        },
+        "output_schema": "defense_card_draft_v1",
+        "operation_type": "prepare_defense_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ta carte de défense :\nLe moment : Le soir, en rentrant, le téléphone est près du canapé.\nLe piège : Le téléphone est près du canapé, je commence à scroller.\nMon geste : Ranger le téléphone directement en rentrant.\nPlan B : Si je commence à scroller, je pose le téléphone et je me lève.\nOn valide ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "b66a8e71-d380-493d-af7f-fc2d7d141f66",
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "Ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r11-t01",
+    "trace_error": null
+  }
+]

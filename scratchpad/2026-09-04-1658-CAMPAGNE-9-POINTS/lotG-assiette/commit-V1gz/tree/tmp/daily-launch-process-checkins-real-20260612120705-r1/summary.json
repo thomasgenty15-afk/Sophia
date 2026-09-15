@@ -1,0 +1,42 @@
+{
+  "runId": "daily-launch-process-checkins-real-20260612120705-r1",
+  "runDir": "/Users/ahmedamara/Dev/Sophia 2/tmp/daily-launch-process-checkins-real-20260612120705-r1",
+  "ok": true,
+  "runError": null,
+  "httpStatus": 200,
+  "processResponse": {
+    "success": true,
+    "processed": 1,
+    "flushed_deferred": 0,
+    "delivered_rendez_vous": 0,
+    "processed_access_notifications": 0,
+    "processed_proactive_candidates": 0,
+    "request_id": "daily-launch-process-checkins-real-20260612120705-r1-process"
+  },
+  "checkinStatus": "awaiting_user",
+  "pendingCount": 1,
+  "messageCount": 1,
+  "opening": "Je reviens sur “Faire un sas de décompression (sans fumer)” (les deux occurrences à passer en revue).\nComment ça s’est passé pour toi ?",
+  "pendingPayloadKeys": [
+    "targets",
+    "timezone",
+    "local_date",
+    "message_mode",
+    "review_state",
+    "draft_message",
+    "event_context",
+    "occurrence_ids",
+    "chat_capability",
+    "grouping_reason",
+    "week_start_date",
+    "asked_occurrence_ids",
+    "action_evening_review",
+    "already_resolved_targets",
+    "initial_note_information",
+    "not_yet_asked_occurrence_ids"
+  ],
+  "targetTitles": [
+    "Faire un sas de décompression (sans fumer)",
+    "Faire un sas de décompression (sans fumer)"
+  ]
+}

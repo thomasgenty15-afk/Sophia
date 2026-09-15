@@ -1,0 +1,1820 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t01",
+    "user": "hey, j'ai un petit truc pro a poser",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t01",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Yes, vas-y 🙂  \nC’est quoi le truc pro à poser ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t01",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "1663f977-3cf4-45d5-a58d-bdc6332d07f6",
+        "ts": "2026-05-06T08:20:54.603+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 503,
+          "latency_ms": 7156,
+          "tokens_out": 241,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "reasoning": "L'utilisateur annonce une demande d'ordre professionnel sans donner de détails. Aucun item n'est présent dans le plan actuel, une phase de planification ou une réponse conversationnelle d'ouverture est nécessaire.",
+            "target_id": null
+          },
+          "signals": [
+            {
+              "type": "intent",
+              "value": "professional_query_initiation",
+              "evidence": "j'ai un petit truc pro a poser"
+            },
+            {
+              "type": "sentiment",
+              "value": "neutral",
+              "evidence": "hey, j'ai un petit truc pro a poser"
+            }
+          ],
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t01",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "safety_pregate": "low",
+          "tool_skill_intents": [],
+          "source_message_id": "1663f977-3cf4-45d5-a58d-bdc6332d07f6",
+          "confirmation_classification": null,
+          "operation_intake_classification": null
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 8197,
+        "created_at": "2026-05-06T08:20:54.605541+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t02",
+    "user": "c'est une ouverture de presentation client pour jeudi, pas un enorme sujet",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t02",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok nickel 🙂 Tu veux juste une phrase d’accroche + 2-3 repères pour ton ouverture, c’est ça ?\n\nDis-moi : c’est plutôt un ton “simple/convivial” ou “corporate/structuré”, et ton client c’est quel secteur ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t02",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "c1ed4269-ae7b-4629-a15c-4db68a83732e",
+        "ts": "2026-05-06T08:21:03.676+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 550,
+          "latency_ms": 7155,
+          "tokens_out": 390,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t02",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "memory_update": {
+            "key_entities": [
+              "présentation client",
+              "jeudi"
+            ],
+            "context_notes": "Sujet qualifié de 'pas énorme' par l'utilisateur.",
+            "user_preferences": []
+          },
+          "skill_routing": {
+            "skill_id": "content_generation",
+            "target_id": null,
+            "confidence": 0.9,
+            "routing_logic": "L'utilisateur sollicite de l'aide pour rédiger une ouverture de présentation. Cela relève de la génération de contenu ou de l'assistance à la rédaction."
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "Demande professionnelle standard concernant la rédaction d'une introduction de présentation client.",
+            "risk_band": "low"
+          },
+          "operation_intake": {
+            "parameters": {
+              "scale": "petit sujet",
+              "subject": "ouverture de présentation client",
+              "deadline": "jeudi"
+            },
+            "operation_type": "draft_content",
+            "completeness_score": 0.7
+          },
+          "topic_management": {
+            "status": "active",
+            "summary": "Rédaction d'une introduction pour une présentation client prévue jeudi.",
+            "topic_id": "client_presentation_opening",
+            "is_new_topic": true
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "c1ed4269-ae7b-4629-a15c-4db68a83732e",
+          "intent_classification": {
+            "confidence": 0.95,
+            "primary_intent": "skill_routing",
+            "detected_signals": [
+              "description d'une tâche spécifique",
+              "échéance temporelle (jeudi)",
+              "contexte professionnel"
+            ]
+          },
+          "pending_tool_skill_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 8155,
+        "created_at": "2026-05-06T08:21:03.677711+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t03",
+    "user": "avant d'ecrire je veux juste le dire a voix haute deux minutes",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t03",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok. Lance-toi 2 minutes, sans te juger, juste ce que tu veux dire au client. 🎤🙂\n\nPendant ce temps, garde juste en tête 3 repères : 1) pourquoi vous êtes là, 2) ce que le client va y gagner, 3) la transition vers l’ordre du jour.  \nTu veux un ton plutôt simple/convivial ou corporate/structuré ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t03",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "4c2afcac-c9b0-4367-927d-34d6d8dbc474",
+        "ts": "2026-05-06T08:21:10.607+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 632,
+          "latency_ms": 4728,
+          "tokens_out": 271,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "reasoning": "L'utilisateur propose une méthode de travail (réflexion à voix haute/vocal). Sophia doit valider cette approche et se mettre en position d'écoute pour recueillir les éléments.",
+            "target_id": "assistant"
+          },
+          "signals": [
+            {
+              "type": "intent",
+              "value": "process_preference",
+              "evidence": "L'utilisateur souhaite s'exprimer à voix haute avant de passer à l'écrit."
+            },
+            {
+              "type": "topic",
+              "value": "client_presentation",
+              "evidence": "Contexte d'une ouverture de présentation client pour jeudi."
+            }
+          ],
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t03",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "Discussion professionnelle standard sans risque détecté.",
+            "risk_band": "low"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "4c2afcac-c9b0-4367-927d-34d6d8dbc474",
+          "operation_intake_classification": null,
+          "pending_operation_classification": null
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 6099,
+        "created_at": "2026-05-06T08:21:10.608775+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t04",
+    "user": "je bloque sur les deux premieres phrases; je veux que ce soit nickel et ca me fige",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t04",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah ouais… classique le cerveau qui “sauvegarde” tant que c’est pas parfait 😅 On va te débloquer sans te demander d’être brillant d’un coup.\n\nEssaie ce format pour les 2 premières phrases (ça enlève la pression) :\n1) une phrase “j’ouvre” simple (remerciement + contexte)\n2) une phrase “promesse” (ce que ça va changer pour eux)\n\nMaintenant, dis-moi juste A ou B pour le style :\nA) simple et convivial  \nB) corporate et structuré ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t04",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "a322d685-a13f-41d1-9521-f5826b747784",
+        "ts": "2026-05-06T08:21:27.013+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 743,
+          "latency_ms": 14202,
+          "tokens_out": 255,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t04",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "reasoning": "L'utilisateur verbalise explicitement que le perfectionnisme le 'fige'. Le dispatcher identifie un besoin de coaching ou de soutien empathique pour lever ce blocage avant de revenir à la rédaction de l'ouverture de présentation.",
+          "target_id": null,
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "entry": {
+              "execution_breakdown": {
+                "reason": "execution_blocked",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "safety_evidence": "L'utilisateur exprime un blocage émotionnel et une paralysie face à une tâche (anxiété de performance/perfectionnisme).",
+          "routing_decision": "skill_routing",
+          "safety_risk_band": "low",
+          "tool_skill_intents": [],
+          "source_message_id": "a322d685-a13f-41d1-9521-f5826b747784",
+          "intent_classification": "user_stuck_perfectionism"
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 15582,
+        "created_at": "2026-05-06T08:21:27.01479+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t05",
+    "user": "je vise seulement une version brouillon en dix minutes, meme pas jolie",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t05",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Parfait. Là ton objectif n’est pas “nickel”, c’est “ça sort”. Et en 10 minutes, tu peux sortir un brouillon vraiment moche sans culpabiliser 😅\n\nOption ultra simple pour les 2 premières phrases (tu les dis à voix haute) :\n1) “Merci d’être là, [prénom/équipe]. Je voulais prendre 2 minutes pour vous situer le contexte.”\n2) “L’idée, c’est de vous aider à [bénéfice concret] dès maintenant, puis de passer à [prochain sujet / agenda].”\n\nTu veux que je te propose une version A (plus chaleureux) ou B (plus corporate) ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t05",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "828ef7a5-6bac-4af5-a1e0-1388072a2460",
+        "ts": "2026-05-06T08:21:39.759+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 914,
+          "latency_ms": 10292,
+          "tokens_out": 248,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "reasoning": "L'utilisateur valide la stratégie de déblocage en abaissant volontairement ses attentes (brouillon, pas joli) et en fixant une contrainte de temps (10 min). On reste dans le skill execution_breakdown pour produire ce premier jet rapide sans viser la perfection.",
+            "target_id": null
+          },
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t05",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "detected_signals": [
+            "perfectionism_bypass_strategy",
+            "time_constraint_explicit",
+            "low_quality_acceptance"
+          ],
+          "safety_risk_band": "low",
+          "tool_skill_intents": [],
+          "source_message_id": "828ef7a5-6bac-4af5-a1e0-1388072a2460",
+          "pending_tool_skill_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 11918,
+        "created_at": "2026-05-06T08:21:39.760308+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t06",
+    "user": "donc trois idees brutes, sans style, ca suffit pour lancer le mouvement ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t06",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui, largement. 3 idées brutes sans style, ça suffit pour lancer le mouvement. 😅  \nLe cerveau n’a pas besoin d’être “joli” au début, juste d’avoir de la matière.\n\nVas-y: tu veux viser plutôt une accroche “je vous remercie + contexte” ou “voilà pourquoi on est là” ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t06",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "f3fe2f91-f2af-46f2-9a0b-00a50f6a40f3",
+        "ts": "2026-05-06T08:21:48.104+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 1042,
+          "latency_ms": 6490,
+          "tokens_out": 230,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "reasoning": "L'utilisateur demande une validation de la méthode incrémentale (brouillon brut) proposée pour débloquer sa rédaction.",
+            "target_id": "execution_breakdown",
+            "confidence": 0.98
+          },
+          "signals": [
+            {
+              "signal": "methodology_validation",
+              "evidence": "donc trois idees brutes, sans style, ca suffit pour lancer le mouvement ?"
+            }
+          ],
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t06",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "safety_pregate": "low",
+          "tool_skill_intents": [],
+          "source_message_id": "f3fe2f91-f2af-46f2-9a0b-00a50f6a40f3",
+          "operation_confirmation_classification": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 7525,
+        "created_at": "2026-05-06T08:21:48.105353+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t07",
+    "user": "choisis-moi la toute prochaine action minuscule, pas un plan complet",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t07",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok. La prochaine action minuscule: écris ou dis maintenant tes 2 premières phrases brouillon de ton ouverture. Pas joli, juste prononçable. 😅\n\nTu les veux plutôt:\nA) “remerciement + contexte”\nB) “voilà pourquoi on est là” ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t07",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "1becd1c0-e311-4920-afa7-4248476affb6",
+        "ts": "2026-05-06T08:21:55.205+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 1056,
+          "latency_ms": 5194,
+          "tokens_out": 265,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t07",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "turn_frame": {
+            "target_id": null,
+            "skill_routing": {
+              "skill_id": "execution_breakdown",
+              "reasoning": "L'utilisateur demande explicitement une 'action minuscule' pour sortir de l'immobilisme, ce qui correspond parfaitement au skill de découpage d'exécution déjà actif.",
+              "confidence": 1
+            },
+            "safety_pregate": {
+              "evidence": "Demande d'aide pour une tâche de rédaction simple sans risque identifié.",
+              "risk_band": "low"
+            },
+            "intent_classification": {
+              "confidence": 1,
+              "primary_intent": "task_execution",
+              "secondary_intent": "reflection"
+            },
+            "operation_confirmation_type": null
+          },
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "source_message_id": "1becd1c0-e311-4920-afa7-4248476affb6"
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 6285,
+        "created_at": "2026-05-06T08:21:55.206098+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 8,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t08",
+    "user": "la je pars en vrille: si je bloque sur si peu, j'ai l'impression d'etre incapable",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t08",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends que tu te dégoûtes un peu là, mais je ne prendrais pas ça comme un verdict fiable sur toi.\n\nUn moment raté peut demander une réparation. Ça ne veut pas dire que toute ta personne est à jeter.\n\nOn garde le fait, pas le verdict.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t08",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "9d50f428-ef69-4bd6-965d-00e5d66f587e",
+        "ts": "2026-05-06T08:22:04.739+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 1043,
+          "latency_ms": 7320,
+          "tokens_out": 386,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t08",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "memory_update": {
+            "update_plan": null,
+            "upsert_entities": [
+              {
+                "value": "high_sensitivity_to_initial_friction",
+                "entity_id": "user_perfectionism_trigger",
+                "confidence": 0.9,
+                "entity_type": "behavioral_trait"
+              }
+            ]
+          },
+          "skill_routing": {
+            "reasoning": "L'utilisateur subit un blocage émotionnel (perfectionnisme/auto-dépréciation) au sein d'un flux de découpage de tâche. Il faut adresser l'émotion pour permettre le retour à l'action minuscule.",
+            "target_skill_id": "execution_breakdown"
+          },
+          "skill_signals": {
+            "entry": {
+              "emotional_repair": {
+                "reason": "self_attack_or_shame",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "L'utilisateur exprime un sentiment d'incapacité et une détresse émotionnelle ('pars en vrille', 'incapable') liée à un blocage sur une tâche simple.",
+            "risk_band": "low"
+          },
+          "topic_analysis": {
+            "status": "active",
+            "current_topic": "blocage_productivite_emotionnel"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "9d50f428-ef69-4bd6-965d-00e5d66f587e",
+          "operation_analysis": null,
+          "flow_state_override": null,
+          "intent_classification": {
+            "confidence": 0.95,
+            "primary_intent": "emotional_support",
+            "secondary_intent": "execution_breakdown"
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_handoff_requested",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "emotional_repair",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "skill_handoff_requested",
+          "selected_skill_id": "emotional_repair"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 8715,
+        "created_at": "2026-05-06T08:22:04.741093+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 9,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t09",
+    "user": "j'ai honte, comme si une simple intro prouvait que je ne suis pas adulte",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t09",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Aïe. Quand la honte monte, elle transforme vite un moment raté en jugement sur toute ta valeur.\n\nIl peut y avoir un fait concret à réparer, oui. Mais “je suis nul” ou “je suis un boulet” sont des conclusions trop dures, pas des faits.\n\nOn sépare juste le moment de ton identité avant de passer à l’action.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t09",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "72585c13-d925-40ba-a4a4-49724c39e6bd",
+        "ts": "2026-05-06T08:22:12.427+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 996,
+          "latency_ms": 5020,
+          "tokens_out": 312,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "skill_id": "emotional_repair",
+            "reasoning": "L'utilisateur est dans une phase de dévalorisation identitaire ('pas adulte', 'honte'). Il est nécessaire de poursuivre le travail de régulation émotionnelle et de dé-stigmatisation du blocage avant toute tentative de retour à l'exécution."
+          },
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t09",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "entry": {
+              "emotional_repair": {
+                "reason": "self_attack_or_shame",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "topic_resolution": null,
+          "tool_skill_intents": [],
+          "safety_assessment": {
+            "signals": [
+              "self_deprecation",
+              "shame"
+            ],
+            "evidence": "L'utilisateur exprime un sentiment de honte intense et une remise en question de son statut d'adulte suite à un blocage sur une tâche simple.",
+            "risk_band": "low"
+          },
+          "source_message_id": "72585c13-d925-40ba-a4a4-49724c39e6bd",
+          "pending_operation_resolution": null,
+          "operation_intake_classification": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "emotional_repair",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "emotional_repair"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 6867,
+        "created_at": "2026-05-06T08:22:12.430611+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 10,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t10",
+    "user": "pas de plan tout de suite; aide-moi juste a arreter de me parler comme ca",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t10",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui, c’est le bon signal : la pression redescend un peu.\n\nOn garde la séparation : un blocage sur l’intro n’est pas une identité. Quand tu reviens au concret, tu n’as pas besoin de te convaincre que tout va bien ; juste de reprendre petit.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t10",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "30e06a66-96a9-4254-ac28-46262216cd65",
+        "ts": "2026-05-06T08:22:20.947+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "tout de suite"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 942,
+          "latency_ms": 5004,
+          "tokens_out": 136,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [
+              "tout de suite"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ]
+          },
+          "channel": "web",
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t10",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "source_message_id": "30e06a66-96a9-4254-ac28-46262216cd65"
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "emotional_repair",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "emotional_repair"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 7617,
+        "created_at": "2026-05-06T08:22:20.950098+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 11,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t11",
+    "user": "la distinction moment pas identite m'aide; donne-moi une phrase courte avant de reprendre",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t11",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Garde une phrase courte, sans te pousser ni te juger :\n\n« Je n’ai pas besoin de me juger pour reprendre. Je peux juste poser une première ligne. »\n\nEt ensuite, seulement une ligne. Pas toute l’intro.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t11",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "a1ac3637-2086-4846-a35a-044974bef501",
+        "ts": "2026-05-06T08:22:27.838+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 939,
+          "latency_ms": 4777,
+          "tokens_out": 298,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "skill_id": "emotional_repair",
+            "reasoning": "L'utilisateur valide l'efficacité du recadrage cognitif (moment vs identité) et demande une transition courte (mantra/phrase) avant de retourner à l'exécution. On reste dans emotional_repair pour fournir cette clôture émotionnelle.",
+            "target_id": null
+          },
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t11",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "memory_update": {
+            "readiness": "ready to resume task",
+            "emotional_state": "stabilizing",
+            "helpful_reframing": "distinction moment vs identité"
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "intent_signals": [
+            {
+              "signal": "emotional_validation",
+              "evidence": "la distinction moment pas identite m'aide"
+            },
+            {
+              "signal": "continuation_request",
+              "evidence": "avant de reprendre"
+            }
+          ],
+          "safety_pregate": "low",
+          "tool_skill_intents": [],
+          "source_message_id": "a1ac3637-2086-4846-a35a-044974bef501",
+          "pending_tool_skill_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "emotional_repair",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "emotional_repair"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 6003,
+        "created_at": "2026-05-06T08:22:27.839659+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 12,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t12",
+    "user": "ok je peux poser une seule ligne avec cette phrase",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t12",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui. Une seule ligne, c’est exactement le bon format.\n\nTu n’as pas besoin de la rendre intelligente maintenant. Tu poses la ligne, tu la laisses exister, et tu ajustes plus tard si nécessaire.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t12",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "311290b1-876d-4749-abce-3bf7e38e80ac",
+        "ts": "2026-05-06T08:22:35.119+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 929,
+          "latency_ms": 5456,
+          "tokens_out": 343,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t12",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "skill_id": "execution_breakdown",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "plan_update": {
+            "action": "continue",
+            "target_id": null
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "routing_intent": "execution",
+          "safety_evidence": "User is transitioning from emotional distress to task engagement.",
+          "skill_reasoning": "User has stabilized emotionally and is ready to perform a micro-action (writing one line). Transitioning back to execution support.",
+          "routing_evidence": "User accepts the suggestion to write one line and use the provided phrase to restart.",
+          "safety_risk_band": "low",
+          "tool_skill_intents": [],
+          "source_message_id": "311290b1-876d-4749-abce-3bf7e38e80ac",
+          "active_topic_state": null,
+          "active_tool_skill_intake": null,
+          "memory_pre_route_snapshot": {
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            }
+          },
+          "confirmation_classification": null,
+          "pending_tool_skill_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "emotional_repair",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "emotional_repair"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 6470,
+        "created_at": "2026-05-06T08:22:35.121772+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 13,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t13",
+    "user": "rappelle-moi demain a 18h de reprendre l'intro pendant 20 minutes",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t13",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C’est programmé pour jeudi 07 mai à 18:00 : reprendre l'intro pendant 20 minutes.",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t13",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "ed58e152-1a8d-405c-bce1-283691294292",
+        "ts": "2026-05-06T08:22:42.585+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "demain"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_tomorrow"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 912,
+          "latency_ms": 6425,
+          "tokens_out": 386,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "0": {
+            "skill_routing": {
+              "routing_logic": "L'utilisateur sort de la phase de régulation émotionnelle pour planifier une action concrète avec un horaire et une durée précise.",
+              "target_skill_id": "execution_breakdown"
+            },
+            "operation_intake": {
+              "params": {
+                "task": "reprendre l'intro",
+                "time": "tomorrow 18:00",
+                "duration": "20 minutes"
+              },
+              "operation_type": "create_reminder"
+            },
+            "topic_management": {
+              "status": "active",
+              "topic_id": "intro_writing"
+            },
+            "safety_assessment": {
+              "evidence": "Demande de rappel standard pour une tâche de rédaction.",
+              "risk_band": "low"
+            },
+            "intent_classification": {
+              "primary_intent": "task_management",
+              "is_confirmation": false,
+              "secondary_intent": "execution_planning",
+              "confirmation_type": null
+            }
+          },
+          "safety": {
+            "evidence": [
+              "demain"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tomorrow"
+            ]
+          },
+          "channel": "web",
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t13",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "entry": {
+              "execution_breakdown": {
+                "reason": "execution_blocked",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [
+            {
+              "effect_type": "create_one_shot_reminder",
+              "explicitness": "explicit",
+              "payload_hint": {
+                "raw_text": "rappelle-moi demain a 18h de reprendre l'intro pendant 20 minutes"
+              },
+              "target_status": "identified",
+              "confidence_band": "high"
+            }
+          ],
+          "tool_skill_intents": [],
+          "source_message_id": "ed58e152-1a8d-405c-bce1-283691294292"
+        },
+        "route_decision": {
+          "reason_code": "skill_handoff_requested",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [
+            "create_one_shot_reminder"
+          ],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "create_one_shot_reminder"
+          }
+        ],
+        "skill_run": {
+          "reason_code": "skill_handoff_requested",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 6655,
+        "created_at": "2026-05-06T08:22:42.589259+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 14,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t14",
+    "user": "j'ai pose une ligne, elle est imparfaite mais je respire mieux",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t14",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Yes. Ça y est, tu as prouvé un truc important : tu peux reprendre sans te juger. 😮‍💨✨\n\nMaintenant, garde le même esprit: 20 secondes sans améliorer. Juste dire dans ta tête “c’est une base” et revenir à une seule micro-étape de suite (même minuscule).  \n\nTu veux faire la prochaine action tout de suite ou tu préfères la laisser pour l’horaire de jeudi 18h ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t14",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "2fbb84f6-dee7-4938-9f38-5709ff78ed88",
+        "ts": "2026-05-06T08:22:53.401+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 853,
+          "latency_ms": 8573,
+          "tokens_out": 291,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "skill_id": "execution_breakdown",
+            "reasoning": "L'utilisateur a suivi la stratégie de la micro-étape (une seule ligne). On reste dans ce skill pour valider ce succès et stabiliser l'état émotionnel positif.",
+            "confidence": 0.95
+          },
+          "turn_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t14",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "memory_updates": [
+            {
+              "key": "emotional_state",
+              "value": "soulagement après action",
+              "confidence": 0.9
+            },
+            {
+              "key": "last_action_result",
+              "value": "une ligne posée malgré l'imperfection",
+              "confidence": 1
+            }
+          ],
+          "safety_signals": [
+            {
+              "evidence": "L'utilisateur exprime un soulagement émotionnel ('je respire mieux') après avoir accompli une micro-tâche.",
+              "risk_band": "low"
+            }
+          ],
+          "operation_intake": null,
+          "tool_skill_intents": [],
+          "source_message_id": "2fbb84f6-dee7-4938-9f38-5709ff78ed88",
+          "pending_tool_skill_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 9900,
+        "created_at": "2026-05-06T08:22:53.403278+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 15,
+    "requestId": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t15",
+    "user": "on stoppe la; fais-moi un recap sobre de ce qu'on garde",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-normal-exec-emotion-tool-15t-2026-05-06-r9-t15",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-flow-normal-exec-emotion-tool-15t-2026-05-06-r9",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "On garde trois choses :\n\n- Un blocage est un fait ponctuel, pas un verdict sur ton identité.\n- Une première ligne imparfaite peut suffire à relancer le mouvement.\n- Reprendre petit protège mieux que se forcer à tout résoudre d’un coup.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "8f2a3b1c-4d5e-6f7a-8b9c-0d1e2f3a4b5c",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "b574225c-2883-42e6-8d88-82ed38474701",
+        "ts": "2026-05-06T08:23:02.603+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 879,
+          "latency_ms": 8312,
+          "tokens_out": 409,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "signals": {
+            "evidence": "User explicitly said 'on stoppe la' and 'fais-moi un recap sobre'.",
+            "stop_signal": true,
+            "summary_signal": true,
+            "onboarding_signal": false
+          },
+          "turn_id": "8f2a3b1c-4d5e-6f7a-8b9c-0d1e2f3a4b5c",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "memory_update": {
+            "key_takeaways": [
+              "Distinction entre un moment difficile et l'identité personnelle",
+              "Phrase d'ancrage : 'Je n’ai pas besoin de me juger pour reprendre. Je peux juste poser une première ligne.'",
+              "Succès d'une micro-action : une seule ligne posée sans jugement",
+              "Rappel programmé pour demain 18h (reprendre l'intro pendant 20 minutes)"
+            ],
+            "user_preferences": [
+              "Recaps sobres",
+              "Micro-actions (une seule ligne)",
+              "Approche déculpabilisante"
+            ]
+          },
+          "skill_routing": {
+            "routing_logic": "The user wants to stop the current session and requests a summary of the key takeaways and the next steps already planned.",
+            "target_skill_id": "execution_breakdown"
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "topic_routing": null,
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "User is requesting a session closure and a summary of the conversation.",
+            "risk_band": "low"
+          },
+          "operation_intake": null,
+          "tool_skill_intents": [],
+          "source_message_id": "b574225c-2883-42e6-8d88-82ed38474701",
+          "intent_classification": {
+            "primary_intent": "session_closure",
+            "secondary_intent": "summary_request",
+            "confirmation_type": null,
+            "is_operation_confirmation": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 8380,
+        "created_at": "2026-05-06T08:23:02.60483+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

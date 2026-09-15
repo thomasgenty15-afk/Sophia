@@ -1,0 +1,12 @@
+l'index foyer relit ses bacs après dimensionnement et donne au compteur le servi estimé des journées « bac commun seul »
+
+Suite d'ea641803 : `unmetDemand` recevait un `tubServed` optionnel que personne ne nourrissait.
+L'index foyer relit désormais les contenants APRÈS dimensionnement (`boxEnergies` sur les
+grammes que le bac porte vraiment) et, pour chaque bac à plusieurs noms, ajoute
+`kcal / mangeurs` au servi estimé de chaque bouche-jour ; un bac illisible rend `null`,
+jamais zéro. `unmetDemand` en fait la cause `tub_estimate` sur les journées `common_pot_day`
+— un compteur, jamais un chiffre au nom de quelqu'un sur un couvercle, jamais un facteur.
+Sur le quatre du 06/09 02:10, ce sont 14 journées-bouche sur 21 qui entrent enfin dans
+`unmet` et `unmet_band`.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

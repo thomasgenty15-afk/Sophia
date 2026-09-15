@@ -1,0 +1,22 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-keyword-stop-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "STOP",
+    "assistant": "Ok. On coupe la négociation maintenant.\nPremier geste: ouvre le sas de déchargement et fais seulement 1 minute sur Faire le sas de déchargement.\nPas besoin de finir; il faut juste lancer.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

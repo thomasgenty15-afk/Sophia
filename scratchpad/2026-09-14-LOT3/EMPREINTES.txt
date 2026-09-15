@@ -1,0 +1,41 @@
+# MANIFESTE D'EMPREINTES — lot 3A, code figé
+# ⛔ L'arbre est PARTAGÉ: aucun commit. Ce fichier tient lieu de commit gelé.
+# Toute mesure du lot 3 décrit CE code-là, et rien d'autre.
+# produit le 2026-09-14T03:55:07Z
+
+## sources de la lane
+2dcce541d11fbfda  supabase/functions/generate-household-meal-v1/index.ts
+8c26a020632f5324  supabase/functions/_shared/keel/final_plan_gate.ts
+2f9e9d42f580836f  supabase/functions/_shared/keel/meal_generation.ts
+2d0bc3a317691021  supabase/functions/_shared/keel/household_cells.ts
+174996d18d5912a0  supabase/functions/_shared/keel/household_diet.ts
+4eeb944153c5a6ce  supabase/functions/_shared/keel/portion_sizing.ts
+764d22bf353c67fe  supabase/functions/_shared/keel/portion_boundary.ts
+9178f8734b74e6f9  supabase/functions/_shared/keel/slot_nutrition_contract.ts
+b8fd0ece216ec9b2  supabase/functions/_shared/keel/plan_publication.ts
+9f239d6e0ab90f33  supabase/functions/_shared/keel/final_plan_audit.ts
+51f2d0be82633898  supabase/functions/_shared/keel/box_densify.ts
+e1915fef6ba8517a  supabase/functions/_shared/keel/model_call_failure.ts
+d91d9489a796426e  supabase/functions/_shared/keel/generation_model.ts
+beddc6ce0ba98f94  supabase/functions/_shared/gemini.ts
+
+## migrations du lot 2
+fd7f5562821a6887  supabase/migrations/20260914100000_une_seule_generation_a_la_fois_par_foyer.sql
+5712b4a34fa295c7  supabase/migrations/20260914110000_un_frein_pour_la_beta_sans_couper_la_lecture.sql
+
+## front
+2af558941494faec  frontend/src/keel/api/planDraft.ts
+40b8ff692f1a7e46  frontend/src/keel/api/mealGeneration.ts
+7fdc319737a44ae5  frontend/src/keel/copy/planRefusals.ts
+
+## références rejouées
+eee018d783413309  scratchpad/2026-09-13-CIBLES-PAR-PERSONNE/references/ref1.json
+dce9fe5b5ae70c6d  scratchpad/2026-09-13-CIBLES-PAR-PERSONNE/references/ref2.json
+217126d5ef8ef673  scratchpad/2026-09-13-RESTE-A-FERMER/ref4-lot3a.json
+
+## configuration
+read_timeout:600000  kong read_timeout (poste de dev, relevé)
+150000  kong read_timeout HÉBERGÉ (kong.yml d'origine)
+PLAN_COMPOSITION_REASONING_EFFORT = "high"
+PLAN_MODEL_REPAIR_BUDGET = 2
+PLAN_REQUEST_BUDGET_MS = 380_000

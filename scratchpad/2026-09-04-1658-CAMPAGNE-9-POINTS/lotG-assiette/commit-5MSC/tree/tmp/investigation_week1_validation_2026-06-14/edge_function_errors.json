@@ -1,0 +1,11 @@
+{
+  "ok": false,
+  "status": 404,
+  "count": null,
+  "body": {
+    "code": "PGRST205",
+    "details": null,
+    "hint": "Perhaps you meant the table 'public.communication_logs'",
+    "message": "Could not find the table 'public.edge_function_errors' in the schema cache"
+  }
+}

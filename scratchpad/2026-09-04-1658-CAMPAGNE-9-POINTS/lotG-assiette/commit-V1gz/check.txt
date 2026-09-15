@@ -1,0 +1,3 @@
+préférence contre exclusion — le bloc nomme la paire et demande le composant séparé par boîte ; absent sans paire ... FAILED (10ms)
+① le millésime vivant est inscrit, et son empreinte est le texte servi ... FAILED (5ms)
+FAILED | 5585 passed | 2 failed | 1 ignored (36s)

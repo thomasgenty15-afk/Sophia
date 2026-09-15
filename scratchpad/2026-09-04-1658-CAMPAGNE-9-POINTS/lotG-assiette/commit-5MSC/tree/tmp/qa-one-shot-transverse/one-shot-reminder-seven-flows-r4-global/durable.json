@@ -1,0 +1,65 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "820fdc10-911e-4b84-a3c2-492544c19423",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T08:15:00+00:00",
+      "event_context": "one_shot_reminder:relire_la_synthese_avant_mon_point",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: relire la synthèse avant mon point.",
+        "local_label": "demain à 10h15",
+        "parse_source": "payload_utc_time",
+        "request_text": "Rappelle-moi demain à 10h15 de relire la synthèse avant mon point.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: relire la synthèse avant mon point.",
+        "source_message_id": "a84c2d60-4ba8-451a-9bd6-9ca1790a4738",
+        "reminder_instruction": "relire la synthèse avant mon point"
+      },
+      "created_at": "2026-06-24T15:23:29.440504+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Rappelle-moi demain à 10h15 de relire la synthèse avant mon point.",
+      "created_at": "2026-06-24T15:23:25.669204+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r4-global-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C’est noté pour demain à 10h15 : relire la synthèse avant ton point. ✅",
+      "created_at": "2026-06-24T15:23:30.526478+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r4-global-t01",
+        "route_owner": "normal_reply",
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "1988e2ef-7ec0-4ecc-9a35-46963d1a51f0",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "companion_question_rhythm": {
+        "preference": "normal",
+        "recent_turns": [
+          0
+        ],
+        "last_updated_at": "2026-06-24T15:23:30.501Z",
+        "last_turn_had_question": false,
+        "turns_since_last_question": 1
+      }
+    },
+    "updated_at": "2026-06-24T15:23:30.522436+00:00"
+  }
+}

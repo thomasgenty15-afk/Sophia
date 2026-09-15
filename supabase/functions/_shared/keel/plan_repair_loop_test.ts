@@ -10,6 +10,7 @@ import type { GateRefusal } from "./final_plan_gate.ts";
 import {
   CANDIDATE_VERDICTS,
   compareSafety,
+  defectsForRepairAttempt,
   fallbackTimeoutMs,
   judgeCandidate,
   orderDefects,
@@ -24,6 +25,15 @@ import {
 
 function defaut(over: Partial<RepairDefect> = {}): RepairDefect {
   return {
+    // ⟳ 2026-09-12 · FERMETURE LOT 1 — L'ADRESSE STRUCTURÉE. Requise et
+    // nullable: un défaut fabriqué à la main dit explicitement qu'il n'en porte
+    // pas, au lieu de laisser le champ absent parler à sa place.
+    cause: null,
+    date: null,
+    preparationId: null,
+    // ⟳ 2026-09-13 · LOT 2 — `sessionIndex` est REQUIS et nullable.
+    sessionIndex: null,
+    source: "gate",
     kind: "sizing",
     day: "mon",
     slot: "lunch",
@@ -37,6 +47,11 @@ function defaut(over: Partial<RepairDefect> = {}): RepairDefect {
     // exactement comme avant, au COMPTE. Les cas qui exercent l'ampleur la
     // passent explicitement.
     magnitude: null,
+    // ⟳ 2026-09-12 · LOT 2 — `measure` est REQUIS pour la même raison que
+    // `magnitude`: un champ facultatif ferait de « pas de mesure » la réponse
+    // silencieuse de tous les appelants. La fixture par défaut n'en porte pas;
+    // les cas qui l'exercent la passent explicitement.
+    measure: null,
     ...over,
   };
 }
@@ -85,6 +100,18 @@ Deno.test("à nature égale, l'ordre est STABLE — deux runs restent comparable
   const b = defaut({ kind: "sizing", day: "mon", slot: "lunch", dish: "B" });
   assertEquals(orderDefects([a, b]).map((d) => d.dish), ["A", "B"]);
   assertEquals(orderDefects([b, a]).map((d) => d.dish), ["B", "A"]);
+});
+
+Deno.test("un repas absent part avant les finitions, sans jamais différer la sécurité", () => {
+  const safety = defaut({ kind: "safety", detail: "allergène" });
+  const missing = defaut({ kind: "missing_meal", detail: "dîner absent" });
+  const refs = defaut({ kind: "preference", detail: "ref absente" });
+  const sizing = defaut({ kind: "sizing", detail: "densité" });
+  assertEquals(
+    defectsForRepairAttempt([refs, missing, sizing, safety]),
+    [safety, missing],
+  );
+  assertEquals(defectsForRepairAttempt([refs, sizing]), [sizing, refs]);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

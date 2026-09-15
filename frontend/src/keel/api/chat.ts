@@ -185,6 +185,30 @@ export type SendPayload =
 export type SendResult = {
   ok: boolean;
   duplicate?: boolean;
+  /**
+   * ⟳ LE SERVEUR DISAIT DÉJÀ ÇA, ET PERSONNE NE LE LISAIT.
+   *
+   * `chat-inbound-v1` rend `{ ok: true, delivered: false, delivery_reason }`
+   * quand le tour a été joué mais qu'AUCUNE bulle n'est partie —
+   * `deliverChatMessage` refuse un contenu vide (`empty_content`) ou un élève
+   * inconnu (`unknown_user`). Le tour est un SUCCÈS HTTP, et pourtant il n'y
+   * aura jamais de réponse à afficher.
+   *
+   * MESURÉ AU NAVIGATEUR: sans ce champ, `sendChatMessage` rendait `ok: true`,
+   * l'écran partait en `refetch()`, et « Sophia écrit… » tournait ENCORE 20 s
+   * plus tard, sans une ligne d'erreur. C'est la dernière façon d'obtenir « ça
+   * répond pas » sans que rien ne le dise — et le texte vide est atteignable
+   * par construction: `finalVisibleText` est une chaîne de RETRAITS
+   * (`stripHiddenHtmlComments`, `stripDeprecatedProductVocabulary`,
+   * `stripForeignScriptTokens`…) et rien n'y pose de plancher.
+   *
+   * ⛔ TRI-ÉTAT, ET IL LE RESTE. `undefined` veut dire « le serveur n'a pas
+   * parlé de livraison », ce qui est le cas NORMAL de deux réponses sur trois:
+   * un bouton déterministe rend `{ ok, handled_by }` et un rejeu rend
+   * `{ ok, duplicate }` — ni l'un ni l'autre ne porte `delivered`. Le réduire
+   * à un booléen ferait traiter ces deux-là comme des non-livraisons.
+   */
+  delivered?: boolean;
   error?: string;
 };
 
@@ -218,9 +242,19 @@ export async function sendChatMessage(
   if (error) {
     return { ok: false, error: error.message ?? "send_failed" };
   }
-  const result = (data ?? {}) as { ok?: boolean; duplicate?: boolean; error?: string };
+  const result = (data ?? {}) as {
+    ok?: boolean;
+    duplicate?: boolean;
+    delivered?: boolean;
+    error?: string;
+  };
   if (result.error) return { ok: false, error: result.error };
-  return { ok: result.ok !== false, duplicate: result.duplicate === true };
+  return {
+    ok: result.ok !== false,
+    duplicate: result.duplicate === true,
+    // `=== false` et pas `!== true`: voir le tri-état de `SendResult`.
+    ...(result.delivered === false ? { delivered: false } : {}),
+  };
 }
 
 // ── LA FUSION DE LISTE ──────────────────────────────────────────────────────

@@ -59,6 +59,7 @@ const MOUTH = (over: Partial<PortionMember> = {}): PortionMember => ({
   habits: [],
   habitNote: null,
   requiredDensity: null,
+  proteinBrief: null,
   ...over,
 });
 

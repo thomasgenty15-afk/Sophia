@@ -1,0 +1,1294 @@
+{
+  "run_id": "qa-one-shot-coaching-20260624-r1",
+  "scope": "qa-normal-conversation-qa-one-shot-coaching-20260624-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-qa-one-shot-coaching-20260624-r1-1782300463598@example.com",
+  "user_id": "e9425670-f0e0-4b00-bf51-b223710360f9",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJlOTQyNTY3MC1mMGUwLTRiMDAtYmY1MS1iMjIzNzEwMzYwZjkiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgyMzA0MDYzLCJpYXQiOjE3ODIzMDA0NjMsImVtYWlsIjoicWEtbm9ybWFsLXFhLW9uZS1zaG90LWNvYWNoaW5nLTIwMjYwNjI0LXIxLTE3ODIzMDA0NjM1OThAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoicWEtbm9ybWFsLXFhLW9uZS1zaG90LWNvYWNoaW5nLTIwMjYwNjI0LXIxLTE3ODIzMDA0NjM1OThAZXhhbXBsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNfdGVzdF9wZXJzb25hIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInFhX3J1bl9pZCI6InFhLW9uZS1zaG90LWNvYWNoaW5nLTIwMjYwNjI0LXIxIiwic3ViIjoiZTk0MjU2NzAtZjBlMC00YjAwLWJmNTEtYjIyMzcxMDM2MGY5In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODIzMDA0NjN9XSwic2Vzc2lvbl9pZCI6IjhhNjk1NzFjLTg2YjMtNDI4Yy04YTAzLTcyMTEyYzczMThiYSIsImlzX2Fub255bW91cyI6ZmFsc2V9.MC3T6cdbVlVatqfcpAo2dyYc2ozNztthuh4gTJLw18s",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-24T11:27:44.043Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-24T11:28:33.270Z",
+      "user": "Je bloque ce soir sur le rangement, je sais que je dois commencer mais je repousse. Quelle recommandation Sophia tu me proposes ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je te propose une carte d’attaque pour le rangement.  \nÇa colle bien quand l’action est claire mais que le vrai blocage, c’est le démarrage.\n\nL’idée: réduire la friction au tout premier geste, pas te forcer à “faire tout le rangement”. 🙂",
+      "trace_short": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "coaching_recommendation_exit_to_global",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-24T11:28:33.225Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                }
+              },
+              "updated_at": "2026-06-24T11:28:33.236839+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "qa-one-shot-coaching-20260624-r1-t01",
+        "user_id": "e9425670-f0e0-4b00-bf51-b223710360f9",
+        "channel": "web",
+        "scope": "qa-normal-conversation-qa-one-shot-coaching-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te propose une carte d’attaque pour le rangement.  \nÇa colle bien quand l’action est claire mais que le vrai blocage, c’est le démarrage.\n\nL’idée: réduire la friction au tout premier geste, pas te forcer à “faire tout le rangement”. 🙂",
+          "mode": "companion",
+          "delivery": {
+            "mode": "text_reply"
+          },
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-one-shot-coaching-20260624-r1-t01",
+              "source_message_id": "f8969953-df00-4fc5-898e-d05c523a5a36",
+              "user_id": "e9425670-f0e0-4b00-bf51-b223710360f9",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "blocked_action_coaching_need",
+                  "context": {
+                    "coaching_type": "no_plan_action",
+                    "confidence": 0.88,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": false,
+                      "is_about_non_plan_action": true,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": false,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "free",
+                      "plan_item_id": null,
+                      "action_title": "rangement",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": {
+                      "state_hint": "procrastination / repousse",
+                      "intensity": "medium"
+                    },
+                    "reason": "User asks what recommendation Sophia proposes for a concrete blocked action (starting tidying) that is not tied to an identified plan item."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "coach_blocked_action",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_exit_to_global",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-one-shot-coaching-20260624-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "exit",
+              "latency_ms": 18948,
+              "exit_target": "global",
+              "exit_note_information": {
+                "source_flow_id": "coaching_recommendation",
+                "handoff_reason": "topic_change",
+                "target_dispatcher": "global",
+                "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"Le user bloque sur une action concrète hors plan: commencer le rangement ce soir, avec report / procrastination au démarrage.\",\"active_flow_summary\":\"coaching_recommendation helps choose a Sophia feature and never executes tools.\",\"collected_state\":{\"user_need_summary\":\"User asks what recommendation Sophia proposes for a concrete blocked action (starting tidying) that is not tied to an identified plan item.\",\"candidate_features\":[{\"feature\":\"attack_card\",\"fit\":\"medium\",\"why\":\"L'action est identifiable mais le blocage est au moment de démarrer; une carte d'attaque aide à préparer l'entrée dans l'action et réduire la friction.\",\"destination_hint\":null}],\"current_recommendation\":\"attack_card\",\"parent_context\":null,\"dispatcher_signal_context\":{\"coaching_type\":\"no_plan_action\",\"confidence\":0.88,\"activation_checks\":{\"is_coaching_need\":true,\"is_about_plan_action\":false,\"is_about_non_plan_action\":true,\"is_about_emotional_state\":false,\"has_concrete_plan_action\":false,\"needs_type_confirmation\":false},\"action_context\":{\"source\":\"free\",\"plan_item_id\":null,\"action_title\":\"rangement\",\"plan_id\":null,\"plan_title\":null,\"action_type\":\"other\"},\"emotional_state_context\":{\"state_hint\":\"procrastination / repousse\",\"intensity\":\"medium\"},\"reason\":\"User asks what recommendation Sophia proposes for a concrete blocked action (starting tidying) that is not tied to an identified plan item.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Je bloque ce soir sur le rangement\",\"je sais que je dois commencer mais je repousse\"]}",
+                "user_words": [
+                  "Je bloque ce soir sur le rangement, je sais que je dois commencer mais je repousse. Quelle recommandation Sophia tu me proposes ?",
+                  "Je bloque ce soir sur le rangement",
+                  "je sais que je dois commencer mais je repousse"
+                ],
+                "structured_context": {
+                  "user_message_summary": "Le user bloque sur une action concrète hors plan: commencer le rangement ce soir, avec report / procrastination au démarrage.",
+                  "active_flow_summary": "coaching_recommendation helps choose a Sophia feature and never executes tools.",
+                  "collected_state": {
+                    "user_need_summary": "User asks what recommendation Sophia proposes for a concrete blocked action (starting tidying) that is not tied to an identified plan item.",
+                    "candidate_features": [
+                      {
+                        "feature": "attack_card",
+                        "fit": "medium",
+                        "why": "L'action est identifiable mais le blocage est au moment de démarrer; une carte d'attaque aide à préparer l'entrée dans l'action et réduire la friction.",
+                        "destination_hint": null
+                      }
+                    ],
+                    "current_recommendation": "attack_card",
+                    "parent_context": null,
+                    "dispatcher_signal_context": {
+                      "coaching_type": "no_plan_action",
+                      "confidence": 0.88,
+                      "activation_checks": {
+                        "is_coaching_need": true,
+                        "is_about_plan_action": false,
+                        "is_about_non_plan_action": true,
+                        "is_about_emotional_state": false,
+                        "has_concrete_plan_action": false,
+                        "needs_type_confirmation": false
+                      },
+                      "action_context": {
+                        "source": "free",
+                        "plan_item_id": null,
+                        "action_title": "rangement",
+                        "plan_id": null,
+                        "plan_title": null,
+                        "action_type": "other"
+                      },
+                      "emotional_state_context": {
+                        "state_hint": "procrastination / repousse",
+                        "intensity": "medium"
+                      },
+                      "reason": "User asks what recommendation Sophia proposes for a concrete blocked action (starting tidying) that is not tied to an identified plan item."
+                    }
+                  },
+                  "unresolved_questions": [],
+                  "recommended_next_focus": "global",
+                  "evidence": [
+                    "Je bloque ce soir sur le rangement",
+                    "je sais que je dois commencer mais je repousse"
+                  ]
+                },
+                "confidence": "high"
+              }
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-one-shot-coaching-20260624-r1-t01",
+            "source_message_id": "f8969953-df00-4fc5-898e-d05c523a5a36",
+            "user_id": "e9425670-f0e0-4b00-bf51-b223710360f9",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "blocked_action_coaching_need",
+                "context": {
+                  "coaching_type": "no_plan_action",
+                  "confidence": 0.88,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": false,
+                    "is_about_non_plan_action": true,
+                    "is_about_emotional_state": false,
+                    "has_concrete_plan_action": false,
+                    "needs_type_confirmation": false
+                  },
+                  "action_context": {
+                    "source": "free",
+                    "plan_item_id": null,
+                    "action_title": "rangement",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": {
+                    "state_hint": "procrastination / repousse",
+                    "intensity": "medium"
+                  },
+                  "reason": "User asks what recommendation Sophia proposes for a concrete blocked action (starting tidying) that is not tied to an identified plan item."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "coach_blocked_action",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_exit_to_global",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-one-shot-coaching-20260624-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "exit",
+            "latency_ms": 18948,
+            "exit_target": "global",
+            "exit_note_information": {
+              "source_flow_id": "coaching_recommendation",
+              "handoff_reason": "topic_change",
+              "target_dispatcher": "global",
+              "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"Le user bloque sur une action concrète hors plan: commencer le rangement ce soir, avec report / procrastination au démarrage.\",\"active_flow_summary\":\"coaching_recommendation helps choose a Sophia feature and never executes tools.\",\"collected_state\":{\"user_need_summary\":\"User asks what recommendation Sophia proposes for a concrete blocked action (starting tidying) that is not tied to an identified plan item.\",\"candidate_features\":[{\"feature\":\"attack_card\",\"fit\":\"medium\",\"why\":\"L'action est identifiable mais le blocage est au moment de démarrer; une carte d'attaque aide à préparer l'entrée dans l'action et réduire la friction.\",\"destination_hint\":null}],\"current_recommendation\":\"attack_card\",\"parent_context\":null,\"dispatcher_signal_context\":{\"coaching_type\":\"no_plan_action\",\"confidence\":0.88,\"activation_checks\":{\"is_coaching_need\":true,\"is_about_plan_action\":false,\"is_about_non_plan_action\":true,\"is_about_emotional_state\":false,\"has_concrete_plan_action\":false,\"needs_type_confirmation\":false},\"action_context\":{\"source\":\"free\",\"plan_item_id\":null,\"action_title\":\"rangement\",\"plan_id\":null,\"plan_title\":null,\"action_type\":\"other\"},\"emotional_state_context\":{\"state_hint\":\"procrastination / repousse\",\"intensity\":\"medium\"},\"reason\":\"User asks what recommendation Sophia proposes for a concrete blocked action (starting tidying) that is not tied to an identified plan item.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Je bloque ce soir sur le rangement\",\"je sais que je dois commencer mais je repousse\"]}",
+              "user_words": [
+                "Je bloque ce soir sur le rangement, je sais que je dois commencer mais je repousse. Quelle recommandation Sophia tu me proposes ?",
+                "Je bloque ce soir sur le rangement",
+                "je sais que je dois commencer mais je repousse"
+              ],
+              "structured_context": {
+                "user_message_summary": "Le user bloque sur une action concrète hors plan: commencer le rangement ce soir, avec report / procrastination au démarrage.",
+                "active_flow_summary": "coaching_recommendation helps choose a Sophia feature and never executes tools.",
+                "collected_state": {
+                  "user_need_summary": "User asks what recommendation Sophia proposes for a concrete blocked action (starting tidying) that is not tied to an identified plan item.",
+                  "candidate_features": [
+                    {
+                      "feature": "attack_card",
+                      "fit": "medium",
+                      "why": "L'action est identifiable mais le blocage est au moment de démarrer; une carte d'attaque aide à préparer l'entrée dans l'action et réduire la friction.",
+                      "destination_hint": null
+                    }
+                  ],
+                  "current_recommendation": "attack_card",
+                  "parent_context": null,
+                  "dispatcher_signal_context": {
+                    "coaching_type": "no_plan_action",
+                    "confidence": 0.88,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": false,
+                      "is_about_non_plan_action": true,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": false,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "free",
+                      "plan_item_id": null,
+                      "action_title": "rangement",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": {
+                      "state_hint": "procrastination / repousse",
+                      "intensity": "medium"
+                    },
+                    "reason": "User asks what recommendation Sophia proposes for a concrete blocked action (starting tidying) that is not tied to an identified plan item."
+                  }
+                },
+                "unresolved_questions": [],
+                "recommended_next_focus": "global",
+                "evidence": [
+                  "Je bloque ce soir sur le rangement",
+                  "je sais que je dois commencer mais je repousse"
+                ]
+              },
+              "confidence": "high"
+            }
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-24T11:29:21.838Z",
+      "user": "Rappelle-moi demain à 18h de préparer le premier geste de rangement, et continue la reco : est-ce que tu partirais plutôt sur carte d'attaque ou potion d'état ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "C’est programmé pour samedi 23 mai à 18:00 : je te ferai un rappel pour préparer le premier geste de rangement.\n\nIci, je partirais sur une carte d’attaque, technique Préparer le terrain : comme tu bloques au démarrage, l’idée est de rendre le premier geste de rangement plus simple à lancer. Une potion d’état serait plutôt pour un état global à traverser, pas pour ce démarrage précis.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [
+          "create_one_shot_reminder"
+        ],
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ],
+        "tool_execution": "success"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T11:29:21.757Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-24T11:29:21.757Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète de rangement à démarrer et demande entre carte d'attaque et potion d'état.",
+                        "target_kind": "plan_action",
+                        "action_title": "préparer le premier geste de rangement",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "L'action est concrète et le blocage décrit ressemble à un problème de démarrage. Une carte d'attaque sert précisément à préparer le premier geste et réduire la friction avant l'action."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user parle d'une action concrète de rangement à démarrer et demande entre carte d'attaque et potion d'état.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "L’action est concrète et le blocage ressemble surtout à un problème de démarrage. Une carte d’attaque est le bon levier pour préparer le premier geste et réduire la friction avant l’action.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "L’action est concrète et le blocage ressemble surtout à un problème de démarrage. Une carte d’attaque est le bon levier pour préparer le premier geste et réduire la friction avant l’action.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "L’action est concrète et le blocage ressemble surtout à un problème de démarrage. Une carte d’attaque est le bon levier pour préparer le premier geste et réduire la friction avant l’action.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user is explicitly asking whether to use attack card or state potion for a concrete blocked action; that is coaching, and the visible action is tied to the current plan/action context."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "L’action est concrète et le blocage ressemble surtout à un problème de démarrage. Une carte d’attaque est le bon levier pour préparer le premier geste et réduire la friction avant l’action.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "L’action est concrète et le blocage ressemble surtout à un problème de démarrage. Une carte d’attaque est le bon levier pour préparer le premier geste et réduire la friction avant l’action.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je partirais plutôt sur une carte d'attaque : l'objectif est de rendre le premier geste de rangement plus simple à lancer, pas de traiter un état émotionnel global."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user is explicitly asking whether to use attack card or state potion for a concrete blocked action; that is coaching, and the visible action is tied to the current plan/action context.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": "préparer le premier geste de rangement",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-24T11:28:33.225Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T11:29:21.757Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-24T11:29:21.757Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action concrète de rangement à démarrer et demande entre carte d'attaque et potion d'état.",
+                        "target_kind": "plan_action",
+                        "action_title": "préparer le premier geste de rangement",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "L'action est concrète et le blocage décrit ressemble à un problème de démarrage. Une carte d'attaque sert précisément à préparer le premier geste et réduire la friction avant l'action."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user parle d'une action concrète de rangement à démarrer et demande entre carte d'attaque et potion d'état.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "L’action est concrète et le blocage ressemble surtout à un problème de démarrage. Une carte d’attaque est le bon levier pour préparer le premier geste et réduire la friction avant l’action.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "L’action est concrète et le blocage ressemble surtout à un problème de démarrage. Une carte d’attaque est le bon levier pour préparer le premier geste et réduire la friction avant l’action.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "L’action est concrète et le blocage ressemble surtout à un problème de démarrage. Une carte d’attaque est le bon levier pour préparer le premier geste et réduire la friction avant l’action.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user is explicitly asking whether to use attack card or state potion for a concrete blocked action; that is coaching, and the visible action is tied to the current plan/action context."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "L’action est concrète et le blocage ressemble surtout à un problème de démarrage. Une carte d’attaque est le bon levier pour préparer le premier geste et réduire la friction avant l’action.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "L’action est concrète et le blocage ressemble surtout à un problème de démarrage. Une carte d’attaque est le bon levier pour préparer le premier geste et réduire la friction avant l’action.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je partirais plutôt sur une carte d'attaque : l'objectif est de rendre le premier geste de rangement plus simple à lancer, pas de traiter un état émotionnel global."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user is explicitly asking whether to use attack card or state potion for a concrete blocked action; that is coaching, and the visible action is tied to the current plan/action context.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.84,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": "préparer le premier geste de rangement",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T11:29:21.769495+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "4e25c425-f4ff-44d9-bfc5-3b425996b7ae",
+              "status": "pending",
+              "event_context": "one_shot_reminder:preparer_le_premier_geste_de_rangement",
+              "draft_message": null,
+              "scheduled_for": "2026-05-23T16:00:00+00:00",
+              "created_at": "2026-06-24T11:29:00.45617+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "qa-one-shot-coaching-20260624-r1-t02",
+        "user_id": "e9425670-f0e0-4b00-bf51-b223710360f9",
+        "channel": "web",
+        "scope": "qa-normal-conversation-qa-one-shot-coaching-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C’est programmé pour samedi 23 mai à 18:00 : je te ferai un rappel pour préparer le premier geste de rangement.\n\nIci, je partirais sur une carte d’attaque, technique Préparer le terrain : comme tu bloques au démarrage, l’idée est de rendre le premier geste de rangement plus simple à lancer. Une potion d’état serait plutôt pour un état global à traverser, pas pour ce démarrage précis.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "success",
+          "executed_tools": [
+            "create_one_shot_reminder"
+          ],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-one-shot-coaching-20260624-r1-t02",
+              "source_message_id": "ef62e88d-c779-4b4b-9d96-303ba4986af3",
+              "user_id": "e9425670-f0e0-4b00-bf51-b223710360f9",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [
+                {
+                  "effect_type": "create_one_shot_reminder",
+                  "explicitness": "explicit",
+                  "target_status": "identified",
+                  "confidence_band": "high",
+                  "payload_hint": {
+                    "raw_text": "Rappelle-moi demain à 18h de préparer le premier geste de rangement",
+                    "when_hint": "demain à 18h",
+                    "instruction_hint": "préparer le premier geste de rangement"
+                  }
+                }
+              ],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user asks which coaching lever to use for a blocked concrete action, and the action is tied to a plan-like action context from the conversation",
+                  "context": {
+                    "coaching_type": "plan_action",
+                    "confidence": 0.84,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": true,
+                      "is_about_non_plan_action": false,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": true,
+                      "needs_type_confirmation": true
+                    },
+                    "action_context": {
+                      "source": "plan",
+                      "plan_item_id": null,
+                      "action_title": "préparer le premier geste de rangement",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": null,
+                    "reason": "The user is explicitly asking whether to use attack card or state potion for a concrete blocked action; that is coaching, and the visible action is tied to the current plan/action context."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "handle reminder plus coaching-choice request",
+                "reasoning_complexity": "medium",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.78
+              },
+              "direct_effect_lane": {
+                "selected_handler": "create_one_shot_reminder",
+                "toolExecution": "success",
+                "executedTools": [
+                  "create_one_shot_reminder"
+                ],
+                "requested_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-23T16:00:00+00:00",
+                    "local_label": "samedi 23 mai à 18:00",
+                    "reminder_instruction": "préparer le premier geste de rangement",
+                    "reason_code": "payload"
+                  }
+                ],
+                "allowed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-23T16:00:00+00:00",
+                    "local_label": "samedi 23 mai à 18:00",
+                    "reminder_instruction": "préparer le premier geste de rangement",
+                    "reason_code": "payload"
+                  }
+                ],
+                "committed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "id": "4e25c425-f4ff-44d9-bfc5-3b425996b7ae",
+                    "scheduled_for": "2026-05-23T16:00:00+00:00",
+                    "local_label": "samedi 23 mai à 18:00",
+                    "reminder_instruction": "préparer le premier geste de rangement"
+                  }
+                ],
+                "blocked_effects": [],
+                "visible_confirmation_hint": "C'est programmé pour samedi 23 mai à 18:00: je te ferai un rappel pour préparer le premier geste de rangement."
+              },
+              "direct_effect_confirmation_context": {
+                "has_committed_one_shot_reminder": true,
+                "has_requested_one_shot_reminder": true,
+                "confirmation_text": null,
+                "committed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "id": "4e25c425-f4ff-44d9-bfc5-3b425996b7ae",
+                    "scheduled_for": "2026-05-23T16:00:00+00:00",
+                    "local_label": "samedi 23 mai à 18:00",
+                    "reminder_instruction": "préparer le premier geste de rangement"
+                  }
+                ],
+                "requested_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-23T16:00:00+00:00",
+                    "local_label": "samedi 23 mai à 18:00",
+                    "reminder_instruction": "préparer le premier geste de rangement",
+                    "reason_code": "payload"
+                  }
+                ],
+                "blocked_effects": [],
+                "do_not_recreate": true,
+                "do_not_reroute": true,
+                "do_not_redemand": true,
+                "do_not_confirm_without_commit": true,
+                "remaining_user_need_must_continue": true
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [
+                "create_one_shot_reminder"
+              ],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "qa-one-shot-coaching-20260624-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue",
+              "latency_ms": 21289
+            },
+            "tool_skill_run": {
+              "selected_handler": "create_one_shot_reminder",
+              "status": "success",
+              "reason": "payload",
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "préparer le premier geste de rangement",
+                  "reason_code": "payload"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "préparer le premier geste de rangement",
+                  "reason_code": "payload"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "4e25c425-f4ff-44d9-bfc5-3b425996b7ae",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "préparer le premier geste de rangement"
+                }
+              ],
+              "blocked_effects": []
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-one-shot-coaching-20260624-r1-t02",
+            "source_message_id": "ef62e88d-c779-4b4b-9d96-303ba4986af3",
+            "user_id": "e9425670-f0e0-4b00-bf51-b223710360f9",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [
+              {
+                "effect_type": "create_one_shot_reminder",
+                "explicitness": "explicit",
+                "target_status": "identified",
+                "confidence_band": "high",
+                "payload_hint": {
+                  "raw_text": "Rappelle-moi demain à 18h de préparer le premier geste de rangement",
+                  "when_hint": "demain à 18h",
+                  "instruction_hint": "préparer le premier geste de rangement"
+                }
+              }
+            ],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user asks which coaching lever to use for a blocked concrete action, and the action is tied to a plan-like action context from the conversation",
+                "context": {
+                  "coaching_type": "plan_action",
+                  "confidence": 0.84,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": true,
+                    "is_about_non_plan_action": false,
+                    "is_about_emotional_state": false,
+                    "has_concrete_plan_action": true,
+                    "needs_type_confirmation": true
+                  },
+                  "action_context": {
+                    "source": "plan",
+                    "plan_item_id": null,
+                    "action_title": "préparer le premier geste de rangement",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": null,
+                  "reason": "The user is explicitly asking whether to use attack card or state potion for a concrete blocked action; that is coaching, and the visible action is tied to the current plan/action context."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "handle reminder plus coaching-choice request",
+              "reasoning_complexity": "medium",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.78
+            },
+            "direct_effect_lane": {
+              "selected_handler": "create_one_shot_reminder",
+              "toolExecution": "success",
+              "executedTools": [
+                "create_one_shot_reminder"
+              ],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "préparer le premier geste de rangement",
+                  "reason_code": "payload"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "préparer le premier geste de rangement",
+                  "reason_code": "payload"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "4e25c425-f4ff-44d9-bfc5-3b425996b7ae",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "préparer le premier geste de rangement"
+                }
+              ],
+              "blocked_effects": [],
+              "visible_confirmation_hint": "C'est programmé pour samedi 23 mai à 18:00: je te ferai un rappel pour préparer le premier geste de rangement."
+            },
+            "direct_effect_confirmation_context": {
+              "has_committed_one_shot_reminder": true,
+              "has_requested_one_shot_reminder": true,
+              "confirmation_text": null,
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "4e25c425-f4ff-44d9-bfc5-3b425996b7ae",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "préparer le premier geste de rangement"
+                }
+              ],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "préparer le premier geste de rangement",
+                  "reason_code": "payload"
+                }
+              ],
+              "blocked_effects": [],
+              "do_not_recreate": true,
+              "do_not_reroute": true,
+              "do_not_redemand": true,
+              "do_not_confirm_without_commit": true,
+              "remaining_user_need_must_continue": true
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [
+              "create_one_shot_reminder"
+            ],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "qa-one-shot-coaching-20260624-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue",
+            "latency_ms": 21289
+          },
+          "tool_skill_run": {
+            "selected_handler": "create_one_shot_reminder",
+            "status": "success",
+            "reason": "payload",
+            "requested_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-05-23T16:00:00+00:00",
+                "local_label": "samedi 23 mai à 18:00",
+                "reminder_instruction": "préparer le premier geste de rangement",
+                "reason_code": "payload"
+              }
+            ],
+            "allowed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-05-23T16:00:00+00:00",
+                "local_label": "samedi 23 mai à 18:00",
+                "reminder_instruction": "préparer le premier geste de rangement",
+                "reason_code": "payload"
+              }
+            ],
+            "committed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "id": "4e25c425-f4ff-44d9-bfc5-3b425996b7ae",
+                "scheduled_for": "2026-05-23T16:00:00+00:00",
+                "local_label": "samedi 23 mai à 18:00",
+                "reminder_instruction": "préparer le premier geste de rangement"
+              }
+            ],
+            "blocked_effects": []
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-24T11:29:21.839Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-24T11:32:47.851Z"
+}

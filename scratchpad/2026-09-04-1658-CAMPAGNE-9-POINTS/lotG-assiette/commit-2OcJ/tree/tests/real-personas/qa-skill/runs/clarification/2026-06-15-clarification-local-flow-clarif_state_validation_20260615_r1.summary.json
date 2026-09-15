@@ -1,0 +1,554 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-clarification-local-clarif_state_validation_20260615_r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Demain matin je veux préparer une carte, mais j'hésite entre m'aider à sortir du lit et me protéger du téléphone au réveil.",
+    "assistant": "Par laquelle tu veux commencer : celle pour t'aider à sortir du lit ou celle pour te protéger du téléphone ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "orientation_clarification",
+    "selected_handler": "orientation_clarification",
+    "route_reason_code": "clarification_required",
+    "active_flow_arbitration": null,
+    "clarification_flow_run": null,
+    "clarification_status": null,
+    "clarification_flow_action": null,
+    "clarification_visible_task": null,
+    "selected_candidate_id": null,
+    "candidate_signals": null,
+    "note_information": null,
+    "tool_skill_run": null,
+    "tool_selected_handler": null,
+    "tool_flow_action": null,
+    "tool_visible_task_kind": null,
+    "safety": {
+      "risk_band": "low",
+      "reason_codes": [],
+      "evidence": []
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "effect_ledger": {
+      "turn_id": "qa-clarification-local-clarif_state_validation_20260615_r1-t01",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "targeted",
+      "memory_mode": "light",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "small",
+      "targets": [
+        {
+          "type": "topic",
+          "key": "morning_routine",
+          "query_hint": "morning routine habits phone bed",
+          "expansion_policy": null,
+          "retrieval_policy": "semantic_first",
+          "priority": null,
+          "entity_type": null
+        }
+      ],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "raw_keys": [
+      "turn_frame",
+      "route_decision",
+      "effect_ledger",
+      "response_owner"
+    ]
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-clarification-local-clarif_state_validation_20260615_r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Celle pour sortir du lit. Je veux une carte d'attaque pour me lever sans snoozer.",
+    "assistant": "C'est un beau défi de vouloir te lever sans attendre. Est-ce que c'est bien le bouton snooze qui te fait dérailler au moment de sortir du lit ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "orientation_clarification_resolved_tool_skill",
+    "active_flow_arbitration": {
+      "decision": "none",
+      "active_owner": "none",
+      "selected_owner": "none",
+      "resume_policy": "none",
+      "reason_code": "no_active_flow"
+    },
+    "clarification_flow_run": null,
+    "clarification_status": null,
+    "clarification_flow_action": null,
+    "clarification_visible_task": null,
+    "selected_candidate_id": null,
+    "candidate_signals": null,
+    "note_information": null,
+    "tool_skill_run": {
+      "selected_handler": "prepare_attack_card",
+      "reason_code": "prepare_attack_card_local_ask_blocker",
+      "operation_type": "prepare_attack_card",
+      "mode": "platform_handoff",
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "flow_action": "continue_local",
+      "visible_task": "ask_blocker",
+      "visible_task_context": {
+        "state_summary": "Cible verrouillée (se lever sans snoozer). Piège (snooze) à confirmer.",
+        "user_words": [
+          "sortir du lit",
+          "me lever sans snoozer"
+        ],
+        "field_or_stage": "blocker_intake",
+        "known_values": {
+          "target": {
+            "status": "locked",
+            "kind": "personal_action",
+            "plan_item_id": null,
+            "candidate_value": null,
+            "locked_value": "me lever sans snoozer",
+            "needs_user_confirmation": false,
+            "why_status": "user explicitly chose this option from the previous clarification"
+          },
+          "blocker": {
+            "status": "proposed",
+            "blocker_type": "friction",
+            "candidate_value": "le bouton snooze",
+            "locked_value": null,
+            "needs_user_confirmation": true,
+            "why_status": "inferred from 'sans snoozer'"
+          },
+          "technique": {
+            "status": "missing",
+            "technique_key": null,
+            "technique_label": null,
+            "explicitly_requested": false,
+            "candidate_options": [],
+            "fit_warning": null,
+            "needs_user_confirmation": false,
+            "why_status": "technique not yet discussed"
+          },
+          "current_field": null,
+          "activation_keyword": {
+            "status": "not_applicable",
+            "candidate_value": null,
+            "locked_value": null,
+            "needs_user_confirmation": false,
+            "why_status": "not pre_engagement"
+          }
+        },
+        "missing_or_weak_values": [
+          "blocker_value"
+        ],
+        "selected_candidate": {
+          "blocker_candidate": "le bouton snooze",
+          "candidate_options": [],
+          "allowed_technique_labels": [],
+          "recommended_technique": null,
+          "previous_value": null
+        },
+        "handoff_data": {
+          "operation_name": "prepare_attack_card",
+          "surface_label": "Cartes d'attaque",
+          "platform_destination": "",
+          "platform_steps": [],
+          "flow_kind": "free_attack_card",
+          "technique_label": null,
+          "target_value": "me lever sans snoozer",
+          "blocker_value": "le bouton snooze",
+          "locked_fields": [],
+          "missing_fields": [
+            "blocker",
+            "technique"
+          ],
+          "activation_keyword": null
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "c'est cree",
+          "je l'ai creee",
+          "je l'ai ajoutee",
+          "c'est active",
+          "dis oui et je la cree",
+          "c'est créé",
+          "c'est enregistré"
+        ],
+        "context_summary": "L'utilisateur a choisi de travailler sur le lever matinal. Je dois confirmer si le snooze est le piège principal avant de proposer une technique.",
+        "evidence_used": [
+          "me lever sans snoozer"
+        ]
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "handoff_state": {
+        "skill_id": "prepare_attack_card",
+        "mode": "platform_handoff",
+        "status": "collecting",
+        "draft": {
+          "operation_type": "prepare_attack_card",
+          "mode": "platform_handoff",
+          "executable_from_chat": false,
+          "target_summary": "me lever sans snoozer",
+          "blocker_summary": "le bouton snooze",
+          "recommendation": {
+            "technique_label": "",
+            "why_this_technique": "technique not yet discussed",
+            "card_draft_summary": "",
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "dans la section Cartes d’attaque",
+            "platform_steps": [
+              "ouvre la section Cartes",
+              "choisis Carte d’attaque",
+              "reprends le brouillon proposé"
+            ]
+          },
+          "missing_decisions": []
+        },
+        "source_draft": null,
+        "local_state": {
+          "flow_id": "prepare_attack_card",
+          "flow_kind": "free_attack_card",
+          "platform_destination": "dans la section Cartes d’attaque",
+          "target_state": {
+            "status": "locked",
+            "kind": "personal_action",
+            "plan_item_id": null,
+            "candidate_value": null,
+            "locked_value": "me lever sans snoozer",
+            "needs_user_confirmation": false,
+            "why_status": "user explicitly chose this option from the previous clarification"
+          },
+          "blocker_state": {
+            "status": "proposed",
+            "blocker_type": "friction",
+            "candidate_value": "le bouton snooze",
+            "locked_value": null,
+            "needs_user_confirmation": true,
+            "why_status": "inferred from 'sans snoozer'"
+          },
+          "technique_state": {
+            "status": "missing",
+            "technique_key": null,
+            "technique_label": null,
+            "explicitly_requested": false,
+            "candidate_options": [],
+            "fit_warning": null,
+            "needs_user_confirmation": false,
+            "why_status": "technique not yet discussed"
+          },
+          "platform_field_order": [],
+          "platform_field_states": {},
+          "activation_keyword_state": {
+            "status": "not_applicable",
+            "candidate_value": null,
+            "locked_value": null,
+            "needs_user_confirmation": false,
+            "why_status": "not pre_engagement"
+          },
+          "current_field_id": null,
+          "last_visible_task": "ask_blocker",
+          "last_handoff_delivered": false,
+          "subskill_history": []
+        },
+        "target": {
+          "kind": "personal_action",
+          "plan_item_id": null,
+          "title": "me lever sans snoozer"
+        },
+        "turn_count": 1,
+        "max_turns": 8,
+        "created_at": "2026-06-15T18:04:54.857Z",
+        "updated_at": "2026-06-15T18:04:54.857Z",
+        "executable_from_chat": false
+      },
+      "risk_assessment": {
+        "risk_score": 0,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "flow_id",
+          "platform_destination",
+          "platform_field_order",
+          "current_field_id",
+          "last_visible_task",
+          "last_handoff_delivered",
+          "subskill_history",
+          "target_state",
+          "blocker_state",
+          "technique_state",
+          "platform_field_states",
+          "activation_keyword_state",
+          "note_information",
+          "exit_memo",
+          "local_state_summary",
+          "previous_flow_summary"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "technique_state",
+          "target_state",
+          "blocker_state",
+          "last_visible_task"
+        ],
+        "preserved_fields": [
+          "platform_field_states",
+          "current_field_id",
+          "last_handoff_delivered"
+        ],
+        "restored_fields": [],
+        "cleared_fields": [
+          "activation_keyword_state"
+        ],
+        "rejected_changes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "db_context_pack_loaded",
+          "plan_items_count": 0,
+          "micro_memory_items_count": 0,
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "global_dispatcher_skipped",
+          "reason_code": "active_prepare_attack_card_uses_local_dispatcher",
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "note_information_consumed",
+          "source_flow_id": "global_dispatcher",
+          "target_dispatcher": "prepare_attack_card",
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher start",
+          "flow_action": null,
+          "stage": null,
+          "visible_task_kind": null,
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "missing",
+          "blocker_status": "missing",
+          "missing_fields": [],
+          "risk_assessment": null,
+          "selected_handler": "prepare_attack_card",
+          "state_mutation_audit": null
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher decision",
+          "flow_action": "continue_local",
+          "stage": "ask_blocker",
+          "visible_task_kind": "ask_blocker",
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "locked",
+          "blocker_status": "proposed",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card",
+          "state_mutation_audit": null
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "reducer reduced",
+          "flow_action": "continue_local",
+          "stage": "ask_blocker",
+          "visible_task_kind": "ask_blocker",
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "locked",
+          "blocker_status": "proposed",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card",
+          "state_mutation_audit": {
+            "server_owned_fields": [
+              "flow_id",
+              "platform_destination",
+              "platform_field_order",
+              "current_field_id",
+              "last_visible_task",
+              "last_handoff_delivered",
+              "subskill_history",
+              "target_state",
+              "blocker_state",
+              "technique_state",
+              "platform_field_states",
+              "activation_keyword_state",
+              "note_information",
+              "exit_memo",
+              "local_state_summary",
+              "previous_flow_summary"
+            ],
+            "modified_fields_declared": [],
+            "clear_fields_declared": [],
+            "applied_fields": [
+              "technique_state",
+              "target_state",
+              "blocker_state",
+              "last_visible_task"
+            ],
+            "preserved_fields": [
+              "platform_field_states",
+              "current_field_id",
+              "last_handoff_delivered"
+            ],
+            "restored_fields": [],
+            "cleared_fields": [
+              "activation_keyword_state"
+            ],
+            "rejected_changes": []
+          }
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage start",
+          "flow_action": "continue_local",
+          "stage": "ask_blocker",
+          "visible_task_kind": "ask_blocker",
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "locked",
+          "blocker_status": "proposed",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card",
+          "state_mutation_audit": null
+        },
+        {
+          "component": "visible_agent",
+          "stage": "ask_blocker",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage complete",
+          "flow_action": "continue_local",
+          "stage": "ask_blocker",
+          "visible_task_kind": "ask_blocker",
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "locked",
+          "blocker_status": "proposed",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card",
+          "state_mutation_audit": null
+        }
+      ]
+    },
+    "tool_selected_handler": "prepare_attack_card",
+    "tool_flow_action": "continue_local",
+    "tool_visible_task_kind": null,
+    "safety": {
+      "risk_band": "low",
+      "reason_codes": [],
+      "evidence": []
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "effect_ledger": {
+      "turn_id": "qa-clarification-local-clarif_state_validation_20260615_r1-t02",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "targeted",
+      "memory_mode": "light",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "small",
+      "targets": [
+        {
+          "type": "topic",
+          "key": "sommeil.reveil",
+          "query_hint": "difficulté à se lever le matin",
+          "expansion_policy": null,
+          "retrieval_policy": "semantic_first",
+          "priority": "medium",
+          "entity_type": null
+        }
+      ],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "raw_keys": [
+      "turn_frame",
+      "route_decision",
+      "tool_skill_run",
+      "effect_ledger",
+      "response_owner"
+    ]
+  }
+]

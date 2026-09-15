@@ -1,0 +1,317 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contrôle — /meal-prep</title>
+<!-- MAQUETTE DE JUGEMENT, PAS UN LIVRABLE. Elle rejoue la composition de
+     MealPrepPage.tsx avec les vraies chaines FR et les vraies figures, pour
+     juger le rythme vertical, le bloc sombre et le rendu a 320px. Les polices
+     de la marque ne sont pas chargees: le repli est celui que la charte
+     declare (Georgia pour la display). Ne va pas au depot applicatif. -->
+<style>
+:root{--paper:#FBF8FA;--paper2:#F4EFF2;--ink:#23191F;--ink-soft:#6A5A64;--line:#E3DAE0;
+--fig300:#C9A3B8;--fig700:#632C4C;--fig950:#24101E;
+--ill-ink:#23191F;--ill-ink-soft:#6A5A64;--ill-paper:#FBF8FA;--ill-wash:#EFE0E9;--ill-fig:#632C4C;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+ font:16px/1.6 "Public Sans",system-ui,-apple-system,sans-serif;}
+@media(max-width:640px){body{font-size:15px}}
+.hdr{position:sticky;top:0;z-index:9;border-bottom:1px solid var(--line);background:var(--paper);
+ height:56px;display:flex;align-items:center;padding:0 20px;font-weight:600}
+.band{}
+.band>div{max-width:1200px;margin:0 auto;padding-left:20px;padding-right:20px;
+ padding-top:44px;padding-bottom:40px}
+@media(min-width:640px){.band>div{padding-left:32px;padding-right:32px;padding-top:84px;padding-bottom:76px}}
+.dark{background:var(--fig950);color:var(--paper)}
+.p2{background:var(--paper2)}
+h1{font-family:"Young Serif",Georgia,serif;font-weight:400;margin:0;max-width:15ch;
+ font-size:clamp(2.05rem,1.35rem + 3.9vw,4.15rem);line-height:.99;letter-spacing:-.021em;text-wrap:balance}
+h2{font-family:"Young Serif",Georgia,serif;font-weight:400;margin:12px 0 0;max-width:42rem;
+ font-size:clamp(1.7rem,1.2rem + 2.1vw,2.7rem);line-height:1.06;letter-spacing:-.016em;text-wrap:balance}
+.lede{font-size:1.125rem;line-height:1.62;color:var(--ink-soft);max-width:62ch;margin:0}
+.label{font-size:.6875rem;line-height:1.2;letter-spacing:.1em;text-transform:uppercase;font-weight:600;
+ color:var(--ink-soft);margin:0}
+.dark .label{color:var(--fig300)}
+.eq{position:relative;padding-left:1.125rem}
+.eq::before{content:"";position:absolute;left:0;top:.18em;width:10px;height:14px;
+ border-left:2px solid var(--fig700);border-top:2px solid var(--fig700);border-top-left-radius:5px}
+.dark .eq::before{border-color:var(--fig300)}
+.plate{margin-top:32px;overflow:hidden;border:1px solid var(--line);border-radius:16px;background:var(--paper)}
+@media(min-width:640px){.plate{margin-top:40px}}
+.fig-scroll{overflow-x:auto;padding:20px}
+.fig-scroll>svg{min-width:380px;max-width:560px;width:100%;height:auto;display:block;margin:0 auto}
+@media(min-width:640px){.fig-scroll{padding:32px}}
+@media(max-width:640px){.fig-scroll{margin-inline:-20px;padding-inline:20px}}
+.legend{border-top:1px solid var(--line);padding:20px;display:grid;gap:24px}
+@media(min-width:640px){.legend{padding:32px;grid-template-columns:1fr 1fr;gap:48px}}
+.legend p{margin:0;max-width:62ch}
+.soft{color:var(--ink-soft)}
+.grid-hero{display:grid;gap:32px;margin-top:20px}
+@media(min-width:1024px){.grid-hero{grid-template-columns:7fr 5fr;gap:64px}
+ .grid-hero>div:last-child{border-left:1px solid var(--line);padding-left:40px}}
+.btn{display:inline-flex;align-items:center;border-radius:999px;background:#111827;color:#fff;
+ padding:8px 16px;font-size:14px;font-weight:500;text-decoration:none}
+dl{display:grid;gap:32px;margin:40px 0 0}
+@media(min-width:640px){dl{grid-template-columns:repeat(3,1fr);gap:48px}}
+dd{margin:8px 0 0;max-width:62ch}
+.grid-start{display:grid;gap:32px;margin-top:32px}
+@media(min-width:1024px){.grid-start{grid-template-columns:5fr 7fr;gap:64px}}
+.card{border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:16px}
+.price{font-family:"Young Serif",Georgia,serif;font-size:2.25rem;line-height:1;font-variant-numeric:tabular-nums}
+.fiche{margin-top:32px;border:1px solid var(--line);border-radius:16px;background:var(--paper);padding:20px}
+ul{list-style:none;margin:16px 0 0;padding:0}
+li{border-top:1px solid var(--line);padding:12px 0;font-size:14px}
+li:first-child{border-top:0;padding-top:0}
+.note{margin-top:16px;font-size:14px;color:var(--ink-soft);max-width:52ch}
+</style>
+<header class="hdr">Sophia</header>
+<main><section class="band "><div>
+ <p class="label eq">Pour une personne seule, entier dès le premier jour</p>
+ <div class="grid-hero">
+  <h1>Cuisiner n’est pas le plus dur. Décider, si.</h1>
+  <div>
+   <p class="lede">Tu cuisines déjà une fois pour plusieurs jours. Sophia compose ta semaine dans cette unité-là — la session de cuisine — autour de l’objectif que tu poses, et laisse les courses suivre.</p>
+   <p style="margin-top:24px"><a class="btn" href="#">Commencer</a></p>
+   <p class="note">12,99 € par mois. Seul, c’est le produit entier, pas une version réduite.</p>
+  </div>
+ </div>
+ <div class="plate"><div class="fig-scroll"><svg viewBox="0 0 480 240" role="img" aria-labelledby="f1t f1d">
+      <title id="f1t">Une session de cuisine, plusieurs repas prêts</title>
+      <desc id="f1d">Une casserole vue de dessus, reliée par un peigne à des contenants identiques.</desc>
+      <defs>
+        <g id="mp-box">
+          <rect x="0" y="0" width="150" height="44" rx="12" fill="var(--ill-paper)" stroke="var(--ill-ink)" stroke-width="2"/>
+          <rect x="12" y="10" width="61" height="24" rx="4" fill="var(--ill-wash)" stroke="var(--ill-ink-soft)" stroke-width="1"/>
+          <rect x="77" y="10" width="61" height="24" rx="4" fill="var(--ill-wash)" stroke="var(--ill-ink-soft)" stroke-width="1"/>
+        </g>
+      </defs>
+      <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig)" stroke-width="2" stroke-linecap="round"/>
+      <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft)">UNE SESSION DE CUISINE</text>
+      <g stroke="var(--ill-fig)" stroke-width="2" stroke-linejoin="round">
+        <rect x="26" y="135" width="32" height="18" rx="9" fill="var(--ill-paper)"/>
+        <rect x="150" y="135" width="32" height="18" rx="9" fill="var(--ill-paper)"/>
+        <circle cx="104" cy="144" r="54" fill="var(--ill-paper)"/>
+      </g>
+      <circle cx="104" cy="144" r="42" fill="var(--ill-wash)"/>
+      <text x="104" y="222" text-anchor="middle" font-size="12" fill="var(--ill-ink-soft)">une session</text>
+      <g fill="none" stroke="var(--ill-ink-soft)" stroke-width="1" stroke-linecap="round">
+        <path d="M 184 146 L 286 146"/>
+        <path d="M 252 86 L 252 206"/>
+        <path d="M 252 86 L 286 86"/>
+        <path d="M 252 206 L 286 206"/>
+      </g>
+      <text x="286" y="52" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft)">CE QU’ELLE COUVRE</text>
+      <use href="#mp-box" x="286" y="64"/>
+      <use href="#mp-box" x="286" y="124"/>
+      <use href="#mp-box" x="286" y="184"/>
+    </svg></div></div></div></section><section class="band dark"><div>
+ <p class="label eq">Ce que ce n’est pas</p>
+ <h2>Pas de score. Pas de série.</h2>
+ <dl>
+  <div><dt class="label">Les chiffres</dt><dd>Éteints par défaut — ce qui n’est pas la même chose qu’absents. Les allumer est un choix délibéré, et une chaîne de gardes décide si c’est seulement possible.</dd></div>
+  <div><dt class="label">Le classement</dt><dd>Il n’y en a pas. Rien ne note ta semaine, et aucune bande de couleur ne te dit comment elle s’est passée.</dd></div>
+  <div><dt class="label">Ce qui reste</dt><dd>Ce que tu cuisines, quand tu le cuisines, et les courses qui vont avec.</dd></div>
+ </dl></div></section><section class="band "><div>
+ <p class="label eq">Les courses</p>
+ <h2>Les courses arrivent en vagues, pas en un seul chariot.</h2>
+ <div class="plate"><div class="fig-scroll"><svg viewBox="0 0 480 240" role="img" aria-labelledby="f2t f2d">
+      <title id="f2t">Les courses réparties en vagues sur la semaine</title>
+      <desc id="f2d">Deux paniers identiques posés au-dessus des jours qu'ils couvrent.</desc>
+      <defs>
+        <g id="mp-wave" stroke="var(--ill-fig)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M 14 16 A 12 12 0 0 1 38 16" fill="none"/>
+          <rect x="0" y="16" width="52" height="36" rx="10" fill="var(--ill-wash)"/>
+        </g>
+      </defs>
+      <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig)" stroke-width="2" stroke-linecap="round"/>
+      <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft)">LES COURSES EN VAGUES</text>
+      <g font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft)">
+        <text x="100" y="60">PREMIÈRE VAGUE</text>
+        <text x="317" y="60">VAGUE SUIVANTE</text>
+      </g>
+      <use href="#mp-wave" x="100" y="66"/>
+      <use href="#mp-wave" x="317" y="66"/>
+      <g fill="none" stroke="var(--ill-ink-soft)" stroke-width="1" stroke-linecap="round">
+        <path d="M 126 118 L 126 146"/>
+        <path d="M 343 118 L 343 146"/>
+        <path d="M 64 152 L 64 146 L 188 146 L 188 152"/>
+        <path d="M 250 152 L 250 146 L 436 146"/>
+        <path d="M 64 170 L 436 170"/>
+        <path d="M 64 164 L 64 176"/><path d="M 126 164 L 126 176"/><path d="M 188 164 L 188 176"/>
+        <path d="M 250 164 L 250 176"/><path d="M 312 164 L 312 176"/><path d="M 374 164 L 374 176"/>
+        <path d="M 436 164 L 436 176"/>
+      </g>
+      <g font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft)">
+        <text x="126" y="196" text-anchor="middle">TROIS JOURS</text>
+        <text x="436" y="196" text-anchor="end">LA SEMAINE</text>
+      </g>
+    </svg></div>
+  <div class="legend"><p>Une vague ne demande jamais au frais de dormir plus de trois jours au frigo. Ce qui est acheté trop tôt finit à la poubelle : quand cette fenêtre se ferme, la vague suivante part, et la fin de ta semaine s’achète à la fin de ta semaine.</p><p class="soft">Et quand une semaine tient en une seule vague, tu en vois une. Le produit n’en invente pas une deuxième pour avoir l’air occupé.</p></div></div></div></section><section class="band p2"><div>
+ <p class="label eq">Quand un soir tombe à l’eau</p>
+ <h2>Un soir manqué ne refait pas la semaine.</h2>
+ <div class="plate"><div class="fig-scroll"><svg viewBox="0 0 480 240" role="img" aria-labelledby="f3t f3d">
+      <title id="f3t">Les trois gestes qu'une semaine accepte</title>
+      <desc id="f3d">Trois cartes, un geste par carte.</desc>
+      <defs>
+        <g id="mp-dish">
+          <rect x="0" y="0" width="32" height="20" rx="4" fill="var(--ill-wash)" stroke="var(--ill-fig)" stroke-width="2"/>
+        </g>
+      </defs>
+      <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig)" stroke-width="2" stroke-linecap="round"/>
+      <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft)">TROIS GESTES</text>
+      <g fill="none" stroke="var(--ill-ink-soft)" stroke-width="1">
+        <rect x="24" y="52" width="128" height="128" rx="12" fill="var(--ill-paper)"/>
+        <rect x="36" y="72" width="48" height="76" rx="4"/>
+        <rect x="92" y="72" width="48" height="76" rx="4"/>
+        <rect x="100" y="100" width="32" height="20" rx="4"/>
+        <use href="#mp-dish" x="44" y="100"/>
+        <g stroke-linecap="round" stroke-linejoin="round">
+          <path d="M 64 164 L 112 164"/>
+          <path d="M 107 160 L 112 164 L 107 168"/>
+        </g>
+        <text x="88" y="206" text-anchor="middle" stroke="none" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft)">DÉCALER UN PLAT</text>
+      </g>
+      <g fill="none" stroke="var(--ill-ink-soft)" stroke-width="1">
+        <rect x="176" y="52" width="128" height="128" rx="12" fill="var(--ill-paper)"/>
+        <rect x="188" y="72" width="48" height="76" rx="4"/>
+        <rect x="244" y="72" width="48" height="76" rx="4"/>
+        <rect x="192" y="92" width="40" height="36" rx="4"/>
+        <rect x="248" y="92" width="40" height="36" rx="4"/>
+        <use href="#mp-dish" x="196" y="100"/>
+        <g stroke-linecap="round" stroke-linejoin="round">
+          <path d="M 216 164 L 264 164"/>
+          <path d="M 259 160 L 264 164 L 259 168"/>
+        </g>
+        <text x="240" y="206" text-anchor="middle" stroke="none" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft)">DÉCALER LA SESSION</text>
+      </g>
+      <g fill="none" stroke="var(--ill-ink-soft)" stroke-width="1">
+        <rect x="328" y="52" width="128" height="128" rx="12" fill="var(--ill-paper)"/>
+        <rect x="368" y="72" width="48" height="76" rx="4"/>
+        <rect x="376" y="100" width="32" height="20" rx="4"/>
+        <text x="392" y="206" text-anchor="middle" stroke="none" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft)">PAS CE SOIR</text>
+      </g>
+    </svg></div>
+  <div class="legend"><p>Trois gestes, proposés en boutons dans le fil : décaler un plat, décaler toute la session, ou dire que tu ne cuisines pas ce soir. La semaine encaisse et se réaligne autour.</p><p class="soft">Aucun plat n’est choisi à ta place, et la semaine n’est pas réécrite dans ton dos.</p></div></div></div></section><section class="band "><div>
+ <p class="label eq">Pour commencer</p>
+ <h2>12,99 € par mois. Seul, tu as tout.</h2>
+ <div class="grid-start">
+  <div class="card"><div class="price">12,99 €</div>
+   <div style="margin-top:8px;font-size:14px;color:var(--ink-soft)">par mois</div>
+   <p style="margin:12px 0 0;border-top:1px solid var(--line);padding-top:12px;font-size:14px;font-weight:500">Un foyer. À une personne, il est déjà entier.</p></div>
+  <div>
+   <p style="margin:0;max-width:62ch">Tu achètes un foyer d’une personne, et un foyer d’une personne est un foyer complet. D’autres bouches pourront s’y ajouter plus tard ; ce n’est pas ce que tu achètes aujourd’hui.</p>
+   <div class="fiche"><p class="label eq">Ce qu’on te demande</p><ul><li>Prénom</li><li>Date de naissance</li><li>Objectif</li><li>Allergies</li></ul></div>
+   <p style="margin-top:32px"><a class="btn" href="#">Commencer</a></p>
+   <p class="note">Ensuite Sophia compose la première semaine, en sessions.</p>
+  </div>
+ </div></div></section>
+<section class="band p2"><div>
+  <p class="label eq">Annexe de contrôle</p>
+  <h2>Les trois figures au plancher de 380 px</h2>
+  <p class="note">C'est la largeur minimale que <code>.fig-scroll</code> impose : sous
+  cette taille, la planche défile au lieu de rétrécir le texte de la figure.</p>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:24px">
+<div style="width:380px;border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--paper)"><svg viewBox="0 0 480 240" role="img" aria-labelledby="f1t f1d">
+      <title id="f1t">Une session de cuisine, plusieurs repas prêts</title>
+      <desc id="f1d">Une casserole vue de dessus, reliée par un peigne à des contenants identiques.</desc>
+      <defs>
+        <g id="mp-box">
+          <rect x="0" y="0" width="150" height="44" rx="12" fill="var(--ill-paper)" stroke="var(--ill-ink)" stroke-width="2"/>
+          <rect x="12" y="10" width="61" height="24" rx="4" fill="var(--ill-wash)" stroke="var(--ill-ink-soft)" stroke-width="1"/>
+          <rect x="77" y="10" width="61" height="24" rx="4" fill="var(--ill-wash)" stroke="var(--ill-ink-soft)" stroke-width="1"/>
+        </g>
+      </defs>
+      <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig)" stroke-width="2" stroke-linecap="round"/>
+      <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft)">UNE SESSION DE CUISINE</text>
+      <g stroke="var(--ill-fig)" stroke-width="2" stroke-linejoin="round">
+        <rect x="26" y="135" width="32" height="18" rx="9" fill="var(--ill-paper)"/>
+        <rect x="150" y="135" width="32" height="18" rx="9" fill="var(--ill-paper)"/>
+        <circle cx="104" cy="144" r="54" fill="var(--ill-paper)"/>
+      </g>
+      <circle cx="104" cy="144" r="42" fill="var(--ill-wash)"/>
+      <text x="104" y="222" text-anchor="middle" font-size="12" fill="var(--ill-ink-soft)">une session</text>
+      <g fill="none" stroke="var(--ill-ink-soft)" stroke-width="1" stroke-linecap="round">
+        <path d="M 184 146 L 286 146"/>
+        <path d="M 252 86 L 252 206"/>
+        <path d="M 252 86 L 286 86"/>
+        <path d="M 252 206 L 286 206"/>
+      </g>
+      <text x="286" y="52" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft)">CE QU’ELLE COUVRE</text>
+      <use href="#mp-box" x="286" y="64"/>
+      <use href="#mp-box" x="286" y="124"/>
+      <use href="#mp-box" x="286" y="184"/>
+    </svg></div><div style="width:380px;border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--paper)"><svg viewBox="0 0 480 240" role="img" aria-labelledby="f2t f2d">
+      <title id="f2t">Les courses réparties en vagues sur la semaine</title>
+      <desc id="f2d">Deux paniers identiques posés au-dessus des jours qu'ils couvrent.</desc>
+      <defs>
+        <g id="mp-wave" stroke="var(--ill-fig)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M 14 16 A 12 12 0 0 1 38 16" fill="none"/>
+          <rect x="0" y="16" width="52" height="36" rx="10" fill="var(--ill-wash)"/>
+        </g>
+      </defs>
+      <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig)" stroke-width="2" stroke-linecap="round"/>
+      <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft)">LES COURSES EN VAGUES</text>
+      <g font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft)">
+        <text x="100" y="60">PREMIÈRE VAGUE</text>
+        <text x="317" y="60">VAGUE SUIVANTE</text>
+      </g>
+      <use href="#mp-wave" x="100" y="66"/>
+      <use href="#mp-wave" x="317" y="66"/>
+      <g fill="none" stroke="var(--ill-ink-soft)" stroke-width="1" stroke-linecap="round">
+        <path d="M 126 118 L 126 146"/>
+        <path d="M 343 118 L 343 146"/>
+        <path d="M 64 152 L 64 146 L 188 146 L 188 152"/>
+        <path d="M 250 152 L 250 146 L 436 146"/>
+        <path d="M 64 170 L 436 170"/>
+        <path d="M 64 164 L 64 176"/><path d="M 126 164 L 126 176"/><path d="M 188 164 L 188 176"/>
+        <path d="M 250 164 L 250 176"/><path d="M 312 164 L 312 176"/><path d="M 374 164 L 374 176"/>
+        <path d="M 436 164 L 436 176"/>
+      </g>
+      <g font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft)">
+        <text x="126" y="196" text-anchor="middle">TROIS JOURS</text>
+        <text x="436" y="196" text-anchor="end">LA SEMAINE</text>
+      </g>
+    </svg></div><div style="width:380px;border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--paper)"><svg viewBox="0 0 480 240" role="img" aria-labelledby="f3t f3d">
+      <title id="f3t">Les trois gestes qu'une semaine accepte</title>
+      <desc id="f3d">Trois cartes, un geste par carte.</desc>
+      <defs>
+        <g id="mp-dish">
+          <rect x="0" y="0" width="32" height="20" rx="4" fill="var(--ill-wash)" stroke="var(--ill-fig)" stroke-width="2"/>
+        </g>
+      </defs>
+      <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig)" stroke-width="2" stroke-linecap="round"/>
+      <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft)">TROIS GESTES</text>
+      <g fill="none" stroke="var(--ill-ink-soft)" stroke-width="1">
+        <rect x="24" y="52" width="128" height="128" rx="12" fill="var(--ill-paper)"/>
+        <rect x="36" y="72" width="48" height="76" rx="4"/>
+        <rect x="92" y="72" width="48" height="76" rx="4"/>
+        <rect x="100" y="100" width="32" height="20" rx="4"/>
+        <use href="#mp-dish" x="44" y="100"/>
+        <g stroke-linecap="round" stroke-linejoin="round">
+          <path d="M 64 164 L 112 164"/>
+          <path d="M 107 160 L 112 164 L 107 168"/>
+        </g>
+        <text x="88" y="206" text-anchor="middle" stroke="none" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft)">DÉCALER UN PLAT</text>
+      </g>
+      <g fill="none" stroke="var(--ill-ink-soft)" stroke-width="1">
+        <rect x="176" y="52" width="128" height="128" rx="12" fill="var(--ill-paper)"/>
+        <rect x="188" y="72" width="48" height="76" rx="4"/>
+        <rect x="244" y="72" width="48" height="76" rx="4"/>
+        <rect x="192" y="92" width="40" height="36" rx="4"/>
+        <rect x="248" y="92" width="40" height="36" rx="4"/>
+        <use href="#mp-dish" x="196" y="100"/>
+        <g stroke-linecap="round" stroke-linejoin="round">
+          <path d="M 216 164 L 264 164"/>
+          <path d="M 259 160 L 264 164 L 259 168"/>
+        </g>
+        <text x="240" y="206" text-anchor="middle" stroke="none" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft)">DÉCALER LA SESSION</text>
+      </g>
+      <g fill="none" stroke="var(--ill-ink-soft)" stroke-width="1">
+        <rect x="328" y="52" width="128" height="128" rx="12" fill="var(--ill-paper)"/>
+        <rect x="368" y="72" width="48" height="76" rx="4"/>
+        <rect x="376" y="100" width="32" height="20" rx="4"/>
+        <text x="392" y="206" text-anchor="middle" stroke="none" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft)">PAS CE SOIR</text>
+      </g>
+    </svg></div>
+  </div>
+</div></section>
+</main>

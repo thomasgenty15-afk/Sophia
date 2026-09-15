@@ -1,0 +1,87 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "cb30530a-4058-4762-9239-f376056c6523",
+      "status": "pending",
+      "scheduled_for": "2026-06-24T20:18:13.156+00:00",
+      "event_context": "one_shot_reminder:verifier_cette_page_initiatives",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: vérifier cette page Initiatives.",
+        "local_label": "dans 35 minutes",
+        "parse_source": "payload_utc_time",
+        "request_text": "rappelle-moi dans 35 minutes de vérifier cette page Initiatives",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: vérifier cette page Initiatives.",
+        "source_message_id": "74780334-6800-4b8c-b107-71a06d1ff3dd",
+        "reminder_instruction": "vérifier cette page Initiatives"
+      },
+      "created_at": "2026-06-24T19:43:16.084982+00:00"
+    }
+  ],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Dans Sophia, où est-ce que je retrouve les initiatives déjà créées ?",
+      "created_at": "2026-06-24T19:42:57.818463+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260624_r2_product-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Tu retrouves tes initiatives dans l’onglet Initiatives : Dashboard > Initiatives. Si elles sont hors plan, elles sont dans Base de vie > Initiatives.",
+      "created_at": "2026-06-24T19:43:04.307861+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260624_r2_product-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Ok, et rappelle-moi dans 35 minutes de vérifier cette page Initiatives.",
+      "created_at": "2026-06-24T19:43:13.138761+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260624_r2_product-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui — je te le rappellerai dans 35 minutes pour vérifier cette page Initiatives. ⏰",
+      "created_at": "2026-06-24T19:43:17.155008+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260624_r2_product-t02",
+        "route_owner": "normal_reply",
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "fde9ee1e-6045-4bd1-b0be-a4b984a1f46c",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "companion_question_rhythm": {
+        "preference": "normal",
+        "recent_turns": [
+          0
+        ],
+        "last_updated_at": "2026-06-24T19:43:17.136Z",
+        "last_turn_had_question": false,
+        "turns_since_last_question": 1
+      }
+    },
+    "updated_at": "2026-06-24T19:43:17.148739+00:00"
+  }
+}

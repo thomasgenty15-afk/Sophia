@@ -1,0 +1,31 @@
+kong 900 s
+a9de04dc le plafond de masse suit la densité mesurée de l'assiette, borné par un plancher de densité — plus 1,35 kcal/g fixe, et jamais le kilo
+══════ C03 (quatre, 7 j) · 01:49:56
+   http=200 · 315.589774 s · essais=1 · llm_usage delta=4
+   empreinte APRÈS=e45ffe8c9991 (inchangée ✓)
+   → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/plan-C03-20260906-014957.json (79922 octets) · journal 25 lignes
+   ⤺ fixture restaurée ✓
+══════ D01 (duo, 7 j) · 01:55:14
+   http=200 · 204.017920 s · essais=1 · llm_usage delta=4
+   empreinte APRÈS=e45ffe8c9991 (inchangée ✓)
+   → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/plan-D01-20260906-015514.json (48074 octets) · journal 26 lignes
+   ⤺ fixture restaurée ✓
+══════ LECTURE 2/scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/plan-C03-20260906-014957.json Sophia
+════ Sophia · 2/scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/plan-C03-20260906-014957.json
+── livré dans les boîtes (bac divisé par ses mangeurs)
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/ahmedamara/Dev/Sophia'
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/ahmedamara/Dev/Sophia'
+══════ LECTURE 2/scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/plan-D01-20260906-015514.json Sophia
+════ Sophia · 2/scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/plan-D01-20260906-015514.json
+── livré dans les boîtes (bac divisé par ses mangeurs)
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/ahmedamara/Dev/Sophia'
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/ahmedamara/Dev/Sophia'
+fini 01:58:44

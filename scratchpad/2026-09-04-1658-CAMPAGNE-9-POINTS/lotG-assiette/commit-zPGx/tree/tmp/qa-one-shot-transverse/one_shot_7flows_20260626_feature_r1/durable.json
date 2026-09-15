@@ -1,0 +1,128 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "a98bdda1-e198-4819-83a1-ac5dc950a8f0",
+      "status": "pending",
+      "scheduled_for": "2026-06-26T11:22:33.162+00:00",
+      "event_context": "one_shot_reminder:noter_cette_idee_dans_initiatives",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: noter cette idée dans Initiatives.",
+        "local_label": "dans 28 minutes",
+        "parse_source": "payload_utc_time",
+        "request_text": "rappelle-moi dans 28 minutes de noter cette idée dans Initiatives",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: noter cette idée dans Initiatives.",
+        "source_message_id": "9081eaf5-2ede-4084-9794-ec33800048cb",
+        "reminder_instruction": "noter cette idée dans Initiatives"
+      },
+      "created_at": "2026-06-26T10:54:36.488135+00:00"
+    }
+  ],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Chaque vendredi soir je refais le même tri de notes à la main; j’ai l’impression que Sophia devrait avoir une fonctionnalité pour capter ce rituel, mais je ne sais pas laquelle.",
+      "created_at": "2026-06-26T10:54:11.916101+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260626_feature_r1-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui : ça ressemble à une bonne opportunité pour des initiatives. Cette fonctionnalité sert justement à capter un rituel récurrent, avec quoi faire, quand le faire et à quel rythme, pour le retrouver plus facilement ensuite.\n\nIci, tu pourrais la rattacher à ton tri de notes du vendredi soir.",
+      "created_at": "2026-06-26T10:54:19.195458+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260626_feature_r1-t01",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Oui, et rappelle-moi dans 28 minutes de noter cette idée dans Initiatives pendant que tu m’aides à la formuler simplement.",
+      "created_at": "2026-06-26T10:54:33.150347+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260626_feature_r1-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C’est bon pour dans 28 minutes : noter cette idée dans Initiatives.\n\nFormulation simple : « Chaque vendredi soir, je fais toujours le tri de mes notes à la main. Sophia pourrait m’aider à capturer ce rituel pour ne pas le refaire de zéro à chaque fois. »",
+      "created_at": "2026-06-26T10:54:38.220776+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260626_feature_r1-t02",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "422f2fbd-bad4-4071-b4b5-645c94a54be0",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-26T10:54:19.188Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-26T10:54:38.208Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 2,
+            "trigger_context": "Chaque vendredi soir",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "Le user décrit un rituel récurrent du vendredi soir pour trier ses notes à la main et veut le rattacher à une opportunité produit.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated ritual/context fits initiatives.",
+              "trigger_context": "Chaque vendredi soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "User describes a repeated Friday night ritual of manually sorting notes and suggests Sophia could capture this recurring context as a feature."
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-26T10:54:19.188Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-26T10:54:38.208Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 2,
+            "trigger_context": "Chaque vendredi soir",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "Le user décrit un rituel récurrent du vendredi soir pour trier ses notes à la main et veut le rattacher à une opportunité produit.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated ritual/context fits initiatives.",
+              "trigger_context": "Chaque vendredi soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "User describes a repeated Friday night ritual of manually sorting notes and suggests Sophia could capture this recurring context as a feature."
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-26T10:54:38.216971+00:00"
+  }
+}

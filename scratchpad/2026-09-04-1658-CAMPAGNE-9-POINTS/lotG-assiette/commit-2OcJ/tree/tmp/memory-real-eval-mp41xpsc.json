@@ -1,0 +1,3020 @@
+{
+  "ok": true,
+  "run_id": "memory-real-eval-mp41xpsc",
+  "user": {
+    "id": "90f8a22f-3965-451d-84ed-19abb8552f7e",
+    "email": "memory-real-eval-mp41xpsc@example.com"
+  },
+  "trigger_summary": {
+    "processed_count": 1,
+    "message_count": 28,
+    "memorizer": {
+      "status": "completed",
+      "reason": null,
+      "processed_message_count": 28,
+      "persisted_count": 23,
+      "extraction_run_id": "7033d9b1-73b3-48e1-b489-3a00957173ff",
+      "batch_hash": "8535c60354f8ae7b7d59a6953e1394727a31a046c7a597ddbbcf882210f5c3fe",
+      "write_decision_count": 23,
+      "extraction_run": {
+        "id": "7033d9b1-73b3-48e1-b489-3a00957173ff",
+        "status": "completed",
+        "trigger_type": "daily_batch",
+        "proposed_item_count": 23,
+        "accepted_item_count": 23,
+        "rejected_item_count": 5,
+        "proposed_entity_count": 4,
+        "accepted_entity_count": 0,
+        "duration_ms": 35025,
+        "error_message": null,
+        "durable_writes": {
+          "active_items": 23,
+          "memory_items": 23,
+          "candidate_items": 0
+        },
+        "pre_filter_skip_count": 2,
+        "statement_as_fact_violation_count": 2,
+        "rejection_reasons": {
+          "smart_pre_filter": 2,
+          "L'utilisateur a explicitement demandé de ne pas mémoriser l'indécision comme un trait stable, mais comme un ressenti ponctuel.": 1,
+          "statement_as_fact": 2
+        },
+        "write_decision_statuses": {
+          "active": 23
+        }
+      }
+    }
+  },
+  "extraction_run": {
+    "id": "7033d9b1-73b3-48e1-b489-3a00957173ff",
+    "status": "completed",
+    "proposed_item_count": 23,
+    "accepted_item_count": 23,
+    "rejected_item_count": 5,
+    "proposed_entity_count": 4,
+    "accepted_entity_count": 0,
+    "duration_ms": 35025,
+    "error_message": null,
+    "rejected_observations": [
+      {
+        "text": "Karim est mon manager, pas mon associe.",
+        "reason": "smart_pre_filter"
+      },
+      {
+        "text": "Je veux mesurer mes progres sur une semaine, pas sur une journee isolee.",
+        "reason": "smart_pre_filter"
+      },
+      {
+        "text": "",
+        "reason": "L'utilisateur a explicitement demandé de ne pas mémoriser l'indécision comme un trait stable, mais comme un ressenti ponctuel.",
+        "metadata": {},
+        "source_message_ids": [
+          "0dd7313f-e47a-42d6-a236-b871e8628818"
+        ],
+        "existing_memory_item_id": null
+      },
+      {
+        "text": "Le manager Karim exerce une forte pression en réunion, ce qui provoque un sentiment d'humiliation.",
+        "reason": "statement_as_fact",
+        "metadata": {
+          "issues": [
+            {
+              "code": "statement_as_fact",
+              "message": "subjective content cannot be fact",
+              "item_index": 5
+            }
+          ]
+        },
+        "source_message_ids": [
+          "8065d09a-b155-40a8-b285-cac05ca78c02"
+        ]
+      },
+      {
+        "text": "L'utilisateur craint que demander de l'aide soit perçu comme une faiblesse.",
+        "reason": "statement_as_fact",
+        "metadata": {
+          "issues": [
+            {
+              "code": "statement_as_fact",
+              "message": "subjective content cannot be fact",
+              "item_index": 15
+            }
+          ]
+        },
+        "source_message_ids": [
+          "0e1e9393-1c8d-4e71-9fca-d26593eb80a3"
+        ]
+      }
+    ],
+    "write_decisions": [
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "travail.carriere"
+            ],
+            "content_text": "L'utilisateur travaille sur le projet Sophia, une application de coaching WhatsApp avec mémoire longue.",
+            "event_end_at": null,
+            "canonical_key": "travail.carriere.fact.travaille_sur_projet_sophia_coaching_whatsapp",
+            "event_start_at": null,
+            "evidence_quote": "je travaille sur un projet qui s'appelle Sophia, une app de coaching WhatsApp avec memoire longue.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Travaille sur le projet Sophia (coaching WhatsApp).",
+            "source_message_ids": [
+              "03353c2e-1fac-4327-8279-b5090b4849aa"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "travail.carriere"
+              ],
+              "content_text": "L'utilisateur travaille sur le projet Sophia, une application de coaching WhatsApp avec mémoire longue.",
+              "event_end_at": null,
+              "canonical_key": "travail.carriere.fact.travaille_sur_projet_sophia_coaching_whatsapp",
+              "event_start_at": null,
+              "evidence_quote": "je travaille sur un projet qui s'appelle Sophia, une app de coaching WhatsApp avec memoire longue.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Travaille sur le projet Sophia (coaching WhatsApp).",
+              "source_message_ids": [
+                "03353c2e-1fac-4327-8279-b5090b4849aa"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "travail.carriere"
+              ],
+              "content_text": "L'utilisateur travaille sur le projet Sophia, une application de coaching WhatsApp avec mémoire longue.",
+              "event_end_at": null,
+              "canonical_key": "travail.carriere.fact.travaille_sur_projet_sophia_coaching_whatsapp",
+              "event_start_at": null,
+              "evidence_quote": "je travaille sur un projet qui s'appelle Sophia, une app de coaching WhatsApp avec memoire longue.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Travaille sur le projet Sophia (coaching WhatsApp).",
+              "source_message_ids": [
+                "03353c2e-1fac-4327-8279-b5090b4849aa"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "semantic_topic_match",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.86,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "goal"
+            },
+            "confidence": 0.9,
+            "topic_hint": null,
+            "domain_keys": [
+              "objectifs.court_terme",
+              "travail.performance"
+            ],
+            "content_text": "L'objectif principal du mois est de rendre Sophia fiable sur le suivi quotidien, les bilans et les relances.",
+            "event_end_at": null,
+            "canonical_key": "objectifs.court_terme.statement.objectif_fiabiliser_suivi_quotidien_sophia_mois-ci.",
+            "event_start_at": null,
+            "evidence_quote": "Mon objectif principal ce mois-ci est de rendre Sophia plus fiable sur le suivi quotidien, surtout les bilans et les relances WhatsApp.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Objectif : Fiabiliser le suivi quotidien de Sophia ce mois-ci.",
+            "source_message_ids": [
+              "5f5e66ce-965b-4ca6-991f-da9d6c833e84"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme",
+                "travail.performance"
+              ],
+              "content_text": "L'objectif principal du mois est de rendre Sophia fiable sur le suivi quotidien, les bilans et les relances.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.statement.objectif_fiabiliser_suivi_quotidien_sophia_mois-ci.",
+              "event_start_at": null,
+              "evidence_quote": "Mon objectif principal ce mois-ci est de rendre Sophia plus fiable sur le suivi quotidien, surtout les bilans et les relances WhatsApp.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Objectif : Fiabiliser le suivi quotidien de Sophia ce mois-ci.",
+              "source_message_ids": [
+                "5f5e66ce-965b-4ca6-991f-da9d6c833e84"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme",
+                "travail.performance"
+              ],
+              "content_text": "L'objectif principal du mois est de rendre Sophia fiable sur le suivi quotidien, les bilans et les relances.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.statement.objectif_fiabiliser_suivi_quotidien_sophia_mois-ci.",
+              "event_start_at": null,
+              "evidence_quote": "Mon objectif principal ce mois-ci est de rendre Sophia plus fiable sur le suivi quotidien, surtout les bilans et les relances WhatsApp.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Objectif : Fiabiliser le suivi quotidien de Sophia ce mois-ci.",
+              "source_message_ids": [
+                "5f5e66ce-965b-4ca6-991f-da9d6c833e84"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "semantic_topic_match",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "boundary"
+            },
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.procrastination",
+              "habitudes.execution"
+            ],
+            "content_text": "L'utilisateur procrastine quand l'action suivante est floue ; il a besoin d'actions minuscules et concrètes.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.procrastination.statement.besoin_actions_minuscules_pour_eviter_procrastination.",
+            "event_start_at": null,
+            "evidence_quote": "Je procrastine beaucoup quand la prochaine action est floue; si tu me proposes une action, elle doit etre minuscule et concrete.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Besoin d'actions minuscules pour éviter la procrastination.",
+            "source_message_ids": [
+              "0f962931-2980-49b2-a986-7766238429fe"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.procrastination",
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur procrastine quand l'action suivante est floue ; il a besoin d'actions minuscules et concrètes.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.procrastination.statement.besoin_actions_minuscules_pour_eviter_procrastination.",
+              "event_start_at": null,
+              "evidence_quote": "Je procrastine beaucoup quand la prochaine action est floue; si tu me proposes une action, elle doit etre minuscule et concrete.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Besoin d'actions minuscules pour éviter la procrastination.",
+              "source_message_ids": [
+                "0f962931-2980-49b2-a986-7766238429fe"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.procrastination",
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur procrastine quand l'action suivante est floue ; il a besoin d'actions minuscules et concrètes.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.procrastination.statement.besoin_actions_minuscules_pour_eviter_procrastination.",
+              "event_start_at": null,
+              "evidence_quote": "Je procrastine beaucoup quand la prochaine action est floue; si tu me proposes une action, elle doit etre minuscule et concrete.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Besoin d'actions minuscules pour éviter la procrastination.",
+              "source_message_ids": [
+                "0f962931-2980-49b2-a986-7766238429fe"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "hier soir",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.92
+            },
+            "confidence": 0.92,
+            "topic_hint": null,
+            "domain_keys": [
+              "sante.activite_physique",
+              "psychologie.emotions"
+            ],
+            "content_text": "L'utilisateur a marché 27 minutes après le dîner pour réduire la pression.",
+            "event_end_at": "2026-05-12T22:00:00.000Z",
+            "canonical_key": "sante.activite_physique.event.marche_minutes_apres_diner.",
+            "event_start_at": "2026-05-12T16:00:00.000Z",
+            "evidence_quote": "Hier soir, j'ai marche 27 minutes apres le diner et ca m'a aide a redescendre la pression.",
+            "time_precision": "part_of_day",
+            "entity_mentions": [],
+            "importance_score": 0.5,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Marche de 27 minutes après le dîner.",
+            "source_message_ids": [
+              "bb60c7b1-79ec-490a-a2f1-da71c5db1455"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "hier soir",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.92
+              },
+              "confidence": 0.92,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.activite_physique",
+                "psychologie.emotions"
+              ],
+              "content_text": "L'utilisateur a marché 27 minutes après le dîner pour réduire la pression.",
+              "event_end_at": "2026-05-12T22:00:00.000Z",
+              "canonical_key": "sante.activite_physique.event.marche_minutes_apres_diner.",
+              "event_start_at": "2026-05-12T16:00:00.000Z",
+              "evidence_quote": "Hier soir, j'ai marche 27 minutes apres le diner et ca m'a aide a redescendre la pression.",
+              "time_precision": "part_of_day",
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Marche de 27 minutes après le dîner.",
+              "source_message_ids": [
+                "bb60c7b1-79ec-490a-a2f1-da71c5db1455"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "hier soir",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.92
+              },
+              "confidence": 0.92,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.activite_physique",
+                "psychologie.emotions"
+              ],
+              "content_text": "L'utilisateur a marché 27 minutes après le dîner pour réduire la pression.",
+              "event_end_at": "2026-05-12T22:00:00.000Z",
+              "canonical_key": "sante.activite_physique.event.marche_minutes_apres_diner.",
+              "event_start_at": "2026-05-12T16:00:00.000Z",
+              "evidence_quote": "Hier soir, j'ai marche 27 minutes apres le diner et ca m'a aide a redescendre la pression.",
+              "time_precision": "part_of_day",
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Marche de 27 minutes après le dîner.",
+              "source_message_ids": [
+                "bb60c7b1-79ec-490a-a2f1-da71c5db1455"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 0.9,
+            "topic_hint": null,
+            "domain_keys": [
+              "sante.sommeil",
+              "addictions.ecrans"
+            ],
+            "content_text": "Le sommeil de l'utilisateur se dégrade lorsqu'il scrolle après minuit, particulièrement après avoir codé tard.",
+            "event_end_at": null,
+            "canonical_key": "sante.sommeil.fact.scroll_nocturne_apres_code_nuit_sommeil.",
+            "event_start_at": null,
+            "evidence_quote": "Depuis deux semaines, je dors mal quand je scrolle apres minuit, surtout les soirs ou je code tard.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Le scroll nocturne après le code nuit au sommeil.",
+            "source_message_ids": [
+              "d4809190-9263-46dd-ac9e-8e98532a18e1"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.sommeil",
+                "addictions.ecrans"
+              ],
+              "content_text": "Le sommeil de l'utilisateur se dégrade lorsqu'il scrolle après minuit, particulièrement après avoir codé tard.",
+              "event_end_at": null,
+              "canonical_key": "sante.sommeil.fact.scroll_nocturne_apres_code_nuit_sommeil.",
+              "event_start_at": null,
+              "evidence_quote": "Depuis deux semaines, je dors mal quand je scrolle apres minuit, surtout les soirs ou je code tard.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Le scroll nocturne après le code nuit au sommeil.",
+              "source_message_ids": [
+                "d4809190-9263-46dd-ac9e-8e98532a18e1"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.sommeil",
+                "addictions.ecrans"
+              ],
+              "content_text": "Le sommeil de l'utilisateur se dégrade lorsqu'il scrolle après minuit, particulièrement après avoir codé tard.",
+              "event_end_at": null,
+              "canonical_key": "sante.sommeil.fact.scroll_nocturne_apres_code_nuit_sommeil.",
+              "event_start_at": null,
+              "evidence_quote": "Depuis deux semaines, je dors mal quand je scrolle apres minuit, surtout les soirs ou je code tard.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Le scroll nocturne après le code nuit au sommeil.",
+              "source_message_ids": [
+                "d4809190-9263-46dd-ac9e-8e98532a18e1"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "semantic_topic_match",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.famille",
+              "habitudes.reprise_apres_echec"
+            ],
+            "content_text": "Nadia est la sœur de l'utilisateur et l'aide à relativiser en cas de rechute.",
+            "event_end_at": null,
+            "canonical_key": "relations.famille.fact.nadia_sœur_aide_relativiser_les_rechutes.",
+            "event_start_at": null,
+            "evidence_quote": "Nadia est ma soeur et elle m'aide a relativiser quand je dramatise une rechute.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Nadia (sœur) aide à relativiser les rechutes.",
+            "source_message_ids": [
+              "54883631-dd1a-44fc-9282-4379d2967e7b"
+            ],
+            "sensitivity_categories": [
+              "family"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.famille",
+                "habitudes.reprise_apres_echec"
+              ],
+              "content_text": "Nadia est la sœur de l'utilisateur et l'aide à relativiser en cas de rechute.",
+              "event_end_at": null,
+              "canonical_key": "relations.famille.fact.nadia_sœur_aide_relativiser_les_rechutes.",
+              "event_start_at": null,
+              "evidence_quote": "Nadia est ma soeur et elle m'aide a relativiser quand je dramatise une rechute.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Nadia (sœur) aide à relativiser les rechutes.",
+              "source_message_ids": [
+                "54883631-dd1a-44fc-9282-4379d2967e7b"
+              ],
+              "sensitivity_categories": [
+                "family"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.famille",
+                "habitudes.reprise_apres_echec"
+              ],
+              "content_text": "Nadia est la sœur de l'utilisateur et l'aide à relativiser en cas de rechute.",
+              "event_end_at": null,
+              "canonical_key": "relations.famille.fact.nadia_sœur_aide_relativiser_les_rechutes.",
+              "event_start_at": null,
+              "evidence_quote": "Nadia est ma soeur et elle m'aide a relativiser quand je dramatise une rechute.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Nadia (sœur) aide à relativiser les rechutes.",
+              "source_message_ids": [
+                "54883631-dd1a-44fc-9282-4379d2967e7b"
+              ],
+              "sensitivity_categories": [
+                "family"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.couple"
+            ],
+            "content_text": "Tania est l'ex-partenaire de l'utilisateur.",
+            "event_end_at": null,
+            "canonical_key": "relations.couple.fact.tania_est_utilisateur.",
+            "event_start_at": null,
+            "evidence_quote": "Tania est mon ex, pas ma soeur.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Tania est l'ex de l'utilisateur.",
+            "source_message_ids": [
+              "8f4f86eb-b114-4732-ac4f-8d3a94c27ec1"
+            ],
+            "sensitivity_categories": [
+              "relationship"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.couple"
+              ],
+              "content_text": "Tania est l'ex-partenaire de l'utilisateur.",
+              "event_end_at": null,
+              "canonical_key": "relations.couple.fact.tania_est_utilisateur.",
+              "event_start_at": null,
+              "evidence_quote": "Tania est mon ex, pas ma soeur.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Tania est l'ex de l'utilisateur.",
+              "source_message_ids": [
+                "8f4f86eb-b114-4732-ac4f-8d3a94c27ec1"
+              ],
+              "sensitivity_categories": [
+                "relationship"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.couple"
+              ],
+              "content_text": "Tania est l'ex-partenaire de l'utilisateur.",
+              "event_end_at": null,
+              "canonical_key": "relations.couple.fact.tania_est_utilisateur.",
+              "event_start_at": null,
+              "evidence_quote": "Tania est mon ex, pas ma soeur.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Tania est l'ex de l'utilisateur.",
+              "source_message_ids": [
+                "8f4f86eb-b114-4732-ac4f-8d3a94c27ec1"
+              ],
+              "sensitivity_categories": [
+                "relationship"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "preference"
+            },
+            "confidence": 0.9,
+            "topic_hint": null,
+            "domain_keys": [
+              "psychologie.emotions",
+              "relations.limites"
+            ],
+            "content_text": "L'utilisateur préfère un ton franc mais doux de la part de Sophia, surtout en cas de fatigue.",
+            "event_end_at": null,
+            "canonical_key": "psychologie.emotions.statement.prefere_ton_franc_mais_sans_durete_quand_est",
+            "event_start_at": null,
+            "evidence_quote": "Je prefere que Sophia me parle franchement mais sans ton dur quand je suis fatigue.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Préfère un ton franc mais sans dureté quand il est fatigué.",
+            "source_message_ids": [
+              "20ca4cd4-f7bc-484e-acb3-dd14ff819772"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.emotions",
+                "relations.limites"
+              ],
+              "content_text": "L'utilisateur préfère un ton franc mais doux de la part de Sophia, surtout en cas de fatigue.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.emotions.statement.prefere_ton_franc_mais_sans_durete_quand_est",
+              "event_start_at": null,
+              "evidence_quote": "Je prefere que Sophia me parle franchement mais sans ton dur quand je suis fatigue.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préfère un ton franc mais sans dureté quand il est fatigué.",
+              "source_message_ids": [
+                "20ca4cd4-f7bc-484e-acb3-dd14ff819772"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.emotions",
+                "relations.limites"
+              ],
+              "content_text": "L'utilisateur préfère un ton franc mais doux de la part de Sophia, surtout en cas de fatigue.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.emotions.statement.prefere_ton_franc_mais_sans_durete_quand_est",
+              "event_start_at": null,
+              "evidence_quote": "Je prefere que Sophia me parle franchement mais sans ton dur quand je suis fatigue.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préfère un ton franc mais sans dureté quand il est fatigué.",
+              "source_message_ids": [
+                "20ca4cd4-f7bc-484e-acb3-dd14ff819772"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "semantic_topic_match",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "instruction"
+            },
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "psychologie.identite",
+              "psychologie.emotions"
+            ],
+            "content_text": "L'expression 'je suis nul' doit être interprétée comme une émotion passagère et non comme un trait d'identité.",
+            "event_end_at": null,
+            "canonical_key": "psychologie.identite.statement.autodenigrement_est_une_emotion_pas_fait_identitaire.",
+            "event_start_at": null,
+            "evidence_quote": "Quand je dis 'je suis nul', c'est une emotion du moment, pas un fait sur mon identite.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "L'autodénigrement est une émotion, pas un fait identitaire.",
+            "source_message_ids": [
+              "9f1c6f89-097c-458d-a93f-0c986517899f"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "instruction"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.identite",
+                "psychologie.emotions"
+              ],
+              "content_text": "L'expression 'je suis nul' doit être interprétée comme une émotion passagère et non comme un trait d'identité.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.identite.statement.autodenigrement_est_une_emotion_pas_fait_identitaire.",
+              "event_start_at": null,
+              "evidence_quote": "Quand je dis 'je suis nul', c'est une emotion du moment, pas un fait sur mon identite.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "L'autodénigrement est une émotion, pas un fait identitaire.",
+              "source_message_ids": [
+                "9f1c6f89-097c-458d-a93f-0c986517899f"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "instruction"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.identite",
+                "psychologie.emotions"
+              ],
+              "content_text": "L'expression 'je suis nul' doit être interprétée comme une émotion passagère et non comme un trait d'identité.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.identite.statement.autodenigrement_est_une_emotion_pas_fait_identitaire.",
+              "event_start_at": null,
+              "evidence_quote": "Quand je dis 'je suis nul', c'est une emotion du moment, pas un fait sur mon identite.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "L'autodénigrement est une émotion, pas un fait identitaire.",
+              "source_message_ids": [
+                "9f1c6f89-097c-458d-a93f-0c986517899f"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "addictions.cannabis",
+              "psychologie.emotions"
+            ],
+            "content_text": "L'utilisateur consomme parfois du cannabis le soir pour évacuer la pression.",
+            "event_end_at": null,
+            "canonical_key": "addictions.cannabis.fact.consommation_occasionnelle_cannabis_pour_gerer_pression.",
+            "event_start_at": null,
+            "evidence_quote": "Je consomme parfois du cannabis le soir quand je veux couper la pression, et je veux que ce sujet reste sensible.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Consommation occasionnelle de cannabis pour gérer la pression.",
+            "source_message_ids": [
+              "abbd4523-7879-49db-a978-13fed4192740"
+            ],
+            "sensitivity_categories": [
+              "addiction"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "addictions.cannabis",
+                "psychologie.emotions"
+              ],
+              "content_text": "L'utilisateur consomme parfois du cannabis le soir pour évacuer la pression.",
+              "event_end_at": null,
+              "canonical_key": "addictions.cannabis.fact.consommation_occasionnelle_cannabis_pour_gerer_pression.",
+              "event_start_at": null,
+              "evidence_quote": "Je consomme parfois du cannabis le soir quand je veux couper la pression, et je veux que ce sujet reste sensible.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Consommation occasionnelle de cannabis pour gérer la pression.",
+              "source_message_ids": [
+                "abbd4523-7879-49db-a978-13fed4192740"
+              ],
+              "sensitivity_categories": [
+                "addiction"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "addictions.cannabis",
+                "psychologie.emotions"
+              ],
+              "content_text": "L'utilisateur consomme parfois du cannabis le soir pour évacuer la pression.",
+              "event_end_at": null,
+              "canonical_key": "addictions.cannabis.fact.consommation_occasionnelle_cannabis_pour_gerer_pression.",
+              "event_start_at": null,
+              "evidence_quote": "Je consomme parfois du cannabis le soir quand je veux couper la pression, et je veux que ce sujet reste sensible.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Consommation occasionnelle de cannabis pour gérer la pression.",
+              "source_message_ids": [
+                "abbd4523-7879-49db-a978-13fed4192740"
+              ],
+              "sensitivity_categories": [
+                "addiction"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "boundary"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.limites"
+            ],
+            "content_text": "Le sujet du cannabis ne doit pas être abordé dans des conversations neutres sur le travail ou la marche.",
+            "event_end_at": null,
+            "canonical_key": "relations.limites.statement.pas_evoquer_cannabis_hors_contexte_specifique.",
+            "event_start_at": null,
+            "evidence_quote": "Je ne veux pas que tu ressortes le sujet cannabis dans une conversation neutre sur la marche ou le travail.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.9,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Ne pas évoquer le cannabis hors contexte spécifique.",
+            "source_message_ids": [
+              "769e01c0-76bf-4817-bf04-a4ed715e72c4"
+            ],
+            "sensitivity_categories": [
+              "addiction"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.limites"
+              ],
+              "content_text": "Le sujet du cannabis ne doit pas être abordé dans des conversations neutres sur le travail ou la marche.",
+              "event_end_at": null,
+              "canonical_key": "relations.limites.statement.pas_evoquer_cannabis_hors_contexte_specifique.",
+              "event_start_at": null,
+              "evidence_quote": "Je ne veux pas que tu ressortes le sujet cannabis dans une conversation neutre sur la marche ou le travail.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Ne pas évoquer le cannabis hors contexte spécifique.",
+              "source_message_ids": [
+                "769e01c0-76bf-4817-bf04-a4ed715e72c4"
+              ],
+              "sensitivity_categories": [
+                "addiction"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.limites"
+              ],
+              "content_text": "Le sujet du cannabis ne doit pas être abordé dans des conversations neutres sur le travail ou la marche.",
+              "event_end_at": null,
+              "canonical_key": "relations.limites.statement.pas_evoquer_cannabis_hors_contexte_specifique.",
+              "event_start_at": null,
+              "evidence_quote": "Je ne veux pas que tu ressortes le sujet cannabis dans une conversation neutre sur la marche ou le travail.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Ne pas évoquer le cannabis hors contexte spécifique.",
+              "source_message_ids": [
+                "769e01c0-76bf-4817-bf04-a4ed715e72c4"
+              ],
+              "sensitivity_categories": [
+                "addiction"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "goal"
+            },
+            "confidence": 0.9,
+            "topic_hint": null,
+            "domain_keys": [
+              "sante.activite_physique",
+              "objectifs.court_terme"
+            ],
+            "content_text": "L'utilisateur souhaite maintenir trois marches par semaine sans culpabilité en cas d'échec.",
+            "event_end_at": null,
+            "canonical_key": "sante.activite_physique.statement.objectif_marches_par_semaine_sans_culpabiliser.",
+            "event_start_at": null,
+            "evidence_quote": "J'aimerais garder trois marches par semaine, mais sans culpabiliser si j'en rate une.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Objectif : 3 marches par semaine, sans culpabiliser.",
+            "source_message_ids": [
+              "4977eae3-b53d-47ce-94e3-88e51d87ff6b"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.activite_physique",
+                "objectifs.court_terme"
+              ],
+              "content_text": "L'utilisateur souhaite maintenir trois marches par semaine sans culpabilité en cas d'échec.",
+              "event_end_at": null,
+              "canonical_key": "sante.activite_physique.statement.objectif_marches_par_semaine_sans_culpabiliser.",
+              "event_start_at": null,
+              "evidence_quote": "J'aimerais garder trois marches par semaine, mais sans culpabiliser si j'en rate une.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Objectif : 3 marches par semaine, sans culpabiliser.",
+              "source_message_ids": [
+                "4977eae3-b53d-47ce-94e3-88e51d87ff6b"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.activite_physique",
+                "objectifs.court_terme"
+              ],
+              "content_text": "L'utilisateur souhaite maintenir trois marches par semaine sans culpabilité en cas d'échec.",
+              "event_end_at": null,
+              "canonical_key": "sante.activite_physique.statement.objectif_marches_par_semaine_sans_culpabiliser.",
+              "event_start_at": null,
+              "evidence_quote": "J'aimerais garder trois marches par semaine, mais sans culpabiliser si j'en rate une.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Objectif : 3 marches par semaine, sans culpabiliser.",
+              "source_message_ids": [
+                "4977eae3-b53d-47ce-94e3-88e51d87ff6b"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "semantic_topic_match",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "hier",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.9
+            },
+            "confidence": 0.9,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.procrastination"
+            ],
+            "content_text": "L'utilisateur a reporté une tâche importante par manque de clarté sur le point de départ.",
+            "event_end_at": "2026-05-12T22:00:00.000Z",
+            "canonical_key": "habitudes.procrastination.event.tache_reportee_par_manque_clarte_initiale.",
+            "event_start_at": "2026-05-11T07:00:00.000Z",
+            "evidence_quote": "Avant-hier matin, j'ai reporte une tache importante parce que je ne savais pas par ou commencer.",
+            "time_precision": "day",
+            "entity_mentions": [],
+            "importance_score": 0.5,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Tâche reportée par manque de clarté initiale.",
+            "source_message_ids": [
+              "ffcb905f-f996-474d-9a73-15b673a691e6"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "hier",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.procrastination"
+              ],
+              "content_text": "L'utilisateur a reporté une tâche importante par manque de clarté sur le point de départ.",
+              "event_end_at": "2026-05-12T22:00:00.000Z",
+              "canonical_key": "habitudes.procrastination.event.tache_reportee_par_manque_clarte_initiale.",
+              "event_start_at": "2026-05-11T07:00:00.000Z",
+              "evidence_quote": "Avant-hier matin, j'ai reporte une tache importante parce que je ne savais pas par ou commencer.",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Tâche reportée par manque de clarté initiale.",
+              "source_message_ids": [
+                "ffcb905f-f996-474d-9a73-15b673a691e6"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "hier",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.procrastination"
+              ],
+              "content_text": "L'utilisateur a reporté une tâche importante par manque de clarté sur le point de départ.",
+              "event_end_at": "2026-05-12T22:00:00.000Z",
+              "canonical_key": "habitudes.procrastination.event.tache_reportee_par_manque_clarte_initiale.",
+              "event_start_at": "2026-05-11T07:00:00.000Z",
+              "evidence_quote": "Avant-hier matin, j'ai reporte une tache importante parce que je ne savais pas par ou commencer.",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Tâche reportée par manque de clarté initiale.",
+              "source_message_ids": [
+                "ffcb905f-f996-474d-9a73-15b673a691e6"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "semantic_topic_match",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "preference"
+            },
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.execution"
+            ],
+            "content_text": "L'utilisateur exécute mieux les tâches lorsqu'elles sont présentées en trois étapes visibles.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.execution.statement.efficacite_accrue_avec_des_plans_etapes.",
+            "event_start_at": null,
+            "evidence_quote": "Quand Sophia me donne un plan en trois etapes visibles, j'execute mieux.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Efficacité accrue avec des plans en 3 étapes.",
+            "source_message_ids": [
+              "52f3cd6e-a65c-4fbc-92cb-9ba515ad2048"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur exécute mieux les tâches lorsqu'elles sont présentées en trois étapes visibles.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.execution.statement.efficacite_accrue_avec_des_plans_etapes.",
+              "event_start_at": null,
+              "evidence_quote": "Quand Sophia me donne un plan en trois etapes visibles, j'execute mieux.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Efficacité accrue avec des plans en 3 étapes.",
+              "source_message_ids": [
+                "52f3cd6e-a65c-4fbc-92cb-9ba515ad2048"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur exécute mieux les tâches lorsqu'elles sont présentées en trois étapes visibles.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.execution.statement.efficacite_accrue_avec_des_plans_etapes.",
+              "event_start_at": null,
+              "evidence_quote": "Quand Sophia me donne un plan en trois etapes visibles, j'execute mieux.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Efficacité accrue avec des plans en 3 étapes.",
+              "source_message_ids": [
+                "52f3cd6e-a65c-4fbc-92cb-9ba515ad2048"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "semantic_topic_match",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "goal"
+            },
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.environnement",
+              "sante.activite_physique"
+            ],
+            "content_text": "Routine matinale idéale : eau, douche, 10 minutes de marche, puis téléphone.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.environnement.statement.routine_matinale_eau_douche_marche_puis_telephone.",
+            "event_start_at": null,
+            "evidence_quote": "Ma routine ideale du matin: eau, douche, dix minutes de marche, puis seulement ensuite ouvrir le telephone.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Routine matinale : eau, douche, marche, puis téléphone.",
+            "source_message_ids": [
+              "ffee8e2a-1d1c-48c9-9c4c-d63b386b2137"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.environnement",
+                "sante.activite_physique"
+              ],
+              "content_text": "Routine matinale idéale : eau, douche, 10 minutes de marche, puis téléphone.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.environnement.statement.routine_matinale_eau_douche_marche_puis_telephone.",
+              "event_start_at": null,
+              "evidence_quote": "Ma routine ideale du matin: eau, douche, dix minutes de marche, puis seulement ensuite ouvrir le telephone.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Routine matinale : eau, douche, marche, puis téléphone.",
+              "source_message_ids": [
+                "ffee8e2a-1d1c-48c9-9c4c-d63b386b2137"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.environnement",
+                "sante.activite_physique"
+              ],
+              "content_text": "Routine matinale idéale : eau, douche, 10 minutes de marche, puis téléphone.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.environnement.statement.routine_matinale_eau_douche_marche_puis_telephone.",
+              "event_start_at": null,
+              "evidence_quote": "Ma routine ideale du matin: eau, douche, dix minutes de marche, puis seulement ensuite ouvrir le telephone.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Routine matinale : eau, douche, marche, puis téléphone.",
+              "source_message_ids": [
+                "ffee8e2a-1d1c-48c9-9c4c-d63b386b2137"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "semantic_topic_match",
+            "topic_id": "45ca4791-19ab-431a-8f33-3528fd5babda",
+            "confidence": 0.731111111111111,
+            "topic_slug": "routine_execution",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "boundary"
+            },
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "travail.charge",
+              "psychologie.emotions"
+            ],
+            "content_text": "En cas de surcharge, l'utilisateur a besoin d'une réduction de pression plutôt que d'un nouveau défi.",
+            "event_end_at": null,
+            "canonical_key": "travail.charge.statement.besoin_reduire_pression_cas_surcharge.",
+            "event_start_at": null,
+            "evidence_quote": "Si je suis en surcharge, il faut me proposer une reduction de pression plutot qu'un challenge.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Besoin de réduire la pression en cas de surcharge.",
+            "source_message_ids": [
+              "98178182-d3a5-4234-aa25-f8eddc4485fe"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "travail.charge",
+                "psychologie.emotions"
+              ],
+              "content_text": "En cas de surcharge, l'utilisateur a besoin d'une réduction de pression plutôt que d'un nouveau défi.",
+              "event_end_at": null,
+              "canonical_key": "travail.charge.statement.besoin_reduire_pression_cas_surcharge.",
+              "event_start_at": null,
+              "evidence_quote": "Si je suis en surcharge, il faut me proposer une reduction de pression plutot qu'un challenge.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Besoin de réduire la pression en cas de surcharge.",
+              "source_message_ids": [
+                "98178182-d3a5-4234-aa25-f8eddc4485fe"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "travail.charge",
+                "psychologie.emotions"
+              ],
+              "content_text": "En cas de surcharge, l'utilisateur a besoin d'une réduction de pression plutôt que d'un nouveau défi.",
+              "event_end_at": null,
+              "canonical_key": "travail.charge.statement.besoin_reduire_pression_cas_surcharge.",
+              "event_start_at": null,
+              "evidence_quote": "Si je suis en surcharge, il faut me proposer une reduction de pression plutot qu'un challenge.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Besoin de réduire la pression en cas de surcharge.",
+              "source_message_ids": [
+                "98178182-d3a5-4234-aa25-f8eddc4485fe"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "dimanche soir",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.84
+            },
+            "confidence": 0.9,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.famille",
+              "relations.conflit"
+            ],
+            "content_text": "Discussion tendue avec sa mère concernant son rythme de travail.",
+            "event_end_at": "2026-05-10T22:00:00.000Z",
+            "canonical_key": "relations.famille.event.conflit_avec_mere_sur_rythme_travail.",
+            "event_start_at": "2026-05-10T16:00:00.000Z",
+            "evidence_quote": "Dimanche soir, j'ai eu une discussion tendue avec ma mere sur mon rythme de travail.",
+            "time_precision": "part_of_day",
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Conflit avec sa mère sur le rythme de travail.",
+            "source_message_ids": [
+              "08e3fbea-5f87-4d86-ad52-ce364b3ab8f6"
+            ],
+            "sensitivity_categories": [
+              "family"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "dimanche soir",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.84
+              },
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.famille",
+                "relations.conflit"
+              ],
+              "content_text": "Discussion tendue avec sa mère concernant son rythme de travail.",
+              "event_end_at": "2026-05-10T22:00:00.000Z",
+              "canonical_key": "relations.famille.event.conflit_avec_mere_sur_rythme_travail.",
+              "event_start_at": "2026-05-10T16:00:00.000Z",
+              "evidence_quote": "Dimanche soir, j'ai eu une discussion tendue avec ma mere sur mon rythme de travail.",
+              "time_precision": "part_of_day",
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Conflit avec sa mère sur le rythme de travail.",
+              "source_message_ids": [
+                "08e3fbea-5f87-4d86-ad52-ce364b3ab8f6"
+              ],
+              "sensitivity_categories": [
+                "family"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "dimanche soir",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.84
+              },
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.famille",
+                "relations.conflit"
+              ],
+              "content_text": "Discussion tendue avec sa mère concernant son rythme de travail.",
+              "event_end_at": "2026-05-10T22:00:00.000Z",
+              "canonical_key": "relations.famille.event.conflit_avec_mere_sur_rythme_travail.",
+              "event_start_at": "2026-05-10T16:00:00.000Z",
+              "evidence_quote": "Dimanche soir, j'ai eu une discussion tendue avec ma mere sur mon rythme de travail.",
+              "time_precision": "part_of_day",
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Conflit avec sa mère sur le rythme de travail.",
+              "source_message_ids": [
+                "08e3fbea-5f87-4d86-ad52-ce364b3ab8f6"
+              ],
+              "sensitivity_categories": [
+                "family"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 0.9,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.famille",
+              "psychologie.estime_de_soi"
+            ],
+            "content_text": "Les critiques de sa mère sur sa discipline activent des doutes chez l'utilisateur.",
+            "event_end_at": null,
+            "canonical_key": "relations.famille.fact.les_critiques_maternelles_sur_discipline_generent_doute.",
+            "event_start_at": null,
+            "evidence_quote": "Ma mere me critique souvent sur ma discipline, et ca active beaucoup de doute.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Les critiques maternelles sur la discipline génèrent du doute.",
+            "source_message_ids": [
+              "9c1340d7-0d41-4db6-8cf6-a0b2233e4610"
+            ],
+            "sensitivity_categories": [
+              "family"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.famille",
+                "psychologie.estime_de_soi"
+              ],
+              "content_text": "Les critiques de sa mère sur sa discipline activent des doutes chez l'utilisateur.",
+              "event_end_at": null,
+              "canonical_key": "relations.famille.fact.les_critiques_maternelles_sur_discipline_generent_doute.",
+              "event_start_at": null,
+              "evidence_quote": "Ma mere me critique souvent sur ma discipline, et ca active beaucoup de doute.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Les critiques maternelles sur la discipline génèrent du doute.",
+              "source_message_ids": [
+                "9c1340d7-0d41-4db6-8cf6-a0b2233e4610"
+              ],
+              "sensitivity_categories": [
+                "family"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.famille",
+                "psychologie.estime_de_soi"
+              ],
+              "content_text": "Les critiques de sa mère sur sa discipline activent des doutes chez l'utilisateur.",
+              "event_end_at": null,
+              "canonical_key": "relations.famille.fact.les_critiques_maternelles_sur_discipline_generent_doute.",
+              "event_start_at": null,
+              "evidence_quote": "Ma mere me critique souvent sur ma discipline, et ca active beaucoup de doute.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Les critiques maternelles sur la discipline génèrent du doute.",
+              "source_message_ids": [
+                "9c1340d7-0d41-4db6-8cf6-a0b2233e4610"
+              ],
+              "sensitivity_categories": [
+                "family"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.environnement",
+              "sante.activite_physique"
+            ],
+            "content_text": "Préparer ses affaires la veille augmente la probabilité de faire la marche matinale.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.environnement.fact.preparer_ses_affaires_veille_favorise_marche_matin.",
+            "event_start_at": null,
+            "evidence_quote": "J'ai remarque que preparer mes affaires la veille rend la marche du matin beaucoup plus probable.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Préparer ses affaires la veille favorise la marche du matin.",
+            "source_message_ids": [
+              "e5295696-251b-40f0-a27b-16321fb4e729"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.environnement",
+                "sante.activite_physique"
+              ],
+              "content_text": "Préparer ses affaires la veille augmente la probabilité de faire la marche matinale.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.environnement.fact.preparer_ses_affaires_veille_favorise_marche_matin.",
+              "event_start_at": null,
+              "evidence_quote": "J'ai remarque que preparer mes affaires la veille rend la marche du matin beaucoup plus probable.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préparer ses affaires la veille favorise la marche du matin.",
+              "source_message_ids": [
+                "e5295696-251b-40f0-a27b-16321fb4e729"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.environnement",
+                "sante.activite_physique"
+              ],
+              "content_text": "Préparer ses affaires la veille augmente la probabilité de faire la marche matinale.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.environnement.fact.preparer_ses_affaires_veille_favorise_marche_matin.",
+              "event_start_at": null,
+              "evidence_quote": "J'ai remarque que preparer mes affaires la veille rend la marche du matin beaucoup plus probable.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préparer ses affaires la veille favorise la marche du matin.",
+              "source_message_ids": [
+                "e5295696-251b-40f0-a27b-16321fb4e729"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "goal"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "travail.carriere",
+              "objectifs.court_terme"
+            ],
+            "content_text": "Le projet Sophia est la priorité absolue pour les prochaines semaines.",
+            "event_end_at": null,
+            "canonical_key": "travail.carriere.statement.priorite_court_terme_projet_sophia.",
+            "event_start_at": null,
+            "evidence_quote": "Le projet Sophia est prioritaire par rapport aux autres idees produit pour les prochaines semaines.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.9,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Priorité court terme : Projet Sophia.",
+            "source_message_ids": [
+              "f31f5a03-6e4c-4486-86b7-5b3c59d6e7de"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "travail.carriere",
+                "objectifs.court_terme"
+              ],
+              "content_text": "Le projet Sophia est la priorité absolue pour les prochaines semaines.",
+              "event_end_at": null,
+              "canonical_key": "travail.carriere.statement.priorite_court_terme_projet_sophia.",
+              "event_start_at": null,
+              "evidence_quote": "Le projet Sophia est prioritaire par rapport aux autres idees produit pour les prochaines semaines.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Priorité court terme : Projet Sophia.",
+              "source_message_ids": [
+                "f31f5a03-6e4c-4486-86b7-5b3c59d6e7de"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "travail.carriere",
+                "objectifs.court_terme"
+              ],
+              "content_text": "Le projet Sophia est la priorité absolue pour les prochaines semaines.",
+              "event_end_at": null,
+              "canonical_key": "travail.carriere.statement.priorite_court_terme_projet_sophia.",
+              "event_start_at": null,
+              "evidence_quote": "Le projet Sophia est prioritaire par rapport aux autres idees produit pour les prochaines semaines.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Priorité court terme : Projet Sophia.",
+              "source_message_ids": [
+                "f31f5a03-6e4c-4486-86b7-5b3c59d6e7de"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "semantic_topic_match",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7109090909090909,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "preference"
+            },
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.planification"
+            ],
+            "content_text": "L'utilisateur souhaite que les bilans hebdomadaires mettent en avant les patterns plutôt que de simples listes d'actions.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.planification.statement.bilans_hebdo_focus_sur_les_patterns_pas_juste",
+            "event_start_at": null,
+            "evidence_quote": "Je veux que les bilans hebdo me montrent les patterns, pas seulement une liste d'actions faites ou ratees.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Bilans hebdo : focus sur les patterns, pas juste les actions.",
+            "source_message_ids": [
+              "15bf52e9-099b-46d2-9d73-de46952ef569"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur souhaite que les bilans hebdomadaires mettent en avant les patterns plutôt que de simples listes d'actions.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.planification.statement.bilans_hebdo_focus_sur_les_patterns_pas_juste",
+              "event_start_at": null,
+              "evidence_quote": "Je veux que les bilans hebdo me montrent les patterns, pas seulement une liste d'actions faites ou ratees.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Bilans hebdo : focus sur les patterns, pas juste les actions.",
+              "source_message_ids": [
+                "15bf52e9-099b-46d2-9d73-de46952ef569"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur souhaite que les bilans hebdomadaires mettent en avant les patterns plutôt que de simples listes d'actions.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.planification.statement.bilans_hebdo_focus_sur_les_patterns_pas_juste",
+              "event_start_at": null,
+              "evidence_quote": "Je veux que les bilans hebdo me montrent les patterns, pas seulement une liste d'actions faites ou ratees.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Bilans hebdo : focus sur les patterns, pas juste les actions.",
+              "source_message_ids": [
+                "15bf52e9-099b-46d2-9d73-de46952ef569"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "semantic_topic_match",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "preference"
+            },
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "psychologie.emotions"
+            ],
+            "content_text": "En état de fatigue, les réponses courtes et directes sont plus efficaces pour l'utilisateur.",
+            "event_end_at": null,
+            "canonical_key": "psychologie.emotions.statement.prefere_des_reponses_courtes_directes_quand_est_fatigue.",
+            "event_start_at": null,
+            "evidence_quote": "Quand je suis fatigue, les reponses courtes et directes m'aident plus que les grands raisonnements.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Préfère des réponses courtes et directes quand il est fatigué.",
+            "source_message_ids": [
+              "b57db2eb-f39b-400b-b89a-9791a1aad8b9"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.emotions"
+              ],
+              "content_text": "En état de fatigue, les réponses courtes et directes sont plus efficaces pour l'utilisateur.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.emotions.statement.prefere_des_reponses_courtes_directes_quand_est_fatigue.",
+              "event_start_at": null,
+              "evidence_quote": "Quand je suis fatigue, les reponses courtes et directes m'aident plus que les grands raisonnements.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préfère des réponses courtes et directes quand il est fatigué.",
+              "source_message_ids": [
+                "b57db2eb-f39b-400b-b89a-9791a1aad8b9"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.emotions"
+              ],
+              "content_text": "En état de fatigue, les réponses courtes et directes sont plus efficaces pour l'utilisateur.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.emotions.statement.prefere_des_reponses_courtes_directes_quand_est_fatigue.",
+              "event_start_at": null,
+              "evidence_quote": "Quand je suis fatigue, les reponses courtes et directes m'aident plus que les grands raisonnements.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préfère des réponses courtes et directes quand il est fatigué.",
+              "source_message_ids": [
+                "b57db2eb-f39b-400b-b89a-9791a1aad8b9"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "aujourd'hui",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.9
+            },
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "sante.energie",
+              "habitudes.execution"
+            ],
+            "content_text": "L'utilisateur a annulé une session de code par épuisement, mais a clarifié l'action suivante.",
+            "event_end_at": "2026-05-13T22:00:00.000Z",
+            "canonical_key": "sante.energie.event.session_code_annulee_epuisement_action_suivante_clarifiee.",
+            "event_start_at": "2026-05-13T10:00:00.000Z",
+            "evidence_quote": "Aujourd'hui j'ai annule une session de code parce que j'etais epuise, mais j'ai quand meme clarifie la prochaine action.",
+            "time_precision": "day",
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Session de code annulée (épuisement), action suivante clarifiée.",
+            "source_message_ids": [
+              "555457f0-483e-472c-a634-ebcafb872cf0"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "aujourd'hui",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.energie",
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur a annulé une session de code par épuisement, mais a clarifié l'action suivante.",
+              "event_end_at": "2026-05-13T22:00:00.000Z",
+              "canonical_key": "sante.energie.event.session_code_annulee_epuisement_action_suivante_clarifiee.",
+              "event_start_at": "2026-05-13T10:00:00.000Z",
+              "evidence_quote": "Aujourd'hui j'ai annule une session de code parce que j'etais epuise, mais j'ai quand meme clarifie la prochaine action.",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Session de code annulée (épuisement), action suivante clarifiée.",
+              "source_message_ids": [
+                "555457f0-483e-472c-a634-ebcafb872cf0"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "aujourd'hui",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.energie",
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur a annulé une session de code par épuisement, mais a clarifié l'action suivante.",
+              "event_end_at": "2026-05-13T22:00:00.000Z",
+              "canonical_key": "sante.energie.event.session_code_annulee_epuisement_action_suivante_clarifiee.",
+              "event_start_at": "2026-05-13T10:00:00.000Z",
+              "evidence_quote": "Aujourd'hui j'ai annule une session de code parce que j'etais epuise, mais j'ai quand meme clarifie la prochaine action.",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Session de code annulée (épuisement), action suivante clarifiée.",
+              "source_message_ids": [
+                "555457f0-483e-472c-a634-ebcafb872cf0"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e1c3832c-8475-4ff9-b07e-f138ed357e5a",
+            "confidence": 0.7,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      }
+    ]
+  },
+  "counts": {
+    "input_user_messages": 28,
+    "persisted_items": 23,
+    "active_items": 23,
+    "candidate_items": 0
+  },
+  "expectation_checks": {
+    "project_sophia": true,
+    "procrastination_floue": true,
+    "walk_event": true,
+    "sleep_scrolling": true,
+    "karim_manager": false,
+    "tania_ex_not_sister": true,
+    "cannabis_sensitive": true,
+    "self_blame_not_fact": true,
+    "do_not_memorize_indecis_trait": true,
+    "weekly_patterns": true
+  },
+  "memory_items": [
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.95,
+      "domain_keys": [
+        "travail.carriere"
+      ],
+      "content_text": "L'utilisateur travaille sur le projet Sophia, une application de coaching WhatsApp avec mémoire longue.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.86,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "je travaille sur un projet qui s'appelle Sophia, une app de coaching WhatsApp avec memoire longue."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.9,
+      "domain_keys": [
+        "objectifs.court_terme",
+        "travail.performance"
+      ],
+      "content_text": "L'objectif principal du mois est de rendre Sophia fiable sur le suivi quotidien, les bilans et les relances.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Mon objectif principal ce mois-ci est de rendre Sophia plus fiable sur le suivi quotidien, surtout les bilans et les relances WhatsApp."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.95,
+      "domain_keys": [
+        "habitudes.procrastination",
+        "habitudes.execution"
+      ],
+      "content_text": "L'utilisateur procrastine quand l'action suivante est floue ; il a besoin d'actions minuscules et concrètes.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Je procrastine beaucoup quand la prochaine action est floue; si tu me proposes une action, elle doit etre minuscule et concrete."
+    },
+    {
+      "kind": "event",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.92,
+      "domain_keys": [
+        "sante.activite_physique",
+        "psychologie.emotions"
+      ],
+      "content_text": "L'utilisateur a marché 27 minutes après le dîner pour réduire la pression.",
+      "event_start_at": "2026-05-12T16:00:00+00:00",
+      "time_precision": "part_of_day",
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Hier soir, j'ai marche 27 minutes apres le diner et ca m'a aide a redescendre la pression."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.9,
+      "domain_keys": [
+        "sante.sommeil",
+        "addictions.ecrans"
+      ],
+      "content_text": "Le sommeil de l'utilisateur se dégrade lorsqu'il scrolle après minuit, particulièrement après avoir codé tard.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Depuis deux semaines, je dors mal quand je scrolle apres minuit, surtout les soirs ou je code tard."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.95,
+      "domain_keys": [
+        "relations.famille",
+        "habitudes.reprise_apres_echec"
+      ],
+      "content_text": "Nadia est la sœur de l'utilisateur et l'aide à relativiser en cas de rechute.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Nadia est ma soeur et elle m'aide a relativiser quand je dramatise une rechute."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "sensitive",
+      "confidence": 1,
+      "domain_keys": [
+        "relations.couple"
+      ],
+      "content_text": "Tania est l'ex-partenaire de l'utilisateur.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Tania est mon ex, pas ma soeur."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.9,
+      "domain_keys": [
+        "psychologie.emotions",
+        "relations.limites"
+      ],
+      "content_text": "L'utilisateur préfère un ton franc mais doux de la part de Sophia, surtout en cas de fatigue.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Je prefere que Sophia me parle franchement mais sans ton dur quand je suis fatigue."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.95,
+      "domain_keys": [
+        "psychologie.identite",
+        "psychologie.emotions"
+      ],
+      "content_text": "L'expression 'je suis nul' doit être interprétée comme une émotion passagère et non comme un trait d'identité.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Quand je dis 'je suis nul', c'est une emotion du moment, pas un fait sur mon identite."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "sensitive",
+      "confidence": 0.95,
+      "domain_keys": [
+        "addictions.cannabis",
+        "psychologie.emotions"
+      ],
+      "content_text": "L'utilisateur consomme parfois du cannabis le soir pour évacuer la pression.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Je consomme parfois du cannabis le soir quand je veux couper la pression, et je veux que ce sujet reste sensible."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "sensitive",
+      "confidence": 1,
+      "domain_keys": [
+        "relations.limites"
+      ],
+      "content_text": "Le sujet du cannabis ne doit pas être abordé dans des conversations neutres sur le travail ou la marche.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Je ne veux pas que tu ressortes le sujet cannabis dans une conversation neutre sur la marche ou le travail."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.9,
+      "domain_keys": [
+        "sante.activite_physique",
+        "objectifs.court_terme"
+      ],
+      "content_text": "L'utilisateur souhaite maintenir trois marches par semaine sans culpabilité en cas d'échec.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "J'aimerais garder trois marches par semaine, mais sans culpabiliser si j'en rate une."
+    },
+    {
+      "kind": "event",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.9,
+      "domain_keys": [
+        "habitudes.procrastination"
+      ],
+      "content_text": "L'utilisateur a reporté une tâche importante par manque de clarté sur le point de départ.",
+      "event_start_at": "2026-05-11T07:00:00+00:00",
+      "time_precision": "day",
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Avant-hier matin, j'ai reporte une tache importante parce que je ne savais pas par ou commencer."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.95,
+      "domain_keys": [
+        "habitudes.execution"
+      ],
+      "content_text": "L'utilisateur exécute mieux les tâches lorsqu'elles sont présentées en trois étapes visibles.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Quand Sophia me donne un plan en trois etapes visibles, j'execute mieux."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.95,
+      "domain_keys": [
+        "habitudes.environnement",
+        "sante.activite_physique"
+      ],
+      "content_text": "Routine matinale idéale : eau, douche, 10 minutes de marche, puis téléphone.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "routine_execution",
+          "confidence": 0.73,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Ma routine ideale du matin: eau, douche, dix minutes de marche, puis seulement ensuite ouvrir le telephone."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.95,
+      "domain_keys": [
+        "travail.charge",
+        "psychologie.emotions"
+      ],
+      "content_text": "En cas de surcharge, l'utilisateur a besoin d'une réduction de pression plutôt que d'un nouveau défi.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Si je suis en surcharge, il faut me proposer une reduction de pression plutot qu'un challenge."
+    },
+    {
+      "kind": "event",
+      "status": "active",
+      "sensitivity_level": "sensitive",
+      "confidence": 0.9,
+      "domain_keys": [
+        "relations.famille",
+        "relations.conflit"
+      ],
+      "content_text": "Discussion tendue avec sa mère concernant son rythme de travail.",
+      "event_start_at": "2026-05-10T16:00:00+00:00",
+      "time_precision": "part_of_day",
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Dimanche soir, j'ai eu une discussion tendue avec ma mere sur mon rythme de travail."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "sensitive",
+      "confidence": 0.9,
+      "domain_keys": [
+        "relations.famille",
+        "psychologie.estime_de_soi"
+      ],
+      "content_text": "Les critiques de sa mère sur sa discipline activent des doutes chez l'utilisateur.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Ma mere me critique souvent sur ma discipline, et ca active beaucoup de doute."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.95,
+      "domain_keys": [
+        "habitudes.environnement",
+        "sante.activite_physique"
+      ],
+      "content_text": "Préparer ses affaires la veille augmente la probabilité de faire la marche matinale.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "J'ai remarque que preparer mes affaires la veille rend la marche du matin beaucoup plus probable."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "travail.carriere",
+        "objectifs.court_terme"
+      ],
+      "content_text": "Le projet Sophia est la priorité absolue pour les prochaines semaines.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.71,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Le projet Sophia est prioritaire par rapport aux autres idees produit pour les prochaines semaines."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.95,
+      "domain_keys": [
+        "habitudes.planification"
+      ],
+      "content_text": "L'utilisateur souhaite que les bilans hebdomadaires mettent en avant les patterns plutôt que de simples listes d'actions.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Je veux que les bilans hebdo me montrent les patterns, pas seulement une liste d'actions faites ou ratees."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.95,
+      "domain_keys": [
+        "psychologie.emotions"
+      ],
+      "content_text": "En état de fatigue, les réponses courtes et directes sont plus efficaces pour l'utilisateur.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Quand je suis fatigue, les reponses courtes et directes m'aident plus que les grands raisonnements."
+    },
+    {
+      "kind": "event",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.95,
+      "domain_keys": [
+        "sante.energie",
+        "habitudes.execution"
+      ],
+      "content_text": "L'utilisateur a annulé une session de code par épuisement, mais a clarifié l'action suivante.",
+      "event_start_at": "2026-05-13T10:00:00+00:00",
+      "time_precision": "day",
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Aujourd'hui j'ai annule une session de code parce que j'etais epuise, mais j'ai quand meme clarifie la prochaine action."
+    }
+  ]
+}

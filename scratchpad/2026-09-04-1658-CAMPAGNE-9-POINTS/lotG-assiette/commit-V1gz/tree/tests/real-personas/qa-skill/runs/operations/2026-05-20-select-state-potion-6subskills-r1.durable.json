@@ -1,0 +1,326 @@
+[
+  {
+    "potion": "rappel",
+    "user_id": "198d27a9-d4c4-4707-9b83-2a0d7700af46",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r1c_rappel",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "courage",
+    "user_id": "06d158cd-9490-4b9f-ab47-2c92a1445742",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r1c_courage",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "guerison",
+    "user_id": "27641f69-e1d2-421a-82da-22cb2872d562",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r1c_guerison",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "clarte",
+    "user_id": "92d3fc8a-5eb1-48d6-9fda-ae0d6778231d",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r1c_clarte",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "f4bef47e-1af3-4683-81a3-62bca16cffba",
+          "potion_type": "clarte",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "0fc3b2a4-5bc9-43ff-b00d-df8e638a2ea2",
+          "transformation_id": null,
+          "content": {
+            "title": "Potion de Clarté",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Choisir la priorité du matin",
+              "evidence": [
+                "je ne sais plus quoi prioriser",
+                "tout est melange"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "dd7d5ef3-c824-4643-a9e0-73a401375a19",
+              "related_plan_item_id": "dd7d5ef3-c824-4643-a9e0-73a401375a19",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Potion de Clarté",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un suivi quotidien pendant une semaine permet d'ancrer l'habitude de simplifier avant d'agir.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "09:00",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "09:00",
+                "reason_for_time": "C'est le moment où tu as prévu de choisir ta priorité et où tu as besoin de clarté pour la journée.",
+                "reminder_instruction": "Aider à identifier la priorité simple du jour pour éviter la dispersion."
+              },
+              "potion_type": "clarte",
+              "opening_prompt": "Si tu devais sortir une seule chose de ce mélange, ce serait quoi ?",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Choisir la priorité du matin",
+                "evidence": [
+                  "je ne sais plus quoi prioriser",
+                  "tout est melange"
+                ],
+                "recurrence_hint": "quotidien",
+                "date_or_window_hint": "09:00",
+                "target_plan_item_id": "dd7d5ef3-c824-4643-a9e0-73a401375a19",
+                "related_plan_item_id": "dd7d5ef3-c824-4643-a9e0-73a401375a19",
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Tu as exprimé un besoin de savoir par où commencer face à un sentiment de surcharge. La potion de clarté est la plus adaptée pour simplifier ta vision et protéger ton énergie.",
+              "expected_duration": "short",
+              "potion_info_message": "Cette potion est là pour t'aider à retrouver du sens quand tout est flou. Je t'enverrai un petit message chaque matin pour t'aider à identifier ton premier pas, sans ajouter de pression à ta journée.",
+              "instant_support_message": "C'est normal de se sentir noyé quand tout arrive en même temps. On va juste poser les choses doucement, sans chercher à tout résoudre d'un coup. Respire, on va trier ça ensemble."
+            },
+            "why_this_potion": "Tu as exprimé un besoin de savoir par où commencer face à un sentiment de surcharge. La potion de clarté est la plus adaptée pour simplifier ta vision et protéger ton énergie.",
+            "potion_info_message": "Cette potion est là pour t'aider à retrouver du sens quand tout est flou. Je t'enverrai un petit message chaque matin pour t'aider à identifier ton premier pas, sans ajouter de pression à ta journée.",
+            "instant_support_message": "C'est normal de se sentir noyé quand tout arrive en même temps. On va juste poser les choses doucement, sans chercher à tout résoudre d'un coup. Respire, on va trier ça ensemble."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien pendant une semaine permet d'ancrer l'habitude de simplifier avant d'agir.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Choisir la priorité du matin",
+              "evidence": [
+                "je ne sais plus quoi prioriser",
+                "tout est melange"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "dd7d5ef3-c824-4643-a9e0-73a401375a19",
+              "related_plan_item_id": "dd7d5ef3-c824-4643-a9e0-73a401375a19",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "09:00",
+            "reason_for_time": "C'est le moment où tu as prévu de choisir ta priorité et où tu as besoin de clarté pour la journée.",
+            "reminder_instruction": "Aider à identifier la priorité simple du jour pour éviter la dispersion."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r1c-clarte-t02-a1",
+            "operation_id": "5321feff-35fe-4a2e-9aa3-9311a00d2616",
+            "operation_type": "select_state_potion",
+            "source_message_id": "5ca6701e-7910-419f-8b51-85b7bb588988"
+          },
+          "generated_at": "2026-05-20T12:21:54.126+00:00",
+          "last_updated_at": "2026-05-20T12:21:54.126+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "af4c972c-9145-4505-bdad-c39cb1039a2f",
+          "message_instruction": "Aider à identifier la priorité simple du jour pour éviter la dispersion.",
+          "rationale": "Un suivi quotidien pendant une semaine permet d'ancrer l'habitude de simplifier avant d'agir.",
+          "local_time_hhmm": "09:00",
+          "scheduled_days": [
+            "thu",
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "f4bef47e-1af3-4683-81a3-62bca16cffba",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r1c-clarte-t02-a1",
+            "operation_id": "5321feff-35fe-4a2e-9aa3-9311a00d2616",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien pendant une semaine permet d'ancrer l'habitude de simplifier avant d'agir.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Choisir la priorité du matin",
+              "evidence": [
+                "je ne sais plus quoi prioriser",
+                "tout est melange"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "dd7d5ef3-c824-4643-a9e0-73a401375a19",
+              "related_plan_item_id": "dd7d5ef3-c824-4643-a9e0-73a401375a19",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "dd7d5ef3-c824-4643-a9e0-73a401375a19",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-20T12:21:54.126+00:00",
+          "created_at": "2026-05-20T12:21:54.132124+00:00",
+          "updated_at": "2026-05-20T12:21:54.132124+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "7922bc26-79cf-49dd-9d8e-dfd01db2f689",
+          "recurring_reminder_id": "af4c972c-9145-4505-bdad-c39cb1039a2f",
+          "event_context": "recurring_reminder:af4c972c-9145-4505-bdad-c39cb1039a2f:potion:f4bef47e-1af3-4683-81a3-62bca16cffba:2026-05-21",
+          "draft_message": "Aider à identifier la priorité simple du jour pour éviter la dispersion.",
+          "scheduled_for": "2026-05-21T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-20T12:21:54.136727+00:00"
+        },
+        {
+          "id": "54beb041-ba94-4f5c-a30d-8ee9eba19b2a",
+          "recurring_reminder_id": "af4c972c-9145-4505-bdad-c39cb1039a2f",
+          "event_context": "recurring_reminder:af4c972c-9145-4505-bdad-c39cb1039a2f:potion:f4bef47e-1af3-4683-81a3-62bca16cffba:2026-05-22",
+          "draft_message": "Aider à identifier la priorité simple du jour pour éviter la dispersion.",
+          "scheduled_for": "2026-05-22T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-20T12:21:54.136727+00:00"
+        },
+        {
+          "id": "0892c9e6-817c-4164-a318-9177f610755a",
+          "recurring_reminder_id": "af4c972c-9145-4505-bdad-c39cb1039a2f",
+          "event_context": "recurring_reminder:af4c972c-9145-4505-bdad-c39cb1039a2f:potion:f4bef47e-1af3-4683-81a3-62bca16cffba:2026-05-23",
+          "draft_message": "Aider à identifier la priorité simple du jour pour éviter la dispersion.",
+          "scheduled_for": "2026-05-23T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-20T12:21:54.136727+00:00"
+        },
+        {
+          "id": "33009a3d-a163-4067-8383-3df49d83c630",
+          "recurring_reminder_id": "af4c972c-9145-4505-bdad-c39cb1039a2f",
+          "event_context": "recurring_reminder:af4c972c-9145-4505-bdad-c39cb1039a2f:potion:f4bef47e-1af3-4683-81a3-62bca16cffba:2026-05-24",
+          "draft_message": "Aider à identifier la priorité simple du jour pour éviter la dispersion.",
+          "scheduled_for": "2026-05-24T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-20T12:21:54.136727+00:00"
+        },
+        {
+          "id": "1cd0862b-81b4-4d78-8f07-38d049344611",
+          "recurring_reminder_id": "af4c972c-9145-4505-bdad-c39cb1039a2f",
+          "event_context": "recurring_reminder:af4c972c-9145-4505-bdad-c39cb1039a2f:potion:f4bef47e-1af3-4683-81a3-62bca16cffba:2026-05-25",
+          "draft_message": "Aider à identifier la priorité simple du jour pour éviter la dispersion.",
+          "scheduled_for": "2026-05-25T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-20T12:21:54.136727+00:00"
+        },
+        {
+          "id": "26067b14-01ed-47b0-9b51-22fb23d699f4",
+          "recurring_reminder_id": "af4c972c-9145-4505-bdad-c39cb1039a2f",
+          "event_context": "recurring_reminder:af4c972c-9145-4505-bdad-c39cb1039a2f:potion:f4bef47e-1af3-4683-81a3-62bca16cffba:2026-05-26",
+          "draft_message": "Aider à identifier la priorité simple du jour pour éviter la dispersion.",
+          "scheduled_for": "2026-05-26T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-20T12:21:54.136727+00:00"
+        },
+        {
+          "id": "ba63cc86-fabe-47a0-aa38-43ffb308e6d8",
+          "recurring_reminder_id": "af4c972c-9145-4505-bdad-c39cb1039a2f",
+          "event_context": "recurring_reminder:af4c972c-9145-4505-bdad-c39cb1039a2f:potion:f4bef47e-1af3-4683-81a3-62bca16cffba:2026-05-27",
+          "draft_message": "Aider à identifier la priorité simple du jour pour éviter la dispersion.",
+          "scheduled_for": "2026-05-27T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-20T12:21:54.136727+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "amour",
+    "user_id": "00ec55ba-8f8a-4f69-964c-00d0226089bf",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r1c_amour",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "apaisement",
+    "user_id": "0abc50f0-2972-4296-8352-bbbdf202928a",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r1c_apaisement",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  }
+]

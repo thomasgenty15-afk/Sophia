@@ -1,0 +1,77 @@
+{
+  "runId": "product_help_local_skip_20260622_r1",
+  "userId": "ace4bf63-52ba-40af-b8c9-abdd43344e96",
+  "deletedCheckins": [
+    {
+      "id": "4e9b9684-1618-480f-85bc-3cdd790a3fa4",
+      "user_id": "ace4bf63-52ba-40af-b8c9-abdd43344e96",
+      "event_context": "one_shot_reminder:choisir_la_carte_et_sinon_pour_l_instant_je_garde_cette_pist",
+      "draft_message": null,
+      "scheduled_for": "2026-06-23T07:30:00+00:00",
+      "status": "pending",
+      "created_at": "2026-06-22T19:16:55.507938+00:00",
+      "processed_at": null,
+      "message_mode": "dynamic",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: choisir la carte, et sinon pour l'instant je garde cette piste.",
+        "parse_source": "local_parser",
+        "request_text": "Rappelle-moi demain à 9h30 de choisir la carte, et sinon pour l'instant je garde cette piste.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: choisir la carte, et sinon pour l'instant je garde cette piste.",
+        "source_message_id": null,
+        "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste"
+      },
+      "origin": "rendez_vous",
+      "delivery_attempt_count": 0,
+      "delivery_last_error": null,
+      "delivery_last_error_at": null,
+      "delivery_last_request_id": null,
+      "recurring_reminder_id": null
+    },
+    {
+      "id": "64b3d653-3964-4c8f-b80e-e71eb3b4b8dc",
+      "user_id": "ace4bf63-52ba-40af-b8c9-abdd43344e96",
+      "event_context": "one_shot_reminder:verifier_ca",
+      "draft_message": null,
+      "scheduled_for": "2026-06-23T07:00:00+00:00",
+      "status": "pending",
+      "created_at": "2026-06-22T19:11:32.778026+00:00",
+      "processed_at": null,
+      "message_mode": "dynamic",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: vérifier ça.",
+        "parse_source": "payload",
+        "request_text": "Rappelle-moi demain à 9h de vérifier ça",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: vérifier ça.",
+        "source_message_id": null,
+        "reminder_instruction": "vérifier ça"
+      },
+      "origin": "rendez_vous",
+      "delivery_attempt_count": 0,
+      "delivery_last_error": null,
+      "delivery_last_error_at": null,
+      "delivery_last_request_id": null,
+      "recurring_reminder_id": null
+    }
+  ],
+  "deletedStates": [
+    {
+      "user_id": "ace4bf63-52ba-40af-b8c9-abdd43344e96",
+      "current_mode": "companion",
+      "risk_level": 0,
+      "investigation_state": null,
+      "short_term_context": "",
+      "last_interaction_at": "2026-06-22T19:17:14.406+00:00",
+      "updated_at": "2026-06-22T19:17:14.40789+00:00",
+      "unprocessed_msg_count": 0,
+      "last_processed_at": "2026-06-22T19:17:14.406+00:00",
+      "scope": "product_help_local_skip_20260622_r1",
+      "temp_memory": {}
+    }
+  ]
+}

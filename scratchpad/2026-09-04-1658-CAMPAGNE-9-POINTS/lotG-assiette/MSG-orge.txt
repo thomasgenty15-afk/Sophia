@@ -1,0 +1,5 @@
+« orge perlé » atteint enfin l'orge : trois bacs communs du quatre étaient illisibles pour un accent
+
+Tir quatre du 2026-09-06 13:53 : « orge perlé » (casserole `prep_sun_barley_veg`) ne résolvait pas — « orge » nu et « pearl barley » atteignent déjà `barley`, pas la forme française qualifiée — et trois bacs à deux bouches rendaient `dish_incomplete`. Trois alias vers la ligne existante, rien de créé ; appliquée en local, pas poussée.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

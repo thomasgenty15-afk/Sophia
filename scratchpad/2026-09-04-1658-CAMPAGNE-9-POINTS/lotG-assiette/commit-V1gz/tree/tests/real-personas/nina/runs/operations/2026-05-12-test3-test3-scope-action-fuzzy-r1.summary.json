@@ -1,0 +1,376 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Le truc des placards me bloque un peu. J'ai pas envie de l'enlever, mais là c'est trop massif pour démarrer.",
+    "assistant": "Ah je vois très bien le blocage. T’as pas “trop gros”, t’as “trop engageant” pour démarrer. Et quand on a l’impression que ça va demander tout le paquet, le cerveau dit non merci 😅\n\nOn peut contourner sans enlever “définitivement”. Le but c’est juste de rendre ça démarrable, pas de tout faire.\n\nOption 1 (ultra safe) : mini-placard\nTu ne touches qu’une zone ridicule : une seule étagère OU un seul coin OU juste les objets qui sont visibles de ta place.\nStop dès que tu as une victoire propre.\n\nOption 2 : “rendre léger” sans retirer\nSi le placard te semble trop massif à vider, fais plutôt du tri de surface : \ngarder 1 zone “je laisse”, 1 zone “je range plus tard”, 1 zone “à sortir du placard” (même si tu mets la zone “à sortir” juste sur une chaise pour l’instant).\n\nOption 3 : date mentale\nTu t’autorises à ne faire que 10 minutes, et tu arrêtes même si t’es en forme. Le démarrage gagne, le reste suit après.\n\nDis-moi juste : c’est quoi le plus vrai dans ton blocage ?\nA) “J’ai peur d’avoir à tout enlever”\nB) “Je sais pas par où commencer”\nC) “Je suis fatigué / ça me paraît trop tôt”\nD) “J’ai peur de toucher à des affaires qui comptent” 😬",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "placards / nettoyer environnement",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui vas-y, mais garde l'idée que je dois quand même le reprendre après.",
+    "assistant": "OK, vas-y, version mini, et tu reprends après. ✅🙂\n\nConcrètement pour les placards: tu choisis une micro-zone “finissable en 7 minutes” (une seule étagère, ou juste un coin), tu fais un tri simple en 3 tas: garder / déplacer / poubelle-recycler. Et le soir (ou quand tu veux), tu reprends exactement là où tu t’es arrêtée, sans “tout refaire”.\n\nTu veux que ta micro-zone soit plutôt: A une étagère, B un coin, ou C juste la partie la plus visible ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "placards",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Tu as mis quoi exactement à la place ?",
+    "assistant": "Je te remets la logique exacte, mais sur ton “mini-placard” (le seul truc que je veux que tu touches) : tu fais 3 tas, et tu ne fais que des remplacements temporaires.\n\n1) Garder : tout ce qui a une place “normale” et que tu sais utiliser. Tu le remets à sa place, sans débat.\n2) Déplacer : ce qui est dans le mauvais coin pour toi (trop rarement, ou pas pour ce placard). Tu le mets ailleurs, dans une zone “pause” (un bac/sac/dans le couloir) pour reprendre après.\n3) Poubelle-recycler : ce qui est mort / doublon / emballage vide / truc que tu ne revois jamais. Direct dehors, sans négociation.\n\nDu coup “à la place”, concrètement tu crées juste de l’espace :\n- avant : étagère “remplie”\n- après : une étagère “organisée en 2-3 catégories max”, et le reste est soit déplacé (bac de reprise), soit sorti.\n\nPour que je te dise pile quoi mettre où: tu fais le mini-placard sur une seule étagère ou sur un coin ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+        "status": "continue",
+        "skill_id": "execution_breakdown",
+        "diagnosis": {
+          "stage": "diagnosis",
+          "blocker_candidates": [
+            "flou",
+            "energie",
+            "friction_demarrage"
+          ]
+        },
+        "state_patch": {
+          "summary": "Execution blocker diagnosis in progress."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "diagnose_blocker",
+        "recommendation_need": {
+          "type": "execution_repair",
+          "needed": true,
+          "urgency": "medium",
+          "constraints": [
+            "understand_before_solution"
+          ]
+        },
+        "operation_suggestions": [
+          {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "urgency": "medium",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "medium",
+            "source_skill_id": "execution_breakdown",
+            "operation_input_hint": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "requires_user_consent": true
+          }
+        ],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "scope_hint": "session",
+            "content_text": "Tu as mis quoi exactement à la place ?",
+            "confidence_band": "medium",
+            "sensitivity_level": 1,
+            "evidence_source_ids": [
+              "76886009-84ba-404b-82c6-cc93b611dccc"
+            ],
+            "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true
+          }
+        ]
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "execution_breakdown"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": {
+      "stats": null,
+      "recommendation": {
+        "reason": "cooldown_or_contraindications_exhausted_surfaces",
+        "timing": "later",
+        "decision": "defer",
+        "cta_style": "none",
+        "confidence": 0.7,
+        "alternatives": [],
+        "do_not_recommend": [],
+        "requires_consent": false,
+        "recommendation_id": "rec_qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t03_1778633965044",
+        "presentation_level": 0
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Et l'ancien truc, il est passé où dans le plan ?",
+    "assistant": "Bonne question 🙂 Et je te réponds cash : le dashboard Plan n’est pas un journal libre où on “rajoute” ou “retrouve” un ancien truc à volonté.\n\nCe que tu peux faire pour vérifier où ça se trouve :\n- Dashboard > Plan\n- Tu sélectionnes une transformation dans la colonne de gauche\n- Tu ouvres l’onglet Plan\n- Là, tu regardes le niveau actif, les semaines, et les éléments “missions/habitudes/clarifications” et elements à venir\n\nMais si tu parles d’un bilan hebdo : lui, il ne se saisit pas dans le Plan. Il se fait par message WhatsApp le dimanche.\n\nTu parles de “l’ancien truc” qui a été remplacé dans le cadre des placards (mini-placard / reprise après), ou d’un autre item ? 😅",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_handoff_requested",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "Plan: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une transformation active existe. Tu peux y consulter le niveau actif, ouvrir les semaines, valider certains elements.\n\nLimites importantes:\n- Ce n'est pas un journal libre d'actions ou de bilans.\n- Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.",
+        "status": "complete",
+        "skill_id": "product_help",
+        "diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "state_patch": {
+          "summary": "Product help answered for dashboard.plan."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "how_to",
+        "recommendation_need": {
+          "type": "none",
+          "needed": false,
+          "urgency": "none",
+          "constraints": [
+            "product_help_does_not_execute_operations",
+            "operation_bridge_requires_confirmation_when_present"
+          ]
+        },
+        "operation_suggestions": []
+      },
+      "reason_code": "skill_handoff_requested",
+      "selected_skill_id": "product_help"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Résume-moi juste le changement, version courte.",
+    "assistant": "Le changement “mini-placard”, c’est : tu fais un petit tri sur une micro-zone finissable, tu remets/places provisoirement, puis tu reprends plus tard exactement au même endroit, sans refaire tout le massif. 😄\n\nTu veux une version encore plus courte (en 1 phrase) ou tu préfères “check-list 3 lignes” ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "Plan: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une transformation active existe. Tu peux y consulter le niveau actif, ouvrir les semaines, valider certains elements.\n\nLimites importantes:\n- Ce n'est pas un journal libre d'actions ou de bilans.\n- Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.",
+        "status": "complete",
+        "skill_id": "product_help",
+        "diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "state_patch": {
+          "summary": "Product help answered for dashboard.plan."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "how_to",
+        "recommendation_need": {
+          "type": "none",
+          "needed": false,
+          "urgency": "none",
+          "constraints": [
+            "product_help_does_not_execute_operations",
+            "operation_bridge_requires_confirmation_when_present"
+          ]
+        },
+        "operation_suggestions": []
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "product_help"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t05",
+    "trace_error": null
+  }
+]

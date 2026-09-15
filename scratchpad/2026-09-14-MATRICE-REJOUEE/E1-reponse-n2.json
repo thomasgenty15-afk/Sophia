@@ -1,0 +1,803 @@
+{
+ "dishes": [
+  {
+   "name": "Brouillade de tofu mon",
+   "title": "Tofu brouillé, épinards et pain complet",
+   "slot": "breakfast",
+   "day": "mon",
+   "ingredients": [
+    {
+     "term": "tofu",
+     "quantity": "300 g de tofu",
+     "amount": 300,
+     "unit": "g",
+     "state": "raw",
+     "ref": "tofu"
+    },
+    {
+     "term": "épinards",
+     "quantity": "120 g de épinards",
+     "amount": 120,
+     "unit": "g",
+     "state": "raw",
+     "ref": "spinach"
+    },
+    {
+     "term": "pain complet",
+     "quantity": "26 g de pain complet",
+     "amount": 26,
+     "unit": "g",
+     "state": "raw",
+     "ref": "wholemeal_bread"
+    },
+    {
+     "term": "huile d'olive",
+     "quantity": "4 g de huile d'olive",
+     "amount": 4,
+     "unit": "g",
+     "state": "raw",
+     "ref": "olive_oil"
+    }
+   ],
+   "method": "Émietter le tofu dans une poêle huilée, le faire dorer avec les épinards, servir avec le pain complet.",
+   "why": "Un petit-déjeuner salé qui porte la protéine du matin sans produit animal.",
+   "density_check": 144,
+   "uses": [],
+   "same_day": {
+    "kind": "cook_fresh",
+    "minutes": 8
+   }
+  },
+  {
+   "name": "Bol tempeh mon",
+   "title": "Tempeh, couscous complet, edamame et courgette",
+   "slot": "lunch",
+   "day": "mon",
+   "ingredients": [
+    {
+     "term": "couscous complet",
+     "quantity": "40 g de couscous complet",
+     "amount": 40,
+     "unit": "g",
+     "state": "raw",
+     "ref": "couscous_wholemeal"
+    },
+    {
+     "term": "edamame",
+     "quantity": "90 g de edamame",
+     "amount": 90,
+     "unit": "g",
+     "state": "raw",
+     "ref": "edamame"
+    },
+    {
+     "term": "graines de courge",
+     "quantity": "30 g de graines de courge",
+     "amount": 30,
+     "unit": "g",
+     "state": "raw",
+     "ref": "pumpkin_seeds"
+    }
+   ],
+   "method": "Verser de l'eau bouillante sur le couscous, laisser gonfler cinq minutes. Ajouter la portion de tempeh, les edamame et parsemer de graines de courge.",
+   "why": "Le lot de tempeh porte le déjeuner sans nouvelle cuisson.",
+   "density_check": 168,
+   "uses": [
+    {
+     "preparation_id": "prep_tempeh",
+     "servings": 1,
+     "kept": "fridge"
+    }
+   ],
+   "same_day": {
+    "kind": "assemble",
+    "minutes": 6
+   }
+  },
+  {
+   "name": "Tofu lentilles mon",
+   "title": "Tofu, lentilles et tomate",
+   "slot": "dinner",
+   "day": "mon",
+   "ingredients": [
+    {
+     "term": "tomate",
+     "quantity": "80 g de tomate",
+     "amount": 80,
+     "unit": "g",
+     "state": "raw",
+     "ref": "tomato"
+    },
+    {
+     "term": "graines de courge",
+     "quantity": "24 g de graines de courge",
+     "amount": 24,
+     "unit": "g",
+     "state": "raw",
+     "ref": "pumpkin_seeds"
+    }
+   ],
+   "method": "Réchauffer la portion de tofu et lentilles, ajouter la tomate coupée et les graines de courge.",
+   "why": "Le mijoté du lundi donne deux dîners sans rallumer le feu.",
+   "density_check": 151,
+   "uses": [
+    {
+     "preparation_id": "prep_tofu_lentilles",
+     "servings": 1,
+     "kept": "fridge"
+    }
+   ],
+   "same_day": {
+    "kind": "reheat_only",
+    "minutes": 8
+   }
+  },
+  {
+   "name": "Brouillade de tofu tue",
+   "title": "Tofu brouillé, épinards et pain complet",
+   "slot": "breakfast",
+   "day": "tue",
+   "ingredients": [
+    {
+     "term": "tofu",
+     "quantity": "300 g de tofu",
+     "amount": 300,
+     "unit": "g",
+     "state": "raw",
+     "ref": "tofu"
+    },
+    {
+     "term": "épinards",
+     "quantity": "120 g de épinards",
+     "amount": 120,
+     "unit": "g",
+     "state": "raw",
+     "ref": "spinach"
+    },
+    {
+     "term": "pain complet",
+     "quantity": "26 g de pain complet",
+     "amount": 26,
+     "unit": "g",
+     "state": "raw",
+     "ref": "wholemeal_bread"
+    },
+    {
+     "term": "huile d'olive",
+     "quantity": "4 g de huile d'olive",
+     "amount": 4,
+     "unit": "g",
+     "state": "raw",
+     "ref": "olive_oil"
+    }
+   ],
+   "method": "Émietter le tofu dans une poêle huilée, le faire dorer avec les épinards, servir avec le pain complet.",
+   "why": "Un petit-déjeuner salé qui porte la protéine du matin sans produit animal.",
+   "density_check": 144,
+   "uses": [],
+   "same_day": {
+    "kind": "cook_fresh",
+    "minutes": 8
+   }
+  },
+  {
+   "name": "Bol tempeh tue",
+   "title": "Tempeh, couscous complet, edamame et courgette",
+   "slot": "lunch",
+   "day": "tue",
+   "ingredients": [
+    {
+     "term": "couscous complet",
+     "quantity": "40 g de couscous complet",
+     "amount": 40,
+     "unit": "g",
+     "state": "raw",
+     "ref": "couscous_wholemeal"
+    },
+    {
+     "term": "edamame",
+     "quantity": "90 g de edamame",
+     "amount": 90,
+     "unit": "g",
+     "state": "raw",
+     "ref": "edamame"
+    },
+    {
+     "term": "graines de courge",
+     "quantity": "30 g de graines de courge",
+     "amount": 30,
+     "unit": "g",
+     "state": "raw",
+     "ref": "pumpkin_seeds"
+    }
+   ],
+   "method": "Verser de l'eau bouillante sur le couscous, laisser gonfler cinq minutes. Ajouter la portion de tempeh, les edamame et parsemer de graines de courge.",
+   "why": "Le lot de tempeh porte le déjeuner sans nouvelle cuisson.",
+   "density_check": 168,
+   "uses": [
+    {
+     "preparation_id": "prep_tempeh",
+     "servings": 1,
+     "kept": "fridge"
+    }
+   ],
+   "same_day": {
+    "kind": "assemble",
+    "minutes": 6
+   }
+  },
+  {
+   "name": "Tofu lentilles tue",
+   "title": "Tofu, lentilles et tomate",
+   "slot": "dinner",
+   "day": "tue",
+   "ingredients": [
+    {
+     "term": "tomate",
+     "quantity": "80 g de tomate",
+     "amount": 80,
+     "unit": "g",
+     "state": "raw",
+     "ref": "tomato"
+    },
+    {
+     "term": "graines de courge",
+     "quantity": "24 g de graines de courge",
+     "amount": 24,
+     "unit": "g",
+     "state": "raw",
+     "ref": "pumpkin_seeds"
+    }
+   ],
+   "method": "Réchauffer la portion de tofu et lentilles, ajouter la tomate coupée et les graines de courge.",
+   "why": "Le mijoté du lundi donne deux dîners sans rallumer le feu.",
+   "density_check": 151,
+   "uses": [
+    {
+     "preparation_id": "prep_tofu_lentilles",
+     "servings": 1,
+     "kept": "fridge"
+    }
+   ],
+   "same_day": {
+    "kind": "reheat_only",
+    "minutes": 8
+   }
+  },
+  {
+   "name": "Œufs brouillés, pain complet et épinards de Max mon",
+   "title": "Œufs brouillés, pain complet et épinards",
+   "slot": "breakfast",
+   "day": "mon",
+   "for_member_id": "03cf47d7-356d-4855-93c6-d1cf22f84b34",
+   "ingredients": [
+    {
+     "term": "œufs",
+     "quantity": "180 g de œufs",
+     "amount": 180,
+     "unit": "g",
+     "state": "raw",
+     "ref": "whole_eggs"
+    },
+    {
+     "term": "pain complet",
+     "quantity": "60 g de pain complet",
+     "amount": 60,
+     "unit": "g",
+     "state": "raw",
+     "ref": "wholemeal_bread"
+    },
+    {
+     "term": "épinards",
+     "quantity": "80 g de épinards",
+     "amount": 80,
+     "unit": "g",
+     "state": "raw",
+     "ref": "spinach"
+    },
+    {
+     "term": "huile d'olive",
+     "quantity": "6 g de huile d'olive",
+     "amount": 6,
+     "unit": "g",
+     "state": "raw",
+     "ref": "olive_oil"
+    }
+   ],
+   "method": "Brouiller les œufs à feu doux avec les épinards, servir avec le pain complet grillé.",
+   "why": "Une assiette à part, montée dans la même session que celle de la table.",
+   "density_check": 149,
+   "uses": [],
+   "same_day": {
+    "kind": "cook_fresh",
+    "minutes": 12
+   }
+  },
+  {
+   "name": "Poulet rôti, couscous complet et courgette de Max mon",
+   "title": "Poulet rôti, couscous complet et courgette",
+   "slot": "lunch",
+   "day": "mon",
+   "for_member_id": "03cf47d7-356d-4855-93c6-d1cf22f84b34",
+   "ingredients": [
+    {
+     "term": "blanc de poulet",
+     "quantity": "250 g de blanc de poulet",
+     "amount": 250,
+     "unit": "g",
+     "state": "raw",
+     "ref": "chicken_breast"
+    },
+    {
+     "term": "couscous complet",
+     "quantity": "90 g de couscous complet",
+     "amount": 90,
+     "unit": "g",
+     "state": "raw",
+     "ref": "couscous_wholemeal"
+    },
+    {
+     "term": "courgette",
+     "quantity": "150 g de courgette",
+     "amount": 150,
+     "unit": "g",
+     "state": "raw",
+     "ref": "courgette"
+    },
+    {
+     "term": "huile d'olive",
+     "quantity": "10 g de huile d'olive",
+     "amount": 10,
+     "unit": "g",
+     "state": "raw",
+     "ref": "olive_oil"
+    }
+   ],
+   "method": "Rôtir le blanc de poulet, gonfler le couscous, faire sauter la courgette et dresser.",
+   "why": "Une assiette à part, montée dans la même session que celle de la table.",
+   "density_check": 140,
+   "uses": [],
+   "same_day": {
+    "kind": "cook_fresh",
+    "minutes": 12
+   }
+  },
+  {
+   "name": "Poulet, lentilles et tomate de Max mon",
+   "title": "Poulet, lentilles et tomate",
+   "slot": "dinner",
+   "day": "mon",
+   "for_member_id": "03cf47d7-356d-4855-93c6-d1cf22f84b34",
+   "ingredients": [
+    {
+     "term": "blanc de poulet",
+     "quantity": "220 g de blanc de poulet",
+     "amount": 220,
+     "unit": "g",
+     "state": "raw",
+     "ref": "chicken_breast"
+    },
+    {
+     "term": "lentilles",
+     "quantity": "200 g de lentilles",
+     "amount": 200,
+     "unit": "g",
+     "state": "raw",
+     "ref": "lentils_cooked"
+    },
+    {
+     "term": "tomate",
+     "quantity": "80 g de tomate",
+     "amount": 80,
+     "unit": "g",
+     "state": "raw",
+     "ref": "tomato"
+    },
+    {
+     "term": "graines de courge",
+     "quantity": "20 g de graines de courge",
+     "amount": 20,
+     "unit": "g",
+     "state": "raw",
+     "ref": "pumpkin_seeds"
+    },
+    {
+     "term": "huile d'olive",
+     "quantity": "15 g de huile d'olive",
+     "amount": 15,
+     "unit": "g",
+     "state": "raw",
+     "ref": "olive_oil"
+    }
+   ],
+   "method": "Saisir le poulet, ajouter les lentilles et la tomate, mijoter dix minutes, parsemer de graines.",
+   "why": "Une assiette à part, montée dans la même session que celle de la table.",
+   "density_check": 133,
+   "uses": [],
+   "same_day": {
+    "kind": "cook_fresh",
+    "minutes": 12
+   }
+  },
+  {
+   "name": "Œufs brouillés, pain complet et épinards de Max tue",
+   "title": "Œufs brouillés, pain complet et épinards",
+   "slot": "breakfast",
+   "day": "tue",
+   "for_member_id": "03cf47d7-356d-4855-93c6-d1cf22f84b34",
+   "ingredients": [
+    {
+     "term": "œufs",
+     "quantity": "180 g de œufs",
+     "amount": 180,
+     "unit": "g",
+     "state": "raw",
+     "ref": "whole_eggs"
+    },
+    {
+     "term": "pain complet",
+     "quantity": "60 g de pain complet",
+     "amount": 60,
+     "unit": "g",
+     "state": "raw",
+     "ref": "wholemeal_bread"
+    },
+    {
+     "term": "épinards",
+     "quantity": "80 g de épinards",
+     "amount": 80,
+     "unit": "g",
+     "state": "raw",
+     "ref": "spinach"
+    },
+    {
+     "term": "huile d'olive",
+     "quantity": "6 g de huile d'olive",
+     "amount": 6,
+     "unit": "g",
+     "state": "raw",
+     "ref": "olive_oil"
+    }
+   ],
+   "method": "Brouiller les œufs à feu doux avec les épinards, servir avec le pain complet grillé.",
+   "why": "Une assiette à part, montée dans la même session que celle de la table.",
+   "density_check": 149,
+   "uses": [],
+   "same_day": {
+    "kind": "cook_fresh",
+    "minutes": 12
+   }
+  },
+  {
+   "name": "Poulet rôti, couscous complet et courgette de Max tue",
+   "title": "Poulet rôti, couscous complet et courgette",
+   "slot": "lunch",
+   "day": "tue",
+   "for_member_id": "03cf47d7-356d-4855-93c6-d1cf22f84b34",
+   "ingredients": [
+    {
+     "term": "blanc de poulet",
+     "quantity": "250 g de blanc de poulet",
+     "amount": 250,
+     "unit": "g",
+     "state": "raw",
+     "ref": "chicken_breast"
+    },
+    {
+     "term": "couscous complet",
+     "quantity": "90 g de couscous complet",
+     "amount": 90,
+     "unit": "g",
+     "state": "raw",
+     "ref": "couscous_wholemeal"
+    },
+    {
+     "term": "courgette",
+     "quantity": "150 g de courgette",
+     "amount": 150,
+     "unit": "g",
+     "state": "raw",
+     "ref": "courgette"
+    },
+    {
+     "term": "huile d'olive",
+     "quantity": "10 g de huile d'olive",
+     "amount": 10,
+     "unit": "g",
+     "state": "raw",
+     "ref": "olive_oil"
+    }
+   ],
+   "method": "Rôtir le blanc de poulet, gonfler le couscous, faire sauter la courgette et dresser.",
+   "why": "Une assiette à part, montée dans la même session que celle de la table.",
+   "density_check": 140,
+   "uses": [],
+   "same_day": {
+    "kind": "cook_fresh",
+    "minutes": 12
+   }
+  },
+  {
+   "name": "Poulet, lentilles et tomate de Max tue",
+   "title": "Poulet, lentilles et tomate",
+   "slot": "dinner",
+   "day": "tue",
+   "for_member_id": "03cf47d7-356d-4855-93c6-d1cf22f84b34",
+   "ingredients": [
+    {
+     "term": "blanc de poulet",
+     "quantity": "220 g de blanc de poulet",
+     "amount": 220,
+     "unit": "g",
+     "state": "raw",
+     "ref": "chicken_breast"
+    },
+    {
+     "term": "lentilles",
+     "quantity": "200 g de lentilles",
+     "amount": 200,
+     "unit": "g",
+     "state": "raw",
+     "ref": "lentils_cooked"
+    },
+    {
+     "term": "tomate",
+     "quantity": "80 g de tomate",
+     "amount": 80,
+     "unit": "g",
+     "state": "raw",
+     "ref": "tomato"
+    },
+    {
+     "term": "graines de courge",
+     "quantity": "20 g de graines de courge",
+     "amount": 20,
+     "unit": "g",
+     "state": "raw",
+     "ref": "pumpkin_seeds"
+    },
+    {
+     "term": "huile d'olive",
+     "quantity": "15 g de huile d'olive",
+     "amount": 15,
+     "unit": "g",
+     "state": "raw",
+     "ref": "olive_oil"
+    }
+   ],
+   "method": "Saisir le poulet, ajouter les lentilles et la tomate, mijoter dix minutes, parsemer de graines.",
+   "why": "Une assiette à part, montée dans la même session que celle de la table.",
+   "density_check": 133,
+   "uses": [],
+   "same_day": {
+    "kind": "cook_fresh",
+    "minutes": 12
+   }
+  }
+ ],
+ "preparations": [
+  {
+   "id": "prep_tempeh",
+   "title": "Tempeh mariné à la sauce soja et légumes",
+   "servings_made": 2,
+   "ingredients": [
+    {
+     "term": "tempeh",
+     "quantity": "700 g de tempeh",
+     "amount": 700,
+     "unit": "g",
+     "state": "raw",
+     "ref": "tempeh"
+    },
+    {
+     "term": "courgette",
+     "quantity": "140 g de courgette",
+     "amount": 140,
+     "unit": "g",
+     "state": "raw",
+     "ref": "courgette"
+    },
+    {
+     "term": "huile d'olive",
+     "quantity": "30 g de huile d'olive",
+     "amount": 30,
+     "unit": "g",
+     "state": "raw",
+     "ref": "olive_oil"
+    },
+    {
+     "term": "sauce soja",
+     "quantity": "24 g de sauce soja",
+     "amount": 24,
+     "unit": "g",
+     "state": "raw",
+     "ref": "soy_sauce"
+    }
+   ],
+   "method": "Couper le tempeh en cubes, le faire dorer à l'huile d'olive avec la courgette, déglacer à la sauce soja. Laisser tiédir et répartir en deux portions au réfrigérateur.",
+   "active_minutes": 15,
+   "total_minutes": 30,
+   "cook_on": "mon"
+  },
+  {
+   "id": "prep_tofu_lentilles",
+   "title": "Tofu et lentilles mijotés",
+   "servings_made": 2,
+   "ingredients": [
+    {
+     "term": "tofu",
+     "quantity": "820 g de tofu",
+     "amount": 820,
+     "unit": "g",
+     "state": "raw",
+     "ref": "tofu"
+    },
+    {
+     "term": "lentilles",
+     "quantity": "300 g de lentilles",
+     "amount": 300,
+     "unit": "g",
+     "state": "raw",
+     "ref": "lentils_cooked"
+    },
+    {
+     "term": "oignon",
+     "quantity": "100 g de oignon",
+     "amount": 100,
+     "unit": "g",
+     "state": "raw",
+     "ref": "onion"
+    },
+    {
+     "term": "huile d'olive",
+     "quantity": "20 g de huile d'olive",
+     "amount": 20,
+     "unit": "g",
+     "state": "raw",
+     "ref": "olive_oil"
+    }
+   ],
+   "method": "Faire revenir l'oignon, ajouter le tofu émietté puis les lentilles. Laisser mijoter dix minutes, tiédir et répartir en deux portions.",
+   "active_minutes": 15,
+   "total_minutes": 30,
+   "cook_on": "mon"
+  }
+ ],
+ "cooking_sessions": [
+  {
+   "day": "mon",
+   "preparation_ids": [
+    "prep_tempeh",
+    "prep_tofu_lentilles"
+   ],
+   "total_minutes": 55,
+   "run_through": "Faire dorer le tempeh et la courgette à la poêle, déglacer à la sauce soja, réserver. Dans la même poêle, faire revenir l'oignon, émietter le tofu, ajouter les lentilles et laisser mijoter dix minutes. Tiédir et ranger deux portions de chaque au réfrigérateur."
+  }
+ ],
+ "shopping_list": [
+  {
+   "term": "tempeh",
+   "ref": "tempeh",
+   "quantity": "700 g",
+   "amount": 700,
+   "unit": "g",
+   "aisle": "protein"
+  },
+  {
+   "term": "courgette",
+   "ref": "courgette",
+   "quantity": "440 g",
+   "amount": 440,
+   "unit": "g",
+   "aisle": "produce"
+  },
+  {
+   "term": "huile d'olive",
+   "ref": "olive_oil",
+   "quantity": "120 g",
+   "amount": 120,
+   "unit": "g",
+   "aisle": "pantry"
+  },
+  {
+   "term": "sauce soja",
+   "ref": "soy_sauce",
+   "quantity": "24 g",
+   "amount": 24,
+   "unit": "g",
+   "aisle": "pantry"
+  },
+  {
+   "term": "tofu",
+   "ref": "tofu",
+   "quantity": "1420 g",
+   "amount": 1420,
+   "unit": "g",
+   "aisle": "protein"
+  },
+  {
+   "term": "lentilles",
+   "ref": "lentils_cooked",
+   "quantity": "700 g",
+   "amount": 700,
+   "unit": "g",
+   "aisle": "pantry"
+  },
+  {
+   "term": "oignon",
+   "ref": "onion",
+   "quantity": "100 g",
+   "amount": 100,
+   "unit": "g",
+   "aisle": "produce"
+  },
+  {
+   "term": "épinards",
+   "ref": "spinach",
+   "quantity": "400 g",
+   "amount": 400,
+   "unit": "g",
+   "aisle": "produce"
+  },
+  {
+   "term": "pain complet",
+   "ref": "wholemeal_bread",
+   "quantity": "172 g",
+   "amount": 172,
+   "unit": "g",
+   "aisle": "grains"
+  },
+  {
+   "term": "couscous complet",
+   "ref": "couscous_wholemeal",
+   "quantity": "260 g",
+   "amount": 260,
+   "unit": "g",
+   "aisle": "grains"
+  },
+  {
+   "term": "edamame",
+   "ref": "edamame",
+   "quantity": "180 g",
+   "amount": 180,
+   "unit": "g",
+   "aisle": "frozen"
+  },
+  {
+   "term": "graines de courge",
+   "ref": "pumpkin_seeds",
+   "quantity": "148 g",
+   "amount": 148,
+   "unit": "g",
+   "aisle": "grains"
+  },
+  {
+   "term": "tomate",
+   "ref": "tomato",
+   "quantity": "320 g",
+   "amount": 320,
+   "unit": "g",
+   "aisle": "produce"
+  },
+  {
+   "term": "œufs",
+   "ref": "whole_eggs",
+   "quantity": "360 g",
+   "amount": 360,
+   "unit": "g",
+   "aisle": "protein"
+  },
+  {
+   "term": "blanc de poulet",
+   "ref": "chicken_breast",
+   "quantity": "940 g",
+   "amount": 940,
+   "unit": "g",
+   "aisle": "protein"
+  }
+ ],
+ "explanation": [
+  "La casserole de la table suit la ligne végane, celle de la bouche la plus stricte.",
+  "Max reçoit un plat à lui à chaque repas : son contrat de service ne sort pas de cette casserole, et ce plat-là a le droit d'utiliser ce qu'elle laisse dehors."
+ ]
+}

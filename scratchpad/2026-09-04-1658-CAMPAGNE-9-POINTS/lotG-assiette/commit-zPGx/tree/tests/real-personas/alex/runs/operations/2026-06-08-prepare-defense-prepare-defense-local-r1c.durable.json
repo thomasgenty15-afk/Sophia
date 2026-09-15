@@ -1,0 +1,71 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "5a4b4524-edd8-4196-928d-752054e360fd",
+        "role": "user",
+        "content": "J’ai besoin d’aide quand je rentre fatigué et que j’ai l’impulsion de commander n’importe quoi.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T11:29:59.450705+00:00"
+      },
+      {
+        "id": "d6ea5c6b-076f-460f-83da-9c71a2a6101d",
+        "role": "assistant",
+        "content": "Ah oui, je vois très bien le piège : t’arrives rincé, ton cerveau veut du “rapide” et paf, commande au hasard 😅\n\nOn peut te préparer une Carte de defense pour le moment exact du retour fatigué + impulsion de commande, pour que tu aies une réponse toute faite au lieu de décider à chaud. Tu veux qu’on l’utilise ? ✅",
+        "scope": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1c-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 3.5,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-08T11:30:04.70998+00:00"
+      }
+    ]
+  }
+}

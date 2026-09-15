@@ -15,11 +15,13 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
+  finalizePlanQuantities,
   finalizeQuantityProse,
   formatQuantityNumber,
   planQuantityLines,
   QUANTITY_READ_STATES,
   renderQuantity,
+  roundQuantityLines,
 } from "./quantity_render.ts";
 import {
   LEADING_NUMBER_RE,
@@ -407,4 +409,395 @@ Deno.test("⑨ après sérialisation et relecture, le rendu ne bouge pas", () =>
   // pour une donnée.
   const ampute = { term: "x", quantity: relu.ingredients[0].quantity };
   assertEquals(renderQuantity(ampute, "fr").readState, "historic_text");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ C2 (2026-09-12) — LE BANC DE L'ARRONDI AU PLUS PROCHE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ MÊME DISCIPLINE QUE LES NEUF BLOCS DU DESSUS: un cas qui MORD et un cas
+// qui PASSE. Les huit cas sont ceux que le plan de clôture nomme au § C2 —
+// « œufs, viande en pièces, pita, huile en cuillères, citron écrit en lettres,
+// petite quantité qui tomberait à zéro, repas juste au plafond de masse,
+// casserole de plusieurs personnes ».
+//
+// ⛔ LES NOMBRES VIENNENT DES NEUF PLANS DU BANC, au caractère — mesurés le
+// 2026-09-12 par `scratchpad/2026-09-11-CLOTURE/c2-compte-fractions.ts`:
+// 326 lignes fractionnaires sur 365. Ce ne sont pas des exemples inventés.
+
+/** Le référentiel de ce banc: le poids d'une pièce, par terme. */
+const PIECE_G: Readonly<Record<string, number>> = {
+  // Relevés le 2026-09-12 dans `food_composition_refs` (lecture seule).
+  lemon: 60,
+  stock_cube: 10,
+  egg: 55,
+  pita_wholemeal: 60,
+  chicken_thigh: 90,
+};
+const poidsDUnePiece = (l: { ref?: string | null }): number | null =>
+  typeof l.ref === "string" ? PIECE_G[l.ref] ?? null : null;
+/** ⛔ LE RÉFÉRENTIEL MUET: aucune présentation plus fine connue. */
+const aucunPoids = () => null;
+
+// ── ⑩ LES PIÈCES: ŒUFS, VIANDE, PITA ───────────────────────────────────────
+
+Deno.test("⑩ œufs · viande en pièces · pita: l'entier le plus proche", () => {
+  const lignes = [
+    { term: "œufs", ref: "egg", quantity: "3,76 œufs", amount: 3.76, unit: "unit" },
+    {
+      term: "hauts de cuisse de poulet",
+      ref: "chicken_thigh",
+      quantity: "2,13 hauts de cuisse de poulet",
+      amount: 2.1276414718402226,
+      unit: "unit",
+    },
+    {
+      term: "pita complète",
+      ref: "pita_wholemeal",
+      quantity: "1,86 pain pita complet",
+      amount: 1.86,
+      unit: "unit",
+    },
+  ];
+  const r = roundQuantityLines(lignes, poidsDUnePiece);
+  assertEquals(lignes.map((l) => l.amount), [4, 2, 2]);
+  assertEquals(lignes.map((l) => l.unit), ["unit", "unit", "unit"]);
+  assertEquals(r.counts.rounded, 3);
+  assertEquals(r.counts.zero_unresolved, 0);
+  // La prose suit la donnée, et elle garde la queue descriptive.
+  finalizeQuantityProse(lignes.map((l) => l as typeof l & { quantity: string }), "fr");
+  assertEquals(lignes[1].quantity, "2 hauts de cuisse de poulet");
+  assertEquals(lignes[2].quantity, "2 pain pita complet");
+});
+
+Deno.test("⑩ … le cas qui passe: une pièce déjà entière ne bouge pas", () => {
+  const lignes = [
+    { term: "œufs", ref: "egg", quantity: "2 œufs", amount: 2, unit: "unit" },
+  ];
+  const r = roundQuantityLines(lignes, poidsDUnePiece);
+  assertEquals(lignes[0].amount, 2);
+  assertEquals(r.counts.rounded, 0);
+  assertEquals(r.counts.already_whole, 1);
+});
+
+Deno.test("⑩ … le cas qui mord: à mi-distance exacte, on monte", () => {
+  // « Pour les quantités positives exactement à mi-distance, arrondir vers
+  // l'entier supérieur. » 2,5 œufs → 3, et pas 2.
+  const lignes = [
+    { term: "œufs", ref: "egg", quantity: "2,5 œufs", amount: 2.5, unit: "unit" },
+    { term: "riz", ref: null, quantity: "120,5 g", amount: 120.5, unit: "g" },
+  ];
+  roundQuantityLines(lignes, poidsDUnePiece);
+  assertEquals(lignes.map((l) => l.amount), [3, 121]);
+});
+
+// ── ⑪ L'HUILE EN CUILLÈRES ─────────────────────────────────────────────────
+
+Deno.test("⑪ huile: 0,77 cuillère devient 12 ml, JAMAIS 1 cuillère", () => {
+  // Le plan: « ne pas arrondir aveuglément 0,77 cuillère à une cuillère:
+  // utiliser une unité plus fine connue, puis appliquer la règle ».
+  const lignes = [
+    {
+      term: "huile d'olive",
+      ref: "olive_oil",
+      quantity: "0,77 cuillère à soupe d'huile d'olive",
+      amount: 0.77,
+      unit: "tbsp",
+    },
+    {
+      term: "huile d'olive",
+      ref: "olive_oil",
+      quantity: "1,36 cuillère à café",
+      amount: 1.3611727416798731,
+      unit: "tsp",
+    },
+  ];
+  const r = roundQuantityLines(lignes, aucunPoids);
+  // 0,77 × 15 = 11,55 → 12 ml.  1,36 × 5 = 6,81 → 7 ml.
+  assertEquals(lignes.map((l) => l.amount), [12, 7]);
+  assertEquals(lignes.map((l) => l.unit), ["ml", "ml"]);
+  assertEquals(r.counts.spoon_to_ml, 2);
+  // ⛔ LE CAS QUI MORD: arrondir la cuillère elle-même rendrait 1 — soit
+  // **15 ml** au référentiel, c'est-à-dire 30 % de plus que la recette.
+  assert(lignes[0].amount !== 1);
+  // ⚠️ L'UI GARDE L'UNITÉ. « 12 ml », jamais « 12 » nu.
+  finalizeQuantityProse(lignes.map((l) => l as typeof l & { quantity: string }), "fr");
+  assertEquals(renderQuantity(lignes[0], "fr").text, "12 ml");
+});
+
+Deno.test("⑪ … le cas qui passe: une cuillère ENTIÈRE reste une cuillère", () => {
+  // Arbitrage écrit dans le module: « 2 cuillères à soupe » et « 30 ml » sont
+  // la MÊME quantité; convertir un nombre déjà entier ne change rien à ce
+  // qu'on verse et retire au cuisinier le geste qu'il connaît.
+  const lignes = [
+    {
+      term: "huile d'olive",
+      ref: "olive_oil",
+      quantity: "2 cuillères à soupe d'huile d'olive",
+      amount: 2,
+      unit: "tbsp",
+    },
+  ];
+  const r = roundQuantityLines(lignes, aucunPoids);
+  assertEquals(lignes[0].amount, 2);
+  assertEquals(lignes[0].unit, "tbsp");
+  assertEquals(r.counts.spoon_to_ml, 0);
+  assertEquals(r.counts.already_whole, 1);
+});
+
+// ── ⑫ LE CITRON ÉCRIT EN LETTRES, ET LE ZÉRO ───────────────────────────────
+
+Deno.test("⑫ « la moitié d'un citron » ne devient pas zéro: 28 g", () => {
+  // ⛔ LE CAS LE PLUS FRÉQUENT DU BANC: 7 des 9 lignes qui tombaient à zéro
+  // sont des citrons, et leur prose n'a AUCUN nombre de tête.
+  const ligne = {
+    term: "citron",
+    ref: "lemon",
+    quantity: "la moitié d’un citron",
+    amount: 0.459927797833935,
+    unit: "unit",
+  };
+  const r = roundQuantityLines([ligne], poidsDUnePiece);
+  // 0,4599 × 60 g = 27,6 → 28 g. La masse est CONSERVÉE, pas inventée.
+  assertEquals(ligne.amount, 28);
+  assertEquals(ligne.unit, "g");
+  assertEquals(r.counts.piece_to_grams, 1);
+  assertEquals(r.counts.zero_unresolved, 0);
+  assertEquals(r.zeroed, []);
+  finalizeQuantityProse([ligne], "fr");
+  // Pas de nombre de tête à remplacer: la quantité est rendue NUE, et le nom
+  // de l'aliment vit dans `term`, à côté, sur les trois écrans.
+  assertEquals(renderQuantity(ligne, "fr").text, "28 g");
+});
+
+Deno.test("⑫ … le cas qui mord: sans poids de pièce, la ligne est RENDUE, pas supprimée", () => {
+  const ligne = {
+    term: "cube de bouillon",
+    ref: "bouillon_maison_inconnu",
+    quantity: "1 cube de bouillon",
+    amount: 0.3851851851851852,
+    unit: "unit",
+  };
+  const r = roundQuantityLines([ligne], poidsDUnePiece);
+  // ⛔ AUCUNE CONVERSION INVENTÉE, AUCUNE SUPPRESSION. La ligne est INTACTE.
+  assertEquals(ligne.amount, 0.3851851851851852);
+  assertEquals(ligne.unit, "unit");
+  assertEquals(r.counts.zero_unresolved, 1);
+  assertEquals(r.zeroed, [
+    { term: "cube de bouillon", amount: 0.3851851851851852, unit: "unit" },
+  ]);
+  // … et le même cube, avec un référentiel qui le connaît, passe: 0,385 × 10 g.
+  const connu = { ...ligne, ref: "stock_cube" };
+  roundQuantityLines([connu], poidsDUnePiece);
+  assertEquals(connu.amount, 4);
+  assertEquals(connu.unit, "g");
+});
+
+Deno.test("⑫ … une PINCÉE n'est jamais transformée en zéro", () => {
+  const lignes = [
+    { term: "sel", quantity: "une pincée de sel", amount: null, unit: null },
+    { term: "poivre", quantity: "poivre du moulin", amount: null, unit: null },
+  ];
+  const r = roundQuantityLines(lignes, poidsDUnePiece);
+  assertEquals(r.counts.unquantified, 2);
+  assertEquals(r.counts.quantified, 0);
+  assertEquals(lignes.map((l) => l.amount), [null, null]);
+  finalizeQuantityProse(lignes.map((l) => l as typeof l & { quantity: string }), "fr");
+  assertEquals(lignes[0].quantity, "une pincée de sel");
+  assertEquals(renderQuantity(lignes[0], "fr").readState, "historic_text");
+});
+
+// ── ⑬ LES CONVERSIONS SONT CELLES DU RÉFÉRENTIEL, PAS DES NOMBRES D'ICI ────
+
+Deno.test("⑬ les cuillères valent ce que le RÉFÉRENTIEL dit qu'elles valent", async () => {
+  const ref = await import("./food_composition.ts");
+  // ⛔ LA COPIE EST ÉPINGLÉE. `quantity_render.ts` est importé par le
+  // navigateur et ne peut pas tirer le référentiel derrière lui; il en recopie
+  // les deux nombres, et cette égalité est ce qui empêche la copie de devenir
+  // une seconde source.
+  assertEquals(ref.TBSP_ML, 15);
+  assertEquals(ref.TSP_ML, 5);
+  const l = { term: "x", ref: null, quantity: "1,5 c.", amount: 1.5, unit: "tbsp" };
+  roundQuantityLines([l], aucunPoids);
+  assertEquals(l.amount, Math.round(1.5 * ref.TBSP_ML));
+});
+
+Deno.test("⑬ … et toute unité écrite par l'arrondi est dans COMPOSITION_UNITS", async () => {
+  const { COMPOSITION_UNITS } = await import("./food_composition.ts");
+  const lignes = [
+    { term: "a", ref: "lemon", quantity: null, amount: 0.4, unit: "unit" },
+    { term: "b", ref: null, quantity: null, amount: 0.77, unit: "tbsp" },
+    { term: "c", ref: null, quantity: null, amount: 0.9, unit: "tsp" },
+    { term: "d", ref: null, quantity: null, amount: 12.4, unit: "g" },
+    { term: "e", ref: null, quantity: null, amount: 12.6, unit: "ml" },
+    { term: "f", ref: "egg", quantity: null, amount: 3.2, unit: "unit" },
+  ];
+  roundQuantityLines(lignes, poidsDUnePiece);
+  for (const l of lignes) {
+    assert(
+      (COMPOSITION_UNITS as readonly string[]).includes(String(l.unit)),
+      `unité hors vocabulaire: ${l.unit}`,
+    );
+  }
+  // ⛔ LE CAS QUI MORD: une unité INCONNUE n'est pas arrondie, elle est comptée.
+  const inconnue = { term: "g", ref: null, quantity: null, amount: 2.4, unit: "cup" };
+  const r = roundQuantityLines([inconnue], aucunPoids);
+  assertEquals(inconnue.amount, 2.4);
+  assertEquals(r.counts.unknown_unit, 1);
+  assertEquals(r.counts.quantified, 0);
+});
+
+// ── ⑭ LE REPAS JUSTE AU PLAFOND DE MASSE ───────────────────────────────────
+
+Deno.test("⑭ au plafond de masse: l'arrondi déplace ≤ 0,5 unité par ligne", () => {
+  // ⛔ C'EST LA PHRASE « accepter les petits écarts dans les tolérances
+  // existantes » RENDUE VÉRIFIABLE. Un plat exactement à 700 g — le plafond
+  // qu'un samedi midi de la campagne dépassait à 727 g — monte d'AU PLUS un
+  // demi-gramme par ligne, donc de 1,5 g sur trois lignes: très en dessous des
+  // ±10 % par créneau. Ce n'est pas une promesse, c'est une borne.
+  const lignes = [
+    { term: "riz", ref: null, quantity: null, amount: 233.5, unit: "g" },
+    { term: "poulet", ref: null, quantity: null, amount: 233.5, unit: "g" },
+    { term: "courgette", ref: null, quantity: null, amount: 233, unit: "g" },
+  ];
+  const avant = lignes.map((l) => l.amount);
+  roundQuantityLines(lignes, aucunPoids);
+  assertEquals(lignes.map((l) => l.amount), [234, 234, 233]);
+  for (const [i, l] of lignes.entries()) {
+    assert(Math.abs(l.amount - avant[i]) <= 0.5, `ligne ${i} a bougé de trop`);
+  }
+  // Le total est passé de 700 à 701 g: 0,14 %. Il est au CUISINIER de le
+  // mesurer ensuite (`finalPortionCheck`), pas à l'arrondi de le cacher.
+  assertEquals(lignes.reduce((a, l) => a + l.amount, 0), 701);
+});
+
+Deno.test("⑭ … le cas qui mord: une pièce déplace la masse d'un DEMI-MORCEAU", () => {
+  // ⛔ ET ON LE DIT. Un demi-haut de cuisse pèse 45 g; c'est la plus grosse
+  // variation que l'arrondi puisse produire sur une seule ligne, et elle est
+  // assumée par la décision du propriétaire. Le plan: « pas de recherche du
+  // kcal exact au prix de fractions d'œufs ou de morceaux de viande ».
+  const l = {
+    term: "hauts de cuisse de poulet",
+    ref: "chicken_thigh",
+    quantity: null,
+    amount: 2.49,
+    unit: "unit",
+  };
+  roundQuantityLines([l], poidsDUnePiece);
+  assertEquals(l.amount, 2);
+  assertEquals(
+    Math.round((2.49 - 2) * PIECE_G.chicken_thigh * 10) / 10,
+    44.1,
+  );
+});
+
+// ── ⑮ LA CASSEROLE DE PLUSIEURS PERSONNES ──────────────────────────────────
+
+Deno.test("⑮ une casserole tirée par trois plats est arrondie UNE fois", () => {
+  const prep = {
+    id: "prep_chicken",
+    ingredients: [
+      {
+        term: "hauts de cuisse de poulet",
+        ref: "chicken_thigh",
+        quantity: "2,13 hauts de cuisse de poulet",
+        amount: 2.1276414718402226,
+        unit: "unit",
+      },
+      {
+        term: "huile d'olive",
+        ref: "olive_oil",
+        quantity: "3,62 cuillères à soupe d'huile d'olive",
+        amount: 3.6169905021283784,
+        unit: "tbsp",
+      },
+    ],
+  };
+  const dishes = [
+    { day: "fri", slot: "dinner", uses: [{ preparationId: "prep_chicken" }], ingredients: [] },
+    { day: "sat", slot: "lunch", uses: [{ preparationId: "prep_chicken" }], ingredients: [] },
+    { day: "sun", slot: "lunch", uses: [{ preparationId: "prep_chicken" }], ingredients: [] },
+  ];
+  const lignes = planQuantityLines(dishes, [prep]);
+  // ⛔ TROIS TIRAGES, DEUX LIGNES. `planQuantityLines` parcourt les
+  // PRÉPARATIONS, pas les citations: le lot n'existe qu'une fois en mémoire.
+  assertEquals(lignes.length, 2);
+  const r = roundQuantityLines(lignes, poidsDUnePiece);
+  assertEquals(r.counts.quantified, 2);
+  assertEquals(prep.ingredients[0].amount, 2);
+  assertEquals(prep.ingredients[1].amount, 54); // 3,617 × 15 = 54,25 → 54 ml
+  assertEquals(prep.ingredients[1].unit, "ml");
+});
+
+Deno.test("⑮ … le cas qui mord: la MÊME ligne deux fois se voit au compteur", () => {
+  // ⛔ « Ne pas arrondir séparément plusieurs copies du même lot. » L'arrondi
+  // étant idempotent, une double passe ne change AUCUN nombre — c'est le
+  // compteur, et lui seul, qui distingue « une fois » de « deux fois ».
+  const ing = {
+    term: "hauts de cuisse de poulet",
+    ref: "chicken_thigh",
+    quantity: null,
+    amount: 2.1276414718402226,
+    unit: "unit",
+  };
+  const r = roundQuantityLines([ing, ing, ing], poidsDUnePiece);
+  assertEquals(ing.amount, 2);
+  assertEquals(r.counts.quantified, 3);
+  // La première passe arrondit, les deux suivantes constatent: 1 déplacée,
+  // 2 déjà entières. Un lot compté trois fois serait donc VISIBLE.
+  assertEquals(r.counts.rounded, 1);
+  assertEquals(r.counts.already_whole, 2);
+});
+
+// ── ⑯ L'IDEMPOTENCE, ET LA GARDE « AUCUNE FRACTION AFFICHÉE » ──────────────
+
+Deno.test("⑯ un second passage ne change rien", () => {
+  const lignes = [
+    { term: "citron", ref: "lemon", quantity: "la moitié d’un citron", amount: 0.46, unit: "unit" },
+    { term: "huile", ref: null, quantity: "0,77 c. à s.", amount: 0.77, unit: "tbsp" },
+    { term: "poulet", ref: "chicken_thigh", quantity: "2,13 hauts", amount: 2.13, unit: "unit" },
+    { term: "yaourt", ref: null, quantity: "294,62 g de yaourt", amount: 294.62, unit: "g" },
+    { term: "sel", ref: null, quantity: "une pincée", amount: null, unit: null },
+    { term: "mystere", ref: null, quantity: "0,4 cube", amount: 0.4, unit: "unit" },
+  ];
+  finalizePlanQuantities(lignes, "fr", poidsDUnePiece);
+  const apres1 = JSON.parse(JSON.stringify(lignes));
+  const deux = finalizePlanQuantities(lignes, "fr", poidsDUnePiece);
+  assertEquals(lignes, apres1);
+  assertEquals(deux.rounding.rounded, 0);
+  assertEquals(deux.prose.rewritten, 0);
+  assertEquals(deux.prose.stale_before, 0);
+  // ⛔ ET LE CAS NON RÉSOLU RESTE NON RÉSOLU, à l'identique — il ne « guérit »
+  // pas au second passage et ne disparaît pas du rapport.
+  assertEquals(deux.rounding.zero_unresolved, 1);
+  assertEquals(deux.zeroed.map((z) => z.term), ["mystere"]);
+});
+
+Deno.test("⑯ … aucune ligne affichée ne porte de fraction, et aucune ne disparaît", () => {
+  const lignes = [
+    { term: "citron", ref: "lemon", quantity: "la moitié d’un citron", amount: 0.46, unit: "unit" },
+    { term: "huile", ref: null, quantity: "0,77 c. à s. d'huile", amount: 0.77, unit: "tbsp" },
+    { term: "poulet", ref: "chicken_thigh", quantity: "2,13 hauts", amount: 2.13, unit: "unit" },
+    { term: "yaourt", ref: null, quantity: "294,62 g de yaourt", amount: 294.62, unit: "g" },
+    { term: "sel", ref: null, quantity: "une pincée de sel", amount: null, unit: null },
+  ];
+  const avant = lignes.length;
+  finalizePlanQuantities(lignes, "fr", poidsDUnePiece);
+  assertEquals(lignes.length, avant, "aucune quantité manquante masquée");
+  for (const l of lignes) {
+    const texte = renderQuantity(l, "fr").text;
+    if (texte === null) continue;
+    // ⛔ LA GARDE DU PLAN, MOT POUR MOT: « aucune ligne quantitative nouvelle
+    // affichée avec une fraction décimale ». On ne regarde QUE les lignes qui
+    // portent une donnée structurée — « une pincée de sel » n'est pas une
+    // ligne quantitative, et la compter ici rendrait la garde muette.
+    if (typeof l.amount !== "number") continue;
+    assert(
+      !/\d[.,]\d/.test(texte),
+      `fraction décimale affichée: « ${texte} »`,
+    );
+  }
+  // ⛔ LE CAS QUI MORD: sans arrondi, la même garde tombe.
+  const brut = { term: "poulet", ref: null, quantity: "2,13 hauts", amount: 2.13, unit: "unit" };
+  assert(/\d[.,]\d/.test(String(renderQuantity(brut, "fr").text)));
 });

@@ -1,0 +1,36 @@
+{
+  "run_id": "product_help_canonical_20260620_r1",
+  "turn": 6,
+  "user_message": "Question produit seulement : où est-ce que je retrouve une carte d'attaque dans Sophia après l'avoir préparée ?",
+  "http_status": 200,
+  "ok": true,
+  "reply_content": "Tu veux qu’on voie ça comme une action de ton plan, une action hors plan, ou plutôt comme un état émotionnel ?",
+  "response_owner": "coaching_recommendation",
+  "selected_handler": "coaching_recommendation",
+  "reason_code": "active_coaching_recommendation",
+  "direct_effects": [],
+  "skill_run": {
+    "selected_skill_id": "coaching_recommendation",
+    "reason_code": "active_coaching_recommendation",
+    "status": "continue",
+    "latency_ms": 10237
+  },
+  "effect_ledger": {
+    "turn_id": "cd01249d-19d0-4a3c-8044-a95a797ef981",
+    "counts": {
+      "requested": 0,
+      "allowed": 0,
+      "blocked": 0,
+      "committed": 0,
+      "failed": 0,
+      "proposed": 0,
+      "delivered": 0,
+      "cancelled": 0,
+      "superseded": 0,
+      "asked": 0,
+      "resolved": 0,
+      "topic_change": 0
+    },
+    "entries": []
+  }
+}

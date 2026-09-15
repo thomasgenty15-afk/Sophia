@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-readback-t fig-readback-d" class="on-dark">
+  <title id="fig-readback-t">Ce qui a été retenu, et ce qui est parti</title>
+  <desc id="fig-readback-d">Trois temps, de haut en bas : la question d’un membre, le
+    brouillon que la relecture a retenu parce qu’il contredit une ligne rouge, et le
+    message effectivement envoyé — celui que le coach a écrit à la place. Le troisième est
+    ouvert par un trait : c’est le seul que le membre reçoit.</desc>
+
+  <!-- FIGURE F de /communities — L’UNIQUE FIGURE SUR FOND SOMBRE de la page.
+       C’est une ILLUSTRATION DE CONCEPT, jamais une maquette : F12 interdit de
+       poser une surface de produit sur du sombre, parce que le produit est en
+       clair uniquement et qu’un écran sombre montrerait un produit qui n’existe
+       pas. Ici on dessine un MÉCANISME, pas un écran.
+
+       CE QUE `.on-dark` FAIT, ET CE QU’IL NE FAIT PAS (tokens.css §3) : il
+       remonte `--ill-fig` et `--ill-ink-soft` à fig-300 (8,06:1 sur fig-950).
+       Il NE touche pas `--ill-ink` (#23191F), qui serait invisible ici — aucun
+       trait de cette figure ne l’emploie, et c’est volontaire. Le texte clair
+       est `--ill-paper` (17,05:1).
+
+       LA PASTILLE EST CREUSE (F10) : le mot « held » porte l’état, la couleur ne
+       le porte pas. Une pastille rouge ici serait la décoration dans le costume
+       du sens, sur la seule section dont l’argument est qu’elle ne décore pas. -->
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #C9A3B8)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #C9A3B8)">ONE MESSAGE, READ BACK</text>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <g fill="none" stroke="var(--ill-ink-soft, #C9A3B8)" stroke-width="1">
+      <rect x="24" y="44" width="432" height="48" rx="12"/>
+      <rect x="24" y="100" width="432" height="48" rx="12"/>
+      <rect x="24" y="156" width="432" height="64" rx="12"/>
+      <rect x="380" y="110" width="60" height="18" rx="8"/>
+    </g>
+
+    <g font-size="9" font-weight="600" letter-spacing="0.9"
+       fill="var(--ill-ink-soft, #C9A3B8)">
+      <text x="40" y="64">A MEMBER ASKS</text>
+      <text x="40" y="120">THE DRAFT SAID</text>
+      <text x="40" y="176">WHAT WENT OUT</text>
+      <text x="410" y="123" font-size="9" font-weight="400" letter-spacing="0"
+            text-anchor="middle">held</text>
+    </g>
+
+    <text x="40" y="82" font-size="13"
+          fill="var(--ill-paper, #FBF8FA)">Should I add a snack between lunch and dinner?</text>
+    <text x="40" y="138" font-size="13"
+          fill="var(--ill-ink-soft, #C9A3B8)">A small snack mid-afternoon can help.</text>
+    <text x="40" y="194" font-size="13"
+          fill="var(--ill-paper, #FBF8FA)">Three real meals. If you are hungry between them,</text>
+    <text x="40" y="212" font-size="13"
+          fill="var(--ill-paper, #FBF8FA)">the meal before was too small.</text>
+
+    <!-- Le trait de 2 qui ouvre la seule fiche que le membre reçoit. -->
+    <path d="M 24 168 L 24 208" fill="none"
+          stroke="var(--ill-fig, #C9A3B8)" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>

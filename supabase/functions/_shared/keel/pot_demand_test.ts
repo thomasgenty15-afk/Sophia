@@ -66,7 +66,7 @@ function day(over: Partial<MouthDayEnergy> = {}): MouthDayEnergy {
 // ---------------------------------------------------------------------------
 
 Deno.test("quand la casserole suit et que rien n'est raboté, rien n'est refusé", () => {
-  const got = unmetDemand(new Map([[KEY, anchor()]]), [day()], new Map());
+  const got = unmetDemand(new Map([[KEY, anchor()]]), [day()], new Map(), new Map());
   assertEquals(got[0].cause, "none");
   assertEquals(got[0].servedKcal, 2400);
   assertEquals(got[0].unmetKcal, 0);
@@ -79,16 +79,18 @@ Deno.test("le rabot de FACTEUR et le plafond de CASSEROLE sont distingués", () 
     new Map([[KEY, anchor({ factor: 1.6, raw: 2.4 })]]),
     [day()],
     new Map(),
+    new Map(),
   );
   assertEquals(clamped[0].cause, "factor_clamped");
 
-  const pot = unmetDemand(new Map([[KEY, anchor()]]), [day()], new Map([[KEY, 0.8]]));
+  const pot = unmetDemand(new Map([[KEY, anchor()]]), [day()], new Map([[KEY, 0.8]]), new Map());
   assertEquals(pot[0].cause, "pot_ceiling");
 
   const both = unmetDemand(
     new Map([[KEY, anchor({ factor: 1.6, raw: 2.4 })]]),
     [day()],
     new Map([[KEY, 0.8]]),
+    new Map(),
   );
   // ⛔ LE CAS QUI DIT QUE L'AVAL SEUL NE SUFFIRA JAMAIS.
   assertEquals(both[0].cause, "both");
@@ -96,7 +98,7 @@ Deno.test("le rabot de FACTEUR et le plafond de CASSEROLE sont distingués", () 
 
 Deno.test("le manque est CHIFFRÉ, et il tient compte du rabot de casserole", () => {
   // 2000 livrés x 1,2 de facteur x 0,5 de rabot = 1200 servis pour 2400 voulus.
-  const got = unmetDemand(new Map([[KEY, anchor()]]), [day()], new Map([[KEY, 0.5]]));
+  const got = unmetDemand(new Map([[KEY, anchor()]]), [day()], new Map([[KEY, 0.5]]), new Map());
   assertEquals(got[0].wantedKcal, 2400);
   assertEquals(got[0].servedKcal, 1200);
   assertEquals(got[0].unmetKcal, 1200);
@@ -110,6 +112,7 @@ Deno.test("un DÉPASSEMENT n'est pas un manque négatif — il ne s'annule avec 
     new Map([[KEY, anchor({ factor: 2, raw: 2, targetKcal: 2000 })]]),
     [day()],
     new Map(),
+    new Map(),
   );
   assertEquals(got[0].unmetKcal, 0);
   assert(got[0].servedKcal! > got[0].wantedKcal!);
@@ -120,6 +123,7 @@ Deno.test("une bouche non ancrée est NOMMÉE, jamais comptée comme satisfaite"
     new Map([[KEY, anchor({ raw: null, reason: "day_incomplete", targetKcal: 2400 })]]),
     [day()],
     new Map(),
+    new Map(),
   );
   assertEquals(got[0].cause, "not_anchored");
   assertEquals(got[0].unmetKcal, null);
@@ -129,9 +133,9 @@ Deno.test("une bouche non ancrée est NOMMÉE, jamais comptée comme satisfaite"
 
 Deno.test("tout motif rendu appartient au vocabulaire fermé", () => {
   const rows = [
-    ...unmetDemand(new Map([[KEY, anchor()]]), [day()], new Map()),
-    ...unmetDemand(new Map(), [day()], new Map()),
-    ...unmetDemand(new Map([[KEY, anchor({ factor: 1.6, raw: 2.4 })]]), [day()], new Map([[KEY, 0.8]])),
+    ...unmetDemand(new Map([[KEY, anchor()]]), [day()], new Map(), new Map()),
+    ...unmetDemand(new Map(), [day()], new Map(), new Map()),
+    ...unmetDemand(new Map([[KEY, anchor({ factor: 1.6, raw: 2.4 })]]), [day()], new Map([[KEY, 0.8]]), new Map()),
   ];
   for (const r of rows) assert(UNMET_CAUSES.includes(r.cause), r.cause);
 });
@@ -471,7 +475,7 @@ Deno.test("tub_estimate — une journée en bac seul est comptée depuis l'estim
     maxMealGrams: 0,
     gaps: ["common_pot"],
   }] as never;
-  const without = unmetDemand(anchors, days, new Map());
+  const without = unmetDemand(anchors, days, new Map(), new Map());
   assertEquals(without[0].cause, "not_anchored");
   // ⟳ le besoin comparé est celui des MOMENTS COUVERTS par les bacs (1 500 ici pour
   // déjeuner + dîner), pas la journée entière (2 000) : le petit-déjeuner mangé à

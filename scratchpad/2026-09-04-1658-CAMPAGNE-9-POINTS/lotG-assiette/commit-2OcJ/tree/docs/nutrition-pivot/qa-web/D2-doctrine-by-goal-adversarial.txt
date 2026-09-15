@@ -1,0 +1,162 @@
+
+══════════════════════════════════════════════════════════════════════════════
+▌ A. FR — la portée mord-elle dans l'autre langue ?
+══════════════════════════════════════════════════════════════════════════════
+keel.doctrine.variant {
+  coach_id: "6a4a37a1-1158-4e4f-b2e6-35b2b69f66ce",
+  variant: "fat_loss",
+  goal_source: "student_goals",
+  cache_key: "5cbfbeab7fe85db9",
+  beliefs_kept: 2,
+  beliefs_total: 3,
+  arbitrations_kept: 1,
+  arbitrations_total: 1,
+  empty_for_goal: false
+}
+keel.doctrine.variant {
+  coach_id: "6a4a37a1-1158-4e4f-b2e6-35b2b69f66ce",
+  variant: "recomposition",
+  goal_source: "student_goals",
+  cache_key: "473e113b726bb007",
+  beliefs_kept: 2,
+  beliefs_total: 3,
+  arbitrations_kept: 1,
+  arbitrations_total: 1,
+  empty_for_goal: false
+}
+
+BLOC SERVI — chloé: variante=fat_loss (student_goals)
+BLOC SERVI — paul  : variante=recomposition (student_goals)
+  ✅ FR/bloc: la croyance fat_loss est dans le bloc de chloé et PAS dans celui de paul — chloé=true paul=false
+  ✅ FR/bloc: la croyance recomposition est chez paul et PAS chez chloé — paul=true chloé=false
+  ✅ FR/bloc: le noyau et l'interdit sont dans LES DEUX — voix, vocabulaire et interdits communs
+
+ÉLÈVE  [chloé/fat_loss/FR] (6273 ms) : Ça fait deux semaines et la balance ne bouge pas. Je fais quoi ?
+SOPHIA : Two weeks on the scale means very little here. The scale is the slowest signal; waist, energy, strength, and sleep move first.
+
+If your meals already have a protein anchor, keep the course for now and watch the other signals.
+
+ÉLÈVE  [paul/recomposition/FR] (5571 ms) : Ça fait deux semaines et la balance ne bouge pas. Je fais quoi ?
+SOPHIA : Two weeks of no movement on the scale is frustrating, especially when you’re still showing up.
+
+Don’t chase the scale alone. Look at the food structure first: every meal should still have a protein anchor, and on training days, you may simply need more food than you think.
+
+  ✅ FR/prose: rien de la croyance fat_loss ne ressort chez paul — []
+  ℹ️ prose fat_loss chez chloé: ["plus lent|slowest","tour de taille|waist"]
+  ℹ️ prose recomposition chez paul: ["jours? d'entra|training days?"]
+  ✅ FR: l'interdit reste global — aucun des deux ne se voit conseiller de compter — aucune recommandation de comptage des deux côtés
+
+══════════════════════════════════════════════════════════════════════════════
+▌ B + C. SANS OBJECTIF, ET UN OBJECTIF QU'AUCUNE PORTÉE NE VISE
+══════════════════════════════════════════════════════════════════════════════
+keel.doctrine.variant {
+  coach_id: "6a4a37a1-1158-4e4f-b2e6-35b2b69f66ce",
+  variant: "default",
+  goal_source: "none",
+  cache_key: "35937d2400e94e72",
+  beliefs_kept: 1,
+  beliefs_total: 3,
+  arbitrations_kept: 1,
+  arbitrations_total: 1,
+  empty_for_goal: false
+}
+keel.doctrine.variant {
+  coach_id: "24e34241-d122-414c-a957-c375651f590e",
+  variant: "health",
+  goal_source: "student_goals",
+  cache_key: "35937d2400e94e72",
+  beliefs_kept: 1,
+  beliefs_total: 3,
+  arbitrations_kept: 1,
+  arbitrations_total: 1,
+  empty_for_goal: false
+}
+
+BLOC SERVI — sans objectif: variante=default (none)
+BLOC SERVI — santé (health): variante=health (student_goals)
+  ✅ sans student_goals: variante `default`, jamais une variante prise au hasard — default/none
+  ✅ sans student_goals: le noyau OUI, les croyances ciblées NON — noyau présent, ciblées absentes
+  ✅ health (aucune portée ne le vise): le noyau, et rien d'autre — variante=health
+  ✅ et le bloc `health` EST le bloc `default` — il ne coûte pas une entrée de cache — 1463 vs 1463 caractères
+
+ÉLÈVE  [sans-objectif/FR] (7075 ms) : Ça fait deux semaines et la balance ne bouge pas. Je fais quoi ?
+SOPHIA : Two weeks with no movement on the scale is frustrating, especially when you’ve been trying. It doesn’t automatically mean nothing is happening.
+
+With this coach’s frame, keep the focus on the plate: a protein anchor, vegetables for volume, and a side of starch. If you want, I can help you read what’s actually changing without turning it into a numbers game.
+
+ÉLÈVE  [santé/health/FR] (6631 ms) : Ça fait deux semaines et la balance ne bouge pas. Je fais quoi ?
+SOPHIA : Two weeks with no movement on the scale usually means the signal is too small to show up yet, not that nothing is happening. With this method, the next move is to look at the plate, not the number: protein anchor, vegetables for volume, and a starch on the side.
+
+══════════════════════════════════════════════════════════════════════════════
+▌ D. CHANGEMENT D'OBJECTIF ENTRE DEUX TOURS (§3.4)
+══════════════════════════════════════════════════════════════════════════════
+
+paul passe de recomposition à fat_loss…
+keel.doctrine.variant {
+  coach_id: "6a4a37a1-1158-4e4f-b2e6-35b2b69f66ce",
+  variant: "fat_loss",
+  goal_source: "student_goals",
+  cache_key: "5cbfbeab7fe85db9",
+  beliefs_kept: 2,
+  beliefs_total: 3,
+  arbitrations_kept: 1,
+  arbitrations_total: 1,
+  empty_for_goal: false
+}
+BLOC SERVI — paul après bascule: variante=fat_loss (student_goals)
+  ✅ la variante suit le changement, dès le tour suivant — variante=fat_loss
+
+ÉLÈVE  [paul/fat_loss (après bascule)/FR] (4758 ms) : Ça fait deux semaines et la balance ne bouge pas. Je fais quoi ?
+SOPHIA : Two weeks is too soon to make the scale the judge. This coach treats the scale as the slowest signal; waist, energy, strength, and sleep usually move first.
+
+Keep the plate built around the ancre protéinée, with vegetables for volume and a starch on the side.
+
+LA CONVERSATION N'EST PAS REMISE À ZÉRO:
+tours_user
+2
+  ✅ seule la doctrine change: la mémoire de conversation survit à la bascule — tours_user 2
+
+══════════════════════════════════════════════════════════════════════════════
+▌ E. DOCTRINE REPUBLIÉE ENTRE DEUX TOURS
+══════════════════════════════════════════════════════════════════════════════
+
+le coach B republie: la croyance ciblée fat_loss devient GLOBALE…
+keel.doctrine.variant {
+  coach_id: "24e34241-d122-414c-a957-c375651f590e",
+  variant: "health",
+  goal_source: "student_goals",
+  cache_key: "381224ccf6cf270c",
+  beliefs_kept: 3,
+  beliefs_total: 3,
+  arbitrations_kept: 1,
+  arbitrations_total: 1,
+  empty_for_goal: false
+}
+  ✅ la republication atteint le tour suivant, sur une variante qui ne la recevait pas — health voit maintenant la croyance: true
+
+ÉLÈVE  [santé/health (après republication)/FR] (6593 ms) : Ça fait deux semaines et la balance ne bouge pas. Je fais quoi ?
+SOPHIA : Two weeks on the scale alone is too slow to call anything yet. Marlow doesn’t use calorie counting; he builds the plate around a protein anchor, with vegetables for volume and a starch on the side.
+
+══════════════════════════════════════════════════════════════════════════════
+▌ LE VERROU (§4) SUR TOUTE LA PASSE
+══════════════════════════════════════════════════════════════════════════════
+detruites_par_le_verrou|reponses
+0|6
+
+══════════════════════════════════════════════════════════════════════════════
+▌ RÉSULTAT
+══════════════════════════════════════════════════════════════════════════════
+✅ FR/bloc: la croyance fat_loss est dans le bloc de chloé et PAS dans celui de paul
+✅ FR/bloc: la croyance recomposition est chez paul et PAS chez chloé
+✅ FR/bloc: le noyau et l'interdit sont dans LES DEUX
+✅ FR/prose: rien de la croyance fat_loss ne ressort chez paul
+✅ FR: l'interdit reste global — aucun des deux ne se voit conseiller de compter
+✅ sans student_goals: variante `default`, jamais une variante prise au hasard
+✅ sans student_goals: le noyau OUI, les croyances ciblées NON
+✅ health (aucune portée ne le vise): le noyau, et rien d'autre
+✅ et le bloc `health` EST le bloc `default` — il ne coûte pas une entrée de cache
+✅ la variante suit le changement, dès le tour suivant
+✅ seule la doctrine change: la mémoire de conversation survit à la bascule
+✅ la republication atteint le tour suivant, sur une variante qui ne la recevait pas
+
+12/12 verts

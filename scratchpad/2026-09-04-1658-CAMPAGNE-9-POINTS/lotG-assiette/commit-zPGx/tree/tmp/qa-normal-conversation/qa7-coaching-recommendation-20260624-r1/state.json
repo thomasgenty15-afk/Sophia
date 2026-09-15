@@ -1,0 +1,1051 @@
+{
+  "run_id": "qa7-coaching-recommendation-20260624-r1",
+  "scope": "qa-normal-conversation-qa7-coaching-recommendation-20260624-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-qa7-coaching-recommendation-20260624-r1-1782256406787@example.com",
+  "user_id": "12184eca-ea2d-4317-b63f-e07c77ddbc61",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIxMjE4NGVjYS1lYTJkLTQzMTctYjYzZi1lMDdjNzdkZGJjNjEiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgyMjYwMDA3LCJpYXQiOjE3ODIyNTY0MDcsImVtYWlsIjoicWEtbm9ybWFsLXFhNy1jb2FjaGluZy1yZWNvbW1lbmRhdGlvbi0yMDI2MDYyNC1yMS0xNzgyMjU2NDA2Nzg3QGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InFhLW5vcm1hbC1xYTctY29hY2hpbmctcmVjb21tZW5kYXRpb24tMjAyNjA2MjQtcjEtMTc4MjI1NjQwNjc4N0BleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicWFfcnVuX2lkIjoicWE3LWNvYWNoaW5nLXJlY29tbWVuZGF0aW9uLTIwMjYwNjI0LXIxIiwic3ViIjoiMTIxODRlY2EtZWEyZC00MzE3LWI2M2YtZTA3Yzc3ZGRiYzYxIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODIyNTY0MDd9XSwic2Vzc2lvbl9pZCI6IjdhODhhYzg3LTdkMzUtNGEzYy1iZWVlLTY1NGI1NDU1MDBiZCIsImlzX2Fub255bW91cyI6ZmFsc2V9.aNv78doLptpXBe7dHkHppYaxYJStbUSk2E6SZ74bsiY",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-23T23:13:27.081Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-23T23:13:51.444Z",
+      "user": "Je bloque sur une action simple: ouvrir mon dossier administratif. Je repousse depuis trois jours, quel levier Sophia tu me recommandes ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je partirais sur une carte d’attaque, technique Préparer le terrain : tu réduis la friction avant d’ouvrir ton dossier, donc le premier geste devient plus simple à lancer.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-23T23:13:51.408Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-23T23:13:51.408Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Blocage sur une action concrète du plan: ouvrir un dossier administratif, avec report depuis trois jours.",
+                        "target_kind": "plan_action",
+                        "action_title": "ouvrir mon dossier administratif",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "L'action est simple et concrète, mais le blocage ressemble surtout à un launch blocker / évitement avant le démarrage. La carte d'attaque est le meilleur levier pour préparer l'entrée dans l'action et réduire la friction de départ."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Blocage sur une action concrète du plan: ouvrir un dossier administratif, avec report depuis trois jours.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage ressemble surtout à un frein au démarrage sur une action simple et concrète du plan. Une carte d’attaque est le meilleur levier pour préparer l’entrée dans l’action et diminuer la friction de départ.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage ressemble surtout à un frein au démarrage sur une action simple et concrète du plan. Une carte d’attaque est le meilleur levier pour préparer l’entrée dans l’action et diminuer la friction de départ.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le blocage ressemble surtout à un frein au démarrage sur une action simple et concrète du plan. Une carte d’attaque est le meilleur levier pour préparer l’entrée dans l’action et diminuer la friction de départ.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Blocked on a simple concrete action already identified; this is plan-action coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage ressemble surtout à un frein au démarrage sur une action simple et concrète du plan. Une carte d’attaque est le meilleur levier pour préparer l’entrée dans l’action et diminuer la friction de départ.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage ressemble surtout à un frein au démarrage sur une action simple et concrète du plan. Une carte d’attaque est le meilleur levier pour préparer l’entrée dans l’action et diminuer la friction de départ.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te recommande une carte d'attaque pour préparer le démarrage de cette action et t'aider à ouvrir ton dossier administratif plus facilement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "Blocked on a simple concrete action already identified; this is plan-action coaching.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": "ouvrir mon dossier administratif",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-23T23:13:51.408Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-23T23:13:51.408Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Blocage sur une action concrète du plan: ouvrir un dossier administratif, avec report depuis trois jours.",
+                        "target_kind": "plan_action",
+                        "action_title": "ouvrir mon dossier administratif",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "L'action est simple et concrète, mais le blocage ressemble surtout à un launch blocker / évitement avant le démarrage. La carte d'attaque est le meilleur levier pour préparer l'entrée dans l'action et réduire la friction de départ."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Blocage sur une action concrète du plan: ouvrir un dossier administratif, avec report depuis trois jours.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage ressemble surtout à un frein au démarrage sur une action simple et concrète du plan. Une carte d’attaque est le meilleur levier pour préparer l’entrée dans l’action et diminuer la friction de départ.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage ressemble surtout à un frein au démarrage sur une action simple et concrète du plan. Une carte d’attaque est le meilleur levier pour préparer l’entrée dans l’action et diminuer la friction de départ.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le blocage ressemble surtout à un frein au démarrage sur une action simple et concrète du plan. Une carte d’attaque est le meilleur levier pour préparer l’entrée dans l’action et diminuer la friction de départ.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Blocked on a simple concrete action already identified; this is plan-action coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage ressemble surtout à un frein au démarrage sur une action simple et concrète du plan. Une carte d’attaque est le meilleur levier pour préparer l’entrée dans l’action et diminuer la friction de départ.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage ressemble surtout à un frein au démarrage sur une action simple et concrète du plan. Une carte d’attaque est le meilleur levier pour préparer l’entrée dans l’action et diminuer la friction de départ.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te recommande une carte d'attaque pour préparer le démarrage de cette action et t'aider à ouvrir ton dossier administratif plus facilement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "Blocked on a simple concrete action already identified; this is plan-action coaching.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": "ouvrir mon dossier administratif",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-23T23:13:51.412792+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "qa7-coaching-recommendation-20260624-r1-t01",
+        "user_id": "12184eca-ea2d-4317-b63f-e07c77ddbc61",
+        "channel": "web",
+        "scope": "qa-normal-conversation-qa7-coaching-recommendation-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je partirais sur une carte d’attaque, technique Préparer le terrain : tu réduis la friction avant d’ouvrir ton dossier, donc le premier geste devient plus simple à lancer.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa7-coaching-recommendation-20260624-r1-t01",
+              "source_message_id": "9c6f1b95-7d35-4a8a-8069-b69477f204e8",
+              "user_id": "12184eca-ea2d-4317-b63f-e07c77ddbc61",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "User asks which coaching lever to use for a clearly identified blocked action.",
+                  "context": {
+                    "coaching_type": "plan_action",
+                    "confidence": 0.82,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": true,
+                      "is_about_non_plan_action": false,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": true,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "plan",
+                      "plan_item_id": null,
+                      "action_title": "ouvrir mon dossier administratif",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": null,
+                    "reason": "Blocked on a simple concrete action already identified; this is plan-action coaching."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "coaching_recommendation_on_blocked_action",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.92
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "qa7-coaching-recommendation-20260624-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue",
+              "latency_ms": 22036
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa7-coaching-recommendation-20260624-r1-t01",
+            "source_message_id": "9c6f1b95-7d35-4a8a-8069-b69477f204e8",
+            "user_id": "12184eca-ea2d-4317-b63f-e07c77ddbc61",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "User asks which coaching lever to use for a clearly identified blocked action.",
+                "context": {
+                  "coaching_type": "plan_action",
+                  "confidence": 0.82,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": true,
+                    "is_about_non_plan_action": false,
+                    "is_about_emotional_state": false,
+                    "has_concrete_plan_action": true,
+                    "needs_type_confirmation": false
+                  },
+                  "action_context": {
+                    "source": "plan",
+                    "plan_item_id": null,
+                    "action_title": "ouvrir mon dossier administratif",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": null,
+                  "reason": "Blocked on a simple concrete action already identified; this is plan-action coaching."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "coaching_recommendation_on_blocked_action",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.92
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "qa7-coaching-recommendation-20260624-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue",
+            "latency_ms": 22036
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-23T23:14:24.708Z",
+      "user": "En fait le probleme c'est surtout la peur de voir une mauvaise nouvelle dans le dossier, pas le geste d'ouvrir.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je partirais sur une carte d’attaque, technique Texte magique : une phrase courte pour te remettre en mouvement malgré la peur d’une mauvaise nouvelle, parce que le frein est au démarrage et pas dans l’action elle-même.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-23T23:13:51.408Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-23T23:14:24.651Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Blocage sur une action concrète du plan: ouvrir un dossier administratif, avec report depuis trois jours.",
+                        "target_kind": "plan_action",
+                        "action_title": "ouvrir mon dossier administratif",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "L'action est simple et concrète, mais le blocage ressemble surtout à un launch blocker / évitement avant le démarrage. La carte d'attaque est le meilleur levier pour préparer l'entrée dans l'action et réduire la friction de départ."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "La difficulté n’est plus le démarrage de l’action, mais la peur de tomber sur une mauvaise nouvelle pendant l’ouverture du dossier.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage est un frein au démarrage sur une action concrète du plan, avec une peur qui empêche de commencer. Une carte d’attaque est le bon levier, et le Texte magique correspond bien à ce besoin de recadrage rapide.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage est un frein au démarrage sur une action concrète du plan, avec une peur qui empêche de commencer. Une carte d’attaque est le bon levier, et le Texte magique correspond bien à ce besoin de recadrage rapide.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le blocage est un frein au démarrage sur une action concrète du plan, avec une peur qui empêche de commencer. Une carte d’attaque est le bon levier, et le Texte magique correspond bien à ce besoin de recadrage rapide.",
+                        "variant": "texte_magique",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Blocked on a simple concrete action already identified; this is plan-action coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage est un frein au démarrage sur une action concrète du plan, avec une peur qui empêche de commencer. Une carte d’attaque est le bon levier, et le Texte magique correspond bien à ce besoin de recadrage rapide.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage est un frein au démarrage sur une action concrète du plan, avec une peur qui empêche de commencer. Une carte d’attaque est le bon levier, et le Texte magique correspond bien à ce besoin de recadrage rapide.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te recommande une carte d'attaque pour préparer le démarrage de cette action et t'aider à ouvrir ton dossier administratif plus facilement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "Blocked on a simple concrete action already identified; this is plan-action coaching.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": "ouvrir mon dossier administratif",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-23T23:13:51.408Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-23T23:14:24.651Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Blocage sur une action concrète du plan: ouvrir un dossier administratif, avec report depuis trois jours.",
+                        "target_kind": "plan_action",
+                        "action_title": "ouvrir mon dossier administratif",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "L'action est simple et concrète, mais le blocage ressemble surtout à un launch blocker / évitement avant le démarrage. La carte d'attaque est le meilleur levier pour préparer l'entrée dans l'action et réduire la friction de départ."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "La difficulté n’est plus le démarrage de l’action, mais la peur de tomber sur une mauvaise nouvelle pendant l’ouverture du dossier.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage est un frein au démarrage sur une action concrète du plan, avec une peur qui empêche de commencer. Une carte d’attaque est le bon levier, et le Texte magique correspond bien à ce besoin de recadrage rapide.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage est un frein au démarrage sur une action concrète du plan, avec une peur qui empêche de commencer. Une carte d’attaque est le bon levier, et le Texte magique correspond bien à ce besoin de recadrage rapide.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le blocage est un frein au démarrage sur une action concrète du plan, avec une peur qui empêche de commencer. Une carte d’attaque est le bon levier, et le Texte magique correspond bien à ce besoin de recadrage rapide.",
+                        "variant": "texte_magique",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Blocked on a simple concrete action already identified; this is plan-action coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage est un frein au démarrage sur une action concrète du plan, avec une peur qui empêche de commencer. Une carte d’attaque est le bon levier, et le Texte magique correspond bien à ce besoin de recadrage rapide.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage est un frein au démarrage sur une action concrète du plan, avec une peur qui empêche de commencer. Une carte d’attaque est le bon levier, et le Texte magique correspond bien à ce besoin de recadrage rapide.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te recommande une carte d'attaque pour préparer le démarrage de cette action et t'aider à ouvrir ton dossier administratif plus facilement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "Blocked on a simple concrete action already identified; this is plan-action coaching.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": "ouvrir mon dossier administratif",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-23T23:14:24.661071+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "qa7-coaching-recommendation-20260624-r1-t02",
+        "user_id": "12184eca-ea2d-4317-b63f-e07c77ddbc61",
+        "channel": "web",
+        "scope": "qa-normal-conversation-qa7-coaching-recommendation-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je partirais sur une carte d’attaque, technique Texte magique : une phrase courte pour te remettre en mouvement malgré la peur d’une mauvaise nouvelle, parce que le frein est au démarrage et pas dans l’action elle-même.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa7-coaching-recommendation-20260624-r1-t02",
+              "source_message_id": "229a6032-2549-44a9-8de4-c70822ddf5c5",
+              "user_id": "12184eca-ea2d-4317-b63f-e07c77ddbc61",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "qa7-coaching-recommendation-20260624-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 25109
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa7-coaching-recommendation-20260624-r1-t02",
+            "source_message_id": "229a6032-2549-44a9-8de4-c70822ddf5c5",
+            "user_id": "12184eca-ea2d-4317-b63f-e07c77ddbc61",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "qa7-coaching-recommendation-20260624-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 25109
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-23T23:14:24.709Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-23T23:20:05.822Z"
+}

@@ -36,6 +36,7 @@ const DAD: PortionMember = {
   habits: [],
   habitNote: null,
   requiredDensity: null,
+  proteinBrief: null,
 };
 const SON: PortionMember = {
   memberId: "m-son",
@@ -48,6 +49,7 @@ const SON: PortionMember = {
   habits: [],
   habitNote: null,
   requiredDensity: null,
+  proteinBrief: null,
 };
 const KID: PortionMember = {
   memberId: "m-kid",
@@ -60,6 +62,7 @@ const KID: PortionMember = {
   habits: [],
   habitNote: null,
   requiredDensity: null,
+  proteinBrief: null,
 };
 
 /** Un corps entièrement connu, plancher TCA baissé par une lecture réussie. */
@@ -135,6 +138,7 @@ Deno.test("un majeur sans objectif déclaré n'est pas traité comme un enfant",
     habits: [],
     habitNote: null,
     requiredDensity: null,
+    proteinBrief: null,
   };
   const line = buildPortionBrief([adultNoGoal], "one_dish", 0, 1, "legacy_measure").split("\n")
     .find((l) => l.startsWith("- Alex:"))!;
@@ -286,6 +290,7 @@ Deno.test("une bouche d'ÂGE INCONNU suit le mineur, pas le majeur", () => {
     habits: [],
     habitNote: null,
     requiredDensity: null,
+    proteinBrief: null,
   };
   assertEquals(
     buildPortionBrief([unknown], "one_dish", 0, 1, "legacy_measure"),
@@ -686,6 +691,7 @@ function directionFor(goal: PortionMember["goal"]): string {
     habits: [],
     habitNote: null,
     requiredDensity: null,
+    proteinBrief: null,
   }], "one_dish", 0, 1, "legacy_measure").split("\n").find((l) => l.startsWith("- Solo:"))!;
   return line.slice("- Solo: ".length);
 }
@@ -1076,6 +1082,7 @@ function minorMember(goal: MemberGoal | null): PortionMember {
     habits: [],
     habitNote: null,
     requiredDensity: null,
+    proteinBrief: null,
   };
 }
 

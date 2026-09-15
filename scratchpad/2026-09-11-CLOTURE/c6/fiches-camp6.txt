@@ -1,0 +1,381 @@
+══════════════════════════════════════════════════════════════════
+FICHES DE RECETTE — plan 81ebf19a-08e8-4554-a54e-2f52f805baa3
+══════════════════════════════════════════════════════════════════
+⛔ BASE DE COMPARAISON : GRAMMES CRUS, convertis ligne à ligne par `resolveIngredients`.
+   Un pourcentage de pièces hétérogènes n'est pas une proportion massique ; les lignes
+   non convertibles sortent du dénominateur ET sont nommées.
+⛔ 1 RÉPARATION(S) MODÈLE SUR CE TIR. La colonne « AVANT » est le PREMIER JET,
+   donc PAS l'ancêtre direct de la recette finale : aucun écart de proportion ci-dessous
+   ne peut être imputé à l'ajusteur déterministe seul.
+
+── PRÉPARATIONS ─────────────────────────────────────────────
+
+· prep_sat_breakfast — « Omelette au jambon et pain »
+   APRÈS (en base)
+     total 908.0 g crus · 6 / 6 ligne(s) converties
+        24.2 %      220.0 g   œufs
+        22.0 %      200.0 g   tomate
+        21.8 %      198.0 g   blancs d'œuf
+        17.6 %      160.0 g   pain complet
+        13.2 %      120.0 g   jambon
+         1.1 %       10.0 g   huile d'olive
+
+· prep_chicken — « Poulet rôti aux oignons »
+   AVANT (premier jet)
+     total 1200.0 g crus · 1 / 1 ligne(s) converties
+       100.0 %     1200.0 g   blanc de poulet
+   APRÈS (en base)
+     total 2907.5 g crus · 4 / 4 ligne(s) converties
+        85.7 %     2492.0 g   blanc de poulet
+        12.7 %      369.0 g   oignon
+         1.6 %       46.0 g   huile d'olive
+         0.0 %        0.5 g   herbes séchées
+     ✅ les deux dénominateurs couvrent TOUTES les lignes.
+     ⚠️ RAPPORTS MASSIQUES DÉPLACÉS :
+       blanc de poulet : 100.0 % → 85.7 % (-14.3 pt de MASSE)
+     facteurs par ligne (après ÷ avant) :
+       ×2.077   blanc de poulet  (1200 → 2492 g)
+       ⚪ rang 1 « oignon » — non rapproché
+       ⚪ rang 2 « huile d'olive » — non rapproché
+       ⚪ rang 3 « herbes séchées » — non rapproché
+
+· prep_beef — « Bœuf haché aux oignons »
+   APRÈS (en base)
+     total 2910.5 g crus · 4 / 4 ligne(s) converties
+        87.6 %     2551.0 g   bœuf haché
+        11.0 %      319.0 g   oignon
+         1.4 %       40.0 g   huile d'olive
+         0.0 %        0.5 g   herbes séchées
+
+· prep_sun_breakfast — « Œufs au petit-suisse et pain »
+   APRÈS (en base)
+     total 960.0 g crus · 6 / 6 ligne(s) converties
+        27.6 %      265.0 g   petit-suisse
+        22.9 %      220.0 g   œufs
+        17.2 %      165.0 g   blancs d'œuf
+        16.7 %      160.0 g   pain complet
+        14.7 %      141.0 g   tomate
+         0.9 %        9.0 g   huile d'olive
+
+· prep_mon_breakfast — « Saumon aux œufs et pain »
+   APRÈS (en base)
+     total 792.0 g crus · 6 / 6 ligne(s) converties
+        32.8 %      260.0 g   saumon
+        25.3 %      200.0 g   tomate
+        16.7 %      132.0 g   blancs d'œuf
+        13.9 %      110.0 g   œufs
+        10.1 %       80.0 g   pain complet
+         1.3 %       10.0 g   huile d'olive
+
+── PLATS (frais assemblé) ───────────────────────────────────
+
+· sat/breakfast — « Œufs, blancs d'œuf, jambon, pain complet et tomate »
+   AVANT (premier jet)
+     total 425.0 g crus · 5 / 5 ligne(s) converties
+        58.8 %      250.0 g   tofu
+        23.5 %      100.0 g   tomate
+         9.4 %       40.0 g   pain complet
+         7.1 %       30.0 g   fromage de chèvre
+         1.2 %        5.0 g   huile d'olive
+   APRÈS (en base)
+     total 0.0 g crus · 0 / 0 ligne(s) converties
+     facteurs par ligne (après ÷ avant) :
+     rapport préparation / assiette — contenant box_sat_breakfast_0_65c34956-2bf9-4afe-876b-bace14cee68e (372 g PRÊTS, base distincte des grammes crus ci-dessus)
+       100.0 %   372 g prélevés dans prep_sat_breakfast   (lot : 908 g crus — ⚠️ base différente, pas un rapport)
+     rapport préparation / assiette — contenant box_sat_breakfast_0_c88be1ee-f922-42a0-b27a-9ff7d5f39c4b (501 g PRÊTS, base distincte des grammes crus ci-dessus)
+       100.0 %   501 g prélevés dans prep_sat_breakfast   (lot : 908 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 1
+
+· sat/lunch — « Poulet, pita complète, parmesan, laitue et tomate »
+   AVANT (premier jet)
+     total 77.0 g crus · 3 / 3 ligne(s) converties
+        64.9 %       50.0 g   poivron
+        19.5 %       15.0 g   feta
+        15.6 %       12.0 g   huile d'olive
+   APRÈS (en base)
+     total 372.0 g crus · 5 / 5 ligne(s) converties
+        37.4 %      139.0 g   tomate
+        32.3 %      120.0 g   1 pita complète
+        23.4 %       87.0 g   laitue
+         4.6 %       17.0 g   parmesan
+         2.4 %        9.0 g   huile d'olive
+     facteurs par ligne (après ÷ avant) :
+       ⚪ rang 0 « 1 pita complète » — non rapproché
+       ⚪ rang 1 « parmesan » — non rapproché
+       ⚪ rang 2 « laitue » — non rapproché
+       ⚪ rang 3 « tomate » — non rapproché
+       ⚪ rang 4 « huile d'olive » — non rapproché
+     rapport préparation / assiette — contenant box_sat_lunch_1_65c34956-2bf9-4afe-876b-bace14cee68e (503 g PRÊTS, base distincte des grammes crus ci-dessus)
+       69.6 %   350 g prélevés dans prep_chicken   (lot : 2908 g crus — ⚠️ base différente, pas un rapport)
+     rapport préparation / assiette — contenant box_sat_lunch_1_c88be1ee-f922-42a0-b27a-9ff7d5f39c4b (676 g PRÊTS, base distincte des grammes crus ci-dessus)
+       69.7 %   471 g prélevés dans prep_chicken   (lot : 2908 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 3
+
+· sat/dinner — « Bœuf aux oignons, pita complète, parmesan, tomate et chou rouge »
+   AVANT (premier jet)
+     total 215.0 g crus · 4 / 4 ligne(s) converties
+        46.5 %      100.0 g   tomate
+        27.9 %       60.0 g   tortilla complète
+        23.3 %       50.0 g   laitue
+         2.3 %        5.0 g   huile d'olive
+   APRÈS (en base)
+     total 296.0 g crus · 5 / 5 ligne(s) converties
+        40.9 %      121.0 g   tomate
+        32.8 %       97.0 g   chou rouge
+        20.3 %       60.0 g   1 pita complète
+         4.1 %       12.0 g   parmesan
+         2.0 %        6.0 g   huile d'olive
+     facteurs par ligne (après ÷ avant) :
+       ⚪ rang 0 « 1 pita complète » — non rapproché
+       ⚪ rang 1 « parmesan » — non rapproché
+       ⚪ rang 2 « tomate » — non rapproché
+       ⚪ rang 3 « chou rouge » — non rapproché
+       ⚪ rang 4 « huile d'olive » — non rapproché
+     rapport préparation / assiette — contenant box_sat_dinner_2_65c34956-2bf9-4afe-876b-bace14cee68e (410 g PRÊTS, base distincte des grammes crus ci-dessus)
+       69.0 %   283 g prélevés dans prep_beef   (lot : 2911 g crus — ⚠️ base différente, pas un rapport)
+     rapport préparation / assiette — contenant box_sat_dinner_2_c88be1ee-f922-42a0-b27a-9ff7d5f39c4b (551 g PRÊTS, base distincte des grammes crus ci-dessus)
+       69.0 %   380 g prélevés dans prep_beef   (lot : 2911 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 3
+
+· sun/breakfast — « Œufs, blancs d'œuf, petit-suisse, pain complet et tomate »
+   AVANT (premier jet)
+     total 320.0 g crus · 3 / 3 ligne(s) converties
+        56.3 %      180.0 g   sardines
+        31.3 %      100.0 g   tomate
+        12.5 %       40.0 g   pain complet
+   APRÈS (en base)
+     total 0.0 g crus · 0 / 0 ligne(s) converties
+     facteurs par ligne (après ÷ avant) :
+     rapport préparation / assiette — contenant box_sun_breakfast_3_65c34956-2bf9-4afe-876b-bace14cee68e (395 g PRÊTS, base distincte des grammes crus ci-dessus)
+       100.0 %   395 g prélevés dans prep_sun_breakfast   (lot : 960 g crus — ⚠️ base différente, pas un rapport)
+     rapport préparation / assiette — contenant box_sun_breakfast_3_c88be1ee-f922-42a0-b27a-9ff7d5f39c4b (531 g PRÊTS, base distincte des grammes crus ci-dessus)
+       100.0 %   531 g prélevés dans prep_sun_breakfast   (lot : 960 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 1
+
+· sun/lunch — « Bœuf aux oignons, tortilla complète, feta, laitue et poivron »
+   AVANT (premier jet)
+     total 85.0 g crus · 3 / 3 ligne(s) converties
+        58.8 %       50.0 g   carotte
+        23.5 %       20.0 g   parmesan
+        17.6 %       15.0 g   huile d'olive
+   APRÈS (en base)
+     total 298.0 g crus · 5 / 5 ligne(s) converties
+        45.6 %      136.0 g   poivron
+        22.8 %       68.0 g   laitue
+        20.1 %       60.0 g   1 tortilla complète
+         9.1 %       27.0 g   feta
+         2.3 %        7.0 g   huile d'olive
+     facteurs par ligne (après ÷ avant) :
+       ⚪ rang 0 « 1 tortilla complète » — non rapproché
+       ⚪ rang 1 « feta » — non rapproché
+       ⚪ rang 2 « laitue » — non rapproché
+       ⚪ rang 3 « poivron » — non rapproché
+       ⚪ rang 4 « huile d'olive » — non rapproché
+     rapport préparation / assiette — contenant box_sun_lunch_4_65c34956-2bf9-4afe-876b-bace14cee68e (449 g PRÊTS, base distincte des grammes crus ci-dessus)
+       70.8 %   318 g prélevés dans prep_beef   (lot : 2911 g crus — ⚠️ base différente, pas un rapport)
+     rapport préparation / assiette — contenant box_sun_lunch_4_c88be1ee-f922-42a0-b27a-9ff7d5f39c4b (603 g PRÊTS, base distincte des grammes crus ci-dessus)
+       70.8 %   427 g prélevés dans prep_beef   (lot : 2911 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 3
+
+· sun/dinner — « Poulet, tortilla complète, feta, poivron et laitue »
+   AVANT (premier jet)
+     total 140.0 g crus · 3 / 3 ligne(s) converties
+        71.4 %      100.0 g   tomate
+        21.4 %       30.0 g   feta
+         7.1 %       10.0 g   huile d'olive
+   APRÈS (en base)
+     total 323.0 g crus · 5 / 5 ligne(s) converties
+        44.0 %      142.0 g   poivron
+        22.0 %       71.0 g   laitue
+        18.6 %       60.0 g   1 tortilla complète
+        13.3 %       43.0 g   feta
+         2.2 %        7.0 g   huile d'olive
+     facteurs par ligne (après ÷ avant) :
+       ⚪ rang 0 « 1 tortilla complète » — non rapproché
+       ×1.433   feta  (30 → 43 g)
+       ⚪ rang 2 « poivron » — non rapproché
+       ⚪ rang 3 « laitue » — non rapproché
+       ⚪ rang 4 « huile d'olive » — non rapproché
+     rapport préparation / assiette — contenant box_sun_dinner_5_65c34956-2bf9-4afe-876b-bace14cee68e (428 g PRÊTS, base distincte des grammes crus ci-dessus)
+       66.8 %   286 g prélevés dans prep_chicken   (lot : 2908 g crus — ⚠️ base différente, pas un rapport)
+     rapport préparation / assiette — contenant box_sun_dinner_5_c88be1ee-f922-42a0-b27a-9ff7d5f39c4b (575 g PRÊTS, base distincte des grammes crus ci-dessus)
+       66.8 %   384 g prélevés dans prep_chicken   (lot : 2908 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 3
+
+· mon/breakfast — « Saumon, œuf, blancs d'œuf, pain complet et tomate »
+   AVANT (premier jet)
+     total 345.0 g crus · 5 / 5 ligne(s) converties
+        34.8 %      120.0 g   jambon
+        29.0 %      100.0 g   tomate
+        23.2 %       80.0 g   fromage de chèvre
+        11.6 %       40.0 g   pain complet
+         1.4 %        5.0 g   huile d'olive
+   APRÈS (en base)
+     total 0.0 g crus · 0 / 0 ligne(s) converties
+     facteurs par ligne (après ÷ avant) :
+     rapport préparation / assiette — contenant box_mon_breakfast_6_65c34956-2bf9-4afe-876b-bace14cee68e (319 g PRÊTS, base distincte des grammes crus ci-dessus)
+       100.0 %   319 g prélevés dans prep_mon_breakfast   (lot : 792 g crus — ⚠️ base différente, pas un rapport)
+     rapport préparation / assiette — contenant box_mon_breakfast_6_c88be1ee-f922-42a0-b27a-9ff7d5f39c4b (428 g PRÊTS, base distincte des grammes crus ci-dessus)
+       100.0 %   428 g prélevés dans prep_mon_breakfast   (lot : 792 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 1
+
+· mon/lunch — « Bœuf aux oignons, pita complète, chèvre, tomate et laitue »
+   AVANT (premier jet)
+     total 677.0 g crus · 7 / 7 ligne(s) converties
+        35.5 %      240.0 g   thon en conserve
+        17.7 %      120.0 g   tortilla complète
+        17.7 %      120.0 g   haricots blancs
+        14.8 %      100.0 g   tomate
+         7.4 %       50.0 g   laitue
+         4.0 %       27.0 g   huile d'olive
+         3.0 %       20.0 g   feta
+   APRÈS (en base)
+     total 308.0 g crus · 5 / 5 ligne(s) converties
+        46.1 %      142.0 g   tomate
+        23.1 %       71.0 g   laitue
+        19.5 %       60.0 g   1 pita complète
+         9.1 %       28.0 g   fromage de chèvre
+         2.3 %        7.0 g   huile d'olive
+     facteurs par ligne (après ÷ avant) :
+       ⚪ rang 0 « 1 pita complète » — non rapproché
+       ⚪ rang 1 « fromage de chèvre » — non rapproché
+       ⚪ rang 2 « tomate » — non rapproché
+       ⚪ rang 3 « laitue » — non rapproché
+       ⚪ rang 4 « huile d'olive » — non rapproché
+     rapport préparation / assiette — contenant box_mon_lunch_7_65c34956-2bf9-4afe-876b-bace14cee68e (475 g PRÊTS, base distincte des grammes crus ci-dessus)
+       70.1 %   333 g prélevés dans prep_beef   (lot : 2911 g crus — ⚠️ base différente, pas un rapport)
+     rapport préparation / assiette — contenant box_mon_lunch_7_c88be1ee-f922-42a0-b27a-9ff7d5f39c4b (640 g PRÊTS, base distincte des grammes crus ci-dessus)
+       70.0 %   448 g prélevés dans prep_beef   (lot : 2911 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 3
+
+· mon/dinner — « Poulet, pain complet, chèvre, tomate et chou rouge »
+   AVANT (premier jet)
+     total 130.0 g crus · 3 / 3 ligne(s) converties
+        76.9 %      100.0 g   tomate
+        15.4 %       20.0 g   feta
+         7.7 %       10.0 g   huile d'olive
+   APRÈS (en base)
+     total 417.0 g crus · 5 / 5 ligne(s) converties
+        34.8 %      145.0 g   tomate
+        28.8 %      120.0 g   2 tranches de pain complet
+        27.8 %      116.0 g   chou rouge
+         7.0 %       29.0 g   fromage de chèvre
+         1.7 %        7.0 g   huile d'olive
+     facteurs par ligne (après ÷ avant) :
+       ⚪ rang 0 « 2 tranches de pain complet » — non rapproché
+       ⚪ rang 1 « fromage de chèvre » — non rapproché
+       ⚪ rang 2 « tomate » — non rapproché
+       ⚪ rang 3 « chou rouge » — non rapproché
+       ⚪ rang 4 « huile d'olive » — non rapproché
+     rapport préparation / assiette — contenant box_mon_dinner_8_65c34956-2bf9-4afe-876b-bace14cee68e (462 g PRÊTS, base distincte des grammes crus ci-dessus)
+       63.0 %   291 g prélevés dans prep_chicken   (lot : 2908 g crus — ⚠️ base différente, pas un rapport)
+     rapport préparation / assiette — contenant box_mon_dinner_8_c88be1ee-f922-42a0-b27a-9ff7d5f39c4b (621 g PRÊTS, base distincte des grammes crus ci-dessus)
+       63.0 %   391 g prélevés dans prep_chicken   (lot : 2908 g crus — ⚠️ base différente, pas un rapport)
+     composants culinaires déclarés : 3
+
+══ CE QUE LA PERSONNE LIT (fiches servies) ═══════════════════
+
+· Omelette au jambon et pain
+  pour 1 part(s) · 25 min en tout, dont 15 min de mains
+  · 4 œufs
+  · 6 blancs d'œuf
+  · 4 tranches de jambon
+  · 4 tranches de pain complet
+  · 2 tomates
+  · 10 ml
+  méthode : Battre les œufs et les blancs d'œuf, cuire l'omelette avec le jambon et la tomate, puis préparer le pain complet. Refroidir rapidement et répartir en deux portions au réfrigérateur.
+
+· Poulet rôti aux oignons
+  pour 3 part(s) · 35 min en tout, dont 15 min de mains
+  · 2492 g de blanc de poulet
+  · 369 g d'oignon
+  · 46 ml
+  · une pincée d'herbes séchées
+  méthode : Rôtir le poulet avec les oignons et l'huile d'olive, assaisonner avec les herbes séchées, refroidir rapidement puis répartir en six portions au réfrigérateur.
+
+· Bœuf haché aux oignons
+  pour 3 part(s) · 25 min en tout, dont 20 min de mains
+  · 2551 g de bœuf haché
+  · 319 g d'oignon
+  · 40 ml
+  · une pincée d'herbes séchées
+  méthode : Faire revenir le bœuf avec les oignons et l'huile d'olive, assaisonner avec les herbes séchées, laisser tiédir puis répartir en six portions au réfrigérateur.
+
+· Œufs au petit-suisse et pain
+  pour 1 part(s) · 25 min en tout, dont 15 min de mains
+  · 4 œufs
+  · 5 blancs d'œuf
+  · 265 g de petit-suisse
+  · 4 tranches de pain complet
+  · 141 g de tomate
+  · 9 ml
+  méthode : Cuire les œufs et les blancs d'œuf avec la tomate, préparer le pain complet, puis ajouter le petit-suisse au dressage. Refroidir, portionner et réfrigérer.
+
+· Saumon aux œufs et pain
+  pour 1 part(s) · 25 min en tout, dont 15 min de mains
+  · 2 pavés de saumon
+  · 2 œufs
+  · 4 blancs d'œuf
+  · 2 tranches de pain complet
+  · 2 tomates
+  · 10 ml
+  méthode : Acheter le saumon le matin même, le cuire avec l'huile d'olive, préparer les œufs et les blancs d'œuf, puis réunir le pain complet et la tomate. Refroidir rapidement et répartir en deux portions au réfrigérateur.
+
+· sat/breakfast — Œufs, blancs d'œuf, jambon, pain complet et tomate
+  méthode : Réchauffer doucement la portion d'omelette au jambon avec le pain complet et la tomate, puis servir.
+
+· sat/lunch — Poulet, pita complète, parmesan, laitue et tomate
+  · 2 pita complète
+  · 17 g de parmesan
+  · 87 g de laitue
+  · 139 g de tomate
+  · 9 ml
+  méthode : Sortir la portion de poulet rôti aux oignons, ouvrir la pita et la garnir de laitue, de tomate et de parmesan, puis ajouter l'huile d'olive.
+
+· sat/dinner — Bœuf aux oignons, pita complète, parmesan, tomate et chou rouge
+  · 1 pita complète
+  · 12 g de parmesan
+  · 121 g de tomate
+  · 97 g de chou rouge
+  · 6 ml
+  méthode : Sortir la portion de bœuf aux oignons, garnir la pita de tomate, de chou rouge et de parmesan, puis ajouter l'huile d'olive.
+
+· sun/breakfast — Œufs, blancs d'œuf, petit-suisse, pain complet et tomate
+  méthode : Réchauffer la portion d'œufs avec le pain complet, le petit-suisse et la tomate, puis servir.
+
+· sun/lunch — Bœuf aux oignons, tortilla complète, feta, laitue et poivron
+  · 1 tortilla complète
+  · 27 g de feta
+  · 68 g de laitue
+  · 136 g de poivron
+  · 7 ml
+  méthode : Sortir la portion de bœuf aux oignons, garnir la tortilla de laitue, de poivron et de feta, puis ajouter l'huile d'olive et rouler.
+
+· sun/dinner — Poulet, tortilla complète, feta, poivron et laitue
+  · 1 tortilla complète
+  · 43 g de feta
+  · 142 g de poivron
+  · 71 g de laitue
+  · 7 ml
+  méthode : Sortir la portion de poulet rôti aux oignons, garnir la tortilla de poivron, de laitue et de feta, puis ajouter l'huile d'olive et rouler.
+
+· mon/breakfast — Saumon, œuf, blancs d'œuf, pain complet et tomate
+  méthode : Réchauffer la portion de saumon et d'œufs avec le pain complet et la tomate, puis servir.
+
+· mon/lunch — Bœuf aux oignons, pita complète, chèvre, tomate et laitue
+  · 1 pita complète
+  · 28 g de fromage de chèvre
+  · 142 g de tomate
+  · 71 g de laitue
+  · 7 ml
+  méthode : Sortir la portion de bœuf aux oignons, garnir la pita de tomate, de laitue et de fromage de chèvre, puis ajouter l'huile d'olive.
+
+· mon/dinner — Poulet, pain complet, chèvre, tomate et chou rouge
+  · 3 tranches de pain complet
+  · 29 g de fromage de chèvre
+  · 145 g de tomate
+  · 116 g de chou rouge
+  · 7 ml
+  méthode : Sortir la portion de poulet rôti aux oignons, servir avec le pain complet, le fromage de chèvre, la tomate et le chou rouge, puis ajouter l'huile d'olive.
+
+⛔ AUCUNE DE CES RECETTES N'A ÉTÉ CUISINÉE NI GOÛTÉE. Ce fichier imprime des grammes et des rapports ; la faisabilité se LIT, la saveur se GOÛTE, et la dégustation reste à faire par un humain.

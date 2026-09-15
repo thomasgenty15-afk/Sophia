@@ -1,0 +1,1207 @@
+{
+  "run_id": "dispatcher-conversation-ambiguity-20260521-fixes-r3",
+  "created_at": "2026-05-21T09:32:45.376Z",
+  "base_url": "http://127.0.0.1:54321",
+  "qa_user": {
+    "email": "qa-dispatcher-conversation-ambiguity-20260521-fixes-r3-1779355934375@example.com",
+    "user_id": "f11dc80c-c0b4-4da3-b5a3-7dd09ba87946"
+  },
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "results": [
+    {
+      "id": "product_followup_create_it",
+      "kind": "checks",
+      "trap": null,
+      "group": "product_vs_action",
+      "scope": "dispatcher-conversation-ambiguity-20260521-fixes-r3-product_followup_create_it",
+      "seed_result": null,
+      "pre_results": [
+        {
+          "index": 0,
+          "user_message": "À quoi sert une carte d'attaque dans Sophia ?",
+          "http_status": 200,
+          "ok": true,
+          "observed": {
+            "intent_operations": [],
+            "intent_explicitness": [],
+            "opportunity_type": "none",
+            "opportunity_operation": null,
+            "opportunity_should_offer": false,
+            "opportunity_must_not_execute": true,
+            "direct_effects": [],
+            "direct_effects_to_run": [],
+            "blocked_paths": [],
+            "blocked_reason_codes": [],
+            "skill_entry_ids": [
+              "product_help"
+            ],
+            "skill_lifecycle_ids": [],
+            "skill_exit_ids": [],
+            "confirmation_kind": null,
+            "safety_risk_band": "low",
+            "needs_research": false,
+            "needs_research_query": null,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason": "skill_entry_signal",
+            "executed_tools": [],
+            "content": "Une carte d’attaque sert à préparer une action en amont. L’idée: réduire la friction juste avant le moment où tu dois passer à l’acte, te clarifier le premier geste, et rendre l’action plus “naturelle” à démarrer. 💪\n\nConcrètement, elle peut s’appuyer sur différentes techniques (genre texte magique, mantra de force, ancre visuelle, méditation de 5 minutes, préparer le terrain, mot de bascule).\n\nTu veux qu’on la relie à une action précise que tu dois lancer bientôt, ou c’est plutôt pour comprendre le principe ? 🙂"
+          },
+          "raw": {
+            "http_status": 200,
+            "ok": true,
+            "response": {
+              "ok": true,
+              "request_id": "a84f324f-b941-4d46-a4b6-f5c6b61f397f",
+              "user_id": "f11dc80c-c0b4-4da3-b5a3-7dd09ba87946",
+              "channel": "web",
+              "scope": "dispatcher-conversation-ambiguity-20260521-fixes-r3-product_followup_create_it",
+              "empty_response": false,
+              "aborted": false,
+              "abort_reason": null,
+              "logged_message_id": null,
+              "latest_message_id": null,
+              "response": {
+                "content": "Une carte d’attaque sert à préparer une action en amont. L’idée: réduire la friction juste avant le moment où tu dois passer à l’acte, te clarifier le premier geste, et rendre l’action plus “naturelle” à démarrer. 💪\n\nConcrètement, elle peut s’appuyer sur différentes techniques (genre texte magique, mantra de force, ancre visuelle, méditation de 5 minutes, préparer le terrain, mot de bascule).\n\nTu veux qu’on la relie à une action précise que tu dois lancer bientôt, ou c’est plutôt pour comprendre le principe ? 🙂",
+                "mode": "companion",
+                "tool_execution": "none",
+                "executed_tools": []
+              },
+              "conversation_turn_trace": {
+                "turn_id": "a84f324f-b941-4d46-a4b6-f5c6b61f397f",
+                "user_id": "f11dc80c-c0b4-4da3-b5a3-7dd09ba87946",
+                "source_message_id": "5db53d4f-5fa6-4286-bc9b-1aa645b01245",
+                "ts": "2026-05-21T09:32:19.219+00:00",
+                "safety_pregate": {
+                  "detected": false,
+                  "evidence": [],
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "allow_side_effects": true,
+                  "layer_contributions": {
+                    "lexical": false,
+                    "heuristic": false,
+                    "dispatcher_llm": false
+                  }
+                },
+                "dispatcher_run": {
+                  "tokens_in": 8463,
+                  "latency_ms": 2616,
+                  "model_used": "gemini-3-flash-preview",
+                  "tokens_out": 538,
+                  "memory_plan": {
+                    "targets": [],
+                    "memory_mode": "none",
+                    "context_need": "minimal",
+                    "model_tier_hint": "lite",
+                    "plan_confidence": 0.7,
+                    "response_intent": "reflection",
+                    "retrieval_policy": "semantic_first",
+                    "context_budget_tier": "tiny",
+                    "reasoning_complexity": "low"
+                  },
+                  "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+                },
+                "turn_frame": {
+                  "safety": {
+                    "evidence": [],
+                    "risk_band": "low",
+                    "reason_codes": []
+                  },
+                  "channel": "web",
+                  "turn_id": "a84f324f-b941-4d46-a4b6-f5c6b61f397f",
+                  "user_id": "f11dc80c-c0b4-4da3-b5a3-7dd09ba87946",
+                  "memory_plan": {
+                    "targets": [],
+                    "memory_mode": "none",
+                    "context_need": "minimal",
+                    "model_tier_hint": "lite",
+                    "plan_confidence": 0.7,
+                    "response_intent": "reflection",
+                    "retrieval_policy": "semantic_first",
+                    "context_budget_tier": "tiny",
+                    "reasoning_complexity": "low"
+                  },
+                  "skill_signals": {
+                    "exit": {},
+                    "entry": {
+                      "product_help": {
+                        "reason": "user_asks_about_product_feature_definition",
+                        "detected": true,
+                        "confidence_band": "high"
+                      }
+                    },
+                    "lifecycle": {}
+                  },
+                  "direct_effects": [],
+                  "needs_research": {
+                    "query": null,
+                    "value": false,
+                    "reason": null,
+                    "detected": false,
+                    "confidence": 0,
+                    "domain_hint": null
+                  },
+                  "level_reference": {
+                    "reason": null,
+                    "status": "none",
+                    "detected": false,
+                    "expansion_policy": "none"
+                  },
+                  "action_reference": {
+                    "reason": null,
+                    "status": "none",
+                    "detected": false,
+                    "expansion_policy": "none"
+                  },
+                  "conversation_risk": {
+                    "score": 0,
+                    "matrix": [
+                      {
+                        "signal": "system_misunderstanding",
+                        "weight": 3.5,
+                        "detected": false,
+                        "evidence": null,
+                        "contribution": 0
+                      },
+                      {
+                        "signal": "explicit_stop_or_abandon",
+                        "weight": 2.5,
+                        "detected": false,
+                        "evidence": null,
+                        "contribution": 0
+                      },
+                      {
+                        "signal": "anger_or_profanity",
+                        "weight": 2,
+                        "detected": false,
+                        "evidence": null,
+                        "contribution": 0
+                      },
+                      {
+                        "signal": "repetition_or_correction",
+                        "weight": 1.5,
+                        "detected": false,
+                        "evidence": null,
+                        "contribution": 0
+                      },
+                      {
+                        "signal": "typographic_intensity",
+                        "weight": 0.7,
+                        "detected": false,
+                        "evidence": null,
+                        "contribution": 0
+                      },
+                      {
+                        "signal": "active_flow_pressure",
+                        "weight": 1,
+                        "detected": false,
+                        "evidence": null,
+                        "contribution": 0
+                      },
+                      {
+                        "signal": "previous_risk",
+                        "weight": 10,
+                        "detected": false,
+                        "evidence": null,
+                        "contribution": 0
+                      }
+                    ],
+                    "threshold": 8,
+                    "reason_codes": [],
+                    "context_summary": null,
+                    "previous_scores": [],
+                    "flow_exit_context": null,
+                    "should_exit_flows": false
+                  },
+                  "source_message_id": "5db53d4f-5fa6-4286-bc9b-1aa645b01245",
+                  "tool_skill_intents": [],
+                  "confirmation_response": null,
+                  "tool_skill_opportunity": {
+                    "type": "none",
+                    "surface_id": null,
+                    "prop_reason": null,
+                    "source_span": null,
+                    "target_hint": null,
+                    "offer_timing": "never",
+                    "should_offer": false,
+                    "target_status": "none",
+                    "operation_type": null,
+                    "confidence_band": "low",
+                    "must_not_execute": true,
+                    "suggested_question_intent": null
+                  }
+                },
+                "route_decision": {
+                  "reason_code": "skill_entry_signal",
+                  "blocked_paths": [],
+                  "route_version": "v1",
+                  "response_owner": "product_help",
+                  "memory_use_kind": "none",
+                  "selected_handler": "product_help",
+                  "direct_effects_to_run": [],
+                  "memory_used_for_route": false,
+                  "active_flow_arbitration": {
+                    "decision": "none",
+                    "reason_code": "no_active_flow",
+                    "active_owner": "none",
+                    "resume_policy": "none",
+                    "selected_owner": "none"
+                  },
+                  "memory_item_ids_used_for_route": []
+                },
+                "direct_effects": [],
+                "skill_run": {
+                  "output": {
+                    "reply": "Carte d'attaque: Une carte d'attaque sert a preparer l'action en amont. Elle rend le bon geste plus simple, plus naturel et moins couteux au moment de passer a l'action. Elle peut s'appuyer sur 6 techniques: Le texte magique, Mantra de force, Ancre visuelle, Meditation de 5 minutes, Preparer le terrain, Mot de bascule.\n\nCe que ca apporte:\n- Reduit la friction avant l'action.\n- Clarifie le premier geste et le mode d'emploi.\n- Aide a preparer le terrain avant le moment critique.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une mission ou une habitude a des cartes liees pretes. Tu peux y voir un apercu de la carte.\n- Dashboard > Ressources: Quand une carte d'attaque du plan a ete generee. Tu peux y consulter la carte rangee par niveau, gerer les cartes libres si disponible.\n\nImportant: une carte d'attaque generee ne se modifie pas librement. Seul le mot d'une carte Mot de bascule peut etre remplace depuis Ressources; pour changer le contexte, la technique ou le contenu, il faut preparer une nouvelle carte apres confirmation.\n\nSi tu veux vraiment le faire, ce n'est pas product_help qui execute: il faut passer par le flow prepare_attack_card, avec confirmation.",
+                    "status": "complete",
+                    "skill_id": "product_help",
+                    "diagnosis": {
+                      "locations": [
+                        "Dashboard > Plan",
+                        "Dashboard > Ressources"
+                      ],
+                      "feature_id": "resources.attack_card",
+                      "feature_label": "Carte d'attaque",
+                      "operation_bridge": {
+                        "trigger_phrases": [
+                          "prepare une carte d'attaque",
+                          "aide-moi a preparer cette action",
+                          "rends cette mission plus facile a lancer"
+                        ],
+                        "skill_or_operation": "prepare_attack_card",
+                        "requires_confirmation": true
+                      }
+                    },
+                    "state_patch": {
+                      "summary": "Product help answered for resources.attack_card."
+                    },
+                    "memory_trace": {
+                      "correction_detected": false,
+                      "memory_item_ids_used": [],
+                      "memory_used_for_response": false,
+                      "correction_target_item_ids": []
+                    },
+                    "response_intent": "benefits",
+                    "recommendation_need": {
+                      "type": "none",
+                      "needed": false,
+                      "urgency": "none",
+                      "constraints": [
+                        "product_help_does_not_execute_operations",
+                        "operation_bridge_requires_confirmation_when_present"
+                      ]
+                    },
+                    "operation_suggestions": [
+                      {
+                        "reason": "product_help_operation_bridge_available",
+                        "urgency": "medium",
+                        "operation_type": "prepare_attack_card",
+                        "confidence_band": "medium",
+                        "source_skill_id": "product_help",
+                        "operation_input_hint": {},
+                        "requires_user_consent": true
+                      }
+                    ]
+                  },
+                  "reason_code": "skill_entry_signal",
+                  "selected_skill_id": "product_help"
+                },
+                "tool_skill_run": null,
+                "recommendation_tool_run": {
+                  "stats": null,
+                  "recommendation": {
+                    "reason": "product_help_operation_bridge_available",
+                    "timing": "now",
+                    "decision": "recommend_operation",
+                    "cta_style": "soft",
+                    "confidence": 0.72,
+                    "surface_id": "attack_card",
+                    "alternatives": [],
+                    "operation_type": "prepare_attack_card",
+                    "operation_input": {},
+                    "do_not_recommend": [],
+                    "executor_tool_id": "prepare_attack_card",
+                    "requires_consent": true,
+                    "recommendation_id": "skill:product_help:prepare_attack_card:a84f324f-b941-4d46-a4b6-f5c6b61f397f",
+                    "user_facing_offer": "Je peux te proposer Carte d'attaque si tu veux passer par le flow propre.",
+                    "presentation_level": 2
+                  }
+                },
+                "confirmation_token_outcomes": [],
+                "memory_write_candidates_emitted": 0,
+                "response_owner": "product_help",
+                "total_latency_ms": 4426,
+                "created_at": "2026-05-21T09:32:19.221665+00:00"
+              },
+              "trace_error": null
+            }
+          }
+        }
+      ],
+      "sent_at": "2026-05-21T09:32:19.259Z",
+      "user_message": "Ok crée-la pour le dossier client.",
+      "expected": {
+        "contentIncludes": [
+          "quelle approche préfères-tu"
+        ]
+      },
+      "observed": {
+        "intent_operations": [
+          "prepare_attack_card"
+        ],
+        "intent_explicitness": [
+          "explicit"
+        ],
+        "opportunity_type": "none",
+        "opportunity_operation": null,
+        "opportunity_should_offer": false,
+        "opportunity_must_not_execute": true,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "blocked_paths": [],
+        "blocked_reason_codes": [],
+        "skill_entry_ids": [
+          "execution_breakdown"
+        ],
+        "skill_lifecycle_ids": [],
+        "skill_exit_ids": [],
+        "confirmation_kind": null,
+        "safety_risk_band": "low",
+        "needs_research": false,
+        "needs_research_query": null,
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "tool_skill_intent_start",
+        "executed_tools": [],
+        "content": "C'est noté pour le dossier client. Pour t'aider à t'y mettre, quelle approche préfères-tu ?\n\n1. Le texte magique (pour arrêter de négocier avec toi-même)\n2. Ancre visuelle (un signal concret dans ton environnement)\n3. Preparer le terrain (pour rendre le démarrage immédiat) 🙂"
+      },
+      "verdict": "pass",
+      "failures": [],
+      "raw": {
+        "http_status": 200,
+        "ok": true,
+        "response": {
+          "ok": true,
+          "request_id": "5069f854-b31c-42fc-a46b-cded09d0b749",
+          "user_id": "f11dc80c-c0b4-4da3-b5a3-7dd09ba87946",
+          "channel": "web",
+          "scope": "dispatcher-conversation-ambiguity-20260521-fixes-r3-product_followup_create_it",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "C'est noté pour le dossier client. Pour t'aider à t'y mettre, quelle approche préfères-tu ?\n\n1. Le texte magique (pour arrêter de négocier avec toi-même)\n2. Ancre visuelle (un signal concret dans ton environnement)\n3. Preparer le terrain (pour rendre le démarrage immédiat) 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "5069f854-b31c-42fc-a46b-cded09d0b749",
+            "user_id": "f11dc80c-c0b4-4da3-b5a3-7dd09ba87946",
+            "source_message_id": "314ff706-f245-4b0d-951b-c599c54d8a0a",
+            "ts": "2026-05-21T09:32:39.467+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [
+                "bounded_context_lowers_risk"
+              ],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8618,
+              "latency_ms": 11207,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 662,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "dossier client",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "dossier client",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "standard",
+                "plan_confidence": 0.7,
+                "response_intent": "inventory",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "medium"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "5069f854-b31c-42fc-a46b-cded09d0b749",
+              "user_id": "f11dc80c-c0b4-4da3-b5a3-7dd09ba87946",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "dossier client",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "dossier client",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "standard",
+                "plan_confidence": 0.7,
+                "response_intent": "inventory",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "medium"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {
+                  "execution_breakdown": {
+                    "reason": "execution_blocked",
+                    "detected": true,
+                    "confidence_band": "high"
+                  }
+                },
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 0,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": "0;decay=0.55;recovery=1.5",
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [],
+                "context_summary": null,
+                "previous_scores": [
+                  0
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "314ff706-f245-4b0d-951b-c599c54d8a0a",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "dossier client",
+                  "user_intent": "create",
+                  "explicitness": "explicit",
+                  "operation_type": "prepare_attack_card",
+                  "confidence_band": "high",
+                  "operation_input": {
+                    "target_action": {
+                      "value": "dossier client",
+                      "status": "identified",
+                      "evidence": [
+                        "crée-la pour le dossier client"
+                      ],
+                      "confidence": "high"
+                    }
+                  }
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "tool_skill_intent_start",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "prepare_attack_card",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "technique",
+                "needed": true,
+                "reason": "structured_ai_missing_technique",
+                "status": "missing",
+                "question": "C'est noté pour le dossier client. Pour t'aider à t'y mettre, quelle approche préfères-tu ?\n\n1. Le texte magique (pour arrêter de négocier avec toi-même)\n2. Ancre visuelle (un signal concret dans ton environnement)\n3. Preparer le terrain (pour rendre le démarrage immédiat)",
+                "known_slots": {
+                  "target": {
+                    "kind": "personal_action",
+                    "title": "dossier client",
+                    "plan_item_id": null
+                  },
+                  "intake_state": {
+                    "target": {
+                      "kind": "personal_action",
+                      "title": "dossier client",
+                      "status": "identified",
+                      "evidence": [
+                        "L'utilisateur mentionne explicitement 'le dossier client' comme cible de la carte."
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": null
+                    },
+                    "blocker": {
+                      "type": "mixed",
+                      "evidence": [],
+                      "confidence": 0.5
+                    },
+                    "skill_id": "prepare_attack_card",
+                    "technique": {
+                      "value": null,
+                      "status": "missing",
+                      "options": [
+                        {
+                          "title": "Le texte magique",
+                          "reason": "Efficace si tu as tendance à repousser le dossier en te trouvant des excuses.",
+                          "example": "Un texte de 3 lignes à relire quand tu commences à négocier.",
+                          "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                          "recommended": true,
+                          "technique_key": "texte_recadrage"
+                        },
+                        {
+                          "title": "Ancre visuelle",
+                          "reason": "Idéal pour créer un signal de départ physique sur ton bureau.",
+                          "example": "Un carnet visible avec une phrase de départ.",
+                          "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                          "recommended": true,
+                          "technique_key": "ancre_visuelle"
+                        },
+                        {
+                          "title": "Preparer le terrain",
+                          "reason": "Parfait pour rendre l'ouverture du dossier immédiate et sans effort.",
+                          "example": "Téléphone loin, dossier ouvert sur la bonne page.",
+                          "description": "Retirer de la friction avant que le moment d'action arrive.",
+                          "recommended": true,
+                          "technique_key": "preparer_terrain"
+                        }
+                      ],
+                      "evidence": [
+                        "La cible est une tâche de travail concrète sujette à la procrastination ou à la friction au démarrage."
+                      ],
+                      "confidence": "medium",
+                      "fit_warning": null,
+                      "explicitly_requested": false
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "technique_selection",
+                    "missing_slots": [
+                      "technique"
+                    ],
+                    "activation_keyword": {
+                      "value": null,
+                      "status": "not_applicable",
+                      "options": [],
+                      "evidence": [],
+                      "confidence": "low",
+                      "rejected_value": null
+                    },
+                    "generated_user_message": "C'est noté pour le dossier client. Pour t'aider à t'y mettre, quelle approche préfères-tu ?\n\n1. Le texte magique (pour arrêter de négocier avec toi-même)\n2. Ancre visuelle (un signal concret dans ton environnement)\n3. Preparer le terrain (pour rendre le démarrage immédiat)"
+                  },
+                  "technique_options": [
+                    {
+                      "title": "Le texte magique",
+                      "reason": "Efficace si tu as tendance à repousser le dossier en te trouvant des excuses.",
+                      "example": "Un texte de 3 lignes à relire quand tu commences à négocier.",
+                      "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                      "recommended": true,
+                      "technique_key": "texte_recadrage"
+                    },
+                    {
+                      "title": "Ancre visuelle",
+                      "reason": "Idéal pour créer un signal de départ physique sur ton bureau.",
+                      "example": "Un carnet visible avec une phrase de départ.",
+                      "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                      "recommended": true,
+                      "technique_key": "ancre_visuelle"
+                    },
+                    {
+                      "title": "Preparer le terrain",
+                      "reason": "Parfait pour rendre l'ouverture du dossier immédiate et sans effort.",
+                      "example": "Téléphone loin, dossier ouvert sur la bonne page.",
+                      "description": "Retirer de la friction avant que le moment d'action arrive.",
+                      "recommended": true,
+                      "technique_key": "preparer_terrain"
+                    }
+                  ]
+                },
+                "technique_options": [
+                  {
+                    "title": "Le texte magique",
+                    "reason": "Efficace si tu as tendance à repousser le dossier en te trouvant des excuses.",
+                    "example": "Un texte de 3 lignes à relire quand tu commences à négocier.",
+                    "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                    "recommended": true,
+                    "technique_key": "texte_recadrage"
+                  },
+                  {
+                    "title": "Ancre visuelle",
+                    "reason": "Idéal pour créer un signal de départ physique sur ton bureau.",
+                    "example": "Un carnet visible avec une phrase de départ.",
+                    "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                    "recommended": true,
+                    "technique_key": "ancre_visuelle"
+                  },
+                  {
+                    "title": "Preparer le terrain",
+                    "reason": "Parfait pour rendre l'ouverture du dossier immédiate et sans effort.",
+                    "example": "Téléphone loin, dossier ouvert sur la bonne page.",
+                    "description": "Retirer de la friction avant que le moment d'action arrive.",
+                    "recommended": true,
+                    "technique_key": "preparer_terrain"
+                  }
+                ],
+                "activation_keyword_options": []
+              },
+              "reason_code": "tool_skill_intent_start",
+              "missing_slots": [
+                "technique"
+              ],
+              "selected_handler": "prepare_attack_card"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 20167,
+            "created_at": "2026-05-21T09:32:39.46943+00:00"
+          },
+          "trace_error": null
+        }
+      }
+    },
+    {
+      "id": "defense_explicit_stable",
+      "kind": "checks",
+      "trap": null,
+      "group": "defense_vs_emotion",
+      "scope": "dispatcher-conversation-ambiguity-20260521-fixes-r3-defense_explicit_stable",
+      "seed_result": null,
+      "pre_results": [],
+      "sent_at": "2026-05-21T09:32:39.482Z",
+      "user_message": "Prépare une carte de défense pour ce soir quand je risque de craquer sur Instagram.",
+      "expected": {
+        "intentIncludes": [
+          "prepare_defense_card"
+        ],
+        "handlerOneOf": [
+          "prepare_defense_card"
+        ]
+      },
+      "observed": {
+        "intent_operations": [],
+        "intent_explicitness": [],
+        "opportunity_type": "none",
+        "opportunity_operation": null,
+        "opportunity_should_offer": false,
+        "opportunity_must_not_execute": true,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "blocked_paths": [],
+        "blocked_reason_codes": [],
+        "skill_entry_ids": [
+          "product_help"
+        ],
+        "skill_lifecycle_ids": [],
+        "skill_exit_ids": [],
+        "confirmation_kind": null,
+        "safety_risk_band": "low",
+        "needs_research": false,
+        "needs_research_query": null,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason": "skill_entry_signal",
+        "executed_tools": [],
+        "content": "C'est une excellente idée de border ça pour ce soir. On va identifier ton piège, ton geste de secours et ton plan B pour que tu gardes le contrôle.\n\nOn peut préparer ça ensemble ici même, et une fois qu'on sera d'accord, tu pourras retrouver ta carte dans tes Ressources sur le dashboard pour la consulter quand le moment viendra.\n\nOn commence par le déclencheur : c'est quoi le signal précis, le moment ou l'émotion, qui te fait basculer sur Instagram d'habitude ? 🛡️"
+      },
+      "verdict": "fail",
+      "failures": [
+        "intentIncludes expected [\"prepare_defense_card\"], got []",
+        "handlerOneOf expected [\"prepare_defense_card\"], got product_help"
+      ],
+      "raw": {
+        "http_status": 200,
+        "ok": true,
+        "response": {
+          "ok": true,
+          "request_id": "1c41f327-a150-4552-bbdd-dfade90b888d",
+          "user_id": "f11dc80c-c0b4-4da3-b5a3-7dd09ba87946",
+          "channel": "web",
+          "scope": "dispatcher-conversation-ambiguity-20260521-fixes-r3-defense_explicit_stable",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "C'est une excellente idée de border ça pour ce soir. On va identifier ton piège, ton geste de secours et ton plan B pour que tu gardes le contrôle.\n\nOn peut préparer ça ensemble ici même, et une fois qu'on sera d'accord, tu pourras retrouver ta carte dans tes Ressources sur le dashboard pour la consulter quand le moment viendra.\n\nOn commence par le déclencheur : c'est quoi le signal précis, le moment ou l'émotion, qui te fait basculer sur Instagram d'habitude ? 🛡️",
+            "mode": "companion",
+            "tool_execution": "none",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "1c41f327-a150-4552-bbdd-dfade90b888d",
+            "user_id": "f11dc80c-c0b4-4da3-b5a3-7dd09ba87946",
+            "source_message_id": "29016fe1-9212-47dc-9d16-61d3a900d9c2",
+            "ts": "2026-05-21T09:32:45.296+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [
+                "ce soir"
+              ],
+              "risk_band": "none",
+              "reason_codes": [
+                "immediacy_tonight"
+              ],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": true,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8472,
+              "latency_ms": 4048,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 628,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "addictions.ecrans",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "Instagram usage patterns",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  },
+                  {
+                    "key": "psychologie.controle_impulsions",
+                    "type": "domain_key",
+                    "priority": "low",
+                    "query_hint": "impulse control evening",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "1c41f327-a150-4552-bbdd-dfade90b888d",
+              "user_id": "f11dc80c-c0b4-4da3-b5a3-7dd09ba87946",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "addictions.ecrans",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "Instagram usage patterns",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  },
+                  {
+                    "key": "psychologie.controle_impulsions",
+                    "type": "domain_key",
+                    "priority": "low",
+                    "query_hint": "impulse control evening",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {
+                  "product_help": {
+                    "reason": "product_question",
+                    "detected": true,
+                    "confidence_band": "high"
+                  }
+                },
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 0,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [],
+                "context_summary": null,
+                "previous_scores": [],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "29016fe1-9212-47dc-9d16-61d3a900d9c2",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "skill_entry_signal",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "memory_use_kind": "none",
+              "selected_handler": "product_help",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": {
+              "output": {
+                "reply": "Carte de defense: Une carte de defense peut etre generee librement depuis Ressources, ou etre liee au plan depuis une mission ou une habitude. Elle se retrouve ensuite dans Ressources, ou elle peut etre consultee et utilisee. Processus: identifier un moment concret, reperer le piege observable, definir mon geste faisable en moins de 30 secondes, puis prevoir un plan B simple.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une mission ou habitude a une carte de defense liee. Tu peux y voir un apercu, retrouver la carte dans Ressources.\n- Dashboard > Ressources: Quand une carte de defense existe, ou quand le user veut creer une carte libre. Tu peux y creer une carte libre, consulter, exporter.\n\nLimites importantes:\n- Ne sert pas a modifier l'action du plan.\n- Ne doit pas etre presentee comme une solution globale.\n\nImportant: une carte de defense peut etre ajustee depuis la plateforme/Ressources quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, on peut aussi en preparer une nouvelle version apres confirmation.\n\nSi tu veux vraiment le faire, ce n'est pas product_help qui execute: il faut passer par le flow prepare_defense_card, avec confirmation.",
+                "status": "complete",
+                "skill_id": "product_help",
+                "diagnosis": {
+                  "locations": [
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources"
+                  ],
+                  "feature_id": "resources.defense_card",
+                  "feature_label": "Carte de defense",
+                  "operation_bridge": {
+                    "trigger_phrases": [
+                      "prepare une carte de defense",
+                      "j'ai besoin d'un plan b",
+                      "aide-moi pour le moment ou je risque de craquer"
+                    ],
+                    "skill_or_operation": "prepare_defense_card",
+                    "requires_confirmation": true
+                  }
+                },
+                "state_patch": {
+                  "summary": "Product help answered for resources.defense_card."
+                },
+                "memory_trace": {
+                  "correction_detected": false,
+                  "memory_item_ids_used": [],
+                  "memory_used_for_response": false,
+                  "correction_target_item_ids": []
+                },
+                "response_intent": "how_to",
+                "recommendation_need": {
+                  "type": "none",
+                  "needed": false,
+                  "urgency": "none",
+                  "constraints": [
+                    "product_help_does_not_execute_operations",
+                    "operation_bridge_requires_confirmation_when_present"
+                  ]
+                },
+                "operation_suggestions": [
+                  {
+                    "reason": "product_help_operation_bridge_available",
+                    "urgency": "medium",
+                    "operation_type": "prepare_defense_card",
+                    "confidence_band": "medium",
+                    "source_skill_id": "product_help",
+                    "operation_input_hint": {},
+                    "requires_user_consent": true
+                  }
+                ]
+              },
+              "reason_code": "skill_entry_signal",
+              "selected_skill_id": "product_help"
+            },
+            "tool_skill_run": null,
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "product_help",
+            "total_latency_ms": 5783,
+            "created_at": "2026-05-21T09:32:45.297248+00:00"
+          },
+          "trace_error": null
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "failed": 1
+  },
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false,
+      "body": {
+        "code": "PGRST205",
+        "details": null,
+        "hint": "Perhaps you meant the table 'public.user_metrics'",
+        "message": "Could not find the table 'public.user_memories' in the schema cache"
+      }
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true,
+      "body": {}
+    }
+  ]
+}

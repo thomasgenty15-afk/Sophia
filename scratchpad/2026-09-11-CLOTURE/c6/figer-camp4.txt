@@ -1,0 +1,10 @@
+── DEMANDE FIGÉE ─────────────────────────────────────────────
+   tir            4 · GAIN · petit appétit · journées entières
+   requête        d6f7ed53-c2c5-4d70-a8e0-9b0d6bf50c5d
+   bouches        1
+     · Max    93dd5343-d020-4002-8d4a-9d555281c840 · 178 cm · 62 kg · male · appétit small · objectif muscle_gain · léger [] · apports []
+   jours          ["sat","sun","mon"]
+   cases attendues 9 ({"93dd5343-d020-4002-8d4a-9d555281c840":9}) · FIGÉE AVANT L'APPEL
+   étapes         premier jet oui · réparations 3 · prompt oui · journal 20 ligne(s)
+
+   écrit : /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-CLOTURE/fixtures/campagne-tir4-c6-2026-09-12T01-54-40-983Z-c0.json

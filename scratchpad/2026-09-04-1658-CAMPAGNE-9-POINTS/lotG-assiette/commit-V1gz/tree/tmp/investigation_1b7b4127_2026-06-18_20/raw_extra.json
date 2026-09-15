@@ -1,0 +1,2367 @@
+{
+  "since": "2026-06-18T00:00:00.000Z",
+  "until": "2026-06-21T00:00:00.000Z",
+  "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+  "counts": {
+    "chat": 21,
+    "requestIds": 12,
+    "traces": 0,
+    "turnSummaries": 8,
+    "errors": 5,
+    "usage": 10,
+    "evalEvents": 0
+  },
+  "requestIds": [
+    "98e8b457-1e4b-424e-84ec-f3d96329515c",
+    "b1af9f06-c014-448a-a0fb-48bcf5042ab2",
+    "5bd9c880-57b2-497c-92ef-96bb7fe67b77",
+    "1b4892a5-a8cd-48cd-a744-10d4f125d516",
+    "1da55a3d-ea94-4462-a65f-f45f6e55a0ec",
+    "ce9bf6bd-eb61-46f0-ae2d-9175add51a29",
+    "5efe7831-6284-4de0-bc1d-3655380ee997",
+    "5f85c61b-68f4-4a0d-af9b-d01d7127140c",
+    "261936f0-7562-4960-b5c6-74ce990fb51e",
+    "6bda16cd-4329-44db-94c8-dacf8a132bd4",
+    "cedc66e5-743a-417b-b6c9-4c010d30a90c",
+    "8b215998-b1b6-4134-8f91-ab89e4b2e4f3"
+  ],
+  "chat": [
+    {
+      "id": "f96a3c79-cd24-4548-a019-246dc96100c3",
+      "created_at": "2026-06-18T18:33:06.306331+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "assistant",
+      "content": "Coucou ! J’espère que ta soirée se passe ok.  \nPour aujourd’hui, comment ça s’est passé avec “Sanctuariser l'agenda du week-end” ?",
+      "agent_used": "companion",
+      "metadata": {
+        "to": "+33660778142",
+        "source": "scheduled_checkin",
+        "channel": "whatsapp",
+        "purpose": "action_evening_review",
+        "request_id": "98e8b457-1e4b-424e-84ec-f3d96329515c",
+        "is_proactive": true,
+        "event_context": "action_evening_review_v2",
+        "plan_item_ids": [
+          "515951e2-d1a3-4b56-8b6a-627f38061f27"
+        ],
+        "occurrence_ids": [
+          "797439ee-32ee-43c3-aac6-21977354c557"
+        ],
+        "require_opted_in": true,
+        "original_checkin_id": "9d499b50-db51-4a8e-876d-702e99109077",
+        "outbound_tracking_id": "e2292b2e-9c2c-44c0-ade0-1d78e5849ef4",
+        "wa_outbound_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBIzQjc2RDJBNzgyNzFGNzY0QjEA",
+        "already_resolved_occurrence_ids": []
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "25fcf326-cfb6-4fb7-9e69-9d85e7880a9b",
+      "created_at": "2026-06-18T20:55:54.303841+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "user",
+      "content": "Oui!",
+      "agent_used": null,
+      "metadata": {
+        "channel": "whatsapp",
+        "wa_from": "+33660778142",
+        "wa_type": "button",
+        "request_id": "b1af9f06-c014-448a-a0fb-48bcf5042ab2",
+        "wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQTdCQzNEMEJEQTAxRjVCNTdFMQA=",
+        "wa_profile_name": "Manon Herve-Bazin",
+        "wa_interactive_id": "Oui!",
+        "webhook_request_id": "b491e207-e4ae-48f9-a868-47ab6560c7a8",
+        "wa_interactive_title": "Oui!",
+        "daily_action_review_v1": {
+          "stop_reason": "all_required_slots_filled",
+          "skill_status": "complete",
+          "occurrence_ids": [
+            "797439ee-32ee-43c3-aac6-21977354c557"
+          ],
+          "pending_action_id": "c26d1d29-df43-4021-a579-722d396d9ea8",
+          "scheduled_checkin_id": "9d499b50-db51-4a8e-876d-702e99109077",
+          "structured_extraction_id": "c26d1d29-df43-4021-a579-722d396d9ea8",
+          "structured_extraction_status": "complete"
+        },
+        "structured_extraction_id": "c26d1d29-df43-4021-a579-722d396d9ea8",
+        "structured_extraction_source": "daily_action_review_v1"
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "775c194d-53a9-4370-b773-e84710f8cd67",
+      "created_at": "2026-06-18T20:56:13.799116+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "assistant",
+      "content": "C'est noté, l'action est marquée comme terminée. On continue ?",
+      "agent_used": "companion",
+      "metadata": {
+        "source": "daily_action_review",
+        "channel": "whatsapp",
+        "purpose": "action_evening_review",
+        "is_proactive": false,
+        "event_context": "action_evening_review_v2",
+        "outbound_tracking_id": "eec0923e-e13c-40bb-9dc2-107751863d88",
+        "wa_outbound_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI0Qjc0MzE2RDkxRUJDMURGMUQA"
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "694e3503-1766-44ae-a0a2-ae4d53464812",
+      "created_at": "2026-06-18T21:44:04.683283+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "metadata": {
+        "channel": "whatsapp",
+        "wa_from": "+33660778142",
+        "wa_type": "text",
+        "request_id": "5bd9c880-57b2-497c-92ef-96bb7fe67b77",
+        "wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQUVBNTFDQTQ0NTFGQjlEMzBBNQA=",
+        "wa_profile_name": "Manon Herve-Bazin",
+        "wa_interactive_id": null,
+        "webhook_request_id": "854eb875-c854-481e-8108-3bb288265692",
+        "wa_interactive_title": null
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "8606ebf8-cf4b-405d-811d-75a09b7cae69",
+      "created_at": "2026-06-18T21:44:14.864079+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "assistant",
+      "content": "Parfait. C’est noté ✅🙂 On continue ?",
+      "agent_used": "companion",
+      "metadata": {
+        "trace": {
+          "turn_frame": {
+            "direct_effects": [],
+            "flow_opportunity": null,
+            "tool_skill_intents": [],
+            "normal_reply_fit_score": null
+          },
+          "effect_ledger": {
+            "counts": {
+              "asked": 0,
+              "failed": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "proposed": 0,
+              "resolved": 0,
+              "cancelled": 0,
+              "committed": 0,
+              "delivered": 0,
+              "requested": 0,
+              "superseded": 0,
+              "topic_change": 0
+            },
+            "entries": [],
+            "turn_id": "5bd9c880-57b2-497c-92ef-96bb7fe67b77"
+          },
+          "route_decision": {
+            "reason_code": "normal_reply_default",
+            "blocked_paths": [],
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "direct_effects_to_run": []
+          },
+          "tool_skill_run": null
+        },
+        "channel": "whatsapp",
+        "purpose": "whatsapp_default_brain_reply",
+        "reason_code": "normal_reply_default",
+        "is_proactive": false,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "has_hidden_fil_rouge": false,
+        "outbound_tracking_id": "5b270065-8f65-43e7-b272-2d055ac5b863",
+        "reply_to_wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQUVBNTFDQTQ0NTFGQjlEMzBBNQA=",
+        "wa_outbound_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI5NUJCOEFGQ0UwQjRBOEE2NUYA"
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "5e67a053-0f3d-4953-b42e-35217c0f6b94",
+      "created_at": "2026-06-18T21:44:44.17814+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "metadata": {
+        "channel": "whatsapp",
+        "wa_from": "+33660778142",
+        "wa_type": "text",
+        "request_id": "1b4892a5-a8cd-48cd-a744-10d4f125d516",
+        "wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQUY1MDU5RUIwM0QzRDUzMDE0RgA=",
+        "wa_profile_name": "Manon Herve-Bazin",
+        "wa_interactive_id": null,
+        "webhook_request_id": "48651644-8362-49fd-89d6-5509b3bcacb1",
+        "wa_interactive_title": null
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "25576db8-2456-4867-b054-0e9e86257700",
+      "created_at": "2026-06-18T21:44:51.475837+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "assistant",
+      "content": "Parfait, c’est noté ✅🙂 On continue ?",
+      "agent_used": "companion",
+      "metadata": {
+        "trace": {
+          "turn_frame": {
+            "direct_effects": [],
+            "flow_opportunity": null,
+            "tool_skill_intents": [],
+            "normal_reply_fit_score": null
+          },
+          "effect_ledger": {
+            "counts": {
+              "asked": 0,
+              "failed": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "proposed": 0,
+              "resolved": 0,
+              "cancelled": 0,
+              "committed": 0,
+              "delivered": 0,
+              "requested": 0,
+              "superseded": 0,
+              "topic_change": 0
+            },
+            "entries": [],
+            "turn_id": "1b4892a5-a8cd-48cd-a744-10d4f125d516"
+          },
+          "route_decision": {
+            "reason_code": "normal_reply_default",
+            "blocked_paths": [],
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "direct_effects_to_run": []
+          },
+          "tool_skill_run": null
+        },
+        "channel": "whatsapp",
+        "purpose": "whatsapp_default_brain_reply",
+        "reason_code": "normal_reply_default",
+        "is_proactive": false,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "has_hidden_fil_rouge": false,
+        "outbound_tracking_id": "7a0faec1-9a6e-45a5-91ad-50cc47b6713b",
+        "reply_to_wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQUY1MDU5RUIwM0QzRDUzMDE0RgA=",
+        "wa_outbound_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI3NjZFQUYxNDAyMkNGQTVBRkMA"
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "9c0467d4-e731-4933-91d0-79c15c2e45cb",
+      "created_at": "2026-06-18T21:50:10.827861+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "metadata": {
+        "channel": "whatsapp",
+        "wa_from": "+33660778142",
+        "wa_type": "text",
+        "request_id": "1da55a3d-ea94-4462-a65f-f45f6e55a0ec",
+        "wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQUY2RUQxRDA1RDk2QTcyQUQ0RQA=",
+        "wa_profile_name": "Manon Herve-Bazin",
+        "wa_interactive_id": null,
+        "webhook_request_id": "598b23b8-bc64-4edc-898c-55563ef928b0",
+        "wa_interactive_title": null
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "67d9399c-521b-48a9-a61f-323c1be4d234",
+      "created_at": "2026-06-18T21:50:18.987769+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "assistant",
+      "content": "Parfait, c’est noté ✅🙂 On continue ?",
+      "agent_used": "companion",
+      "metadata": {
+        "trace": {
+          "turn_frame": {
+            "direct_effects": [],
+            "flow_opportunity": null,
+            "tool_skill_intents": [],
+            "normal_reply_fit_score": null
+          },
+          "effect_ledger": {
+            "counts": {
+              "asked": 0,
+              "failed": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "proposed": 0,
+              "resolved": 0,
+              "cancelled": 0,
+              "committed": 0,
+              "delivered": 0,
+              "requested": 0,
+              "superseded": 0,
+              "topic_change": 0
+            },
+            "entries": [],
+            "turn_id": "1da55a3d-ea94-4462-a65f-f45f6e55a0ec"
+          },
+          "route_decision": {
+            "reason_code": "normal_reply_default",
+            "blocked_paths": [],
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "direct_effects_to_run": []
+          },
+          "tool_skill_run": null
+        },
+        "channel": "whatsapp",
+        "purpose": "whatsapp_default_brain_reply",
+        "reason_code": "normal_reply_default",
+        "is_proactive": false,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "has_hidden_fil_rouge": false,
+        "outbound_tracking_id": "f56f4e6c-3ef7-4014-98e6-33bf5416dbd7",
+        "reply_to_wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQUY2RUQxRDA1RDk2QTcyQUQ0RQA=",
+        "wa_outbound_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBJBQTkyQ0Q4RDIzNzEyRTI0RTkA"
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "9cc5b717-fe8b-40b2-8b4f-0f16cdbdf5d9",
+      "created_at": "2026-06-18T21:51:42.669422+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "user",
+      "content": "t’es en boucle",
+      "agent_used": null,
+      "metadata": {
+        "channel": "whatsapp",
+        "wa_from": "+33660778142",
+        "wa_type": "text",
+        "request_id": "ce9bf6bd-eb61-46f0-ae2d-9175add51a29",
+        "wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQUMwMDJERjJCN0I5ODdCNjA0MQA=",
+        "wa_profile_name": "Manon Herve-Bazin",
+        "wa_interactive_id": null,
+        "webhook_request_id": "75c60f28-b6c6-4e39-b28c-a9066fd53fc3",
+        "wa_interactive_title": null
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "9fa09ff1-359e-4e90-8917-ecadb6a8c688",
+      "created_at": "2026-06-18T21:51:54.73958+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "assistant",
+      "content": "Non, je pense pas 😅 Je suis juste en train de répondre à ton fil. Là, je suis calée sur le même contexte que tout à l’heure : plan S1 validé automatiquement pour “Studio mobile”.",
+      "agent_used": "companion",
+      "metadata": {
+        "trace": {
+          "turn_frame": {
+            "direct_effects": [],
+            "flow_opportunity": null,
+            "tool_skill_intents": [],
+            "normal_reply_fit_score": null
+          },
+          "effect_ledger": {
+            "counts": {
+              "asked": 0,
+              "failed": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "proposed": 0,
+              "resolved": 0,
+              "cancelled": 0,
+              "committed": 0,
+              "delivered": 0,
+              "requested": 0,
+              "superseded": 0,
+              "topic_change": 0
+            },
+            "entries": [],
+            "turn_id": "ce9bf6bd-eb61-46f0-ae2d-9175add51a29"
+          },
+          "route_decision": {
+            "reason_code": "normal_reply_default",
+            "blocked_paths": [],
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "direct_effects_to_run": []
+          },
+          "tool_skill_run": null
+        },
+        "channel": "whatsapp",
+        "purpose": "whatsapp_default_brain_reply",
+        "reason_code": "normal_reply_default",
+        "is_proactive": false,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "has_hidden_fil_rouge": false,
+        "outbound_tracking_id": "5c9cf01a-83e6-4edb-8400-6ae2be5a37ab",
+        "reply_to_wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQUMwMDJERjJCN0I5ODdCNjA0MQA=",
+        "wa_outbound_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBIwQTI1RjUxQjkzOEZEOUY1ODYA"
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "9b80b383-3ca5-4c5a-9286-b9887c8123ec",
+      "created_at": "2026-06-18T21:54:11.559995+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "user",
+      "content": "OK",
+      "agent_used": null,
+      "metadata": {
+        "channel": "whatsapp",
+        "wa_from": "+33660778142",
+        "wa_type": "text",
+        "request_id": "5efe7831-6284-4de0-bc1d-3655380ee997",
+        "wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQTNBQzZCMjQ3NzJDRThGMEMyQwA=",
+        "wa_profile_name": "Manon Herve-Bazin",
+        "wa_interactive_id": null,
+        "webhook_request_id": "e0e2fe8e-b29d-4542-90c9-37596c1f0d6b",
+        "wa_interactive_title": null
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "d1685e33-ff3f-4be4-ba96-9e4fdb86bbdc",
+      "created_at": "2026-06-18T21:54:20.894943+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "assistant",
+      "content": "Parfait 🙂 Maintenant on continue sur le même fil, tranquillement.",
+      "agent_used": "companion",
+      "metadata": {
+        "trace": {
+          "turn_frame": {
+            "direct_effects": [],
+            "flow_opportunity": null,
+            "tool_skill_intents": [],
+            "normal_reply_fit_score": null
+          },
+          "effect_ledger": {
+            "counts": {
+              "asked": 0,
+              "failed": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "proposed": 0,
+              "resolved": 0,
+              "cancelled": 0,
+              "committed": 0,
+              "delivered": 0,
+              "requested": 0,
+              "superseded": 0,
+              "topic_change": 0
+            },
+            "entries": [],
+            "turn_id": "5efe7831-6284-4de0-bc1d-3655380ee997"
+          },
+          "route_decision": {
+            "reason_code": "normal_reply_default",
+            "blocked_paths": [],
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "direct_effects_to_run": []
+          },
+          "tool_skill_run": null
+        },
+        "channel": "whatsapp",
+        "purpose": "whatsapp_default_brain_reply",
+        "reason_code": "normal_reply_default",
+        "is_proactive": false,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "has_hidden_fil_rouge": false,
+        "outbound_tracking_id": "9c647c12-9033-4fcb-9309-45531a89a6cb",
+        "reply_to_wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQTNBQzZCMjQ3NzJDRThGMEMyQwA=",
+        "wa_outbound_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI2QjAzNzNFODZGQzU5QkQ3REYA"
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "246a607b-8590-496e-a53f-8df1a100ff8c",
+      "created_at": "2026-06-18T21:54:52.013052+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "user",
+      "content": "OK",
+      "agent_used": null,
+      "metadata": {
+        "channel": "whatsapp",
+        "wa_from": "+33660778142",
+        "wa_type": "text",
+        "request_id": "5f85c61b-68f4-4a0d-af9b-d01d7127140c",
+        "wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQTE3QTI1MTdBQzNERjcyNzk3OQA=",
+        "wa_profile_name": "Manon Herve-Bazin",
+        "wa_interactive_id": null,
+        "webhook_request_id": "f9ae4c6b-a731-483b-a0eb-b02649c7a057",
+        "wa_interactive_title": null
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "4fb4cf8d-bd04-4796-b98a-368e26db14e2",
+      "created_at": "2026-06-18T21:54:59.174434+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "assistant",
+      "content": "Parfait 🙂 Maintenant on continue sur le même fil, tranquillement. J’te suis, on avance.",
+      "agent_used": "companion",
+      "metadata": {
+        "trace": {
+          "turn_frame": {
+            "direct_effects": [],
+            "flow_opportunity": null,
+            "tool_skill_intents": [],
+            "normal_reply_fit_score": null
+          },
+          "effect_ledger": {
+            "counts": {
+              "asked": 0,
+              "failed": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "proposed": 0,
+              "resolved": 0,
+              "cancelled": 0,
+              "committed": 0,
+              "delivered": 0,
+              "requested": 0,
+              "superseded": 0,
+              "topic_change": 0
+            },
+            "entries": [],
+            "turn_id": "5f85c61b-68f4-4a0d-af9b-d01d7127140c"
+          },
+          "route_decision": {
+            "reason_code": "normal_reply_default",
+            "blocked_paths": [],
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "direct_effects_to_run": []
+          },
+          "tool_skill_run": null
+        },
+        "channel": "whatsapp",
+        "purpose": "whatsapp_default_brain_reply",
+        "reason_code": "normal_reply_default",
+        "is_proactive": false,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "has_hidden_fil_rouge": false,
+        "outbound_tracking_id": "13e51c79-9fe3-4fb4-a55b-3bff1a6b0ed4",
+        "reply_to_wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQTE3QTI1MTdBQzNERjcyNzk3OQA=",
+        "wa_outbound_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBJBOEVCNTAwNDBGNTlBRTNEM0UA"
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "f5a3b8f3-7df0-417c-877b-33102eab976b",
+      "created_at": "2026-06-18T21:57:38.018383+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "user",
+      "content": "Go",
+      "agent_used": null,
+      "metadata": {
+        "channel": "whatsapp",
+        "wa_from": "+33660778142",
+        "wa_type": "text",
+        "request_id": "261936f0-7562-4960-b5c6-74ce990fb51e",
+        "wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQUUyNkY3QjQ0QjhDODM5MDA5NAA=",
+        "wa_profile_name": "Manon Herve-Bazin",
+        "wa_interactive_id": null,
+        "webhook_request_id": "2cd86d27-9e8f-477f-95d0-d1beda1a373e",
+        "wa_interactive_title": null
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "7dbedb97-1e10-4c07-b10a-feb90bf37d80",
+      "created_at": "2026-06-18T21:57:45.435487+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "assistant",
+      "content": "Parfait 🙂 On continue sur le même fil, tranquillement. J’te suis, on avance… 💪",
+      "agent_used": "companion",
+      "metadata": {
+        "trace": {
+          "turn_frame": {
+            "direct_effects": [],
+            "flow_opportunity": null,
+            "tool_skill_intents": [],
+            "normal_reply_fit_score": null
+          },
+          "effect_ledger": {
+            "counts": {
+              "asked": 0,
+              "failed": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "proposed": 0,
+              "resolved": 0,
+              "cancelled": 0,
+              "committed": 0,
+              "delivered": 0,
+              "requested": 0,
+              "superseded": 0,
+              "topic_change": 0
+            },
+            "entries": [],
+            "turn_id": "261936f0-7562-4960-b5c6-74ce990fb51e"
+          },
+          "route_decision": {
+            "reason_code": "normal_reply_default",
+            "blocked_paths": [],
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "direct_effects_to_run": []
+          },
+          "tool_skill_run": null
+        },
+        "channel": "whatsapp",
+        "purpose": "whatsapp_default_brain_reply",
+        "reason_code": "normal_reply_default",
+        "is_proactive": false,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "has_hidden_fil_rouge": false,
+        "outbound_tracking_id": "d0c11a20-b3c5-4f2b-b4e9-1fb11398f9b5",
+        "reply_to_wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQUUyNkY3QjQ0QjhDODM5MDA5NAA=",
+        "wa_outbound_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBJFRkY2MEVGOEE4MENFN0ZDQ0YA"
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "92d4f082-92dd-47d5-8e80-6ed48bceb6d2",
+      "created_at": "2026-06-19T16:00:34.876674+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "assistant",
+      "content": "Hello! Je repense à l’action “Studio mobile” que t’avais prévue.  \nComment ça s’est passé pour toi au final ?",
+      "agent_used": "companion",
+      "metadata": {
+        "to": "+33660778142",
+        "source": "scheduled_checkin",
+        "channel": "whatsapp",
+        "purpose": "scheduled_checkin",
+        "request_id": "6bda16cd-4329-44db-94c8-dacf8a132bd4",
+        "checkin_kind": "action_morning_followup",
+        "is_proactive": true,
+        "event_context": "action_morning_followup_v2",
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "original_checkin_id": "e35ae166-e289-4021-9191-51c4cd4fc6a1",
+        "outbound_tracking_id": "901e21c6-3bf2-4c9c-942c-170a14ae136b",
+        "recurring_reminder_id": null,
+        "wa_outbound_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI5NkMyQjBEMjg2MzdFNEQwNjcA",
+        "scheduled_checkin_origin": "action_followup"
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "d0fda0b3-e4f7-4cc0-97fc-8c4248ba3098",
+      "created_at": "2026-06-19T16:02:53.360413+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "user",
+      "content": "Bien",
+      "agent_used": null,
+      "metadata": {
+        "channel": "whatsapp",
+        "wa_from": "+33660778142",
+        "wa_type": "text",
+        "request_id": "cedc66e5-743a-417b-b6c9-4c010d30a90c",
+        "wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQTQxRUZBRTcxMDIxQzI3RjRBQwA=",
+        "wa_profile_name": "Manon Herve-Bazin",
+        "wa_interactive_id": null,
+        "webhook_request_id": "a027e218-8685-4968-995c-1832e8af8443",
+        "wa_interactive_title": null
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "8c375892-4efb-4983-a1cd-a142f0aee801",
+      "created_at": "2026-06-19T16:03:02.599565+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "assistant",
+      "content": "Bien, j’aime bien le “bien” quand ça veut dire “ça s’est fait sans drame” 😄  \nStudio mobile, du coup : c’était plutôt facile, moyen, ou dur à caser ?",
+      "agent_used": "companion",
+      "metadata": {
+        "trace": {
+          "turn_frame": {
+            "direct_effects": [],
+            "flow_opportunity": null,
+            "tool_skill_intents": [],
+            "normal_reply_fit_score": null
+          },
+          "effect_ledger": {
+            "counts": {
+              "asked": 0,
+              "failed": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "proposed": 0,
+              "resolved": 0,
+              "cancelled": 0,
+              "committed": 0,
+              "delivered": 0,
+              "requested": 0,
+              "superseded": 0,
+              "topic_change": 0
+            },
+            "entries": [],
+            "turn_id": "cedc66e5-743a-417b-b6c9-4c010d30a90c"
+          },
+          "route_decision": {
+            "reason_code": "normal_reply_default",
+            "blocked_paths": [],
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "direct_effects_to_run": []
+          },
+          "tool_skill_run": null
+        },
+        "channel": "whatsapp",
+        "purpose": "whatsapp_default_brain_reply",
+        "reason_code": "normal_reply_default",
+        "is_proactive": false,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "has_hidden_fil_rouge": false,
+        "outbound_tracking_id": "f68674f7-4159-4588-bf03-8744d864151c",
+        "reply_to_wa_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgASGBQzQTQxRUZBRTcxMDIxQzI3RjRBQwA=",
+        "wa_outbound_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI4NUEwMEYwODhGMTkyMzI2MzMA"
+      },
+      "scope": "whatsapp"
+    },
+    {
+      "id": "3e57010c-b0fb-4a19-b6be-3667d0d47670",
+      "created_at": "2026-06-20T07:57:11.885721+00:00",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "role": "assistant",
+      "content": "Coucou ! J’espère que ta matinée commence bien.  \nJe pense à toi et je t’envoie un peu de douceur pour la journée.  \nTu te sens comment là, maintenant ?",
+      "agent_used": "companion",
+      "metadata": {
+        "to": "+33660778142",
+        "source": "scheduled_checkin",
+        "channel": "whatsapp",
+        "purpose": "scheduled_checkin",
+        "request_id": "8b215998-b1b6-4134-8f91-ab89e4b2e4f3",
+        "checkin_kind": "morning_light_greeting",
+        "is_proactive": true,
+        "event_context": "morning_light_greeting_v2",
+        "morning_nudge_v2": null,
+        "require_opted_in": true,
+        "original_checkin_id": "687a1373-ced7-4f1a-9e90-1a75129fabdc",
+        "outbound_tracking_id": "548595c4-9805-400e-934f-62e9677eed47",
+        "recurring_reminder_id": null,
+        "wa_outbound_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI4MkYyMUZEOTc0RDFFNkNFMkQA",
+        "scheduled_checkin_origin": "action_morning"
+      },
+      "scope": "whatsapp"
+    }
+  ],
+  "conversation_turn_traces": [],
+  "turn_summary_logs": [
+    {
+      "id": 80,
+      "created_at": "2026-06-18T21:44:14.08103+00:00",
+      "request_id": "5bd9c880-57b2-497c-92ef-96bb7fe67b77",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "channel": "whatsapp",
+      "scope": "whatsapp",
+      "latency_total_ms": 8301,
+      "latency_dispatcher_ms": 2808,
+      "latency_context_ms": 554,
+      "latency_agent_ms": 3093,
+      "dispatcher_model": "gemini-2.0-flash",
+      "dispatcher_safety": "NONE",
+      "dispatcher_intent": null,
+      "dispatcher_intent_conf": null,
+      "dispatcher_interrupt": "NONE",
+      "dispatcher_topic_depth": null,
+      "dispatcher_flow_resolution": null,
+      "context_profile": "companion",
+      "context_elements": [
+        "temporal",
+        "facts",
+        "durable_effects_summary",
+        "plan_item_indicators",
+        "short_term",
+        "recent_turns",
+        "injected_context",
+        "dashboard_capabilities_lite_addon",
+        "memory_v2_active_payload"
+      ],
+      "context_tokens": 2781,
+      "target_dispatcher": "companion",
+      "target_initial": "companion",
+      "target_final": "companion",
+      "risk_score": 0,
+      "agent_model": "gpt-5.4-nano",
+      "agent_outcome": "text",
+      "agent_tool": null,
+      "checkup_active": false,
+      "toolflow_active": false,
+      "supervisor_stack_top": "",
+      "aborted": false,
+      "abort_reason": null,
+      "payload": {
+        "ts": "2026-06-18T21:44:14.019Z",
+        "tag": "turn_summary",
+        "agent": {
+          "tool": null,
+          "model": "gpt-5.4-nano",
+          "outcome": "text",
+          "model_tier": "lite",
+          "model_source": "memory_plan_lite",
+          "effective_mode": "companion"
+        },
+        "scope": "whatsapp",
+        "channel": "whatsapp",
+        "context": {
+          "tokens": 2781,
+          "profile": "companion",
+          "elements": [
+            "temporal",
+            "facts",
+            "durable_effects_summary",
+            "plan_item_indicators",
+            "short_term",
+            "recent_turns",
+            "injected_context",
+            "dashboard_capabilities_lite_addon",
+            "memory_v2_active_payload"
+          ]
+        },
+        "details": {
+          "source": "sophia-brain/router/normal_reply_persistence_pipeline.ts",
+          "channel": "whatsapp",
+          "momentum": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-06-18T21:44:13.551Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-06-14T12:41:48.159Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "tool_ack": {
+            "status": "none",
+            "version": 1,
+            "attempted": false,
+            "tool_name": null,
+            "executed_tools": [],
+            "success_confirmed": false,
+            "user_safe_message": null,
+            "allow_success_claim": false
+          },
+          "outage_error": null,
+          "executed_tools": [],
+          "tool_execution": "none",
+          "outage_fallback": false,
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "outage_failed_mode": null,
+          "selected_surface_id": null,
+          "selected_surface_level": null,
+          "recommendation_tool_run": null,
+          "coaching_intervention_pending": null
+        },
+        "routing": {
+          "risk_score": 0,
+          "target_final": "companion",
+          "target_initial": "companion",
+          "target_dispatcher": "companion"
+        },
+        "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+        "research": {
+          "error": null,
+          "query": null,
+          "executed": false,
+          "has_text": false,
+          "requested": false,
+          "confidence": 0,
+          "domain_hint": null,
+          "sources_count": 0,
+          "snippets_count": 0
+        },
+        "dispatcher": {
+          "model": "gemini-2.0-flash",
+          "signals": {
+            "safety": "NONE",
+            "interrupt": "NONE"
+          }
+        },
+        "latency_ms": {
+          "agent": 3093,
+          "total": 8301,
+          "context": 554,
+          "dispatcher": 2808
+        },
+        "request_id": "5bd9c880-57b2-497c-92ef-96bb7fe67b77",
+        "state_flags": {
+          "checkup_active": false,
+          "toolflow_active": false,
+          "supervisor_stack_top": ""
+        }
+      }
+    },
+    {
+      "id": 81,
+      "created_at": "2026-06-18T21:44:50.839666+00:00",
+      "request_id": "1b4892a5-a8cd-48cd-a744-10d4f125d516",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "channel": "whatsapp",
+      "scope": "whatsapp",
+      "latency_total_ms": 5777,
+      "latency_dispatcher_ms": 1952,
+      "latency_context_ms": 415,
+      "latency_agent_ms": 1746,
+      "dispatcher_model": "gemini-2.0-flash",
+      "dispatcher_safety": "NONE",
+      "dispatcher_intent": null,
+      "dispatcher_intent_conf": null,
+      "dispatcher_interrupt": "NONE",
+      "dispatcher_topic_depth": null,
+      "dispatcher_flow_resolution": null,
+      "context_profile": "companion",
+      "context_elements": [
+        "temporal",
+        "facts",
+        "durable_effects_summary",
+        "plan_item_indicators",
+        "short_term",
+        "recent_turns",
+        "injected_context",
+        "dashboard_capabilities_lite_addon",
+        "memory_v2_active_payload"
+      ],
+      "context_tokens": 2787,
+      "target_dispatcher": "companion",
+      "target_initial": "companion",
+      "target_final": "companion",
+      "risk_score": 0,
+      "agent_model": "gpt-5.4-nano",
+      "agent_outcome": "text",
+      "agent_tool": null,
+      "checkup_active": false,
+      "toolflow_active": false,
+      "supervisor_stack_top": "",
+      "aborted": false,
+      "abort_reason": null,
+      "payload": {
+        "ts": "2026-06-18T21:44:50.781Z",
+        "tag": "turn_summary",
+        "agent": {
+          "tool": null,
+          "model": "gpt-5.4-nano",
+          "outcome": "text",
+          "model_tier": "lite",
+          "model_source": "memory_plan_lite",
+          "effective_mode": "companion"
+        },
+        "scope": "whatsapp",
+        "channel": "whatsapp",
+        "context": {
+          "tokens": 2787,
+          "profile": "companion",
+          "elements": [
+            "temporal",
+            "facts",
+            "durable_effects_summary",
+            "plan_item_indicators",
+            "short_term",
+            "recent_turns",
+            "injected_context",
+            "dashboard_capabilities_lite_addon",
+            "memory_v2_active_payload"
+          ]
+        },
+        "details": {
+          "source": "sophia-brain/router/normal_reply_persistence_pipeline.ts",
+          "channel": "whatsapp",
+          "momentum": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-06-18T21:44:50.323Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-06-14T12:41:48.159Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "tool_ack": {
+            "status": "none",
+            "version": 1,
+            "attempted": false,
+            "tool_name": null,
+            "executed_tools": [],
+            "success_confirmed": false,
+            "user_safe_message": null,
+            "allow_success_claim": false
+          },
+          "outage_error": null,
+          "executed_tools": [],
+          "tool_execution": "none",
+          "outage_fallback": false,
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "outage_failed_mode": null,
+          "selected_surface_id": null,
+          "selected_surface_level": null,
+          "recommendation_tool_run": null,
+          "coaching_intervention_pending": null
+        },
+        "routing": {
+          "risk_score": 0,
+          "target_final": "companion",
+          "target_initial": "companion",
+          "target_dispatcher": "companion"
+        },
+        "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+        "research": {
+          "error": null,
+          "query": null,
+          "executed": false,
+          "has_text": false,
+          "requested": false,
+          "confidence": 0,
+          "domain_hint": null,
+          "sources_count": 0,
+          "snippets_count": 0
+        },
+        "dispatcher": {
+          "model": "gemini-2.0-flash",
+          "signals": {
+            "safety": "NONE",
+            "interrupt": "NONE"
+          }
+        },
+        "latency_ms": {
+          "agent": 1746,
+          "total": 5777,
+          "context": 415,
+          "dispatcher": 1952
+        },
+        "request_id": "1b4892a5-a8cd-48cd-a744-10d4f125d516",
+        "state_flags": {
+          "checkup_active": false,
+          "toolflow_active": false,
+          "supervisor_stack_top": ""
+        }
+      }
+    },
+    {
+      "id": 82,
+      "created_at": "2026-06-18T21:50:18.312806+00:00",
+      "request_id": "1da55a3d-ea94-4462-a65f-f45f6e55a0ec",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "channel": "whatsapp",
+      "scope": "whatsapp",
+      "latency_total_ms": 6502,
+      "latency_dispatcher_ms": 2281,
+      "latency_context_ms": 549,
+      "latency_agent_ms": 1909,
+      "dispatcher_model": "gemini-2.0-flash",
+      "dispatcher_safety": "NONE",
+      "dispatcher_intent": null,
+      "dispatcher_intent_conf": null,
+      "dispatcher_interrupt": "NONE",
+      "dispatcher_topic_depth": null,
+      "dispatcher_flow_resolution": null,
+      "context_profile": "companion",
+      "context_elements": [
+        "temporal",
+        "facts",
+        "durable_effects_summary",
+        "plan_item_indicators",
+        "short_term",
+        "recent_turns",
+        "injected_context",
+        "dashboard_capabilities_lite_addon",
+        "memory_v2_active_payload"
+      ],
+      "context_tokens": 2693,
+      "target_dispatcher": "companion",
+      "target_initial": "companion",
+      "target_final": "companion",
+      "risk_score": 0,
+      "agent_model": "gpt-5.4-nano",
+      "agent_outcome": "text",
+      "agent_tool": null,
+      "checkup_active": false,
+      "toolflow_active": false,
+      "supervisor_stack_top": "",
+      "aborted": false,
+      "abort_reason": null,
+      "payload": {
+        "ts": "2026-06-18T21:50:18.248Z",
+        "tag": "turn_summary",
+        "agent": {
+          "tool": null,
+          "model": "gpt-5.4-nano",
+          "outcome": "text",
+          "model_tier": "lite",
+          "model_source": "memory_plan_lite",
+          "effective_mode": "companion"
+        },
+        "scope": "whatsapp",
+        "channel": "whatsapp",
+        "context": {
+          "tokens": 2693,
+          "profile": "companion",
+          "elements": [
+            "temporal",
+            "facts",
+            "durable_effects_summary",
+            "plan_item_indicators",
+            "short_term",
+            "recent_turns",
+            "injected_context",
+            "dashboard_capabilities_lite_addon",
+            "memory_v2_active_payload"
+          ]
+        },
+        "details": {
+          "source": "sophia-brain/router/normal_reply_persistence_pipeline.ts",
+          "channel": "whatsapp",
+          "momentum": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-06-18T21:50:17.799Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-06-14T12:41:48.159Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "tool_ack": {
+            "status": "none",
+            "version": 1,
+            "attempted": false,
+            "tool_name": null,
+            "executed_tools": [],
+            "success_confirmed": false,
+            "user_safe_message": null,
+            "allow_success_claim": false
+          },
+          "outage_error": null,
+          "executed_tools": [],
+          "tool_execution": "none",
+          "outage_fallback": false,
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "outage_failed_mode": null,
+          "selected_surface_id": null,
+          "selected_surface_level": null,
+          "recommendation_tool_run": null,
+          "coaching_intervention_pending": null
+        },
+        "routing": {
+          "risk_score": 0,
+          "target_final": "companion",
+          "target_initial": "companion",
+          "target_dispatcher": "companion"
+        },
+        "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+        "research": {
+          "error": null,
+          "query": null,
+          "executed": false,
+          "has_text": false,
+          "requested": false,
+          "confidence": 0,
+          "domain_hint": null,
+          "sources_count": 0,
+          "snippets_count": 0
+        },
+        "dispatcher": {
+          "model": "gemini-2.0-flash",
+          "signals": {
+            "safety": "NONE",
+            "interrupt": "NONE"
+          }
+        },
+        "latency_ms": {
+          "agent": 1909,
+          "total": 6502,
+          "context": 549,
+          "dispatcher": 2281
+        },
+        "request_id": "1da55a3d-ea94-4462-a65f-f45f6e55a0ec",
+        "state_flags": {
+          "checkup_active": false,
+          "toolflow_active": false,
+          "supervisor_stack_top": ""
+        }
+      }
+    },
+    {
+      "id": 83,
+      "created_at": "2026-06-18T21:51:53.901143+00:00",
+      "request_id": "ce9bf6bd-eb61-46f0-ae2d-9175add51a29",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "channel": "whatsapp",
+      "scope": "whatsapp",
+      "latency_total_ms": 10001,
+      "latency_dispatcher_ms": 3327,
+      "latency_context_ms": 877,
+      "latency_agent_ms": 3176,
+      "dispatcher_model": "gemini-2.0-flash",
+      "dispatcher_safety": "NONE",
+      "dispatcher_intent": null,
+      "dispatcher_intent_conf": null,
+      "dispatcher_interrupt": "NONE",
+      "dispatcher_topic_depth": null,
+      "dispatcher_flow_resolution": null,
+      "context_profile": "companion",
+      "context_elements": [
+        "temporal",
+        "durable_effects_summary",
+        "facts",
+        "plan_item_indicators",
+        "short_term",
+        "recent_turns",
+        "injected_context",
+        "dashboard_capabilities_lite_addon",
+        "memory_v2_active_payload"
+      ],
+      "context_tokens": 2644,
+      "target_dispatcher": "companion",
+      "target_initial": "companion",
+      "target_final": "companion",
+      "risk_score": 0,
+      "agent_model": "gpt-5.4-nano",
+      "agent_outcome": "text",
+      "agent_tool": null,
+      "checkup_active": false,
+      "toolflow_active": false,
+      "supervisor_stack_top": "",
+      "aborted": false,
+      "abort_reason": null,
+      "payload": {
+        "ts": "2026-06-18T21:51:53.809Z",
+        "tag": "turn_summary",
+        "agent": {
+          "tool": null,
+          "model": "gpt-5.4-nano",
+          "outcome": "text",
+          "model_tier": "lite",
+          "model_source": "memory_plan_lite",
+          "effective_mode": "companion"
+        },
+        "scope": "whatsapp",
+        "channel": "whatsapp",
+        "context": {
+          "tokens": 2644,
+          "profile": "companion",
+          "elements": [
+            "temporal",
+            "durable_effects_summary",
+            "facts",
+            "plan_item_indicators",
+            "short_term",
+            "recent_turns",
+            "injected_context",
+            "dashboard_capabilities_lite_addon",
+            "memory_v2_active_payload"
+          ]
+        },
+        "details": {
+          "source": "sophia-brain/router/normal_reply_persistence_pipeline.ts",
+          "channel": "whatsapp",
+          "momentum": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-06-18T21:51:53.097Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-06-14T12:41:48.159Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "tool_ack": {
+            "status": "none",
+            "version": 1,
+            "attempted": false,
+            "tool_name": null,
+            "executed_tools": [],
+            "success_confirmed": false,
+            "user_safe_message": null,
+            "allow_success_claim": false
+          },
+          "outage_error": null,
+          "executed_tools": [],
+          "tool_execution": "none",
+          "outage_fallback": false,
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "outage_failed_mode": null,
+          "selected_surface_id": null,
+          "selected_surface_level": null,
+          "recommendation_tool_run": null,
+          "coaching_intervention_pending": null
+        },
+        "routing": {
+          "risk_score": 0,
+          "target_final": "companion",
+          "target_initial": "companion",
+          "target_dispatcher": "companion"
+        },
+        "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+        "research": {
+          "error": null,
+          "query": null,
+          "executed": false,
+          "has_text": false,
+          "requested": false,
+          "confidence": 0,
+          "domain_hint": null,
+          "sources_count": 0,
+          "snippets_count": 0
+        },
+        "dispatcher": {
+          "model": "gemini-2.0-flash",
+          "signals": {
+            "safety": "NONE",
+            "interrupt": "NONE"
+          }
+        },
+        "latency_ms": {
+          "agent": 3176,
+          "total": 10001,
+          "context": 877,
+          "dispatcher": 3327
+        },
+        "request_id": "ce9bf6bd-eb61-46f0-ae2d-9175add51a29",
+        "state_flags": {
+          "checkup_active": false,
+          "toolflow_active": false,
+          "supervisor_stack_top": ""
+        }
+      }
+    },
+    {
+      "id": 84,
+      "created_at": "2026-06-18T21:54:20.213845+00:00",
+      "request_id": "5efe7831-6284-4de0-bc1d-3655380ee997",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "channel": "whatsapp",
+      "scope": "whatsapp",
+      "latency_total_ms": 7442,
+      "latency_dispatcher_ms": 2068,
+      "latency_context_ms": 548,
+      "latency_agent_ms": 3073,
+      "dispatcher_model": "gemini-2.0-flash",
+      "dispatcher_safety": "NONE",
+      "dispatcher_intent": null,
+      "dispatcher_intent_conf": null,
+      "dispatcher_interrupt": "NONE",
+      "dispatcher_topic_depth": null,
+      "dispatcher_flow_resolution": null,
+      "context_profile": "companion",
+      "context_elements": [
+        "temporal",
+        "facts",
+        "durable_effects_summary",
+        "plan_item_indicators",
+        "short_term",
+        "recent_turns",
+        "injected_context",
+        "dashboard_capabilities_lite_addon",
+        "memory_v2_active_payload"
+      ],
+      "context_tokens": 2661,
+      "target_dispatcher": "companion",
+      "target_initial": "companion",
+      "target_final": "companion",
+      "risk_score": 0,
+      "agent_model": "gpt-5.4-nano",
+      "agent_outcome": "text",
+      "agent_tool": null,
+      "checkup_active": false,
+      "toolflow_active": false,
+      "supervisor_stack_top": "",
+      "aborted": false,
+      "abort_reason": null,
+      "payload": {
+        "ts": "2026-06-18T21:54:20.151Z",
+        "tag": "turn_summary",
+        "agent": {
+          "tool": null,
+          "model": "gpt-5.4-nano",
+          "outcome": "text",
+          "model_tier": "lite",
+          "model_source": "memory_plan_lite",
+          "effective_mode": "companion"
+        },
+        "scope": "whatsapp",
+        "channel": "whatsapp",
+        "context": {
+          "tokens": 2661,
+          "profile": "companion",
+          "elements": [
+            "temporal",
+            "facts",
+            "durable_effects_summary",
+            "plan_item_indicators",
+            "short_term",
+            "recent_turns",
+            "injected_context",
+            "dashboard_capabilities_lite_addon",
+            "memory_v2_active_payload"
+          ]
+        },
+        "details": {
+          "source": "sophia-brain/router/normal_reply_persistence_pipeline.ts",
+          "channel": "whatsapp",
+          "momentum": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-06-18T21:54:19.686Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-06-14T12:41:48.159Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "tool_ack": {
+            "status": "none",
+            "version": 1,
+            "attempted": false,
+            "tool_name": null,
+            "executed_tools": [],
+            "success_confirmed": false,
+            "user_safe_message": null,
+            "allow_success_claim": false
+          },
+          "outage_error": null,
+          "executed_tools": [],
+          "tool_execution": "none",
+          "outage_fallback": false,
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "outage_failed_mode": null,
+          "selected_surface_id": null,
+          "selected_surface_level": null,
+          "recommendation_tool_run": null,
+          "coaching_intervention_pending": null
+        },
+        "routing": {
+          "risk_score": 0,
+          "target_final": "companion",
+          "target_initial": "companion",
+          "target_dispatcher": "companion"
+        },
+        "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+        "research": {
+          "error": null,
+          "query": null,
+          "executed": false,
+          "has_text": false,
+          "requested": false,
+          "confidence": 0,
+          "domain_hint": null,
+          "sources_count": 0,
+          "snippets_count": 0
+        },
+        "dispatcher": {
+          "model": "gemini-2.0-flash",
+          "signals": {
+            "safety": "NONE",
+            "interrupt": "NONE"
+          }
+        },
+        "latency_ms": {
+          "agent": 3073,
+          "total": 7442,
+          "context": 548,
+          "dispatcher": 2068
+        },
+        "request_id": "5efe7831-6284-4de0-bc1d-3655380ee997",
+        "state_flags": {
+          "checkup_active": false,
+          "toolflow_active": false,
+          "supervisor_stack_top": ""
+        }
+      }
+    },
+    {
+      "id": 85,
+      "created_at": "2026-06-18T21:54:58.441175+00:00",
+      "request_id": "5f85c61b-68f4-4a0d-af9b-d01d7127140c",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "channel": "whatsapp",
+      "scope": "whatsapp",
+      "latency_total_ms": 5639,
+      "latency_dispatcher_ms": 1912,
+      "latency_context_ms": 522,
+      "latency_agent_ms": 1492,
+      "dispatcher_model": "gemini-2.0-flash",
+      "dispatcher_safety": "NONE",
+      "dispatcher_intent": null,
+      "dispatcher_intent_conf": null,
+      "dispatcher_interrupt": "NONE",
+      "dispatcher_topic_depth": null,
+      "dispatcher_flow_resolution": null,
+      "context_profile": "companion",
+      "context_elements": [
+        "temporal",
+        "facts",
+        "durable_effects_summary",
+        "plan_item_indicators",
+        "short_term",
+        "recent_turns",
+        "injected_context",
+        "dashboard_capabilities_lite_addon",
+        "memory_v2_active_payload"
+      ],
+      "context_tokens": 2590,
+      "target_dispatcher": "companion",
+      "target_initial": "companion",
+      "target_final": "companion",
+      "risk_score": 0,
+      "agent_model": "gpt-5.4-nano",
+      "agent_outcome": "text",
+      "agent_tool": null,
+      "checkup_active": false,
+      "toolflow_active": false,
+      "supervisor_stack_top": "",
+      "aborted": false,
+      "abort_reason": null,
+      "payload": {
+        "ts": "2026-06-18T21:54:58.377Z",
+        "tag": "turn_summary",
+        "agent": {
+          "tool": null,
+          "model": "gpt-5.4-nano",
+          "outcome": "text",
+          "model_tier": "lite",
+          "model_source": "memory_plan_lite",
+          "effective_mode": "companion"
+        },
+        "scope": "whatsapp",
+        "channel": "whatsapp",
+        "context": {
+          "tokens": 2590,
+          "profile": "companion",
+          "elements": [
+            "temporal",
+            "facts",
+            "durable_effects_summary",
+            "plan_item_indicators",
+            "short_term",
+            "recent_turns",
+            "injected_context",
+            "dashboard_capabilities_lite_addon",
+            "memory_v2_active_payload"
+          ]
+        },
+        "details": {
+          "source": "sophia-brain/router/normal_reply_persistence_pipeline.ts",
+          "channel": "whatsapp",
+          "momentum": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-06-18T21:54:57.898Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-06-14T12:41:48.159Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "tool_ack": {
+            "status": "none",
+            "version": 1,
+            "attempted": false,
+            "tool_name": null,
+            "executed_tools": [],
+            "success_confirmed": false,
+            "user_safe_message": null,
+            "allow_success_claim": false
+          },
+          "outage_error": null,
+          "executed_tools": [],
+          "tool_execution": "none",
+          "outage_fallback": false,
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "outage_failed_mode": null,
+          "selected_surface_id": null,
+          "selected_surface_level": null,
+          "recommendation_tool_run": null,
+          "coaching_intervention_pending": null
+        },
+        "routing": {
+          "risk_score": 0,
+          "target_final": "companion",
+          "target_initial": "companion",
+          "target_dispatcher": "companion"
+        },
+        "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+        "research": {
+          "error": null,
+          "query": null,
+          "executed": false,
+          "has_text": false,
+          "requested": false,
+          "confidence": 0,
+          "domain_hint": null,
+          "sources_count": 0,
+          "snippets_count": 0
+        },
+        "dispatcher": {
+          "model": "gemini-2.0-flash",
+          "signals": {
+            "safety": "NONE",
+            "interrupt": "NONE"
+          }
+        },
+        "latency_ms": {
+          "agent": 1492,
+          "total": 5639,
+          "context": 522,
+          "dispatcher": 1912
+        },
+        "request_id": "5f85c61b-68f4-4a0d-af9b-d01d7127140c",
+        "state_flags": {
+          "checkup_active": false,
+          "toolflow_active": false,
+          "supervisor_stack_top": ""
+        }
+      }
+    },
+    {
+      "id": 86,
+      "created_at": "2026-06-18T21:57:44.684399+00:00",
+      "request_id": "261936f0-7562-4960-b5c6-74ce990fb51e",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "channel": "whatsapp",
+      "scope": "whatsapp",
+      "latency_total_ms": 5841,
+      "latency_dispatcher_ms": 2049,
+      "latency_context_ms": 427,
+      "latency_agent_ms": 1566,
+      "dispatcher_model": "gemini-2.0-flash",
+      "dispatcher_safety": "NONE",
+      "dispatcher_intent": null,
+      "dispatcher_intent_conf": null,
+      "dispatcher_interrupt": "NONE",
+      "dispatcher_topic_depth": null,
+      "dispatcher_flow_resolution": null,
+      "context_profile": "companion",
+      "context_elements": [
+        "temporal",
+        "durable_effects_summary",
+        "facts",
+        "plan_item_indicators",
+        "short_term",
+        "recent_turns",
+        "injected_context",
+        "dashboard_capabilities_lite_addon",
+        "memory_v2_active_payload"
+      ],
+      "context_tokens": 2550,
+      "target_dispatcher": "companion",
+      "target_initial": "companion",
+      "target_final": "companion",
+      "risk_score": 0,
+      "agent_model": "gpt-5.4-nano",
+      "agent_outcome": "text",
+      "agent_tool": null,
+      "checkup_active": false,
+      "toolflow_active": false,
+      "supervisor_stack_top": "",
+      "aborted": false,
+      "abort_reason": null,
+      "payload": {
+        "ts": "2026-06-18T21:57:44.617Z",
+        "tag": "turn_summary",
+        "agent": {
+          "tool": null,
+          "model": "gpt-5.4-nano",
+          "outcome": "text",
+          "model_tier": "lite",
+          "model_source": "memory_plan_lite",
+          "effective_mode": "companion"
+        },
+        "scope": "whatsapp",
+        "channel": "whatsapp",
+        "context": {
+          "tokens": 2550,
+          "profile": "companion",
+          "elements": [
+            "temporal",
+            "durable_effects_summary",
+            "facts",
+            "plan_item_indicators",
+            "short_term",
+            "recent_turns",
+            "injected_context",
+            "dashboard_capabilities_lite_addon",
+            "memory_v2_active_payload"
+          ]
+        },
+        "details": {
+          "source": "sophia-brain/router/normal_reply_persistence_pipeline.ts",
+          "channel": "whatsapp",
+          "momentum": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-06-18T21:57:44.128Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-06-14T12:41:48.159Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "tool_ack": {
+            "status": "none",
+            "version": 1,
+            "attempted": false,
+            "tool_name": null,
+            "executed_tools": [],
+            "success_confirmed": false,
+            "user_safe_message": null,
+            "allow_success_claim": false
+          },
+          "outage_error": null,
+          "executed_tools": [],
+          "tool_execution": "none",
+          "outage_fallback": false,
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "outage_failed_mode": null,
+          "selected_surface_id": null,
+          "selected_surface_level": null,
+          "recommendation_tool_run": null,
+          "coaching_intervention_pending": null
+        },
+        "routing": {
+          "risk_score": 0,
+          "target_final": "companion",
+          "target_initial": "companion",
+          "target_dispatcher": "companion"
+        },
+        "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+        "research": {
+          "error": null,
+          "query": null,
+          "executed": false,
+          "has_text": false,
+          "requested": false,
+          "confidence": 0,
+          "domain_hint": null,
+          "sources_count": 0,
+          "snippets_count": 0
+        },
+        "dispatcher": {
+          "model": "gemini-2.0-flash",
+          "signals": {
+            "safety": "NONE",
+            "interrupt": "NONE"
+          }
+        },
+        "latency_ms": {
+          "agent": 1566,
+          "total": 5841,
+          "context": 427,
+          "dispatcher": 2049
+        },
+        "request_id": "261936f0-7562-4960-b5c6-74ce990fb51e",
+        "state_flags": {
+          "checkup_active": false,
+          "toolflow_active": false,
+          "supervisor_stack_top": ""
+        }
+      }
+    },
+    {
+      "id": 88,
+      "created_at": "2026-06-19T16:03:01.845108+00:00",
+      "request_id": "cedc66e5-743a-417b-b6c9-4c010d30a90c",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "channel": "whatsapp",
+      "scope": "whatsapp",
+      "latency_total_ms": 7573,
+      "latency_dispatcher_ms": 2090,
+      "latency_context_ms": 523,
+      "latency_agent_ms": 3199,
+      "dispatcher_model": "gemini-2.0-flash",
+      "dispatcher_safety": "NONE",
+      "dispatcher_intent": null,
+      "dispatcher_intent_conf": null,
+      "dispatcher_interrupt": "NONE",
+      "dispatcher_topic_depth": null,
+      "dispatcher_flow_resolution": null,
+      "context_profile": "companion",
+      "context_elements": [
+        "temporal",
+        "facts",
+        "durable_effects_summary",
+        "plan_item_indicators",
+        "short_term",
+        "recent_turns",
+        "injected_context",
+        "dashboard_capabilities_lite_addon",
+        "memory_v2_active_payload"
+      ],
+      "context_tokens": 2583,
+      "target_dispatcher": "companion",
+      "target_initial": "companion",
+      "target_final": "companion",
+      "risk_score": 0,
+      "agent_model": "gpt-5.4-nano",
+      "agent_outcome": "text",
+      "agent_tool": null,
+      "checkup_active": false,
+      "toolflow_active": false,
+      "supervisor_stack_top": "",
+      "aborted": false,
+      "abort_reason": null,
+      "payload": {
+        "ts": "2026-06-19T16:03:01.785Z",
+        "tag": "turn_summary",
+        "agent": {
+          "tool": null,
+          "model": "gpt-5.4-nano",
+          "outcome": "text",
+          "model_tier": "lite",
+          "model_source": "memory_plan_lite",
+          "effective_mode": "companion"
+        },
+        "scope": "whatsapp",
+        "channel": "whatsapp",
+        "context": {
+          "tokens": 2583,
+          "profile": "companion",
+          "elements": [
+            "temporal",
+            "facts",
+            "durable_effects_summary",
+            "plan_item_indicators",
+            "short_term",
+            "recent_turns",
+            "injected_context",
+            "dashboard_capabilities_lite_addon",
+            "memory_v2_active_payload"
+          ]
+        },
+        "details": {
+          "source": "sophia-brain/router/normal_reply_persistence_pipeline.ts",
+          "channel": "whatsapp",
+          "momentum": {
+            "state": "friction_legere",
+            "consent": "open",
+            "engagement": "medium",
+            "updated_at": "2026-06-19T16:03:01.346Z",
+            "progression": "unknown",
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "emotional_load": "low",
+            "stable_since_at": "2026-06-14T12:41:48.159Z",
+            "top_blocker_stage": null,
+            "top_blocker_action": null,
+            "top_blocker_category": null,
+            "active_blockers_count": 0,
+            "chronic_blockers_count": 0,
+            "pending_transition_target": null,
+            "pending_transition_confirmations": null
+          },
+          "tool_ack": {
+            "status": "none",
+            "version": 1,
+            "attempted": false,
+            "tool_name": null,
+            "executed_tools": [],
+            "success_confirmed": false,
+            "user_safe_message": null,
+            "allow_success_claim": false
+          },
+          "outage_error": null,
+          "executed_tools": [],
+          "tool_execution": "none",
+          "outage_fallback": false,
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "outage_failed_mode": null,
+          "selected_surface_id": null,
+          "selected_surface_level": null,
+          "recommendation_tool_run": null,
+          "coaching_intervention_pending": null
+        },
+        "routing": {
+          "risk_score": 0,
+          "target_final": "companion",
+          "target_initial": "companion",
+          "target_dispatcher": "companion"
+        },
+        "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+        "research": {
+          "error": null,
+          "query": null,
+          "executed": false,
+          "has_text": false,
+          "requested": false,
+          "confidence": 0,
+          "domain_hint": null,
+          "sources_count": 0,
+          "snippets_count": 0
+        },
+        "dispatcher": {
+          "model": "gemini-2.0-flash",
+          "signals": {
+            "safety": "NONE",
+            "interrupt": "NONE"
+          }
+        },
+        "latency_ms": {
+          "agent": 3199,
+          "total": 7573,
+          "context": 523,
+          "dispatcher": 2090
+        },
+        "request_id": "cedc66e5-743a-417b-b6c9-4c010d30a90c",
+        "state_flags": {
+          "checkup_active": false,
+          "toolflow_active": false,
+          "supervisor_stack_top": ""
+        }
+      }
+    }
+  ],
+  "system_error_logs": [
+    {
+      "id": "c226a41c-8013-42ff-847b-b45e645d8291",
+      "created_at": "2026-06-18T07:12:07.041833+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"4cbf9cc5-9f2b-46c8-a7a3-2f051b57ff78\"}",
+      "stack": null,
+      "request_id": "536f082d-da07-4567-96fd-4dbf26212910",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "e35ae166-e289-4021-9191-51c4cd4fc6a1",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "4cbf9cc5-9f2b-46c8-a7a3-2f051b57ff78",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "4cbf9cc5-9f2b-46c8-a7a3-2f051b57ff78"
+      }
+    },
+    {
+      "id": "362f141e-4fcd-451a-8807-bd0cf0ad5775",
+      "created_at": "2026-06-18T07:18:06.264173+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"0afc35af-3fdd-4358-b4a0-b25c4d35f5fd\"}",
+      "stack": null,
+      "request_id": "72168244-4986-4c10-9a19-ddfc792583fd",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "e35ae166-e289-4021-9191-51c4cd4fc6a1",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "0afc35af-3fdd-4358-b4a0-b25c4d35f5fd",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "0afc35af-3fdd-4358-b4a0-b25c4d35f5fd"
+      }
+    },
+    {
+      "id": "788b564f-7dc8-4596-80fa-346f56b9ea68",
+      "created_at": "2026-06-18T07:51:06.741079+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"0eb2826a-52a6-4cdd-9181-4499234fac41\"}",
+      "stack": null,
+      "request_id": "1790fb9d-01ef-4801-8450-49f36078df6c",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "e35ae166-e289-4021-9191-51c4cd4fc6a1",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "0eb2826a-52a6-4cdd-9181-4499234fac41",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "0eb2826a-52a6-4cdd-9181-4499234fac41"
+      }
+    },
+    {
+      "id": "5bd6489c-15f3-4296-9be2-2b1c3854cfc5",
+      "created_at": "2026-06-18T09:54:07.469148+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"49f7d177-22b1-4df4-8156-34edb6d52dbe\"}",
+      "stack": null,
+      "request_id": "71c98398-ad06-4910-850b-488d93836f5f",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "e35ae166-e289-4021-9191-51c4cd4fc6a1",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "49f7d177-22b1-4df4-8156-34edb6d52dbe",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "49f7d177-22b1-4df4-8156-34edb6d52dbe"
+      }
+    },
+    {
+      "id": "2792ca0f-1173-43c2-a2dc-e4cce424ff4c",
+      "created_at": "2026-06-18T15:57:13.403149+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"472d8f8e-f528-4b15-ac57-de3c748a46f7\"}",
+      "stack": null,
+      "request_id": "579a9edb-aa1d-427d-8ed7-ab625f8877bb",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "e35ae166-e289-4021-9191-51c4cd4fc6a1",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "472d8f8e-f528-4b15-ac57-de3c748a46f7",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "472d8f8e-f528-4b15-ac57-de3c748a46f7"
+      }
+    }
+  ],
+  "llm_usage_events": [
+    {
+      "created_at": "2026-06-18T20:56:04.950582+00:00",
+      "request_id": "b1af9f06-c014-448a-a0fb-48bcf5042ab2",
+      "source": "daily_action_review.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "kind": "generate",
+      "operation_family": "dispatcher",
+      "operation_name": "daily_action_review.local_dispatcher",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 9786,
+      "prompt_tokens": 6236,
+      "output_tokens": 882,
+      "total_tokens": 8353,
+      "cost_usd": 0.005764,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-18T20:56:12.97707+00:00",
+      "request_id": "b1af9f06-c014-448a-a0fb-48bcf5042ab2",
+      "source": "daily_action_review.visible.commit_success",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "kind": "generate",
+      "operation_family": "message_generation",
+      "operation_name": "daily_action_review.visible.commit_success",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 5164,
+      "prompt_tokens": 419,
+      "output_tokens": 17,
+      "total_tokens": 1346,
+      "cost_usd": 0.0002605,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": false,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-18T21:44:12.993078+00:00",
+      "request_id": "5bd9c880-57b2-497c-92ef-96bb7fe67b77",
+      "source": "sophia-brain:companion",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "kind": "generate",
+      "operation_family": "message_generation",
+      "operation_name": "sophia-brain:companion",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 2618,
+      "prompt_tokens": 4834,
+      "output_tokens": 60,
+      "total_tokens": 4894,
+      "cost_usd": 0,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": false,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-18T21:44:49.819045+00:00",
+      "request_id": "1b4892a5-a8cd-48cd-a744-10d4f125d516",
+      "source": "sophia-brain:companion",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "kind": "generate",
+      "operation_family": "message_generation",
+      "operation_name": "sophia-brain:companion",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 1328,
+      "prompt_tokens": 4832,
+      "output_tokens": 55,
+      "total_tokens": 4887,
+      "cost_usd": 0,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": false,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-18T21:50:17.232502+00:00",
+      "request_id": "1da55a3d-ea94-4462-a65f-f45f6e55a0ec",
+      "source": "sophia-brain:companion",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "kind": "generate",
+      "operation_family": "message_generation",
+      "operation_name": "sophia-brain:companion",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 1331,
+      "prompt_tokens": 4832,
+      "output_tokens": 55,
+      "total_tokens": 4887,
+      "cost_usd": 0,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": false,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-18T21:51:52.326706+00:00",
+      "request_id": "ce9bf6bd-eb61-46f0-ae2d-9175add51a29",
+      "source": "sophia-brain:companion",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "kind": "generate",
+      "operation_family": "message_generation",
+      "operation_name": "sophia-brain:companion",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 2491,
+      "prompt_tokens": 4835,
+      "output_tokens": 86,
+      "total_tokens": 4921,
+      "cost_usd": 0,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": false,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-18T21:54:19.151614+00:00",
+      "request_id": "5efe7831-6284-4de0-bc1d-3655380ee997",
+      "source": "sophia-brain:companion",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "kind": "generate",
+      "operation_family": "message_generation",
+      "operation_name": "sophia-brain:companion",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 2618,
+      "prompt_tokens": 4831,
+      "output_tokens": 56,
+      "total_tokens": 4887,
+      "cost_usd": 0,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": false,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-18T21:54:57.41394+00:00",
+      "request_id": "5f85c61b-68f4-4a0d-af9b-d01d7127140c",
+      "source": "sophia-brain:companion",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "kind": "generate",
+      "operation_family": "message_generation",
+      "operation_name": "sophia-brain:companion",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 1044,
+      "prompt_tokens": 4830,
+      "output_tokens": 58,
+      "total_tokens": 4888,
+      "cost_usd": 0,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": false,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-18T21:57:43.586084+00:00",
+      "request_id": "261936f0-7562-4960-b5c6-74ce990fb51e",
+      "source": "sophia-brain:companion",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "kind": "generate",
+      "operation_family": "message_generation",
+      "operation_name": "sophia-brain:companion",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 1059,
+      "prompt_tokens": 4832,
+      "output_tokens": 57,
+      "total_tokens": 4889,
+      "cost_usd": 0,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": false,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-19T16:03:00.781542+00:00",
+      "request_id": "cedc66e5-743a-417b-b6c9-4c010d30a90c",
+      "source": "sophia-brain:companion",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "kind": "generate",
+      "operation_family": "message_generation",
+      "operation_name": "sophia-brain:companion",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 2778,
+      "prompt_tokens": 4829,
+      "output_tokens": 95,
+      "total_tokens": 4924,
+      "cost_usd": 0,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": false,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    }
+  ],
+  "conversation_eval_events": []
+}

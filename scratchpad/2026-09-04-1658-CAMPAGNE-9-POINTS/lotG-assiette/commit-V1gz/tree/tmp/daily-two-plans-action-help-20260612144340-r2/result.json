@@ -1,0 +1,23 @@
+{
+  "cleanup": {
+    "cleanupLog": [
+      {
+        "table": "scheduled_checkins",
+        "id": "8363fc9a-540b-4756-945b-eafdd7fc0f0f",
+        "restored": true
+      },
+      {
+        "table": "scheduled_checkins",
+        "id": "666976c4-762d-4014-8eb0-c00a6b75f951",
+        "restored": true
+      }
+    ],
+    "verification": {
+      "qaCheckin": [],
+      "qaPending": [],
+      "qaEntries": [],
+      "qaPlans": [],
+      "qaMessages": []
+    }
+  }
+}

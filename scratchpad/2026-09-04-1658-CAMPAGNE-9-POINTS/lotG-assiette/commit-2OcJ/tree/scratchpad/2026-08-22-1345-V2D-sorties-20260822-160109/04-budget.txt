@@ -1,0 +1,7 @@
+       unite       |               source               |    model     | appels | tokens | mediane_ms | max_ms 
+-------------------+------------------------------------+--------------+--------+--------+------------+--------
+ GÉNÉRATION        | generate-meal-v1                   | gpt-5.6-luna |      1 |  19086 |      90087 |  90087
+ relance / secours | generate-meal-v1.composition_fill  | gpt-5.4-nano |      1 |    479 |       1344 |   1344
+ relance / secours | generate-meal-v1.composition_retry | gpt-5.6-luna |      1 |  17684 |      74949 |  74949
+(3 rows)
+

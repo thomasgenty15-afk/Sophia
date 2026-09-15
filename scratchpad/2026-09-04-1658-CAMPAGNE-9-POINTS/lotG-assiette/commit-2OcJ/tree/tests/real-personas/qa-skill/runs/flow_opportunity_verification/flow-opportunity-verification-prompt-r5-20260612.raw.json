@@ -1,0 +1,1969 @@
+{
+  "run_id": "flow-opportunity-verification-prompt-r5-20260612",
+  "persona": "qa-skill",
+  "connection_name": "flow-opportunity-verification_flow-opportunity-verification-prompt-r5-20260612",
+  "connection_file": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/connections/flow-opportunity-verification_flow-opportunity-verification-prompt-r5-20260612.json",
+  "user_id": "4a410043-9d17-4b0b-bced-7a3c6070abb2",
+  "email": "qa-qa-skill-flow-opportunity-verification-flow-opportunity-verification-prompt-r5-20260612@example.com",
+  "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+  "started_at": "2026-06-12T13:35:17.191Z",
+  "constraints": {
+    "endpoint": "/functions/v1/test-send-message",
+    "force_full_ai": true,
+    "local_supabase_only": true,
+    "no_code_changes_during_run": true
+  },
+  "supabase_services_note": "supabase status reported some stopped ancillary services before the run; API/auth/functions/db were reachable.",
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-flow-opportunity-verification-prompt-r5-20260612-t01",
+      "sent_at": "2026-06-12T13:35:17.191Z",
+      "user_message": "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?",
+      "http_status": 200,
+      "assistant_message": "J'ai vérifié l'état de ton dossier pour ce soir.\n\nFait : Tes préférences sont paramétrées sur un ton bienveillant avec un focus sur la discipline.\nPrévu : Aucun rappel, aucune carte ni aucune session n'est programmé pour ce soir.\nFragile : Ton dossier ne contient actuellement aucun élément actif.",
+      "short_trace": {
+        "response_owner": "tool_skill",
+        "selected_handler": "status_recap",
+        "selected_action": "answer_status",
+        "target_flow": null,
+        "reason_code": "status_recap_local_answer_status",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "state_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "user_id": "4a410043-9d17-4b0b-bced-7a3c6070abb2",
+            "current_mode": "companion",
+            "risk_level": 2,
+            "investigation_state": null,
+            "short_term_context": "",
+            "last_interaction_at": "2026-06-12T13:35:48.287+00:00",
+            "updated_at": "2026-06-12T13:35:48.288859+00:00",
+            "unprocessed_msg_count": 1,
+            "last_processed_at": "2026-06-12T13:35:17.279+00:00",
+            "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+            "temp_memory": {
+              "__conversation_risk_last": {
+                "at": "2026-06-12T13:35:29.817Z",
+                "score": 0,
+                "threshold": 8,
+                "reason_codes": [],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "__conversation_risk_history": [
+                0
+              ],
+              "__status_recap_flow_state_v1": {
+                "mode": "local_readonly_flow",
+                "status": "active",
+                "skill_id": "status_recap",
+                "max_turns": 3,
+                "created_at": "2026-06-12T13:35:40.289Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-12T13:35:40.289Z",
+                "last_intent": "durable_status",
+                "last_answer_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+                "last_target_objects": [
+                  "attack_card",
+                  "defense_card",
+                  "one_shot_reminder",
+                  "recurring_reminder",
+                  "potion",
+                  "plan_item"
+                ],
+                "last_projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 9,
+                  "one_shot_pending_count": 0,
+                  "recurring_reminder_count": 0,
+                  "recent_effect_history_count": 0,
+                  "one_shot_cancelled_recent_count": 0
+                }
+              },
+              "__coaching_intervention_history": []
+            }
+          }
+        ]
+      },
+      "messages_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "id": "cb508730-b185-414c-b4e3-b1095f25546c",
+            "role": "user",
+            "content": "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?",
+            "created_at": "2026-06-12T13:35:17.25948+00:00",
+            "metadata": {
+              "request_id": "qa-flow-opportunity-verification-prompt-r5-20260612-t01",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "08727d4a-c8b3-4a9f-98dd-9af179aac0cf",
+            "role": "assistant",
+            "content": "J'ai vérifié l'état de ton dossier pour ce soir.\n\nFait : Tes préférences sont paramétrées sur un ton bienveillant avec un focus sur la discipline.\nPrévu : Aucun rappel, aucune carte ni aucune session n'est programmé pour ce soir.\nFragile : Ton dossier ne contient actuellement aucun élément actif.",
+            "created_at": "2026-06-12T13:35:48.29342+00:00",
+            "metadata": {
+              "channel": "web",
+              "request_id": "qa-flow-opportunity-verification-prompt-r5-20260612-t01",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message",
+              "router_decision_v2": {
+                "next_mode": "companion",
+                "risk_score": 2,
+                "target_mode": "companion",
+                "safety_level": "NONE",
+                "tool_skill_runtime": {
+                  "intent": "durable_status",
+                  "status": "answered",
+                  "evidence": [
+                    "vérifier ce qui est déjà prêt",
+                    "prévu pour mon dossier ce soir"
+                  ],
+                  "flow_action": "answer_status",
+                  "reason_code": "status_recap_local_answer_status",
+                  "visible_task": {
+                    "kind": "status_compact",
+                    "conversation_context": {
+                      "kind": "status_recap_conversation_context",
+                      "stage": "status_compact",
+                      "format": "compact",
+                      "user_words": [
+                        "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?"
+                      ],
+                      "constraints": {
+                        "read_only": true,
+                        "no_chat_mutation": true,
+                        "no_product_how_to": true,
+                        "no_tool_execution": true,
+                        "no_claim_without_filtered_fact": true,
+                        "micro_memory_raw_available_to_visible_agent": false
+                      },
+                      "handoff_data": {
+                        "inbound_note_summary": "User wants to verify what is already 'ready' or 'planned' regarding 'mon dossier ce soir'. Provide a factual status of active plan items, cards, or reminders related to this context.",
+                        "inbound_handoff_reason": "explicit_user_request",
+                        "inbound_source_flow_id": "global_dispatcher"
+                      },
+                      "filtered_facts": {
+                        "attack_cards": [],
+                        "defense_cards": [],
+                        "potion_sessions": [],
+                        "coach_preferences": [
+                          {
+                            "key": "coach.tone",
+                            "value": {
+                              "label": "Bienveillant ferme",
+                              "value": "warm_direct"
+                            },
+                            "reason": "Default coach preferences (v4 canonical)",
+                            "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                            "source_type": "system_default"
+                          },
+                          {
+                            "key": "coach.challenge_level",
+                            "value": {
+                              "label": "Équilibré",
+                              "value": "balanced"
+                            },
+                            "reason": "Default coach preferences (v4 canonical)",
+                            "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                            "source_type": "system_default"
+                          },
+                          {
+                            "key": "coach.feedback_style",
+                            "value": {
+                              "label": "Positif puis amélioration",
+                              "value": "positive_then_fix"
+                            },
+                            "reason": "Default coach preferences (v4 canonical)",
+                            "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                            "source_type": "system_default"
+                          },
+                          {
+                            "key": "coach.talk_propensity",
+                            "value": {
+                              "label": "Équilibrée",
+                              "value": "balanced"
+                            },
+                            "reason": "Default coach preferences (v4 canonical)",
+                            "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                            "source_type": "system_default"
+                          },
+                          {
+                            "key": "coach.message_length",
+                            "value": {
+                              "label": "Courte",
+                              "value": "short"
+                            },
+                            "reason": "Default coach preferences (v4 canonical)",
+                            "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                            "source_type": "system_default"
+                          },
+                          {
+                            "key": "coach.message_format",
+                            "value": {
+                              "label": "Mix adaptatif",
+                              "value": "adaptive"
+                            },
+                            "reason": "Default coach preferences (v4 canonical)",
+                            "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                            "source_type": "system_default"
+                          },
+                          {
+                            "key": "coach.primary_focus",
+                            "value": {
+                              "label": "Discipline / action",
+                              "value": "discipline"
+                            },
+                            "reason": "Default coach preferences (v4 canonical)",
+                            "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                            "source_type": "system_default"
+                          },
+                          {
+                            "key": "coach.emotional_personalization",
+                            "value": {
+                              "label": "Chaleureux",
+                              "value": "warm"
+                            },
+                            "reason": "Default coach preferences (v4 canonical)",
+                            "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                            "source_type": "system_default"
+                          },
+                          {
+                            "key": "coach.question_tendency",
+                            "value": {
+                              "label": "Normale",
+                              "value": "normal"
+                            },
+                            "reason": "Default coach preferences (v4 canonical)",
+                            "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                            "source_type": "system_default"
+                          }
+                        ],
+                        "one_shot_reminders": {
+                          "pending": [],
+                          "cancelled_recent": []
+                        },
+                        "recurring_reminders": [],
+                        "recent_effect_history": []
+                      },
+                      "target_objects": [
+                        "attack_card",
+                        "defense_card",
+                        "one_shot_reminder",
+                        "recurring_reminder",
+                        "potion",
+                        "plan_item"
+                      ],
+                      "context_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+                      "include_cancelled": false,
+                      "projection_summary": {
+                        "attack_card_count": 0,
+                        "defense_card_count": 0,
+                        "potion_session_count": 0,
+                        "coach_preference_count": 9,
+                        "one_shot_pending_count": 0,
+                        "recurring_reminder_count": 0,
+                        "recent_effect_history_count": 0,
+                        "one_shot_cancelled_recent_count": 0
+                      },
+                      "visible_instruction": "Consulter les éléments actifs (cartes, rappels, actions) pour identifier ce qui est 'prêt' ou 'prévu' pour le dossier ce soir.",
+                      "requested_categories": [
+                        "all"
+                      ],
+                      "status_intent_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+                      "previous_answer_summary": null,
+                      "include_recent_failed_or_blocked_effects": false
+                    }
+                  },
+                  "executedTools": [],
+                  "toolExecution": "none",
+                  "reminder_found": false,
+                  "target_objects": [
+                    "attack_card",
+                    "defense_card",
+                    "one_shot_reminder",
+                    "recurring_reminder",
+                    "potion",
+                    "plan_item"
+                  ],
+                  "allowed_effects": [],
+                  "blocked_effects": [],
+                  "projection_used": true,
+                  "local_flow_state": {
+                    "mode": "local_readonly_flow",
+                    "status": "active",
+                    "skill_id": "status_recap",
+                    "max_turns": 3,
+                    "created_at": "2026-06-12T13:35:40.289Z",
+                    "turn_count": 1,
+                    "updated_at": "2026-06-12T13:35:40.289Z",
+                    "last_intent": "durable_status",
+                    "last_answer_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+                    "last_target_objects": [
+                      "attack_card",
+                      "defense_card",
+                      "one_shot_reminder",
+                      "recurring_reminder",
+                      "potion",
+                      "plan_item"
+                    ],
+                    "last_projection_summary": {
+                      "attack_card_count": 0,
+                      "defense_card_count": 0,
+                      "potion_session_count": 0,
+                      "coach_preference_count": 9,
+                      "one_shot_pending_count": 0,
+                      "recurring_reminder_count": 0,
+                      "recent_effect_history_count": 0,
+                      "one_shot_cancelled_recent_count": 0
+                    }
+                  },
+                  "selected_handler": "status_recap",
+                  "attack_card_found": false,
+                  "committed_effects": [],
+                  "requested_effects": [],
+                  "visible_prompt_id": "status_recap.visible.status_compact",
+                  "visible_task_kind": "status_compact",
+                  "defense_card_found": false,
+                  "projection_summary": {
+                    "attack_card_count": 0,
+                    "defense_card_count": 0,
+                    "potion_session_count": 0,
+                    "coach_preference_count": 9,
+                    "one_shot_pending_count": 0,
+                    "recurring_reminder_count": 0,
+                    "recent_effect_history_count": 0,
+                    "one_shot_cancelled_recent_count": 0
+                  },
+                  "conversation_context": {
+                    "kind": "status_recap_conversation_context",
+                    "stage": "status_compact",
+                    "format": "compact",
+                    "user_words": [
+                      "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?"
+                    ],
+                    "constraints": {
+                      "read_only": true,
+                      "no_chat_mutation": true,
+                      "no_product_how_to": true,
+                      "no_tool_execution": true,
+                      "no_claim_without_filtered_fact": true,
+                      "micro_memory_raw_available_to_visible_agent": false
+                    },
+                    "handoff_data": {
+                      "inbound_note_summary": "User wants to verify what is already 'ready' or 'planned' regarding 'mon dossier ce soir'. Provide a factual status of active plan items, cards, or reminders related to this context.",
+                      "inbound_handoff_reason": "explicit_user_request",
+                      "inbound_source_flow_id": "global_dispatcher"
+                    },
+                    "filtered_facts": {
+                      "attack_cards": [],
+                      "defense_cards": [],
+                      "potion_sessions": [],
+                      "coach_preferences": [
+                        {
+                          "key": "coach.tone",
+                          "value": {
+                            "label": "Bienveillant ferme",
+                            "value": "warm_direct"
+                          },
+                          "reason": "Default coach preferences (v4 canonical)",
+                          "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                          "source_type": "system_default"
+                        },
+                        {
+                          "key": "coach.challenge_level",
+                          "value": {
+                            "label": "Équilibré",
+                            "value": "balanced"
+                          },
+                          "reason": "Default coach preferences (v4 canonical)",
+                          "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                          "source_type": "system_default"
+                        },
+                        {
+                          "key": "coach.feedback_style",
+                          "value": {
+                            "label": "Positif puis amélioration",
+                            "value": "positive_then_fix"
+                          },
+                          "reason": "Default coach preferences (v4 canonical)",
+                          "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                          "source_type": "system_default"
+                        },
+                        {
+                          "key": "coach.talk_propensity",
+                          "value": {
+                            "label": "Équilibrée",
+                            "value": "balanced"
+                          },
+                          "reason": "Default coach preferences (v4 canonical)",
+                          "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                          "source_type": "system_default"
+                        },
+                        {
+                          "key": "coach.message_length",
+                          "value": {
+                            "label": "Courte",
+                            "value": "short"
+                          },
+                          "reason": "Default coach preferences (v4 canonical)",
+                          "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                          "source_type": "system_default"
+                        },
+                        {
+                          "key": "coach.message_format",
+                          "value": {
+                            "label": "Mix adaptatif",
+                            "value": "adaptive"
+                          },
+                          "reason": "Default coach preferences (v4 canonical)",
+                          "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                          "source_type": "system_default"
+                        },
+                        {
+                          "key": "coach.primary_focus",
+                          "value": {
+                            "label": "Discipline / action",
+                            "value": "discipline"
+                          },
+                          "reason": "Default coach preferences (v4 canonical)",
+                          "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                          "source_type": "system_default"
+                        },
+                        {
+                          "key": "coach.emotional_personalization",
+                          "value": {
+                            "label": "Chaleureux",
+                            "value": "warm"
+                          },
+                          "reason": "Default coach preferences (v4 canonical)",
+                          "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                          "source_type": "system_default"
+                        },
+                        {
+                          "key": "coach.question_tendency",
+                          "value": {
+                            "label": "Normale",
+                            "value": "normal"
+                          },
+                          "reason": "Default coach preferences (v4 canonical)",
+                          "updated_at": "2026-06-12T13:35:16.867405+00:00",
+                          "source_type": "system_default"
+                        }
+                      ],
+                      "one_shot_reminders": {
+                        "pending": [],
+                        "cancelled_recent": []
+                      },
+                      "recurring_reminders": [],
+                      "recent_effect_history": []
+                    },
+                    "target_objects": [
+                      "attack_card",
+                      "defense_card",
+                      "one_shot_reminder",
+                      "recurring_reminder",
+                      "potion",
+                      "plan_item"
+                    ],
+                    "context_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+                    "include_cancelled": false,
+                    "projection_summary": {
+                      "attack_card_count": 0,
+                      "defense_card_count": 0,
+                      "potion_session_count": 0,
+                      "coach_preference_count": 9,
+                      "one_shot_pending_count": 0,
+                      "recurring_reminder_count": 0,
+                      "recent_effect_history_count": 0,
+                      "one_shot_cancelled_recent_count": 0
+                    },
+                    "visible_instruction": "Consulter les éléments actifs (cartes, rappels, actions) pour identifier ce qui est 'prêt' ou 'prévu' pour le dossier ce soir.",
+                    "requested_categories": [
+                      "all"
+                    ],
+                    "status_intent_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+                    "previous_answer_summary": null,
+                    "include_recent_failed_or_blocked_effects": false
+                  },
+                  "operation_suggestions": [],
+                  "coach_preference_found": false,
+                  "note_information_inbound": {
+                    "confidence": "high",
+                    "user_words": [
+                      "vérifier ce qui est déjà prêt",
+                      "prévu pour mon dossier ce soir",
+                      "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?"
+                    ],
+                    "handoff_reason": "explicit_user_request",
+                    "source_flow_id": "global_dispatcher",
+                    "target_dispatcher": "status_recap",
+                    "structured_context": {
+                      "evidence": [
+                        "vérifier ce qui est déjà prêt"
+                      ],
+                      "target_flow": "status_recap",
+                      "target_kind": "skill",
+                      "confidence_band": "high",
+                      "primary_signal_path": "skill_signals.entry.status_recap",
+                      "recommended_next_focus": "Run the status_recap local dispatcher to query the real state of the user space."
+                    },
+                    "handoff_context_for_next_dispatcher": "User wants to verify what is already 'ready' or 'planned' regarding 'mon dossier ce soir'. Provide a factual status of active plan items, cards, or reminders related to this context."
+                  },
+                  "recent_effect_history_count": 0
+                }
+              },
+              "multi_message_count": 1,
+              "multi_message_index": 0
+            },
+            "agent_used": "companion"
+          }
+        ]
+      },
+      "response_body": {
+        "ok": true,
+        "request_id": "qa-flow-opportunity-verification-prompt-r5-20260612-t01",
+        "user_id": "4a410043-9d17-4b0b-bced-7a3c6070abb2",
+        "channel": "web",
+        "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "J'ai vérifié l'état de ton dossier pour ce soir.\n\nFait : Tes préférences sont paramétrées sur un ton bienveillant avec un focus sur la discipline.\nPrévu : Aucun rappel, aucune carte ni aucune session n'est programmé pour ce soir.\nFragile : Ton dossier ne contient actuellement aucun élément actif.",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-flow-opportunity-verification-prompt-r5-20260612-t01",
+              "source_message_id": "cb508730-b185-414c-b4e3-b1095f25546c",
+              "user_id": "4a410043-9d17-4b0b-bced-7a3c6070abb2",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "flow_opportunity": null,
+              "note_information": {
+                "source_flow_id": "global_dispatcher",
+                "handoff_reason": "explicit_user_request",
+                "target_dispatcher": "status_recap",
+                "handoff_context_for_next_dispatcher": "User wants to verify what is already 'ready' or 'planned' regarding 'mon dossier ce soir'. Provide a factual status of active plan items, cards, or reminders related to this context.",
+                "user_words": [
+                  "vérifier ce qui est déjà prêt",
+                  "prévu pour mon dossier ce soir",
+                  "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?"
+                ],
+                "structured_context": {
+                  "primary_signal_path": "skill_signals.entry.status_recap",
+                  "target_kind": "skill",
+                  "target_flow": "status_recap",
+                  "confidence_band": "high",
+                  "evidence": [
+                    "vérifier ce qui est déjà prêt"
+                  ],
+                  "recommended_next_focus": "Run the status_recap local dispatcher to query the real state of the user space."
+                },
+                "confidence": "high"
+              },
+              "skill_signals": {
+                "entry": {
+                  "status_recap": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "user_requests_factual_verification_of_planned_items"
+                  }
+                },
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "runtime_snapshot",
+                    "key": "daily_conversation_pulse:current_week",
+                    "query_hint": "planned items for dossier",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first",
+                    "priority": "high",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "skill_entry_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "selected_handler": "status_recap",
+              "active_flow_debug": {
+                "version": "active_flow_debug_v1",
+                "snapshots": [
+                  {
+                    "phase": "user_state_loaded",
+                    "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 0,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_onboarding_and_reconcile",
+                    "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "read_active_flow_state",
+                    "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_pending_confirmation_reload",
+                    "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "before_run_conversation_routers",
+                    "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_run_conversation_routers",
+                    "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": "skill_entry_signal",
+                    "route_active_flow_reason_code": "no_active_flow"
+                  }
+                ]
+              }
+            },
+            "tool_skill_run": {
+              "selected_handler": "status_recap",
+              "reason_code": "status_recap_local_answer_status",
+              "status": "answered",
+              "flow_action": "answer_status",
+              "projection_used": true,
+              "intent": "durable_status",
+              "target_objects": [
+                "attack_card",
+                "defense_card",
+                "one_shot_reminder",
+                "recurring_reminder",
+                "potion",
+                "plan_item"
+              ],
+              "visible_task": {
+                "kind": "status_compact",
+                "conversation_context": {
+                  "kind": "status_recap_conversation_context",
+                  "stage": "status_compact",
+                  "user_words": [
+                    "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?"
+                  ],
+                  "context_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+                  "visible_instruction": "Consulter les éléments actifs (cartes, rappels, actions) pour identifier ce qui est 'prêt' ou 'prévu' pour le dossier ce soir.",
+                  "status_intent_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+                  "projection_summary": {
+                    "attack_card_count": 0,
+                    "defense_card_count": 0,
+                    "one_shot_pending_count": 0,
+                    "one_shot_cancelled_recent_count": 0,
+                    "recurring_reminder_count": 0,
+                    "potion_session_count": 0,
+                    "coach_preference_count": 9,
+                    "recent_effect_history_count": 0
+                  },
+                  "requested_categories": [
+                    "all"
+                  ],
+                  "target_objects": [
+                    "attack_card",
+                    "defense_card",
+                    "one_shot_reminder",
+                    "recurring_reminder",
+                    "potion",
+                    "plan_item"
+                  ],
+                  "include_cancelled": false,
+                  "include_recent_failed_or_blocked_effects": false,
+                  "format": "compact",
+                  "filtered_facts": {
+                    "attack_cards": [],
+                    "defense_cards": [],
+                    "one_shot_reminders": {
+                      "pending": [],
+                      "cancelled_recent": []
+                    },
+                    "recurring_reminders": [],
+                    "potion_sessions": [],
+                    "coach_preferences": [
+                      {
+                        "key": "coach.tone",
+                        "value": {
+                          "label": "Bienveillant ferme",
+                          "value": "warm_direct"
+                        },
+                        "reason": "Default coach preferences (v4 canonical)",
+                        "source_type": "system_default",
+                        "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                      },
+                      {
+                        "key": "coach.challenge_level",
+                        "value": {
+                          "label": "Équilibré",
+                          "value": "balanced"
+                        },
+                        "reason": "Default coach preferences (v4 canonical)",
+                        "source_type": "system_default",
+                        "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                      },
+                      {
+                        "key": "coach.feedback_style",
+                        "value": {
+                          "label": "Positif puis amélioration",
+                          "value": "positive_then_fix"
+                        },
+                        "reason": "Default coach preferences (v4 canonical)",
+                        "source_type": "system_default",
+                        "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                      },
+                      {
+                        "key": "coach.talk_propensity",
+                        "value": {
+                          "label": "Équilibrée",
+                          "value": "balanced"
+                        },
+                        "reason": "Default coach preferences (v4 canonical)",
+                        "source_type": "system_default",
+                        "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                      },
+                      {
+                        "key": "coach.message_length",
+                        "value": {
+                          "label": "Courte",
+                          "value": "short"
+                        },
+                        "reason": "Default coach preferences (v4 canonical)",
+                        "source_type": "system_default",
+                        "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                      },
+                      {
+                        "key": "coach.message_format",
+                        "value": {
+                          "label": "Mix adaptatif",
+                          "value": "adaptive"
+                        },
+                        "reason": "Default coach preferences (v4 canonical)",
+                        "source_type": "system_default",
+                        "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                      },
+                      {
+                        "key": "coach.primary_focus",
+                        "value": {
+                          "label": "Discipline / action",
+                          "value": "discipline"
+                        },
+                        "reason": "Default coach preferences (v4 canonical)",
+                        "source_type": "system_default",
+                        "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                      },
+                      {
+                        "key": "coach.emotional_personalization",
+                        "value": {
+                          "label": "Chaleureux",
+                          "value": "warm"
+                        },
+                        "reason": "Default coach preferences (v4 canonical)",
+                        "source_type": "system_default",
+                        "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                      },
+                      {
+                        "key": "coach.question_tendency",
+                        "value": {
+                          "label": "Normale",
+                          "value": "normal"
+                        },
+                        "reason": "Default coach preferences (v4 canonical)",
+                        "source_type": "system_default",
+                        "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                      }
+                    ],
+                    "recent_effect_history": []
+                  },
+                  "previous_answer_summary": null,
+                  "handoff_data": {
+                    "inbound_note_summary": "User wants to verify what is already 'ready' or 'planned' regarding 'mon dossier ce soir'. Provide a factual status of active plan items, cards, or reminders related to this context.",
+                    "inbound_source_flow_id": "global_dispatcher",
+                    "inbound_handoff_reason": "explicit_user_request"
+                  },
+                  "constraints": {
+                    "read_only": true,
+                    "no_chat_mutation": true,
+                    "no_tool_execution": true,
+                    "no_product_how_to": true,
+                    "no_claim_without_filtered_fact": true,
+                    "micro_memory_raw_available_to_visible_agent": false
+                  }
+                }
+              },
+              "visible_task_kind": "status_compact",
+              "visible_prompt_id": "status_recap.visible.status_compact",
+              "conversation_context": {
+                "kind": "status_recap_conversation_context",
+                "stage": "status_compact",
+                "user_words": [
+                  "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?"
+                ],
+                "context_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+                "visible_instruction": "Consulter les éléments actifs (cartes, rappels, actions) pour identifier ce qui est 'prêt' ou 'prévu' pour le dossier ce soir.",
+                "status_intent_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+                "projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 0,
+                  "one_shot_cancelled_recent_count": 0,
+                  "recurring_reminder_count": 0,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 9,
+                  "recent_effect_history_count": 0
+                },
+                "requested_categories": [
+                  "all"
+                ],
+                "target_objects": [
+                  "attack_card",
+                  "defense_card",
+                  "one_shot_reminder",
+                  "recurring_reminder",
+                  "potion",
+                  "plan_item"
+                ],
+                "include_cancelled": false,
+                "include_recent_failed_or_blocked_effects": false,
+                "format": "compact",
+                "filtered_facts": {
+                  "attack_cards": [],
+                  "defense_cards": [],
+                  "one_shot_reminders": {
+                    "pending": [],
+                    "cancelled_recent": []
+                  },
+                  "recurring_reminders": [],
+                  "potion_sessions": [],
+                  "coach_preferences": [
+                    {
+                      "key": "coach.tone",
+                      "value": {
+                        "label": "Bienveillant ferme",
+                        "value": "warm_direct"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.challenge_level",
+                      "value": {
+                        "label": "Équilibré",
+                        "value": "balanced"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.feedback_style",
+                      "value": {
+                        "label": "Positif puis amélioration",
+                        "value": "positive_then_fix"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.talk_propensity",
+                      "value": {
+                        "label": "Équilibrée",
+                        "value": "balanced"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.message_length",
+                      "value": {
+                        "label": "Courte",
+                        "value": "short"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.message_format",
+                      "value": {
+                        "label": "Mix adaptatif",
+                        "value": "adaptive"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.primary_focus",
+                      "value": {
+                        "label": "Discipline / action",
+                        "value": "discipline"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.emotional_personalization",
+                      "value": {
+                        "label": "Chaleureux",
+                        "value": "warm"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.question_tendency",
+                      "value": {
+                        "label": "Normale",
+                        "value": "normal"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    }
+                  ],
+                  "recent_effect_history": []
+                },
+                "previous_answer_summary": null,
+                "handoff_data": {
+                  "inbound_note_summary": "User wants to verify what is already 'ready' or 'planned' regarding 'mon dossier ce soir'. Provide a factual status of active plan items, cards, or reminders related to this context.",
+                  "inbound_source_flow_id": "global_dispatcher",
+                  "inbound_handoff_reason": "explicit_user_request"
+                },
+                "constraints": {
+                  "read_only": true,
+                  "no_chat_mutation": true,
+                  "no_tool_execution": true,
+                  "no_product_how_to": true,
+                  "no_claim_without_filtered_fact": true,
+                  "micro_memory_raw_available_to_visible_agent": false
+                }
+              },
+              "note_information_inbound": {
+                "source_flow_id": "global_dispatcher",
+                "handoff_reason": "explicit_user_request",
+                "target_dispatcher": "status_recap",
+                "handoff_context_for_next_dispatcher": "User wants to verify what is already 'ready' or 'planned' regarding 'mon dossier ce soir'. Provide a factual status of active plan items, cards, or reminders related to this context.",
+                "user_words": [
+                  "vérifier ce qui est déjà prêt",
+                  "prévu pour mon dossier ce soir",
+                  "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?"
+                ],
+                "structured_context": {
+                  "primary_signal_path": "skill_signals.entry.status_recap",
+                  "target_kind": "skill",
+                  "target_flow": "status_recap",
+                  "confidence_band": "high",
+                  "evidence": [
+                    "vérifier ce qui est déjà prêt"
+                  ],
+                  "recommended_next_focus": "Run the status_recap local dispatcher to query the real state of the user space."
+                },
+                "confidence": "high"
+              },
+              "operation_suggestions": [],
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "attack_card_found": false,
+              "defense_card_found": false,
+              "reminder_found": false,
+              "coach_preference_found": false,
+              "recent_effect_history_count": 0,
+              "projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 0,
+                "one_shot_cancelled_recent_count": 0,
+                "recurring_reminder_count": 0,
+                "potion_session_count": 0,
+                "coach_preference_count": 9,
+                "recent_effect_history_count": 0
+              },
+              "local_flow_state": {
+                "skill_id": "status_recap",
+                "mode": "local_readonly_flow",
+                "status": "active",
+                "last_intent": "durable_status",
+                "last_target_objects": [
+                  "attack_card",
+                  "defense_card",
+                  "one_shot_reminder",
+                  "recurring_reminder",
+                  "potion",
+                  "plan_item"
+                ],
+                "last_projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 0,
+                  "one_shot_cancelled_recent_count": 0,
+                  "recurring_reminder_count": 0,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 9,
+                  "recent_effect_history_count": 0
+                },
+                "last_answer_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+                "turn_count": 1,
+                "max_turns": 3,
+                "created_at": "2026-06-12T13:35:40.289Z",
+                "updated_at": "2026-06-12T13:35:40.289Z"
+              },
+              "evidence": [
+                "vérifier ce qui est déjà prêt",
+                "prévu pour mon dossier ce soir"
+              ],
+              "toolExecution": "none",
+              "executedTools": []
+            },
+            "effect_ledger": {
+              "turn_id": "qa-flow-opportunity-verification-prompt-r5-20260612-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-flow-opportunity-verification-prompt-r5-20260612-t01",
+            "source_message_id": "cb508730-b185-414c-b4e3-b1095f25546c",
+            "user_id": "4a410043-9d17-4b0b-bced-7a3c6070abb2",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "status_recap",
+              "handoff_context_for_next_dispatcher": "User wants to verify what is already 'ready' or 'planned' regarding 'mon dossier ce soir'. Provide a factual status of active plan items, cards, or reminders related to this context.",
+              "user_words": [
+                "vérifier ce qui est déjà prêt",
+                "prévu pour mon dossier ce soir",
+                "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.status_recap",
+                "target_kind": "skill",
+                "target_flow": "status_recap",
+                "confidence_band": "high",
+                "evidence": [
+                  "vérifier ce qui est déjà prêt"
+                ],
+                "recommended_next_focus": "Run the status_recap local dispatcher to query the real state of the user space."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {
+                "status_recap": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_requests_factual_verification_of_planned_items"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "runtime_snapshot",
+                  "key": "daily_conversation_pulse:current_week",
+                  "query_hint": "planned items for dossier",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "status_recap",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-flow-opportunity-verification-prompt-r5-20260612",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "skill_entry_signal",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "tool_skill_run": {
+            "selected_handler": "status_recap",
+            "reason_code": "status_recap_local_answer_status",
+            "status": "answered",
+            "flow_action": "answer_status",
+            "projection_used": true,
+            "intent": "durable_status",
+            "target_objects": [
+              "attack_card",
+              "defense_card",
+              "one_shot_reminder",
+              "recurring_reminder",
+              "potion",
+              "plan_item"
+            ],
+            "visible_task": {
+              "kind": "status_compact",
+              "conversation_context": {
+                "kind": "status_recap_conversation_context",
+                "stage": "status_compact",
+                "user_words": [
+                  "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?"
+                ],
+                "context_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+                "visible_instruction": "Consulter les éléments actifs (cartes, rappels, actions) pour identifier ce qui est 'prêt' ou 'prévu' pour le dossier ce soir.",
+                "status_intent_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+                "projection_summary": {
+                  "attack_card_count": 0,
+                  "defense_card_count": 0,
+                  "one_shot_pending_count": 0,
+                  "one_shot_cancelled_recent_count": 0,
+                  "recurring_reminder_count": 0,
+                  "potion_session_count": 0,
+                  "coach_preference_count": 9,
+                  "recent_effect_history_count": 0
+                },
+                "requested_categories": [
+                  "all"
+                ],
+                "target_objects": [
+                  "attack_card",
+                  "defense_card",
+                  "one_shot_reminder",
+                  "recurring_reminder",
+                  "potion",
+                  "plan_item"
+                ],
+                "include_cancelled": false,
+                "include_recent_failed_or_blocked_effects": false,
+                "format": "compact",
+                "filtered_facts": {
+                  "attack_cards": [],
+                  "defense_cards": [],
+                  "one_shot_reminders": {
+                    "pending": [],
+                    "cancelled_recent": []
+                  },
+                  "recurring_reminders": [],
+                  "potion_sessions": [],
+                  "coach_preferences": [
+                    {
+                      "key": "coach.tone",
+                      "value": {
+                        "label": "Bienveillant ferme",
+                        "value": "warm_direct"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.challenge_level",
+                      "value": {
+                        "label": "Équilibré",
+                        "value": "balanced"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.feedback_style",
+                      "value": {
+                        "label": "Positif puis amélioration",
+                        "value": "positive_then_fix"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.talk_propensity",
+                      "value": {
+                        "label": "Équilibrée",
+                        "value": "balanced"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.message_length",
+                      "value": {
+                        "label": "Courte",
+                        "value": "short"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.message_format",
+                      "value": {
+                        "label": "Mix adaptatif",
+                        "value": "adaptive"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.primary_focus",
+                      "value": {
+                        "label": "Discipline / action",
+                        "value": "discipline"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.emotional_personalization",
+                      "value": {
+                        "label": "Chaleureux",
+                        "value": "warm"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    },
+                    {
+                      "key": "coach.question_tendency",
+                      "value": {
+                        "label": "Normale",
+                        "value": "normal"
+                      },
+                      "reason": "Default coach preferences (v4 canonical)",
+                      "source_type": "system_default",
+                      "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                    }
+                  ],
+                  "recent_effect_history": []
+                },
+                "previous_answer_summary": null,
+                "handoff_data": {
+                  "inbound_note_summary": "User wants to verify what is already 'ready' or 'planned' regarding 'mon dossier ce soir'. Provide a factual status of active plan items, cards, or reminders related to this context.",
+                  "inbound_source_flow_id": "global_dispatcher",
+                  "inbound_handoff_reason": "explicit_user_request"
+                },
+                "constraints": {
+                  "read_only": true,
+                  "no_chat_mutation": true,
+                  "no_tool_execution": true,
+                  "no_product_how_to": true,
+                  "no_claim_without_filtered_fact": true,
+                  "micro_memory_raw_available_to_visible_agent": false
+                }
+              }
+            },
+            "visible_task_kind": "status_compact",
+            "visible_prompt_id": "status_recap.visible.status_compact",
+            "conversation_context": {
+              "kind": "status_recap_conversation_context",
+              "stage": "status_compact",
+              "user_words": [
+                "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?"
+              ],
+              "context_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+              "visible_instruction": "Consulter les éléments actifs (cartes, rappels, actions) pour identifier ce qui est 'prêt' ou 'prévu' pour le dossier ce soir.",
+              "status_intent_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+              "projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 0,
+                "one_shot_cancelled_recent_count": 0,
+                "recurring_reminder_count": 0,
+                "potion_session_count": 0,
+                "coach_preference_count": 9,
+                "recent_effect_history_count": 0
+              },
+              "requested_categories": [
+                "all"
+              ],
+              "target_objects": [
+                "attack_card",
+                "defense_card",
+                "one_shot_reminder",
+                "recurring_reminder",
+                "potion",
+                "plan_item"
+              ],
+              "include_cancelled": false,
+              "include_recent_failed_or_blocked_effects": false,
+              "format": "compact",
+              "filtered_facts": {
+                "attack_cards": [],
+                "defense_cards": [],
+                "one_shot_reminders": {
+                  "pending": [],
+                  "cancelled_recent": []
+                },
+                "recurring_reminders": [],
+                "potion_sessions": [],
+                "coach_preferences": [
+                  {
+                    "key": "coach.tone",
+                    "value": {
+                      "label": "Bienveillant ferme",
+                      "value": "warm_direct"
+                    },
+                    "reason": "Default coach preferences (v4 canonical)",
+                    "source_type": "system_default",
+                    "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                  },
+                  {
+                    "key": "coach.challenge_level",
+                    "value": {
+                      "label": "Équilibré",
+                      "value": "balanced"
+                    },
+                    "reason": "Default coach preferences (v4 canonical)",
+                    "source_type": "system_default",
+                    "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                  },
+                  {
+                    "key": "coach.feedback_style",
+                    "value": {
+                      "label": "Positif puis amélioration",
+                      "value": "positive_then_fix"
+                    },
+                    "reason": "Default coach preferences (v4 canonical)",
+                    "source_type": "system_default",
+                    "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                  },
+                  {
+                    "key": "coach.talk_propensity",
+                    "value": {
+                      "label": "Équilibrée",
+                      "value": "balanced"
+                    },
+                    "reason": "Default coach preferences (v4 canonical)",
+                    "source_type": "system_default",
+                    "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                  },
+                  {
+                    "key": "coach.message_length",
+                    "value": {
+                      "label": "Courte",
+                      "value": "short"
+                    },
+                    "reason": "Default coach preferences (v4 canonical)",
+                    "source_type": "system_default",
+                    "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                  },
+                  {
+                    "key": "coach.message_format",
+                    "value": {
+                      "label": "Mix adaptatif",
+                      "value": "adaptive"
+                    },
+                    "reason": "Default coach preferences (v4 canonical)",
+                    "source_type": "system_default",
+                    "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                  },
+                  {
+                    "key": "coach.primary_focus",
+                    "value": {
+                      "label": "Discipline / action",
+                      "value": "discipline"
+                    },
+                    "reason": "Default coach preferences (v4 canonical)",
+                    "source_type": "system_default",
+                    "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                  },
+                  {
+                    "key": "coach.emotional_personalization",
+                    "value": {
+                      "label": "Chaleureux",
+                      "value": "warm"
+                    },
+                    "reason": "Default coach preferences (v4 canonical)",
+                    "source_type": "system_default",
+                    "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                  },
+                  {
+                    "key": "coach.question_tendency",
+                    "value": {
+                      "label": "Normale",
+                      "value": "normal"
+                    },
+                    "reason": "Default coach preferences (v4 canonical)",
+                    "source_type": "system_default",
+                    "updated_at": "2026-06-12T13:35:16.867405+00:00"
+                  }
+                ],
+                "recent_effect_history": []
+              },
+              "previous_answer_summary": null,
+              "handoff_data": {
+                "inbound_note_summary": "User wants to verify what is already 'ready' or 'planned' regarding 'mon dossier ce soir'. Provide a factual status of active plan items, cards, or reminders related to this context.",
+                "inbound_source_flow_id": "global_dispatcher",
+                "inbound_handoff_reason": "explicit_user_request"
+              },
+              "constraints": {
+                "read_only": true,
+                "no_chat_mutation": true,
+                "no_tool_execution": true,
+                "no_product_how_to": true,
+                "no_claim_without_filtered_fact": true,
+                "micro_memory_raw_available_to_visible_agent": false
+              }
+            },
+            "note_information_inbound": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "status_recap",
+              "handoff_context_for_next_dispatcher": "User wants to verify what is already 'ready' or 'planned' regarding 'mon dossier ce soir'. Provide a factual status of active plan items, cards, or reminders related to this context.",
+              "user_words": [
+                "vérifier ce qui est déjà prêt",
+                "prévu pour mon dossier ce soir",
+                "Je ne sais plus ce que Sophia avait prévu pour mon dossier ce soir. Tu peux vérifier ce qui est déjà prêt ?"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.status_recap",
+                "target_kind": "skill",
+                "target_flow": "status_recap",
+                "confidence_band": "high",
+                "evidence": [
+                  "vérifier ce qui est déjà prêt"
+                ],
+                "recommended_next_focus": "Run the status_recap local dispatcher to query the real state of the user space."
+              },
+              "confidence": "high"
+            },
+            "operation_suggestions": [],
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "attack_card_found": false,
+            "defense_card_found": false,
+            "reminder_found": false,
+            "coach_preference_found": false,
+            "recent_effect_history_count": 0,
+            "projection_summary": {
+              "attack_card_count": 0,
+              "defense_card_count": 0,
+              "one_shot_pending_count": 0,
+              "one_shot_cancelled_recent_count": 0,
+              "recurring_reminder_count": 0,
+              "potion_session_count": 0,
+              "coach_preference_count": 9,
+              "recent_effect_history_count": 0
+            },
+            "local_flow_state": {
+              "skill_id": "status_recap",
+              "mode": "local_readonly_flow",
+              "status": "active",
+              "last_intent": "durable_status",
+              "last_target_objects": [
+                "attack_card",
+                "defense_card",
+                "one_shot_reminder",
+                "recurring_reminder",
+                "potion",
+                "plan_item"
+              ],
+              "last_projection_summary": {
+                "attack_card_count": 0,
+                "defense_card_count": 0,
+                "one_shot_pending_count": 0,
+                "one_shot_cancelled_recent_count": 0,
+                "recurring_reminder_count": 0,
+                "potion_session_count": 0,
+                "coach_preference_count": 9,
+                "recent_effect_history_count": 0
+              },
+              "last_answer_summary": "Le user souhaite vérifier les éléments prévus ou prêts (cartes, rappels, actions) concernant son dossier pour ce soir.",
+              "turn_count": 1,
+              "max_turns": 3,
+              "created_at": "2026-06-12T13:35:40.289Z",
+              "updated_at": "2026-06-12T13:35:40.289Z"
+            },
+            "evidence": [
+              "vérifier ce qui est déjà prêt",
+              "prévu pour mon dossier ce soir"
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "qa-flow-opportunity-verification-prompt-r5-20260612-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "connection_created_this_run": true,
+  "updated_at": "2026-06-12T13:35:48.336Z"
+}

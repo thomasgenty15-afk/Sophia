@@ -53,7 +53,10 @@ const LANES: readonly Lane[] = [
 ];
 
 const LAUNCH = ": classifyDraftNoteEarly({";
-const MAIN_CALL = "result = await generateWithGemini(";
+// ⟳ 2026-09-14 · BÊTA 2B — L'ANCRE A CHANGÉ, PAS LA POSITION. L'appel est
+// enveloppé par `appelModele(…)` depuis que les pannes du fournisseur ont un
+// jeton au lieu d'une chaîne anglaise. Le site est le même.
+const MAIN_CALL = 'result = await appelModele("composition", () =>';
 const BELT_READ = "draftNoteBeltItems(await draftNoteEarly";
 const NOTE_ITEMS = "...(noteBelt?.items ?? []),";
 const COUNTER = "note_items: noteBelt?.items.length ?? 0,";

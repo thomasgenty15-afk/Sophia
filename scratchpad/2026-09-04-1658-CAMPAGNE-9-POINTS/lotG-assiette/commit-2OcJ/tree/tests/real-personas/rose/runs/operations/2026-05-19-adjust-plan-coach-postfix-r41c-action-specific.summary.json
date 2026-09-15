@@ -1,0 +1,673 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t01",
+    "status": 200,
+    "ok": true,
+    "user": "L'action 'Partager un point positif' me met encore la pression. Je veux modifier uniquement cette action, pas le niveau : garder l'idée positive, mais enlever le côté compliment parfait.",
+    "assistant": "Je comprends que l'action 'Partager un point positif' te met la pression et que tu souhaites la modifier pour garder l'idée positive sans le côté 'compliment parfait'. Je peux te préparer une proposition pour ajuster cette action. Est-ce que je peux te montrer ce brouillon ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer l'action 'Partager un point positif'.",
+          "Proposer de modifier la fréquence ou le moment de l'action, car l'utilisateur a explicitement dit 'pas le niveau'.",
+          "Proposer une solution qui augmenterait l'effort ou la réflexion nécessaire.",
+          "Utiliser des mots comme 'compliment', 'parfait', 'vrai point positif' dans la nouvelle instruction."
+        ],
+        "scope": "action",
+        "preserve": [
+          "L'intention générale d'introduire des partages positifs réguliers.",
+          "La nature d'habitude de l'action (récurrente).",
+          "Le caractère de faible effort et de faible friction de l'habitude.",
+          "La fréquence actuelle (3 jours/semaine) et le moment de la journée (soir)."
+        ],
+        "warnings": [
+          "Ne pas suggérer de supprimer l'action, car l'utilisateur souhaite 'garder l'idée positive'.",
+          "Ne pas proposer de solution qui réintroduirait la pression de trouver quelque chose de 'significatif' ou d''éloquent'.",
+          "Éviter tout langage qui pourrait être interprété comme une forme subtile de louange ou d'évaluation."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Guidelines action: Le rôle de l'action est de favoriser la positivité. L'intention de partager quelque chose de positif doit être préservée. Un pont encore plus petit est nécessaire pour rendre l'action moins intimidante, en supprimant l'aspect 'compliment'. Un changement de nature est explicitement demandé par l'utilisateur ('enlever le côté compliment parfait').",
+          "Guidelines niveau: La demande de l'utilisateur est de ne pas toucher au niveau ('pas le niveau').",
+          "Guidelines whole_plan: Le scope est limité à une action spécifique, la cohérence globale du plan n'est pas en jeu à ce stade."
+        ],
+        "observation": "L'utilisateur exprime une pression persistante liée à l'action 'Partager un point positif', malgré les ajustements précédents. Le cœur du problème réside dans la perception que l'action exige encore de trouver un 'compliment parfait' ou un 'vrai point positif', ce qui génère une charge mentale et une attente de performance. L'intention est de maintenir la positivité mais de décharger l'action de toute notion d'évaluation ou de perfection.",
+        "recommendation": "Proposer une reformulation de l'instruction de l'action qui déplace explicitement le focus de la recherche d'un 'point positif' ou d'un 'compliment' vers le simple partage d'une observation neutre, d'un sentiment agréable ou d'un moment léger, sans jugement ni exigence de perfection. L'objectif est de rendre l'action plus spontanée et moins contraignante.",
+        "options_to_discuss": [
+          "Reformuler l'instruction pour se concentrer sur 'Partager une observation agréable de la journée'.",
+          "Reformuler l'instruction pour se concentrer sur 'Exprimer un petit moment de bien-être ou de légèreté'.",
+          "Reformuler l'instruction pour se concentrer sur 'Noter une petite chose qui t'a fait sourire ou te sentir bien'."
+        ],
+        "questions_to_clarify": [
+          "Quand tu dis 'enlever le côté compliment parfait', qu'est-ce que cela signifie concrètement pour toi ? Peux-tu me donner un exemple de ce que tu voudrais partager, et un exemple de ce que tu ne voudrais plus avoir à chercher ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "action",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "action",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer l'action 'Partager un point positif'.",
+        "Proposer de modifier la fréquence ou le moment de l'action, car l'utilisateur a explicitement dit 'pas le niveau'.",
+        "Proposer une solution qui augmenterait l'effort ou la réflexion nécessaire.",
+        "Utiliser des mots comme 'compliment', 'parfait', 'vrai point positif' dans la nouvelle instruction."
+      ],
+      "scope": "action",
+      "preserve": [
+        "L'intention générale d'introduire des partages positifs réguliers.",
+        "La nature d'habitude de l'action (récurrente).",
+        "Le caractère de faible effort et de faible friction de l'habitude.",
+        "La fréquence actuelle (3 jours/semaine) et le moment de la journée (soir)."
+      ],
+      "warnings": [
+        "Ne pas suggérer de supprimer l'action, car l'utilisateur souhaite 'garder l'idée positive'.",
+        "Ne pas proposer de solution qui réintroduirait la pression de trouver quelque chose de 'significatif' ou d''éloquent'.",
+        "Éviter tout langage qui pourrait être interprété comme une forme subtile de louange ou d'évaluation."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Guidelines action: Le rôle de l'action est de favoriser la positivité. L'intention de partager quelque chose de positif doit être préservée. Un pont encore plus petit est nécessaire pour rendre l'action moins intimidante, en supprimant l'aspect 'compliment'. Un changement de nature est explicitement demandé par l'utilisateur ('enlever le côté compliment parfait').",
+        "Guidelines niveau: La demande de l'utilisateur est de ne pas toucher au niveau ('pas le niveau').",
+        "Guidelines whole_plan: Le scope est limité à une action spécifique, la cohérence globale du plan n'est pas en jeu à ce stade."
+      ],
+      "observation": "L'utilisateur exprime une pression persistante liée à l'action 'Partager un point positif', malgré les ajustements précédents. Le cœur du problème réside dans la perception que l'action exige encore de trouver un 'compliment parfait' ou un 'vrai point positif', ce qui génère une charge mentale et une attente de performance. L'intention est de maintenir la positivité mais de décharger l'action de toute notion d'évaluation ou de perfection.",
+      "recommendation": "Proposer une reformulation de l'instruction de l'action qui déplace explicitement le focus de la recherche d'un 'point positif' ou d'un 'compliment' vers le simple partage d'une observation neutre, d'un sentiment agréable ou d'un moment léger, sans jugement ni exigence de perfection. L'objectif est de rendre l'action plus spontanée et moins contraignante.",
+      "options_to_discuss": [
+        "Reformuler l'instruction pour se concentrer sur 'Partager une observation agréable de la journée'.",
+        "Reformuler l'instruction pour se concentrer sur 'Exprimer un petit moment de bien-être ou de légèreté'.",
+        "Reformuler l'instruction pour se concentrer sur 'Noter une petite chose qui t'a fait sourire ou te sentir bien'."
+      ],
+      "questions_to_clarify": [
+        "Quand tu dis 'enlever le côté compliment parfait', qu'est-ce que cela signifie concrètement pour toi ? Peux-tu me donner un exemple de ce que tu voudrais partager, et un exemple de ce que tu ne voudrais plus avoir à chercher ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, montre le brouillon sans appliquer. Je veux que l'instruction devienne : 'dire merci pour un truc concret', et garder 3 jours par semaine.",
+    "assistant": "Je comprends que tu veux que l'habitude \"Partager un point positif\" devienne \"dire merci pour un truc concret\" et qu'elle reste à 3 jours par semaine. Pour que je puisse te montrer le brouillon de ce changement, peux-tu me confirmer que ton intention est bien de rendre cette habitude plus simple et moins contraignante ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": "Partager un point positif",
+      "missing_slots": [
+        "specific_plan_item.adjustment_type",
+        "specific_plan_item.reason"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer l'action 'Partager un point positif'.",
+          "Proposer une solution qui augmenterait l'effort ou la réflexion nécessaire.",
+          "Utiliser des mots comme 'compliment', 'parfait', 'vrai point positif' ou toute autre formulation qui pourrait réintroduire la pression."
+        ],
+        "scope": "action",
+        "preserve": [
+          "L'intention générale de l'action : introduire des partages positifs réguliers.",
+          "La nature d'habitude de l'action (récurrente).",
+          "Le caractère de faible effort et de faible friction de l'habitude.",
+          "La fréquence de 3 jours par semaine.",
+          "Le moment de la journée (soir) si applicable et non mentionné par l'utilisateur."
+        ],
+        "warnings": [
+          "Ne pas réintroduire de complexité ou de subjectivité dans l'instruction.",
+          "Ne pas modifier la fréquence de l'habitude, l'utilisateur ayant explicitement demandé de la garder à 3 jours par semaine."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Guidelines action: Le rôle de l'action est de favoriser la positivité. L'intention de partager quelque chose de positif doit être préservée. La nouvelle instruction 'dire merci pour un truc concret' est un pont encore plus petit et plus direct, qui supprime l'aspect 'recherche' ou 'évaluation'. Le changement de nature vers une gratitude concrète est en ligne avec la demande de l'utilisateur de 'enlever le côté compliment parfait'.",
+          "Guidelines niveau: La demande de l'utilisateur est de ne pas toucher au niveau ('garder 3 jours par semaine'), ce qui est respecté.",
+          "Guidelines whole_plan: Le scope est limité à une action spécifique, la cohérence globale du plan n'est pas en jeu à ce stade."
+        ],
+        "observation": "L'utilisateur affine la formulation de l'instruction pour l'action 'Partager un point positif', cherchant à la rendre encore plus concrète et moins sujette à interprétation ou à la pression de la 'perfection'. La demande de 'dire merci pour un truc concret' est une tentative de simplifier l'exécution et de s'éloigner de la recherche d'un 'vrai point positif' ou d'un 'compliment'. La fréquence de 3 jours par semaine est explicitement confirmée, ce qui indique une stabilité sur la charge de l'habitude.",
+        "recommendation": "Valider la nouvelle instruction proposée par l'utilisateur : 'dire merci pour un truc concret'. Cette formulation répond directement au besoin de réduire la friction et la pression, en offrant une consigne claire et actionnable qui préserve l'intention de positivité sans exiger une recherche complexe ou une évaluation. Confirmer également le maintien de la fréquence à 3 jours par semaine.",
+        "options_to_discuss": [],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "action",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "action",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer l'action 'Partager un point positif'.",
+        "Proposer une solution qui augmenterait l'effort ou la réflexion nécessaire.",
+        "Utiliser des mots comme 'compliment', 'parfait', 'vrai point positif' ou toute autre formulation qui pourrait réintroduire la pression."
+      ],
+      "scope": "action",
+      "preserve": [
+        "L'intention générale de l'action : introduire des partages positifs réguliers.",
+        "La nature d'habitude de l'action (récurrente).",
+        "Le caractère de faible effort et de faible friction de l'habitude.",
+        "La fréquence de 3 jours par semaine.",
+        "Le moment de la journée (soir) si applicable et non mentionné par l'utilisateur."
+      ],
+      "warnings": [
+        "Ne pas réintroduire de complexité ou de subjectivité dans l'instruction.",
+        "Ne pas modifier la fréquence de l'habitude, l'utilisateur ayant explicitement demandé de la garder à 3 jours par semaine."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Guidelines action: Le rôle de l'action est de favoriser la positivité. L'intention de partager quelque chose de positif doit être préservée. La nouvelle instruction 'dire merci pour un truc concret' est un pont encore plus petit et plus direct, qui supprime l'aspect 'recherche' ou 'évaluation'. Le changement de nature vers une gratitude concrète est en ligne avec la demande de l'utilisateur de 'enlever le côté compliment parfait'.",
+        "Guidelines niveau: La demande de l'utilisateur est de ne pas toucher au niveau ('garder 3 jours par semaine'), ce qui est respecté.",
+        "Guidelines whole_plan: Le scope est limité à une action spécifique, la cohérence globale du plan n'est pas en jeu à ce stade."
+      ],
+      "observation": "L'utilisateur affine la formulation de l'instruction pour l'action 'Partager un point positif', cherchant à la rendre encore plus concrète et moins sujette à interprétation ou à la pression de la 'perfection'. La demande de 'dire merci pour un truc concret' est une tentative de simplifier l'exécution et de s'éloigner de la recherche d'un 'vrai point positif' ou d'un 'compliment'. La fréquence de 3 jours par semaine est explicitement confirmée, ce qui indique une stabilité sur la charge de l'habitude.",
+      "recommendation": "Valider la nouvelle instruction proposée par l'utilisateur : 'dire merci pour un truc concret'. Cette formulation répond directement au besoin de réduire la friction et la pression, en offrant une consigne claire et actionnable qui préserve l'intention de positivité sans exiger une recherche complexe ou une évaluation. Confirmer également le maintien de la fréquence à 3 jours par semaine.",
+      "options_to_discuss": [],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, exactement : rendre l'habitude plus simple et moins contraignante, sans changer la fréquence ni les autres actions.",
+    "assistant": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour la rendre plus facile à mettre en œuvre. Actuellement, l'instruction est 'écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif'. Pour enlever la pression de trouver un 'compliment parfait', je te propose de la changer en 'dire merci pour un truc concret'. Cela devrait te permettre de l'exécuter plus facilement et sans la contrainte de la 'perfection'. La fréquence de cette habitude restera à 3 jours par semaine, et toutes les autres actions de ton plan, comme 'Convenir d'un signal de pause' ou 'Faire le point sur le signal de pause', ne seront pas modifiées. Qu'en penses-tu ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "difficulty": "medium",
+            "instruction": "instruction:dire merci pour un truc concret",
+            "target_reps": 3,
+            "cadence_label": "3 jours / semaine"
+          },
+          "title": "Ajustement - Partager un point positif",
+          "confidence": "high",
+          "ack_summary": {
+            "changed": [
+              "ajustement de \"Partager un point positif\""
+            ],
+            "unchanged": [
+              "le reste du plan n'est pas touché"
+            ],
+            "confidence": "high",
+            "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+            "follow_up_needed": null
+          },
+          "scope_label": "Partager un point positif",
+          "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+          "decision_basis": {
+            "evidence": [
+              "Oui, exactement : rendre l'habitude plus simple et moins contraignante, sans changer la fréquence ni les autres actions.",
+              "L'action 'Partager un point positif'",
+              "me met encore la pression",
+              "enlever le côté compliment parfait",
+              "me met encore la pression"
+            ],
+            "confidence": "high",
+            "uncertainty": [],
+            "user_problem": "Partager un point positif bloque parce que l'entree est trop lourde.",
+            "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+            "must_preserve": [
+              "reprendre Partager un point positif apres la version mini"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "ajuster le plan de facon minimale",
+          "change_rationale": {
+            "why_this_change": "Ajuster \"Partager un point positif\" traite le blocage identifié sans changer le reste du plan.",
+            "success_condition": "L'action redevient faisable.",
+            "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+          },
+          "adjust_plan_result": {
+            "scope": "action",
+            "rationale": {
+              "confidence": "high",
+              "missing_info": [],
+              "user_problem": "L'habitude 'Partager un point positif' est bloquée car l'instruction actuelle génère une pression de 'perfection' ou de 'compliment parfait', rendant son exécution trop lourde.",
+              "expected_effect": "L'habitude 'Partager un point positif' devrait redevenir faisable et être exécutée plus régulièrement, favorisant la positivité sans la pression ressentie auparavant.",
+              "why_this_change": "Modifier l'instruction de l'habitude 'Partager un point positif' pour la rendre plus simple et concrète ('dire merci pour un truc concret') répond directement au blocage identifié en réduisant la friction et la charge cognitive, sans changer la fréquence ou le reste du plan."
+            },
+            "boundaries": {
+              "explanation": "Seule l'instruction de l'habitude ciblée est modifiée pour réduire la pression et faciliter son exécution, sans impacter la fréquence ou le reste du plan.",
+              "affected_scope": "L'ajustement est limité à l'habitude 'Partager un point positif'.",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "L'objectif global du plan",
+                "Les autres actions et habitudes du plan",
+                "La structure globale du plan"
+              ]
+            },
+            "applied_change": {
+              "summary": "Ajustement de l'habitude 'Partager un point positif' pour la rendre plus simple et concrète.",
+              "changed_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "after": "dire merci pour un truc concret",
+                  "title": "Partager un point positif",
+                  "before": "écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif",
+                  "reason": "Pour enlever la pression de trouver un 'compliment parfait' et rendre l'habitude plus simple et concrète à exécuter.",
+                  "capability": "change_action_frequency"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "La fréquence de 3 jours par semaine est maintenue comme demandé."
+                },
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "title": "Convenir d'un signal de pause",
+                  "reason": "Cette action n'est pas affectée par l'ajustement."
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "title": "Faire le point sur le signal de pause",
+                  "reason": "Cette action n'est pas affectée par l'ajustement."
+                },
+                {
+                  "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                  "kind": "clarification",
+                  "title": "Cartographier les déclencheurs",
+                  "reason": "Cette clarification n'est pas affectée par l'ajustement."
+                }
+              ]
+            },
+            "user_message_brief": "J'ai ajusté l'habitude 'Partager un point positif' pour la rendre plus simple et concrète, en gardant sa fréquence.",
+            "user_message_detailed": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour la rendre plus facile à mettre en œuvre. Actuellement, l'instruction est 'écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif'. Pour enlever la pression de trouver un 'compliment parfait', je te propose de la changer en 'dire merci pour un truc concret'. Cela devrait te permettre de l'exécuter plus facilement et sans la contrainte de la 'perfection'. La fréquence de cette habitude restera à 3 jours par semaine, et toutes les autres actions de ton plan, comme 'Convenir d'un signal de pause' ou 'Faire le point sur le signal de pause', ne seront pas modifiées. Qu'en penses-tu ?"
+          },
+          "execution_strategy": "patch_existing",
+          "allowed_patch_fields": [
+            "difficulty",
+            "duration_minutes",
+            "instruction",
+            "paused",
+            "target_reps",
+            "cadence_label"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait ! J'ai ajusté l'habitude 'Partager un point positif' pour la rendre plus simple et moins contraignante. L'instruction est maintenant 'dire merci pour un truc concret'. Cela devrait t'aider à l'exécuter plus facilement, sans la pression de devoir trouver un 'compliment parfait'. La fréquence de cette habitude reste bien à 3 jours par semaine, et le reste de ton plan n'a pas été touché. Je suis confiant que ce petit ajustement t'aidera à reprendre cette habitude positive.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour la rendre plus facile à mettre en œuvre. Actuellement, l'instruction est 'écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif'. Pour enlever la pression de trouver un 'compliment parfait', je te propose de la changer en 'dire merci pour un truc concret'. Cela devrait te permettre de l'exécuter plus facilement et sans la contrainte de la 'perfection'. La fréquence de cette habitude restera à 3 jours par semaine, et toutes les autres actions de ton plan, comme 'Convenir d'un signal de pause' ou 'Faire le point sur le signal de pause', ne seront pas modifiées. Qu'en penses-tu ?"
+      },
+      "status": "draft_review",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "6039f623-cdd3-4914-a46b-c56d7e6fb74b",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer l'action 'Partager un point positif'.",
+          "Proposer une solution qui augmenterait l'effort ou la réflexion nécessaire.",
+          "Utiliser des mots comme 'compliment', 'parfait', 'vrai point positif' ou toute autre formulation qui pourrait réintroduire la pression.",
+          "Modifier la fréquence ou les autres actions du plan."
+        ],
+        "scope": "action",
+        "preserve": [
+          "L'intention générale de l'action : introduire des partages positifs réguliers.",
+          "La nature d'habitude de l'action (récurrente).",
+          "Le caractère de faible effort et de faible friction de l'habitude.",
+          "La fréquence de 3 jours par semaine.",
+          "Le moment de la journée (soir) si applicable et non mentionné par l'utilisateur.",
+          "L'intégrité des autres actions et missions du plan."
+        ],
+        "warnings": [
+          "Ne pas réintroduire de complexité, de subjectivité ou d'exigence implicite dans la nouvelle instruction.",
+          "Ne pas modifier la fréquence de l'habitude, l'utilisateur ayant explicitement demandé de la garder à 3 jours par semaine.",
+          "Ne pas proposer de changements aux autres actions du plan, l'utilisateur ayant explicitement demandé de ne pas les toucher."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Guidelines action: Le rôle de l'action est de favoriser la positivité. L'intention de partager quelque chose de positif doit être préservée. La nouvelle instruction 'dire merci pour un truc concret' est un pont encore plus petit et plus direct, qui supprime l'aspect 'recherche' ou 'évaluation'. Le changement de nature vers une gratitude concrète est en ligne avec la demande de l'utilisateur de 'enlever le côté compliment parfait'.",
+          "Guidelines niveau: La demande de l'utilisateur est de ne pas toucher au niveau ('garder 3 jours par semaine'), ce qui est respecté.",
+          "Guidelines whole_plan: Le scope est limité à une action spécifique, la cohérence globale du plan n'est pas en jeu à ce stade."
+        ],
+        "observation": "L'utilisateur confirme explicitement la direction de l'ajustement : rendre l'habitude 'Partager un point positif' plus simple et moins contraignante, en préservant la fréquence et sans impacter les autres actions. Cela valide la proposition de modifier l'instruction pour la rendre plus concrète et moins sujette à la pression de la 'perfection'.",
+        "recommendation": "Procéder à l'ajustement de l'instruction de l'habitude 'Partager un point positif' vers une formulation plus simple et concrète, telle que 'dire merci pour un truc concret', tout en confirmant le maintien de la fréquence à 3 jours par semaine et l'intégrité des autres actions du plan. L'intention de faciliter l'exécution est pleinement validée.",
+        "options_to_discuss": [],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "action",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "action",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer l'action 'Partager un point positif'.",
+        "Proposer une solution qui augmenterait l'effort ou la réflexion nécessaire.",
+        "Utiliser des mots comme 'compliment', 'parfait', 'vrai point positif' ou toute autre formulation qui pourrait réintroduire la pression.",
+        "Modifier la fréquence ou les autres actions du plan."
+      ],
+      "scope": "action",
+      "preserve": [
+        "L'intention générale de l'action : introduire des partages positifs réguliers.",
+        "La nature d'habitude de l'action (récurrente).",
+        "Le caractère de faible effort et de faible friction de l'habitude.",
+        "La fréquence de 3 jours par semaine.",
+        "Le moment de la journée (soir) si applicable et non mentionné par l'utilisateur.",
+        "L'intégrité des autres actions et missions du plan."
+      ],
+      "warnings": [
+        "Ne pas réintroduire de complexité, de subjectivité ou d'exigence implicite dans la nouvelle instruction.",
+        "Ne pas modifier la fréquence de l'habitude, l'utilisateur ayant explicitement demandé de la garder à 3 jours par semaine.",
+        "Ne pas proposer de changements aux autres actions du plan, l'utilisateur ayant explicitement demandé de ne pas les toucher."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Guidelines action: Le rôle de l'action est de favoriser la positivité. L'intention de partager quelque chose de positif doit être préservée. La nouvelle instruction 'dire merci pour un truc concret' est un pont encore plus petit et plus direct, qui supprime l'aspect 'recherche' ou 'évaluation'. Le changement de nature vers une gratitude concrète est en ligne avec la demande de l'utilisateur de 'enlever le côté compliment parfait'.",
+        "Guidelines niveau: La demande de l'utilisateur est de ne pas toucher au niveau ('garder 3 jours par semaine'), ce qui est respecté.",
+        "Guidelines whole_plan: Le scope est limité à une action spécifique, la cohérence globale du plan n'est pas en jeu à ce stade."
+      ],
+      "observation": "L'utilisateur confirme explicitement la direction de l'ajustement : rendre l'habitude 'Partager un point positif' plus simple et moins contraignante, en préservant la fréquence et sans impacter les autres actions. Cela valide la proposition de modifier l'instruction pour la rendre plus concrète et moins sujette à la pression de la 'perfection'.",
+      "recommendation": "Procéder à l'ajustement de l'instruction de l'habitude 'Partager un point positif' vers une formulation plus simple et concrète, telle que 'dire merci pour un truc concret', tout en confirmant le maintien de la fréquence à 3 jours par semaine et l'intégrité des autres actions du plan. L'intention de faciliter l'exécution est pleinement validée.",
+      "options_to_discuss": [],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, je valide. Applique seulement cet ajustement sur 'Partager un point positif' : instruction 'dire merci pour un truc concret', fréquence 3 jours, rien d'autre.",
+    "assistant": "C'est fait ! J'ai ajusté l'habitude 'Partager un point positif' pour la rendre plus simple et moins contraignante. L'instruction est maintenant 'dire merci pour un truc concret'. Cela devrait t'aider à l'exécuter plus facilement, sans la pression de devoir trouver un 'compliment parfait'. La fréquence de cette habitude reste bien à 3 jours par semaine, et le reste de ton plan n'a pas été touché. Je suis confiant que ce petit ajustement t'aidera à reprendre cette habitude positive. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "executed",
+      "reason_code": "normal_reply_default",
+      "operation_id": "6039f623-cdd3-4914-a46b-c56d7e6fb74b",
+      "plan_patch_id": "6683aa27-9957-4c9a-a5d1-72471c602dbe",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer l'action 'Partager un point positif'.",
+          "Proposer une solution qui augmenterait l'effort ou la réflexion nécessaire.",
+          "Utiliser des mots comme 'compliment', 'parfait', 'vrai point positif' ou toute autre formulation qui pourrait réintroduire la pression.",
+          "Modifier la fréquence ou les autres actions du plan."
+        ],
+        "scope": "action",
+        "preserve": [
+          "L'intention générale de l'action : introduire des partages positifs réguliers.",
+          "La nature d'habitude de l'action (récurrente).",
+          "Le caractère de faible effort et de faible friction de l'habitude.",
+          "La fréquence de 3 jours par semaine.",
+          "Le moment de la journée (soir) si applicable et non mentionné par l'utilisateur.",
+          "L'intégrité des autres actions et missions du plan."
+        ],
+        "warnings": [
+          "Ne pas réintroduire de complexité, de subjectivité ou d'exigence implicite dans la nouvelle instruction.",
+          "Ne pas modifier la fréquence de l'habitude, l'utilisateur ayant explicitement demandé de la garder à 3 jours par semaine.",
+          "Ne pas proposer de changements aux autres actions du plan, l'utilisateur ayant explicitement demandé de ne pas les toucher."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Guidelines action: Le rôle de l'action est de favoriser la positivité. L'intention de partager quelque chose de positif doit être préservée. La nouvelle instruction 'dire merci pour un truc concret' est un pont encore plus petit et plus direct, qui supprime l'aspect 'recherche' ou 'évaluation'. Le changement de nature vers une gratitude concrète est en ligne avec la demande de l'utilisateur de 'enlever le côté compliment parfait'.",
+          "Guidelines niveau: La demande de l'utilisateur est de ne pas toucher au niveau ('garder 3 jours par semaine'), ce qui est respecté.",
+          "Guidelines whole_plan: Le scope est limité à une action spécifique, la cohérence globale du plan n'est pas en jeu à ce stade."
+        ],
+        "observation": "L'utilisateur confirme explicitement la direction de l'ajustement : rendre l'habitude 'Partager un point positif' plus simple et moins contraignante, en préservant la fréquence et sans impacter les autres actions. Cela valide la proposition de modifier l'instruction pour la rendre plus concrète et moins sujette à la pression de la 'perfection'.",
+        "recommendation": "Procéder à l'ajustement de l'instruction de l'habitude 'Partager un point positif' vers une formulation plus simple et concrète, telle que 'dire merci pour un truc concret', tout en confirmant le maintien de la fréquence à 3 jours par semaine et l'intégrité des autres actions du plan. L'intention de faciliter l'exécution est pleinement validée.",
+        "options_to_discuss": [],
+        "questions_to_clarify": []
+      },
+      "bridge_plan_item_id": null,
+      "coaching_guidance_audit": {
+        "scope": "action",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "action",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer l'action 'Partager un point positif'.",
+        "Proposer une solution qui augmenterait l'effort ou la réflexion nécessaire.",
+        "Utiliser des mots comme 'compliment', 'parfait', 'vrai point positif' ou toute autre formulation qui pourrait réintroduire la pression.",
+        "Modifier la fréquence ou les autres actions du plan."
+      ],
+      "scope": "action",
+      "preserve": [
+        "L'intention générale de l'action : introduire des partages positifs réguliers.",
+        "La nature d'habitude de l'action (récurrente).",
+        "Le caractère de faible effort et de faible friction de l'habitude.",
+        "La fréquence de 3 jours par semaine.",
+        "Le moment de la journée (soir) si applicable et non mentionné par l'utilisateur.",
+        "L'intégrité des autres actions et missions du plan."
+      ],
+      "warnings": [
+        "Ne pas réintroduire de complexité, de subjectivité ou d'exigence implicite dans la nouvelle instruction.",
+        "Ne pas modifier la fréquence de l'habitude, l'utilisateur ayant explicitement demandé de la garder à 3 jours par semaine.",
+        "Ne pas proposer de changements aux autres actions du plan, l'utilisateur ayant explicitement demandé de ne pas les toucher."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Guidelines action: Le rôle de l'action est de favoriser la positivité. L'intention de partager quelque chose de positif doit être préservée. La nouvelle instruction 'dire merci pour un truc concret' est un pont encore plus petit et plus direct, qui supprime l'aspect 'recherche' ou 'évaluation'. Le changement de nature vers une gratitude concrète est en ligne avec la demande de l'utilisateur de 'enlever le côté compliment parfait'.",
+        "Guidelines niveau: La demande de l'utilisateur est de ne pas toucher au niveau ('garder 3 jours par semaine'), ce qui est respecté.",
+        "Guidelines whole_plan: Le scope est limité à une action spécifique, la cohérence globale du plan n'est pas en jeu à ce stade."
+      ],
+      "observation": "L'utilisateur confirme explicitement la direction de l'ajustement : rendre l'habitude 'Partager un point positif' plus simple et moins contraignante, en préservant la fréquence et sans impacter les autres actions. Cela valide la proposition de modifier l'instruction pour la rendre plus concrète et moins sujette à la pression de la 'perfection'.",
+      "recommendation": "Procéder à l'ajustement de l'instruction de l'habitude 'Partager un point positif' vers une formulation plus simple et concrète, telle que 'dire merci pour un truc concret', tout en confirmant le maintien de la fréquence à 3 jours par semaine et l'intégrité des autres actions du plan. L'intention de faciliter l'exécution est pleinement validée.",
+      "options_to_discuss": [],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r41c-action-specific-t04",
+    "trace_error": null
+  }
+]

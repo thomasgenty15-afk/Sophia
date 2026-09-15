@@ -1,0 +1,158 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r69-whole-plan-natural-t01",
+    "status": 200,
+    "ok": true,
+    "user": "En regardant la suite du plan, je trouve que la prochaine étape arrive trop vite. Avant les conversations sensibles, je voudrais une étape intermédiaire plus sécurisante.",
+    "assistant": "Je dois reprendre le brouillon proprement. Quelle étape intermédiaire concrète veux-tu entre le niveau actuel et les conversations sensibles : prolonger la consolidation actuelle, ou intercaler un sas très léger de préparation ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer d’attaquer directement les conversations sensibles dans la prochaine étape.",
+          "Ne pas proposer un changement de nature du plan vers du conseil de communication intensif sans base de sécurité.",
+          "Ne pas suggérer une augmentation de charge ou de fréquence au moment où la demande exprime un besoin d’allègement.",
+          "Ne pas présenter l’étape intermédiaire comme facultative si elle est nécessaire pour préserver la cohérence du rythme.",
+          "Ne pas donner l’impression que le plan est figé si une réorganisation est nécessaire pour respecter la progression."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "Le cœur du niveau actuel: désamorcer, observer et recréer de la sécurité.",
+          "Les outils déjà en place pour éviter l’escalade, notamment les signaux de pause et l’observation à froid.",
+          "La progression par paliers plutôt qu’un saut direct vers les échanges sensibles.",
+          "L’objectif global de mieux vivre les conversations, sans forcer le rythme.",
+          "La logique de consolidation avant exposition aux sujets les plus délicats."
+        ],
+        "warnings": [
+          "Éviter de répondre comme si la demande n’était qu’un simple micro-ajustement d’habitude; le signal porte sur l’enchaînement global.",
+          "Éviter d’ajouter une nouvelle étape qui crée de la charge sans réduire clairement la pression avant les conversations sensibles.",
+          "Éviter de supprimer ou de court-circuiter les étapes de sécurité déjà présentes; elles servent de base au réordonnancement.",
+          "Éviter toute proposition qui donne l’impression d’accélérer vers le dialogue sensible alors que la demande explicite l’inverse.",
+          "Éviter de modifier l’objectif relationnel du plan: il s’agit d’une progression plus soutenable, pas d’un changement de direction."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Action: préserver la fonction de chaque étape et, si besoin, intercaler un pont mini qui réduit la pression sans changer la nature de l’action.",
+          "Action: ne pas remplacer une mission de sécurité par une conversation sensible implicite; garder une séparation claire entre préparation et exposition.",
+          "Niveau: respecter la charge et le rythme du niveau courant; si l’allègement doit dépasser sa fin, poser le repère pour le niveau suivant plutôt que bouleverser toute la trajectoire.",
+          "Niveau: maintenir le cœur du niveau actuel, qui est la sécurité relationnelle; une baisse temporaire de rythme ne doit pas devenir une baisse globale de l’ambition.",
+          "Whole plan: préserver l’ordre des phases et le rôle des prérequis; l’exposition aux sujets sensibles doit venir après consolidation, pas avant.",
+          "Whole plan: si une étape intermédiaire est ajoutée, elle doit servir de sas de stabilité et non devenir une nouvelle direction du plan.",
+          "Whole plan: garder le questionnaire et les marqueurs d’observation qui permettent de vérifier que la sécurité progresse avant d’ouvrir le volet sensible.",
+          "Whole plan: ne pas casser la trajectoire globale; réordonner avec prudence, en gardant la logique de montée graduelle."
+        ],
+        "observation": "La demande ne vise pas un simple ajustement local, mais un besoin de réordonnancement de la trajectoire: la personne perçoit que le plan bascule trop vite vers des échanges sensibles alors que la sécurité relationnelle n’est pas encore assez installée. Le vrai enjeu humain est la protection contre la surcharge émotionnelle et la défensive, plus que la faisabilité technique d’une étape supplémentaire.",
+        "recommendation": "Orienter la réponse vers une pause de trajectoire: préserver l’intention du plan tout en introduisant un sas intermédiaire plus sécurisant avant les conversations sensibles. Le sous-skill devrait proposer une progression plus graduelle, sans transformer la nature du plan ni avancer la partie sensible tant que le socle de sécurité n’est pas suffisamment consolidé.",
+        "options_to_discuss": [
+          "Insérer une étape intermédiaire de stabilisation centrée sur la sécurité émotionnelle avant tout sujet sensible.",
+          "Prolonger temporairement le niveau actuel pour consolider les réflexes de pause, d’observation et de régulation.",
+          "Fractionner la prochaine phase sensible en sous-étapes: préparation à froid, test léger, puis conversation complète.",
+          "Conserver les actions déjà engagées mais déplacer le seuil de passage vers les conversations sensibles à plus tard.",
+          "Ajouter un pont très léger de préparation qui ne demande pas d’échange conflictuel, seulement de la mise en condition."
+        ],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer d’attaquer directement les conversations sensibles dans la prochaine étape.",
+        "Ne pas proposer un changement de nature du plan vers du conseil de communication intensif sans base de sécurité.",
+        "Ne pas suggérer une augmentation de charge ou de fréquence au moment où la demande exprime un besoin d’allègement.",
+        "Ne pas présenter l’étape intermédiaire comme facultative si elle est nécessaire pour préserver la cohérence du rythme.",
+        "Ne pas donner l’impression que le plan est figé si une réorganisation est nécessaire pour respecter la progression."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "Le cœur du niveau actuel: désamorcer, observer et recréer de la sécurité.",
+        "Les outils déjà en place pour éviter l’escalade, notamment les signaux de pause et l’observation à froid.",
+        "La progression par paliers plutôt qu’un saut direct vers les échanges sensibles.",
+        "L’objectif global de mieux vivre les conversations, sans forcer le rythme.",
+        "La logique de consolidation avant exposition aux sujets les plus délicats."
+      ],
+      "warnings": [
+        "Éviter de répondre comme si la demande n’était qu’un simple micro-ajustement d’habitude; le signal porte sur l’enchaînement global.",
+        "Éviter d’ajouter une nouvelle étape qui crée de la charge sans réduire clairement la pression avant les conversations sensibles.",
+        "Éviter de supprimer ou de court-circuiter les étapes de sécurité déjà présentes; elles servent de base au réordonnancement.",
+        "Éviter toute proposition qui donne l’impression d’accélérer vers le dialogue sensible alors que la demande explicite l’inverse.",
+        "Éviter de modifier l’objectif relationnel du plan: il s’agit d’une progression plus soutenable, pas d’un changement de direction."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Action: préserver la fonction de chaque étape et, si besoin, intercaler un pont mini qui réduit la pression sans changer la nature de l’action.",
+        "Action: ne pas remplacer une mission de sécurité par une conversation sensible implicite; garder une séparation claire entre préparation et exposition.",
+        "Niveau: respecter la charge et le rythme du niveau courant; si l’allègement doit dépasser sa fin, poser le repère pour le niveau suivant plutôt que bouleverser toute la trajectoire.",
+        "Niveau: maintenir le cœur du niveau actuel, qui est la sécurité relationnelle; une baisse temporaire de rythme ne doit pas devenir une baisse globale de l’ambition.",
+        "Whole plan: préserver l’ordre des phases et le rôle des prérequis; l’exposition aux sujets sensibles doit venir après consolidation, pas avant.",
+        "Whole plan: si une étape intermédiaire est ajoutée, elle doit servir de sas de stabilité et non devenir une nouvelle direction du plan.",
+        "Whole plan: garder le questionnaire et les marqueurs d’observation qui permettent de vérifier que la sécurité progresse avant d’ouvrir le volet sensible.",
+        "Whole plan: ne pas casser la trajectoire globale; réordonner avec prudence, en gardant la logique de montée graduelle."
+      ],
+      "observation": "La demande ne vise pas un simple ajustement local, mais un besoin de réordonnancement de la trajectoire: la personne perçoit que le plan bascule trop vite vers des échanges sensibles alors que la sécurité relationnelle n’est pas encore assez installée. Le vrai enjeu humain est la protection contre la surcharge émotionnelle et la défensive, plus que la faisabilité technique d’une étape supplémentaire.",
+      "recommendation": "Orienter la réponse vers une pause de trajectoire: préserver l’intention du plan tout en introduisant un sas intermédiaire plus sécurisant avant les conversations sensibles. Le sous-skill devrait proposer une progression plus graduelle, sans transformer la nature du plan ni avancer la partie sensible tant que le socle de sécurité n’est pas suffisamment consolidé.",
+      "options_to_discuss": [
+        "Insérer une étape intermédiaire de stabilisation centrée sur la sécurité émotionnelle avant tout sujet sensible.",
+        "Prolonger temporairement le niveau actuel pour consolider les réflexes de pause, d’observation et de régulation.",
+        "Fractionner la prochaine phase sensible en sous-étapes: préparation à froid, test léger, puis conversation complète.",
+        "Conserver les actions déjà engagées mais déplacer le seuil de passage vers les conversations sensibles à plus tard.",
+        "Ajouter un pont très léger de préparation qui ne demande pas d’échange conflictuel, seulement de la mise en condition."
+      ],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r69-whole-plan-natural-t01",
+    "trace_error": null
+  }
+]

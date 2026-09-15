@@ -1,0 +1,897 @@
+{
+  "ok": true,
+  "request_id": "demotivation_repair_20260602_r1-t01",
+  "user_id": "85c5cbc9-47f2-41a5-83e5-aa8c8073d7e4",
+  "channel": "web",
+  "scope": "demotivation_repair_20260602_r1",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Je comprends ce 'à quoi bon', c'est un signal de perte de sens, pas un manque de volonté. Quand l'utilité s'efface, l'écran devient un mur. Je te suggère de ne rien décider pour l'instant. Est-ce que ce sentiment est lié à une tâche précise ou c'est l'ensemble qui te semble vide ? 🙂",
+    "mode": "companion",
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "demotivation_repair_20260602_r1-t01",
+        "source_message_id": "b9ccecdb-cde1-4782-98ee-15b7cc484ca1",
+        "user_id": "85c5cbc9-47f2-41a5-83e5-aa8c8073d7e4",
+        "channel": "web",
+        "safety": {
+          "risk_band": "low",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "detected": false,
+              "weight": 3.5,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "detected": false,
+              "weight": 2.5,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "anger_or_profanity",
+              "detected": false,
+              "weight": 2,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "repetition_or_correction",
+              "detected": false,
+              "weight": 1.5,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "typographic_intensity",
+              "detected": false,
+              "weight": 0.7,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "active_flow_pressure",
+              "detected": false,
+              "weight": 1,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "previous_risk",
+              "detected": false,
+              "weight": 10,
+              "contribution": 0,
+              "evidence": null
+            }
+          ],
+          "context_summary": null,
+          "flow_exit_context": null
+        },
+        "direct_effects": [],
+        "tool_skill_intents": [],
+        "tool_skill_opportunity": {
+          "type": "state_potion",
+          "operation_type": "select_state_potion",
+          "surface_id": "potion.state",
+          "suggested_question_intent": "offer_state_potion",
+          "confidence_band": "medium",
+          "should_offer": false,
+          "prop_reason": "demotivation_and_existential_friction_detected",
+          "source_span": "vieux 'a quoi bon' qui revient",
+          "target_hint": "clarte ou apaisement",
+          "target_status": "ambiguous",
+          "offer_timing": "never",
+          "must_not_execute": true
+        },
+        "skill_signals": {
+          "entry": {
+            "demotivation_repair": {
+              "detected": true,
+              "confidence_band": "high",
+              "reason": "user_expresses_demotivation_and_existential_weariness"
+            }
+          },
+          "lifecycle": {},
+          "exit": {}
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": null
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": null
+        },
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "targeted",
+          "memory_mode": "light",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "small",
+          "targets": [
+            {
+              "type": "domain_key",
+              "key": "psychologie.motivation",
+              "query_hint": "patterns de demotivation ou a quoi bon",
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first",
+              "priority": "medium",
+              "entity_type": null
+            }
+          ],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        },
+        "confirmation_response": null
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "conversation_handler",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "skill_entry_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "none",
+          "active_owner": "none",
+          "selected_owner": "none",
+          "resume_policy": "none",
+          "reason_code": "no_active_flow"
+        },
+        "selected_handler": "demotivation_repair"
+      },
+      "turn_agenda_summary": {
+        "task_count": 1,
+        "owners": [
+          "dispatcher"
+        ],
+        "operation_types": [],
+        "constraints": {},
+        "tasks": [
+          {
+            "task_id": "clarification:dispatcher",
+            "kind": "clarification",
+            "owner": "dispatcher",
+            "operation_type": null,
+            "intent": "clarify",
+            "source": "dispatcher",
+            "status": "requested",
+            "reason_code": "clarification_required"
+          }
+        ]
+      },
+      "skill_run": {
+        "selected_skill_id": "demotivation_repair",
+        "reason_code": "skill_entry_signal",
+        "output": {
+          "skill_id": "demotivation_repair",
+          "status": "continue",
+          "response_intent": "loss_of_meaning",
+          "memory_trace": {
+            "memory_used_for_response": false,
+            "memory_item_ids_used": [],
+            "correction_detected": false,
+            "correction_target_item_ids": []
+          },
+          "reply": "Je comprends ce 'à quoi bon', c'est un signal de perte de sens, pas un manque de volonté. Quand l'utilité s'efface, l'écran devient un mur. Je te suggère de ne rien décider pour l'instant. Est-ce que ce sentiment est lié à une tâche précise ou c'est l'ensemble qui te semble vide ?",
+          "diagnosis": {
+            "intent": "loss_of_meaning",
+            "phase": "diagnose",
+            "motivation_state": "loss_of_meaning",
+            "action_readiness": "none",
+            "constraints": [
+              "one_question_max",
+              "concrete_before_question",
+              "short_reply",
+              "do_not_moralize",
+              "do_not_modify_plan_yet",
+              "prefer_smallest_action"
+            ],
+            "response_contract": {
+              "max_questions": 1,
+              "allow_plan_edit": false,
+              "allow_tool_suggestion": true,
+              "allow_potion_suggestion": true,
+              "allow_attack_card_suggestion": false,
+              "allow_concrete_action": true,
+              "tone": "grounded"
+            },
+            "intake_status": "structured"
+          },
+          "recommendation_need": {
+            "needed": true,
+            "type": "motivation_repair",
+            "urgency": "medium",
+            "constraints": [
+              "one_question_max",
+              "concrete_before_question",
+              "short_reply",
+              "do_not_moralize",
+              "do_not_modify_plan_yet",
+              "prefer_smallest_action"
+            ]
+          },
+          "operation_suggestions": [
+            {
+              "operation_type": "select_state_potion",
+              "reason": "Pour aider à retrouver un peu de clarté ou de recul face au sentiment de vide.",
+              "confidence_band": "medium",
+              "urgency": "medium",
+              "source_skill_id": "demotivation_repair",
+              "operation_input_hint": {
+                "target_state": "clarity"
+              },
+              "requires_user_consent": true
+            }
+          ],
+          "memory_write_candidates": [
+            {
+              "kind": "statement",
+              "content_text": "L'utilisateur ressent un retour du sentiment de perte de sens ('à quoi bon') face à sa liste de tâches.",
+              "evidence_source_ids": [
+                "b9ccecdb-cde1-4782-98ee-15b7cc484ca1"
+              ],
+              "confidence_band": "medium",
+              "sensitivity_level": 1,
+              "persistence_rationale": "Capture le pattern de perte de sens sans l'étiqueter comme trait de caractère permanent.",
+              "should_persist_default": false,
+              "anti_identity_freeze_checked": true,
+              "scope_hint": "session"
+            }
+          ],
+          "effects": {
+            "requested": [
+              {
+                "type": "operation_suggestion",
+                "operation_type": "select_state_potion",
+                "requires_user_consent": true
+              },
+              {
+                "type": "memory_write_candidate",
+                "kind": "statement",
+                "should_persist_default": false
+              }
+            ],
+            "allowed": [
+              {
+                "type": "operation_suggestion_candidate",
+                "operation_type": "select_state_potion",
+                "reason_code": "conversation_suggestion_only"
+              },
+              {
+                "type": "memory_write_candidate",
+                "reason_code": "candidate_only_not_committed"
+              }
+            ],
+            "blocked": [],
+            "committed": []
+          },
+          "state_patch": {
+            "last_detected_state": "loss_of_meaning",
+            "intake_status": "structured",
+            "demotivation_repair_decision": {
+              "skill_id": "demotivation_repair",
+              "intent": "loss_of_meaning",
+              "phase": "diagnose",
+              "motivation_state": "loss_of_meaning",
+              "action_readiness": "none",
+              "constraints": [
+                "one_question_max",
+                "concrete_before_question",
+                "short_reply",
+                "do_not_moralize",
+                "do_not_modify_plan_yet",
+                "prefer_smallest_action"
+              ],
+              "response_contract": {
+                "max_questions": 1,
+                "allow_plan_edit": false,
+                "allow_tool_suggestion": true,
+                "allow_potion_suggestion": true,
+                "allow_attack_card_suggestion": false,
+                "allow_concrete_action": true,
+                "tone": "grounded"
+              },
+              "operation_suggestions": [
+                {
+                  "operation_type": "select_state_potion",
+                  "reason": "Pour aider à retrouver un peu de clarté ou de recul face au sentiment de vide.",
+                  "requires_user_consent": true,
+                  "operation_input_hint": {
+                    "target_state": "clarity"
+                  }
+                }
+              ],
+              "memory_write_candidates": [
+                {
+                  "source_text": "L'utilisateur ressent un retour du sentiment de perte de sens ('à quoi bon') face à sa liste de tâches.",
+                  "should_persist_default": false,
+                  "anti_identity_freeze_checked": true,
+                  "sensitivity_level": 1,
+                  "reason": "Capture le pattern de perte de sens sans l'étiqueter comme trait de caractère permanent."
+                }
+              ],
+              "reply": "Je comprends ce 'à quoi bon', c'est un signal de perte de sens, pas un manque de volonté. Quand l'utilité s'efface, l'écran devient un mur. Je te suggère de ne rien décider pour l'instant. Est-ce que ce sentiment est lié à une tâche précise ou c'est l'ensemble qui te semble vide ?",
+              "state_patch": {
+                "last_detected_state": "loss_of_meaning"
+              }
+            }
+          }
+        }
+      },
+      "recommendation_tool_run": {
+        "recommendation": {
+          "recommendation_id": "skill:demotivation_repair:select_state_potion:demotivation_repair_20260602_r1-t01",
+          "decision": "recommend_operation",
+          "surface_id": "potion.state",
+          "executor_tool_id": null,
+          "operation_type": "select_state_potion",
+          "operation_input": {
+            "target_state": "clarity"
+          },
+          "confidence": 0.72,
+          "timing": "now",
+          "presentation_level": 2,
+          "cta_style": "soft",
+          "requires_consent": true,
+          "reason": "Pour aider à retrouver un peu de clarté ou de recul face au sentiment de vide.",
+          "user_facing_offer": "Je peux te proposer Potion d'etat si tu veux passer par le flow propre.",
+          "alternatives": [],
+          "do_not_recommend": []
+        },
+        "stats": null
+      },
+      "effect_ledger": {
+        "turn_id": "demotivation_repair_20260602_r1-t01",
+        "counts": {
+          "requested": 1,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 1,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": [
+          {
+            "effect_id": "demotivation_repair_20260602_r1-t01:agenda:requested:clarification:dispatcher",
+            "kind": "clarification",
+            "effect_type": "clarification.target",
+            "operation_type": null,
+            "operation_id": null,
+            "committed_id": null,
+            "tool_id": "dispatcher",
+            "status": "requested",
+            "reason_code": "clarification_required",
+            "source": "dispatcher",
+            "payload_summary": {
+              "task_id": "clarification:dispatcher",
+              "source": "dispatcher",
+              "evidence": [
+                "select_state_potion"
+              ]
+            },
+            "db_ref": null,
+            "error_message": null,
+            "surface_id": null,
+            "no_chat_mutation": true,
+            "committed": false,
+            "executed_tool": false,
+            "owner": "dispatcher",
+            "ambiguity_kind": "target",
+            "candidate_ids": [
+              "select_state_potion"
+            ],
+            "selected_candidate_id": null
+          },
+          {
+            "effect_id": "demotivation_repair_20260602_r1-t01:recommendation:recommend_operation:skill:demotivation_repair:select_state_potion:demotivation_repair_20260602_r1-t01",
+            "kind": "platform_handoff",
+            "effect_type": "platform_handoff.select_state_potion",
+            "operation_type": "select_state_potion",
+            "operation_id": "skill:demotivation_repair:select_state_potion:demotivation_repair_20260602_r1-t01",
+            "committed_id": null,
+            "tool_id": "select_state_potion",
+            "status": "proposed",
+            "reason_code": "Pour aider à retrouver un peu de clarté ou de recul face au sentiment de vide.",
+            "source": "recommendation_tool",
+            "payload_summary": {
+              "decision": "recommend_operation",
+              "surface_id": "potion.state",
+              "requires_consent": true,
+              "presentation_level": 2
+            },
+            "db_ref": null,
+            "error_message": null,
+            "surface_id": "potion.state",
+            "no_chat_mutation": true,
+            "committed": false,
+            "executed_tool": false,
+            "owner": null,
+            "ambiguity_kind": null,
+            "selected_candidate_id": null
+          }
+        ]
+      },
+      "response_owner": "conversation_handler"
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "demotivation_repair_20260602_r1-t01",
+      "source_message_id": "b9ccecdb-cde1-4782-98ee-15b7cc484ca1",
+      "user_id": "85c5cbc9-47f2-41a5-83e5-aa8c8073d7e4",
+      "channel": "web",
+      "safety": {
+        "risk_band": "low",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [
+          {
+            "signal": "system_misunderstanding",
+            "detected": false,
+            "weight": 3.5,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "explicit_stop_or_abandon",
+            "detected": false,
+            "weight": 2.5,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "anger_or_profanity",
+            "detected": false,
+            "weight": 2,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "repetition_or_correction",
+            "detected": false,
+            "weight": 1.5,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "typographic_intensity",
+            "detected": false,
+            "weight": 0.7,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "active_flow_pressure",
+            "detected": false,
+            "weight": 1,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "previous_risk",
+            "detected": false,
+            "weight": 10,
+            "contribution": 0,
+            "evidence": null
+          }
+        ],
+        "context_summary": null,
+        "flow_exit_context": null
+      },
+      "direct_effects": [],
+      "tool_skill_intents": [],
+      "tool_skill_opportunity": {
+        "type": "state_potion",
+        "operation_type": "select_state_potion",
+        "surface_id": "potion.state",
+        "suggested_question_intent": "offer_state_potion",
+        "confidence_band": "medium",
+        "should_offer": false,
+        "prop_reason": "demotivation_and_existential_friction_detected",
+        "source_span": "vieux 'a quoi bon' qui revient",
+        "target_hint": "clarte ou apaisement",
+        "target_status": "ambiguous",
+        "offer_timing": "never",
+        "must_not_execute": true
+      },
+      "skill_signals": {
+        "entry": {
+          "demotivation_repair": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "user_expresses_demotivation_and_existential_weariness"
+          }
+        },
+        "lifecycle": {},
+        "exit": {}
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": null
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": null
+      },
+      "memory_plan": {
+        "response_intent": "reflection",
+        "reasoning_complexity": "low",
+        "context_need": "targeted",
+        "memory_mode": "light",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "small",
+        "targets": [
+          {
+            "type": "domain_key",
+            "key": "psychologie.motivation",
+            "query_hint": "patterns de demotivation ou a quoi bon",
+            "expansion_policy": null,
+            "retrieval_policy": "semantic_first",
+            "priority": "medium",
+            "entity_type": null
+          }
+        ],
+        "retrieval_policy": "semantic_first",
+        "plan_confidence": 0.7
+      },
+      "confirmation_response": null
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "conversation_handler",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "skill_entry_signal",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "active_flow_arbitration": {
+        "decision": "none",
+        "active_owner": "none",
+        "selected_owner": "none",
+        "resume_policy": "none",
+        "reason_code": "no_active_flow"
+      },
+      "selected_handler": "demotivation_repair"
+    },
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "dispatcher"
+      ],
+      "operation_types": [],
+      "constraints": {},
+      "tasks": [
+        {
+          "task_id": "clarification:dispatcher",
+          "kind": "clarification",
+          "owner": "dispatcher",
+          "operation_type": null,
+          "intent": "clarify",
+          "source": "dispatcher",
+          "status": "requested",
+          "reason_code": "clarification_required"
+        }
+      ]
+    },
+    "skill_run": {
+      "selected_skill_id": "demotivation_repair",
+      "reason_code": "skill_entry_signal",
+      "output": {
+        "skill_id": "demotivation_repair",
+        "status": "continue",
+        "response_intent": "loss_of_meaning",
+        "memory_trace": {
+          "memory_used_for_response": false,
+          "memory_item_ids_used": [],
+          "correction_detected": false,
+          "correction_target_item_ids": []
+        },
+        "reply": "Je comprends ce 'à quoi bon', c'est un signal de perte de sens, pas un manque de volonté. Quand l'utilité s'efface, l'écran devient un mur. Je te suggère de ne rien décider pour l'instant. Est-ce que ce sentiment est lié à une tâche précise ou c'est l'ensemble qui te semble vide ?",
+        "diagnosis": {
+          "intent": "loss_of_meaning",
+          "phase": "diagnose",
+          "motivation_state": "loss_of_meaning",
+          "action_readiness": "none",
+          "constraints": [
+            "one_question_max",
+            "concrete_before_question",
+            "short_reply",
+            "do_not_moralize",
+            "do_not_modify_plan_yet",
+            "prefer_smallest_action"
+          ],
+          "response_contract": {
+            "max_questions": 1,
+            "allow_plan_edit": false,
+            "allow_tool_suggestion": true,
+            "allow_potion_suggestion": true,
+            "allow_attack_card_suggestion": false,
+            "allow_concrete_action": true,
+            "tone": "grounded"
+          },
+          "intake_status": "structured"
+        },
+        "recommendation_need": {
+          "needed": true,
+          "type": "motivation_repair",
+          "urgency": "medium",
+          "constraints": [
+            "one_question_max",
+            "concrete_before_question",
+            "short_reply",
+            "do_not_moralize",
+            "do_not_modify_plan_yet",
+            "prefer_smallest_action"
+          ]
+        },
+        "operation_suggestions": [
+          {
+            "operation_type": "select_state_potion",
+            "reason": "Pour aider à retrouver un peu de clarté ou de recul face au sentiment de vide.",
+            "confidence_band": "medium",
+            "urgency": "medium",
+            "source_skill_id": "demotivation_repair",
+            "operation_input_hint": {
+              "target_state": "clarity"
+            },
+            "requires_user_consent": true
+          }
+        ],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "content_text": "L'utilisateur ressent un retour du sentiment de perte de sens ('à quoi bon') face à sa liste de tâches.",
+            "evidence_source_ids": [
+              "b9ccecdb-cde1-4782-98ee-15b7cc484ca1"
+            ],
+            "confidence_band": "medium",
+            "sensitivity_level": 1,
+            "persistence_rationale": "Capture le pattern de perte de sens sans l'étiqueter comme trait de caractère permanent.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true,
+            "scope_hint": "session"
+          }
+        ],
+        "effects": {
+          "requested": [
+            {
+              "type": "operation_suggestion",
+              "operation_type": "select_state_potion",
+              "requires_user_consent": true
+            },
+            {
+              "type": "memory_write_candidate",
+              "kind": "statement",
+              "should_persist_default": false
+            }
+          ],
+          "allowed": [
+            {
+              "type": "operation_suggestion_candidate",
+              "operation_type": "select_state_potion",
+              "reason_code": "conversation_suggestion_only"
+            },
+            {
+              "type": "memory_write_candidate",
+              "reason_code": "candidate_only_not_committed"
+            }
+          ],
+          "blocked": [],
+          "committed": []
+        },
+        "state_patch": {
+          "last_detected_state": "loss_of_meaning",
+          "intake_status": "structured",
+          "demotivation_repair_decision": {
+            "skill_id": "demotivation_repair",
+            "intent": "loss_of_meaning",
+            "phase": "diagnose",
+            "motivation_state": "loss_of_meaning",
+            "action_readiness": "none",
+            "constraints": [
+              "one_question_max",
+              "concrete_before_question",
+              "short_reply",
+              "do_not_moralize",
+              "do_not_modify_plan_yet",
+              "prefer_smallest_action"
+            ],
+            "response_contract": {
+              "max_questions": 1,
+              "allow_plan_edit": false,
+              "allow_tool_suggestion": true,
+              "allow_potion_suggestion": true,
+              "allow_attack_card_suggestion": false,
+              "allow_concrete_action": true,
+              "tone": "grounded"
+            },
+            "operation_suggestions": [
+              {
+                "operation_type": "select_state_potion",
+                "reason": "Pour aider à retrouver un peu de clarté ou de recul face au sentiment de vide.",
+                "requires_user_consent": true,
+                "operation_input_hint": {
+                  "target_state": "clarity"
+                }
+              }
+            ],
+            "memory_write_candidates": [
+              {
+                "source_text": "L'utilisateur ressent un retour du sentiment de perte de sens ('à quoi bon') face à sa liste de tâches.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true,
+                "sensitivity_level": 1,
+                "reason": "Capture le pattern de perte de sens sans l'étiqueter comme trait de caractère permanent."
+              }
+            ],
+            "reply": "Je comprends ce 'à quoi bon', c'est un signal de perte de sens, pas un manque de volonté. Quand l'utilité s'efface, l'écran devient un mur. Je te suggère de ne rien décider pour l'instant. Est-ce que ce sentiment est lié à une tâche précise ou c'est l'ensemble qui te semble vide ?",
+            "state_patch": {
+              "last_detected_state": "loss_of_meaning"
+            }
+          }
+        }
+      }
+    },
+    "recommendation_tool_run": {
+      "recommendation": {
+        "recommendation_id": "skill:demotivation_repair:select_state_potion:demotivation_repair_20260602_r1-t01",
+        "decision": "recommend_operation",
+        "surface_id": "potion.state",
+        "executor_tool_id": null,
+        "operation_type": "select_state_potion",
+        "operation_input": {
+          "target_state": "clarity"
+        },
+        "confidence": 0.72,
+        "timing": "now",
+        "presentation_level": 2,
+        "cta_style": "soft",
+        "requires_consent": true,
+        "reason": "Pour aider à retrouver un peu de clarté ou de recul face au sentiment de vide.",
+        "user_facing_offer": "Je peux te proposer Potion d'etat si tu veux passer par le flow propre.",
+        "alternatives": [],
+        "do_not_recommend": []
+      },
+      "stats": null
+    },
+    "effect_ledger": {
+      "turn_id": "demotivation_repair_20260602_r1-t01",
+      "counts": {
+        "requested": 1,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 1,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": [
+        {
+          "effect_id": "demotivation_repair_20260602_r1-t01:agenda:requested:clarification:dispatcher",
+          "kind": "clarification",
+          "effect_type": "clarification.target",
+          "operation_type": null,
+          "operation_id": null,
+          "committed_id": null,
+          "tool_id": "dispatcher",
+          "status": "requested",
+          "reason_code": "clarification_required",
+          "source": "dispatcher",
+          "payload_summary": {
+            "task_id": "clarification:dispatcher",
+            "source": "dispatcher",
+            "evidence": [
+              "select_state_potion"
+            ]
+          },
+          "db_ref": null,
+          "error_message": null,
+          "surface_id": null,
+          "no_chat_mutation": true,
+          "committed": false,
+          "executed_tool": false,
+          "owner": "dispatcher",
+          "ambiguity_kind": "target",
+          "candidate_ids": [
+            "select_state_potion"
+          ],
+          "selected_candidate_id": null
+        },
+        {
+          "effect_id": "demotivation_repair_20260602_r1-t01:recommendation:recommend_operation:skill:demotivation_repair:select_state_potion:demotivation_repair_20260602_r1-t01",
+          "kind": "platform_handoff",
+          "effect_type": "platform_handoff.select_state_potion",
+          "operation_type": "select_state_potion",
+          "operation_id": "skill:demotivation_repair:select_state_potion:demotivation_repair_20260602_r1-t01",
+          "committed_id": null,
+          "tool_id": "select_state_potion",
+          "status": "proposed",
+          "reason_code": "Pour aider à retrouver un peu de clarté ou de recul face au sentiment de vide.",
+          "source": "recommendation_tool",
+          "payload_summary": {
+            "decision": "recommend_operation",
+            "surface_id": "potion.state",
+            "requires_consent": true,
+            "presentation_level": 2
+          },
+          "db_ref": null,
+          "error_message": null,
+          "surface_id": "potion.state",
+          "no_chat_mutation": true,
+          "committed": false,
+          "executed_tool": false,
+          "owner": null,
+          "ambiguity_kind": null,
+          "selected_candidate_id": null
+        }
+      ]
+    },
+    "response_owner": "conversation_handler"
+  },
+  "trace_error": null
+}

@@ -1,0 +1,19 @@
+═══ V2 — dedicatedInCell ignore le CONTRAT (m.demands) ═══
+muté
+les compteurs de partition ont un DÉNOMINATEUR non nul sur un vrai plan [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_cells_test.ts:807:6[0m
+⛔ l'OMNIVORE EN PRISE DE MASSE reçoit son plat — et la VÉGANE jamais [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_regime_variant_test.ts:156:6[0m
+les présences DIFFÉRENTES ne dédient que les cases réellement mangées [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_regime_variant_test.ts:221:6[0m
+ENSEIGNÉ — la section nomme le porteur, et la clé `for_member_id` sort avec [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_regime_variant_test.ts:253:6[0m
+PARSÉ — le `for_member_id` du porteur est GARDÉ, sur les huit plats [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_regime_variant_test.ts:398:6[0m
+PARSÉ — ⛔ un `for_member_id` HORS LISTE est refusé, et le plat reste [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_regime_variant_test.ts:413:6[0m
+SERVI — le jambon n'entre QUE dans la boîte de Max, jamais dans celle de Lea [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_regime_variant_test.ts:515:6[0m
+SERVI — les protéines finales suivent le CONTRAT de chacun [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_regime_variant_test.ts:584:6[0m
+
+[0m[31mFAILED[0m | 44 passed | 14 failed [0m[38;5;245m(307ms)[0m
+
+[0m[1m[31merror[0m: Test failed
+--- restauré ---
+
+[0m[32mok[0m | 58 passed | 0 failed [0m[38;5;245m(281ms)[0m
+
+9b70901695eb12c1ceb1bfe15b925b14d35d9e6a40db3e7cd6743c72e4eca43e  supabase/functions/_shared/keel/household_cells.ts

@@ -475,13 +475,15 @@ export function unfedRetryInstruction(
       ? "they are served twice at that meal -- leave exactly one dish for them"
       : "they are named on two boxes of that meal -- name them on ONE box only",
     no_dish: standard
+      // ⟳ 2026-09-12 · FERMETURE LOT 1 — « shopping lines » RETIRÉ des deux
+      // formulations: la liste de courses est reconstruite depuis les
+      // ingrédients finaux et ce que le modèle en écrit est ignoré.
       ? "NO dish at all was planned for that meal -- write ONE standard recipe " +
-        "for that day and slot, its preparations, and their cooking session and " +
-        "shopping lines. Write no box and no per-person figure: the app works " +
-        "those out"
+        "for that day and slot, and its preparations. Write no box and no " +
+        "per-person figure: the app works those out"
       : "NO dish at all was planned for that meal -- write one for that day and " +
-        "slot, with boxes naming everyone who eats then (them included), its " +
-        "preparations, and their cooking session and shopping lines",
+        "slot, with boxes naming everyone who eats then (them included), and its " +
+        "preparations",
   };
 
   const fold = (v: string): string =>
@@ -560,14 +562,18 @@ export function unfedRetryInstruction(
     return `- ${r.name} (${r.memberId}), ${where},${dish}: ${remedy[r.cause]}.`;
   });
 
+  // ⟳ 2026-09-13 · LOT 1 — « leave every other dish exactly as it is » A ÉTÉ
+  // RETIRÉ DE L'EN-TÊTE. Ce texte part dans la MÊME instruction que les autres
+  // défauts du plan, dont le périmètre ouvre d'autres repas et des unités à
+  // créer : une interdiction globale y contredit les blocs voisins. Ce qui
+  // reste est l'adresse — « ces repas-là » — et elle suffit, parce que le
+  // périmètre, lui, est décidé ailleurs et il est TENU.
   return [
-    "⛔ SOME PEOPLE HAVE NO BOX AT A MEAL THEY EAT HERE. Rewrite ONLY these " +
-    "dishes; leave every other dish exactly as it is, same titles, same days, " +
-    "same slots:",
+    "⛔ SOME PEOPLE HAVE NO BOX AT A MEAL THEY EAT HERE. Fix these meals, each on " +
+    "its own day and slot:",
     ...lines,
-    "Everyone eating a meal must be named on exactly one box of it. Do NOT drop " +
-    "a dish, do NOT shorten the plan, and do NOT mention any of this in a " +
-    "\"why\" -- what somebody eats is nobody's business but theirs.",
+    "Everyone eating a meal must be named on exactly one box of it. Do NOT mention " +
+    "any of this in a \"why\" -- what somebody eats is nobody's business but theirs.",
     ...(options.partial
       ? [standard ? UNFED_RETRY_PARTIAL_BLOCK_STANDARD : UNFED_RETRY_PARTIAL_BLOCK]
       : []),

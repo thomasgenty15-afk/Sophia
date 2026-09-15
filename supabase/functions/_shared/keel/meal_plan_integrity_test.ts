@@ -869,7 +869,7 @@ for (
     // La moitié de C6 ② qui garde encore quelque chose: le plan s'écrit après
     // que le modèle a répondu, jamais avant.
     const model = src.indexOf("generateWithGemini(");
-    const write = src.indexOf('"write_student_meal_plan"');
+    const write = src.indexOf('"keel_household_publish_generation"');
     assert(model >= 0, `${fn}: appel modèle introuvable — test à réviser`);
     assert(write >= 0, `${fn}: écriture du plan introuvable — test à réviser`);
     assert(

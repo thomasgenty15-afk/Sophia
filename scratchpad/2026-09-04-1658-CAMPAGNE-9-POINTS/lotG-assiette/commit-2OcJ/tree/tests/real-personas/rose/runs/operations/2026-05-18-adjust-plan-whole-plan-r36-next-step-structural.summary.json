@@ -1,0 +1,186 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je pense que la prochaine étape du plan n'est pas la bonne. Après le signal de pause, je ne veux pas aller tout de suite vers des discussions difficiles; il faudrait peut-être une étape intermédiaire pour reconstruire de la confiance. Je veux revoir la trajectoire, pas seulement le niveau actuel.",
+    "assistant": "C'est très clair. Je vais retravailler la trajectoire globale pour insérer une phase de reconstruction de la confiance entre le signal de pause et les discussions plus sensibles. Rien n'est encore modifié, mais est-ce que je peux préparer une proposition concrète pour ce nouveau séquençage ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "tout de suite"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prépare un brouillon sans appliquer. Je veux que la prochaine étape soit centrée sur des preuves de confiance simples: respecter le signal, garder deux ou trois interactions positives, puis seulement après ouvrir un sujet sensible.",
+    "assistant": "Je te propose un brouillon pour rééquilibrer ta trajectoire globale. L'idée est de réduire la pression immédiate pour te permettre de reconstruire de la confiance avant d'aborder des sujets plus complexes. Pour l'instant, rien n'est encore appliqué ou enregistré. Je suggère notamment de simplifier l'action \"Convenir d'un signal de pause\" pour qu'elle ne te prenne que 5 minutes et de mettre en pause le bilan prévu sur ce signal afin de ne pas surcharger tes prochaines étapes. Tes interactions positives, comme le partage de points positifs, restent inchangées pour stabiliser votre relation. Est-ce que cette approche te convient ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Pas exactement: je ne demande pas de rendre le signal en 5 minutes ni de mettre le bilan en pause. Je parle de la prochaine étape après ce bloc: ajouter une étape de confiance simple avant les sujets sensibles. Reformule le brouillon dans ce sens, sans appliquer.",
+    "assistant": "Je vais reprendre le brouillon pour intégrer cette phase de confiance sans toucher à tes missions actuelles. Pour que je puisse caler la suite de la trajectoire, quel serait le premier 'sujet sensible' concret que tu voudrais traiter une fois cette étape de confiance validée ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Le premier sujet sensible serait l'argent, mais seulement après avoir vérifié pendant une semaine que le signal de pause est respecté et qu'on arrive à se dire des choses positives sans tension. C'est cette étape intermédiaire que je veux insérer dans le plan.",
+    "assistant": "Je te propose de rééquilibrer ta trajectoire globale pour alléger la pression immédiate. L'idée est d'insérer une étape intermédiaire de reconstruction de la confiance avant d'aborder les sujets sensibles comme l'argent. Pour cela, je prévois de sanctuariser l'action « Convenir d'un signal de pause » et l'habitude « Partager un point positif » comme des prérequis indispensables. Rien n'est encore appliqué pour le moment, j'attends ta validation. Concrètement, je vais repositionner le signal de pause comme ta priorité absolue et m'assurer que le partage de points positifs serve de test de climat pendant une semaine avant d'aller plus loin. Le reste de tes objectifs et l'identité de ton plan ne seront pas touchés. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, je valide ce brouillon. Applique l'ajustement de trajectoire globale: insérer cette étape intermédiaire de confiance avant le sujet argent.",
+    "assistant": "Je ne peux pas appliquer cet ajustement depuis le chat tant qu'il n'est pas rattaché proprement aux bonnes actions du plan. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t05",
+    "trace_error": null
+  }
+]

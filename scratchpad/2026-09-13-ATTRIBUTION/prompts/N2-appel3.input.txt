@@ -1,0 +1,130 @@
+⛔ YOUR PREVIOUS ANSWER WAS THROWN AWAY: it put a forbidden food on somebody's plate. The plan below is the one before it.
+
+THESE DISHES DO NOT WORK AS WRITTEN:
+- cause=cell_bounds_off | day=mon | people=2
+  THESE PLATES ARE OUTSIDE THEIR BAND, and their calories are already right.
+  Each line below is ONE person's plate. Reach the band by what the dish is
+  MADE OF — less water and less watery vegetable for a denser dish, more of
+  them for a lighter one. Do NOT change how much is served.
+  · member_id=169f2c59-1fb1-4f5f-b87f-424795a7deb2 | day=mon | slot=breakfast | scope=meal | units=U1,U2 | measure=mass(g) | mass_served_g=238 | min_g=250 | max_g=700
+      its calories are already right; the plate weighs 238 g cooked and a plate here must be 250 to 700 g. Its density is also outside its corridor: 307 kcal/100 g, and it must be 104 to 250 kcal/100 g. Keep the calories where they are and reach it by what the dish is MADE OF. Do NOT change how much is served.
+  · member_id=62b33b69-c181-4d59-9731-51b0523f1eb5 | day=mon | slot=breakfast | scope=meal | units=U1,U3 | measure=mass(g) | mass_served_g=126 | min_g=225 | max_g=349
+      its calories are already right; the plate weighs 126 g cooked and a plate here must be 225 to 349 g. Its density is also outside its corridor: 307 kcal/100 g, and it must be 112 to 172 kcal/100 g. Keep the calories where they are and reach it by what the dish is MADE OF. Do NOT change how much is served.
+  ⛔ These figures are PER PERSON. Do not average them, and do not widen any
+     tolerance. If two of them cannot hold in one recipe, leave the shared dish
+     right for the others and use the unit listed for that person instead.
+- day=mon | slot=breakfast | scope=meal | units=U1,U2,U3 | measure=mass(g) | mass_served_g=238 | min_g=250 | max_g=?
+  the breakfast plate weighs 238 g cooked, and a plate here must be at least 250 g. Keep the same energy and make the recipe LIGHTER — more vegetable and more water-rich food, less oil and less dense starch. Do NOT change how much is served — the app decides that.
+- day=mon | slot=breakfast | scope=meal | units=U1,U2,U3 | measure=mass(g) | mass_served_g=126 | min_g=225 | max_g=?
+  the breakfast plate weighs 126 g cooked, and a plate here must be at least 225 g. Keep the same energy and make the recipe LIGHTER — more vegetable and more water-rich food, less oil and less dense starch. Do NOT change how much is served — the app decides that.
+- day=mon | slot=breakfast | scope=meal | dish="Tofu brouillé, épinards et pain complet" | units=U1,U2,U3
+  - "Tofu brouillé, épinards et pain complet" serves 307 kcal per 100 g; it has to land between 112 and 172 kcal per 100 g as served, aiming for 156. Rewrite the recipe, keeping its identity: less of the fat and the dense starch it already contains, more vegetable. The recipe may end up bigger, and that is fine — the app decides how much of it goes on a plate, you do not.
+    Its own fresh ingredients, REWORKABLE: 300 g de tofu tofu, 120 g de épinards épinards, 26 g de pain complet pain complet, 4 g de huile d'olive huile d'olive, 120 g olive oil.
+  ⛔ Keep this dish's identity: the same name, the same foods, the
+  same cooking. A FROZEN part comes back unchanged.
+  THIS DISH KEEPS ITS DAY, ITS SLOT AND ITS PREPARATIONS:
+    · "Tofu brouillé, épinards et pain complet" — mon breakfast, and it draws on no preparation
+  Return it on the SAME day and the SAME slot, drawing on the SAME
+  preparation ids. A dish that comes back on another day, or drawing on
+  other preparations, is thrown away — its recipe would be glued onto
+  someone else's pots.
+  THE APP WILL NOT RESHAPE THESE — IT DOES NOT KNOW WHAT HOLDS THEM:
+    · tofu, épinards, pain complet, huile d'olive, olive oil — their proportions to each other stay as written
+  It can still scale a whole recipe up or down. What it will not do is change
+  the ratio inside a mix it cannot read, so if the numbers need a different
+  balance there, write that balance yourself.
+- member_id=169f2c59-1fb1-4f5f-b87f-424795a7deb2 | day=mon | slot=breakfast | scope=meal | units=U1,U2
+  ONE PERSON CANNOT BE SERVED FROM THE SHARED POTS ALONE. The pots are eaten
+  by others too, so they stay as they are — give that person a side dish of
+  their own, eaten WITH the shared dish:
+  - On mon at breakfast, add ONE side dish with for_member_id "169f2c59-1fb1-4f5f-b87f-424795a7deb2". That person keeps eating the shared dish: the app cuts their share of it and sizes this side dish to the difference. It has to stay at or under 153 kcal per 100 g as served — bulky and light (vegetables, a salad, a soup WITH something in it).
+- member_id=62b33b69-c181-4d59-9731-51b0523f1eb5 | day=mon | slot=breakfast | scope=meal | units=U1,U3
+  ONE PERSON CANNOT BE SERVED FROM THE SHARED POTS ALONE. The pots are eaten
+  by others too, so they stay as they are — give that person a side dish of
+  their own, eaten WITH the shared dish:
+  - On mon at breakfast, add ONE side dish with for_member_id "62b33b69-c181-4d59-9731-51b0523f1eb5". That person keeps eating the shared dish: the app cuts their share of it and sizes this side dish to the difference. It has to stay at or under 153 kcal per 100 g as served — bulky and light (vegetables, a salad, a soup WITH something in it).
+- cause=cell_bounds_off | day=tue | people=2
+  THESE PLATES ARE OUTSIDE THEIR BAND, and their calories are already right.
+  Each line below is ONE person's plate. Reach the band by what the dish is
+  MADE OF — less water and less watery vegetable for a denser dish, more of
+  them for a lighter one. Do NOT change how much is served.
+  · member_id=169f2c59-1fb1-4f5f-b87f-424795a7deb2 | day=tue | slot=breakfast | scope=meal | units=U6,U7 | measure=mass(g) | mass_served_g=238 | min_g=250 | max_g=700
+      its calories are already right; the plate weighs 238 g cooked and a plate here must be 250 to 700 g. Its density is also outside its corridor: 307 kcal/100 g, and it must be 104 to 250 kcal/100 g. Keep the calories where they are and reach it by what the dish is MADE OF. Do NOT change how much is served.
+  · member_id=62b33b69-c181-4d59-9731-51b0523f1eb5 | day=tue | slot=breakfast | scope=meal | units=U6,U8 | measure=mass(g) | mass_served_g=126 | min_g=225 | max_g=349
+      its calories are already right; the plate weighs 126 g cooked and a plate here must be 225 to 349 g. Its density is also outside its corridor: 307 kcal/100 g, and it must be 112 to 172 kcal/100 g. Keep the calories where they are and reach it by what the dish is MADE OF. Do NOT change how much is served.
+  ⛔ These figures are PER PERSON. Do not average them, and do not widen any
+     tolerance. If two of them cannot hold in one recipe, leave the shared dish
+     right for the others and use the unit listed for that person instead.
+- day=tue | slot=breakfast | scope=meal | units=U6,U7,U8 | measure=mass(g) | mass_served_g=238 | min_g=250 | max_g=?
+  the breakfast plate weighs 238 g cooked, and a plate here must be at least 250 g. Keep the same energy and make the recipe LIGHTER — more vegetable and more water-rich food, less oil and less dense starch. Do NOT change how much is served — the app decides that.
+- day=tue | slot=breakfast | scope=meal | units=U6,U7,U8 | measure=mass(g) | mass_served_g=126 | min_g=225 | max_g=?
+  the breakfast plate weighs 126 g cooked, and a plate here must be at least 225 g. Keep the same energy and make the recipe LIGHTER — more vegetable and more water-rich food, less oil and less dense starch. Do NOT change how much is served — the app decides that.
+- day=tue | slot=breakfast | scope=meal | dish="Tofu brouillé, épinards et pain complet" | units=U6,U7,U8
+  - "Tofu brouillé, épinards et pain complet" serves 307 kcal per 100 g; it has to land between 112 and 172 kcal per 100 g as served, aiming for 156. Rewrite the recipe, keeping its identity: less of the fat and the dense starch it already contains, more vegetable. The recipe may end up bigger, and that is fine — the app decides how much of it goes on a plate, you do not.
+    Its own fresh ingredients, REWORKABLE: 300 g de tofu tofu, 120 g de épinards épinards, 26 g de pain complet pain complet, 4 g de huile d'olive huile d'olive, 120 g olive oil.
+  ⛔ Keep this dish's identity: the same name, the same foods, the
+  same cooking. A FROZEN part comes back unchanged.
+  THIS DISH KEEPS ITS DAY, ITS SLOT AND ITS PREPARATIONS:
+    · "Tofu brouillé, épinards et pain complet" — tue breakfast, and it draws on no preparation
+  Return it on the SAME day and the SAME slot, drawing on the SAME
+  preparation ids. A dish that comes back on another day, or drawing on
+  other preparations, is thrown away — its recipe would be glued onto
+  someone else's pots.
+  THE APP WILL NOT RESHAPE THESE — IT DOES NOT KNOW WHAT HOLDS THEM:
+    · tofu, épinards, pain complet, huile d'olive, olive oil — their proportions to each other stay as written
+  It can still scale a whole recipe up or down. What it will not do is change
+  the ratio inside a mix it cannot read, so if the numbers need a different
+  balance there, write that balance yourself.
+- member_id=169f2c59-1fb1-4f5f-b87f-424795a7deb2 | day=tue | slot=breakfast | scope=meal | units=U6,U7
+  ONE PERSON CANNOT BE SERVED FROM THE SHARED POTS ALONE. The pots are eaten
+  by others too, so they stay as they are — give that person a side dish of
+  their own, eaten WITH the shared dish:
+  - On tue at breakfast, add ONE side dish with for_member_id "169f2c59-1fb1-4f5f-b87f-424795a7deb2". That person keeps eating the shared dish: the app cuts their share of it and sizes this side dish to the difference. It has to stay at or under 153 kcal per 100 g as served — bulky and light (vegetables, a salad, a soup WITH something in it).
+- member_id=62b33b69-c181-4d59-9731-51b0523f1eb5 | day=tue | slot=breakfast | scope=meal | units=U6,U8
+  ONE PERSON CANNOT BE SERVED FROM THE SHARED POTS ALONE. The pots are eaten
+  by others too, so they stay as they are — give that person a side dish of
+  their own, eaten WITH the shared dish:
+  - On tue at breakfast, add ONE side dish with for_member_id "62b33b69-c181-4d59-9731-51b0523f1eb5". That person keeps eating the shared dish: the app cuts their share of it and sizes this side dish to the difference. It has to stay at or under 153 kcal per 100 g as served — bulky and light (vegetables, a salad, a soup WITH something in it).
+
+== THE PLAN AS THE APP READS IT RIGHT NOW ==
+
+THESE PEOPLE ARE STUCK — the dish they share cannot be reworked for them,
+so write them ONE SMALL EXTRA dish of their own, at the same meal, under
+its unit_id. Do NOT change the shared dish: it feeds the others, and it is
+already right for them.
+  · U2 mon/breakfast (169f2c59-1fb1-4f5f-b87f-424795a7deb2) — an extra dish for 169f2c59-1fb1-4f5f-b87f-424795a7deb2, on top of what is already served there
+  · U3 mon/breakfast (62b33b69-c181-4d59-9731-51b0523f1eb5) — an extra dish for 62b33b69-c181-4d59-9731-51b0523f1eb5, on top of what is already served there
+  · U7 tue/breakfast (169f2c59-1fb1-4f5f-b87f-424795a7deb2) — an extra dish for 169f2c59-1fb1-4f5f-b87f-424795a7deb2, on top of what is already served there
+  · U8 tue/breakfast (62b33b69-c181-4d59-9731-51b0523f1eb5) — an extra dish for 62b33b69-c181-4d59-9731-51b0523f1eb5, on top of what is already served there
+
+THE MEALS TO CHANGE — and only these. Each comes back under its unit_id.
+This is what they hold today:
+  · U1 mon/breakfast "Tofu brouillé, épinards et pain complet" — for 169f2c59-1fb1-4f5f-b87f-424795a7deb2, 62b33b69-c181-4d59-9731-51b0523f1eb5
+      holds: 196 g tofu [tofu] (raw) · 78 g épinards [spinach] (raw) · 17 g pain complet [wholemeal_bread] (raw) · 3 g huile d'olive [olive_oil] (raw) · 78 g olive oil [olive_oil] (raw)
+  · U6 tue/breakfast "Tofu brouillé, épinards et pain complet" — for 169f2c59-1fb1-4f5f-b87f-424795a7deb2, 62b33b69-c181-4d59-9731-51b0523f1eb5
+      holds: 196 g tofu [tofu] (raw) · 78 g épinards [spinach] (raw) · 17 g pain complet [wholemeal_bread] (raw) · 3 g huile d'olive [olive_oil] (raw) · 78 g olive oil [olive_oil] (raw)
+
+THE REST OF THE PLAN — untouched, and not yours to rewrite:
+  · U4 mon/lunch "Tempeh, couscous complet, edamame et courgette" — for 169f2c59-1fb1-4f5f-b87f-424795a7deb2, 62b33b69-c181-4d59-9731-51b0523f1eb5 — draws on prep_tempeh
+  · U5 mon/dinner "Tofu, lentilles et tomate" — for 169f2c59-1fb1-4f5f-b87f-424795a7deb2, 62b33b69-c181-4d59-9731-51b0523f1eb5 — draws on prep_tofu_lentilles
+  · U9 tue/lunch "Tempeh, couscous complet, edamame et courgette" — for 169f2c59-1fb1-4f5f-b87f-424795a7deb2, 62b33b69-c181-4d59-9731-51b0523f1eb5 — draws on prep_tempeh
+  · U10 tue/dinner "Tofu, lentilles et tomate" — for 169f2c59-1fb1-4f5f-b87f-424795a7deb2, 62b33b69-c181-4d59-9731-51b0523f1eb5 — draws on prep_tofu_lentilles
+
+== WHAT THIS ANSWER MAY TOUCH ==
+⛔ Write "base_version":"8351a8e7-85c9-41c7-a7e0-5d9c214c71d4#r2" exactly. An answer without it
+   is thrown away.
+⛔ "units" carries ONLY these unit_ids, the ones to change: U1, U6.
+⛔ And these unit_ids, which do not exist yet and must be written from
+   nothing: U2, U3, U7, U8.
+⛔ There is no cooking run-through to rewrite: leave "sessions" out.
+⛔ Any other unit_id or session_id is refused and the whole answer is
+   thrown away.
+
+CONTENT_LANGUAGE:
+Write the human-readable TEXT of your JSON in French (fr-FR).
+This applies to these fields and to nothing else: dishes[].name, dishes[].title, dishes[].method, dishes[].why, dishes[].ingredients[].term, dishes[].ingredients[].quantity, preparations[].title, preparations[].method, preparations[].ingredients[].term, preparations[].ingredients[].quantity, cooking_sessions[].run_through, explanation[].
+Numbers and unit symbols are unchanged: "400 g", "2", "1.2 kg" (R4).
+These are MACHINE TOKENS and stay exactly as specified above — never
+translate, never localize, never accent them (R1): slot, day, cook_on, aisle, servings, servings_made, state, amount, unit, honours_belief_keys[], preparations[].id (ASCII snake_case, English words only), dishes[].uses[].preparation_id (must match preparations[].id exactly), dishes[].uses[].kept (one of: fridge, freezer), dishes[].same_day.kind (one of: none, reheat_only, assemble, cook_fresh), dishes[].boxes[].id (ASCII snake_case, English words only), dishes[].ingredients[].ref (an id from the food list, never translated), preparations[].ingredients[].ref (an id from the food list, never translated), dishes[].components[].id / .role / .part_of and ingredients[].part (ASCII snake_case, English words only), preparations[].components[].id / .role / .part_of and ingredients[].part (ASCII snake_case, English words only).
+JSON keys are never translated. Your output is still a single JSON object
+and nothing else: no prose outside it, no markdown fences.

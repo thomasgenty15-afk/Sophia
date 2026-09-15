@@ -1,0 +1,1169 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r40-whole-plan-t01",
+    "user": "Je trouve que la suite du plan n'est plus très cohérente. Après le signal de pause, j'ai l'impression qu'on va trop vite vers l'analyse des déclencheurs. Je voudrais revoir la trajectoire globale : d'abord sécurité, ensuite positif, et seulement après analyse.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r40-whole-plan-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-coach-r40-whole-plan",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends tout à fait ton souhait de réorganiser le plan pour suivre une progression \"d'abord sécurité, ensuite positif, et seulement après analyse\". Pour que je puisse ajuster la trajectoire, comment imagines-tu que les actions de sécurité et de positif, comme \"Convenir d'un signal de pause\" et \"Partager un point positif\", devraient être consolidées avant de passer à l'analyse des déclencheurs ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r40-whole-plan-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "76c4f759-fccf-4c55-b085-27b816f1d1e3",
+        "ts": "2026-05-19T12:06:24.709+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11315,
+          "latency_ms": 5638,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 749,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure et sequence du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "Cartographier les déclencheurs",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r40-whole-plan-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure et sequence du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "Cartographier les déclencheurs",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "76c4f759-fccf-4c55-b085-27b816f1d1e3",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire globale",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "trajectoire globale : d'abord sécurité, ensuite positif, et seulement après analyse"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "revoir la trajectoire globale"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "whole_plan.adjustment_type",
+            "whole_plan.affected_items"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Toute modification du contenu ou de l'existence des actions individuelles sans demande explicite de l'utilisateur.",
+              "Toute proposition qui ne prendrait pas en compte la préoccupation structurelle de l'utilisateur concernant la 'trajectoire globale'."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L'objectif global du plan d'amélioration des dynamiques relationnelles.",
+              "L'existence et l'intention fondamentale de chaque action actuelle : 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause', 'Partager un point positif', 'Cartographier les déclencheurs'.",
+              "Les ajustements récents apportés à 'Partager un point positif' (fréquence et simplification de l'instruction), car ils répondent à une friction locale et ne sont pas liés à la trajectoire globale."
+            ],
+            "warnings": [
+              "Éviter de simplement déplacer 'Cartographier les déclencheurs' sans considérer l'impact sur l'ensemble de la trajectoire et la consolidation des autres thèmes.",
+              "Ne pas proposer de supprimer des types d'activités (sécurité, positif, analyse), car la demande porte sur leur ordre et non leur existence.",
+              "Ne pas ignorer la perception de l'utilisateur sur l'incohérence, même si les titres de phases peuvent sembler alignés. La demande concerne le flux des activités concrètes."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Guidelines action: role de l'action, intention preservee, pont mini si besoin, pas de changement de nature sans demande explicite.",
+              "Guidelines niveau: charge et rythme du niveau courant, baisse temporaire non globale, boundary de fin de niveau, coeur du niveau preserve.",
+              "Guidelines whole_plan: trajectoire, coherence globale, prerequis, ordre des phases, objectif et questionnaire preserves."
+            ],
+            "observation": "L'utilisateur perçoit une incohérence dans la progression du plan, estimant que l'étape d'analyse des déclencheurs arrive trop tôt après le signal de pause. Il exprime un besoin de réaligner la trajectoire globale du plan selon une séquence plus intuitive et progressive : d'abord la sécurité, ensuite le positif, et seulement après l'analyse. Cela indique une demande de réorganisation des thèmes ou des phases du plan plutôt qu'un ajustement d'une action isolée.",
+            "recommendation": "Réévaluer la séquence des thèmes principaux du plan (sécurité, positif, analyse) pour s'assurer d'une progression logique et progressive. Il est essentiel de consolider les fondations de sécurité et les interactions positives avant d'introduire des étapes d'analyse plus profondes. Cela implique de revoir le positionnement de 'Cartographier les déclencheurs' et potentiellement de regrouper les éléments liés à la sécurité.",
+            "options_to_discuss": [
+              "Proposer de regrouper toutes les actions liées à la 'sécurité' (signal de pause, point sur le signal) dans une période initiale dédiée pour bien les établir.",
+              "Suggérer une période distincte et focalisée sur les actions 'positives' ('Partager un point positif') après que la sécurité soit jugée suffisamment stable.",
+              "Positionner 'Cartographier les déclencheurs' (analyse) clairement après que les éléments de 'sécurité' et de 'positif' aient été suffisamment abordés et consolidés.",
+              "Explorer la possibilité de structurer la phase actuelle en sous-phases pour mieux refléter cette progression souhaitée (sécurité -> positif -> analyse)."
+            ],
+            "questions_to_clarify": [
+              "Comment l'utilisateur imagine-t-il la 'consolidation' de la sécurité et des éléments positifs avant de passer à l'analyse ? Quels seraient les critères pour savoir quand la sécurité est suffisamment établie ou le positif suffisamment intégré ?",
+              "L'utilisateur est-il à l'aise avec l'idée que cette réorganisation puisse potentiellement allonger la durée des premières semaines ou phases du plan ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 38406,
+        "created_at": "2026-05-19T12:06:24.712292+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r40-whole-plan-t02",
+    "user": "Je veux que le signal de pause soit vraiment acquis avant l'analyse, et qu'on ait au moins une petite habitude positive qui tourne. Je ne veux pas supprimer 'Cartographier les déclencheurs', seulement le mettre après sécurité + positif. Prépare un brouillon sans appliquer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r40-whole-plan-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-coach-r40-whole-plan",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose d'ajuster la trajectoire globale de ton plan pour mieux aligner l'ordre des phases avec tes priorités : d'abord la sécurité, puis une habitude positive, et seulement après l'analyse. Rien n'est encore appliqué, c'est une proposition de brouillon.\n\nConcrètement, cela signifie que :\n1. L'action 'Faire le point sur le signal de pause' sera priorisée pour s'assurer que le signal est bien acquis et fonctionnel avant d'aborder d'autres thèmes.\n2. L'habitude 'Partager un point positif' sera consolidée comme une fondation stable, à bien ancrer avant d'entamer l'analyse des déclencheurs.\n\nL'action 'Cartographier les déclencheurs' ne sera pas supprimée, mais son introduction sera décalée pour intervenir après ces étapes de consolidation. L'objectif global de ton plan reste inchangé. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r40-whole-plan-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "01f136a5-4912-47ff-b640-6cd86bc2297a",
+        "ts": "2026-05-19T12:08:04.586+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 14503,
+          "latency_ms": 6388,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 1010,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du niveau actuel et thèmes",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "Cartographier les déclencheurs",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r40-whole-plan-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du niveau actuel et thèmes",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "Cartographier les déclencheurs",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": "matched_active_plan_item",
+            "status": "identified",
+            "detected": true,
+            "action_type": "clarification",
+            "action_title": "Cartographier les déclencheurs",
+            "plan_item_id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+            "expansion_policy": "exact_action_only",
+            "action_family_key": "framework:cartographier_declencheurs"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "01f136a5-4912-47ff-b640-6cd86bc2297a",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "trajectoire globale"
+                  ]
+                },
+                "payload": {
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "sécurité + positif avant analyse",
+                      "ne pas supprimer Cartographier les déclencheurs",
+                      "prépare un brouillon sans appliquer"
+                    ],
+                    "evidence": [
+                      "mettre après sécurité + positif",
+                      "Je ne veux pas supprimer",
+                      "Prépare un brouillon sans appliquer"
+                    ]
+                  },
+                  "reason_change": {
+                    "status": "identified",
+                    "evidence": [
+                      "signal de pause soit vraiment acquis avant l'analyse",
+                      "au moins une petite habitude positive qui tourne"
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      "Cartographier les déclencheurs",
+                      "Convenir d'un signal de pause",
+                      "Partager un point positif"
+                    ],
+                    "evidence": [
+                      "signal de pause",
+                      "habitude positive",
+                      "Cartographier les déclencheurs"
+                    ]
+                  }
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "revoir la trajectoire globale",
+                    "Je ne veux pas supprimer 'Cartographier les déclencheurs', seulement le mettre après sécurité + positif"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "confidence": "medium",
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "d'abord sécurité, ensuite positif, et seulement après analyse",
+                  "ne pas supprimer Cartographier les déclencheurs",
+                  "préparer un brouillon sans appliquer",
+                  "coach_observation:L'utilisateur exprime un besoin de réaligner la trajectoire du plan pour s'assurer que les fondations de sécurité (signal de pause) et l'établissement d'une habitude positive précèdent l'étape d'analyse des déclencheurs. Il perçoit que l'analyse est introduite trop tôt, avant que les éléments de base ne soient suffisamment acquis et consolidés.",
+                  "coach_recommendation:Il est essentiel de réorganiser la séquence des thèmes principaux du plan pour respecter la progression souhaitée par l'utilisateur : d'abord la consolidation de la sécurité, puis l'intégration d'une habitude positive, et seulement après, l'analyse des déclencheurs. Cela implique de revoir le positionnement de l'action \"Cartographier les déclencheurs\" et de s'assurer que les actions de sécurité et positives sont bien établies.",
+                  "coach_warning:Éviter de simplement déplacer \"Cartographier les déclencheurs\" sans s'assurer que les actions de \"signal de pause\" et \"point positif\" sont réellement consolidées et non juste déplacées.",
+                  "coach_warning:Ne pas proposer de supprimer l'action \"Cartographier les déclencheurs\", car l'utilisateur a explicitement demandé de la conserver.",
+                  "coach_warning:Ne pas ignorer la perception de l'utilisateur sur le rythme et la cohérence du plan, même si les titres de phases peuvent sembler logiques.",
+                  "coach_preserve:L'objectif global du plan d'amélioration des dynamiques relationnelles.",
+                  "coach_preserve:L'existence et l'intention fondamentale de chaque action actuelle : 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause', 'Partager un point positif', 'Cartographier les déclencheurs'.",
+                  "coach_preserve:Les ajustements récents apportés à 'Partager un point positif' (fréquence et simplification de l'instruction), car ils répondent à une friction locale et ne sont pas liés à la trajectoire globale.",
+                  "coach_avoid:Toute modification du contenu ou de l'existence des actions individuelles sans demande explicite de l'utilisateur.",
+                  "coach_avoid:Toute proposition qui ne prendrait pas en compte la préoccupation structurelle de l'utilisateur concernant la 'trajectoire globale'.",
+                  "coach_avoid:Proposer une solution qui ne respecterait pas l'ordre 'sécurité + positif avant analyse'.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:Guidelines action: role de l'action, intention preservee, pont mini si besoin, pas de changement de nature sans demande explicite.",
+                  "coach_guideline:Guidelines niveau: charge et rythme du niveau courant, baisse temporaire non globale, boundary de fin de niveau, coeur du niveau preserve.",
+                  "coach_guideline:Guidelines whole_plan: trajectoire, coherence globale, prerequis, ordre des phases, objectif et questionnaire preserves.",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Faire le point sur le signal de pause",
+                  "affected_item:Partager un point positif",
+                  "affected_item:Cartographier les déclencheurs"
+                ],
+                "reason_type": "context_changed",
+                "change_target": "global_load",
+                "reason_change": "context_changed",
+                "load_adjustment": "review",
+                "plan_adjustment": "resequence"
+              },
+              "title": "Ajustement - trajectoire globale du plan",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "plan global: resequence",
+                  "cible de changement: global_load"
+                ],
+                "unchanged": [
+                  "l'objectif/direction reste préservé sauf demande contraire explicite",
+                  "le plan canonique n'est pas reconstruit automatiquement"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel.",
+                "follow_up_needed": "identifier ensuite les semaines ou blocs les plus lourds pour affiner"
+              },
+              "scope_label": "trajectoire globale du plan",
+              "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+              "decision_basis": {
+                "evidence": [
+                  "Je veux que le signal de pause soit vraiment acquis avant l'analyse, et qu'on ait au moins une petite habitude positive qui tourne. Je ne veux pas supprimer 'Cartographier les déclencheurs', seulement le mettre après sécurité + positif. Prépare un brouillon sans appliquer.",
+                  "operation_input.scope",
+                  "Je veux que le signal de pause soit vraiment acquis avant l'analyse, et qu'on ait au moins une petite habitude positive qui tourne. Je ne veux pas supprimer 'Cartographier les déclencheurs', seulement le mettre après sécurité + positif.",
+                  "Je veux que le signal de pause soit vraiment acquis avant l'analyse",
+                  "qu'on ait au moins une petite habitude positive qui tourne",
+                  "seulement le mettre après sécurité + positif",
+                  "signal de pause soit vraiment acquis avant l'analyse",
+                  "au moins une petite habitude positive qui tourne",
+                  "revoir la trajectoire globale"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "reordonner le plan dans son ensemble",
+              "change_rationale": {
+                "why_this_change": "Réduire global_load répond au problème \"context_changed\" sans changer la direction du plan.",
+                "success_condition": "Le plan paraît tenable sans reconstruction complète ni changement d'objectif implicite.",
+                "expected_mechanism": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "high",
+                  "missing_info": [
+                    "semaines ou blocs exacts a affiner ensuite"
+                  ],
+                  "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                  "expected_effect": "Le plan paraîtra plus cohérent et tenable, avec une progression logique qui renforce la confiance de l'utilisateur. La charge globale perçue devrait diminuer car les prérequis seront mieux établis.",
+                  "why_this_change": "La réorganisation des phases principales du plan répond au besoin de l'utilisateur de consolider les fondations de sécurité et les habitudes positives avant d'aborder l'analyse des déclencheurs. Cela réduit la charge cognitive perçue et aligne la progression avec ses priorités, rendant le plan plus tenable."
+                },
+                "boundaries": {
+                  "explanation": "La réorganisation des phases principales du plan affecte la séquence de progression sans modifier l'objectif final ni l'identité du plan.",
+                  "affected_scope": "plan dans son ensemble",
+                  "global_plan_impact": "indirect",
+                  "explicitly_not_affected": [
+                    "objectif principal",
+                    "identité du plan"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Réorganisation de la trajectoire globale du plan pour prioriser la consolidation des fondations de sécurité et d'habitudes positives avant l'analyse des déclencheurs.",
+                  "changed_items": [
+                    {
+                      "id": null,
+                      "kind": "plan_setting",
+                      "after": "La consolidation du signal de pause et l'ancrage d'une habitude positive seront prioritaires et précéderont l'analyse des déclencheurs.",
+                      "title": "Séquençage des phases principales du plan",
+                      "before": "L'analyse des déclencheurs pouvait être introduite avant la pleine consolidation du signal de pause et de l'habitude positive.",
+                      "reason": "Pour aligner la progression du plan avec ton souhait de bien ancrer les fondations de sécurité et de positif avant d'entamer l'analyse.",
+                      "capability": "reorder_actions"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "Sa priorisation pour s'assurer de l'acquisition et de la consolidation du signal de pause comme fondation essentielle.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Son positionnement initial, qui ne garantissait pas sa pleine acquisition avant d'autres thèmes.",
+                      "reason": "Pour garantir que le signal de pause est bien acquis et fonctionnel avant d'aborder des sujets plus complexes comme l'analyse des déclencheurs.",
+                      "capability": "reorder_actions"
+                    },
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "after": "Sa consolidation comme une habitude positive stable, à bien ancrer comme fondation avant d'entamer l'analyse des déclencheurs.",
+                      "title": "Partager un point positif",
+                      "before": "Son déroulement en parallèle d'autres actions, sans priorité explicite sur l'analyse des déclencheurs.",
+                      "reason": "Pour ancrer une habitude positive stable et renforcer le positif avant d'entamer l'analyse des difficultés, comme tu le souhaites.",
+                      "capability": "reorder_actions"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": null,
+                      "kind": "plan",
+                      "title": "L'objectif global du plan",
+                      "reason": "Il reste inchangé : améliorer les dynamiques relationnelles."
+                    },
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "title": "Convenir d'un signal de pause",
+                      "reason": "Son intention fondamentale est préservée, et sa consolidation est désormais prioritaire."
+                    },
+                    {
+                      "id": null,
+                      "kind": "action",
+                      "title": "Cartographier les déclencheurs",
+                      "reason": "Son existence et son intention sont préservées, mais son positionnement dans le plan est ajusté pour intervenir après la consolidation des fondations de sécurité et de positif."
+                    }
+                  ]
+                },
+                "user_message_brief": "J'ai préparé un brouillon pour réaligner la trajectoire globale de ton plan, en priorisant la sécurité et l'ancrage d'une habitude positive avant l'analyse des déclencheurs.",
+                "user_message_detailed": "J'ai préparé un brouillon pour réaligner la trajectoire globale de ton plan, en me basant sur ton souhait de prioriser la sécurité et l'ancrage d'une habitude positive avant l'analyse des déclencheurs. Voici les détails de la proposition :\n\n- **Séquençage des phases principales du plan** :\n    - Avant : L'analyse des déclencheurs pouvait être introduite avant la pleine consolidation du signal de pause et de l'habitude positive.\n    - Après : La consolidation du signal de pause et l'ancrage d'une habitude positive seront prioritaires et précéderont l'analyse des déclencheurs.\n    - Pourquoi ça aide : Cela permet d'aligner la progression du plan avec ton souhait de bien ancrer les fondations de sécurité et de positif avant d'entamer l'analyse, réduisant ainsi la charge perçue et augmentant la cohérence.\n- **Action 'Faire le point sur le signal de pause'** :\n    - Avant : Son positionnement initial ne garantissait pas sa pleine acquisition avant d'autres thèmes.\n    - Après : Elle sera priorisée pour s'assurer de l'acquisition et de la consolidation du signal de pause comme fondation essentielle.\n    - Pourquoi ça aide : Cela garantit que le signal de pause est bien acquis et fonctionnel avant d'aborder des sujets plus complexes comme l'analyse des déclencheurs, te donnant une base solide.\n- **Habitude 'Partager un point positif'** :\n    - Avant : Son déroulement était en parallèle d'autres actions, sans priorité explicite sur l'analyse des déclencheurs.\n    - Après : Elle sera consolidée comme une habitude positive stable, à bien ancrer comme fondation avant d'entamer l'analyse des déclencheurs.\n    - Pourquoi ça aide : Cela permet d'ancrer une habitude positive stable et de renforcer le positif avant d'entamer l'analyse des difficultés, comme tu le souhaites, pour une approche plus équilibrée.\n\nCe qui ne bouge pas : L'objectif global de ton plan d'améliorer les dynamiques relationnelles reste le même. L'existence de toutes les actions, y compris 'Cartographier les déclencheurs', est préservée ; seule leur séquence est ajustée. Les ajustements récents de l'habitude 'Partager un point positif' (fréquence et simplification) sont également conservés.\n\nJe suis assez confiante que cette réorganisation globale t'apportera plus de sérénité et de cohérence dans ta progression. La durée exacte de chaque phase sera à affiner, mais la nouvelle séquence est claire."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait ! J'ai ajusté la trajectoire globale de ton plan pour que les phases s'alignent mieux avec tes priorités. L'idée est de bien ancrer les fondations de sécurité et de positif avant d'entamer l'analyse des déclencheurs.\n\nConcrètement, cela signifie que :\n1. L'action 'Faire le point sur le signal de pause' est désormais priorisée pour s'assurer que le signal est bien acquis et fonctionnel.\n2. L'habitude 'Partager un point positif' est consolidée comme une fondation stable, à bien ancrer avant l'analyse.\n\nL'action 'Cartographier les déclencheurs' est conservée mais son introduction est décalée pour intervenir après ces étapes de consolidation. L'objectif global de ton plan reste le même, et je suis confiante que cette réorganisation t'aidera à progresser avec plus de sérénité.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose d'ajuster la trajectoire globale de ton plan pour mieux aligner l'ordre des phases avec tes priorités : d'abord la sécurité, puis une habitude positive, et seulement après l'analyse. Rien n'est encore appliqué, c'est une proposition de brouillon.\n\nConcrètement, cela signifie que :\n1. L'action 'Faire le point sur le signal de pause' sera priorisée pour s'assurer que le signal est bien acquis et fonctionnel avant d'aborder d'autres thèmes.\n2. L'habitude 'Partager un point positif' sera consolidée comme une fondation stable, à bien ancrer avant d'entamer l'analyse des déclencheurs.\n\nL'action 'Cartographier les déclencheurs' ne sera pas supprimée, mais son introduction sera décalée pour intervenir après ces étapes de consolidation. L'objectif global de ton plan reste inchangé."
+          },
+          "status": "draft_review",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "e20e5cd1-095d-4380-9be8-40031826f314",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Toute modification du contenu ou de l'existence des actions individuelles sans demande explicite de l'utilisateur.",
+              "Toute proposition qui ne prendrait pas en compte la préoccupation structurelle de l'utilisateur concernant la 'trajectoire globale'.",
+              "Proposer une solution qui ne respecterait pas l'ordre 'sécurité + positif avant analyse'."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L'objectif global du plan d'amélioration des dynamiques relationnelles.",
+              "L'existence et l'intention fondamentale de chaque action actuelle : 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause', 'Partager un point positif', 'Cartographier les déclencheurs'.",
+              "Les ajustements récents apportés à 'Partager un point positif' (fréquence et simplification de l'instruction), car ils répondent à une friction locale et ne sont pas liés à la trajectoire globale."
+            ],
+            "warnings": [
+              "Éviter de simplement déplacer \"Cartographier les déclencheurs\" sans s'assurer que les actions de \"signal de pause\" et \"point positif\" sont réellement consolidées et non juste déplacées.",
+              "Ne pas proposer de supprimer l'action \"Cartographier les déclencheurs\", car l'utilisateur a explicitement demandé de la conserver.",
+              "Ne pas ignorer la perception de l'utilisateur sur le rythme et la cohérence du plan, même si les titres de phases peuvent sembler logiques."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Guidelines action: role de l'action, intention preservee, pont mini si besoin, pas de changement de nature sans demande explicite.",
+              "Guidelines niveau: charge et rythme du niveau courant, baisse temporaire non globale, boundary de fin de niveau, coeur du niveau preserve.",
+              "Guidelines whole_plan: trajectoire, coherence globale, prerequis, ordre des phases, objectif et questionnaire preserves."
+            ],
+            "observation": "L'utilisateur exprime un besoin de réaligner la trajectoire du plan pour s'assurer que les fondations de sécurité (signal de pause) et l'établissement d'une habitude positive précèdent l'étape d'analyse des déclencheurs. Il perçoit que l'analyse est introduite trop tôt, avant que les éléments de base ne soient suffisamment acquis et consolidés.",
+            "recommendation": "Il est essentiel de réorganiser la séquence des thèmes principaux du plan pour respecter la progression souhaitée par l'utilisateur : d'abord la consolidation de la sécurité, puis l'intégration d'une habitude positive, et seulement après, l'analyse des déclencheurs. Cela implique de revoir le positionnement de l'action \"Cartographier les déclencheurs\" et de s'assurer que les actions de sécurité et positives sont bien établies.",
+            "options_to_discuss": [
+              "Proposer de regrouper toutes les actions liées à la 'sécurité' (Convenir d'un signal de pause, Faire le point sur le signal de pause) dans une phase initiale dédiée pour garantir leur acquisition.",
+              "Suggérer une phase distincte et focalisée sur les actions 'positives' (Partager un point positif) après que la sécurité soit jugée suffisamment stable.",
+              "Positionner 'Cartographier les déclencheurs' (analyse) clairement après que les éléments de 'sécurité' et de 'positif' aient été suffisamment abordés et consolidés.",
+              "Explorer la possibilité de structurer la phase actuelle en sous-phases pour mieux refléter cette progression souhaitée (sécurité -> positif -> analyse)."
+            ],
+            "questions_to_clarify": [
+              "Comment l'utilisateur imagine-t-il la 'consolidation' du signal de pause et l'acquisition de l'habitude positive ? Quels seraient les critères pour savoir quand ces éléments sont suffisamment établis avant de passer à l'analyse ?",
+              "L'utilisateur est-il à l'aise avec l'idée que cette réorganisation puisse potentiellement allonger la durée des premières semaines ou phases du plan pour bien asseoir ces fondations ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 78134,
+        "created_at": "2026-05-19T12:08:04.587243+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r40-whole-plan-t03",
+    "user": "Oui, ce brouillon me convient. Applique l'ajustement global : sécurité d'abord, positif ensuite, puis analyse des déclencheurs, sans supprimer les déclencheurs et sans changer l'objectif global.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r40-whole-plan-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-coach-r40-whole-plan",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je ne peux pas appliquer cet ajustement depuis le chat tant qu'il n'est pas rattaché proprement aux bonnes actions du plan. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r40-whole-plan-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "824b5e43-af12-4cc5-a5ec-d91d55bff9fd",
+        "ts": "2026-05-19T12:09:24.258+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11767,
+          "latency_ms": 60027,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 508,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r40-whole-plan-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "824b5e43-af12-4cc5-a5ec-d91d55bff9fd",
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "blocked",
+          "reason_code": "level_capability_not_materializable:reorder_actions",
+          "operation_id": "e20e5cd1-095d-4380-9be8-40031826f314",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Toute modification du contenu ou de l'existence des actions individuelles sans demande explicite de l'utilisateur.",
+              "Toute proposition qui ne prendrait pas en compte la préoccupation structurelle de l'utilisateur concernant la 'trajectoire globale'.",
+              "Proposer une solution qui ne respecterait pas l'ordre 'sécurité + positif avant analyse'."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L'objectif global du plan d'amélioration des dynamiques relationnelles.",
+              "L'existence et l'intention fondamentale de chaque action actuelle : 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause', 'Partager un point positif', 'Cartographier les déclencheurs'.",
+              "Les ajustements récents apportés à 'Partager un point positif' (fréquence et simplification de l'instruction), car ils répondent à une friction locale et ne sont pas liés à la trajectoire globale."
+            ],
+            "warnings": [
+              "Éviter de simplement déplacer \"Cartographier les déclencheurs\" sans s'assurer que les actions de \"signal de pause\" et \"point positif\" sont réellement consolidées et non juste déplacées.",
+              "Ne pas proposer de supprimer l'action \"Cartographier les déclencheurs\", car l'utilisateur a explicitement demandé de la conserver.",
+              "Ne pas ignorer la perception de l'utilisateur sur le rythme et la cohérence du plan, même si les titres de phases peuvent sembler logiques."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Guidelines action: role de l'action, intention preservee, pont mini si besoin, pas de changement de nature sans demande explicite.",
+              "Guidelines niveau: charge et rythme du niveau courant, baisse temporaire non globale, boundary de fin de niveau, coeur du niveau preserve.",
+              "Guidelines whole_plan: trajectoire, coherence globale, prerequis, ordre des phases, objectif et questionnaire preserves."
+            ],
+            "observation": "L'utilisateur exprime un besoin de réaligner la trajectoire du plan pour s'assurer que les fondations de sécurité (signal de pause) et l'établissement d'une habitude positive précèdent l'étape d'analyse des déclencheurs. Il perçoit que l'analyse est introduite trop tôt, avant que les éléments de base ne soient suffisamment acquis et consolidés.",
+            "recommendation": "Il est essentiel de réorganiser la séquence des thèmes principaux du plan pour respecter la progression souhaitée par l'utilisateur : d'abord la consolidation de la sécurité, puis l'intégration d'une habitude positive, et seulement après, l'analyse des déclencheurs. Cela implique de revoir le positionnement de l'action \"Cartographier les déclencheurs\" et de s'assurer que les actions de sécurité et positives sont bien établies.",
+            "options_to_discuss": [
+              "Proposer de regrouper toutes les actions liées à la 'sécurité' (Convenir d'un signal de pause, Faire le point sur le signal de pause) dans une phase initiale dédiée pour garantir leur acquisition.",
+              "Suggérer une phase distincte et focalisée sur les actions 'positives' (Partager un point positif) après que la sécurité soit jugée suffisamment stable.",
+              "Positionner 'Cartographier les déclencheurs' (analyse) clairement après que les éléments de 'sécurité' et de 'positif' aient été suffisamment abordés et consolidés.",
+              "Explorer la possibilité de structurer la phase actuelle en sous-phases pour mieux refléter cette progression souhaitée (sécurité -> positif -> analyse)."
+            ],
+            "questions_to_clarify": [
+              "Comment l'utilisateur imagine-t-il la 'consolidation' du signal de pause et l'acquisition de l'habitude positive ? Quels seraient les critères pour savoir quand ces éléments sont suffisamment établis avant de passer à l'analyse ?",
+              "L'utilisateur est-il à l'aise avec l'idée que cette réorganisation puisse potentiellement allonger la durée des premières semaines ou phases du plan pour bien asseoir ces fondations ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 69267,
+        "created_at": "2026-05-19T12:09:24.259312+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

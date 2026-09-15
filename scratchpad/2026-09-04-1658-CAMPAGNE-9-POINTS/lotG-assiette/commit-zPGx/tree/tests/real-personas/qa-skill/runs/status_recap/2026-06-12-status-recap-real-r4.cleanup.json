@@ -1,0 +1,59 @@
+{
+  "chat_messages": {
+    "status": 204,
+    "ok": true,
+    "text": ""
+  },
+  "scheduled_checkins": {
+    "status": 204,
+    "ok": true,
+    "text": ""
+  },
+  "user_recurring_reminders": {
+    "status": 204,
+    "ok": true,
+    "text": ""
+  },
+  "user_profile_facts": {
+    "status": 204,
+    "ok": true,
+    "text": ""
+  },
+  "user_chat_states_patch": {
+    "status": 204,
+    "ok": true,
+    "text": ""
+  },
+  "verify": {
+    "chat_messages": [],
+    "scheduled_checkins": [],
+    "user_recurring_reminders": [],
+    "user_profile_facts": [
+      {
+        "key": "coach.challenge_level"
+      },
+      {
+        "key": "coach.feedback_style"
+      },
+      {
+        "key": "coach.talk_propensity"
+      },
+      {
+        "key": "coach.message_length"
+      },
+      {
+        "key": "coach.message_format"
+      },
+      {
+        "key": "coach.primary_focus"
+      },
+      {
+        "key": "coach.emotional_personalization"
+      },
+      {
+        "key": "coach.question_tendency"
+      }
+    ],
+    "user_chat_states": []
+  }
+}

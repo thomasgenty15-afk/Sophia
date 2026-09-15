@@ -1,0 +1,754 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je ne veux pas ajuster une seule action cette fois. Le niveau entier sur la sécurité dans mon couple me paraît trop chargé pour cette semaine : le signal de pause et le point positif me mettent tous les deux sous pression. J'aimerais une version plus légère du niveau, sans changer l'objectif global.",
+    "assistant": "Je comprends, tu trouves que le niveau sur la sécurité est trop dense cette semaine. Je vais préparer une proposition pour alléger à la fois la mise en place du signal de pause et l'habitude du point positif, tout en gardant le cap sur ton objectif global. Est-ce que je peux te montrer ce brouillon ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, montre-moi le brouillon. Je veux surtout que ce soit plus doux cette semaine : garder le signal de pause, mais en version très simple, et réduire le point positif sans le supprimer.",
+    "assistant": "Je dois d'abord verrouiller une précision pour pouvoir te montrer le brouillon. Pour 'réduire' le point positif, tu préfères qu'on diminue le nombre de jours par semaine ou qu'on simplifie encore plus ce que tu as à faire ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Diminue le nombre de jours : deux fois par semaine seulement pour le point positif, avec une phrase neutre. Et pour le signal de pause, je veux juste choisir un mot simple en 5 minutes, pas une grande discussion.",
+    "assistant": "Je te propose d'ajuster ton niveau actuel pour réduire la charge et la fatigue décisionnelle. Rien n'est encore appliqué, j'ai besoin de ta validation sur ce brouillon. Je prévois de passer l'habitude 'Partager un point positif' à deux fois par semaine avec une phrase neutre. Pour la mission 'Convenir d'un signal de pause', je propose de simplifier l'objectif : choisir un mot simple en 5 minutes, pas une grande discussion. Ton objectif global et les autres éléments de ton plan ne seront pas touchés. Qu'en penses-tu ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "current_level",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "sans changer l'objectif global",
+              "version plus légère",
+              "une phrase neutre",
+              "choisir un mot simple en 5 minutes, pas une grande discussion",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Partager un point positif"
+            ],
+            "reason_type": "context_changed",
+            "change_target": "global_load",
+            "reason_change": "context_changed",
+            "load_adjustment": "lighter",
+            "level_adjustment": "reduce_load"
+          },
+          "title": "Ajustement - Désamorcer et recréer de la sécurité",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "niveau actuel: charge ajustée vers \"lighter\"",
+              "cible de changement: global_load"
+            ],
+            "unchanged": [
+              "le cœur du niveau reste préservé",
+              "chaque action n'est pas réécrite automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+            "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+          },
+          "scope_label": "Désamorcer et recréer de la sécurité",
+          "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+          "decision_basis": {
+            "evidence": [
+              "Diminue le nombre de jours : deux fois par semaine seulement pour le point positif, avec une phrase neutre. Et pour le signal de pause, je veux juste choisir un mot simple en 5 minutes, pas une grande discussion.",
+              "Le niveau entier sur la sécurité",
+              "reduce",
+              "global_load"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "actions exactes du niveau a choisir pour une modification fine"
+            ],
+            "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+            "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+            "must_preserve": [
+              "coeur du niveau"
+            ]
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "alleger la charge du niveau actuel sans supprimer l'intention",
+          "change_rationale": {
+            "why_this_change": "Alléger global_load répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+            "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+            "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+          },
+          "adjust_plan_result": {
+            "scope": "level",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [
+                "actions exactes du niveau a choisir pour une modification fine"
+              ],
+              "user_problem": "Le niveau actuel est trop lourd ou mal calibré pour le contexte de l'utilisateur.",
+              "expected_effect": "Moins de fatigue décisionnelle et une reprise plus fluide des actions du niveau.",
+              "why_this_change": "Alléger la charge répond au besoin de réduire la friction sans abandonner l'objectif de sécurité."
+            },
+            "boundaries": {
+              "explanation": "Les modifications sont confinées aux actions de la semaine pour répondre à ton besoin de flexibilité sans dévier de la trajectoire long terme.",
+              "affected_scope": "niveau actuel uniquement",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "objectif global",
+                "structure complète du plan",
+                "autres niveaux"
+              ]
+            },
+            "applied_change": {
+              "summary": "Allègement de la charge du niveau actuel par la réduction de fréquence et la simplification des consignes pour limiter la fatigue décisionnelle.",
+              "changed_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "after": "2 fois par semaine, une phrase neutre",
+                  "title": "Partager un point positif",
+                  "before": "3 jours / semaine, une phrase simple, sans chercher à faire joli",
+                  "reason": "Réduire la fréquence et simplifier le contenu pour diminuer la charge mentale.",
+                  "capability": "change_action_frequency"
+                },
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "choisir un mot simple en 5 minutes, pas une grande discussion",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Transformer une discussion potentiellement lourde en une décision rapide de 5 minutes.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Objectif global",
+                  "reason": "L'intention de fond du plan doit rester stable malgré l'ajustement du niveau."
+                },
+                {
+                  "id": null,
+                  "kind": "level",
+                  "title": "Structure des autres niveaux",
+                  "reason": "Seul le niveau actuel est impacté pour répondre au contexte immédiat."
+                }
+              ]
+            },
+            "user_message_brief": "J'allège ton niveau actuel en réduisant la fréquence d'une habitude et en simplifiant une mission pour limiter la fatigue.",
+            "user_message_detailed": "Voici les détails de la proposition pour ton niveau :\n1. Partager un point positif : on passe de 3 à 2 fois par semaine, et on utilise une phrase neutre. Cela réduit la pression de trouver quelque chose de 'positif' si le contexte est tendu.\n2. Convenir d'un signal de pause : au lieu d'une discussion longue, on se concentre sur choisir un mot simple en 5 minutes, pas une grande discussion. C'est plus rapide et moins lourd.\nLe reste de ton plan et ton objectif global ne changent pas. Ma confiance dans cet ajustement est modérée car j'ai ciblé les actions les plus denses selon tes retours."
+          },
+          "execution_strategy": "level_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "level_adjustment",
+            "load_adjustment",
+            "focus_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait, j'ai allégé ton niveau actuel pour limiter la pression. J'ai réduit la fréquence de l'habitude 'Partager un point positif' à deux fois par semaine en utilisant une phrase neutre pour simplifier l'exercice. Pour la mission 'Convenir d'un signal de pause', j'ai simplifié l'action : il s'agit maintenant de choisir un mot simple en 5 minutes, pas une grande discussion. Ces changements t'aident à maintenir l'élan dans votre couple sans t'épuiser. Ton objectif global reste intact.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose d'ajuster ton niveau actuel pour réduire la charge et la fatigue décisionnelle. Rien n'est encore appliqué, j'ai besoin de ta validation sur ce brouillon. Je prévois de passer l'habitude 'Partager un point positif' à deux fois par semaine avec une phrase neutre. Pour la mission 'Convenir d'un signal de pause', je propose de simplifier l'objectif : choisir un mot simple en 5 minutes, pas une grande discussion. Ton objectif global et les autres éléments de ton plan ne seront pas touchés. Qu'en penses-tu ?"
+      },
+      "status": "draft_review",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "18f0b15b-328b-41f4-9e2a-7e61bda6bc6b",
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Avant de valider, redis-moi précisément ce qui change et ce qui ne change pas. Est-ce que la cartographie des déclencheurs reste juste plus tard, sans être réécrite ?",
+    "assistant": "Je n'ai encore rien appliqué. Le brouillon actuel prévoit:\n\n1. Partager un point positif: avant, 3 jours / semaine, une phrase simple, sans chercher à faire joli; maintenant, 2 fois par semaine, une phrase neutre. Pourquoi: Réduire la fréquence et simplifier le contenu pour diminuer la charge mentale.\n2. Convenir d'un signal de pause: avant, À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.; maintenant, choisir un mot simple en 5 minutes, pas une grande discussion. Pourquoi: Transformer une discussion potentiellement lourde en une décision rapide de 5 minutes. Ce qui ne change pas: Objectif global.\n\nSi ça te va, dis-moi clairement de l'appliquer. Sinon, dis-moi ce que tu veux modifier dans ce brouillon.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "operation_flow_run": {
+      "status": "draft_review_details",
+      "reason_code": "skill_entry_signal",
+      "operation_id": "18f0b15b-328b-41f4-9e2a-7e61bda6bc6b",
+      "selected_handler": "adjust_plan_item",
+      "draft_review_decision": {
+        "decision": "explain",
+        "evidence": [
+          "redis-moi précisément ce qui change et ce qui ne change pas",
+          "Est-ce que la cartographie des déclencheurs reste juste plus tard, sans être réécrite ?"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux juste corriger deux détails du brouillon : écris exactement '2 jours / semaine' pour le point positif, et pour le signal de pause ce doit être 'choisir un mot ou un geste simple en 5 minutes'. La cartographie des déclencheurs doit rester inchangée plus tard.",
+    "assistant": "Je dois reprendre le brouillon pour intégrer tes formulations exactes. C'est bien noté pour les '2 jours / semaine' et le signal de pause en 5 minutes. Est-ce qu'il y a une autre action dans ce niveau que tu aimerais simplifier avant que je te montre la version corrigée ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "draft_review": true,
+      "operation_id": "18f0b15b-328b-41f4-9e2a-7e61bda6bc6b",
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "Je veux juste corriger deux détails du brouillon",
+          "écris exactement '2 jours / semaine'",
+          "ce doit être 'choisir un mot ou un geste simple en 5 minutes'",
+          "La cartographie des déclencheurs doit rester inchangée"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t05",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Non, pas d'autre action. Montre-moi la version corrigée avec seulement ces deux changements, et la cartographie inchangée.",
+    "assistant": "Je dois reprendre le brouillon proprement pour intégrer tes formulations exactes et m'assurer que la cartographie reste inchangée. Pour ton habitude de 2 jours par semaine, est-ce que tu veux que je fixe des jours précis ou on garde ça flexible ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "draft_review": true,
+      "operation_id": "18f0b15b-328b-41f4-9e2a-7e61bda6bc6b",
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "Je veux juste corriger deux détails du brouillon",
+          "Montre-moi la version corrigée"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t06",
+    "trace_error": null
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t07",
+    "status": 200,
+    "ok": true,
+    "user": "Garde ça flexible, sans jours précis. Deux fois dans la semaine quand c'est possible, et pas plus.",
+    "assistant": "Je dois reprendre le brouillon proprement pour intégrer tes formulations exactes et la flexibilité demandée. Pour ton habitude de deux jours par semaine, est-ce qu'on garde le créneau du soir ou tu préfères aussi rendre le moment de la journée totalement libre ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "draft_review": true,
+      "operation_id": "18f0b15b-328b-41f4-9e2a-7e61bda6bc6b",
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "Garde ça flexible, sans jours précis. Deux fois dans la semaine quand c'est possible, et pas plus."
+        ],
+        "confidence": "high",
+        "apply_after_revision": true
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t07",
+    "trace_error": null
+  },
+  {
+    "turn": 8,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t08",
+    "status": 502,
+    "ok": null,
+    "user": "Rends aussi le moment libre. Je ne veux pas choisir de créneau : deux jours par semaine, quand ça se présente naturellement.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t08",
+    "trace_error": null
+  },
+  {
+    "turn": 9,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t09",
+    "status": 200,
+    "ok": true,
+    "user": "Rends aussi le moment libre. Je ne veux pas choisir de créneau : deux jours par semaine, quand ça se présente naturellement.",
+    "assistant": "Je te propose d'alléger ton niveau actuel pour qu'il soit plus fluide à suivre cette semaine, sans toucher à ton objectif global. Rien n'est encore appliqué, j'attends ta validation sur ce brouillon.\n\nVoici les deux changements concrets que je prévois :\n1. Pour l'habitude 'Partager un point positif', je propose de passer à 2 jours par semaine avec une consigne simplifiée (une phrase neutre) à réaliser quand cela se présente naturellement, sans créneau imposé.\n2. Pour la mission 'Convenir d'un signal de pause', je simplifie l'objectif : choisir un mot ou un geste simple en 5 minutes, au moment qui vous semble le plus libre.\n\nLe reste de ton plan et la direction de ton travail sur la sécurité restent inchangés. Est-ce que cette version plus légère te convient ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "current_level",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "sans changer l'objectif global",
+              "version plus légère",
+              "2 jours / semaine",
+              "une phrase neutre",
+              "choisir un mot ou un geste simple en 5 minutes",
+              "quand ça se présente naturellement",
+              "moment libre",
+              "pas de créneau",
+              "affected_item:Partager un point positif",
+              "affected_item:Convenir d'un signal de pause"
+            ],
+            "reason_type": "context_changed",
+            "change_target": "global_load",
+            "reason_change": "context_changed",
+            "load_adjustment": "lighter",
+            "level_adjustment": "reduce_load"
+          },
+          "title": "Ajustement - Désamorcer et recréer de la sécurité",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "niveau actuel: charge ajustée vers \"lighter\"",
+              "cible de changement: global_load"
+            ],
+            "unchanged": [
+              "le cœur du niveau reste préservé",
+              "chaque action n'est pas réécrite automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+            "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+          },
+          "scope_label": "Désamorcer et recréer de la sécurité",
+          "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+          "decision_basis": {
+            "evidence": [
+              "Rends aussi le moment libre. Je ne veux pas choisir de créneau : deux jours par semaine, quand ça se présente naturellement.",
+              "Le niveau entier sur la sécurité",
+              "reduce",
+              "global_load"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "actions exactes du niveau a choisir pour une modification fine"
+            ],
+            "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+            "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+            "must_preserve": [
+              "coeur du niveau"
+            ]
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "alleger la charge du niveau actuel sans supprimer l'intention",
+          "change_rationale": {
+            "why_this_change": "Alléger global_load répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+            "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+            "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+          },
+          "adjust_plan_result": {
+            "scope": "level",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [
+                "Le moment exact où l'utilisateur se sent le plus disponible pour ces micro-actions."
+              ],
+              "user_problem": "Le niveau actuel est ressenti comme trop lourd ou trop rigide par rapport au contexte présent.",
+              "expected_effect": "Une reprise de l'action avec moins de résistance et une meilleure intégration dans le flux naturel de la semaine.",
+              "why_this_change": "Réduire la fréquence et simplifier les consignes permet de maintenir l'engagement sans générer de culpabilité ou de fatigue décisionnelle."
+            },
+            "boundaries": {
+              "explanation": "L'ajustement se concentre sur la réduction de la friction immédiate sans modifier la trajectoire long terme.",
+              "affected_scope": "niveau actuel uniquement",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "objectif global",
+                "structure complète du plan"
+              ]
+            },
+            "applied_change": {
+              "summary": "Allègement de la charge du niveau actuel par la réduction de fréquence et la simplification des consignes pour deux actions clés.",
+              "changed_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "after": "2 jours / semaine, une phrase neutre, quand ça se présente naturellement",
+                  "title": "Partager un point positif",
+                  "before": "3 jours / semaine, une phrase simple",
+                  "reason": "Réduire la fréquence et supprimer la contrainte de créneau pour diminuer la charge mentale.",
+                  "capability": "change_action_frequency"
+                },
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "choisir un mot ou un geste simple en 5 minutes, moment libre sans créneau",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste...",
+                  "reason": "Simplifier l'action pour qu'elle soit rapide et s'intègre naturellement dans votre emploi du temps.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Objectif global de sécurité",
+                  "reason": "L'intention de fond du plan doit rester stable malgré l'ajustement du niveau."
+                }
+              ]
+            },
+            "user_message_brief": "J'ai allégé ton niveau actuel pour le rendre plus flexible et moins prenant cette semaine.",
+            "user_message_detailed": "Pour répondre à ton besoin de légèreté, j'ai modifié deux points :\n- L'habitude 'Partager un point positif' passe de 3 à 2 jours par semaine, avec une consigne simplifiée à une phrase neutre sans créneau fixe pour que ce soit plus naturel.\n- La mission 'Convenir d'un signal de pause' est raccourcie à un format de 5 minutes à faire quand vous voulez.\nLe reste de ton plan reste identique pour préserver ton objectif de sécurité. Mon niveau de confiance est bon car cela respecte tes contraintes de temps et de flexibilité."
+          },
+          "execution_strategy": "level_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "level_adjustment",
+            "load_adjustment",
+            "focus_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait, j'ai ajusté ton niveau pour le rendre plus accessible et flexible.\n\nJ'ai réduit la fréquence de l'habitude 'Partager un point positif' à 2 jours par semaine en limitant l'effort à une phrase neutre, sans contrainte d'horaire. J'ai aussi allégé la mission 'Convenir d'un signal de pause' pour qu'elle ne vous demande que 5 minutes au moment où vous vous sentez disponibles.\n\nCes modifications te permettent de garder l'élan sur la sécurité tout en supprimant la pression du calendrier. Ton objectif de fond ne bouge pas, mais le quotidien devient plus respirable.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose d'alléger ton niveau actuel pour qu'il soit plus fluide à suivre cette semaine, sans toucher à ton objectif global. Rien n'est encore appliqué, j'attends ta validation sur ce brouillon.\n\nVoici les deux changements concrets que je prévois :\n1. Pour l'habitude 'Partager un point positif', je propose de passer à 2 jours par semaine avec une consigne simplifiée (une phrase neutre) à réaliser quand cela se présente naturellement, sans créneau imposé.\n2. Pour la mission 'Convenir d'un signal de pause', je simplifie l'objectif : choisir un mot ou un geste simple en 5 minutes, au moment qui vous semble le plus libre.\n\nLe reste de ton plan et la direction de ton travail sur la sécurité restent inchangés. Est-ce que cette version plus légère te convient ?"
+      },
+      "status": "draft_review_updated",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "fbef8a64-5c5f-4abf-a5e2-b8ee633d23f6",
+      "selected_handler": "adjust_plan_item",
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "L'utilisateur apporte une correction précise sur le créneau horaire et la flexibilité de l'habitude après avoir demandé à voir le brouillon corrigé."
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "previous_operation_id": "18f0b15b-328b-41f4-9e2a-7e61bda6bc6b"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t09",
+    "trace_error": null
+  },
+  {
+    "turn": 10,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t10",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, applique cette version : point positif à 2 jours / semaine sans créneau imposé, signal de pause en 5 minutes, et le reste du niveau inchangé.",
+    "assistant": "C'est fait, j'ai ajusté ton niveau pour le rendre plus accessible et flexible.\n\nJ'ai réduit la fréquence de l'habitude 'Partager un point positif' à 2 jours par semaine en limitant l'effort à une phrase neutre, sans contrainte d'horaire. J'ai aussi allégé la mission 'Convenir d'un signal de pause' pour qu'elle ne vous demande que 5 minutes au moment où vous vous sentez disponibles.\n\nCes modifications te permettent de garder l'élan sur la sécurité tout en supprimant la pression du calendrier. Ton objectif de fond ne bouge pas, mais le quotidien devient plus respirable.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "fbef8a64-5c5f-4abf-a5e2-b8ee633d23f6",
+      "plan_patch_id": "b47eb60f-12ad-4659-9f85-fd77620a3502",
+      "selected_handler": "adjust_plan_item",
+      "bridge_plan_item_id": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t10",
+    "trace_error": null
+  }
+]

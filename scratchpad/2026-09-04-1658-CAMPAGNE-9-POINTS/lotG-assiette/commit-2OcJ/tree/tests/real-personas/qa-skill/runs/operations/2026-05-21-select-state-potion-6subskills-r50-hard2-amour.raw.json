@@ -1,0 +1,2080 @@
+[
+  {
+    "potion": "amour",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r50_hard2_amour_amour",
+    "auth_user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+    "fixture": {
+      "cycle": {
+        "id": "03642ef9-263d-4849-bfa8-fc15d6b36c52",
+        "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-21T16:22:31.685698+00:00",
+        "updated_at": "2026-05-21T16:22:31.685698+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "9c9b7a4f-5e04-4543-ae72-7c7eeccc386a",
+        "cycle_id": "03642ef9-263d-4849-bfa8-fc15d6b36c52",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Changer le ton interieur",
+        "internal_summary": "Fixture QA pour tester la potion amour.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "amour",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-21T16:22:31.690317+00:00",
+        "updated_at": "2026-05-21T16:22:31.690317+00:00",
+        "activated_at": "2026-05-21T16:22:31.444+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "0c1dc1a8-cf61-43dc-b4e2-5a6994cdc0bf",
+        "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+        "cycle_id": "03642ef9-263d-4849-bfa8-fc15d6b36c52",
+        "transformation_id": "9c9b7a4f-5e04-4543-ae72-7c7eeccc386a",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA amour",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-21T16:22:31.444+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-21T16:22:31.699625+00:00",
+        "updated_at": "2026-05-21T16:22:31.699625+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "73f012be-2e0c-41a7-944b-983595a9632a",
+        "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+        "cycle_id": "03642ef9-263d-4849-bfa8-fc15d6b36c52",
+        "transformation_id": "9c9b7a4f-5e04-4543-ae72-7c7eeccc386a",
+        "plan_id": "0c1dc1a8-cf61-43dc-b4e2-5a6994cdc0bf",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Me parler avec plus de douceur",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "thu"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "amour"
+        },
+        "created_at": "2026-05-21T16:22:31.704898+00:00",
+        "updated_at": "2026-05-21T16:22:31.704898+00:00",
+        "activated_at": "2026-05-21T16:22:31.444+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t01-a1",
+        "user": "Je crois que j'ai besoin d'une potion d'amour, meme si j'aime pas trop le mot.",
+        "assistant": "C'est entendu pour la potion de douceur. Dis-moi, comment est-ce que tu te parles à toi-même en ce moment ? 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t01-a1",
+          "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "C'est entendu pour la potion de douceur. Dis-moi, comment est-ce que tu te parles à toi-même en ce moment ? 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t01-a1",
+            "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+            "source_message_id": "9e3d2373-a528-4856-ab90-c362165d8849",
+            "ts": "2026-05-21T16:22:49.972+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8643,
+              "latency_ms": 4962,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 694,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "73f012be-2e0c-41a7-944b-983595a9632a",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "Me parler avec plus de douceur",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "psychologie.emotions",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "besoin de douceur et d'amour de soi",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t01-a1",
+              "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "73f012be-2e0c-41a7-944b-983595a9632a",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "Me parler avec plus de douceur",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "psychologie.emotions",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "besoin de douceur et d'amour de soi",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 0,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [],
+                "context_summary": null,
+                "previous_scores": [],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "9e3d2373-a528-4856-ab90-c362165d8849",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "amour",
+                  "user_intent": "create",
+                  "explicitness": "explicit",
+                  "operation_type": "select_state_potion",
+                  "confidence_band": "high",
+                  "operation_input": {
+                    "potion_type": {
+                      "value": "amour",
+                      "status": "identified",
+                      "evidence": [
+                        "besoin d'une potion d'amour"
+                      ],
+                      "confidence": "high"
+                    }
+                  }
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "tool_skill_intent_start",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "status": "ask_question",
+              "reason_code": "tool_skill_intent_start",
+              "missing_slots": [
+                "potion_detail:self_talk",
+                "potion_detail:love_need"
+              ],
+              "selected_handler": "select_state_potion"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 17710,
+            "created_at": "2026-05-21T16:22:49.973878+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "tool_skill_intent_start",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t01-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t02-a1",
+        "user": "La phrase qui revient: tu rates toujours au meme endroit, donc a quoi bon.",
+        "assistant": "C'est une phrase bien rude à porter... Pour t'aider à apaiser ça, de quoi est-ce que tu aurais le plus besoin là tout de suite ? 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t02-a1",
+          "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "C'est une phrase bien rude à porter... Pour t'aider à apaiser ça, de quoi est-ce que tu aurais le plus besoin là tout de suite ? 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t02-a1",
+            "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+            "source_message_id": "d29a3d79-7685-4f82-8bf5-7eed73d27a6c",
+            "ts": "2026-05-21T16:23:07.186+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 9572,
+              "latency_ms": 9568,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 716,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "psychologie.estime_de_soi",
+                    "type": "domain_key",
+                    "priority": "high",
+                    "query_hint": "discours interne negatif et sentiment d'echec recurrent",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  },
+                  {
+                    "key": "habitudes.reprise_apres_echec",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "patterns de sabotage ou de decouragement",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [
+                  "tu rates toujours au meme endroit, donc a quoi bon"
+                ],
+                "risk_band": "low",
+                "reason_codes": [
+                  "self_harshness"
+                ]
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t02-a1",
+              "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "psychologie.estime_de_soi",
+                    "type": "domain_key",
+                    "priority": "high",
+                    "query_hint": "discours interne negatif et sentiment d'echec recurrent",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  },
+                  {
+                    "key": "habitudes.reprise_apres_echec",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "patterns de sabotage ou de decouragement",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {
+                  "demotivation_repair": {
+                    "reason": "motivation_loss",
+                    "detected": true,
+                    "confidence_band": "high"
+                  }
+                },
+                "lifecycle": {
+                  "reason": "user_answering_intake_question_for_potion",
+                  "active_skill_id": "select_state_potion",
+                  "confidence_band": "high"
+                }
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 1,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": "0;decay=0.55;recovery=0",
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "d29a3d79-7685-4f82-8bf5-7eed73d27a6c",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "conversation_or_other_tool_skill",
+                  "reason_code": "active_select_state_potion_in_progress"
+                }
+              ],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "suspend_active",
+                "reason_code": "high_conversation_skill_signal_suspends_active_tool_skill",
+                "active_owner": "tool_skill",
+                "resume_policy": "auto_after_answer",
+                "selected_owner": "conversation_skill"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "status": "ask_question",
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "missing_slots": [
+                "potion_detail:love_need"
+              ],
+              "selected_handler": "select_state_potion"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 17150,
+            "created_at": "2026-05-21T16:23:07.187236+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t02-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t03-a1",
+        "user": "J'ai besoin d'un ton tendre mais lucide, pas un truc qui me flatte.",
+        "assistant": "On va s'appuyer sur ton envie de transformer ce 'à quoi bon' en quelque chose de plus respirable. Je prépare un accompagnement pour chaque matin vers 09:00, afin de t'aider à garder ce ton lucide mais tendre que tu cherches. Dis-moi si l'heure te semble bien. 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t03-a1",
+          "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "On va s'appuyer sur ton envie de transformer ce 'à quoi bon' en quelque chose de plus respirable. Je prépare un accompagnement pour chaque matin vers 09:00, afin de t'aider à garder ce ton lucide mais tendre que tu cherches. Dis-moi si l'heure te semble bien. 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t03-a1",
+            "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+            "source_message_id": "fc3f9473-adb9-4608-8672-6e83c98d55f6",
+            "ts": "2026-05-21T16:23:37.974+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 9835,
+              "latency_ms": 4560,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 687,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "psychologie.emotions",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "autocritique et besoin de douceur",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t03-a1",
+              "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "psychologie.emotions",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "autocritique et besoin de douceur",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 1.6,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "0,1;decay=0.55;recovery=0",
+                    "contribution": 0.6
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure",
+                  "previous_risk"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "fc3f9473-adb9-4608-8672-6e83c98d55f6",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "ton tendre mais lucide, pas un truc qui me flatte",
+                  "user_intent": "update",
+                  "explicitness": "explicit",
+                  "operation_type": "update_coach_preferences",
+                  "confidence_band": "high",
+                  "operation_input": {
+                    "value": "tendre mais lucide, sans flatterie",
+                    "evidence": [
+                      "J'ai besoin d'un ton tendre mais lucide, pas un truc qui me flatte."
+                    ],
+                    "preference_type": "tone"
+                  }
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "conversation_or_other_tool_skill",
+                  "reason_code": "active_select_state_potion_in_progress"
+                }
+              ],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "suspend_active",
+                "reason_code": "explicit_tool_intent_supersedes_active",
+                "active_owner": "tool_skill",
+                "resume_policy": "user_reopens",
+                "selected_owner": "tool_skill"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "draft": {
+                "draft": {
+                  "title": "Potion de Tendresse Lucide",
+                  "follow_up": {
+                    "duration_days": 7,
+                    "schedule_plan": {
+                      "mode": "daily_series",
+                      "reason": "Accompagnement quotidien pour ancrer le changement de ton intérieur.",
+                      "local_dates": [],
+                      "duration_days": 7,
+                      "scheduled_days": [],
+                      "local_time_hhmm": "09:00",
+                      "timing_relation": "daily"
+                    },
+                    "local_time_hhmm": "09:00",
+                    "reason_for_time": "Aligné sur l'heure de ton habitude de douceur prévue dans ton plan.",
+                    "reminder_instruction": "Un message pour ramener de la lucidité tendre au moment de l'habitude."
+                  },
+                  "potion_type": "amour",
+                  "opening_prompt": "C'est fatigant d'entendre cette voix qui te répète que tu rates toujours au même endroit.",
+                  "target_binding": {
+                    "kind": "plan_item",
+                    "label": "Me parler avec plus de douceur",
+                    "evidence": [
+                      "tu rates toujours au meme endroit, donc a quoi bon.",
+                      "un ton tendre mais lucide, pas de flatterie."
+                    ],
+                    "recurrence_hint": null,
+                    "date_or_window_hint": null,
+                    "target_plan_item_id": "73f012be-2e0c-41a7-944b-983595a9632a",
+                    "related_plan_item_id": null,
+                    "target_action_family_key": null,
+                    "target_generated_temp_id": null
+                  },
+                  "why_this_potion": "Le user exprime une auto-critique répétitive et cherche un ton lucide mais non-violent pour sortir du découragement sans tomber dans la flatterie.",
+                  "expected_duration": "short",
+                  "potion_info_message": "Cette potion va t'accompagner pendant une semaine pour adoucir le climat intérieur et transformer ce 'à quoi bon' en un regard plus constructif.",
+                  "instant_support_message": "Prends juste une seconde pour noter que cette pensée n'est pas la vérité absolue, c'est juste un vieux disque qui raye. On peut regarder ce qui coince sans pour autant se rejeter."
+                },
+                "output_schema": "potion_session_draft_v1",
+                "operation_type": "select_state_potion",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "On va s'appuyer sur ton envie de transformer ce 'à quoi bon' en quelque chose de plus respirable. Je prépare un accompagnement pour chaque matin vers 09:00, afin de t'aider à garder ce ton lucide mais tendre que tu cherches. Dis-moi si l'heure te semble bien."
+              },
+              "status": "pending_confirmation",
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "operation_id": "8d15d9d8-c69d-4ae0-af1a-08b3e8f05a0e",
+              "selected_handler": "select_state_potion"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 30734,
+            "created_at": "2026-05-21T16:23:37.975446+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t03-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t04-a1",
+        "user": "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+        "assistant": "C'est vrai que le matin donne souvent le ton de la journée. En calant ce soutien à 09:00, on s'assure de ramener cette tendresse lucide avant que la pression ne s'installe. Je prépare ces messages quotidiens pour t'aider à ne plus commencer par te juger. Dis-moi si c'est ce qu'il te faut. 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t04-a1",
+          "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "C'est vrai que le matin donne souvent le ton de la journée. En calant ce soutien à 09:00, on s'assure de ramener cette tendresse lucide avant que la pression ne s'installe. Je prépare ces messages quotidiens pour t'aider à ne plus commencer par te juger. Dis-moi si c'est ce qu'il te faut. 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t04-a1",
+            "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+            "source_message_id": "3ca89086-d1b3-4940-9d31-396baa1f4027",
+            "ts": "2026-05-21T16:24:09.756+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8991,
+              "latency_ms": 4669,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 672,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "73f012be-2e0c-41a7-944b-983595a9632a",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "habitudes de douceur et auto-critique",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "psychologie.estime_de_soi",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "auto-critique le matin",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [
+                  "Le user mentionne 'se taper dessus' au sens figuré (auto-critique), pas de risque physique immédiat."
+                ],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t04-a1",
+              "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "73f012be-2e0c-41a7-944b-983595a9632a",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "habitudes de douceur et auto-critique",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "psychologie.estime_de_soi",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "auto-critique le matin",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 1.9,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "0,1,1.6;decay=0.55;recovery=0",
+                    "contribution": 0.9
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure",
+                  "previous_risk"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1,
+                  1.6
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "3ca89086-d1b3-4940-9d31-396baa1f4027",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "conversation_or_other_tool_skill",
+                  "reason_code": "active_select_state_potion_in_progress"
+                }
+              ],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "draft": {
+                "draft": {
+                  "title": "Tendresse Lucide",
+                  "follow_up": {
+                    "duration_days": 7,
+                    "schedule_plan": {
+                      "mode": "daily_series",
+                      "reason": "Accompagnement quotidien pour ancrer le changement de ton intérieur dès le début de la journée.",
+                      "local_dates": [],
+                      "duration_days": 7,
+                      "scheduled_days": [],
+                      "local_time_hhmm": "09:00",
+                      "timing_relation": "daily"
+                    },
+                    "local_time_hhmm": "09:00",
+                    "reason_for_time": "Aligné sur ton souhait de ne pas commencer la journée par de l'auto-jugement à 09:00.",
+                    "reminder_instruction": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence."
+                  },
+                  "potion_type": "amour",
+                  "opening_prompt": "C'est fatigant d'entendre cette voix qui te répète que tu rates toujours au même endroit.",
+                  "target_binding": {
+                    "kind": "plan_item",
+                    "label": "Me parler avec plus de douceur",
+                    "evidence": [
+                      "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+                      "tu rates toujours au meme endroit, donc a quoi bon."
+                    ],
+                    "recurrence_hint": null,
+                    "date_or_window_hint": null,
+                    "target_plan_item_id": "73f012be-2e0c-41a7-944b-983595a9632a",
+                    "related_plan_item_id": null,
+                    "target_action_family_key": null,
+                    "target_generated_temp_id": null
+                  },
+                  "why_this_potion": "Le user exprime une auto-critique répétitive et cherche un ton lucide mais non-violent pour sortir du découragement sans tomber dans la flatterie.",
+                  "expected_duration": "short",
+                  "potion_info_message": "Cette potion va t'accompagner pendant une semaine pour adoucir le climat intérieur et transformer ce 'à quoi bon' en un regard plus constructif.",
+                  "instant_support_message": "Prends juste une seconde pour noter que cette pensée n'est pas la vérité absolue, c'est juste un vieux disque qui raye. On peut regarder ce qui coince sans pour autant se rejeter."
+                },
+                "output_schema": "potion_session_draft_v1",
+                "operation_type": "select_state_potion",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "C'est vrai que le matin donne souvent le ton de la journée. En calant ce soutien à 09:00, on s'assure de ramener cette tendresse lucide avant que la pression ne s'installe. Je prépare ces messages quotidiens pour t'aider à ne plus commencer par te juger. Dis-moi si c'est ce qu'il te faut."
+              },
+              "status": "pending_confirmation_updated",
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "operation_id": "7112579e-0ac7-49fa-a209-f1c4ab74b919",
+              "selected_handler": "select_state_potion",
+              "draft_review_decision": {
+                "decision": "revise",
+                "evidence": [
+                  "Le user ajoute une contrainte émotionnelle précise: il veut que l'aide du matin à 09h l'empêche de commencer à se dévaloriser.",
+                  "Il ne demande pas d'activer maintenant la potion, il reformule l'intention à intégrer avant validation."
+                ],
+                "confidence": "high",
+                "generated_user_message": "Je peux l’orienter pour que le message du matin t’aide vraiment à ne pas démarrer en te jugeant. Je te propose d’ajuster le ton pour qu’il soit plus protecteur et centré sur ce moment de 09h."
+              },
+              "previous_operation_id": "8d15d9d8-c69d-4ae0-af1a-08b3e8f05a0e"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 31724,
+            "created_at": "2026-05-21T16:24:09.757675+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t04-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t05-a1",
+        "user": "Oui, active cette potion d'amour.",
+        "assistant": "Prends juste une seconde pour noter que cette pensée n'est pas la vérité absolue, c'est juste un vieux disque qui raye. On peut regarder ce qui coince sans pour autant se rejeter. 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t05-a1",
+          "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Prends juste une seconde pour noter que cette pensée n'est pas la vérité absolue, c'est juste un vieux disque qui raye. On peut regarder ce qui coince sans pour autant se rejeter. 🙂",
+            "additional_contents": [
+              "Cette potion va t'accompagner pendant une semaine pour adoucir le climat intérieur et transformer ce 'à quoi bon' en un regard plus constructif. 🙂"
+            ],
+            "mode": "companion",
+            "tool_execution": "success",
+            "executed_tools": [
+              "select_state_potion"
+            ]
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t05-a1",
+            "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+            "source_message_id": "2335a5d2-2afb-4d0d-b51f-621384492146",
+            "ts": "2026-05-21T16:24:20.377+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 9089,
+              "latency_ms": 4414,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 690,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "73f012be-2e0c-41a7-944b-983595a9632a",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "Me parler avec plus de douceur",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "psychologie.emotions",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "self-harshness and self-compassion",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t05-a1",
+              "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "73f012be-2e0c-41a7-944b-983595a9632a",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "Me parler avec plus de douceur",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "psychologie.emotions",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "self-harshness and self-compassion",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 1,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": "0,1,1.6,1.9;decay=0.55;recovery=1.5",
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1,
+                  1.6,
+                  1.9
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "2335a5d2-2afb-4d0d-b51f-621384492146",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "Oui, active cette potion d'amour.",
+                  "user_intent": "select",
+                  "explicitness": "explicit",
+                  "operation_type": "select_state_potion",
+                  "confidence_band": "high"
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "conversation_or_other_tool_skill",
+                  "reason_code": "active_select_state_potion_in_progress"
+                }
+              ],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [
+              {
+                "outcome": "success",
+                "tool_id": "select_state_potion"
+              }
+            ],
+            "skill_run": null,
+            "tool_skill_run": {
+              "status": "executed",
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "operation_id": "7112579e-0ac7-49fa-a209-f1c4ab74b919",
+              "selected_handler": "select_state_potion",
+              "potion_session_id": "40d74561-43c6-42d8-b334-8a08dc787a49",
+              "draft_review_decision": {
+                "decision": "approve",
+                "evidence": [
+                  "Le user dit explicitement \"active cette potion\".",
+                  "Il confirme clairement l'activation maintenant de la potion déjà proposée."
+                ],
+                "confidence": "high",
+                "generated_user_message": null
+              },
+              "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 10561,
+            "created_at": "2026-05-21T16:24:20.378748+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "select_state_potion"
+            }
+          ],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [
+            "select_state_potion"
+          ],
+          "tool_execution": "success",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t05-a1"
+        },
+        "durable_after": {
+          "sessions": [
+            {
+              "id": "40d74561-43c6-42d8-b334-8a08dc787a49",
+              "potion_type": "amour",
+              "status": "completed",
+              "source": "system",
+              "scope_kind": "out_of_plan",
+              "cycle_id": "03642ef9-263d-4849-bfa8-fc15d6b36c52",
+              "transformation_id": null,
+              "content": {
+                "title": "Tendresse Lucide",
+                "target_binding": {
+                  "kind": "plan_item",
+                  "label": "Me parler avec plus de douceur",
+                  "evidence": [
+                    "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+                    "tu rates toujours au meme endroit, donc a quoi bon."
+                  ],
+                  "recurrence_hint": null,
+                  "date_or_window_hint": null,
+                  "target_plan_item_id": "73f012be-2e0c-41a7-944b-983595a9632a",
+                  "related_plan_item_id": null,
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                },
+                "operation_draft": {
+                  "title": "Tendresse Lucide",
+                  "follow_up": {
+                    "duration_days": 7,
+                    "schedule_plan": {
+                      "mode": "daily_series",
+                      "reason": "Accompagnement quotidien pour ancrer le changement de ton intérieur dès le début de la journée.",
+                      "local_dates": [],
+                      "duration_days": 7,
+                      "scheduled_days": [],
+                      "local_time_hhmm": "09:00",
+                      "timing_relation": "daily"
+                    },
+                    "local_time_hhmm": "09:00",
+                    "reason_for_time": "Aligné sur ton souhait de ne pas commencer la journée par de l'auto-jugement à 09:00.",
+                    "reminder_instruction": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence."
+                  },
+                  "potion_type": "amour",
+                  "opening_prompt": "C'est fatigant d'entendre cette voix qui te répète que tu rates toujours au même endroit.",
+                  "target_binding": {
+                    "kind": "plan_item",
+                    "label": "Me parler avec plus de douceur",
+                    "evidence": [
+                      "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+                      "tu rates toujours au meme endroit, donc a quoi bon."
+                    ],
+                    "recurrence_hint": null,
+                    "date_or_window_hint": null,
+                    "target_plan_item_id": "73f012be-2e0c-41a7-944b-983595a9632a",
+                    "related_plan_item_id": null,
+                    "target_action_family_key": null,
+                    "target_generated_temp_id": null
+                  },
+                  "why_this_potion": "Le user exprime une auto-critique répétitive et cherche un ton lucide mais non-violent pour sortir du découragement sans tomber dans la flatterie.",
+                  "expected_duration": "short",
+                  "potion_info_message": "Cette potion va t'accompagner pendant une semaine pour adoucir le climat intérieur et transformer ce 'à quoi bon' en un regard plus constructif.",
+                  "instant_support_message": "Prends juste une seconde pour noter que cette pensée n'est pas la vérité absolue, c'est juste un vieux disque qui raye. On peut regarder ce qui coince sans pour autant se rejeter."
+                },
+                "why_this_potion": "Le user exprime une auto-critique répétitive et cherche un ton lucide mais non-violent pour sortir du découragement sans tomber dans la flatterie.",
+                "potion_info_message": "Cette potion va t'accompagner pendant une semaine pour adoucir le climat intérieur et transformer ce 'à quoi bon' en un regard plus constructif.",
+                "instant_support_message": "Prends juste une seconde pour noter que cette pensée n'est pas la vérité absolue, c'est juste un vieux disque qui raye. On peut regarder ce qui coince sans pour autant se rejeter."
+              },
+              "follow_up_strategy": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Accompagnement quotidien pour ancrer le changement de ton intérieur dès le début de la journée.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "09:00",
+                  "timing_relation": "daily"
+                },
+                "target_binding": {
+                  "kind": "plan_item",
+                  "label": "Me parler avec plus de douceur",
+                  "evidence": [
+                    "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+                    "tu rates toujours au meme endroit, donc a quoi bon."
+                  ],
+                  "recurrence_hint": null,
+                  "date_or_window_hint": null,
+                  "target_plan_item_id": "73f012be-2e0c-41a7-944b-983595a9632a",
+                  "related_plan_item_id": null,
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                },
+                "local_time_hhmm": "09:00",
+                "reason_for_time": "Aligné sur ton souhait de ne pas commencer la journée par de l'auto-jugement à 09:00.",
+                "reminder_instruction": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence."
+              },
+              "metadata": {
+                "source": "sophia_brain_tool_skill",
+                "request_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t05-a1",
+                "operation_id": "7112579e-0ac7-49fa-a209-f1c4ab74b919",
+                "operation_type": "select_state_potion",
+                "source_message_id": "2335a5d2-2afb-4d0d-b51f-621384492146"
+              },
+              "generated_at": "2026-05-21T16:24:20.348+00:00",
+              "last_updated_at": "2026-05-21T16:24:20.348+00:00"
+            }
+          ],
+          "reminders": [
+            {
+              "id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+              "message_instruction": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+              "rationale": "Accompagnement quotidien pour ancrer le changement de ton intérieur dès le début de la journée.",
+              "local_time_hhmm": "09:00",
+              "scheduled_days": [
+                "fri",
+                "sat",
+                "sun",
+                "mon",
+                "tue",
+                "wed",
+                "thu"
+              ],
+              "status": "active",
+              "initiative_kind": "potion_follow_up",
+              "source_kind": "potion_generated",
+              "source_potion_session_id": "40d74561-43c6-42d8-b334-8a08dc787a49",
+              "initiative_metadata": {
+                "source": "sophia_brain_tool_skill",
+                "request_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t05-a1",
+                "operation_id": "7112579e-0ac7-49fa-a209-f1c4ab74b919",
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Accompagnement quotidien pour ancrer le changement de ton intérieur dès le début de la journée.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "09:00",
+                  "timing_relation": "daily"
+                },
+                "operation_type": "select_state_potion",
+                "target_binding": {
+                  "kind": "plan_item",
+                  "label": "Me parler avec plus de douceur",
+                  "evidence": [
+                    "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+                    "tu rates toujours au meme endroit, donc a quoi bon."
+                  ],
+                  "recurrence_hint": null,
+                  "date_or_window_hint": null,
+                  "target_plan_item_id": "73f012be-2e0c-41a7-944b-983595a9632a",
+                  "related_plan_item_id": null,
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                }
+              },
+              "target_kind": "plan_item",
+              "target_plan_item_id": "73f012be-2e0c-41a7-944b-983595a9632a",
+              "target_action_family_key": null,
+              "target_binding_policy": "live_action",
+              "target_lifecycle_policy": "while_target_active",
+              "starts_at": "2026-05-21T16:24:20.348+00:00",
+              "created_at": "2026-05-21T16:24:20.357818+00:00",
+              "updated_at": "2026-05-21T16:24:20.357818+00:00"
+            }
+          ],
+          "checkins": [
+            {
+              "id": "328f44f3-16c5-4da7-9fc1-cce6665984f2",
+              "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+              "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-22",
+              "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+              "scheduled_for": "2026-05-22T09:00:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:24:20.364527+00:00"
+            },
+            {
+              "id": "01c1c1f8-8dc8-444a-ac91-0ac14bea584c",
+              "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+              "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-23",
+              "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+              "scheduled_for": "2026-05-23T09:00:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:24:20.364527+00:00"
+            },
+            {
+              "id": "961b11c0-be55-495c-af02-d3edd4a32a6c",
+              "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+              "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-24",
+              "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+              "scheduled_for": "2026-05-24T09:00:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:24:20.364527+00:00"
+            },
+            {
+              "id": "4e0242b4-ed86-4a72-b83a-c40dc46c329b",
+              "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+              "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-25",
+              "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+              "scheduled_for": "2026-05-25T09:00:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:24:20.364527+00:00"
+            },
+            {
+              "id": "257b53f8-df97-4fd7-9f02-b8b0d3504e65",
+              "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+              "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-26",
+              "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+              "scheduled_for": "2026-05-26T09:00:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:24:20.364527+00:00"
+            },
+            {
+              "id": "47efde04-d574-470a-9197-82116072c825",
+              "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+              "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-27",
+              "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+              "scheduled_for": "2026-05-27T09:00:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:24:20.364527+00:00"
+            },
+            {
+              "id": "716822a5-6c5a-499b-8597-7861d42326dc",
+              "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+              "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-28",
+              "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+              "scheduled_for": "2026-05-28T09:00:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:24:20.364527+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

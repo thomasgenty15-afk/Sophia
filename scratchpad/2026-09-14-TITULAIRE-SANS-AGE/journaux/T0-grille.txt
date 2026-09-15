@@ -1,0 +1,212 @@
+
+██████████████████████████████████████████████████████████████████████████████
+C0 · banc ② · PERTE · appétit average · horloge injectée 2026-09-13T19:00:00+02:00
+██████████████████████████████████████████████████████████████████████████████
+demande figée le 2026-09-13T23:16:28.483Z · source scratchpad/2026-09-14-TITULAIRE-SANS-AGE/sorties/perte-sna0-2026-09-13T17-00-01-340Z.json
+instant     {"lance_le":"2026-09-13T17:00:00.599Z","jour_local":"2026-09-13","heure_locale":"19:00","fuseau":"Europe/Paris","horloge_injectee":"2026-09-13T19:00:00+02:00","decalage_ms":-22439648}
+fenêtre     {"demandee":{"kind":"days","count":3},"cases_annoncees":6,"bouches_annoncees":1,"premier_jour_partiel":[],"attendue":{"starts_on":"2026-09-14","duration_days":2,"dropped":"sun","cause":"shopping_cutoff"},"moments_passes":["breakfast","lunch"],"moments_retenus_pour_les_courses":["dinner"],"acceptee":{"starts_on":"2026-09-14","ends_on":"2026-09-15","duration_days":2}}
+⛔ LA GRILLE VIENT DE LA DEMANDE, PAS DES PLATS : 6 case(s) attendue(s) sur 1 bouche(s) — {"85d96089-9e6f-439d-ad90-5f0ab5b0873a":6}
+✅ le total attendu est CELUI QUI AVAIT ÉTÉ ANNONCÉ avant l'appel (6).
+
+══ ④ PREMIER JET · RÉPARATIONS · PAYLOAD RELU ════════════════
+réparations du modèle : 0
+champ « ref » au PREMIER JET      23 / 23 ligne(s) 
+champ « ref » APRÈS RÉPARATION    23 / 23 ligne(s)
+⛔ CES DEUX NOMBRES NE SE REMPLACENT PAS. Le rapport du 2026-09-11 publiait le second et le présentait comme la sortie du modèle.
+états de référence au PREMIER JET : vérifiées 23 · groupe 0 · à valider 0 · NON MESURABLES 0
+
+══════════════════════════════════════════════════════════════════════════════
+PLAN 0fef0364-e3c4-4162-9e48-9c1be5cfd147  ·  requête 7c286565-90c2-459f-81d3-66317243d0cb
+══════════════════════════════════════════════════════════════════════════════
+bouche      Paul · 85d96089-9e6f-439d-ad90-5f0ab5b0873a
+corps       178 cm · 88 kg · male · 36 ans (30_44)
+objectif    fat_loss · cran 0.5 kg/sem · appétit average
+grille      {"mon":["breakfast","lunch","dinner"],"tue":["breakfast","lunch","dinner"]}
+dates       {"mon":"2026-09-14","tue":"2026-09-15"}
+
+── BILAN DE LIVRAISON ─────────────────────────────────────
+livré       oui (ligne écrite)
+durée       629 ms · appels modèle 1 · réparations 0/2
+prompt      meal.en.v33_the_recipe_writes_the_shopping_list+household.v33_one_standard_recipe_the_engine_multiplies
+final_gate  ok=true · refus 0 · bloquants 0
+non évalués title_promises_missing_preparation, mouth_energy_short
+incomplets  mouth_energy:1
+
+── LES CINQ DÉNOMINATEURS ─────────────────────────────────
+cases attendues      6   (déduites de la DEMANDE, pas des plats)
+plats présents       6
+portions calculées   6
+portions mesurables  6
+portions conformes   6 / 6 mesurables   (±10 % par repas)
+contenants d'autres bouches  0
+cases jugées sur une PART   0   (toutes les cases mesurées portent une pesée nominative)
+contenants sans bouche nommée 0
+
+── CONFORMITÉ CALORIQUE · CONFORMITÉ COMPLÈTE · CONTRÔLES INCOMPLETS ──
+conformité CALORIQUE  6 / 6 cases jugeables
+conformité COMPLÈTE   6 / 6 cases demandées   (plat + portion + calories + masse + densité, aucune abstention)
+contrôles INCOMPLETS  0
+SANS OBJET            0 case(s) — le contrat numérique ne s'applique pas à cette bouche
+⛔ CES TROIS NOMBRES NE SE FONDENT PAS. « 6/6 conformes » publié sur le tir
+   n° 6 était la conformité CALORIQUE d'UNE bouche d'un foyer de deux.
+
+apports fixes déclarés 1   retranchés : {"mon":{"breakfast":226},"tue":{"breakfast":226}}
+
+══ 1. CALORIES DU CRÉNEAU ═════════════════════════════════
+tolérance ±10 % — source : docs/keel/PLAN-FIABILITE-ET-EQUILIBRE-RECETTES-2026-09-11.md § lot E — CRITÈRE ANNONCÉ, non branché dans le moteur (final_plan_gate reçoit energy: null)
+date        créneau     cible(dim.)  cible(prompt)   archive  mesuré     écart       état
+2026-09-14  breakfast      495.76        495.76    495.76     495.00     -0.15 %  ✅ conforme
+2026-09-14  lunch          721.76        721.76    721.76     720.82     -0.13 %  ✅ conforme
+2026-09-14  dinner        1010.47       1010.47   1010.47    1015.73     +0.52 %  ✅ conforme
+2026-09-15  breakfast      495.76        495.76    495.76     495.00     -0.15 %  ✅ conforme
+2026-09-15  lunch          721.76        721.76    721.76     720.82     -0.13 %  ✅ conforme
+2026-09-15  dinner        1010.47       1010.47   1010.47    1015.73     +0.52 %  ✅ conforme
+✅ UNE SEULE CIBLE PAR CASE. Le prompt et le dimensionnement lisent le même
+   `SlotNutritionContract` (slot_nutrition_contract.ts), clé personne+date+créneau.
+
+══ 2. GRAMMAGE DE L'ASSIETTE (par personne) ═══════════════
+date        créneau     Gmin   Gpréf   Gmax   servis   état
+2026-09-14  breakfast    250    373    496     457   ✅ dans les bornes
+2026-09-14  lunch        250    475    700     629   ✅ dans les bornes
+2026-09-14  dinner       250    475    700     621   ✅ dans les bornes
+2026-09-15  breakfast    250    373    496     457   ✅ dans les bornes
+2026-09-15  lunch        250    475    700     629   ✅ dans les bornes
+2026-09-15  dinner       250    475    700     621   ✅ dans les bornes
+
+══ 3. INGRÉDIENTS COMPTABILISÉS — LES QUATRE ÉTATS ════════
+lignes d'ingrédient                 23
+① référence vérifiée                23
+② estimation de groupe              0
+③ en attente de validation          0
+④ ingrédient non mesurable          0
+
+champ « ref » écrit par le modèle   23 / 23
+⛔ CE TAUX N'EST PAS UN TAUX DE VÉRIFICATION : un « ref » écrit peut viser
+   une ligne de modèle. Les quatre états ci-dessus sont les seuls faits.
+⟳ LOT A (2026-09-11) : `plan_energy_read.ts::readIngredient` TRANSMET
+   désormais « ref » et « ref_refused ». Avant ce lot il ne les transmettait
+   pas, la mesure repartait du terme français, et ce même plan comptait
+   jusqu'à 2 ingrédients non mesurables avec 49 « ref » sur 49 lignes.
+
+pesés par convention (condiments)   —
+pesés par la prose                  —
+faux amis mordus                    —
+
+── LES TROIS INDEX ────────────────────────────────────────
+index historique   943 lignes · 2727 alias · 4 faux amis (langue du plan)
+index génération   920 / 943 composables (isComposable) — 23 refusées
+index relecture    +sas : asked 0 · kept 0
+⚪ aucun témoin keel.meal_energy.reading_index pour ce compte
+⚠️ les règles DIFFÈRENT : la porte de validation vaut à la COMPOSITION, pas
+   à la relecture. Relire avec l'index de génération effacerait la trace du
+   défaut au lieu de la lire.
+⛔ ET LE SAS D'AUJOURD'HUI N'EST PAS CELUI DU RUN. `grams_raw` est figé à la
+   génération ; le référentiel et le sas, non. Sur ces deux tirs, le second
+   run a écrit 2 lignes de sas (sas_written: 2) dont le PREMIER n'a pas pu
+   profiter : une relecture d'aujourd'hui peut donc lire un terme que le run
+   a compté inconnu. La portion manquante, elle, reste manquante.
+
+══ 4. COUVERTURE DU PLAN ══════════════════════════════════
+attendues 6 · plats 6 · manquantes 0
+témoin moteur (keel.household_meal.cells) : {"tag":"keel.household_meal.cells","user_id":"d3cec649-307a-49e9-afd1-178b8a6d0269","request_id":"7c286565-90c2-459f-81d3-66317243d0cb","cells":6,"non_empty":6,"empty":0,"light":2,"light_mixed":0,"eaters_hist":{"1":6,"2":0,"3":0,"4_plus":0},"dedicated_cells":0,"dedicated_mouths":0,"dedicated_by_reason":{"regime":0,"own_meal":0},"one_eater_cells":6,"cook_day_cells":0,"spent_cells":0,"regime_by_cell":{"none":6},"dish_bearing_delta":0,"dish_bearing_only_cells":0,"dish_bearing_only_current":0}
+
+══ 5. COHÉRENCE DE LA JOURNÉE ═════════════════════════════
+tolérance ±5 % sur le PÉRIMÈTRE COUVERT
+date        cases  mesurables  budget couvert  cible du jour  servi      écart       état
+2026-09-14      3           3         2228.00        2454.00    2231.55     +0.16 %  ✅ conforme
+2026-09-15      3           3         2228.00        2454.00    2231.55     +0.16 %  ✅ conforme
+⛔ LA SOMME EST CELLE DES MÊMES PORTIONS QUE LE CONTRÔLE 1 — boxNutrition, les
+   items écrits. Aucune part conventionnelle n'entre ici.
+
+══ 6. DENSITÉ CALORIQUE ═══════════════════════════════════
+consigne refaite : — dishes served here: up to 198 kcal per 100 g at breakfast (aim 110, not 133), 104 to 250 at lunch (aim 113, not 152), 145 to 250 at dinner (aim 159, not 213) (the "not N" numbers are the target spread over an average plate; we ask for the bigger plate, so aim for the first number)
+✅ PREUVE : cette phrase est présente CARACTÈRE POUR CARACTÈRE dans le prompt archivé.
+consigne réparée : — dishes served here: up to 198 kcal per 100 g at breakfast (aim 110, not 133), 104 to 250 at lunch (aim 113, not 152), 145 to 250 at dinner (aim 159, not 213) (the "not N" numbers are the target spread over an average plate; we ask for the bigger plate, so aim for the first number)
+⚪ identique à celle du tir : le lot B ne déplace rien sur cette grille.
+
+✅ les 6 ligne(s) de contrat de cette bouche sont dans le prompt archivé, AU CARACTÈRE, rendues par la fonction de production — le couloir calculé EST celui qui est parti.
+date        créneau     couloir du JOUR          couloir TRANSMIS        couloir ARCHIVE         mesuré    état
+2026-09-14  breakfast  [100–198] aim 110       [100–198] aim 110       [100–198] aim 110          108    ✅ dans le couloir
+2026-09-14  lunch      [104–250] aim 113       [104–250] aim 113       [104–250] aim 113          115    ✅ dans le couloir
+2026-09-14  dinner     [145–250] aim 159       [145–250] aim 159       [145–250] aim 159          164    ✅ dans le couloir
+2026-09-15  breakfast  [100–198] aim 110       [100–198] aim 110       [100–198] aim 110          108    ✅ dans le couloir
+2026-09-15  lunch      [104–250] aim 113       [104–250] aim 113       [104–250] aim 113          115    ✅ dans le couloir
+2026-09-15  dinner     [145–250] aim 159       [145–250] aim 159       [145–250] aim 159          164    ✅ dans le couloir
+⛔ « couloir du JOUR » et « couloir TRANSMIS » sortent du MÊME contrat, par
+   sa clé personne+date+créneau. Deux dates ne partagent une ligne que si
+   leurs bandes se croisent ; sinon elles sortent séparées, avec leurs jours.
+« couloir ARCHIVE » est ce que le tir du 2026-09-11 a envoyé, grille prise
+   pour rythme et couloirs repliés par NOM de moment, sans clé de date.
+✅ AUCUNE case ne reçoit un couloir autre que celui de sa date.
+
+══ 7. CONTRAINTES ALIMENTAIRES ET SÉCURITÉ ════════════════
+allergies déclarées      0   (bouche Paul)
+⛔ CE CONTRÔLE NE PROUVE RIEN ICI : aucune contrainte n'est déclarée sur
+   cette bouche. « Aucune violation » veut dire « on ne l'a pas essayée ».
+   ⚠️ L'INSTRUMENT NE JUGE AUCUNE VIOLATION : il dit ce qui est déclaré.
+   La ceinture s'éprouve au moteur, pas ici.
+
+══ 8. PROTÉINES ═══════════════════════════════════════════
+plancher applicable   176 g/jour
+branche               compte — série de pesées + objectif (envelopeFor)
+source                household_composition.ts::mouthEnvelope → meal_envelope.ts::envelopeFor | maintenanceEnvelopeFromBody (fonctions de production, entrées figées)
+date        part couverte  plancher couvert  mesuré     état
+2026-09-14          91 %               160    199.5 g  ✅ au-dessus du plancher couvert
+2026-09-15          91 %               160    199.5 g  ✅ au-dessus du plancher couvert
+⛔ CE VERDICT N'EST PAS CELUI DU PRODUIT : aucune garde du dépôt ne compare
+   ces grammes à ce plancher sur ce chemin. C'est une exigence NON
+   SATISFAITE (lot E), pas un sujet non applicable.
+
+══ 9. COHÉRENCE RECETTE ↔ STOCKAGE ════════════════════════
+lignes rapprochées à la réponse brute   23
+  · nombre inchangé                     8
+  · nombre changé, prose réécrite       15
+  · nombre changé, PROSE PÉRIMÉE        0
+── ce que la FINALISATION (lot C + arrondi C2) ferme, sur ce plan ──
+  · PROSE PÉRIMÉE après finalisation    0   (avant : 0)
+⚠️ LA FIXTURE N'EST PAS MODIFIÉE : finalizePlanQuantities — la fonction
+   de production, ARRONDI PUIS PROSE (C2, 2026-09-12) — tourne sur une
+   COPIE. ⛔ Les quantités structurées ne sont donc PLUS constantes entre
+   les deux colonnes : l'arrondi les déplace d'au plus une demi-unité, et
+   c'est voulu. Ce nombre dit ce que le moteur d'aujourd'hui écrirait ; il
+   ne dit rien d'un plan neuf, ni du goût.
+prose lisible par le lecteur du produit 5 / 23
+⚠️ AUCUNE PROSE N'EST INTERPRÉTÉE ICI : la comparaison est une ÉGALITÉ DE
+   CHAÎNES contre la réponse brute. Le texte de MÉTHODE, lui, n'est pas
+   contrôlé du tout — trou nommé du lot C.
+
+── CONTREFACTUEL D'IDENTITÉ ───────────────────────────────
+référence rebranchée : petit_suisse_cream_cheese (quantités inchangées)
+  aucune portion ne bouge — TÉMOIN : ce plan ne porte pas cette référence,
+  et un contrefactuel dont le témoin bougerait mesurerait autre chose.
+
+══ 10. RÉPARATIONS, ACHATS ET LIVRAISON ═══════════════════
+issues : ["spent_first_day_dropped: sun (shopping_cutoff)","shopping_waves: 1 (2026-09-14)","freeze_on_purchase: 0/12","raw_keeping_needs_later_shop: 0/2 preparations","waves_kept_for_freshness: 0/12","sessions_fed_from_freezer: 0/0 name the freezer","quantity_prose_stale:10","model_returned_no_box: 0/4 -- 4 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan","uses_kept_freezer: 0/4","portion_standard_recipe:85d96089-9e6f-439d-ad90-5f0ab5b0873a"]
+état de livraison REJOUÉ PAR L'INSTRUMENT : conforme   ⚠️ sur les seuls contrôles que l'instrument rejoue (energy: null, boxContract: null) — l'état du RUN est celui de la « PORTE FINALE » ci-dessous
+alertes de courses rejouées : 0
+── ARCHIVE : ce que l'ANCIENNE règle de libellés produisait (0) ──
+⛔ L'ANCIENNE RÈGLE COMPARAIT DES MOTS (normalizePantryTerm + covers), et
+   son inclusion était ASYMÉTRIQUE : « citrons » ne couvrait pas « citron ».
+   8 de ses 9 alertes du 2026-09-11 étaient fausses. Elle est RETIRÉE ; la
+   colonne ci-dessus la rejoue pour que sa disparition se VOIE.
+── AUDIT PAR IDENTITÉ (12 identités demandées) ──
+   covered_measured : 12
+
+══ BILAN DU FOYER ════════════════════════════════════════════
+Paul       calorique 6/6 · complète 6/6 · incomplets 0
+TOTAL      conformité CALORIQUE 6/6 · conformité COMPLÈTE 6/6 · contrôles INCOMPLETS 0
+⛔ « 6/6 » NE S'ÉCRIT PAS « 6 cases conformes ». Le rapport du 2026-09-11 a publié la première colonne sous le nom de la seconde.
+
+── COÛT ──────────────────────────────────────────────────────
+   transmissions fournisseur : 1
+   réparations : 0 / 2 (demandées : 0)
+   réponses de réparation ARCHIVÉES : 0 — ⚠️ un compteur de budget n'est pas une trace : les deux sont publiés.
+   échéance du budget : 380000 ms · utilisable 349371 ms · réserve 30000 ms
+
+── PORTE FINALE (journal du tir) ─────────────────────────────
+   1 passage(s) de porte dans ce tir — celle-ci est la DERNIÈRE
+   ok=true · refus=0 · bloquants=0
+   livraison : conforme
+   non évalués : ["title_promises_missing_preparation","mouth_energy_short"]
+   incomplets  : [{"control":"mouth_energy","count":1}]
+   causes      : []

@@ -1,0 +1,4708 @@
+{
+  "run_id": "question-rhythm-real-20260615-r3",
+  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-question-rhythm-real-20260615-r3-1781560868455@example.com",
+  "user_id": "2dd1a4f1-2a46-43ad-b04d-007797bb4041",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIyZGQxYTRmMS0yYTQ2LTQzYWQtYjA0ZC0wMDc3OTdiYjQwNDEiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxNTY0NDY4LCJpYXQiOjE3ODE1NjA4NjgsImVtYWlsIjoicWEtbm9ybWFsLXF1ZXN0aW9uLXJoeXRobS1yZWFsLTIwMjYwNjE1LXIzLTE3ODE1NjA4Njg0NTVAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoicWEtbm9ybWFsLXF1ZXN0aW9uLXJoeXRobS1yZWFsLTIwMjYwNjE1LXIzLTE3ODE1NjA4Njg0NTVAZXhhbXBsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNfdGVzdF9wZXJzb25hIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInFhX3J1bl9pZCI6InF1ZXN0aW9uLXJoeXRobS1yZWFsLTIwMjYwNjE1LXIzIiwic3ViIjoiMmRkMWE0ZjEtMmE0Ni00M2FkLWIwNGQtMDA3Nzk3YmI0MDQxIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODE1NjA4Njh9XSwic2Vzc2lvbl9pZCI6Ijc1YjllNzU5LTc2Y2EtNGYxNS04N2UyLTgwMzJlMmY4NjJjNyIsImlzX2Fub255bW91cyI6ZmFsc2V9.KU7cND5JxD0PDRi9zySOKaZIMG3M1AK8XZuBDS4AwVE",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-15T22:01:08.753Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-15T22:01:36.177Z",
+      "user": "À partir de maintenant, pose-moi davantage de questions utiles pour clarifier avant de conclure.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "J'ai bien compris que tu souhaites plus de questions pour clarifier nos échanges. Est-ce que cela te convient si je règle ma fréquence de questions sur un niveau élevé ?",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "update_coach_preferences",
+        "route_reason": "tool_skill_intent_start",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [
+          "update_coach_preferences"
+        ],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__conversation_risk_last": {
+                  "at": "2026-06-15T22:01:24.900Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__conversation_risk_history": [
+                  0
+                ],
+                "__coaching_intervention_history": [],
+                "__coach_preference_flow_state_v1": {
+                  "mode": "local_write_flow",
+                  "status": "proposed",
+                  "skill_id": "update_coach_preferences",
+                  "max_turns": 4,
+                  "created_at": "2026-06-15T22:01:24.923Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-15T22:01:32.644Z",
+                  "current_stage": "confirmation",
+                  "operation_type": "update_coach_preferences",
+                  "proposed_updates": [
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "high",
+                      "reason": "Demande durable d'augmenter le nombre de questions.",
+                      "source": "user_message",
+                      "status": "proposed",
+                      "evidence": [
+                        "À partir de maintenant",
+                        "davantage de questions"
+                      ],
+                      "confidence": "high",
+                      "user_facing_label": "Fréquence des questions",
+                      "user_facing_value": "Élevée",
+                      "needs_user_confirmation": true
+                    }
+                  ],
+                  "subskill_history": [],
+                  "unsupported_parts": [
+                    "utiles pour clarifier avant de conclure"
+                  ],
+                  "last_committed_updates": []
+                }
+              },
+              "updated_at": "2026-06-15T22:01:36.095339+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "question-rhythm-real-20260615-r3-t01",
+        "user_id": "2dd1a4f1-2a46-43ad-b04d-007797bb4041",
+        "channel": "web",
+        "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "J'ai bien compris que tu souhaites plus de questions pour clarifier nos échanges. Est-ce que cela te convient si je règle ma fréquence de questions sur un niveau élevé ?",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "question-rhythm-real-20260615-r3-t01",
+              "source_message_id": "dd358f22-0293-44b4-8238-168e409fe4fc",
+              "user_id": "2dd1a4f1-2a46-43ad-b04d-007797bb4041",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [
+                {
+                  "operation_type": "update_coach_preferences",
+                  "explicitness": "explicit",
+                  "target_hint": "davantage de questions utiles pour clarifier avant de conclure",
+                  "operation_input": {
+                    "preference_type": "coach_style",
+                    "requested_settings": [
+                      "coach.question_tendency"
+                    ],
+                    "evidence": [
+                      "À partir de maintenant",
+                      "pose-moi davantage de questions utiles pour clarifier avant de conclure"
+                    ]
+                  },
+                  "confidence_band": "high",
+                  "ambiguity": "none",
+                  "user_intent": "update"
+                }
+              ],
+              "flow_opportunity": null,
+              "note_information": {
+                "source_flow_id": "global_dispatcher",
+                "handoff_reason": "explicit_user_request",
+                "target_dispatcher": "update_coach_preferences",
+                "handoff_context_for_next_dispatcher": "User explicitly requests a durable change in Sophia's interaction style: more clarifying questions before concluding. This is a coach preference update.",
+                "user_words": [
+                  "À partir de maintenant",
+                  "pose-moi davantage de questions utiles pour clarifier avant de conclure",
+                  "À partir de maintenant, pose-moi davantage de questions utiles pour clarifier avant de conclure."
+                ],
+                "structured_context": {
+                  "primary_signal_path": "tool_skill_intents[0]",
+                  "target_kind": "tool_skill",
+                  "target_flow": "update_coach_preferences",
+                  "confidence_band": "high",
+                  "evidence": [
+                    "À partir de maintenant",
+                    "pose-moi davantage de questions utiles pour clarifier avant de conclure"
+                  ],
+                  "recommended_next_focus": "Confirm the preference update and explain how it will affect future interactions."
+                },
+                "confidence": "high"
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "normal_reply_fit_score": 0.1,
+              "normal_reply_fit_evidence": [
+                "Demande explicite de changement de comportement durable de l'IA"
+              ],
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "tool_skill_intent_start",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "selected_handler": "update_coach_preferences",
+              "active_flow_debug": {
+                "version": "active_flow_debug_v1",
+                "snapshots": [
+                  {
+                    "phase": "user_state_loaded",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 0,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_onboarding_and_reconcile",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "read_active_flow_state",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_pending_confirmation_reload",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "before_run_conversation_routers",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_run_conversation_routers",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": "tool_skill_intent_start",
+                    "route_active_flow_reason_code": "no_active_flow"
+                  }
+                ]
+              }
+            },
+            "tool_skill_run": {
+              "selected_handler": "update_coach_preferences",
+              "reason_code": "update_coach_preferences_partial_mapping_requires_confirmation",
+              "operation_type": "update_coach_preferences",
+              "mode": "local_write_flow",
+              "status": "proposed",
+              "flow_action": "write_preferences",
+              "visible_task_kind": "confirm_supported_mapping",
+              "preference_updates": [
+                {
+                  "key": "coach.question_tendency",
+                  "value": "high",
+                  "status": "locked",
+                  "user_facing_label": "Fréquence des questions",
+                  "user_facing_value": "Élevée",
+                  "reason": "Demande durable d'augmenter le nombre de questions.",
+                  "needs_user_confirmation": false,
+                  "source": "user_message",
+                  "confidence": "high",
+                  "evidence": [
+                    "À partir de maintenant",
+                    "davantage de questions"
+                  ]
+                }
+              ],
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "pending_confirmation": null,
+              "local_flow_state": {
+                "skill_id": "update_coach_preferences",
+                "operation_type": "update_coach_preferences",
+                "mode": "local_write_flow",
+                "status": "proposed",
+                "current_stage": "confirmation",
+                "proposed_updates": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "proposed",
+                    "user_facing_label": "Fréquence des questions",
+                    "user_facing_value": "Élevée",
+                    "reason": "Demande durable d'augmenter le nombre de questions.",
+                    "needs_user_confirmation": true,
+                    "source": "user_message",
+                    "confidence": "high",
+                    "evidence": [
+                      "À partir de maintenant",
+                      "davantage de questions"
+                    ]
+                  }
+                ],
+                "last_committed_updates": [],
+                "unsupported_parts": [
+                  "utiles pour clarifier avant de conclure"
+                ],
+                "subskill_history": [],
+                "turn_count": 2,
+                "max_turns": 4,
+                "created_at": "2026-06-15T22:01:24.923Z",
+                "updated_at": "2026-06-15T22:01:32.644Z"
+              },
+              "conversation_context": {
+                "state_summary": "Mise à jour de la tendance aux questions vers un niveau élevé.",
+                "user_words": [
+                  "À partir de maintenant",
+                  "davantage de questions utiles pour clarifier avant de conclure"
+                ],
+                "field_or_stage": "confirmation",
+                "known_values": {
+                  "current_preferences": [
+                    {
+                      "key": "coach.tone",
+                      "value": "warm_direct",
+                      "label": "Bienveillant ferme"
+                    },
+                    {
+                      "key": "coach.challenge_level",
+                      "value": "balanced",
+                      "label": "Équilibré"
+                    },
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "normal",
+                      "label": "Équilibré"
+                    }
+                  ],
+                  "proposed_updates": [
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "high",
+                      "status": "proposed",
+                      "user_facing_label": "Fréquence des questions",
+                      "user_facing_value": "Élevée",
+                      "reason": "Demande durable d'augmenter le nombre de questions.",
+                      "needs_user_confirmation": true,
+                      "source": "user_message",
+                      "confidence": "high",
+                      "evidence": [
+                        "À partir de maintenant",
+                        "davantage de questions"
+                      ]
+                    }
+                  ],
+                  "committed_updates": []
+                },
+                "missing_or_weak_values": [
+                  "confirmation"
+                ],
+                "selected_candidate": {
+                  "key": "coach.question_tendency",
+                  "value": "high",
+                  "status": "proposed",
+                  "user_facing_label": "Fréquence des questions",
+                  "user_facing_value": "Élevée",
+                  "reason": "Demande durable d'augmenter le nombre de questions.",
+                  "needs_user_confirmation": true,
+                  "source": "user_message",
+                  "confidence": "high",
+                  "evidence": [
+                    "À partir de maintenant",
+                    "davantage de questions"
+                  ]
+                },
+                "unsupported_parts": [
+                  "utiles pour clarifier avant de conclure"
+                ],
+                "write_result": {
+                  "committed": false,
+                  "preference_keys": [],
+                  "blocked_reason": null
+                },
+                "inline_tool_result": {
+                  "skill_id": null,
+                  "summary": null
+                },
+                "tone_constraints": [],
+                "do_not_say": [
+                  "Ne pas dire que c'est enregistré, noté, gardé ou appliqué si committed=false.",
+                  "Ne pas mentionner le Dashboard comme chemin nominal pour une préférence supportée.",
+                  "Ne pas inventer de préférence hors coach.tone, coach.challenge_level, coach.question_tendency.",
+                  "Ne pas dire que la préférence est enregistrée tant que committed est false."
+                ],
+                "context_summary": "Le user veut plus de questions pour clarifier avant de conclure, de façon durable.",
+                "evidence_used": [
+                  "À partir de maintenant",
+                  "davantage de questions"
+                ]
+              },
+              "note_information": null,
+              "write_attempted": false,
+              "write_committed": false,
+              "write_blocked_reason": null,
+              "debug": {
+                "reason_code": "update_coach_preferences_partial_mapping_requires_confirmation",
+                "evidence": [
+                  "À partir de maintenant",
+                  "davantage de questions"
+                ]
+              },
+              "diagnosis": {
+                "flow_action": "write_preferences",
+                "visible_task": "confirm_supported_mapping",
+                "selected_option": {
+                  "key": "coach.question_tendency",
+                  "value": "high",
+                  "status": "proposed",
+                  "needs_user_confirmation": true
+                },
+                "pending_state_present": true,
+                "direct_handoff_flag": false,
+                "candidate_list": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "proposed",
+                    "needs_user_confirmation": true
+                  }
+                ],
+                "constraints": [
+                  "utiles pour clarifier avant de conclure"
+                ],
+                "readiness": false,
+                "blocked_effects": [],
+                "state_mutation_audit": {
+                  "server_owned_fields": [
+                    "status",
+                    "current_stage",
+                    "proposed_updates",
+                    "last_committed_updates",
+                    "unsupported_parts",
+                    "subskill_history",
+                    "turn_count",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "modified_fields_declared": [],
+                  "clear_fields_declared": [],
+                  "applied_fields": [
+                    "proposed_updates",
+                    "unsupported_parts",
+                    "status",
+                    "current_stage",
+                    "turn_count",
+                    "updated_at"
+                  ],
+                  "preserved_fields": [
+                    "last_committed_updates",
+                    "subskill_history",
+                    "created_at"
+                  ],
+                  "restored_fields": [],
+                  "cleared_fields": [],
+                  "rejected_changes": []
+                }
+              },
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "status",
+                  "current_stage",
+                  "proposed_updates",
+                  "last_committed_updates",
+                  "unsupported_parts",
+                  "subskill_history",
+                  "turn_count",
+                  "created_at",
+                  "updated_at"
+                ],
+                "modified_fields_declared": [],
+                "clear_fields_declared": [],
+                "applied_fields": [
+                  "proposed_updates",
+                  "unsupported_parts",
+                  "status",
+                  "current_stage",
+                  "turn_count",
+                  "updated_at"
+                ],
+                "preserved_fields": [
+                  "last_committed_updates",
+                  "subskill_history",
+                  "created_at"
+                ],
+                "restored_fields": [],
+                "cleared_fields": [],
+                "rejected_changes": []
+              },
+              "runtime_trace": [
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "local_dispatcher_called",
+                  "flow_action": null,
+                  "visible_task_kind": null,
+                  "preference_updates": [],
+                  "write_attempted": false,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": []
+                },
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "db_context_pack_loaded",
+                  "flow_action": null,
+                  "visible_task_kind": null,
+                  "preference_updates": [],
+                  "write_attempted": false,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": [],
+                  "db_context_pack_source": "user_profile_facts",
+                  "db_context_pack_preference_keys": [
+                    "coach.tone",
+                    "coach.challenge_level",
+                    "coach.question_tendency"
+                  ]
+                },
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "micro_memory_context_loaded",
+                  "flow_action": null,
+                  "visible_task_kind": null,
+                  "preference_updates": [],
+                  "write_attempted": false,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": [],
+                  "micro_memory_item_count": 0,
+                  "micro_memory_budget": {
+                    "max_items": 0,
+                    "reason": "Current coach preferences and local flow state are enough for this closed write-skill."
+                  }
+                },
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "note_information_consumed",
+                  "flow_action": null,
+                  "visible_task_kind": null,
+                  "preference_updates": [],
+                  "write_attempted": false,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": [],
+                  "source_flow_id": "global",
+                  "target_dispatcher": "update_coach_preferences",
+                  "handoff_reason": "explicit_user_request",
+                  "has_note_information": true,
+                  "confidence": null
+                },
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "local_dispatcher_decision",
+                  "flow_action": "write_preferences",
+                  "visible_task_kind": "preference_saved",
+                  "preference_updates": [
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "high",
+                      "status": "locked",
+                      "user_facing_label": "Fréquence des questions",
+                      "user_facing_value": "Élevée",
+                      "reason": "Demande durable d'augmenter le nombre de questions.",
+                      "needs_user_confirmation": false,
+                      "source": "user_message",
+                      "confidence": "high",
+                      "evidence": [
+                        "À partir de maintenant",
+                        "davantage de questions"
+                      ]
+                    }
+                  ],
+                  "write_attempted": false,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": []
+                },
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "reducer_validated",
+                  "flow_action": "write_preferences",
+                  "visible_task_kind": "confirm_supported_mapping",
+                  "preference_updates": [
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "high",
+                      "status": "proposed",
+                      "user_facing_label": "Fréquence des questions",
+                      "user_facing_value": "Élevée",
+                      "reason": "Demande durable d'augmenter le nombre de questions.",
+                      "needs_user_confirmation": true,
+                      "source": "user_message",
+                      "confidence": "high",
+                      "evidence": [
+                        "À partir de maintenant",
+                        "davantage de questions"
+                      ]
+                    }
+                  ],
+                  "write_attempted": false,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": [],
+                  "selected_option": {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "proposed",
+                    "needs_user_confirmation": true
+                  },
+                  "pending_state_present": true,
+                  "direct_handoff_flag": false,
+                  "candidate_list": [
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "high",
+                      "status": "proposed",
+                      "needs_user_confirmation": true
+                    }
+                  ],
+                  "constraints": [
+                    "utiles pour clarifier avant de conclure"
+                  ],
+                  "readiness": false,
+                  "blocked_effects": [],
+                  "state_mutation_audit": {
+                    "server_owned_fields": [
+                      "status",
+                      "current_stage",
+                      "proposed_updates",
+                      "last_committed_updates",
+                      "unsupported_parts",
+                      "subskill_history",
+                      "turn_count",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "modified_fields_declared": [],
+                    "clear_fields_declared": [],
+                    "applied_fields": [
+                      "proposed_updates",
+                      "unsupported_parts",
+                      "status",
+                      "current_stage",
+                      "turn_count",
+                      "updated_at"
+                    ],
+                    "preserved_fields": [
+                      "last_committed_updates",
+                      "subskill_history",
+                      "created_at"
+                    ],
+                    "restored_fields": [],
+                    "cleared_fields": [],
+                    "rejected_changes": []
+                  }
+                },
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "conversation_context_created",
+                  "flow_action": "write_preferences",
+                  "visible_task_kind": "confirm_supported_mapping",
+                  "preference_updates": [],
+                  "write_attempted": false,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": [],
+                  "conversation_context_keys": [
+                    "state_summary",
+                    "user_words",
+                    "field_or_stage",
+                    "known_values",
+                    "missing_or_weak_values",
+                    "selected_candidate",
+                    "unsupported_parts",
+                    "write_result",
+                    "inline_tool_result",
+                    "tone_constraints",
+                    "do_not_say",
+                    "context_summary",
+                    "evidence_used"
+                  ],
+                  "conversation_context_stage": "confirmation"
+                }
+              ]
+            },
+            "effect_ledger": {
+              "turn_id": "question-rhythm-real-20260615-r3-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "question-rhythm-real-20260615-r3-t01",
+            "source_message_id": "dd358f22-0293-44b4-8238-168e409fe4fc",
+            "user_id": "2dd1a4f1-2a46-43ad-b04d-007797bb4041",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "update_coach_preferences",
+                "explicitness": "explicit",
+                "target_hint": "davantage de questions utiles pour clarifier avant de conclure",
+                "operation_input": {
+                  "preference_type": "coach_style",
+                  "requested_settings": [
+                    "coach.question_tendency"
+                  ],
+                  "evidence": [
+                    "À partir de maintenant",
+                    "pose-moi davantage de questions utiles pour clarifier avant de conclure"
+                  ]
+                },
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "update"
+              }
+            ],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "update_coach_preferences",
+              "handoff_context_for_next_dispatcher": "User explicitly requests a durable change in Sophia's interaction style: more clarifying questions before concluding. This is a coach preference update.",
+              "user_words": [
+                "À partir de maintenant",
+                "pose-moi davantage de questions utiles pour clarifier avant de conclure",
+                "À partir de maintenant, pose-moi davantage de questions utiles pour clarifier avant de conclure."
+              ],
+              "structured_context": {
+                "primary_signal_path": "tool_skill_intents[0]",
+                "target_kind": "tool_skill",
+                "target_flow": "update_coach_preferences",
+                "confidence_band": "high",
+                "evidence": [
+                  "À partir de maintenant",
+                  "pose-moi davantage de questions utiles pour clarifier avant de conclure"
+                ],
+                "recommended_next_focus": "Confirm the preference update and explain how it will affect future interactions."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.1,
+            "normal_reply_fit_evidence": [
+              "Demande explicite de changement de comportement durable de l'IA"
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "tool_skill_intent_start",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "update_coach_preferences",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "tool_skill_intent_start",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "tool_skill_run": {
+            "selected_handler": "update_coach_preferences",
+            "reason_code": "update_coach_preferences_partial_mapping_requires_confirmation",
+            "operation_type": "update_coach_preferences",
+            "mode": "local_write_flow",
+            "status": "proposed",
+            "flow_action": "write_preferences",
+            "visible_task_kind": "confirm_supported_mapping",
+            "preference_updates": [
+              {
+                "key": "coach.question_tendency",
+                "value": "high",
+                "status": "locked",
+                "user_facing_label": "Fréquence des questions",
+                "user_facing_value": "Élevée",
+                "reason": "Demande durable d'augmenter le nombre de questions.",
+                "needs_user_confirmation": false,
+                "source": "user_message",
+                "confidence": "high",
+                "evidence": [
+                  "À partir de maintenant",
+                  "davantage de questions"
+                ]
+              }
+            ],
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "pending_confirmation": null,
+            "local_flow_state": {
+              "skill_id": "update_coach_preferences",
+              "operation_type": "update_coach_preferences",
+              "mode": "local_write_flow",
+              "status": "proposed",
+              "current_stage": "confirmation",
+              "proposed_updates": [
+                {
+                  "key": "coach.question_tendency",
+                  "value": "high",
+                  "status": "proposed",
+                  "user_facing_label": "Fréquence des questions",
+                  "user_facing_value": "Élevée",
+                  "reason": "Demande durable d'augmenter le nombre de questions.",
+                  "needs_user_confirmation": true,
+                  "source": "user_message",
+                  "confidence": "high",
+                  "evidence": [
+                    "À partir de maintenant",
+                    "davantage de questions"
+                  ]
+                }
+              ],
+              "last_committed_updates": [],
+              "unsupported_parts": [
+                "utiles pour clarifier avant de conclure"
+              ],
+              "subskill_history": [],
+              "turn_count": 2,
+              "max_turns": 4,
+              "created_at": "2026-06-15T22:01:24.923Z",
+              "updated_at": "2026-06-15T22:01:32.644Z"
+            },
+            "conversation_context": {
+              "state_summary": "Mise à jour de la tendance aux questions vers un niveau élevé.",
+              "user_words": [
+                "À partir de maintenant",
+                "davantage de questions utiles pour clarifier avant de conclure"
+              ],
+              "field_or_stage": "confirmation",
+              "known_values": {
+                "current_preferences": [
+                  {
+                    "key": "coach.tone",
+                    "value": "warm_direct",
+                    "label": "Bienveillant ferme"
+                  },
+                  {
+                    "key": "coach.challenge_level",
+                    "value": "balanced",
+                    "label": "Équilibré"
+                  },
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "normal",
+                    "label": "Équilibré"
+                  }
+                ],
+                "proposed_updates": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "proposed",
+                    "user_facing_label": "Fréquence des questions",
+                    "user_facing_value": "Élevée",
+                    "reason": "Demande durable d'augmenter le nombre de questions.",
+                    "needs_user_confirmation": true,
+                    "source": "user_message",
+                    "confidence": "high",
+                    "evidence": [
+                      "À partir de maintenant",
+                      "davantage de questions"
+                    ]
+                  }
+                ],
+                "committed_updates": []
+              },
+              "missing_or_weak_values": [
+                "confirmation"
+              ],
+              "selected_candidate": {
+                "key": "coach.question_tendency",
+                "value": "high",
+                "status": "proposed",
+                "user_facing_label": "Fréquence des questions",
+                "user_facing_value": "Élevée",
+                "reason": "Demande durable d'augmenter le nombre de questions.",
+                "needs_user_confirmation": true,
+                "source": "user_message",
+                "confidence": "high",
+                "evidence": [
+                  "À partir de maintenant",
+                  "davantage de questions"
+                ]
+              },
+              "unsupported_parts": [
+                "utiles pour clarifier avant de conclure"
+              ],
+              "write_result": {
+                "committed": false,
+                "preference_keys": [],
+                "blocked_reason": null
+              },
+              "inline_tool_result": {
+                "skill_id": null,
+                "summary": null
+              },
+              "tone_constraints": [],
+              "do_not_say": [
+                "Ne pas dire que c'est enregistré, noté, gardé ou appliqué si committed=false.",
+                "Ne pas mentionner le Dashboard comme chemin nominal pour une préférence supportée.",
+                "Ne pas inventer de préférence hors coach.tone, coach.challenge_level, coach.question_tendency.",
+                "Ne pas dire que la préférence est enregistrée tant que committed est false."
+              ],
+              "context_summary": "Le user veut plus de questions pour clarifier avant de conclure, de façon durable.",
+              "evidence_used": [
+                "À partir de maintenant",
+                "davantage de questions"
+              ]
+            },
+            "note_information": null,
+            "write_attempted": false,
+            "write_committed": false,
+            "write_blocked_reason": null,
+            "debug": {
+              "reason_code": "update_coach_preferences_partial_mapping_requires_confirmation",
+              "evidence": [
+                "À partir de maintenant",
+                "davantage de questions"
+              ]
+            },
+            "diagnosis": {
+              "flow_action": "write_preferences",
+              "visible_task": "confirm_supported_mapping",
+              "selected_option": {
+                "key": "coach.question_tendency",
+                "value": "high",
+                "status": "proposed",
+                "needs_user_confirmation": true
+              },
+              "pending_state_present": true,
+              "direct_handoff_flag": false,
+              "candidate_list": [
+                {
+                  "key": "coach.question_tendency",
+                  "value": "high",
+                  "status": "proposed",
+                  "needs_user_confirmation": true
+                }
+              ],
+              "constraints": [
+                "utiles pour clarifier avant de conclure"
+              ],
+              "readiness": false,
+              "blocked_effects": [],
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "status",
+                  "current_stage",
+                  "proposed_updates",
+                  "last_committed_updates",
+                  "unsupported_parts",
+                  "subskill_history",
+                  "turn_count",
+                  "created_at",
+                  "updated_at"
+                ],
+                "modified_fields_declared": [],
+                "clear_fields_declared": [],
+                "applied_fields": [
+                  "proposed_updates",
+                  "unsupported_parts",
+                  "status",
+                  "current_stage",
+                  "turn_count",
+                  "updated_at"
+                ],
+                "preserved_fields": [
+                  "last_committed_updates",
+                  "subskill_history",
+                  "created_at"
+                ],
+                "restored_fields": [],
+                "cleared_fields": [],
+                "rejected_changes": []
+              }
+            },
+            "state_mutation_audit": {
+              "server_owned_fields": [
+                "status",
+                "current_stage",
+                "proposed_updates",
+                "last_committed_updates",
+                "unsupported_parts",
+                "subskill_history",
+                "turn_count",
+                "created_at",
+                "updated_at"
+              ],
+              "modified_fields_declared": [],
+              "clear_fields_declared": [],
+              "applied_fields": [
+                "proposed_updates",
+                "unsupported_parts",
+                "status",
+                "current_stage",
+                "turn_count",
+                "updated_at"
+              ],
+              "preserved_fields": [
+                "last_committed_updates",
+                "subskill_history",
+                "created_at"
+              ],
+              "restored_fields": [],
+              "cleared_fields": [],
+              "rejected_changes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "local_dispatcher_called",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "preference_updates": [],
+                "write_attempted": false,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": []
+              },
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "db_context_pack_loaded",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "preference_updates": [],
+                "write_attempted": false,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": [],
+                "db_context_pack_source": "user_profile_facts",
+                "db_context_pack_preference_keys": [
+                  "coach.tone",
+                  "coach.challenge_level",
+                  "coach.question_tendency"
+                ]
+              },
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "micro_memory_context_loaded",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "preference_updates": [],
+                "write_attempted": false,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": [],
+                "micro_memory_item_count": 0,
+                "micro_memory_budget": {
+                  "max_items": 0,
+                  "reason": "Current coach preferences and local flow state are enough for this closed write-skill."
+                }
+              },
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "note_information_consumed",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "preference_updates": [],
+                "write_attempted": false,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": [],
+                "source_flow_id": "global",
+                "target_dispatcher": "update_coach_preferences",
+                "handoff_reason": "explicit_user_request",
+                "has_note_information": true,
+                "confidence": null
+              },
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "local_dispatcher_decision",
+                "flow_action": "write_preferences",
+                "visible_task_kind": "preference_saved",
+                "preference_updates": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "locked",
+                    "user_facing_label": "Fréquence des questions",
+                    "user_facing_value": "Élevée",
+                    "reason": "Demande durable d'augmenter le nombre de questions.",
+                    "needs_user_confirmation": false,
+                    "source": "user_message",
+                    "confidence": "high",
+                    "evidence": [
+                      "À partir de maintenant",
+                      "davantage de questions"
+                    ]
+                  }
+                ],
+                "write_attempted": false,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": []
+              },
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "reducer_validated",
+                "flow_action": "write_preferences",
+                "visible_task_kind": "confirm_supported_mapping",
+                "preference_updates": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "proposed",
+                    "user_facing_label": "Fréquence des questions",
+                    "user_facing_value": "Élevée",
+                    "reason": "Demande durable d'augmenter le nombre de questions.",
+                    "needs_user_confirmation": true,
+                    "source": "user_message",
+                    "confidence": "high",
+                    "evidence": [
+                      "À partir de maintenant",
+                      "davantage de questions"
+                    ]
+                  }
+                ],
+                "write_attempted": false,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": [],
+                "selected_option": {
+                  "key": "coach.question_tendency",
+                  "value": "high",
+                  "status": "proposed",
+                  "needs_user_confirmation": true
+                },
+                "pending_state_present": true,
+                "direct_handoff_flag": false,
+                "candidate_list": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "proposed",
+                    "needs_user_confirmation": true
+                  }
+                ],
+                "constraints": [
+                  "utiles pour clarifier avant de conclure"
+                ],
+                "readiness": false,
+                "blocked_effects": [],
+                "state_mutation_audit": {
+                  "server_owned_fields": [
+                    "status",
+                    "current_stage",
+                    "proposed_updates",
+                    "last_committed_updates",
+                    "unsupported_parts",
+                    "subskill_history",
+                    "turn_count",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "modified_fields_declared": [],
+                  "clear_fields_declared": [],
+                  "applied_fields": [
+                    "proposed_updates",
+                    "unsupported_parts",
+                    "status",
+                    "current_stage",
+                    "turn_count",
+                    "updated_at"
+                  ],
+                  "preserved_fields": [
+                    "last_committed_updates",
+                    "subskill_history",
+                    "created_at"
+                  ],
+                  "restored_fields": [],
+                  "cleared_fields": [],
+                  "rejected_changes": []
+                }
+              },
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "conversation_context_created",
+                "flow_action": "write_preferences",
+                "visible_task_kind": "confirm_supported_mapping",
+                "preference_updates": [],
+                "write_attempted": false,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": [],
+                "conversation_context_keys": [
+                  "state_summary",
+                  "user_words",
+                  "field_or_stage",
+                  "known_values",
+                  "missing_or_weak_values",
+                  "selected_candidate",
+                  "unsupported_parts",
+                  "write_result",
+                  "inline_tool_result",
+                  "tone_constraints",
+                  "do_not_say",
+                  "context_summary",
+                  "evidence_used"
+                ],
+                "conversation_context_stage": "confirmation"
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "question-rhythm-real-20260615-r3-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-15T22:02:00.700Z",
+      "user": "Oui, confirme le niveau élevé de questions.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "C'est entendu ! J'ai bien pris en compte ta demande : je vais désormais te poser des questions plus fréquemment pour rythmer nos échanges. Je suis ravie de continuer ainsi avec toi. On reprend notre discussion ?",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "update_coach_preferences",
+        "route_reason": "active_update_coach_preferences_local_dispatcher",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [
+          "update_coach_preferences"
+        ],
+        "tool_execution": "success"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__conversation_risk_last": {
+                  "at": "2026-06-15T22:01:24.900Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__conversation_risk_history": [
+                  0
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-06-15T22:02:00.653456+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "question-rhythm-real-20260615-r3-t02",
+        "user_id": "2dd1a4f1-2a46-43ad-b04d-007797bb4041",
+        "channel": "web",
+        "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est entendu ! J'ai bien pris en compte ta demande : je vais désormais te poser des questions plus fréquemment pour rythmer nos échanges. Je suis ravie de continuer ainsi avec toi. On reprend notre discussion ?",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "success",
+          "executed_tools": [
+            "update_coach_preferences"
+          ],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "question-rhythm-real-20260615-r3-t02",
+              "source_message_id": "fb016c25-1767-4df9-94e8-e931c0506964",
+              "user_id": "2dd1a4f1-2a46-43ad-b04d-007797bb4041",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {},
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "update_coach_preferences",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_update_coach_preferences_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_update_coach_preferences_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "update_coach_preferences",
+              "reason_code": "update_coach_preferences_write_ready",
+              "operation_type": "update_coach_preferences",
+              "mode": "local_write_flow",
+              "status": "executed",
+              "flow_action": "confirm_proposed_mapping",
+              "visible_task_kind": "preference_saved",
+              "preference_updates": [
+                {
+                  "key": "coach.question_tendency",
+                  "value": "high",
+                  "status": "locked",
+                  "user_facing_label": "Fréquence des questions",
+                  "user_facing_value": "Élevée",
+                  "reason": "Confirmation explicite de la proposition.",
+                  "needs_user_confirmation": false,
+                  "source": "user_message",
+                  "confidence": "high",
+                  "evidence": [
+                    "Oui, confirme le niveau élevé de questions."
+                  ]
+                }
+              ],
+              "requested_effects": [
+                {
+                  "type": "update_coach_preferences",
+                  "operation_id": "question-rhythm-real-20260615-r3-t02",
+                  "preference_keys": [
+                    "coach.question_tendency"
+                  ]
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "update_coach_preferences",
+                  "operation_id": "question-rhythm-real-20260615-r3-t02",
+                  "preference_keys": [
+                    "coach.question_tendency"
+                  ]
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "update_coach_preferences",
+                  "operation_id": "question-rhythm-real-20260615-r3-t02",
+                  "preference_keys": [
+                    "coach.question_tendency"
+                  ],
+                  "preferences_update_ids": []
+                }
+              ],
+              "blocked_effects": [],
+              "pending_confirmation": null,
+              "local_flow_state": null,
+              "conversation_context": {
+                "state_summary": "Le user a confirmé la proposition de fréquence de questions élevée.",
+                "user_words": [
+                  "Oui, confirme le niveau élevé de questions."
+                ],
+                "field_or_stage": "done",
+                "known_values": {
+                  "current_preferences": [
+                    {
+                      "key": "coach.tone",
+                      "value": "warm_direct",
+                      "label": "Bienveillant ferme"
+                    },
+                    {
+                      "key": "coach.challenge_level",
+                      "value": "balanced",
+                      "label": "Équilibré"
+                    },
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "normal",
+                      "label": "Équilibré"
+                    }
+                  ],
+                  "proposed_updates": [],
+                  "committed_updates": [
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "high",
+                      "status": "locked",
+                      "user_facing_label": "Fréquence des questions",
+                      "user_facing_value": "Élevée",
+                      "reason": "Confirmation explicite de la proposition.",
+                      "needs_user_confirmation": false,
+                      "source": "user_message",
+                      "confidence": "high",
+                      "evidence": [
+                        "Oui, confirme le niveau élevé de questions."
+                      ]
+                    }
+                  ]
+                },
+                "missing_or_weak_values": [],
+                "selected_candidate": {
+                  "key": "coach.question_tendency",
+                  "value": "high"
+                },
+                "unsupported_parts": [],
+                "write_result": {
+                  "committed": true,
+                  "preference_keys": [
+                    "coach.question_tendency"
+                  ],
+                  "blocked_reason": null
+                },
+                "inline_tool_result": {
+                  "skill_id": null,
+                  "summary": null
+                },
+                "tone_constraints": [],
+                "do_not_say": [
+                  "Ne pas dire que c'est enregistré, noté, gardé ou appliqué si committed=false.",
+                  "Ne pas mentionner le Dashboard comme chemin nominal pour une préférence supportée.",
+                  "Ne pas inventer de préférence hors coach.tone, coach.challenge_level, coach.question_tendency.",
+                  "Ne pas dire enregistré si committed=false dans le retour du reducer."
+                ],
+                "context_summary": "Le user valide le passage à une fréquence de questions élevée pour ses futurs échanges.",
+                "evidence_used": [
+                  "Oui, confirme le niveau élevé de questions."
+                ]
+              },
+              "note_information": null,
+              "write_attempted": true,
+              "write_committed": true,
+              "write_blocked_reason": null,
+              "debug": {
+                "reason_code": "update_coach_preferences_write_ready",
+                "evidence": [
+                  "Oui, confirme le niveau élevé de questions."
+                ]
+              },
+              "diagnosis": {
+                "flow_action": "confirm_proposed_mapping",
+                "visible_task": "preference_saved",
+                "selected_option": {
+                  "key": "coach.question_tendency",
+                  "value": "high",
+                  "status": "locked",
+                  "needs_user_confirmation": false
+                },
+                "pending_state_present": false,
+                "direct_handoff_flag": false,
+                "candidate_list": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "locked",
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "constraints": [],
+                "readiness": true,
+                "blocked_effects": [],
+                "state_mutation_audit": {
+                  "server_owned_fields": [
+                    "status",
+                    "current_stage",
+                    "proposed_updates",
+                    "last_committed_updates",
+                    "unsupported_parts",
+                    "subskill_history",
+                    "turn_count",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "modified_fields_declared": [],
+                  "clear_fields_declared": [],
+                  "applied_fields": [
+                    "status",
+                    "current_stage",
+                    "turn_count",
+                    "updated_at"
+                  ],
+                  "preserved_fields": [
+                    "last_committed_updates",
+                    "subskill_history",
+                    "created_at"
+                  ],
+                  "restored_fields": [],
+                  "cleared_fields": [
+                    "proposed_updates",
+                    "unsupported_parts"
+                  ],
+                  "rejected_changes": []
+                }
+              },
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "status",
+                  "current_stage",
+                  "proposed_updates",
+                  "last_committed_updates",
+                  "unsupported_parts",
+                  "subskill_history",
+                  "turn_count",
+                  "created_at",
+                  "updated_at"
+                ],
+                "modified_fields_declared": [],
+                "clear_fields_declared": [],
+                "applied_fields": [
+                  "status",
+                  "current_stage",
+                  "turn_count",
+                  "updated_at"
+                ],
+                "preserved_fields": [
+                  "last_committed_updates",
+                  "subskill_history",
+                  "created_at"
+                ],
+                "restored_fields": [],
+                "cleared_fields": [
+                  "proposed_updates",
+                  "unsupported_parts"
+                ],
+                "rejected_changes": []
+              },
+              "runtime_trace": [
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "local_dispatcher_called",
+                  "flow_action": null,
+                  "visible_task_kind": null,
+                  "preference_updates": [
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "high",
+                      "reason": "Demande durable d'augmenter le nombre de questions.",
+                      "source": "user_message",
+                      "status": "proposed",
+                      "evidence": [
+                        "À partir de maintenant",
+                        "davantage de questions"
+                      ],
+                      "confidence": "high",
+                      "user_facing_label": "Fréquence des questions",
+                      "user_facing_value": "Élevée",
+                      "needs_user_confirmation": true
+                    }
+                  ],
+                  "write_attempted": false,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": []
+                },
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "db_context_pack_loaded",
+                  "flow_action": null,
+                  "visible_task_kind": null,
+                  "preference_updates": [
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "high",
+                      "reason": "Demande durable d'augmenter le nombre de questions.",
+                      "source": "user_message",
+                      "status": "proposed",
+                      "evidence": [
+                        "À partir de maintenant",
+                        "davantage de questions"
+                      ],
+                      "confidence": "high",
+                      "user_facing_label": "Fréquence des questions",
+                      "user_facing_value": "Élevée",
+                      "needs_user_confirmation": true
+                    }
+                  ],
+                  "write_attempted": false,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": [],
+                  "db_context_pack_source": "user_profile_facts",
+                  "db_context_pack_preference_keys": [
+                    "coach.tone",
+                    "coach.challenge_level",
+                    "coach.question_tendency"
+                  ]
+                },
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "micro_memory_context_loaded",
+                  "flow_action": null,
+                  "visible_task_kind": null,
+                  "preference_updates": [],
+                  "write_attempted": false,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": [],
+                  "micro_memory_item_count": 0,
+                  "micro_memory_budget": {
+                    "max_items": 0,
+                    "reason": "Current coach preferences and local flow state are enough for this closed write-skill."
+                  }
+                },
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "local_dispatcher_decision",
+                  "flow_action": "confirm_proposed_mapping",
+                  "visible_task_kind": "preference_saved",
+                  "preference_updates": [
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "high",
+                      "status": "locked",
+                      "user_facing_label": "Fréquence des questions",
+                      "user_facing_value": "Élevée",
+                      "reason": "Confirmation explicite de la proposition.",
+                      "needs_user_confirmation": false,
+                      "source": "user_message",
+                      "confidence": "high",
+                      "evidence": [
+                        "Oui, confirme le niveau élevé de questions."
+                      ]
+                    }
+                  ],
+                  "write_attempted": false,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": []
+                },
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "reducer_validated",
+                  "flow_action": "confirm_proposed_mapping",
+                  "visible_task_kind": "preference_saved",
+                  "preference_updates": [
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "high",
+                      "status": "locked",
+                      "user_facing_label": "Fréquence des questions",
+                      "user_facing_value": "Élevée",
+                      "reason": "Confirmation explicite de la proposition.",
+                      "needs_user_confirmation": false,
+                      "source": "user_message",
+                      "confidence": "high",
+                      "evidence": [
+                        "Oui, confirme le niveau élevé de questions."
+                      ]
+                    }
+                  ],
+                  "write_attempted": false,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": [],
+                  "selected_option": {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "locked",
+                    "needs_user_confirmation": false
+                  },
+                  "pending_state_present": false,
+                  "direct_handoff_flag": false,
+                  "candidate_list": [
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "high",
+                      "status": "locked",
+                      "needs_user_confirmation": false
+                    }
+                  ],
+                  "constraints": [],
+                  "readiness": true,
+                  "blocked_effects": [],
+                  "state_mutation_audit": {
+                    "server_owned_fields": [
+                      "status",
+                      "current_stage",
+                      "proposed_updates",
+                      "last_committed_updates",
+                      "unsupported_parts",
+                      "subskill_history",
+                      "turn_count",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "modified_fields_declared": [],
+                    "clear_fields_declared": [],
+                    "applied_fields": [
+                      "status",
+                      "current_stage",
+                      "turn_count",
+                      "updated_at"
+                    ],
+                    "preserved_fields": [
+                      "last_committed_updates",
+                      "subskill_history",
+                      "created_at"
+                    ],
+                    "restored_fields": [],
+                    "cleared_fields": [
+                      "proposed_updates",
+                      "unsupported_parts"
+                    ],
+                    "rejected_changes": []
+                  }
+                },
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "conversation_context_created",
+                  "flow_action": "confirm_proposed_mapping",
+                  "visible_task_kind": "preference_saved",
+                  "preference_updates": [],
+                  "write_attempted": false,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": [],
+                  "conversation_context_keys": [
+                    "state_summary",
+                    "user_words",
+                    "field_or_stage",
+                    "known_values",
+                    "missing_or_weak_values",
+                    "selected_candidate",
+                    "unsupported_parts",
+                    "write_result",
+                    "inline_tool_result",
+                    "tone_constraints",
+                    "do_not_say",
+                    "context_summary",
+                    "evidence_used"
+                  ],
+                  "conversation_context_stage": "done"
+                },
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "write_attempted",
+                  "flow_action": "confirm_proposed_mapping",
+                  "visible_task_kind": "preference_saved",
+                  "preference_updates": [
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "high",
+                      "status": "locked",
+                      "user_facing_label": "Fréquence des questions",
+                      "user_facing_value": "Élevée",
+                      "reason": "Confirmation explicite de la proposition.",
+                      "needs_user_confirmation": false,
+                      "source": "user_message",
+                      "confidence": "high",
+                      "evidence": [
+                        "Oui, confirme le niveau élevé de questions."
+                      ]
+                    }
+                  ],
+                  "write_attempted": true,
+                  "write_committed": false,
+                  "write_blocked_reason": null,
+                  "committed_effects": []
+                },
+                {
+                  "component": "update_coach_preferences.local_flow",
+                  "event": "write_committed",
+                  "flow_action": "confirm_proposed_mapping",
+                  "visible_task_kind": "preference_saved",
+                  "preference_updates": [
+                    {
+                      "key": "coach.question_tendency",
+                      "value": "high",
+                      "status": "locked",
+                      "user_facing_label": "Fréquence des questions",
+                      "user_facing_value": "Élevée",
+                      "reason": "Confirmation explicite de la proposition.",
+                      "needs_user_confirmation": false,
+                      "source": "user_message",
+                      "confidence": "high",
+                      "evidence": [
+                        "Oui, confirme le niveau élevé de questions."
+                      ]
+                    }
+                  ],
+                  "write_attempted": true,
+                  "write_committed": true,
+                  "write_blocked_reason": null,
+                  "committed_effects": [
+                    {
+                      "type": "update_coach_preferences",
+                      "operation_id": "question-rhythm-real-20260615-r3-t02",
+                      "preference_keys": [
+                        "coach.question_tendency"
+                      ],
+                      "preferences_update_ids": []
+                    }
+                  ]
+                }
+              ]
+            },
+            "effect_ledger": {
+              "turn_id": "question-rhythm-real-20260615-r3-t02",
+              "counts": {
+                "requested": 1,
+                "allowed": 1,
+                "blocked": 0,
+                "committed": 1,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "question-rhythm-real-20260615-r3-t02:requested_effects:coach_preferences.update:0",
+                  "kind": "durable_effect",
+                  "effect_type": "coach_preferences.update",
+                  "operation_type": "update_coach_preferences",
+                  "operation_id": "question-rhythm-real-20260615-r3-t02",
+                  "committed_id": null,
+                  "tool_id": "update_coach_preferences",
+                  "status": "requested",
+                  "reason_code": "executed",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "operation_id": "question-rhythm-real-20260615-r3-t02",
+                    "preference_keys": [
+                      "coach.question_tendency"
+                    ]
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": null,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                },
+                {
+                  "effect_id": "question-rhythm-real-20260615-r3-t02:allowed_effects:coach_preferences.update:0",
+                  "kind": "durable_effect",
+                  "effect_type": "coach_preferences.update",
+                  "operation_type": "update_coach_preferences",
+                  "operation_id": "question-rhythm-real-20260615-r3-t02",
+                  "committed_id": null,
+                  "tool_id": "update_coach_preferences",
+                  "status": "allowed",
+                  "reason_code": "executed",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "operation_id": "question-rhythm-real-20260615-r3-t02",
+                    "preference_keys": [
+                      "coach.question_tendency"
+                    ]
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": null,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                },
+                {
+                  "effect_id": "question-rhythm-real-20260615-r3-t02:committed_effects:coach_preferences.update:0",
+                  "kind": "durable_effect",
+                  "effect_type": "coach_preferences.update",
+                  "operation_type": "update_coach_preferences",
+                  "operation_id": "question-rhythm-real-20260615-r3-t02",
+                  "committed_id": null,
+                  "tool_id": "update_coach_preferences",
+                  "status": "committed",
+                  "reason_code": "executed",
+                  "source": "executor",
+                  "payload_summary": {
+                    "operation_id": "question-rhythm-real-20260615-r3-t02",
+                    "preference_keys": [
+                      "coach.question_tendency"
+                    ],
+                    "preferences_update_ids": []
+                  },
+                  "db_ref": {
+                    "table": "user_profile_facts",
+                    "key": "coach.question_tendency"
+                  },
+                  "error_message": null,
+                  "surface_id": null,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "question-rhythm-real-20260615-r3-t02",
+            "source_message_id": "fb016c25-1767-4df9-94e8-e931c0506964",
+            "user_id": "2dd1a4f1-2a46-43ad-b04d-007797bb4041",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "update_coach_preferences",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_update_coach_preferences_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_update_coach_preferences_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "update_coach_preferences",
+            "reason_code": "update_coach_preferences_write_ready",
+            "operation_type": "update_coach_preferences",
+            "mode": "local_write_flow",
+            "status": "executed",
+            "flow_action": "confirm_proposed_mapping",
+            "visible_task_kind": "preference_saved",
+            "preference_updates": [
+              {
+                "key": "coach.question_tendency",
+                "value": "high",
+                "status": "locked",
+                "user_facing_label": "Fréquence des questions",
+                "user_facing_value": "Élevée",
+                "reason": "Confirmation explicite de la proposition.",
+                "needs_user_confirmation": false,
+                "source": "user_message",
+                "confidence": "high",
+                "evidence": [
+                  "Oui, confirme le niveau élevé de questions."
+                ]
+              }
+            ],
+            "requested_effects": [
+              {
+                "type": "update_coach_preferences",
+                "operation_id": "question-rhythm-real-20260615-r3-t02",
+                "preference_keys": [
+                  "coach.question_tendency"
+                ]
+              }
+            ],
+            "allowed_effects": [
+              {
+                "type": "update_coach_preferences",
+                "operation_id": "question-rhythm-real-20260615-r3-t02",
+                "preference_keys": [
+                  "coach.question_tendency"
+                ]
+              }
+            ],
+            "committed_effects": [
+              {
+                "type": "update_coach_preferences",
+                "operation_id": "question-rhythm-real-20260615-r3-t02",
+                "preference_keys": [
+                  "coach.question_tendency"
+                ],
+                "preferences_update_ids": []
+              }
+            ],
+            "blocked_effects": [],
+            "pending_confirmation": null,
+            "local_flow_state": null,
+            "conversation_context": {
+              "state_summary": "Le user a confirmé la proposition de fréquence de questions élevée.",
+              "user_words": [
+                "Oui, confirme le niveau élevé de questions."
+              ],
+              "field_or_stage": "done",
+              "known_values": {
+                "current_preferences": [
+                  {
+                    "key": "coach.tone",
+                    "value": "warm_direct",
+                    "label": "Bienveillant ferme"
+                  },
+                  {
+                    "key": "coach.challenge_level",
+                    "value": "balanced",
+                    "label": "Équilibré"
+                  },
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "normal",
+                    "label": "Équilibré"
+                  }
+                ],
+                "proposed_updates": [],
+                "committed_updates": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "locked",
+                    "user_facing_label": "Fréquence des questions",
+                    "user_facing_value": "Élevée",
+                    "reason": "Confirmation explicite de la proposition.",
+                    "needs_user_confirmation": false,
+                    "source": "user_message",
+                    "confidence": "high",
+                    "evidence": [
+                      "Oui, confirme le niveau élevé de questions."
+                    ]
+                  }
+                ]
+              },
+              "missing_or_weak_values": [],
+              "selected_candidate": {
+                "key": "coach.question_tendency",
+                "value": "high"
+              },
+              "unsupported_parts": [],
+              "write_result": {
+                "committed": true,
+                "preference_keys": [
+                  "coach.question_tendency"
+                ],
+                "blocked_reason": null
+              },
+              "inline_tool_result": {
+                "skill_id": null,
+                "summary": null
+              },
+              "tone_constraints": [],
+              "do_not_say": [
+                "Ne pas dire que c'est enregistré, noté, gardé ou appliqué si committed=false.",
+                "Ne pas mentionner le Dashboard comme chemin nominal pour une préférence supportée.",
+                "Ne pas inventer de préférence hors coach.tone, coach.challenge_level, coach.question_tendency.",
+                "Ne pas dire enregistré si committed=false dans le retour du reducer."
+              ],
+              "context_summary": "Le user valide le passage à une fréquence de questions élevée pour ses futurs échanges.",
+              "evidence_used": [
+                "Oui, confirme le niveau élevé de questions."
+              ]
+            },
+            "note_information": null,
+            "write_attempted": true,
+            "write_committed": true,
+            "write_blocked_reason": null,
+            "debug": {
+              "reason_code": "update_coach_preferences_write_ready",
+              "evidence": [
+                "Oui, confirme le niveau élevé de questions."
+              ]
+            },
+            "diagnosis": {
+              "flow_action": "confirm_proposed_mapping",
+              "visible_task": "preference_saved",
+              "selected_option": {
+                "key": "coach.question_tendency",
+                "value": "high",
+                "status": "locked",
+                "needs_user_confirmation": false
+              },
+              "pending_state_present": false,
+              "direct_handoff_flag": false,
+              "candidate_list": [
+                {
+                  "key": "coach.question_tendency",
+                  "value": "high",
+                  "status": "locked",
+                  "needs_user_confirmation": false
+                }
+              ],
+              "constraints": [],
+              "readiness": true,
+              "blocked_effects": [],
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "status",
+                  "current_stage",
+                  "proposed_updates",
+                  "last_committed_updates",
+                  "unsupported_parts",
+                  "subskill_history",
+                  "turn_count",
+                  "created_at",
+                  "updated_at"
+                ],
+                "modified_fields_declared": [],
+                "clear_fields_declared": [],
+                "applied_fields": [
+                  "status",
+                  "current_stage",
+                  "turn_count",
+                  "updated_at"
+                ],
+                "preserved_fields": [
+                  "last_committed_updates",
+                  "subskill_history",
+                  "created_at"
+                ],
+                "restored_fields": [],
+                "cleared_fields": [
+                  "proposed_updates",
+                  "unsupported_parts"
+                ],
+                "rejected_changes": []
+              }
+            },
+            "state_mutation_audit": {
+              "server_owned_fields": [
+                "status",
+                "current_stage",
+                "proposed_updates",
+                "last_committed_updates",
+                "unsupported_parts",
+                "subskill_history",
+                "turn_count",
+                "created_at",
+                "updated_at"
+              ],
+              "modified_fields_declared": [],
+              "clear_fields_declared": [],
+              "applied_fields": [
+                "status",
+                "current_stage",
+                "turn_count",
+                "updated_at"
+              ],
+              "preserved_fields": [
+                "last_committed_updates",
+                "subskill_history",
+                "created_at"
+              ],
+              "restored_fields": [],
+              "cleared_fields": [
+                "proposed_updates",
+                "unsupported_parts"
+              ],
+              "rejected_changes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "local_dispatcher_called",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "preference_updates": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "reason": "Demande durable d'augmenter le nombre de questions.",
+                    "source": "user_message",
+                    "status": "proposed",
+                    "evidence": [
+                      "À partir de maintenant",
+                      "davantage de questions"
+                    ],
+                    "confidence": "high",
+                    "user_facing_label": "Fréquence des questions",
+                    "user_facing_value": "Élevée",
+                    "needs_user_confirmation": true
+                  }
+                ],
+                "write_attempted": false,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": []
+              },
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "db_context_pack_loaded",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "preference_updates": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "reason": "Demande durable d'augmenter le nombre de questions.",
+                    "source": "user_message",
+                    "status": "proposed",
+                    "evidence": [
+                      "À partir de maintenant",
+                      "davantage de questions"
+                    ],
+                    "confidence": "high",
+                    "user_facing_label": "Fréquence des questions",
+                    "user_facing_value": "Élevée",
+                    "needs_user_confirmation": true
+                  }
+                ],
+                "write_attempted": false,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": [],
+                "db_context_pack_source": "user_profile_facts",
+                "db_context_pack_preference_keys": [
+                  "coach.tone",
+                  "coach.challenge_level",
+                  "coach.question_tendency"
+                ]
+              },
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "micro_memory_context_loaded",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "preference_updates": [],
+                "write_attempted": false,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": [],
+                "micro_memory_item_count": 0,
+                "micro_memory_budget": {
+                  "max_items": 0,
+                  "reason": "Current coach preferences and local flow state are enough for this closed write-skill."
+                }
+              },
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "local_dispatcher_decision",
+                "flow_action": "confirm_proposed_mapping",
+                "visible_task_kind": "preference_saved",
+                "preference_updates": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "locked",
+                    "user_facing_label": "Fréquence des questions",
+                    "user_facing_value": "Élevée",
+                    "reason": "Confirmation explicite de la proposition.",
+                    "needs_user_confirmation": false,
+                    "source": "user_message",
+                    "confidence": "high",
+                    "evidence": [
+                      "Oui, confirme le niveau élevé de questions."
+                    ]
+                  }
+                ],
+                "write_attempted": false,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": []
+              },
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "reducer_validated",
+                "flow_action": "confirm_proposed_mapping",
+                "visible_task_kind": "preference_saved",
+                "preference_updates": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "locked",
+                    "user_facing_label": "Fréquence des questions",
+                    "user_facing_value": "Élevée",
+                    "reason": "Confirmation explicite de la proposition.",
+                    "needs_user_confirmation": false,
+                    "source": "user_message",
+                    "confidence": "high",
+                    "evidence": [
+                      "Oui, confirme le niveau élevé de questions."
+                    ]
+                  }
+                ],
+                "write_attempted": false,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": [],
+                "selected_option": {
+                  "key": "coach.question_tendency",
+                  "value": "high",
+                  "status": "locked",
+                  "needs_user_confirmation": false
+                },
+                "pending_state_present": false,
+                "direct_handoff_flag": false,
+                "candidate_list": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "locked",
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "constraints": [],
+                "readiness": true,
+                "blocked_effects": [],
+                "state_mutation_audit": {
+                  "server_owned_fields": [
+                    "status",
+                    "current_stage",
+                    "proposed_updates",
+                    "last_committed_updates",
+                    "unsupported_parts",
+                    "subskill_history",
+                    "turn_count",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "modified_fields_declared": [],
+                  "clear_fields_declared": [],
+                  "applied_fields": [
+                    "status",
+                    "current_stage",
+                    "turn_count",
+                    "updated_at"
+                  ],
+                  "preserved_fields": [
+                    "last_committed_updates",
+                    "subskill_history",
+                    "created_at"
+                  ],
+                  "restored_fields": [],
+                  "cleared_fields": [
+                    "proposed_updates",
+                    "unsupported_parts"
+                  ],
+                  "rejected_changes": []
+                }
+              },
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "conversation_context_created",
+                "flow_action": "confirm_proposed_mapping",
+                "visible_task_kind": "preference_saved",
+                "preference_updates": [],
+                "write_attempted": false,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": [],
+                "conversation_context_keys": [
+                  "state_summary",
+                  "user_words",
+                  "field_or_stage",
+                  "known_values",
+                  "missing_or_weak_values",
+                  "selected_candidate",
+                  "unsupported_parts",
+                  "write_result",
+                  "inline_tool_result",
+                  "tone_constraints",
+                  "do_not_say",
+                  "context_summary",
+                  "evidence_used"
+                ],
+                "conversation_context_stage": "done"
+              },
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "write_attempted",
+                "flow_action": "confirm_proposed_mapping",
+                "visible_task_kind": "preference_saved",
+                "preference_updates": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "locked",
+                    "user_facing_label": "Fréquence des questions",
+                    "user_facing_value": "Élevée",
+                    "reason": "Confirmation explicite de la proposition.",
+                    "needs_user_confirmation": false,
+                    "source": "user_message",
+                    "confidence": "high",
+                    "evidence": [
+                      "Oui, confirme le niveau élevé de questions."
+                    ]
+                  }
+                ],
+                "write_attempted": true,
+                "write_committed": false,
+                "write_blocked_reason": null,
+                "committed_effects": []
+              },
+              {
+                "component": "update_coach_preferences.local_flow",
+                "event": "write_committed",
+                "flow_action": "confirm_proposed_mapping",
+                "visible_task_kind": "preference_saved",
+                "preference_updates": [
+                  {
+                    "key": "coach.question_tendency",
+                    "value": "high",
+                    "status": "locked",
+                    "user_facing_label": "Fréquence des questions",
+                    "user_facing_value": "Élevée",
+                    "reason": "Confirmation explicite de la proposition.",
+                    "needs_user_confirmation": false,
+                    "source": "user_message",
+                    "confidence": "high",
+                    "evidence": [
+                      "Oui, confirme le niveau élevé de questions."
+                    ]
+                  }
+                ],
+                "write_attempted": true,
+                "write_committed": true,
+                "write_blocked_reason": null,
+                "committed_effects": [
+                  {
+                    "type": "update_coach_preferences",
+                    "operation_id": "question-rhythm-real-20260615-r3-t02",
+                    "preference_keys": [
+                      "coach.question_tendency"
+                    ],
+                    "preferences_update_ids": []
+                  }
+                ]
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "question-rhythm-real-20260615-r3-t02",
+            "counts": {
+              "requested": 1,
+              "allowed": 1,
+              "blocked": 0,
+              "committed": 1,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "question-rhythm-real-20260615-r3-t02:requested_effects:coach_preferences.update:0",
+                "kind": "durable_effect",
+                "effect_type": "coach_preferences.update",
+                "operation_type": "update_coach_preferences",
+                "operation_id": "question-rhythm-real-20260615-r3-t02",
+                "committed_id": null,
+                "tool_id": "update_coach_preferences",
+                "status": "requested",
+                "reason_code": "executed",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "operation_id": "question-rhythm-real-20260615-r3-t02",
+                  "preference_keys": [
+                    "coach.question_tendency"
+                  ]
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "question-rhythm-real-20260615-r3-t02:allowed_effects:coach_preferences.update:0",
+                "kind": "durable_effect",
+                "effect_type": "coach_preferences.update",
+                "operation_type": "update_coach_preferences",
+                "operation_id": "question-rhythm-real-20260615-r3-t02",
+                "committed_id": null,
+                "tool_id": "update_coach_preferences",
+                "status": "allowed",
+                "reason_code": "executed",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "operation_id": "question-rhythm-real-20260615-r3-t02",
+                  "preference_keys": [
+                    "coach.question_tendency"
+                  ]
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "question-rhythm-real-20260615-r3-t02:committed_effects:coach_preferences.update:0",
+                "kind": "durable_effect",
+                "effect_type": "coach_preferences.update",
+                "operation_type": "update_coach_preferences",
+                "operation_id": "question-rhythm-real-20260615-r3-t02",
+                "committed_id": null,
+                "tool_id": "update_coach_preferences",
+                "status": "committed",
+                "reason_code": "executed",
+                "source": "executor",
+                "payload_summary": {
+                  "operation_id": "question-rhythm-real-20260615-r3-t02",
+                  "preference_keys": [
+                    "coach.question_tendency"
+                  ],
+                  "preferences_update_ids": []
+                },
+                "db_ref": {
+                  "table": "user_profile_facts",
+                  "key": "coach.question_tendency"
+                },
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "sent_at": "2026-06-15T22:02:15.443Z",
+      "user": "Je tourne autour d'une décision pro depuis ce matin, mais je n'arrive pas à savoir si c'est de la peur ou juste de la prudence.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je te comprends : quand tu “tournes” autour d’une décision, c’est souvent parce que ton cerveau essaie de protéger quelque chose tout en te laissant croire que tu as besoin de plus d’info. 😊\n\nDifférence simple (sans jugement) :\n- Peur : ça te crispe, ça te tire en arrière, tu minimises ton envie (“au fond c’est pas pour moi / je vais me tromper”), et tu procrastines même quand tu pourrais avancer avec une version imparfaite.\n- Prudence : ça ralentit un peu, mais ça cherche vraiment des données, des garde-fous, des scénarios; tu peux agir “par étapes”, sans que ton corps soit en mode alarme.\n\nPour t’y retrouver, j’ai besoin d’un seul repère concret : sur une échelle de 0 à 10, ton corps te parle de stress/alarme à quel niveau exactement là maintenant ?",
+      "trace_short": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "normal_reply_default",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-06-15T22:02:15.403Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-06-15T22:02:15.403Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-06-15T22:02:15.403Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-06-15T22:02:15.403Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-06-15T22:02:15.403Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-06-15T22:02:15.402Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "575fa7af-5f3c-49ea-ae5b-945d3c56ee82",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "high",
+                  "recent_turns": [
+                    1
+                  ],
+                  "last_updated_at": "2026-06-15T22:02:15.394Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__conversation_risk_history": [
+                  0,
+                  0
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-06-15T22:02:15.404093+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "question-rhythm-real-20260615-r3-t03",
+        "user_id": "2dd1a4f1-2a46-43ad-b04d-007797bb4041",
+        "channel": "web",
+        "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te comprends : quand tu “tournes” autour d’une décision, c’est souvent parce que ton cerveau essaie de protéger quelque chose tout en te laissant croire que tu as besoin de plus d’info. 😊\n\nDifférence simple (sans jugement) :\n- Peur : ça te crispe, ça te tire en arrière, tu minimises ton envie (“au fond c’est pas pour moi / je vais me tromper”), et tu procrastines même quand tu pourrais avancer avec une version imparfaite.\n- Prudence : ça ralentit un peu, mais ça cherche vraiment des données, des garde-fous, des scénarios; tu peux agir “par étapes”, sans que ton corps soit en mode alarme.\n\nPour t’y retrouver, j’ai besoin d’un seul repère concret : sur une échelle de 0 à 10, ton corps te parle de stress/alarme à quel niveau exactement là maintenant ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "question-rhythm-real-20260615-r3-t03",
+              "source_message_id": "575fa7af-5f3c-49ea-ae5b-945d3c56ee82",
+              "user_id": "2dd1a4f1-2a46-43ad-b04d-007797bb4041",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "flow_opportunity": null,
+              "note_information": null,
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "topic",
+                    "key": "travail.performance",
+                    "query_hint": "professional decisions and hesitation",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first",
+                    "priority": "medium",
+                    "entity_type": null
+                  },
+                  {
+                    "type": "domain_key",
+                    "key": "psychologie.peur_echec",
+                    "query_hint": "fear vs prudence in decision making",
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first",
+                    "priority": "low",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "normal_reply_fit_score": 0.9,
+              "normal_reply_fit_evidence": [
+                "The user is sharing a professional dilemma and a feeling of hesitation.",
+                "No explicit request for a tool, action, or product help.",
+                "The conversation is in a state where the user previously asked for more clarifying questions, which Sophia confirmed.",
+                "A normal conversational reply is the best way to apply the requested 'high frequency of questions' to help the user explore the fear vs. prudence distinction."
+              ],
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "normal_reply_default",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "active_flow_debug": {
+                "version": "active_flow_debug_v1",
+                "snapshots": [
+                  {
+                    "phase": "user_state_loaded",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_onboarding_and_reconcile",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "read_active_flow_state",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_pending_confirmation_reload",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "before_run_conversation_routers",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_run_conversation_routers",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": "normal_reply_default",
+                    "route_active_flow_reason_code": "no_active_flow"
+                  }
+                ]
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "question-rhythm-real-20260615-r3-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "question-rhythm-real-20260615-r3-t03",
+            "source_message_id": "575fa7af-5f3c-49ea-ae5b-945d3c56ee82",
+            "user_id": "2dd1a4f1-2a46-43ad-b04d-007797bb4041",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": null,
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "topic",
+                  "key": "travail.performance",
+                  "query_hint": "professional decisions and hesitation",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.peur_echec",
+                  "query_hint": "fear vs prudence in decision making",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "low",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.9,
+            "normal_reply_fit_evidence": [
+              "The user is sharing a professional dilemma and a feeling of hesitation.",
+              "No explicit request for a tool, action, or product help.",
+              "The conversation is in a state where the user previously asked for more clarifying questions, which Sophia confirmed.",
+              "A normal conversational reply is the best way to apply the requested 'high frequency of questions' to help the user explore the fear vs. prudence distinction."
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "normal_reply_default",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "question-rhythm-real-20260615-r3-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "sent_at": "2026-06-15T22:02:30.798Z",
+      "user": "Je dirais 7, surtout dans le ventre. Et en même temps j'ai une vraie donnée rationnelle qui me dit d'attendre.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je te crois : sentir “7 dans le ventre” tout en ayant “une donnée rationnelle qui dit d’attendre”, ça fait souvent un tiraillement très réel. 😕🙂\n\nUne hypothèse simple (sans trancher) : ton corps capte peut-être le risque émotionnel/les conséquences possibles, pendant que la partie rationnelle voit juste qu’il manque une info, un timing, ou de la préparation. Du coup, ce n’est pas forcément “peur vs prudence”, ça peut être “signal du corps vs stratégie de décision”.\n\nPour clarifier sans te noyer, j’ai besoin d’un seul repère : la donnée rationnelle “d’attendre”, elle correspond à quoi exactement (un délai, une contrainte externe, une info manquante, ou le fait que tu n’es pas prêt(e) à exécuter) ?",
+      "trace_short": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "normal_reply_default",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-06-15T22:02:30.761Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-06-15T22:02:15.403Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-06-15T22:02:15.403Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-06-15T22:02:30.761Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-06-15T22:02:30.761Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-06-15T22:02:30.761Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-06-15T22:02:30.761Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "c516ce57-63b3-4bda-bc12-68705057dc64",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "high",
+                  "recent_turns": [
+                    1,
+                    1
+                  ],
+                  "last_updated_at": "2026-06-15T22:02:30.752Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__conversation_risk_history": [
+                  0,
+                  0,
+                  0
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-06-15T22:02:30.76347+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "question-rhythm-real-20260615-r3-t04",
+        "user_id": "2dd1a4f1-2a46-43ad-b04d-007797bb4041",
+        "channel": "web",
+        "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te crois : sentir “7 dans le ventre” tout en ayant “une donnée rationnelle qui dit d’attendre”, ça fait souvent un tiraillement très réel. 😕🙂\n\nUne hypothèse simple (sans trancher) : ton corps capte peut-être le risque émotionnel/les conséquences possibles, pendant que la partie rationnelle voit juste qu’il manque une info, un timing, ou de la préparation. Du coup, ce n’est pas forcément “peur vs prudence”, ça peut être “signal du corps vs stratégie de décision”.\n\nPour clarifier sans te noyer, j’ai besoin d’un seul repère : la donnée rationnelle “d’attendre”, elle correspond à quoi exactement (un délai, une contrainte externe, une info manquante, ou le fait que tu n’es pas prêt(e) à exécuter) ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "question-rhythm-real-20260615-r3-t04",
+              "source_message_id": "c516ce57-63b3-4bda-bc12-68705057dc64",
+              "user_id": "2dd1a4f1-2a46-43ad-b04d-007797bb4041",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0,
+                  0
+                ],
+                "matrix": [],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "flow_opportunity": null,
+              "note_information": null,
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "topic",
+                    "key": "travail.performance",
+                    "query_hint": "décision pro peur vs prudence",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first",
+                    "priority": "medium",
+                    "entity_type": null
+                  },
+                  {
+                    "type": "domain_key",
+                    "key": "psychologie.emotions",
+                    "query_hint": "stress corporel ventre",
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first",
+                    "priority": "low",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "normal_reply_fit_score": 0.95,
+              "normal_reply_fit_evidence": [
+                "The user is answering a specific question from the assistant about their physical stress level (7/10) and adding a rational nuance.",
+                "This is a standard conversational exchange to clarify an internal state before deciding on a tool or action.",
+                "No explicit request for a tool, card, or plan change is made in this message."
+              ],
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "normal_reply_default",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "active_flow_debug": {
+                "version": "active_flow_debug_v1",
+                "snapshots": [
+                  {
+                    "phase": "user_state_loaded",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 6,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_onboarding_and_reconcile",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 6,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "read_active_flow_state",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 6,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_pending_confirmation_reload",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 6,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "before_run_conversation_routers",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 6,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_run_conversation_routers",
+                    "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 6,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": "normal_reply_default",
+                    "route_active_flow_reason_code": "no_active_flow"
+                  }
+                ]
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "question-rhythm-real-20260615-r3-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "question-rhythm-real-20260615-r3-t04",
+            "source_message_id": "c516ce57-63b3-4bda-bc12-68705057dc64",
+            "user_id": "2dd1a4f1-2a46-43ad-b04d-007797bb4041",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0,
+                0
+              ],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": null,
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "topic",
+                  "key": "travail.performance",
+                  "query_hint": "décision pro peur vs prudence",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "stress corporel ventre",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "low",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.95,
+            "normal_reply_fit_evidence": [
+              "The user is answering a specific question from the assistant about their physical stress level (7/10) and adding a rational nuance.",
+              "This is a standard conversational exchange to clarify an internal state before deciding on a tool or action.",
+              "No explicit request for a tool, card, or plan change is made in this message."
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-normal-conversation-question-rhythm-real-20260615-r3",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "normal_reply_default",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "question-rhythm-real-20260615-r3-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-15T22:02:30.799Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-15T22:05:12.759Z"
+}

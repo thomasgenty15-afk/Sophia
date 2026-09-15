@@ -1,0 +1,1015 @@
+{
+  "dishes": [
+    {
+      "name": "Bol matinal aux fruits",
+      "title": "Avoine, tofu, yaourt de soja, boisson au soja et fruits rouges",
+      "slot": "breakfast",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "flocons d’avoine",
+          "quantity": "160 g de flocons d’avoine",
+          "amount": 160,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "oats",
+          "group": "whole_grain"
+        },
+        {
+          "term": "tofu",
+          "quantity": "100 g de tofu",
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tofu",
+          "group": "tofu_tempeh"
+        },
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "100 g de yaourt de soja nature",
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "soy_yogurt",
+          "group": "dairy_yogurt"
+        },
+        {
+          "term": "boisson au soja",
+          "quantity": "100 ml de boisson au soja",
+          "amount": 100,
+          "unit": "ml",
+          "state": "raw",
+          "part": "main",
+          "ref": "soy_milk",
+          "group": "whole_grain"
+        },
+        {
+          "term": "fruits rouges mélangés",
+          "quantity": "50 g de fruits rouges mélangés",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "mixed_berries",
+          "group": "berries"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Assembler d’abord le plat destiné à part sur une surface propre, puis le fermer. Après fermeture, mélanger les flocons d’avoine, le yaourt de soja et la boisson au soja, incorporer le tofu émietté et les fruits rouges, puis servir.",
+      "why": "Ce bol associe une base simple, des fruits de saison et une texture crémeuse pour un petit-déjeuner régulier.",
+      "density_check": 169.2,
+      "uses": [],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Bol d’avoine aux fruits",
+      "title": "Avoine, yaourt de soja, boisson au soja et fruits rouges",
+      "slot": "breakfast",
+      "day": "mon",
+      "for_member_id": "7e1d0495-7e77-4d71-8ee9-1437ff15008f",
+      "ingredients": [
+        {
+          "term": "flocons d’avoine",
+          "quantity": "100 g de flocons d’avoine",
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "oats",
+          "group": "whole_grain"
+        },
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "200 g de yaourt de soja nature",
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "soy_yogurt",
+          "group": "dairy_yogurt"
+        },
+        {
+          "term": "boisson au soja",
+          "quantity": "100 ml de boisson au soja",
+          "amount": 100,
+          "unit": "ml",
+          "state": "raw",
+          "part": "main",
+          "ref": "soy_milk",
+          "group": "whole_grain"
+        },
+        {
+          "term": "fruits rouges mélangés",
+          "quantity": "50 g de fruits rouges mélangés",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "mixed_berries",
+          "group": "berries"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Assembler d’abord ce plat sur une surface, un bol et une cuillère propres, puis le fermer avant d’ouvrir les autres aliments. Mélanger les flocons d’avoine, le yaourt de soja et la boisson au soja, puis ajouter les fruits rouges.",
+      "why": "Cette version fraîche se prépare rapidement et garde une composition reconnaissable pour commencer la journée.",
+      "density_check": 117.4,
+      "uses": [],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Wrap matinal doré",
+      "title": "Garniture de tempeh et tofu, tortilla complète et tomate",
+      "slot": "breakfast",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "tortilla complète",
+          "quantity": "1 tortilla complète",
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "part": "main",
+          "ref": "tortilla_wholemeal",
+          "group": "whole_grain"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Sortir une portion de la préparation et la déposer dans la tortilla. Rouler et servir avec la tomate déjà incorporée dans la préparation.",
+      "why": "Ce wrap change la forme du petit-déjeuner tout en restant facile à manger les jours chargés.",
+      "density_check": 162.5,
+      "uses": [
+        {
+          "preparation_id": "prep_breakfast",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Tartines poêlées du matin",
+      "title": "Tempeh, tofu, tomate, pain complet et laitue",
+      "slot": "breakfast",
+      "day": "tue",
+      "for_member_id": "7e1d0495-7e77-4d71-8ee9-1437ff15008f",
+      "ingredients": [
+        {
+          "term": "pain complet",
+          "quantity": "2 tranches de pain complet",
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "part": "main",
+          "ref": "wholemeal_bread",
+          "group": "whole_grain"
+        },
+        {
+          "term": "laitue",
+          "quantity": "100 g de laitue",
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "lettuce",
+          "group": "leafy_greens"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Sortir la portion et assembler d’abord ce plat sur une planche propre, avec un couteau et une cuillère propres, puis le fermer. Nettoyer la surface avant de préparer l’autre plat; déposer la garniture sur le pain et ajouter la laitue.",
+      "why": "Le pain et la garniture chaude donnent une tartine consistante, différente du bol de la veille.",
+      "density_check": 135.2,
+      "uses": [
+        {
+          "preparation_id": "prep_breakfast",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Wraps méditerranéens",
+      "title": "Tempeh, tofu, houmous, tortillas complètes, tomate et huile d’olive",
+      "slot": "lunch",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "houmous",
+          "quantity": "150 g de houmous",
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "hummus",
+          "group": "legumes"
+        },
+        {
+          "term": "tortilla complète",
+          "quantity": "2 tortillas complètes",
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "part": "main",
+          "ref": "tortilla_wholemeal",
+          "group": "whole_grain"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "30 g d’huile d’olive",
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "olive_oil",
+          "group": "olive_oil"
+        },
+        {
+          "term": "tomate",
+          "quantity": "50 g de tomate",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tomato",
+          "group": "non_starchy_veg"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Assembler la portion de préparation avec le houmous, la tomate et l’huile d’olive dans les tortillas. Le plat destiné à part ayant déjà été fermé, utiliser une cuillère propre et fermer les wraps avant de servir.",
+      "why": "Les tortillas transforment la préparation en déjeuner pratique, avec la tomate qui apporte une note fraîche de saison.",
+      "density_check": 237.2,
+      "uses": [
+        {
+          "preparation_id": "prep_lunch",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Pita fraîche au houmous",
+      "title": "Tempeh, tofu, houmous, pain pita, laitue et tomate",
+      "slot": "lunch",
+      "day": "mon",
+      "for_member_id": "7e1d0495-7e77-4d71-8ee9-1437ff15008f",
+      "ingredients": [
+        {
+          "term": "pain pita complet",
+          "quantity": "1 pain pita complet",
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "part": "main",
+          "ref": "pita_wholemeal",
+          "group": "whole_grain"
+        },
+        {
+          "term": "houmous",
+          "quantity": "50 g de houmous",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "hummus",
+          "group": "legumes"
+        },
+        {
+          "term": "laitue",
+          "quantity": "100 g de laitue",
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "lettuce",
+          "group": "leafy_greens"
+        },
+        {
+          "term": "tomate",
+          "quantity": "50 g de tomate",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tomato",
+          "group": "non_starchy_veg"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Assembler et fermer d’abord ce pita sur une planche, un couteau et un plan de travail propres. Nettoyer la surface avant d’ouvrir les autres ingrédients; garnir le pita avec la portion de préparation, le houmous, la laitue et la tomate.",
+      "why": "Le pita offre une présentation différente et une préparation fraîche qui se transporte facilement.",
+      "density_check": 151.6,
+      "uses": [
+        {
+          "preparation_id": "prep_lunch",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Wraps croustillants au chou",
+      "title": "Tempeh, tofu, houmous, tortilla de blé, chou rouge et huile d’olive",
+      "slot": "lunch",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "tortilla de blé",
+          "quantity": "1 tortilla de blé",
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "part": "main",
+          "ref": "tortilla_wrap",
+          "group": "refined_grain"
+        },
+        {
+          "term": "houmous",
+          "quantity": "180 g de houmous",
+          "amount": 180,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "hummus",
+          "group": "legumes"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "35 g d’huile d’olive",
+          "amount": 35,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "olive_oil",
+          "group": "olive_oil"
+        },
+        {
+          "term": "chou rouge",
+          "quantity": "50 g de chou rouge",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "red_cabbage",
+          "group": "non_starchy_veg"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Assembler la portion de préparation avec le houmous, le chou rouge et l’huile d’olive dans la tortilla. Après fermeture du premier plat sur une surface propre, utiliser une cuillère propre et rouler ce déjeuner.",
+      "why": "Le chou rouge et la tortilla de blé donnent une seconde version colorée et croquante de la préparation.",
+      "density_check": 241.9,
+      "uses": [
+        {
+          "preparation_id": "prep_lunch",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Pita aux légumes croquants",
+      "title": "Tempeh, tofu, pois chiches, pain pita, houmous et carotte",
+      "slot": "lunch",
+      "day": "tue",
+      "for_member_id": "7e1d0495-7e77-4d71-8ee9-1437ff15008f",
+      "ingredients": [
+        {
+          "term": "pain pita complet",
+          "quantity": "1 pain pita complet",
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "part": "main",
+          "ref": "pita_wholemeal",
+          "group": "whole_grain"
+        },
+        {
+          "term": "houmous",
+          "quantity": "50 g de houmous",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "hummus",
+          "group": "legumes"
+        },
+        {
+          "term": "carotte",
+          "quantity": "70 g de carotte",
+          "amount": 70,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "carrot",
+          "group": "non_starchy_veg"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Assembler et fermer d’abord ce pita avec une planche et une cuillère propres, puis nettoyer la surface. Ajouter la portion de préparation, le houmous et la carotte en fins bâtonnets.",
+      "why": "La carotte apporte du croquant et une couleur de saison à une version simple du déjeuner.",
+      "density_check": 175.4,
+      "uses": [
+        {
+          "preparation_id": "prep_lunch",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Pita méditerranéenne",
+      "title": "Tempeh, tofu, pois chiches, pain pita, houmous, tomate et huile d’olive",
+      "slot": "dinner",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "pain pita complet",
+          "quantity": "1 pain pita complet",
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "part": "main",
+          "ref": "pita_wholemeal",
+          "group": "whole_grain"
+        },
+        {
+          "term": "houmous",
+          "quantity": "100 g de houmous",
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "hummus",
+          "group": "legumes"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "25 g d’huile d’olive",
+          "amount": 25,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "olive_oil",
+          "group": "olive_oil"
+        },
+        {
+          "term": "tomate",
+          "quantity": "50 g de tomate",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tomato",
+          "group": "non_starchy_veg"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Assembler la portion de préparation avec le houmous, la tomate et l’huile d’olive dans le pita. Une fois le premier plat fermé, utiliser une cuillère propre pour garnir et fermer le plat suivant.",
+      "why": "Le pita chaud ou à température ambiante donne au dîner une allure de repas complet sans nouvelle cuisson.",
+      "density_check": 205.6,
+      "uses": [
+        {
+          "preparation_id": "prep_dinner",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Assiette fraîche au pita",
+      "title": "Tempeh, tofu, pois chiches, pain pita, laitue et tomate",
+      "slot": "dinner",
+      "day": "mon",
+      "for_member_id": "7e1d0495-7e77-4d71-8ee9-1437ff15008f",
+      "ingredients": [
+        {
+          "term": "pain pita complet",
+          "quantity": "1 pain pita complet",
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "part": "main",
+          "ref": "pita_wholemeal",
+          "group": "whole_grain"
+        },
+        {
+          "term": "laitue",
+          "quantity": "100 g de laitue",
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "lettuce",
+          "group": "leafy_greens"
+        },
+        {
+          "term": "tomate",
+          "quantity": "50 g de tomate",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tomato",
+          "group": "non_starchy_veg"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Assembler et fermer d’abord ce plat sur une planche, un couteau et un plan de travail propres. Nettoyer la surface avant les autres préparations; servir la portion de préparation dans le pita avec la laitue et la tomate.",
+      "why": "Cette assiette reste fraîche et légère en bouche tout en conservant une base consistante pour le soir.",
+      "density_check": 135.5,
+      "uses": [
+        {
+          "preparation_id": "prep_dinner",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Wrap du soir au chou",
+      "title": "Tempeh, tofu, pois chiches, tortilla complète, houmous, chou rouge et huile d’olive",
+      "slot": "dinner",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "tortilla complète",
+          "quantity": "1 tortilla complète",
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "part": "main",
+          "ref": "tortilla_wholemeal",
+          "group": "whole_grain"
+        },
+        {
+          "term": "houmous",
+          "quantity": "100 g de houmous",
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "hummus",
+          "group": "legumes"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "22 g d’huile d’olive",
+          "amount": 22,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "olive_oil",
+          "group": "olive_oil"
+        },
+        {
+          "term": "chou rouge",
+          "quantity": "50 g de chou rouge",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "red_cabbage",
+          "group": "non_starchy_veg"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Assembler la portion de préparation avec le houmous, le chou rouge et l’huile d’olive dans la tortilla. Après fermeture du premier plat et nettoyage de la surface, rouler ce wrap avec une cuillère propre.",
+      "why": "La tortilla complète et le chou rouge changent la texture du dîner tout en utilisant la préparation déjà disponible.",
+      "density_check": 205.6,
+      "uses": [
+        {
+          "preparation_id": "prep_dinner",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ]
+    },
+    {
+      "name": "Tortilla fraîche au tempeh",
+      "title": "Tempeh, tofu, pois chiches, tortilla complète, laitue et tomate",
+      "slot": "dinner",
+      "day": "tue",
+      "for_member_id": "7e1d0495-7e77-4d71-8ee9-1437ff15008f",
+      "ingredients": [
+        {
+          "term": "tortilla complète",
+          "quantity": "1 tortilla complète",
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "part": "main",
+          "ref": "tortilla_wholemeal",
+          "group": "whole_grain"
+        },
+        {
+          "term": "laitue",
+          "quantity": "100 g de laitue",
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "lettuce",
+          "group": "leafy_greens"
+        },
+        {
+          "term": "tomate",
+          "quantity": "50 g de tomate",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tomato",
+          "group": "non_starchy_veg"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Assembler et fermer d’abord cette tortilla sur une planche, un couteau et un plan de travail propres, puis nettoyer la surface. Ajouter la portion de préparation, la laitue et la tomate avant de servir.",
+      "why": "Cette tortilla fraîche apporte une présentation différente pour terminer les deux jours sans répéter exactement le même plat.",
+      "density_check": 137.9,
+      "uses": [
+        {
+          "preparation_id": "prep_dinner",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ]
+    }
+  ],
+  "preparations": [
+    {
+      "id": "prep_breakfast",
+      "title": "Garniture poêlée de tempeh et tofu",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "tempeh",
+          "quantity": "300 g de tempeh",
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tempeh",
+          "group": "tofu_tempeh"
+        },
+        {
+          "term": "tofu",
+          "quantity": "180 g de tofu",
+          "amount": 180,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tofu",
+          "group": "tofu_tempeh"
+        },
+        {
+          "term": "tomate",
+          "quantity": "200 g de tomate",
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tomato",
+          "group": "non_starchy_veg"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "20 g d’huile d’olive",
+          "amount": 20,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "olive_oil",
+          "group": "olive_oil"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Faire revenir le tempeh et le tofu avec la tomate et l’huile jusqu’à obtenir une garniture chaude et légèrement dorée. Refroidir rapidement, répartir en portions et conserver au réfrigérateur.",
+      "active_minutes": 15,
+      "total_minutes": 25,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_lunch",
+      "title": "Base cuite de tempeh et tofu",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "tempeh",
+          "quantity": "720 g de tempeh",
+          "amount": 720,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tempeh",
+          "group": "tofu_tempeh"
+        },
+        {
+          "term": "tofu",
+          "quantity": "560 g de tofu",
+          "amount": 560,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tofu",
+          "group": "tofu_tempeh"
+        },
+        {
+          "term": "oignon",
+          "quantity": "80 g d’oignon",
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "onion",
+          "group": "non_starchy_veg"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "32 g d’huile d’olive",
+          "amount": 32,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "olive_oil",
+          "group": "olive_oil"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Faire revenir l’oignon dans l’huile, ajouter le tempeh et le tofu, puis cuire jusqu’à ce que la base soit tendre et légèrement dorée. Refroidir rapidement, répartir en portions et garder au réfrigérateur.",
+      "active_minutes": 25,
+      "total_minutes": 35,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_dinner",
+      "title": "Mijoté de tempeh, tofu et pois chiches",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "tempeh",
+          "quantity": "600 g de tempeh",
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tempeh",
+          "group": "tofu_tempeh"
+        },
+        {
+          "term": "tofu",
+          "quantity": "480 g de tofu",
+          "amount": 480,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tofu",
+          "group": "tofu_tempeh"
+        },
+        {
+          "term": "pois chiches en conserve",
+          "quantity": "480 g de pois chiches en conserve égouttés",
+          "amount": 480,
+          "unit": "g",
+          "state": "cooked",
+          "part": "main",
+          "ref": "chickpeas_tinned",
+          "group": "legumes"
+        },
+        {
+          "term": "oignon",
+          "quantity": "120 g d’oignon",
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "onion",
+          "group": "non_starchy_veg"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "40 g d’huile d’olive",
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "olive_oil",
+          "group": "olive_oil"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Faire revenir l’oignon dans l’huile, ajouter le tempeh et le tofu, puis incorporer les pois chiches. Cuire doucement jusqu’à ce que le mijoté soit chaud, refroidir rapidement, répartir en portions et conserver au réfrigérateur.",
+      "active_minutes": 30,
+      "total_minutes": 40,
+      "cook_on": "sun"
+    }
+  ],
+  "cooking_sessions": [
+    {
+      "day": "sun",
+      "preparation_ids": [
+        "prep_breakfast",
+        "prep_lunch",
+        "prep_dinner"
+      ],
+      "total_minutes": 60,
+      "run_through": "Commencer par la garniture du petit-déjeuner dans une poêle propre. Pendant qu’elle cuit, faire revenir l’oignon pour la base du déjeuner dans une autre poêle, puis lancer le mijoté du dîner; terminer les cuissons, laisser tiédir rapidement, répartir chaque préparation dans ses portions et tout fermer au réfrigérateur."
+    }
+  ],
+  "explanation": [
+    "Les plats communs restent végétaux, avec les légumineuses, le tofu et le tempeh comme ancres, afin de garder une base unique et nourrissante pour la semaine."
+  ]
+}

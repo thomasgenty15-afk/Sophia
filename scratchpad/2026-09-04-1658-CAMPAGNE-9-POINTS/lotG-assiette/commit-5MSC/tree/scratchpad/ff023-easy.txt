@@ -1,0 +1,114 @@
+
+==============================================================================
+▌ E1-anaphore-EN — run 1/3 — élève 47bf3a69-5945-433a-bebf-e8492d704536
+==============================================================================
+
+ÉLÈVE  (3341 ms, HTTP 200) : My brother is moving to Lisbon next month and I'm the one helping him pack.
+SOPHIA : That’s a lot to carry, especially when you’re the one making it happen.
+
+If you want, I can help you turn that into a clean packing plan or a move checklist.
+
+ÉLÈVE  (3656 ms, HTTP 200) : and so, what do you think about it?
+SOPHIA : It sounds like you’ve got the practical weight of the move on you, not just the packing.
+
+My take: that’s a real load, and it makes sense if it feels bigger than “just helping.”
+
+VERDICT: GREEN  (ancrage: [move, pack])
+CTX    : 2026-08-08 03:33:17.485983+00|["temporal", "facts", "durable_effects_summary", "injected_context"]|1642
+CTX    : 2026-08-08 03:33:20.847417+00|["temporal", "durable_effects_summary", "facts", "recent_turns", "injected_context"]|1733
+FIL    : 4 lignes chat_messages
+
+==============================================================================
+▌ E1-anaphore-EN — run 2/3 — élève a37dd414-cda7-4189-9b9b-11e96e62d20c
+==============================================================================
+
+ÉLÈVE  (4841 ms, HTTP 200) : My brother is moving to Lisbon next month and I'm the one helping him pack.
+SOPHIA : That’s a lot on your plate, especially if you’re the one carrying the packing load. Packing for a move like Lisbon usually gets messy fast because it’s not just boxes, it’s decisions.
+
+If you want, I can help you turn it into a simple packing order without making it feel like a project.
+
+ÉLÈVE  (3366 ms, HTTP 200) : and so, what do you think about it?
+SOPHIA : It sounds like you’re being pulled into the role of organizer, not just helper. That usually means the stress is less about packing itself and more about carrying decisions for someone else.
+
+My take: keep it very simple and practical, or it’ll sprawl fast.
+
+VERDICT: GREEN  (ancrage: [pack])
+CTX    : 2026-08-08 03:33:26.227039+00|["temporal", "facts", "durable_effects_summary", "injected_context"]|1642
+CTX    : 2026-08-08 03:33:29.901543+00|["temporal", "facts", "durable_effects_summary", "recent_turns", "injected_context"]|1766
+FIL    : 4 lignes chat_messages
+
+==============================================================================
+▌ E1-anaphore-EN — run 3/3 — élève ccd97db2-4a2f-414a-936e-5ed48c61f7f6
+==============================================================================
+
+ÉLÈVE  (3291 ms, HTTP 200) : My brother is moving to Lisbon next month and I'm the one helping him pack.
+SOPHIA : That’s a lot to carry, especially if you’re the one doing the packing. A simple way to keep it sane is to sort by room and make a “first day” box so the essentials don’t disappear in the move.
+
+ÉLÈVE  (4056 ms, HTTP 200) : and so, what do you think about it?
+SOPHIA : It sounds like a pretty heavy lift, but a sensible one if you keep it concrete: room by room, and one first-day box so nothing vital gets lost. If you want, I can help you make a quick packing order.
+
+VERDICT: GREEN  (ancrage: [pack, box])
+CTX    : 2026-08-08 03:33:33.293447+00|["temporal", "facts", "durable_effects_summary", "injected_context"]|1642
+CTX    : 2026-08-08 03:33:37.383129+00|["temporal", "facts", "durable_effects_summary", "recent_turns", "injected_context"]|1742
+FIL    : 4 lignes chat_messages
+
+==============================================================================
+▌ E2-anaphore-FR — run 1/3 — élève 06693afd-041e-4d2d-a5d7-cc947c0e35ab
+==============================================================================
+
+ÉLÈVE  (6141 ms, HTTP 200) : Mon frère déménage à Lisbonne le mois prochain et c'est moi qui l'aide à faire les cartons.
+SOPHIA : That’s a big job, and you’re the one carrying the practical side of it. If you want, I can help you make a simple packing order so it doesn’t turn into chaos.
+
+ÉLÈVE  (3304 ms, HTTP 200) : et du coup, t'en penses quoi ?
+SOPHIA : It’s a real load, and the practical burden is landing on you. I’d keep it simple: make the boxes by category, not by room chaos.
+
+VERDICT: GREEN  (ancrage: [box])
+CTX    : 2026-08-08 03:33:44.662874+00|["temporal", "durable_effects_summary", "facts", "injected_context"]|1659
+CTX    : 2026-08-08 03:33:47.818606+00|["temporal", "facts", "durable_effects_summary", "recent_turns", "injected_context"]|1753
+FIL    : 4 lignes chat_messages
+
+==============================================================================
+▌ E2-anaphore-FR — run 2/3 — élève e30a452d-6809-4b02-98da-148d7ad5bc98
+==============================================================================
+
+ÉLÈVE  (3577 ms, HTTP 200) : Mon frère déménage à Lisbonne le mois prochain et c'est moi qui l'aide à faire les cartons.
+SOPHIA : That’s a big lift, and you’re already carrying part of it with him. Since it’s moving boxes, the useful move is to keep them grouped by room and label the heavy ones clearly, so unpacking in Lisbon is much less chaotic.
+
+ÉLÈVE  (4500 ms, HTTP 200) : et du coup, t'en penses quoi ?
+SOPHIA : It’s a practical way to help him, and the big win is reducing chaos later. Group by room, mark the heavy boxes clearly, and keep fragile stuff separate so unpacking is smoother.
+
+VERDICT: GREEN  (ancrage: [box, pack])
+CTX    : 2026-08-08 03:33:51.209818+00|["temporal", "durable_effects_summary", "facts", "injected_context"]|1659
+CTX    : 2026-08-08 03:33:55.282368+00|["temporal", "facts", "durable_effects_summary", "recent_turns", "injected_context"]|1769
+FIL    : 4 lignes chat_messages
+
+==============================================================================
+▌ E2-anaphore-FR — run 3/3 — élève 124770ab-9111-41ef-ae9d-a7bb6272674c
+==============================================================================
+
+ÉLÈVE  (2980 ms, HTTP 200) : Mon frère déménage à Lisbonne le mois prochain et c'est moi qui l'aide à faire les cartons.
+SOPHIA : That’s a real load to carry, especially with a move that big.
+
+You’ve got two concrete things in play: your brother moving to Lisbon next month, and you being the one helping pack. If you want, I can help you turn that into a simple packing plan without making it a whole project.
+
+ÉLÈVE  (4338 ms, HTTP 200) : et du coup, t'en penses quoi ?
+SOPHIA : It sounds like a real commitment, and a fairly practical one: helping with a move usually means you’re not just “giving a hand,” you’re taking on time, decisions, and a bit of pressure too.
+
+My take: the main risk is not the packing itself, it’s letting the whole thing sprawl. Keep it contained, and it stays manageable.
+
+VERDICT: GREEN  (ancrage: [move, pack])
+CTX    : 2026-08-08 03:33:59.654512+00|["temporal", "durable_effects_summary", "facts", "injected_context"]|1659
+CTX    : 2026-08-08 03:34:03.508452+00|["temporal", "facts", "durable_effects_summary", "recent_turns", "injected_context"]|1784
+FIL    : 4 lignes chat_messages
+
+==============================================================================
+RÉCAPITULATIF
+==============================================================================
+GREEN  E1-anaphore-EN run1 — 2 tours de contexte · fil 4 lignes · reply="It sounds like you’ve got the practical weight of the move on you, not just the packing.  My take: that’s a real load, and it makes sense if"
+GREEN  E1-anaphore-EN run2 — 2 tours de contexte · fil 4 lignes · reply="It sounds like you’re being pulled into the role of organizer, not just helper. That usually means the stress is less about packing itself a"
+GREEN  E1-anaphore-EN run3 — 2 tours de contexte · fil 4 lignes · reply="It sounds like a pretty heavy lift, but a sensible one if you keep it concrete: room by room, and one first-day box so nothing vital gets lo"
+GREEN  E2-anaphore-FR run1 — 2 tours de contexte · fil 4 lignes · reply="It’s a real load, and the practical burden is landing on you. I’d keep it simple: make the boxes by category, not by room chaos."
+GREEN  E2-anaphore-FR run2 — 2 tours de contexte · fil 4 lignes · reply="It’s a practical way to help him, and the big win is reducing chaos later. Group by room, mark the heavy boxes clearly, and keep fragile stu"
+GREEN  E2-anaphore-FR run3 — 2 tours de contexte · fil 4 lignes · reply="It sounds like a real commitment, and a fairly practical one: helping with a move usually means you’re not just “giving a hand,” you’re taki"
+
+6/6 GREEN, 0 AMBER (à juger), 0 RED

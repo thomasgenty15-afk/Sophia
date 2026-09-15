@@ -1,0 +1,3182 @@
+{
+  "run": {
+    "run_id": "daily-reason-category-20260624-mqscoou1",
+    "persona": "rose",
+    "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "auth_user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "start_iso": "2026-06-24T17:31:51.467Z",
+    "turns": [
+      {
+        "turn": 0,
+        "role": "assistant",
+        "text": "Je fais le point sur aujourd’hui : Faire cinq minutes de respiration calme et Ranger deux papiers administratifs.\nTu en es où sur ces actions ?",
+        "trace_short": {
+          "http_status": 200,
+          "pending_status": "pending",
+          "targets_count": 2
+        }
+      },
+      {
+        "turn": 1,
+        "role": "user",
+        "text": "La respiration calme, pas faite : j’ai craqué dans l’après-midi et j’ai fumé. Pour les papiers, je n’ai pas encore répondu.",
+        "request_id": "daily-reason-category-20260624-mqscoou1-t01"
+      },
+      {
+        "turn": 1,
+        "role": "assistant",
+        "text": "Noté : respiration calme non faite, et les papiers sont encore en attente. Le point important, c’est que tu me dis ça clairement, donc on garde juste le vrai état d’aujourd’hui 🙂",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t01",
+          "response_owner": "normal_reply",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Noté : respiration calme non faite, et les papiers sont encore en attente. Le point important, c’est que tu me dis ça clairement, donc on garde juste le vrai état d’aujourd’hui 🙂",
+            "mode": "companion",
+            "delivery": {
+              "mode": "text_reply"
+            },
+            "tool_execution": "blocked",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t01",
+                "source_message_id": "7f53107f-fcf9-45fd-8092-b2455e25b82e",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [
+                  {
+                    "effect_type": "track_progress_plan_item",
+                    "explicitness": "explicit",
+                    "target_status": "identified",
+                    "confidence_band": "high",
+                    "payload_hint": {
+                      "status_hint": "missed"
+                    }
+                  }
+                ],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:31:51.467Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:31:51",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:31"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "track progress on missed plan actions",
+                  "reasoning_complexity": "low",
+                  "context_need": "targeted",
+                  "memory_mode": "light",
+                  "model_tier_hint": "standard",
+                  "context_budget_tier": "small",
+                  "targets": [],
+                  "retrieval_policy": "taxonomy_first",
+                  "plan_confidence": 0.86
+                },
+                "direct_effect_lane": {
+                  "selected_handler": "track_progress_plan_item",
+                  "toolExecution": "blocked",
+                  "executedTools": [],
+                  "requested_effects": [],
+                  "allowed_effects": [],
+                  "committed_effects": [],
+                  "blocked_effects": [
+                    {
+                      "type": "track_progress_plan_item",
+                      "reason_code": "target_missing"
+                    }
+                  ],
+                  "visible_confirmation_hint": "Je prefere confirmer avant de l'ecrire."
+                },
+                "direct_effect_confirmation_context": {
+                  "has_committed_one_shot_reminder": false,
+                  "has_requested_one_shot_reminder": false,
+                  "one_shot_reminder": null,
+                  "confirmation_text": null,
+                  "committed_effects": [],
+                  "requested_effects": [],
+                  "blocked_effects": [],
+                  "do_not_recreate": true,
+                  "do_not_reroute": true,
+                  "do_not_redemand": true,
+                  "do_not_confirm_without_commit": true,
+                  "remaining_user_need_must_continue": true
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "normal_reply",
+                "blocked_paths": [],
+                "direct_effects_to_run": [
+                  "track_progress_plan_item"
+                ],
+                "reason_code": "direct_effects_then_normal_reply",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t01",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "normal_reply",
+              "tool_skill_run": {
+                "selected_handler": "track_progress_plan_item",
+                "status": "needs_clarify",
+                "reason": "target_missing",
+                "requested_effects": [],
+                "allowed_effects": [],
+                "committed_effects": [],
+                "blocked_effects": [
+                  {
+                    "type": "track_progress_plan_item",
+                    "reason_code": "target_missing"
+                  }
+                ]
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t01",
+              "source_message_id": "7f53107f-fcf9-45fd-8092-b2455e25b82e",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [
+                {
+                  "effect_type": "track_progress_plan_item",
+                  "explicitness": "explicit",
+                  "target_status": "identified",
+                  "confidence_band": "high",
+                  "payload_hint": {
+                    "status_hint": "missed"
+                  }
+                }
+              ],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:31:51.467Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:31:51",
+                "user_local_human": "mercredi 24 juin 2026 à 19:31"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "track progress on missed plan actions",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "standard",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.86
+              },
+              "direct_effect_lane": {
+                "selected_handler": "track_progress_plan_item",
+                "toolExecution": "blocked",
+                "executedTools": [],
+                "requested_effects": [],
+                "allowed_effects": [],
+                "committed_effects": [],
+                "blocked_effects": [
+                  {
+                    "type": "track_progress_plan_item",
+                    "reason_code": "target_missing"
+                  }
+                ],
+                "visible_confirmation_hint": "Je prefere confirmer avant de l'ecrire."
+              },
+              "direct_effect_confirmation_context": {
+                "has_committed_one_shot_reminder": false,
+                "has_requested_one_shot_reminder": false,
+                "one_shot_reminder": null,
+                "confirmation_text": null,
+                "committed_effects": [],
+                "requested_effects": [],
+                "blocked_effects": [],
+                "do_not_recreate": true,
+                "do_not_reroute": true,
+                "do_not_redemand": true,
+                "do_not_confirm_without_commit": true,
+                "remaining_user_need_must_continue": true
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [
+                "track_progress_plan_item"
+              ],
+              "reason_code": "direct_effects_then_normal_reply",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply",
+            "tool_skill_run": {
+              "selected_handler": "track_progress_plan_item",
+              "status": "needs_clarify",
+              "reason": "target_missing",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "track_progress_plan_item",
+                  "reason_code": "target_missing"
+                }
+              ]
+            }
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 2,
+        "role": "user",
+        "text": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+        "request_id": "daily-reason-category-20260624-mqscoou1-t02"
+      },
+      {
+        "turn": 2,
+        "role": "assistant",
+        "text": "Noté : les papiers administratifs sont aussi non faits, et la fatigue explique le blocage. On garde ça comme un état du jour, sans forcer plus 🙂",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t02",
+          "response_owner": "normal_reply",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Noté : les papiers administratifs sont aussi non faits, et la fatigue explique le blocage. On garde ça comme un état du jour, sans forcer plus 🙂",
+            "mode": "companion",
+            "delivery": {
+              "mode": "text_reply"
+            },
+            "tool_execution": "blocked",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t02",
+                "source_message_id": "cf240172-f276-42a7-9bf7-98f05ddd37d2",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [
+                  {
+                    "effect_type": "track_progress_plan_item",
+                    "explicitness": "explicit",
+                    "target_status": "identified",
+                    "confidence_band": "high",
+                    "payload_hint": {
+                      "status_hint": "missed",
+                      "plan_item_id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e"
+                    }
+                  }
+                ],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:31:51.467Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:31:51",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:31"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "report_plan_status_update",
+                  "reasoning_complexity": "low",
+                  "context_need": "targeted",
+                  "memory_mode": "light",
+                  "model_tier_hint": "lite",
+                  "context_budget_tier": "tiny",
+                  "targets": [],
+                  "retrieval_policy": "semantic_first",
+                  "plan_confidence": 0.86
+                },
+                "direct_effect_lane": {
+                  "selected_handler": "track_progress_plan_item",
+                  "toolExecution": "blocked",
+                  "executedTools": [],
+                  "requested_effects": [],
+                  "allowed_effects": [],
+                  "committed_effects": [],
+                  "blocked_effects": [
+                    {
+                      "type": "track_progress_plan_item",
+                      "reason_code": "target_missing"
+                    }
+                  ],
+                  "visible_confirmation_hint": "Je prefere confirmer avant de l'ecrire."
+                },
+                "direct_effect_confirmation_context": {
+                  "has_committed_one_shot_reminder": false,
+                  "has_requested_one_shot_reminder": false,
+                  "one_shot_reminder": null,
+                  "confirmation_text": null,
+                  "committed_effects": [],
+                  "requested_effects": [],
+                  "blocked_effects": [],
+                  "do_not_recreate": true,
+                  "do_not_reroute": true,
+                  "do_not_redemand": true,
+                  "do_not_confirm_without_commit": true,
+                  "remaining_user_need_must_continue": true
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "normal_reply",
+                "blocked_paths": [],
+                "direct_effects_to_run": [
+                  "track_progress_plan_item"
+                ],
+                "reason_code": "direct_effects_then_normal_reply",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t02",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "normal_reply",
+              "tool_skill_run": {
+                "selected_handler": "track_progress_plan_item",
+                "status": "needs_clarify",
+                "reason": "target_missing",
+                "requested_effects": [],
+                "allowed_effects": [],
+                "committed_effects": [],
+                "blocked_effects": [
+                  {
+                    "type": "track_progress_plan_item",
+                    "reason_code": "target_missing"
+                  }
+                ]
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t02",
+              "source_message_id": "cf240172-f276-42a7-9bf7-98f05ddd37d2",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [
+                {
+                  "effect_type": "track_progress_plan_item",
+                  "explicitness": "explicit",
+                  "target_status": "identified",
+                  "confidence_band": "high",
+                  "payload_hint": {
+                    "status_hint": "missed",
+                    "plan_item_id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e"
+                  }
+                }
+              ],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:31:51.467Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:31:51",
+                "user_local_human": "mercredi 24 juin 2026 à 19:31"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "report_plan_status_update",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.86
+              },
+              "direct_effect_lane": {
+                "selected_handler": "track_progress_plan_item",
+                "toolExecution": "blocked",
+                "executedTools": [],
+                "requested_effects": [],
+                "allowed_effects": [],
+                "committed_effects": [],
+                "blocked_effects": [
+                  {
+                    "type": "track_progress_plan_item",
+                    "reason_code": "target_missing"
+                  }
+                ],
+                "visible_confirmation_hint": "Je prefere confirmer avant de l'ecrire."
+              },
+              "direct_effect_confirmation_context": {
+                "has_committed_one_shot_reminder": false,
+                "has_requested_one_shot_reminder": false,
+                "one_shot_reminder": null,
+                "confirmation_text": null,
+                "committed_effects": [],
+                "requested_effects": [],
+                "blocked_effects": [],
+                "do_not_recreate": true,
+                "do_not_reroute": true,
+                "do_not_redemand": true,
+                "do_not_confirm_without_commit": true,
+                "remaining_user_need_must_continue": true
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [
+                "track_progress_plan_item"
+              ],
+              "reason_code": "direct_effects_then_normal_reply",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply",
+            "tool_skill_run": {
+              "selected_handler": "track_progress_plan_item",
+              "status": "needs_clarify",
+              "reason": "target_missing",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "track_progress_plan_item",
+                  "reason_code": "target_missing"
+                }
+              ]
+            }
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 3,
+        "role": "user",
+        "text": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+        "request_id": "daily-reason-category-20260624-mqscoou1-t03"
+      },
+      {
+        "turn": 3,
+        "role": "assistant",
+        "text": "Noté : papiers admin non faits, et la fatigue a clairement coupé l’élan. On garde ça comme le vrai état d’aujourd’hui, sans te rajouter de pression 🙂",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t03",
+          "response_owner": "normal_reply",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Noté : papiers admin non faits, et la fatigue a clairement coupé l’élan. On garde ça comme le vrai état d’aujourd’hui, sans te rajouter de pression 🙂",
+            "mode": "companion",
+            "delivery": {
+              "mode": "text_reply"
+            },
+            "tool_execution": "none",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t03",
+                "source_message_id": "34de5bfe-0fd1-4c49-a99e-11a9d6818387",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:31:51.467Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:31:51",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:31"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "répondre au suivi d’un état du jour concernant une action du plan non faite",
+                  "reasoning_complexity": "low",
+                  "context_need": "targeted",
+                  "memory_mode": "light",
+                  "model_tier_hint": "lite",
+                  "context_budget_tier": "small",
+                  "targets": [],
+                  "retrieval_policy": "semantic_first",
+                  "plan_confidence": 0.82
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "normal_reply",
+                "blocked_paths": [],
+                "direct_effects_to_run": [],
+                "reason_code": "normal_reply_default",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t03",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "normal_reply"
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t03",
+              "source_message_id": "34de5bfe-0fd1-4c49-a99e-11a9d6818387",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:31:51.467Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:31:51",
+                "user_local_human": "mercredi 24 juin 2026 à 19:31"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "répondre au suivi d’un état du jour concernant une action du plan non faite",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.82
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "normal_reply_default",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply"
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 4,
+        "role": "user",
+        "text": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+        "request_id": "daily-reason-category-20260624-mqscoou1-t04"
+      },
+      {
+        "turn": 4,
+        "role": "assistant",
+        "text": "Je veux vérifier le cadre : tu veux qu’on traite ça comme une action de ton plan, c’est bien ça ?",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t04",
+          "response_owner": "coaching_recommendation",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t04",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je veux vérifier le cadre : tu veux qu’on traite ça comme une action de ton plan, c’est bien ça ?",
+            "mode": "companion",
+            "delivery": null,
+            "tool_execution": "none",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t04",
+                "source_message_id": "8bb7e930-c999-4818-a637-d6d2f2f97d80",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:31:51.467Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:31:51",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:31"
+                },
+                "note_information": null,
+                "skill_signals": {
+                  "coaching_recommendation": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "plan_action_coaching_need",
+                    "context": {
+                      "coaching_type": "plan_action",
+                      "confidence": 0.86,
+                      "activation_checks": {
+                        "is_coaching_need": true,
+                        "is_about_plan_action": true,
+                        "is_about_non_plan_action": false,
+                        "is_about_emotional_state": false,
+                        "has_concrete_plan_action": true,
+                        "needs_type_confirmation": false
+                      },
+                      "action_context": {
+                        "source": "plan",
+                        "plan_item_id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+                        "action_title": "Préparer un plan anti-ennui",
+                        "plan_id": null,
+                        "plan_title": null,
+                        "action_type": "mission"
+                      },
+                      "emotional_state_context": {
+                        "state_hint": "épuisée / plus d'énergie",
+                        "intensity": "high"
+                      },
+                      "reason": "The user reports a specific active plan action (administrative papers) as not done, with fatigue as the blocking context."
+                    }
+                  }
+                },
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "track_and_contextualize_plan_action_state",
+                  "reasoning_complexity": "low",
+                  "context_need": "targeted",
+                  "memory_mode": "light",
+                  "model_tier_hint": "standard",
+                  "context_budget_tier": "small",
+                  "targets": [],
+                  "retrieval_policy": "taxonomy_first",
+                  "plan_confidence": 0.78
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "coaching_recommendation",
+                "blocked_paths": [],
+                "direct_effects_to_run": [],
+                "reason_code": "coaching_recommendation_signal",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none",
+                "selected_handler": "coaching_recommendation"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t04",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "coaching_recommendation",
+              "skill_run": {
+                "selected_skill_id": "coaching_recommendation",
+                "reason_code": "coaching_recommendation_signal",
+                "status": "continue",
+                "latency_ms": 25897
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t04",
+              "source_message_id": "8bb7e930-c999-4818-a637-d6d2f2f97d80",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:31:51.467Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:31:51",
+                "user_local_human": "mercredi 24 juin 2026 à 19:31"
+              },
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "plan_action_coaching_need",
+                  "context": {
+                    "coaching_type": "plan_action",
+                    "confidence": 0.86,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": true,
+                      "is_about_non_plan_action": false,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": true,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "plan",
+                      "plan_item_id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+                      "action_title": "Préparer un plan anti-ennui",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "mission"
+                    },
+                    "emotional_state_context": {
+                      "state_hint": "épuisée / plus d'énergie",
+                      "intensity": "high"
+                    },
+                    "reason": "The user reports a specific active plan action (administrative papers) as not done, with fatigue as the blocking context."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "track_and_contextualize_plan_action_state",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "standard",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.78
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue",
+              "latency_ms": 25897
+            }
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 5,
+        "role": "user",
+        "text": "Je parle de la respiration calme : pas faite parce que j’ai craqué et fumé.",
+        "request_id": "daily-reason-category-20260624-mqscoou1-t05"
+      },
+      {
+        "turn": 5,
+        "role": "assistant",
+        "text": "Je partirais sur une carte de défense libre : elle servira à repérer le moment où ça bascule, le piège qui te fait décrocher, puis le geste de secours en moins de 30 secondes pour revenir à la respiration calme. Si tu veux, je peux t’aider à la formuler maintenant.",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t05",
+          "response_owner": "coaching_recommendation",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t05",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je partirais sur une carte de défense libre : elle servira à repérer le moment où ça bascule, le piège qui te fait décrocher, puis le geste de secours en moins de 30 secondes pour revenir à la respiration calme. Si tu veux, je peux t’aider à la formuler maintenant.",
+            "mode": "companion",
+            "delivery": null,
+            "tool_execution": "none",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t05",
+                "source_message_id": "1e7b4bd1-2d03-4c06-8194-d0c5a248401c",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:31:51.467Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:31:51",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:31"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "reflection",
+                  "reasoning_complexity": "low",
+                  "context_need": "minimal",
+                  "memory_mode": "none",
+                  "model_tier_hint": "lite",
+                  "context_budget_tier": "tiny",
+                  "targets": [],
+                  "retrieval_policy": "semantic_first",
+                  "plan_confidence": 0.7
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "coaching_recommendation",
+                "blocked_paths": [],
+                "direct_effects_to_run": [],
+                "reason_code": "active_coaching_recommendation",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none",
+                "active_flow_arbitration": {
+                  "decision": "continue_active",
+                  "active_owner": "coaching_recommendation",
+                  "selected_owner": "coaching_recommendation",
+                  "resume_policy": "resume_active",
+                  "reason_code": "active_coaching_recommendation"
+                },
+                "selected_handler": "coaching_recommendation"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t05",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "coaching_recommendation",
+              "skill_run": {
+                "selected_skill_id": "coaching_recommendation",
+                "reason_code": "active_coaching_recommendation",
+                "status": "continue",
+                "latency_ms": 29258
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t05",
+              "source_message_id": "1e7b4bd1-2d03-4c06-8194-d0c5a248401c",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:31:51.467Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:31:51",
+                "user_local_human": "mercredi 24 juin 2026 à 19:31"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t05",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 29258
+            }
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 6,
+        "role": "user",
+        "text": "Pour clôturer le daily : respiration pas faite à cause du craquage, papiers pas faits à cause de la fatigue, et les deux restent pertinents.",
+        "request_id": "daily-reason-category-20260624-mqscoou1-t06"
+      },
+      {
+        "turn": 6,
+        "role": "assistant",
+        "text": "Tu veux qu’on traite d’abord la respiration calme ou les papiers administratifs ?",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t06",
+          "response_owner": "coaching_recommendation",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t06",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Tu veux qu’on traite d’abord la respiration calme ou les papiers administratifs ?",
+            "mode": "companion",
+            "delivery": null,
+            "tool_execution": "none",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t06",
+                "source_message_id": "8e3d2cc3-19bb-40f3-b7f2-59ee2c7b6b88",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:31:51.467Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:31:51",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:31"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "reflection",
+                  "reasoning_complexity": "low",
+                  "context_need": "minimal",
+                  "memory_mode": "none",
+                  "model_tier_hint": "lite",
+                  "context_budget_tier": "tiny",
+                  "targets": [],
+                  "retrieval_policy": "semantic_first",
+                  "plan_confidence": 0.7
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "coaching_recommendation",
+                "blocked_paths": [],
+                "direct_effects_to_run": [],
+                "reason_code": "active_coaching_recommendation",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none",
+                "active_flow_arbitration": {
+                  "decision": "continue_active",
+                  "active_owner": "coaching_recommendation",
+                  "selected_owner": "coaching_recommendation",
+                  "resume_policy": "resume_active",
+                  "reason_code": "active_coaching_recommendation"
+                },
+                "selected_handler": "coaching_recommendation"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t06",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "coaching_recommendation",
+              "skill_run": {
+                "selected_skill_id": "coaching_recommendation",
+                "reason_code": "active_coaching_recommendation",
+                "status": "continue",
+                "latency_ms": 26804
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t06",
+              "source_message_id": "8e3d2cc3-19bb-40f3-b7f2-59ee2c7b6b88",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:31:51.467Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:31:51",
+                "user_local_human": "mercredi 24 juin 2026 à 19:31"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t06",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 26804
+            }
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 7,
+        "role": "user",
+        "text": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+        "request_id": "daily-reason-category-20260624-mqscoou1-t07"
+      },
+      {
+        "turn": 7,
+        "role": "assistant",
+        "text": "Dis-moi juste si les papiers administratifs font partie de ton plan ou non.",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t07",
+          "response_owner": "coaching_recommendation",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t07",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Dis-moi juste si les papiers administratifs font partie de ton plan ou non.",
+            "mode": "companion",
+            "delivery": null,
+            "tool_execution": "none",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t07",
+                "source_message_id": "29eb9f1a-e694-4118-b9ad-c48fe0add652",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:31:51.467Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:31:51",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:31"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "reflection",
+                  "reasoning_complexity": "low",
+                  "context_need": "minimal",
+                  "memory_mode": "none",
+                  "model_tier_hint": "lite",
+                  "context_budget_tier": "tiny",
+                  "targets": [],
+                  "retrieval_policy": "semantic_first",
+                  "plan_confidence": 0.7
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "coaching_recommendation",
+                "blocked_paths": [],
+                "direct_effects_to_run": [],
+                "reason_code": "active_coaching_recommendation",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none",
+                "active_flow_arbitration": {
+                  "decision": "continue_active",
+                  "active_owner": "coaching_recommendation",
+                  "selected_owner": "coaching_recommendation",
+                  "resume_policy": "resume_active",
+                  "reason_code": "active_coaching_recommendation"
+                },
+                "selected_handler": "coaching_recommendation"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t07",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "coaching_recommendation",
+              "skill_run": {
+                "selected_skill_id": "coaching_recommendation",
+                "reason_code": "active_coaching_recommendation",
+                "status": "complete",
+                "latency_ms": 28557
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t07",
+              "source_message_id": "29eb9f1a-e694-4118-b9ad-c48fe0add652",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:31:51.467Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:31:51",
+                "user_local_human": "mercredi 24 juin 2026 à 19:31"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t07",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "complete",
+              "latency_ms": 28557
+            }
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 8,
+        "role": "user",
+        "text": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+        "request_id": "daily-reason-category-20260624-mqscoou1-t08"
+      },
+      {
+        "turn": 8,
+        "role": "assistant",
+        "text": "Noté : les papiers admin sont bien restés non faits, et la fatigue explique le blocage. Je garde ça comme le vrai état du jour, sans te rajouter de pression 🙂",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t08",
+          "response_owner": "normal_reply",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscoou1-t08",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Noté : les papiers admin sont bien restés non faits, et la fatigue explique le blocage. Je garde ça comme le vrai état du jour, sans te rajouter de pression 🙂",
+            "mode": "companion",
+            "delivery": {
+              "mode": "text_reply"
+            },
+            "tool_execution": "blocked",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t08",
+                "source_message_id": "41559389-6c3a-4f07-8cab-55a4a8c568ad",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [
+                  {
+                    "effect_type": "track_progress_plan_item",
+                    "explicitness": "explicit",
+                    "target_status": "identified",
+                    "confidence_band": "high",
+                    "payload_hint": {
+                      "status_hint": "missed"
+                    }
+                  }
+                ],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:31:51.467Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:31:51",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:31"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "report_plan_item_status_and_context",
+                  "reasoning_complexity": "low",
+                  "context_need": "targeted",
+                  "memory_mode": "light",
+                  "model_tier_hint": "standard",
+                  "context_budget_tier": "small",
+                  "targets": [],
+                  "retrieval_policy": "taxonomy_first",
+                  "plan_confidence": 0.91
+                },
+                "direct_effect_lane": {
+                  "selected_handler": "track_progress_plan_item",
+                  "toolExecution": "blocked",
+                  "executedTools": [],
+                  "requested_effects": [],
+                  "allowed_effects": [],
+                  "committed_effects": [],
+                  "blocked_effects": [
+                    {
+                      "type": "track_progress_plan_item",
+                      "reason_code": "target_missing"
+                    }
+                  ],
+                  "visible_confirmation_hint": "Je prefere confirmer avant de l'ecrire."
+                },
+                "direct_effect_confirmation_context": {
+                  "has_committed_one_shot_reminder": false,
+                  "has_requested_one_shot_reminder": false,
+                  "one_shot_reminder": null,
+                  "confirmation_text": null,
+                  "committed_effects": [],
+                  "requested_effects": [],
+                  "blocked_effects": [],
+                  "do_not_recreate": true,
+                  "do_not_reroute": true,
+                  "do_not_redemand": true,
+                  "do_not_confirm_without_commit": true,
+                  "remaining_user_need_must_continue": true
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "normal_reply",
+                "blocked_paths": [],
+                "direct_effects_to_run": [
+                  "track_progress_plan_item"
+                ],
+                "reason_code": "direct_effects_then_normal_reply",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscoou1-t08",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "normal_reply",
+              "tool_skill_run": {
+                "selected_handler": "track_progress_plan_item",
+                "status": "needs_clarify",
+                "reason": "target_missing",
+                "requested_effects": [],
+                "allowed_effects": [],
+                "committed_effects": [],
+                "blocked_effects": [
+                  {
+                    "type": "track_progress_plan_item",
+                    "reason_code": "target_missing"
+                  }
+                ]
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t08",
+              "source_message_id": "41559389-6c3a-4f07-8cab-55a4a8c568ad",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [
+                {
+                  "effect_type": "track_progress_plan_item",
+                  "explicitness": "explicit",
+                  "target_status": "identified",
+                  "confidence_band": "high",
+                  "payload_hint": {
+                    "status_hint": "missed"
+                  }
+                }
+              ],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:31:51.467Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:31:51",
+                "user_local_human": "mercredi 24 juin 2026 à 19:31"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "report_plan_item_status_and_context",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "standard",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.91
+              },
+              "direct_effect_lane": {
+                "selected_handler": "track_progress_plan_item",
+                "toolExecution": "blocked",
+                "executedTools": [],
+                "requested_effects": [],
+                "allowed_effects": [],
+                "committed_effects": [],
+                "blocked_effects": [
+                  {
+                    "type": "track_progress_plan_item",
+                    "reason_code": "target_missing"
+                  }
+                ],
+                "visible_confirmation_hint": "Je prefere confirmer avant de l'ecrire."
+              },
+              "direct_effect_confirmation_context": {
+                "has_committed_one_shot_reminder": false,
+                "has_requested_one_shot_reminder": false,
+                "one_shot_reminder": null,
+                "confirmation_text": null,
+                "committed_effects": [],
+                "requested_effects": [],
+                "blocked_effects": [],
+                "do_not_recreate": true,
+                "do_not_reroute": true,
+                "do_not_redemand": true,
+                "do_not_confirm_without_commit": true,
+                "remaining_user_need_must_continue": true
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [
+                "track_progress_plan_item"
+              ],
+              "reason_code": "direct_effects_then_normal_reply",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscoou1-t08",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply",
+            "tool_skill_run": {
+              "selected_handler": "track_progress_plan_item",
+              "status": "needs_clarify",
+              "reason": "target_missing",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "track_progress_plan_item",
+                  "reason_code": "target_missing"
+                }
+              ]
+            }
+          },
+          "trace_error": null
+        }
+      }
+    ],
+    "target_titles": [
+      "Faire cinq minutes de respiration calme",
+      "Ranger deux papiers administratifs"
+    ],
+    "process_checkins": {
+      "status": 200,
+      "body": {
+        "fixture": "direct_daily_pending",
+        "reason": "process-checkins local did not pick the QA checkin in previous attempts"
+      }
+    },
+    "pending_initial": {
+      "id": "79310df2-8069-401b-b5fb-280b184a7217",
+      "kind": "scheduled_checkin",
+      "status": "pending",
+      "scheduled_checkin_id": "da0fc630-6c97-41be-9495-a1eb28a43af2",
+      "payload": {
+        "targets": [
+          {
+            "kind": "task",
+            "title": "Faire cinq minutes de respiration calme",
+            "plan_id": "4fe5d7fd-8a9c-409c-b206-4308f39d36f7",
+            "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+            "dimension": "missions",
+            "plan_label": null,
+            "description": "S'asseoir, respirer lentement cinq minutes et traverser l'envie de fumer sans allumer de joint.",
+            "planned_day": "wed",
+            "time_of_day": "anytime",
+            "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+            "occurrence_id": "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+            "tracking_type": "boolean",
+            "week_start_date": "2026-06-22",
+            "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+            "reviewed_local_date": "2026-06-24",
+            "original_planned_day": null
+          },
+          {
+            "kind": "task",
+            "title": "Ranger deux papiers administratifs",
+            "plan_id": "4fe5d7fd-8a9c-409c-b206-4308f39d36f7",
+            "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+            "dimension": "missions",
+            "plan_label": null,
+            "description": "Choisir deux courriers, les trier puis les ranger ou les jeter.",
+            "planned_day": "wed",
+            "time_of_day": "anytime",
+            "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+            "occurrence_id": "59b70208-1ce8-484c-8b38-4fb25dc02984",
+            "tracking_type": "boolean",
+            "week_start_date": "2026-06-22",
+            "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+            "reviewed_local_date": "2026-06-24",
+            "original_planned_day": null
+          }
+        ],
+        "timezone": "Europe/Paris",
+        "qa_run_id": "daily-reason-category-20260624-mqscoou1",
+        "local_date": "2026-06-24",
+        "message_mode": "conversation",
+        "review_state": {
+          "items": {
+            "3333834a-f02a-47a3-8c10-3d0cb76f01e7": {
+              "title": "Faire cinq minutes de respiration calme",
+              "outcome": null,
+              "plan_id": "4fe5d7fd-8a9c-409c-b206-4308f39d36f7",
+              "confidence": "low",
+              "plan_label": null,
+              "action_type": "mission",
+              "reason_text": null,
+              "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+              "evidence_text": null,
+              "missing_slots": [
+                "outcome"
+              ],
+              "occurrence_id": "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            },
+            "59b70208-1ce8-484c-8b38-4fb25dc02984": {
+              "title": "Ranger deux papiers administratifs",
+              "outcome": null,
+              "plan_id": "4fe5d7fd-8a9c-409c-b206-4308f39d36f7",
+              "confidence": "low",
+              "plan_label": null,
+              "action_type": "mission",
+              "reason_text": null,
+              "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+              "evidence_text": null,
+              "missing_slots": [
+                "outcome"
+              ],
+              "occurrence_id": "59b70208-1ce8-484c-8b38-4fb25dc02984",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            }
+          },
+          "intent": "open_review",
+          "source": "daily_action_review_v1",
+          "status": "collecting",
+          "skill_id": "daily_action_review_v1",
+          "constraints": [],
+          "effect_plan": {
+            "allowed": false,
+            "effects": []
+          },
+          "stop_reason": null,
+          "next_question": null,
+          "should_apply_effects": false,
+          "next_question_targets": [
+            "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+            "59b70208-1ce8-484c-8b38-4fb25dc02984"
+          ],
+          "generated_user_message": null,
+          "remaining_occurrence_ids": [],
+          "asked_occurrence_ids_history": [
+            [
+              "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+              "59b70208-1ce8-484c-8b38-4fb25dc02984"
+            ]
+          ],
+          "current_focus_occurrence_ids": [
+            "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+            "59b70208-1ce8-484c-8b38-4fb25dc02984"
+          ],
+          "action_intelligence_by_occurrence_id": {}
+        },
+        "draft_message": "Je fais le point sur aujourd’hui : Faire cinq minutes de respiration calme et Ranger deux papiers administratifs.\nTu en es où sur ces actions ?",
+        "event_context": "action_evening_review_v2",
+        "occurrence_ids": [
+          "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+          "59b70208-1ce8-484c-8b38-4fb25dc02984"
+        ],
+        "chat_capability": "daily_action_review",
+        "grouping_reason": "qa_reason_category_fixture",
+        "week_start_date": "2026-06-22",
+        "asked_occurrence_ids": [
+          "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+          "59b70208-1ce8-484c-8b38-4fb25dc02984"
+        ],
+        "action_evening_review": true,
+        "already_resolved_targets": [],
+        "initial_note_information": {
+          "evidence": [
+            "qa direct pending fixture"
+          ],
+          "confidence": "high",
+          "source_flow": "qa_direct_pending_fixture",
+          "handoff_reason": "bridge",
+          "source_flow_id": "process_checkins.action_evening_review_v2",
+          "collected_state": {
+            "timezone": "Europe/Paris",
+            "local_date": "2026-06-24",
+            "event_context": "action_evening_review_v2",
+            "target_titles": [
+              "Faire cinq minutes de respiration calme",
+              "Ranger deux papiers administratifs"
+            ],
+            "week_start_date": "2026-06-22",
+            "scheduled_checkin_id": "da0fc630-6c97-41be-9495-a1eb28a43af2",
+            "target_occurrence_ids": [
+              "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+              "59b70208-1ce8-484c-8b38-4fb25dc02984"
+            ],
+            "already_resolved_occurrence_ids": []
+          },
+          "target_dispatcher": "daily_action_review_v1",
+          "structured_context": {
+            "targets": [
+              {
+                "kind": "task",
+                "title": "Faire cinq minutes de respiration calme",
+                "dimension": "missions",
+                "description": "S'asseoir, respirer lentement cinq minutes et traverser l'envie de fumer sans allumer de joint.",
+                "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+                "occurrence_id": "3333834a-f02a-47a3-8c10-3d0cb76f01e7"
+              },
+              {
+                "kind": "task",
+                "title": "Ranger deux papiers administratifs",
+                "dimension": "missions",
+                "description": "Choisir deux courriers, les trier puis les ranger ou les jeter.",
+                "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+                "occurrence_id": "59b70208-1ce8-484c-8b38-4fb25dc02984"
+              }
+            ],
+            "source_flow": "qa_direct_pending_fixture",
+            "event_context": "action_evening_review_v2",
+            "chat_capability": "daily_action_review",
+            "pending_action_kind": "scheduled_checkin"
+          },
+          "active_flow_summary": "QA opened daily review for selected action targets.",
+          "unresolved_questions": [
+            "Which selected actions were done or not done today.",
+            "If not done, the reason and whether the action remains relevant."
+          ],
+          "recommended_next_focus": "Classify the current user reply against selected daily targets.",
+          "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn."
+        },
+        "not_yet_asked_occurrence_ids": []
+      },
+      "created_at": "2026-06-24T17:31:51.737116+00:00",
+      "processed_at": null
+    },
+    "opening_text": "Je fais le point sur aujourd’hui : Faire cinq minutes de respiration calme et Ranger deux papiers administratifs.\nTu en es où sur ces actions ?",
+    "checkin": {
+      "id": "da0fc630-6c97-41be-9495-a1eb28a43af2"
+    },
+    "latest": {
+      "label": "after_t8",
+      "pending": [
+        {
+          "id": "79310df2-8069-401b-b5fb-280b184a7217",
+          "kind": "scheduled_checkin",
+          "status": "pending",
+          "scheduled_checkin_id": "da0fc630-6c97-41be-9495-a1eb28a43af2",
+          "payload": {
+            "targets": [
+              {
+                "kind": "task",
+                "title": "Faire cinq minutes de respiration calme",
+                "plan_id": "4fe5d7fd-8a9c-409c-b206-4308f39d36f7",
+                "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                "dimension": "missions",
+                "plan_label": null,
+                "description": "S'asseoir, respirer lentement cinq minutes et traverser l'envie de fumer sans allumer de joint.",
+                "planned_day": "wed",
+                "time_of_day": "anytime",
+                "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+                "occurrence_id": "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+                "tracking_type": "boolean",
+                "week_start_date": "2026-06-22",
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "reviewed_local_date": "2026-06-24",
+                "original_planned_day": null
+              },
+              {
+                "kind": "task",
+                "title": "Ranger deux papiers administratifs",
+                "plan_id": "4fe5d7fd-8a9c-409c-b206-4308f39d36f7",
+                "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                "dimension": "missions",
+                "plan_label": null,
+                "description": "Choisir deux courriers, les trier puis les ranger ou les jeter.",
+                "planned_day": "wed",
+                "time_of_day": "anytime",
+                "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+                "occurrence_id": "59b70208-1ce8-484c-8b38-4fb25dc02984",
+                "tracking_type": "boolean",
+                "week_start_date": "2026-06-22",
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "reviewed_local_date": "2026-06-24",
+                "original_planned_day": null
+              }
+            ],
+            "timezone": "Europe/Paris",
+            "qa_run_id": "daily-reason-category-20260624-mqscoou1",
+            "local_date": "2026-06-24",
+            "message_mode": "conversation",
+            "review_state": {
+              "items": {
+                "3333834a-f02a-47a3-8c10-3d0cb76f01e7": {
+                  "title": "Faire cinq minutes de respiration calme",
+                  "outcome": null,
+                  "plan_id": "4fe5d7fd-8a9c-409c-b206-4308f39d36f7",
+                  "confidence": "low",
+                  "plan_label": null,
+                  "action_type": "mission",
+                  "reason_text": null,
+                  "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+                  "evidence_text": null,
+                  "missing_slots": [
+                    "outcome"
+                  ],
+                  "occurrence_id": "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+                  "still_relevant": "unknown",
+                  "reason_category": null,
+                  "matched_user_text": null
+                },
+                "59b70208-1ce8-484c-8b38-4fb25dc02984": {
+                  "title": "Ranger deux papiers administratifs",
+                  "outcome": null,
+                  "plan_id": "4fe5d7fd-8a9c-409c-b206-4308f39d36f7",
+                  "confidence": "low",
+                  "plan_label": null,
+                  "action_type": "mission",
+                  "reason_text": null,
+                  "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+                  "evidence_text": null,
+                  "missing_slots": [
+                    "outcome"
+                  ],
+                  "occurrence_id": "59b70208-1ce8-484c-8b38-4fb25dc02984",
+                  "still_relevant": "unknown",
+                  "reason_category": null,
+                  "matched_user_text": null
+                }
+              },
+              "intent": "open_review",
+              "source": "daily_action_review_v1",
+              "status": "collecting",
+              "skill_id": "daily_action_review_v1",
+              "constraints": [],
+              "effect_plan": {
+                "allowed": false,
+                "effects": []
+              },
+              "stop_reason": null,
+              "next_question": null,
+              "should_apply_effects": false,
+              "next_question_targets": [
+                "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+                "59b70208-1ce8-484c-8b38-4fb25dc02984"
+              ],
+              "generated_user_message": null,
+              "remaining_occurrence_ids": [],
+              "asked_occurrence_ids_history": [
+                [
+                  "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+                  "59b70208-1ce8-484c-8b38-4fb25dc02984"
+                ]
+              ],
+              "current_focus_occurrence_ids": [
+                "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+                "59b70208-1ce8-484c-8b38-4fb25dc02984"
+              ],
+              "action_intelligence_by_occurrence_id": {}
+            },
+            "draft_message": "Je fais le point sur aujourd’hui : Faire cinq minutes de respiration calme et Ranger deux papiers administratifs.\nTu en es où sur ces actions ?",
+            "event_context": "action_evening_review_v2",
+            "occurrence_ids": [
+              "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+              "59b70208-1ce8-484c-8b38-4fb25dc02984"
+            ],
+            "chat_capability": "daily_action_review",
+            "grouping_reason": "qa_reason_category_fixture",
+            "week_start_date": "2026-06-22",
+            "asked_occurrence_ids": [
+              "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+              "59b70208-1ce8-484c-8b38-4fb25dc02984"
+            ],
+            "action_evening_review": true,
+            "already_resolved_targets": [],
+            "initial_note_information": {
+              "evidence": [
+                "qa direct pending fixture"
+              ],
+              "confidence": "high",
+              "source_flow": "qa_direct_pending_fixture",
+              "handoff_reason": "bridge",
+              "source_flow_id": "process_checkins.action_evening_review_v2",
+              "collected_state": {
+                "timezone": "Europe/Paris",
+                "local_date": "2026-06-24",
+                "event_context": "action_evening_review_v2",
+                "target_titles": [
+                  "Faire cinq minutes de respiration calme",
+                  "Ranger deux papiers administratifs"
+                ],
+                "week_start_date": "2026-06-22",
+                "scheduled_checkin_id": "da0fc630-6c97-41be-9495-a1eb28a43af2",
+                "target_occurrence_ids": [
+                  "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+                  "59b70208-1ce8-484c-8b38-4fb25dc02984"
+                ],
+                "already_resolved_occurrence_ids": []
+              },
+              "target_dispatcher": "daily_action_review_v1",
+              "structured_context": {
+                "targets": [
+                  {
+                    "kind": "task",
+                    "title": "Faire cinq minutes de respiration calme",
+                    "dimension": "missions",
+                    "description": "S'asseoir, respirer lentement cinq minutes et traverser l'envie de fumer sans allumer de joint.",
+                    "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+                    "occurrence_id": "3333834a-f02a-47a3-8c10-3d0cb76f01e7"
+                  },
+                  {
+                    "kind": "task",
+                    "title": "Ranger deux papiers administratifs",
+                    "dimension": "missions",
+                    "description": "Choisir deux courriers, les trier puis les ranger ou les jeter.",
+                    "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+                    "occurrence_id": "59b70208-1ce8-484c-8b38-4fb25dc02984"
+                  }
+                ],
+                "source_flow": "qa_direct_pending_fixture",
+                "event_context": "action_evening_review_v2",
+                "chat_capability": "daily_action_review",
+                "pending_action_kind": "scheduled_checkin"
+              },
+              "active_flow_summary": "QA opened daily review for selected action targets.",
+              "unresolved_questions": [
+                "Which selected actions were done or not done today.",
+                "If not done, the reason and whether the action remains relevant."
+              ],
+              "recommended_next_focus": "Classify the current user reply against selected daily targets.",
+              "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn."
+            },
+            "not_yet_asked_occurrence_ids": []
+          },
+          "created_at": "2026-06-24T17:31:51.737116+00:00",
+          "processed_at": null
+        }
+      ],
+      "messages": [
+        {
+          "id": "d403d7a9-475f-438c-8f6c-0fdd0d194c09",
+          "role": "assistant",
+          "content": "Je fais le point sur aujourd’hui : Faire cinq minutes de respiration calme et Ranger deux papiers administratifs.\nTu en es où sur ces actions ?",
+          "metadata": {
+            "source": "scheduled_checkin",
+            "qa_run_id": "daily-reason-category-20260624-mqscoou1",
+            "event_context": "action_evening_review_v2",
+            "chat_capability": "daily_action_review",
+            "original_checkin_id": "da0fc630-6c97-41be-9495-a1eb28a43af2"
+          },
+          "created_at": "2026-06-24T17:31:51.745823+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "7f53107f-fcf9-45fd-8092-b2455e25b82e",
+          "role": "user",
+          "content": "La respiration calme, pas faite : j’ai craqué dans l’après-midi et j’ai fumé. Pour les papiers, je n’ai pas encore répondu.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t01",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:31:52.244181+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "2ce3a1b3-230c-412d-ad50-ab7a58dae951",
+          "role": "assistant",
+          "content": "Noté : respiration calme non faite, et les papiers sont encore en attente. Le point important, c’est que tu me dis ça clairement, donc on garde juste le vrai état d’aujourd’hui 🙂",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t01",
+            "route_owner": "normal_reply",
+            "agent_latency_ms": 1780,
+            "selected_handler": null,
+            "context_latency_ms": 53,
+            "dispatcher_latency_ms": 18653,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:32:12.79186+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "cf240172-f276-42a7-9bf7-98f05ddd37d2",
+          "role": "user",
+          "content": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t02",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:32:12.86488+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "7fbcc2b1-fc27-4179-825b-3464b88a4c8f",
+          "role": "assistant",
+          "content": "Noté : les papiers administratifs sont aussi non faits, et la fatigue explique le blocage. On garde ça comme un état du jour, sans forcer plus 🙂",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t02",
+            "route_owner": "normal_reply",
+            "agent_latency_ms": 1674,
+            "selected_handler": null,
+            "context_latency_ms": 50,
+            "dispatcher_latency_ms": 2404,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:32:17.040341+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "34de5bfe-0fd1-4c49-a99e-11a9d6818387",
+          "role": "user",
+          "content": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t03",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:32:17.110714+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "8a5e1a7d-5e2e-4b92-a801-64afc232e95f",
+          "role": "assistant",
+          "content": "Noté : papiers admin non faits, et la fatigue a clairement coupé l’élan. On garde ça comme le vrai état d’aujourd’hui, sans te rajouter de pression 🙂",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t03",
+            "route_owner": "normal_reply",
+            "agent_latency_ms": 1323,
+            "selected_handler": null,
+            "context_latency_ms": 41,
+            "dispatcher_latency_ms": 3927,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:32:22.444922+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "8bb7e930-c999-4818-a637-d6d2f2f97d80",
+          "role": "user",
+          "content": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t04",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:32:22.507241+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "22c495bf-e36c-4c8d-a22c-40e6d64a3d1a",
+          "role": "assistant",
+          "content": "Je veux vérifier le cadre : tu veux qu’on traite ça comme une action de ton plan, c’est bien ça ?",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t04",
+            "route_owner": "coaching_recommendation",
+            "agent_latency_ms": 25897,
+            "selected_handler": "coaching_recommendation",
+            "context_latency_ms": 0,
+            "dispatcher_latency_ms": 5820,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:32:54.276106+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "1e7b4bd1-2d03-4c06-8194-d0c5a248401c",
+          "role": "user",
+          "content": "Je parle de la respiration calme : pas faite parce que j’ai craqué et fumé.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t05",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:32:54.335507+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "019a88e3-3d1c-4a5c-b55f-96fa37cd5fad",
+          "role": "assistant",
+          "content": "Je partirais sur une carte de défense libre : elle servira à repérer le moment où ça bascule, le piège qui te fait décrocher, puis le geste de secours en moins de 30 secondes pour revenir à la respiration calme. Si tu veux, je peux t’aider à la formuler maintenant.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t05",
+            "route_owner": "coaching_recommendation",
+            "agent_latency_ms": 29258,
+            "selected_handler": "coaching_recommendation",
+            "context_latency_ms": 0,
+            "dispatcher_latency_ms": 0,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:33:23.638332+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "8e3d2cc3-19bb-40f3-b7f2-59ee2c7b6b88",
+          "role": "user",
+          "content": "Pour clôturer le daily : respiration pas faite à cause du craquage, papiers pas faits à cause de la fatigue, et les deux restent pertinents.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t06",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:33:23.719056+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "8004f472-987b-4cc7-89e9-274bfc1f6d6e",
+          "role": "assistant",
+          "content": "Tu veux qu’on traite d’abord la respiration calme ou les papiers administratifs ?",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t06",
+            "route_owner": "coaching_recommendation",
+            "agent_latency_ms": 26804,
+            "selected_handler": "coaching_recommendation",
+            "context_latency_ms": 0,
+            "dispatcher_latency_ms": 0,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:33:50.564963+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "29eb9f1a-e694-4118-b9ad-c48fe0add652",
+          "role": "user",
+          "content": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t07",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:33:50.630643+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "da31df29-6899-4db1-8204-de70ebb9c55a",
+          "role": "assistant",
+          "content": "Dis-moi juste si les papiers administratifs font partie de ton plan ou non.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t07",
+            "route_owner": "coaching_recommendation",
+            "agent_latency_ms": 28557,
+            "selected_handler": "coaching_recommendation",
+            "context_latency_ms": 0,
+            "dispatcher_latency_ms": 0,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:34:19.217371+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "41559389-6c3a-4f07-8cab-55a4a8c568ad",
+          "role": "user",
+          "content": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t08",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:34:19.292432+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "496396ae-e0c0-48a2-97d6-502fcbb2ac4f",
+          "role": "assistant",
+          "content": "Noté : les papiers admin sont bien restés non faits, et la fatigue explique le blocage. Je garde ça comme le vrai état du jour, sans te rajouter de pression 🙂",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscoou1-t08",
+            "route_owner": "normal_reply",
+            "agent_latency_ms": 2112,
+            "selected_handler": null,
+            "context_latency_ms": 59,
+            "dispatcher_latency_ms": 2254,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:34:23.829456+00:00",
+          "agent_used": "companion"
+        }
+      ],
+      "entries": [],
+      "occurrences": [
+        {
+          "id": "59b70208-1ce8-484c-8b38-4fb25dc02984",
+          "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+          "planned_day": "wed",
+          "status": "planned",
+          "source": "manual_change",
+          "validated_at": null,
+          "updated_at": "2026-06-24T17:31:51.726426+00:00"
+        },
+        {
+          "id": "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+          "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+          "planned_day": "wed",
+          "status": "planned",
+          "source": "manual_change",
+          "validated_at": null,
+          "updated_at": "2026-06-24T17:31:51.707582+00:00"
+        }
+      ],
+      "traces": []
+    }
+  },
+  "cleanup": {
+    "deleted": {
+      "user_plan_item_entries": 0,
+      "whatsapp_pending_actions": 1,
+      "chat_messages": 17,
+      "scheduled_checkins": 1,
+      "user_habit_week_occurrences": 2,
+      "user_plan_items": 2,
+      "user_plans_v2": 1
+    },
+    "restored": [
+      "user_chat_states.temp_memory"
+    ],
+    "verification": {
+      "pending": [],
+      "entries": [],
+      "checkin": []
+    }
+  },
+  "touched": {
+    "planIds": [
+      "4fe5d7fd-8a9c-409c-b206-4308f39d36f7"
+    ],
+    "itemIds": [
+      "83b8eda7-069b-4986-afa2-740d16c75deb",
+      "9b1ba250-209e-4c1a-a9de-6caaa80d1989"
+    ],
+    "occurrenceIds": [
+      "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+      "59b70208-1ce8-484c-8b38-4fb25dc02984"
+    ],
+    "targets": [
+      {
+        "occurrence_id": "3333834a-f02a-47a3-8c10-3d0cb76f01e7",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "4fe5d7fd-8a9c-409c-b206-4308f39d36f7",
+        "plan_label": null,
+        "plan_item_id": "83b8eda7-069b-4986-afa2-740d16c75deb",
+        "title": "Faire cinq minutes de respiration calme",
+        "description": "S'asseoir, respirer lentement cinq minutes et traverser l'envie de fumer sans allumer de joint.",
+        "dimension": "missions",
+        "kind": "task",
+        "tracking_type": "boolean",
+        "planned_day": "wed",
+        "original_planned_day": null,
+        "week_start_date": "2026-06-22",
+        "time_of_day": "anytime",
+        "reviewed_local_date": "2026-06-24"
+      },
+      {
+        "occurrence_id": "59b70208-1ce8-484c-8b38-4fb25dc02984",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "4fe5d7fd-8a9c-409c-b206-4308f39d36f7",
+        "plan_label": null,
+        "plan_item_id": "9b1ba250-209e-4c1a-a9de-6caaa80d1989",
+        "title": "Ranger deux papiers administratifs",
+        "description": "Choisir deux courriers, les trier puis les ranger ou les jeter.",
+        "dimension": "missions",
+        "kind": "task",
+        "tracking_type": "boolean",
+        "planned_day": "wed",
+        "original_planned_day": null,
+        "week_start_date": "2026-06-22",
+        "time_of_day": "anytime",
+        "reviewed_local_date": "2026-06-24"
+      }
+    ],
+    "checkinId": "da0fc630-6c97-41be-9495-a1eb28a43af2",
+    "pendingIds": [
+      "79310df2-8069-401b-b5fb-280b184a7217"
+    ],
+    "entryIds": [],
+    "chatMessageIds": [
+      "d403d7a9-475f-438c-8f6c-0fdd0d194c09",
+      "7f53107f-fcf9-45fd-8092-b2455e25b82e",
+      "2ce3a1b3-230c-412d-ad50-ab7a58dae951",
+      "cf240172-f276-42a7-9bf7-98f05ddd37d2",
+      "7fbcc2b1-fc27-4179-825b-3464b88a4c8f",
+      "34de5bfe-0fd1-4c49-a99e-11a9d6818387",
+      "8a5e1a7d-5e2e-4b92-a801-64afc232e95f",
+      "8bb7e930-c999-4818-a637-d6d2f2f97d80",
+      "22c495bf-e36c-4c8d-a22c-40e6d64a3d1a",
+      "1e7b4bd1-2d03-4c06-8194-d0c5a248401c",
+      "019a88e3-3d1c-4a5c-b55f-96fa37cd5fad",
+      "8e3d2cc3-19bb-40f3-b7f2-59ee2c7b6b88",
+      "8004f472-987b-4cc7-89e9-274bfc1f6d6e",
+      "29eb9f1a-e694-4118-b9ad-c48fe0add652",
+      "da31df29-6899-4db1-8204-de70ebb9c55a",
+      "41559389-6c3a-4f07-8cab-55a4a8c568ad",
+      "496396ae-e0c0-48a2-97d6-502fcbb2ac4f"
+    ],
+    "deferredCheckins": []
+  }
+}

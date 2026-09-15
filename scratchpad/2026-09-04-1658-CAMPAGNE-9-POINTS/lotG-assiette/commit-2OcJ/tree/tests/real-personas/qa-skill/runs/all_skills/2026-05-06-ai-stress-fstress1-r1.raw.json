@@ -1,0 +1,125 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress1-r1-t01",
+    "user": "Dans Sophia, le dashboard sert à quoi quand j'ai déjà un plan mais que je ne sais pas quoi faire aujourd'hui ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r1-t01",
+      "user_id": "2b6d67e1-34c0-42e9-b4b1-5f5fb3832616",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress1-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Bonne question 🙂 Le dashboard sert justement à te donner “le quoi aujourd’hui” même quand tu as déjà un plan, mais que ton cerveau bug sur le passage à l’action.\n\nConcrètement, il t’aide à :\n- Voir la priorité du moment (ce qui compte le plus maintenant dans ton cycle)\n- Te rappeler quelles missions/habitudes du plan sont actives et lesquelles sont à faire en premier\n- Convertir ton plan en actions concrètes (statut, progression, prochaine étape)\n- Suivre ton avance au fil des jours pour ajuster au besoin (pas repartir de zéro)\n\nDu coup, quand tu ne sais pas quoi faire aujourd’hui, le dashboard devient ton menu “action immédiate”, basé sur ton plan, pas sur ton humeur du jour. ✅\n\nTu veux que je t’aide à trouver ta prochaine action “aujourd’hui” via le dashboard, ou tu veux surtout comprendre comment le lire ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r1-t01",
+        "user_id": "2b6d67e1-34c0-42e9-b4b1-5f5fb3832616",
+        "source_message_id": "a6446d35-c7b0-4415-bb22-4ad3716334a5",
+        "ts": "2026-05-06T13:27:48.622+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 521,
+          "latency_ms": 5545,
+          "tokens_out": 286,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r1-t01",
+          "user_id": "2b6d67e1-34c0-42e9-b4b1-5f5fb3832616",
+          "reasoning": "L'utilisateur cherche à comprendre la valeur ajoutée du dashboard Sophia lorsqu'il possède déjà un plan mais manque de clarté sur ses actions immédiates.",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "product_signal": {
+            "kind": "how_to",
+            "detected": true,
+            "explicitness": "explicit",
+            "surface_hints": [
+              "plan.adjust"
+            ],
+            "confidence_band": "high"
+          },
+          "target_skill_id": "general_assistant",
+          "confidence_score": 0.95,
+          "detected_signals": [
+            {
+              "signal": "product_qa",
+              "evidence": "L'utilisateur demande l'utilité du dashboard par rapport au plan.",
+              "risk_band": "low"
+            }
+          ],
+          "routing_decision": "skill_routing",
+          "safety_risk_band": "low",
+          "tool_skill_intents": [],
+          "source_message_id": "a6446d35-c7b0-4415-bb22-4ad3716334a5",
+          "active_skill_state": null,
+          "active_topic_state": null,
+          "intent_classification": "question",
+          "pending_tool_skill_confirmation": null,
+          "operation_confirmation_classification": null
+        },
+        "route_decision": {
+          "reason_code": "product_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 8864,
+        "created_at": "2026-05-06T13:27:48.624108+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress1-r1-t02",
+    "user": "Plutôt trouver l'action. Mon plan contient 'avancer le dossier mutuelle', mais là je ne sais pas si je dois le découper, le déplacer, ou juste m'y mettre.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

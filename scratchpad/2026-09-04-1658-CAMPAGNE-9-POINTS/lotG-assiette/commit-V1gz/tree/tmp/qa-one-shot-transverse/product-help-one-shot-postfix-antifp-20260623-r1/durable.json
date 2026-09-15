@@ -1,0 +1,35 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "J ai cinq minutes, explique-moi rapidement ou retrouver les cartes de defense dans Sophia.",
+      "created_at": "2026-06-22T22:48:36.345101+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-postfix-antifp-20260623-r1-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Tu les retrouves dans Dashboard > Ressources. Si une carte de défense est liée à un item du plan, elle peut aussi apparaître depuis Dashboard > Plan, mais le lieu canonique reste Ressources.",
+      "created_at": "2026-06-22T22:48:42.42653+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-postfix-antifp-20260623-r1-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "f013a802-4575-44f4-83d5-76394c7da042",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-22T22:48:42.424093+00:00"
+  }
+}

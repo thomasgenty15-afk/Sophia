@@ -1,0 +1,1117 @@
+{
+  "request_id": "2a000000-1100-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "2a000000-0000-4000-8000-000000000001",
+  "source": "generate-meal-v1",
+  "exported_at": "2026-08-18T23:28:04.404Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "ec70d7b6-9e21-43c0-b766-14645389aa95",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:06:09.501898+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 14382,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 14382,
+    "user_message_chars": 10383,
+    "user_message_truncated": false,
+    "user_message_written_chars": 10383,
+    "independent_counters": {
+      "system_prompt_chars": 14382,
+      "prompt_chars": 10383
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "1797bb1a-56f3-43ae-8925-a328645938a2",
+    "created_at": "2026-08-18T23:15:27.123673+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-sol",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky spinach egg oats\",\n      \"title\": \"Warm oats, eggs and spinach\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"porridge oats\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 eggs\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"150 ml\",\n          \"amount\": 150,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"half a teaspoon\",\n          \"amount\": 0.5,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Microwave the oats, water, spinach and paprika in a large bowl for 2 minutes. Stir, add the eggs, pierce the yolks and microwave in short bursts until the eggs are set, stirring once.\",\n      \"why\": \"It keeps breakfast small and warm while eggs provide a substantial whole-food anchor.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Bright tuna chickpea stack\",\n      \"title\": \"Tuna, chickpea and tomato sandwich\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned tuna in spring water, drained\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 large slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Roughly crush the chickpeas with the tuna, lemon juice, oil and black pepper. Layer the mixture and sliced tomato between the bread.\",\n      \"why\": \"This large no-cook lunch fits before the added Wednesday cooking session and uses cupboard chickpeas.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Ember chickpea rice\",\n      \"title\": \"Warm smoky chickpea stew and basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Spoon one freshly cooked portion of hot rice into a bowl and add one hot portion of the smoky chickpea stew.\",\n      \"why\": \"The stew gives tonight a warm anchor and brings the requested smoky harissa-style character without a long cooking session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_chickpea_stew\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Tomato paprika egg oats\",\n      \"title\": \"Warm oats, eggs and tomato\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"porridge oats\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 eggs\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"150 ml\",\n          \"amount\": 150,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"half a teaspoon\",\n          \"amount\": 0.5,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Microwave the oats, water, chopped tomato and paprika in a large bowl for 2 minutes. Stir in the eggs, pierce the yolks and microwave in short bursts until set.\",\n      \"why\": \"It is a quick, warm breakfast for a day already crowded by two late meetings.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Cool crunch ember bowl\",\n      \"title\": \"Chickpea stew, rice, cucumber and lemon\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"quarter of a lemon\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Use the rice that was chilled promptly after Wednesday's cooking. Fold one cold portion each of rice and chickpea stew together, then add diced cucumber and lemon juice.\",\n      \"why\": \"This turns Wednesday's batches into a crisp, portable large lunch rather than repeating the dinner plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_chickpea_stew\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky tuna crown\",\n      \"title\": \"Warm tuna, chickpea and spinach pie with tomato\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"quarter of a lemon\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Serve one freshly baked portion of pie while hot. Slice the tomato, squeeze over the lemon and serve it alongside.\",\n      \"why\": \"The hot pie is a warm anchor, and its crisp pastry top supplies the one proper crust requested this week.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_tuna_chickpea_pie\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Green egg oat bowl\",\n      \"title\": \"Warm oats, eggs and peas\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"porridge oats\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 eggs\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"frozen peas\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"150 ml\",\n          \"amount\": 150,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"quarter of a teaspoon\",\n          \"amount\": 0.25,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Microwave the oats, water, peas and paprika in a large bowl for 2 minutes. Stir in the eggs, pierce the yolks and microwave in short bursts until set.\",\n      \"why\": \"It keeps the liked oats in rotation while changing the vegetables and retaining a warm egg anchor.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Crisp pie green plate\",\n      \"title\": \"Warm tuna and chickpea pie with peas\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"frozen peas\",\n          \"quantity\": \"160 g\",\n          \"amount\": 160,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"quarter of a lemon\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat one pie portion in a hot oven until piping hot and crisp. Boil the peas until hot, drain them and finish with lemon juice.\",\n      \"why\": \"Crisp reheated pastry and hot peas make the pie a different plate while preserving a warm anchor on Friday evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_tuna_chickpea_pie\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 20\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_smoky_chickpea_stew\",\n      \"title\": \"Smoky chickpea and pepper stew\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"red pepper\",\n          \"quantity\": \"1 pepper\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1 lemon\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tablespoon\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"2 teaspoons\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"chilli flakes\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Soften the diced onion and pepper in the oil for 6 minutes. Add the paprika, cumin and chilli for 30 seconds, then add the tomatoes and chickpeas. Simmer for 18 minutes and finish with the lemon juice. Serve one portion hot and chill the second promptly in a shallow container.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_basmati_rice\",\n      \"title\": \"Basmati rice\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"130 g\",\n          \"amount\": 130,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"260 ml\",\n          \"amount\": 260,\n          \"unit\": \"ml\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rinse the rice, combine it with the water and a pinch of salt, cover and simmer gently for 12 minutes. Rest off the heat for 5 minutes. Serve half immediately and spread the remainder in a shallow container to cool quickly before refrigerating for Thursday.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_tuna_chickpea_pie\",\n      \"title\": \"Smoky tuna and chickpea pie\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned tuna in spring water, drained\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"240 g\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"dairy-free puff pastry labelled sesame-free\",\n          \"quantity\": \"160 g\",\n          \"amount\": 160,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 teaspoons\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"chilli flakes\",\n          \"quantity\": \"half a teaspoon\",\n          \"amount\": 0.5,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oven to 220°C, or 200°C fan. Soften the chopped onion in 1 teaspoon oil for 5 minutes. Add the spinach to wilt, then stir in the tomatoes, paprika, chilli, chickpeas and tuna. Transfer to a small baking dish, top with the pastry, cut two steam slits and brush with the remaining oil. Bake for 22 minutes until deeply golden. Serve half and refrigerate the other half once cool. Freeze the unused pastry from the packet on Thursday.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 35,\n      \"cook_on\": \"thu\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_smoky_chickpea_stew\",\n        \"prep_basmati_rice\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"Wednesday is the added cooking day because Thursday's usual session cannot feed the earlier meals. Put the rice on first. While it simmers, chop the onion and pepper and start the stew. Rest the rice while the stew finishes, serve tonight's portions, then cool Thursday's rice and stew quickly in separate shallow containers.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_tuna_chickpea_pie\"\n      ],\n      \"total_minutes\": 40,\n      \"run_through\": \"Keep the chaotic late-meeting session to one preparation. Heat the oven first, soften the onion, wilt the spinach and mix the filling. Top it with pastry and bake. While it bakes, clear the pan and slice the dinner tomato. Serve one portion and chill Friday's portion once cool.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"porridge oats\",\n      \"quantity\": \"500 g pack\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"6 eggs\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned tuna in spring water\",\n      \"quantity\": \"3 x 145 g tins\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"wholemeal bread\",\n      \"quantity\": \"1 small loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"dairy-free puff pastry labelled sesame-free\",\n      \"quantity\": \"1 x 320 g pack\",\n      \"aisle\": \"other\"\n    },\n    {\n      \"term\": \"tinned chopped tomatoes\",\n      \"quantity\": \"2 x 400 g tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tomatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red pepper\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"frozen peas\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"frozen\"\n    },\n    {\n      \"term\": \"ground cumin\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chilli flakes\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Smoky spinach egg oats",
+          "title": "Warm oats, eggs and spinach",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "porridge oats",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "eggs",
+              "quantity": "2 eggs",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "spinach",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "150 ml",
+              "amount": 150,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "half a teaspoon",
+              "amount": 0.5,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Microwave the oats, water, spinach and paprika in a large bowl for 2 minutes. Stir, add the eggs, pierce the yolks and microwave in short bursts until the eggs are set, stirring once.",
+          "why": "It keeps breakfast small and warm while eggs provide a substantial whole-food anchor.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 6
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Bright tuna chickpea stack",
+          "title": "Tuna, chickpea and tomato sandwich",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "tinned tuna in spring water, drained",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned chickpeas, drained",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 large slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "tomato",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 teaspoon",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Roughly crush the chickpeas with the tuna, lemon juice, oil and black pepper. Layer the mixture and sliced tomato between the bread.",
+          "why": "This large no-cook lunch fits before the added Wednesday cooking session and uses cupboard chickpeas.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Ember chickpea rice",
+          "title": "Warm smoky chickpea stew and basmati rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Spoon one freshly cooked portion of hot rice into a bowl and add one hot portion of the smoky chickpea stew.",
+          "why": "The stew gives tonight a warm anchor and brings the requested smoky harissa-style character without a long cooking session.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_chickpea_stew",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_basmati_rice",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Tomato paprika egg oats",
+          "title": "Warm oats, eggs and tomato",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "porridge oats",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "eggs",
+              "quantity": "2 eggs",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "tomato",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "150 ml",
+              "amount": 150,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "half a teaspoon",
+              "amount": 0.5,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Microwave the oats, water, chopped tomato and paprika in a large bowl for 2 minutes. Stir in the eggs, pierce the yolks and microwave in short bursts until set.",
+          "why": "It is a quick, warm breakfast for a day already crowded by two late meetings.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 6
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Cool crunch ember bowl",
+          "title": "Chickpea stew, rice, cucumber and lemon",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "cucumber",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "quarter of a lemon",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Use the rice that was chilled promptly after Wednesday's cooking. Fold one cold portion each of rice and chickpea stew together, then add diced cucumber and lemon juice.",
+          "why": "This turns Wednesday's batches into a crisp, portable large lunch rather than repeating the dinner plate.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_chickpea_stew",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_basmati_rice",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Smoky tuna crown",
+          "title": "Warm tuna, chickpea and spinach pie with tomato",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "tomato",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "quarter of a lemon",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Serve one freshly baked portion of pie while hot. Slice the tomato, squeeze over the lemon and serve it alongside.",
+          "why": "The hot pie is a warm anchor, and its crisp pastry top supplies the one proper crust requested this week.",
+          "uses": [
+            {
+              "preparation_id": "prep_tuna_chickpea_pie",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Green egg oat bowl",
+          "title": "Warm oats, eggs and peas",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "porridge oats",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "eggs",
+              "quantity": "2 eggs",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "frozen peas",
+              "quantity": "60 g",
+              "amount": 60,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "150 ml",
+              "amount": 150,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "quarter of a teaspoon",
+              "amount": 0.25,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Microwave the oats, water, peas and paprika in a large bowl for 2 minutes. Stir in the eggs, pierce the yolks and microwave in short bursts until set.",
+          "why": "It keeps the liked oats in rotation while changing the vegetables and retaining a warm egg anchor.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 6
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Crisp pie green plate",
+          "title": "Warm tuna and chickpea pie with peas",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "frozen peas",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "quarter of a lemon",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat one pie portion in a hot oven until piping hot and crisp. Boil the peas until hot, drain them and finish with lemon juice.",
+          "why": "Crisp reheated pastry and hot peas make the pie a different plate while preserving a warm anchor on Friday evening.",
+          "uses": [
+            {
+              "preparation_id": "prep_tuna_chickpea_pie",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 20
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_smoky_chickpea_stew",
+          "title": "Smoky chickpea and pepper stew",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "tinned chickpeas, drained",
+              "quantity": "480 g",
+              "amount": 480,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "red pepper",
+              "quantity": "1 pepper",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "1 lemon",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tablespoon",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "2 teaspoons",
+              "amount": 2,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "ground cumin",
+              "quantity": "1 teaspoon",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "chilli flakes",
+              "quantity": "1 teaspoon",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Soften the diced onion and pepper in the oil for 6 minutes. Add the paprika, cumin and chilli for 30 seconds, then add the tomatoes and chickpeas. Simmer for 18 minutes and finish with the lemon juice. Serve one portion hot and chill the second promptly in a shallow container.",
+          "active_minutes": 15,
+          "total_minutes": 30,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_basmati_rice",
+          "title": "Basmati rice",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "130 g",
+              "amount": 130,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "260 ml",
+              "amount": 260,
+              "unit": "ml",
+              "state": null
+            }
+          ],
+          "method": "Rinse the rice, combine it with the water and a pinch of salt, cover and simmer gently for 12 minutes. Rest off the heat for 5 minutes. Serve half immediately and spread the remainder in a shallow container to cool quickly before refrigerating for Thursday.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_tuna_chickpea_pie",
+          "title": "Smoky tuna and chickpea pie",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "tinned tuna in spring water, drained",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned chickpeas, drained",
+              "quantity": "240 g",
+              "amount": 240,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned chopped tomatoes",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "spinach",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "dairy-free puff pastry labelled sesame-free",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 teaspoons",
+              "amount": 2,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 teaspoon",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "chilli flakes",
+              "quantity": "half a teaspoon",
+              "amount": 0.5,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Heat the oven to 220°C, or 200°C fan. Soften the chopped onion in 1 teaspoon oil for 5 minutes. Add the spinach to wilt, then stir in the tomatoes, paprika, chilli, chickpeas and tuna. Transfer to a small baking dish, top with the pastry, cut two steam slits and brush with the remaining oil. Bake for 22 minutes until deeply golden. Serve half and refrigerate the other half once cool. Freeze the unused pastry from the packet on Thursday.",
+          "active_minutes": 15,
+          "total_minutes": 35,
+          "cook_on": "thu"
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_smoky_chickpea_stew",
+            "prep_basmati_rice"
+          ],
+          "total_minutes": 35,
+          "run_through": "Wednesday is the added cooking day because Thursday's usual session cannot feed the earlier meals. Put the rice on first. While it simmers, chop the onion and pepper and start the stew. Rest the rice while the stew finishes, serve tonight's portions, then cool Thursday's rice and stew quickly in separate shallow containers."
+        },
+        {
+          "day": "thu",
+          "preparation_ids": [
+            "prep_tuna_chickpea_pie"
+          ],
+          "total_minutes": 40,
+          "run_through": "Keep the chaotic late-meeting session to one preparation. Heat the oven first, soften the onion, wilt the spinach and mix the filling. Top it with pastry and bake. While it bakes, clear the pan and slice the dinner tomato. Serve one portion and chill Friday's portion once cool."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "porridge oats",
+          "quantity": "500 g pack",
+          "aisle": "grains"
+        },
+        {
+          "term": "eggs",
+          "quantity": "6 eggs",
+          "aisle": "protein"
+        },
+        {
+          "term": "tinned tuna in spring water",
+          "quantity": "3 x 145 g tins",
+          "aisle": "protein"
+        },
+        {
+          "term": "wholemeal bread",
+          "quantity": "1 small loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "dairy-free puff pastry labelled sesame-free",
+          "quantity": "1 x 320 g pack",
+          "aisle": "other"
+        },
+        {
+          "term": "tinned chopped tomatoes",
+          "quantity": "2 x 400 g tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "spinach",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "tomatoes",
+          "quantity": "400 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "red pepper",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "onions",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "cucumber",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemons",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "frozen peas",
+          "quantity": "500 g",
+          "aisle": "frozen"
+        },
+        {
+          "term": "ground cumin",
+          "quantity": "1 small jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chilli flakes",
+          "quantity": "1 small jar",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_0ed9071fed4e7b17006a84e6e6a74c87d28ae778199ae24c01",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 6106,
+        "total_tokens": 15070,
+        "output_tokens": 8964,
+        "input_tokens_details": {
+          "cached_tokens": 6103,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 4285
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_0ed9071fed4e7b17006a84e6e73eac87d29f84416882828321",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeO1O6JCd-uh40BX91bzKGDshpSZ69n6ofwzLJujGicwJfwYx0VNK9l8EslpKVsholjD5BZcsCnUuQGDpyIWEN0s8IlFjI85qOWyaks4Fs6yNXajsC99FhMwPohnB8tAC6AL_C0EjGAleGXkpYTgpt2lF4QuNqkIaUv1DZA2oLkITTbGM9ByccCTI4IuMW5VMqqCThJ97CaQIp_E5UmSogfK65IrH96WFVlMtz3349zDXQR6-dIH3NpCm6QnYCT0M_2CRDADsTZtvAubglHLN5kUxGNi9oXdk8VNF_a8W2eJr7B9_EE_pI_mhK8ljdpbPq5R0omr7Y_d9kdiwidgssE1MqXEWr5tVlqxuB9F0VVPtjyjp7-FpM9_Dml-TCIMDu46xfO2Fk0UiQ1UdXcjqw2S1uZzfNTklZcsK1_Y2TG8mDXNQeL3webW7x9rg9QOozbNPOtWbyKKKQ-lb-JMzH6nGzU3slTwOWICO5_VLBLFJkr0s-KWoIr5inOo6VZIPg5FnSCCvlZSP2XIF4EZhKUfQ9WNklb1NXQz76IuiASRLLl50KH6i8qs3vxrT0hQiPcuLKCaJPYY1u211XNRRlgGbzdNGyvgebeodP3ICk7-0OOAopUfFlCsLwsONfUFiT7I2rGKXkiG41LoxiS-PiYdhpDv680L7Cyg2HZ4QIwrZCrq6Vgjmp0Xpej-ka3NUhZX20uyUjKXpzsNpuhKfzmuzqW7hNqEawd6s_jHX1eGC5zwAnhHH5yo_uoMcBScgZx_LIgNmFnHhbksbGyD--doV0yNtGdZfUhSA74iyHW7azQIaO4nPMp4D0Vqk7Xmqc1w8mKdKB0HxpnjaxOZIZdzkXL4tCOWmdpS6X_dFz4mTm7dfbmBfVKhmciuW5GUMfxlh5F12dDMCABvDQv12BeLlPBCVwoDx6iI0VjB_GWCfOj_rWgaVDtpfTHsafvFwINYDVU2jcnh0BUX1UVTp04gJ1-gPWYRGLwP1mTKAkiSuzvqz1DQ2U4DbWn_4Oz9rSVOx0HAw6_v22wIP1hvAX5BDLD8h1mmENERPMqyJFWIGpeKcux7uFq3zIatr8AV9KtjM9bUKT9KjdO0dyEs41_FAF6-l-4LdYfTCIwkK9o9F_T_jV4-vRJh0PSUeqoJyQVmqTWcybRERlVYsCW5iWsXw0R6JOyTI4nL_GtkHQ6msTW5SgpVFjM8bHlkPl3JUQQcbk-vpM9G28IHVW3lJfhr74w8-W0Xv_tLHtmE_Rvo1tPVE7sJbW2G3brQGWHDyuartda6v6x5WG9X2FvmwySyhdoyWA7pCXzLrb32-XOmBbkWu_DkZB5DF7EqyvsSkEhMLIAkdGO3wB1vNyavSnreFEs6trIO5aD6ul_z2SgqOg4rPw3QoAwZtLBybgvkdCpPjDF4J4E2M9YV1dCuwSHPSz9-t1ZvVz6eo7EpM0ARq2QOV94Zbf6WhUuPY_4yTtdpMa13neAaGRgCE1bh0iab5PUIK19Y3dOc75zk-HixZCl0Lan_cMnZ0plCaQecRlGgdJxm6hkWZekVFY8Ob7bihoc00Rg3LRF8v_G3BujFSAPlxHQC_glRRG-T88O0CRzUTwNC5FZPbHMxlE0TBsak22CS-VmUVZ0X3pG5FBJl22r4x-L0K-I8Wfbdi5itd2mWbyiGS_0CWkYdauHMfFV7B3QBT0BX9pXOsDzzGzZIMbdbognDGKUCreOZIwrY_ytK7D_aucqeYfe0_viljL9xFi6CKwDxZbJI2zWQIM91Rof4w_VmdbaRwOVvavg5_JAu2RPPqZQtqiJP_Ph1DAjGfdT7sycsyfa1QSZSQmPgowysS7cUaSthedyJtVyKKmAfeQjEDBQriiUOmpt_kkqFeCmBR5YNUqYXaFGz8XE8e0bmjd6qYCLUJzlRhVJOhjctgNfQsjJiQBsaEINgtXTAcjPa2KymXy5NT9S46yCoGRCoW2_BPgi0Q5VRG200yBAkPuhoXro_YpNu70Ooa_k3htb0ajp02BO8SEeZKBLlt1khjdVCbD1XDS8ksrztA5t9qUpn5SHZ78Bdm2E3oAIScq5CGrU3OXLTQY5rvb2oM8z0ZBp_7UF7yZ1BmIlYGE341FPiwaeowbKer5xICKc428uIW_WS8qhBAW_eG8dkpXT6Oucs9yXnBMPMTWx1YPED0X2Ekja6zUyg6F3mwBuvieCnJYxHDV8Du3fHi60iJ83o-XsqveB--JQEZFvZ_UDhJle4c7HuJFhm3Z36KmNaLsi3m5DaNySrh3wB3tu08G2o7R5fJjhKqVnz5_MRvQaz1zavKrwTHjKXaUVy7gU1fxCSSOIaVshN0py_QpQQzMQhS3xvD2y-xEslbB9d58TG6GKcpVzcq3eYGJMsiGLGc7gk9dW2EZH89l3nYl4MKmGJdzRcUa2LPH48ECQSWUaudeLU0wwaDk92Nh4RefZWRoX_KfROAgxKBFEIu37EFM-A4crWL_lDBi7KyNv8Cqbaw0JU2e0rdPS2UpjfTjOdPrcqddyZALwtXVPG82rBywqbZfW5X5GNoaMN4WgJUbTrY0OvfCaR4r4vqOe1pU1fslkWJYAQR9WSBGkdhJmTkIce4DZbV7CIenkVVHpFI2BmwA8WRMnTgAGFZgWMZG3q8Tc-uPQYvVcHxSpe8qiNF4QMp6D2J8LoTzXSAdULsNMJStA5NeJQ4HSfYPqeYlUD6VORVqBFxQ1qqtBhQz3yxOBY2Tjs5ksZbQaZ6b_3AvHtEqxrqQhbjNpryI_wy23CXLIFChpmbrn_UiG-yHLf2_t9ifo9FXSdy8rkTtiK5671sac-qgiSeZws_fE0N1J-5IOZPAHgpLRM0VeN5XHaTEFGiM8m_gpdcWXt5fjRnktgQD-5jCz0_OknGueZWJmqDCG48QbuFbvtqfcASzW7yA8p0L_uo4s6W957jZstul2DKmyQQkElByi2OT0aJnynAfKLxeHjtmXNiy2FUFQlg9HMQDbJw3G3-0ogGDiq2_HnHJP6WXr1QzsQCWmEnZyBVt4xNLV8bNXDoSOl9j_cee8hOUNMBdN6J-IzokSf4KNwNVW5Eorzg3t_Vg7UH64liiFb9AJapRucLD3ZT3BTRlA9QdGI5SJkg47j7x3EkYslLcIfVE7HwNtfwlQRouwOcbTUH9QM-sZO03g7dUwZzurCZzzdythe3hzUcoASJygYqzAbmkAwb-vW9e5ienXDi8FR268IYvefFbOtkpv-U7puG9FjVNj4JZ8Z8EejTUlQKd_6T7e0RVoO4QNwBnIV_GMbZW1sVesDx4fGQHqYqKmETP7v2O0OKQ_5lXR-LPXGj4v9rawmArUIEq48qMMeRvtivQw5AcOFbICavpsKzaxVgjEdj0ohNgFwC2oxTfsHD4vDMkHNuSQ0tGc7QNa1tbXRY2mKqI_uhjAtxr7jKJt1XUi5pnv9ArXapPMVOp9lFRBplcqq-JbsUFyniVpyuhZZYVjsmnNAt5Ms_S8zCu1lQN8f1t598q3YHKB3mESt1IhRYFZ_ZjP0MLqcVEfup7a-Y_eBUvByWIa2INBVC5UeOyE0Vt1_a09bocW-akzRhys4rmAmMa6i6IlgkM8DwlN80sZ2QEjCePn1yt_5r_-Q66KxMUoLUEL_zTCIbBUz3TZjFsFyT9DmLgmjnsu7hiklKM6KyHOm-Z9c-4gU-pQivWhrk2oYyJ5VicUNiZlJjQS73E4Q_qCdRPzp4JL-czubpz3fOQaJ1WAvDdfrAH5PKlElzxOg5k-lfBl6UFZAynki-gMiBIc8ZyhNYKstAmIIiitoggxjHRYEikx0CGBCoa1Oh7bwM52ZPC_K2Vv-wIZMNs1xOQyVRC2Qz5LS2VUJALlCMjjPS_L9AdjPfNgwZKfU17tmIkGPOp2FH0uwGiYHX9dq3xVDit7ECONUcww7iWjCCUT82M-EsOc8-n9_DcRLyUMyUf36KKSLIZH179Mu6goeWgPiH8HRQBafZ7LTt-h4yp8d9cjQuYES46mRk94egr2m_PpqcEoXF3ZL4gpzTZQRKJ7dtYwMxx66XJOtcVyDmwEPbpePPmIa4di7X7hkcOtia1m5i3XmVXPLy-x2ADPfVYq2sunzyrSkCA46mbul8WIjcPqiUUzlEAu7w2KKkY7GohkRbnyOfqaLu4z00fDshs7lUrlu_kf11TOOMGDQJ6pCV5iaBO5RD3fQavVn33SgwMl8AXsdwgMjMTsLGnZ9nyr5zEToPkbc7aEKwQLjfcWkscAdZF9jR-UfA8mBQz63t7UvHQU4SdVl0mT9Tbo83FyyXT953zY01BIv3FTWb23mz7fQqdMurL3MiR77TMezI-njDID4xW5616NyRNjDfvkkxU7o0_dtoQ5dePlCSRjjib5x-W3YY4SCZOryxrCeGsnh8PRn6Orj1lqmPgjFmNuBjqw-1sHQ3dL7ZSheLqJLB-4iLVacN8oDhiZXBkhosyttad_nIdXdj65Zd4pKx_vlW7kmA_jXSPLroT-0SRWDFJ3iidqjbk="
+        },
+        {
+          "id": "rs_0ed9071fed4e7b17006a84e6f2553887d2b0334ccff8b7493a",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeOVzYIpwn6DfGVUB_Y6WalATXdZFdW0Ue3_I0JVWI7GbhXl2vpk4C6UTtebkssYcNV2NqsWZnfIPX-LmtrMvSvFzwFyAcL6_0iBZJN9RXEr9rfe1PJD6jMShRFTfu2ZWdR8PDwBi27px1D-I2YeyzZdVw7eBpgFO3662-erNtwg2RHbbhf6W9CNHFe-izuf_XKhHs1Xuj7TNGfveBef166Q2xrC4_hjOUL01rwFkePpHT2qQlYL1V3cGmWk2haUh6q1jWJNCMd_vuIIDmGhv6cbQ0an6Nh82l9Cb7tWuxlqfdsWu9gCvNiVgFxubACxHqewg64nZg9HFwK8u7PAnwiGf_9LsilQO_mmR1ITQpq0GQgfjsM-S-WbbJhequd4Wz5q5NCRgZgq7eqNrQv-ZluuyKNeW-hZILiM7vw4Gknbz-A0OQ5DzANw_bwfMGgZyZpVdNzAkU4CC7vQKsMNBv34AU2-yK6pK0oToDGZNjIuyEAblJlRAYEHvbNxCpsJCQINWtKL-PsDUOqHHh7c-mActE34n1i_if6xGut94AoMCrn0jLDLFqKUIkV91i1Zxvx5g4eAEYJfvm__489nrzHUryx1zWFmSaphH_ROg_0IjOJcMs6G4p4_uCnIQlncxS0kV1KMpvTjatNXebfiYQ6fY-HhA_RWjWj3PyL8GM_uPHw_JmIDtLLzHH_nu7baumtFS6oFI0obmYexHb65YkW8p9r73b8N1nR5BlKQ0gOZhdWsASDhQaZP6cuEtpvlIyq78MQst9vCaRX1YvJxBCUnsMMDZApoMj6mJUecd_ILClpCOvHPdqPuuBxyxiu84OzBrjabuQF4DCF-tMQO5jmVEYNrgs_x3ev_1Hu88Z0T2mIqpK4eGZvOh-CKODVm2RJmrrYdjW3JNiwUs7mwJrYQw_Lh7RdG3uA6Vom65_kG7fwIDp9ZYPjsb6XhNvNGmblvjEM31uDC6nRwcVMBIigKhygtG29k-ElgQdmziSCUYKjHq0u5tD6aIWhJVxa2ths_O5NlUU5TBajv-SEQuVMIHGbCLM3nQVvcGtCE54sWBcZPUVjGbf-vvpnJtFFrhPbxSda4wrpZZpbmWxDfhlTdWJM2Q_x7ZAHoDIk16IpoD6y8CnmdR5MDF9ybVcIBG-fBcZNx8V1-vuFPX4Qgo-gxMxbbZTJ9NUc6Fd2srr399ezZS_N1Gh3zM1mHQeUUlPMObipb1BKKAMZp0giYV3b3hI03z0Ywkxwkomjl1fuLosifkJ_HaG3WkuKZyJ1WNUaWbI8uA89fgAZXFn0iJtTUphtDnCjCBM5LHzwmD9tZ4Ylf0mIv99hqxN_vrJxIocvbIASQmQlazFHnXMVermzxixSeclNEiX62HGsMLF0MWMpUrBxrJdCWx0inkgOscHhZKs_b-BARAcFaWR4hV6ATNBq5cpBPNVKRhVCzUywbZj2Puee8Ito333Y4s42w4XzGIbgQ1rDdLI343J1s-8gt1eN4XNcKMH2QYv7p0FvIucBkylndruRNpoMkCOMlwZZC0uCR2qKUiLVVBq9KCNeIIw_gEa6g9M6w-ojGa55zSqiu9jAIhUUm9wCxAA20CD9vITANUMwVjotZ-o7mWu8TpIEaydn_N7pEckJQsNi3U_Gk3Yent-Z4ZG1SPH8orOPKIf_TSlScBt6vAkR4sW6ylT61TvEzBymHxJdKYx1syBLyllV-1JmSR7RfkiBIdC0zVgV1LF8EaRuMPLCVvWcqsgqn3sm3J23fyszM7LbJm7beiPd1gcvmDbWrJM_ZjNAR1hUxLu50rsOdtXshELiGVFIZDk6F1LNjSTghYiYyeI-tyka0Kjs6KwjGeV9U7kttaa9Uva_gHH0-hQ49Y2KLvJCv9iHX6h7LScqxioT0HxArC1z3qYXA-n473cHwEZvVqUYCgYCTdX_iQe6LodavAMtIwi5YLqmnPXvFythXQuMGPIxABW2PE1N3uAliXn1yh8_YnjX2r1q63U8XcsS7kQYfoznpZs4kgHS3jdGKk3wkGbL9TjdmtKZ5qlNWyYDOa1NNrcraxdCNrFb2pi4qg5-UIqK6eT_GWr58-8nFBCXGXwWpbPpJOGcL1OUrs2WLxwQKaIowKIW1uFlO7mw-pa6kj0C7orGLUXIbV2mJmCMXCjQziXSrkjmONBql8G0acjc9mEK7-IzkmTfWwrFHj6JXRUH3en5U6uj3FIOVXHRXfNAeUfCLfg8gJ5KqiT22pZHiSc39WqOESbl0hr0S3IHBmLPN6KkgncTbD37JWLecfyoxX9TWyj3P-adljYNNevZzjwZ-y8tGWiq5f-R8vBifHd-rcPYY-JkuQM5Rz0P0o3HPqVKviEI1dc5FA6nUrcnZzb6jmxF30EHoCF-PGXMIKSX2q_2CAGgR-18Mq1pvOci40-7ev6T04ONMq3-PvMCmqjDwEW2UsKReL4GD8bdcYDvKsgOLD4OW1nn75jvIhCXBWAaGNQk3V2RenahxauC3EOiyqwOSZN57TxFhJXztjHfA4vC5mKIpgxBkxqKt2zm05C1pzP8y6HXZtZIN5EhKivE3axZE9JP15AA2_rkPHioQmE3Twwl8FtmWdZS2vDBCDkZoAawZ9ddeSnBla5ZW29poZWjMdJn4sHpkP5QVh0_87u7nRmDApkC3Er6lD1cxLbOC0Fw7yYUXFhZQ4Vjp_zrhvGddoN09-kFL2jC378Vt-PPsSUwZQJJ9bWh006Ty22muF8i7vjL9_U7fWJY6ru3VJuVNmCh3dJ3z1-VDqsfzmZCx-kbaNAU0LdI5VIDLJ0M9weaGuSGLrko-TW7_UyggvvNh4nXLpbuNw1efmMK9Yev0oF7Ng432h52FgjdVQ6wSwwntD7BMYb1Cy_icIQjMFwN4J6rlLSCPhc2mnpLfVqJn1sZJjcqEiKM_cf1Aaysvq9Zd7e2eHy7Pjw2aPKITTpiOCSGx6tD5eE-qm6Hoft9KQiDuROmtGLY0Fskmje1UZ4ZpuXzQbtnfsy66qDJ-BIXZ6cmc3HetQnPyJgFy28ddz7ZaqKM44bOv0trU5rKtujPp5Fbg4OtZdWr-llBDVOapRUZuOp573wI7G1e9bdW36BWx2onGKQZNq4Xrvppw0dk7NQXoS3OAmn2RUwMt4Dflq1qX28LMIDwZ_dlIOK-2nGfPcoqzmLgg9PIyrshSHzcnAUVG_eSUoG1sbtrA9AqU9wodjisPEceloijOBh7-D4CnMl7nnvd9H7OKCm-HEow47ZiVuL0kdxbvCFH-2mAC6cdPppKwPUv3xrap8lL1vAIqY7B2KM5rdShQw69C860zjkxi7pHZgy8v-3WTfV3TYMEOmJ4-t66x2tYAQqnA73kbKCzgq5i4h_LI6404H3-OwmCxhV2eWpOzTfdrdfzSa56gjL1clL330XlNFo7ZvMQUU6kiwiLFLNvfOc3q7yaQK19AifOEIPYzs9chPl94VelDwU0sSva7lJZJMn5gvtBPGC9PmhSOmQNfft35aNB_dmqZRnwa7M-YGv3ByhEGOTsvK83721_RCouXshqZXzdopC7kQmNlRM9OTAUjHZP0Ktk4a--Zij1j3U5V2GvjRKcz3LORkYqn9F7Mnase4QHUS5s5pupSON40CiqMwZacI6vXmZaFD8YsL36s2osFfFk2oRDVRmeYErtEe2SOjEa6COOqnaApr-myIHZfzIATOfmR5L00z3_yQGHjJSecTAWJIDSbv3O7chF77G36vIcLSUYq_gI2SEHjTQv7sw22-z7zZ0cdP8fXiRKsVdqt8tnPgHYLNiOh8dLKa0ye7P3OOLM8tbzT6xJuig8ZyRTZMLXA4R4rLQtvNIrDlCdhkbO5YEZRFVdyo3vrpInZHoQRYP3rIy4cz8nhiidZX7sw0Zik-f4O0BFf5qRNF4_t_-1wdoecdix8e1Oz8Ckz8-TbPSo8oiv_z9eUXboWQGT9ncGaAU6xMGbs20IDi4zS8OsryBPiNjeVlndgbasFhczYPoh9kcgHrc2oSjNPrC30LF6qgd4e8p8EMHHnoaYgSmIfnIcxMLikmyDY2qhHF9rZKyTm-vjCP7PAFnkDuItVfL7gA0_4oeShcWAv-YxEmvQZDkfccuIhuUK7T2LCN7N5X47zv0Tqvi-70m4eBW9HgmgkhTRlJ9rTqVxL4K77lefJlQ_xsG6zcWqHrJnWD32CGwLb-tA3KxZSr3MSQ_l4BhbxI4RHyrIR3nNZ4rqwPvw4E1p0fGteWArM0EYf6mFJs46T-3-T0aYQW50fYa3zUPW87vf9wwh-kTmokkg9LtzChotCCFsvaffQwEO0meNe35im7sNlU3FzRXPy-a9sTMb6jBYBVfcYV6Y-Hvy4KNtUutrtq0TrFaQy7hlbQfVoATkDLRuu4Y2HcQduUlju3DUzyMn"
+        },
+        {
+          "id": "rs_0ed9071fed4e7b17006a84e6ffd9a487d28d7c2baf61406fb5",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeOiYto4lpReWQohSriBCy7NYVuObGygNmt3Qj1ItWdyeMB8pBRXalgj0RCa6xK-ghmTV7kgzK1mol3dV8stadI4F2liat8rSJJPRvdwSOKpHcLbjUl_36sNu-Cl1bPBPLBvlxXDonbH7wRheu52SIORRaCO0qwZQtyM-G6V-N6lDZ5rAH9JZyi52nnJpLF8q4jlNdCfqatE0ylC9omXec8dOp38IYoEV3mQeQD6GhjdboDcvnvQ6gCPWaKC4yT5rZCtLi7BIDs5HoZQbYJpHOqBLBSAAXJHFeNY0SMHIvkhoO0Go-lWN_-45stCkE7zANWu7u7sREdzH5KbtWnqoik5YeNeFMbRBk9TwsyDVvSkMGTv6dh5haF9pcsU7U4QbK5svs4Sgs-GhcxIIjV1KamRU2xX2Tf6sAJR5EZldYFpRxHRbcUQiHmYtdcU6K-0b1_fzVcLDlxVHBBNI_ZKbKWQ8k5Ob9msSBxasTz-REzsoAPbIy37EDwoaePwfXEVSLh0A5sHo3Gcjnz1l3TyST572-7fhsfcs66SLzM8oE_yL71ULq_Yb3tjigjKxz33a9O0o3oQou-zDm_K-N-l2ehhTOwmIR_2mIw8OPKBMqPQItyCMQUS07dIOwM7rKrI9QRIQq8f9iWJJrNOYfhd4J5W9iHTUb1SlZJaiZ3M3MftRb7K4dchWDcZg_zy4nSFUUCw2IoJqZhA6bB2Dwp6A6wGRo4-gcecbEGxjin8wm5PhWOFsLvjLOqcBSR680IaWvG3o7c6EXUjNxzK1t5XPPaIJMYOcV8inbkz9qg1h2pFYSbHnn_0WqvJKgnj1BbMYit6eSguLQdnIaf5i-NdQdzvxD4NHetoana3inywpsr-yXntc03-hFN6OEDEzJB9zpUKXHTXS6iOiSdD5LdwRuZ2TVF36pLhjvu_4AeLUJYN58jLGEoc9wJ6OEHnw6k4TGltmWw59c0pCK8J8WrT8Ouugung3imbPcWV-auwDMTycQQi9YQPwAqgkrlWt4PdnKHDb_NCrUpsjmurEIdZ359N_2SGBeQ-Fi0DPzc2HIitZdN5xaD6ms_VGiEhCI84RfWigJ0d9eBJojpnIX3gIqCZ8aeh7IVQJ0MvqtVjCl7zwasomTRgVpspNSu0r_eLqFXURonBNAMR9Wegz18EiBJwU4t9kgBkPssYvb4JpUArWYAVrs9Kr4HTczZtr-s-5bu_RDjhQwMVcjFMqudZ2wONRoA4IKmeH5SUODuCeY8N5uBkkBUMFDksSm4x8uMwd9meDsSILOppooVhzQMwW3NkaR_m5hzY6eg78QeKkMAWkaXi0EB2phR_JeSVNHoaTSk-URJnSLQ0PbaYxWE7cFicogP3wik2-blH3JsIY1TQHiuD6jkoXhZDpyuXmJ1rwBBSzXNPmsmW85gUy0KKUKVFxUbvjdnhDIr31hl7_kQVVBnzklh92333T82OOJaB29zJQlawtb07-ZdHUQvW_3Mgv9WPdCTm0yJC9eKJGYsfNfzeV8IBWZHCpW3rDHAuV5__esxkJ1auMcWpC8_KZiej6gK55tE1QznRbrtd6cz181zH1T9_13YxMN5IbgdirtZsC30aFI_6W_qgGSPWFGyS_hH4kGRk0U68kLZyZOxUcQc6Dz8v49LF961v_Jz0-Am6oNAh-60-chrzL5tyv9BI8HHYLaXLyApAzoADPIos274X8sMp6vcJKL5w7wmSjsP9vLp7gU-adH7o_H0fYAYEKVw4BSvIvUwwl2JH0ce3_0KQBERAle-hsmwH8RxEviIlKv3i_kiODghlNADg-r7bz70mt7hu3uNDRGV_DsMcjtMe21Vjzd0dGyYyrQ_jBCbd_OvU1Qxxt09jug3Fibpte60VVWxd9SiirH6JJeHRnP8-GSdkd4e_qWLMuq4GhyoyJVKyfaPBdYg_0ep1cKhOf_GTknpJ4X2wr1IR-5fs2gSd0RSMGcUAku6wc37afcjCm1wAar5iN3lL5xKHJY4rChX-tRpUp29qHGRD4ldtWi_g1YSQSITiGl7qoa_6OZjsnu_YFBi2YGtqJmYALaxBt2z7mpoc7E-Xo4kGgVekU7zuESn501S4zDaZp3ovouz2fzP-QQLLfYMN_8RUUJucz-GEZe4GUIJ9sCDDKnlNLD7MWBdsDQpdcnb0xj532nibQaLciuOz7rVvjFnqAzI142R8CBIRjmklZFUhqLS_OW4nmslInmD8AW0QZ7pRxWRt1XoUwEaE71XUdTfgpHHunCw1ZcXj-nIS9t665GdyQVPFNxJqzCc0Hno7dBCBftkYnITzr-Fm8sSKNb5R-kUDxOm09ihzj1WLxO96rO9HZ_oMLiGl73GzvCQOd0xtgt6xoUIfOtBsbyUB5em756IiStE9MkWH02r0l6h_0T5yQ1Pn6IE09ydfUFeu2VlQ-mQ5zS9jmbXG_rVzZyCEXt1X0V_S7HC1gVyInP05lDoJ_elDaKD7LnIEQsGvfQ_gi7unOGaJlcwfnX0Ga9QyazefH3MaDX7ruW3nuuHf1IzEQgqwn_g-Z4e4i5maTmbOYa9bkJs9Ja3LBLGN-KhxVA3dF1si3qRiSZXKwYT2ixLhsTAvV1_npmH6VYbkIpEfAkc4SUTk-DA69dC7ctuV7Yi79y4ISgcTgG_yqMnYdyT9bNQSourAuhVtZ01AljztiXxw0VI2gfc4p4T8wGPCiStQEr6x3Pfp3e-FElJb4fjRq6-gEjzfQcnGcEiId_sTJtWWj97-6kHku9yNrEspqDXsxCiDQ5aCiRttppWr10kkDnRs2JLrs8Q8sYDdMdWXoIaAJSNa78PLFwOw1IGywthpAo4-bClPVIpLl_3QQKYDncK0uKabiC2txrYabBYNQ35u-r3EQu2PqmyFYisnTxZMa4YH9pcWHMcKj8V5o7SkIdcUYknxVF5acTfIPPT8ljQPlo5zI-UR7Gnesu-IHlJomNeUGTk0kWr5dhBAM5D6IXacVwx6AWkHDmvGEt_c8doT4bC6JF4lCKEJu-_bqxG1bN18qo3NOYTKRPS819ZMmzPx9nxCA6Lz2cgJA6cZxxkgUd9N5BT9fNfKgZZKw_zd3riXBn_mOVCOdcTdV5kveA6DLlhElMh8azJ3NRiG-cR5Xp3BEoKFD8M61HVfApIsT5Frq4UTingiGvNiQr-22gMd2C0CjCxOYus8ImqOrIiybc0DOMA6rj4B8f2UJFDlesFcY8mK0fiwE04hNKdmNF6frElI0SecWax_KxfeTFbBLFPkdSHdLs0YdQzXFg8OpF210o5ECbyVLibVC_Ff-uD3KYioTI3aTTJ7gTO4wIBJXpjVKZHyymknKd4xGC2H8FAZSdoCMh-9cEMH_ZFxPhM0kP-fiUlnmOPwstRdjOlnxA_RlbV_dpZHS3B3oCVvpJ-T8iMulI3Vb5Hm1IhKHJWLvNx37wslLV4KNRcSHbqOzDcu-YxVeIF0CUoJHRvKZWT_JkoJSgsvCjQokuHUu2o6muFTu1UG6NMUSRTJMStfa7uIQ7SXSYUWYETWr_ILjttLPyMmCMyggCgIoyVEPSRdgYGG0WlOqYVJcfJl7e3a1FpdEIGeVbCPAYubayaojNgMeHqkgiZZyjK48MB4_hoxXgz5al2Sp0QoBJpFcXev3htTAUrsSNSjM5OstVysVvZYXtfX-IUFDPqOZuTS65DaPD90y1pfRL_39y6HQte9oEdcugzCppRRuTBrhx2LOdwuzAWJddOAxitV3vB7Zxj7wkRVLok6puwXmQzYpBArwvksMcQva-lZ0dRD1asjleG0-ofz8jlK3Alr4ER2AjcxKUUGBI4CG2sX5GyQk9qUcQ5b91xxl4v296U4UKOvFghD_ZUUNnDsVJZuMgUoyf26DjDMf5RzmcZdJrN1IQ8-jO7DxIQ7cGuc_qm2hsyEA40zsbTicD-1mgYQlyZ7nFj9lPh-efL7jPft7wgJX34ESXZRtBG-3vK3wupLpI1p9uYtVYlEqUMiAKENB0qx8EAI9t-Z1g_IwwHjZnfbhtjuVNS9iTR5Jtnp8ZfABfCkNU0NRUkgn8KkRFgYKoGVHw="
+        },
+        {
+          "id": "rs_0ed9071fed4e7b17006a84e70e9dec87d28b3aeef3dd53e6ab",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeOkVrifAvfWm6gmRQtuf38dt01fCuFch-zYAc5MADv3RFPnLiKckPLNntOU72Dehr24g19C8oC6muCr07d6vCzOgsW1uNWNcKtcKOJZhJYM2Hssk3HJImAdZC8zg0NTKDySIbuZ1RlA6z1Sdbt5ojUGErOctR-v3Jt0UxbD1xA2XFJQzz8yUK46omWY9-xCKfTkFCtNBemPcHnCLqOMhiHVV_D-30UXMgyF6zbJ0y_hVBBcvpOj1ImiknwcppKgxD4U2kvGGzZYwHyoNkl1XvdMbxhDBt2W7Usxozi98BR6fxlSeiUvNEOKDv5OcMbUZb0ivREoFHt4fE-AKun8qU30yyFGpF9KbSpXwo47njSA4HxpsL2dRUXhahr-ajWmOYUXrfPl2rEUuyXbW003_v6yzlOLToMJRceQ_EAbmAUvGsQNJoHS6ruBAvQazQiecdE0djtvuyzOapAHLGwTQuLVj7ZSXOwASfCqJawGcIGl8p_5UuxMOdwfxJFzGzbO6YwRE3uYD10zlZySY1eXahJIC_IgEiPc-wt_ojbmQaOWFwJzuLJ0NbnE8sB8uyOltqg0vmZ20bohcoKxnaeRUkWo9e_PeRlBe4ZG2A-N1i6x4diMJgj9i3LAcNT_tF-9dqiWahyX9AAznh-uVJDHuuL2p8Zl8erEFABQV48bK6tqaUjKCelMl_ZN16L01_zbUimfO_dLFeLvU-GenrB06iC7amDljLQi7D47bteNV8deECeV_j-KpGEEwUEaDJkDnyu_EWfYhDEv2RSDZ2hkLanlL9SlH-MvCJBnhpiS-k5ISe4fNPkn_lAQveb87MvU41u9akoCq_TuO8JJ4ZCDcqrLLRxQEkhLnYeWeirRaMCgYgtuNTdRIMq9XmOmPVHAZJE9m57QNWISL6Q1gudX8AHSaT1DJ-8ZssDu8WCycEATzyWNIPGP1ciILnVygv_krt_wW3nDhiP2V7NEOFV1QQG165xSiewHMsQktYSNvm_2rMAw-apCmTKQca2Ae5Q59IA5uBd5t9OdPchewPaj1TW2QQ-5Iu02FA8pH-sPf9hoAnePlGVUnGhzkIhVnpKpADwb7Bta_eSqUvWShA-fX9lQfx3wcPxf3tWAyz0qaAa862xzm4h_TgmuKLm-wCMKBSUkwhQzxKjbxFyj1_nNHjbwPivR5CPdCrUtGcRyL8u62_tnu8LjbH1aj405mqlM9oUON1L26B_VDcjHmC6VmV53CNIMNFnjxjU_D-Rv9BUemgJ82_MHW6MXJZe4tRvmQrQBsE7x-Cj6efsLNZNM0Md_mFtqrQ7dNVNrnBoIXPdVGCV5ggjlGnbTCF_Wy9vNsQWHFQ9zl_iRoesx2FRdVrFBHkuSfc3DEbCODEAIdclfXRscTZrDeDW_KwnhLMVM1S_tSdsw8bKkC9cHoq6TaoFZwvaz3Q0m8NbkuvRHiblVBN7dQU_RwjXHKKzUtW27fMhAakZvsUqIlrUxRdA1r8cPPXf71chH-jAsuU_5ZOAv4dZWAn7yqLQeFFhP2CZmHpmnL0OH5QfmNYzlviYojNHYekhOq_zIG748BZSFuOoQOlLCO20RgwLdjha1pAjCc4_87GHsZJ_P0jauYe3J0v9m0CsE0Vpy7_sKLbCRPduz9HlMP8wRoTGAZ__D91LaPo78kFFumtOA_jZWrz1Q7LEzJ22jZQ-IMUqfFQO_RP5x8tuPiPyyvfBI4KmwgGSFkyjatDGLlIJeB0kgIZfOVQKuzOH7HrHOFkRKgKiS_ChyPXtz_jexbpWUqH9HbeEoNy3tT0qD5Khj87Dom8Trt0j_5nYnCB7K4oXaieR2HS-YLc4tl1DXm8PPIqI2o5TFHqipegvV_CiCUwSJvdP4WtUrV0KsSg2mkEcoQTP2Sy4ZVEwinAEvqo9_yLagJZNmqMBzsYCStvlhzw0ZZ9zwaoG0DDuV53qlYpQf1sEkzyJd_5lJ7esPW6tFKy-gNoRRgIrGcnpFLiuTivEJHU8O2FjWLrndcCkhSV7VzfD2g9foA-WSddVmOvizUHcONjwNwezMO4mcNaS3P_7lqNWlknn7lg4u6sMt5CARqmFqfiVUdLjC0H-zUSrniwedfCY4RwyHlpfMuADBrCIkvZYmAaqB64hO_NjA95VDzX18IHIY8olOdlXtLE8SQ2xnqJ3UntOoELezZ1GI6HwXX7ZL7DSd-3KRUFkvs3GzD7YtWxAeBodaqPv6kRtMZcRI28FVqG99ttoHPu8C0dp-D9F_6trOm5JAPjaJwPvenLuEBh8ZmCn8ahkYhlg21tmonF6ahLcK35flo5sjkEPyNNJBk9XBhHGS7fYUtmw_fPCodWQCNLxX3di0tDSVPSsfZgOdrlCGS2PvnHbLB9vlX5PrxQOWc1RoRBuSq1FMsc0Ji9EK9VDU6g2AIN5YzwoKjzwrigrCsBy-68TqzF5WVuozGhVSJKpo8OStF7aw1SN6wVGlEsSfL--qNLwtX1akeum-kZ0Z0rEHKxIkiw03w2W0UiNRciRLtUjissmdCISNXxT1LN5D-28k6ffvF1pBikglH84uHVT7qZPPOK6FtI0f7IwolNamQFWuxr9WFIVnkmjZaaFtw2gn47HAEckOAAZ0PeoPZiv9x9Im4XEOdeU459ZF_jL9wKhP0B_O12GgxwUNrclo59un2TULWSLndGl2DbQ7Y1CddZYjWfXYQgfleo3z5IxsViexQowjPD1hv0Ra9T4zIUcU18P7PM2w6Bb9NNkAUsSNoo3tgyMf3Jn4Z2jASx1zgXIDj_S3EqtZqxYuK0PLjnBUTcqMDO2QcX3C3yegCb3MV5LZlXYLHksvTiH0bwOSZPAN5Qd8YZ3oEtgPEpKC4v594tmWYfEsWapc3iLQupAkgBKwBT8k6ZKCuoixn_FqdW0oovY9oeHFiIh3dPWvTxQGwbWRAlrgvNy-ltgI7FMlzX2VUyZo4ST0fBV1gEI21zXEqi7u9ic2D_K_bOnOOyV90fARjIhcR2mGbZ7yb-o1t5ZVFNtT4-hQP9l3GauniGqlHhL073pQMeuzK1lMWiVzKKWViMJ1A5G9InG_6lHkKfH3dUyl9spA9gyhXq8woQ-krbAIFlOPl9gTp18APcXJ8sgwHBrcxRRlK7dnQAFovlFOgJWiY7BKDSftVh875zYZruUbhTdmfQ6HUJ0qjXQQetgVxfso5k38kcjfkFowtKQsLR0D6-yh7Kji3VhN93ZnnjEBSHL0hUrrvuwAing-OZtyybQS5CL90-wGefcWVeYAO43DCravn0pFSse05qzGmo-lONkKLCWhrjJA0saEeqO-apV2RBoNcmvcdF4ez6c-SkBJo8NNy6JgFs7aPphQj93Jc-z92ib_IhQLQFZDrEH7qO5xHy5DA_OQt1WWI62Yi-NR3TjcnfGkiZF8D1t4F8in_CDJFZd9bu9aoMGmilHZTa2uN7NPP6y1QETSN6lVhMBuOPwf2UIMQiKIHb3tLI8pm59Mv1358UBvX3NLGEuDOoG-4HsG6TluKrRBaGf7kEtn42qY7bO1bxeMffDnPUDNfiQUIHsZ7HZ8VnjDdhoDzH1pgHyONcG1RCATR17eQBWQHHvTGNMa_QQCk70x88ll1_ywiY6l6li8DEWW4k368R8EbKcz2RETTAnoY86JFzIQ2IWu1nHdDXPrUUjUwcDJvzpU7W8F-1agGWvBkA8_WErCB4QplM4vGP--jyN38H3cxHnmpJzZV6Yf3qytrGPW9EYL_2RcSLWk6Pa4CNTB25Dyafp3aA-FdCipxufvZuL9EZ7aQW4oLxegmXsTZSOW2U1242_1JbwAmc1F4aOm8ajrSFqpOrbulXkFzcjTRxqdz_m6sJ5S4YAND8cHLKQG4ZoZSmc0VFAYC3Vj04vebrntW400-83biSm1Mwkzoap1rAtRGzYyZN2-12xNlFBlGWxYdkQdOHKVzd9RqTSoXxINu4zBifn0zCkwe8sAu_tI8SVcxfEmqN59NA4tH4_lkBE8a0P7q8OGx6t0dLUuPKk3n0_bw2mKeiFiv3oB1LbWcjfdSJYGbjkZVykzF8N9rokMsJB2doHH1j0Z9kzW41szGoiprNCQ5mUhzySrORgf1WCxAiLNQ=="
+        },
+        {
+          "id": "rs_0ed9071fed4e7b17006a84e71a459c87d280592d61f49d4d09",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeOzCEsoBgP5PwJ4x3CjBlWTDfebYWAGaaYX6Qfk-NFeepTVkXOKykWXaQZ5n9TaVGR3gkR0qjZ842lCOeeBpFR5Sr0vfYgerZkvMFc75Iuo85YTM-mm6iCA66gzhCaeDjUdCpdDmzvQdlKk7ylmad1o0qnEoML5qKDgStcz8X-rzXuwC803fAesfJCLBh5jDg7i2U3C7ZbxSoMA8yZdIJfi2VeVnX2dN2QlTqVrxPSUWpLkWCOmjZ2RbHe6XqKS4dyUZH8-_EK9kh8wHYpt0dGk4AtfuYfi9lO1L58QOMSxuI-JC6oCrG8CLOMG1NmFXhf9rEUxQ3T-AVToIiXUjBQ8aoOWZoX3lnMl64slQ2O-GjKtGiKZvJVWU7-ccYes-ZPzT2BRti27qAd6gVTMR8JefVwAls-SNaI7vEEO3ggBTNzGPvjSCAuPm5H5EWoxIykjd0X0KJ4jVfNbjJRgYQiV4VtyA5DDqq6xiLiae6F9vmH6XesfyXMm-e05c-wTRQqzQLz4-2Jar1IFnyocbbJgG2iHUQDxTrSU35sVJO1Q47U9Lz_m66LoTD2psGbP1Obaf56Jg1zLeXC0vhsWs8RFB6FUBMK5JOed1FynbY5cM28ybNYSbAti_UX0TjVQMASNH_f8zJ0JsLH9Y4peVC-iCuxftcIzeyF68pwLiLbLsvI3fdZcHaD-GiNTRjrJTcL6foWrwLyPM5D5fDocYlTXZZVtit1m3X9vnJXT-77weBbI4LjPFlk4-aZx63-flPEYVD6qmb2kwmteCKYQEs-s8zaEfzSKriQMs5kH5DwhHrB9OWo9a2GRulRH-yyCmOcvgCXFMQKqBd49rHWDhNJcoGAFnhXU9lOX_Qoa4uMbX1aZWnmfaXJJflR8igfY_EtWXZz2DEnioGNASGygxRD9FwR3RGrkA6bSQiBfzaGquRgyz_5OF7JYndv7QylIJE00ktfYQy3uPy-X9T4l0VAqFBoGlsfp4HIxTAuhgVSxVzvDk8D8PWImSgMdDZChEkgfIEaUcuHsRnXIQsBbc5HL5swg0ma9w7FF6eJ458hKXwMHeeHdoFgA6yulOcM604S-ybdW3EiCYo-9Nqekx17-oO0agXSJRFaTonT-Nnk-ioen4FeiN4-lnlOcqDl5_Re_j3FjGcIlyYlD42Qo9sOG90yIIW9vpoGZ3x9sj-_ruXGD6IofJXqREtEJAwnTyqulnIiPJaPfdwkXjduBahr_ZijmP89vCpIAvsIg9l9UpGMy2qOZ1vzBwF9v97SAQBbDWHcO4J5oakTgS8eQv30VfjwJTojbLWd5z_TdwBtBYx-C8NjpgUaE0xismsSOKvLLFxR6HWdnFfardxo64R6h6aO1XrLkRNtCjCasU6Q2yRr7rOFZR3rXjw2bP9IdsYRctlko5VTVzKDYUj4vs4kMWLBqX6Tvwq6tUePmEsPFXPUbCMF7h3i2V4bZT5Nr8wNM7Kv2ypS8olB-h_boZjwym-tAe1OQuyhZUiKdchqdf5YaffAcl8fRrq2dk6V7mAszAYlJ_ZiKrNibeQQXvd6joDnBgxigYH-y01kVgOL7zCWDw4lhE49Sq3VEx7CgPjF_iI0Dy-G-DSLz93QvFL3EbHx6qwmYc7CaR_fyLeBpjs3RXvhla7mE1DyudzAH3fbDCSkYE-MqZ2wGGrAipAdsY6FTwxq-1V-EW-Szt8CgZfm9R13eYf8an57vFLYabW2OYLH7P0o1D_bLQPR0fULghL_C-JofXDP6nOWYgL7Sgxe8yZgog4HgUk2LAO_GHr_AyU6TLyxvM4JUebRjFWYZRsqt-mZWgJSibLqYx_G4936e2-b5FPGOZk-UJRMFK3rgRP4_C3rtZ7bKi2wxd4l6AG7SpzuTFbEieW7S54cdT1RFjcqeHM8f7cRCxZUqnwcwHp7eRZf0HqyMIEb93_3OpMgBek5OAjWkCuo2FNmo0VXXsKZ1aQciWMGRM8NV7k-AGCP4bYA_94Hl_jVKjNxgp_yrQXzE368wkax7dGoWwRRLQtzjFDBcyICIzOXOVgO1tRgYZYhMuS9RB0JZelGIWPPklXuOaioOPJXkjqBL-2Kw2hK1MiKhC5gWiuYCjSmRXS9Xf8aA0xE36-lhjtgXGDx7c0kfbYwXWQjEa0aMJ9XNnX7Qkjlf71chNib1LCVgL8HwR3jPUDtQfXqSHqqZu6xjH3eHfYXU3bFWGK0_N2_dOORayO1uZkoiAA7yERwLv1XK3i28zPfv84PBFqTD3sdReMXvszJ61gE0t7A1WdKYJ0NhkoEXbsg1ejXFFsvMVSosMFjh2QqryENCrYZQ14vjwW8k7I_f55aoc9eSbhvQAElV3t8fIBkFJXvOCcjkK41z17KQd8gW9vtPewQVq9t6YRo0P_2R3spzvZ8KK_KYcBdTY5sTBSYNS-B2Di7zz5uhoY5XIEDzLfYkTxnL1xvT9XsM8cYciehk_d-FvYHdz41LPTO3BaW8DyxfUBcGByrOEQrjpdXC672upysaVrcvgGKfUyR2SjZuArKu2lWTPdmZbb6KsnlQ_vCV9eC2l6fi6jj76vXxN-1f1jKOGKygkKjRGHYqJaol5iTlP6E3cCiZYmx3WiCayQtULeU45nEG93jA3OqgY63j1SaxKI5V-8JWj9Mb3fbhlC42qhn6PflZC9wx7TrW6OYXZtfCsprcArBJl82dNxwKLMP4B_tcSNAHN6pgfH0k2X7mU5DJnbBKpuA1Ei6VIDd2tIvpnn0af_zpn7lEbSX1V_W2ANRRDs1kdY_6DI5LrF6Ku4YkUCfi6196AQ0GSS9V9eDqu2hjsBO95vZRsJxRIlYwRVesIw26M2r2V7T6bXuKvjtcj49_kxhfAYx0eU3hWCBaJRkRS_fhuXYQ2LkBxcRryixDFif7jPcYrEj0ir1wrv9WUaKaQKf0TbqGbTAVCgnBYfdgO22X-2JJQ_8Rjt5OQDZTrXm6mQvJWQAxcyN9JbwaRYpNyLC_-jEgIocsU6zygPXyP0PEmrrFSrmv5ukTSVNSAxDfN9fb77fV3gXhvxby4ZfD24s3WdtC-Exmf3KAcQGBdnLm7dc0b2NvQdOq1w4bzBqLPotl21Wk9BoJVMBN5p-0NINZ8JDwk9GxJLiwa5WcDCtwQeS7GzOgi1Cp1YhuImlUz4ZvAnggHpfqIbn8Mnmz91IGWy0Ffsdboq-6TN071zR6G0-AUD6MyCL0-offgd-b9TU7VyjUWr-6668lSHp9L6iENLePz9dbqNA4v-UnxrhU_2IcfSfQp6fj2Z77Q_DhSnKbxrOVtRHxlDWdIy2CqD8VhpmCWMugqcBPiWkesmRV_fYDUVvrDK-ID2A4bqWRhHdTYtTnIc6_9U4nVzTZ-ugn0zS9vUPrWMVir2LlCriChjIZpKHDAMf7GmnFB5_OGH4rqUZYBap3PlItlqfE00rQN1lDNsVsLSTsU3e1pnaajeA_c2P7BNzBP5OqgogvqsqOP2qGChxMnndzI74PeXzTPO5hmi5JzgmqwPymgMoPcxkI8yM3GHOOX3JsF_xYYA33dJjYnIFDmITr4loQA47UzLqtUN7CfXlv5VLm9K1J3hN5ArFNpJR1Za9EuS0wbYOXGkKZJHB8Z5D-stQoFMOKa-4l7JlrhXCatLlZmmlMVL4I5VHpyYh3FGsEgBZecCaqxl4opzf1UUy9_fkoYTvawnVQDs0_tGChDuW-VCVRs-6jjSLrVDpvSbIjI9Al_n6Df3itxvWS5cBbvXvdTmzpk2sysqQgBjMNnerpWLcgPlNYkHSV6iF5MZThSHkFY3vFy7fvymxG_qfhoupkhz6D2aPhusY5SW-Ps6bpViuurDKrPTxpJkrsmMXW7IEtLdyOWTQDpexM2TAIqHtyBxoOVr6cf-zak7L4hHigeDQoA33d5fTu52XhVzDCB2sH8VGuUoqYELkRM-M1s9dhDYbd3LquHRQcaI4JjIgUy5cYZxeRokpjAYzdwn8QBXILISLJG9yjmZ76gIbj-DKvrOZ2sbkbAiaHz0WLbGWO-L3uMls5PHUiVzdLC7pW3fNt3ifFbZHjpkrtkB1DwVhwFx_rqRyhJK_4M3uvARcvH7SBW_xS9acR6H_k4XTiOwsXjoT7z3MqkJBkUN7kltUJBpvujhxoIrETBeDV6iyK3LDtB7eflmosifMIaqvsR7V0ULvmpQ2FGwFm-Msqxy48w_6wpDHbAWipn7jLR9DGPH7_O14MpyrXpikR1oU4jr-Dwx_KohgV9yR93AySdqW2vLr-jf1nMXWWCYZrHuI8cco9T4XilHooi77s1kYz727zZRZYhW8uSWRnmC0nP_VH026czRzYEMFJRECmxzHcxE_GdD9-bcTDx5tJw=="
+        },
+        {
+          "id": "rs_0ed9071fed4e7b17006a84e727b0a087d2b26af7a2582bddee",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeOIJDKr6ibpg_7VLg9rZ7ck2xB34GnWBHmTXLX9ryRsPwW7VToGwcetPkgU47ux2chEjT7PiHgOeOvevcFTYVCUTZF8e8VV3JT_BlQPNIQ9cIW1s0kZ52U1scdVlPc_SaWM53j6yZ7N5kW0eBfeJpu1hbVvEOkBYw7zIyekHe6xXEH-dmnmzr4H20YiHVMUnATV3emtjrS6-py0lnykqvBp0Jx6aTeYok8cUIKrrsjTcrd5vn9pyIDYe58DdR0SBClGAkr8ZVS_nfzWsmY1IaIQSBgy8gomHTGYtmPq9AmrDlS3GENBW_vt4XM_1h9NG7IjkFDQ8rZMB14pdT2i4xeGCG8MoTWFzgIezOXYsiVRT5vhPK3K-3JzZraaPW1sgtjumptzpLfB972D1_Aj31IIx9-wbwio2uRx6HEFC9g2tnz6YyKfW17cTrZb63J9yuEhupsYFNcq1Q7VwWmgk62_bfKEYP0r1dD_3IluJoEicriIf8qsN51x3sM_DTp9Tvw2fE54P8VeUSedijUWleHMam-f29KEzOEwzT1L7c80JzKDntHvb1UmIA05kXnM5iSA93zwNItpYQ2oeb4sNayNmfdjb7BwA-YkmqAVwWq6F--Wuc3rdpH5T6zhedXB7CbkJgyzjaxIss1G1o8OlQQ0xTj_OA5HHm6DNCFU3O5_Huo89Z9VALOJkZ1k18MCJvAuXPY-rcDrE6xe-ZeQNuCgq5VcndDe0z5_vIjiu1pn3afSaDB9hhdkhsDF5WRokD4Hv8hMGDcBjGZyPriMiN4ykZLD6FJ-oqqyc-QcuRGpJ19gqQ6GNEQ6Wp8uPmVqnojK2L1znYyO5XBFEbuZqXMEKha7F2z3ofWKqraB5G9tm2NL__jKKmuSwHKEgDOb8h8sMdAM1N6mD4Ls36W2RMx7AOuOa7LeSKAWujrnwz6EFVzPfy4IOOoRNEoLj85YhX2LTulvEWAKsMysAAy1mC_clgLY1zJ3EaiEhFU5naMqM7M7WSmnfbX4OkBmgy8vIJUK3Sr0dGvuzDGCFK8XfX6Y3S9ecHSDVSCoyo3wQkhkVyJqKmhOUGd4EvjUSHhbZX8He_uth8AwJEU6gsJzAl2oG2DHDm3nr47QE0KruTASjC2Dl_tuIuaWf8oWA7GGdxnmibGZf0uMZq40ktXNH6IdvOC5ot6eVeL0gTdnRZehe0cYLHqbRhPuH9AbupVQ2B_1SQPz3XHSck9NVheLjzMwRE5cja-HBHReHEeg_4vFENyWfArlU11IrTJns79P-Ov35JfTqV3I3vQ-6gOiNSda9J87Uv_q7XBujsxII0PDv8pRP9m-Giuupy5vy3qWSONG6q-CyRLEqPhnmA-tHaOjCn8DUEa4dz9g1jAXWPXGxJhEfN3bbKw3KiJ7dDDhIzTqbjxn82nJ_YkYoNz12KDezCVgkk0Az2dIpaMXJS11_TmxCWCjR4v_lIDLtpqvlJGab1dkuATRpGvIU2kpHPy7i7UBkw1g1OBfTsX9sUj6-IjJnrVaZL3d29np2lTdmBqVg8DHTeJYhLKLoGfYk8gVxkaNrrufohUiNrlv9okVK5KEkTGw4-W-00lk3AcWWLtPUK5q2c7CV26Ba8YHZ7Rq_TcGzVZGadnSWmiCEC7Hjt4PwjyMb7vOojeceDghvaX6yhZw99kaH9ZSfno6fO1ea8aUWHcQl9sVnsoBpEYLdPt6lDVvxMLJ2OiP_Zy7KfnAXYFq3yM1eqsnja_F6rSEcMHhNAsT8rsk7VYLyjT8D5_2gXLm1G1hf9y6k8UXs1rlLpBKgDRubbdN9_uwgE_JSOgHA_TIcKYULwwwbDbtMkJRzDy6npRAsqYdMyXPuU5PtwCe4Iefy_VQa_0EeZq_ICebIxgEi127hjwDGQ_Iyn4czVxy4R_ECR_R4CNXkRrkM3R3OsCzwQRVni_jhoQkfWkkXgcD4Cl0gkgmdieyUj08pYG7Z4VL0OAEB8wnIYKoLT8KiE7CB2tbkYKfNKT9UX9bG3UpgqiBvn2Sn-B_cQlXt63EDtRtG54gmG5azsM_zIBW1Clsm3GwT4XcMiHLVNRJAtrLukNi2GQvMk28_6oSBq2OqtUcx5kzEGnfLGGPz-jmwenPZpI7FAEYfCG7RzSfqUTTtnxkXSt86-yRG42r1dXY0YbETr_PDVklyw4WJUnlGoHpcCq9PZm2Xu5l6bm1hWxB9db_-_NaTVzXkVYyCIM7p6HMh8xrnCfC2PAWkhl4lu4Mn3FietPdaatKPRSwP8aqpgrbuoX-ICu_6VykqK3SJp6XMm1JqfF4PkkXs9hgO7GDjeG3AD3GSXH0B6XBm-z0nEBZhwmMygTkU8XeE7yEvp-SyhYsXAYV1USmjguLvvTNmUqUBPwFsgd3kpAafKEwZWztP5tbi6WQ0hciydrC7tPXoYJPUgdWrU3bB0XDjLlDsIRdLqgcuwRRm7Fymph8Aykrw_7QVIQ_zTqF-_cubBXwc5kYXFkV2UdDIhYe__IbfV6_y4NfDNrg0H6vgHk4MjOnZ3cSajVO-HK9_QJMAxpIsZ-l6E4qORTZuU4o1fRaopubQvSJXcrbZTr9vdcYtYxOFLcbjz7O4ofDhbgI3sRdM-pMpuskMacDxMlCJ9VJwP-_j2P3y-GoPEFujvWlXvFcYX15aefIeHs-abGoRqs9aF_zymtqHGIGDPEu1rIPm0ZGD-BJZvvu7tEnOUQwxiSUE2Jof8cYV0QLR3zbIjIJ2l8UHeBlguhrBD0oWRklBH3Y_m5T4aiG_mWpP1AKd2k-VNrWsc39pI2j__wzw-8PJQ50y4PU2M6flFI0ztC1klup11KaFg0oRwc5Vk-lnOdEXCk_uoI_X_hxOIDfjbzfRDpBKag93hfR57JLFAACopHwegWcu7hWUDV1LttvimnvjQdQOypgwbGCbeQUv_WdLNnpLEpHc_nIiu-0W4EJT2S9A17xxbMbuzxaP28ndpGhuFH92Wt23Kf-j0F0BdxJkmdsWFIM8gruuwh7XOHwVvp8KpeTkXiI4uKdQj9NImVSje6mmhn02Fc5q3gtAx-v1HqlauQMMAWM1oPGmwu1CQN5sVtVY3JwJARYnccVFe4KNVu94HgJi93QpaN-PC4nxDxes5aQOjIbPx4FOz7ubYkIASZZlFLT8EFHQ4FVOXvpQwRz06gyFdbcsf0OkM8wgfcy9iOGLTcWi3ABX28a21_UWnmOqWeOlmMutG5lJw1xNM8JqDwfByGA5VNiiaydqVQnLij4ZWND7ddxD_c8WYWXzqr1HbMGOkdGVJAYRpKS-zBl7pbRZx7zIEeH9sx3QYhZBPepI-offKgBQm7ge07brVJAAlEZM7QM6wEZfM9Dj1b9SdiCx7y9LA9-GDUaUvV5UWhK2QQZe6kzqlw71JN5HhYsr6psuoa0T0QOhIYmi0ofyFbqHntVgwdiJ8UBNEBue3Xx5dsS8eKWew3nAy8lFtgi-DoHh4mAt1LyOelJ1pRIHdituTjzcCgxHyHk9Z9lnraMkdalCe8kQXam3MMnIOTPQdIAfUj8xMyENFtPmNthpAbE7bzerGr4Xi0YkSZq5UD9aAVGKVUwlbY-qywLi-x6AFwgVbr0vkVipP4w4jIkZAOHXvaw3mmQu3F6aBoWKWPSXrRPPpJOJgZnYYegn6bnpM1Ff3Y5SRMK0liy2mqt9Q4WGzFJLtSQiHjXDODNLSFSEhc3a1clcf7GA_EaDxm-DMfVhwsINpjgamUhlyWoz0grqtUlHkxJCd8yeVudpNWt3LruA0ZOswCAjQuJhAd_Gkol_VBrxH8qDGoDeu6tOgP2dHEgGEW13ci9ec7NradpY8zB4CVVsLo6vjeBGM8JnrQz3S96dEnPkCWsG3s52IZ6vfBUxGOYqlu70_q1KXMVpZgM5oGu1Xfjek_v8cQBa_r44oM1M6Op0XYcbefI2dbBNVFO-hzxgs_FkzMIjOm_r9mKMcn2MmmZCwO-0p5liUR-SR7E6A0Y7cuxpnyn8LRJs6eb6mAVkY2aLcutZvzgN2fiToJ45KKLa6WsspSGpQoyvF-03-DyH4dj_f-kbmN3MLtToXbbEuGTpX-LfyE_LXDL1ia-qbymUUByGp0lFcC-yC3ueHHfxbnVTHFTrnCI1gg7ASB_kCVZyaHQMVtbdtpSyuxKyWTmUra-ndwAByfxWgwmTlps97Itfh4sJtdHq1LuY-6Bc-001454Rr24URM--jvTIS7l21pJsJWPTgFd9ARiNXLtWZEeLJ5sFGlk7B4Oz6vTiN4P_iXCYwCBgeAlYt9MY87UWLZkH_60f9FiWSPRAGcF_INRvjyW5fslN1sIMnAd9PAXQUikWLu-7qc4x-x1dpzsebWr974_Bqmk6Qjx_-SiAEHsI9ZRO0ODqoVAN-0lcl-YzyivHd0X2LZy5_f9dyeLW5IK2l-kUHsVo0nfIWOAJKFlfem-mRMEesy2wVGXU-kpBVwG6uTiUJTSHSKCaRB-1D3pKnwJOipLUEKNiLq-gtmr8vtfRdC5913zFCxAPQrn_3p5sZTUYPR"
+        },
+        {
+          "id": "rs_0ed9071fed4e7b17006a84e736566c87d29941f8e689afc481",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeOD61Zs4q6Kqsbthu0VMo2vgXYHbbcyc1PSfNSlrymYoQjVoYGoV1ipQawZ1dfZ4auRvRZA4uOC5TVgaaKps3e__3cSCsGzlhw3hN6Zzh_rduPwl0ocQ57WmeghiaqC09RgMKMIWyqvFSMsGWRAcD6-R5btFrUdimwrDK-FLnfLhKEcc_kqhtBSoOmcqvQk3Tb3Ux7QRw9LQsoY6IIdGyPiRjIp3qwf3qOz0pILGS3GPLqZhDtpAOCcEtokZ-9KOgqHkMxDnnx2u8r66Yn1kBfOru_P13HlnQplyOU-zx8rfyXe_FDHH2_eSdWws77YeSD4njKGW1snK2d6PgJjlFrneeXYwUkvmO1hZIC-p0FAS7lG9ZMm3L_ALVMitRceqNwq_lLBm-zro-bijQru0NU09oaljaDdsCYNtdsIu4Xc8q1ADG9GYmHAqyvNTePe2X7rkMRgRrL-Vj4_QGiHY5wt71vtthPIMUBEEuC_ra-vR-jBmgJbw8C5kdjIes8Z5_IuTpjPIgt2u8H0lJt0nRdV4n2moWGbKfsG01ldDa4bil8uHOsPdUoJ1u6YJTErGPtEe7l5tfWGOeZpaIcuc0bS5VjW-gEghWac3doMiWSw-aVzjvq3UQbtR6LBTemB7X-euDwFO8gCg7H-yjI75qZEgJ2Drb66Pn8QO_Q7rOy_8DFhUqfvaJHWv0E56o7hCAJup1UpUOYySvGxoDrsaRIsz2nbgm7SPRN3Wsw1_RMMOBIrNZjpEVFJ9yNWY7t_gXVA2NSPO6nVB7oaAxyMwlSr5tH4O4VjS7NUHwUvoMM35uNLk6nLU3OhubZIF28lnY3RsRQ5OunzzeZWqXUt7_wDw5qV4pMzYsR54hl-Dv92lFHUyct-Hqk9NEroTO2ctbZ6CeWG9zK_rc4alUAEBCRAr0ZH-HB5LVJylEqTYfA2GIkb7mggzHeOGBeIOfCnqe_RHvC1WCekXnQqVJiiinkwcWCCTPHowk6Dp3idlTMMEfiRpIykk4wYSEj1hlVA5eSIaA21GvdxRSvp8KC7UBvli4Z2zu-GyHe3ytcwp9bHZghWhhoBmyf55CGOFWmMVBc_XQPkJucmgxPzWt1jKhZpxaa95Avk4xo2gLAmoIz5vwY3DTkFYAY1zm_5v9HCA0gQKhlf3JQx5z-RqnaJ6pXJOeeDkOortuNSe0xzkMpsbWj9o_0gtxmzKCsunLy3b-TEagqIbVoH7vuD-0LuXB5GKtHQvbj5JvNI5gJ87NVhzjja85C17kcX3nwjxeiii2JF4dbwbcmlof9JOOFlfhRFWOCcUpmTMWXWkaMFtsG5C8hOJKgR6N5EXXuPi2SHj2niSM0OGN5Lrds2N8uY-wCgawzT4SY73ykzi9zgDNsTUQy13aG2eqUeHtsV4ySWobxTVBbveIOfj4Il3wSyxsqqA2RCS0pD8F0Mta6suaMpB1UdVnhDuB_TRMj-mXV9ifno5uE6zAQeW7QdDI-oRWS6EX7wiKUsjNUBnRJazuqS3DWKVfb-0TGUUb9g4kqN1VDXG7_-mV0PsZt0prdXVfQipm8fUYbY8bRuqiyx7jv3Iav32WIFJ2FZzRttNQdzVpfxuPHj9AJ58hIm0m_YF8ld-ldEeYprtGbGVreCitP7VJVx-TFtOWRZDRWFNLGUdpNaP90jFzXcBP0Y3pyk19DwszLmGsMJsDs9stbKQNBFL4AbLkU0WVRfQQ9y56sISD3ZhjTFIPH4uArMgXzLM2uAyuwVb4gPM9_np56sVltUJQZTlzMVrl29fXE8wfMJ5FVDqeBW8OuSx8_I6M0vto8b7KYjMFU8kzEHudGHkWqzH-6FGqj6M5D4VF5xlkcVRcGO6RqsRaqRymvYGJFMm8KGZjI--qlSTiRBX3R4uiHTUHwOmXV0OxofTW3OxgM4VltDtiiJnc-XRf13DhnCZGQoHjDyNaJGiK3CYMfiEYOmsYd__sshzJQoZwzQSNSWYn92jmRq4imYcxhETSt5VQfQjpDnbe7RsobdETsoe3vzo10OjY0ayVpSsf5fkEBPOUi8C3zVHDOba7XgJ9ANVxbEeMUSIGIRjgelQza7yatNrXk7FLYByNGSTdV1eFoWBD21QJaDHdFW-y0FjKGU0DblDY3JXsxvRWPu9zfgqReTWFJ-zt9xDyE4WlAUzCTCVFRa8nsLFf7e9bsbtMAKsyOKAV3vMuowGwwJIWyqkQoJax_3BdQ_FvpttwkWdxA5OvHkhkXaa9ADEfXEpmM-symXcvBWucN8kEzA6OLplsM3wMZx2qQeGnwWu0XLXN7-aWB6bJiHjZvJGR2mvWPjDimVFy1k584VypcBJecUqJywrHMmw5XBKSoMbvOr8WIwz07-Py9vbi37w21bFHl9jDrEvDrRA_qn5Jyb1r1ROTdHBxORggFLun2zDvIHYn52L0TFvNmEhQD0XlE6EnUbtUrq6s8fvPEZcF1BcUbPRUVEaevBL0zIO7eLywoZGF2N3f3ekCEgqsVePLLMqCANjSzXrCjKFnDx2Cy4MDMmTqkrywc_OU4Y3NkvKbIo_3mvBBykins6ec17yqhekdZTt_6oBRns7hSsnb8hQmynsnDI9djaFtVSPLm1X10DFVhxIte_y8GvJH763acARUT5SlzMTRf4H3ZhA48HddabLHfYgnuzR5GKjKbPzIRqRLHEloZ1Rz_2QWoL75ia5H3CC3SGCx6QTcIZqvmpLCSzLbQ6kEKlff5oRqtfu6OmF4vQGzp_ngPwH232GqWv8RT9xxtRRe0mbT06sISmuMSEBiY0dZD1dsj88eJxn9oumnvjXJbNnGWSC9DwwkafpPWfrlPkcXaHJ6AaGT4galZuu5jnoK69MewKs3GckVZ-CHvM0b240GSPpfp2zOy3_7-4JRVhCkHW75OqLXthO35bMZ7Ax72gs4EC7VZl-kwxxRaflGVj0AyLM8AOFFZJ02BiHRYHcG1gOhba0Efosxu5lAWVw3EUldCvnn4jLYX2LOhvyt2EOc9Y9w-kPrSwSgEdC9v7ipYil_l6ESID8Y0xCdS8SjNm9sM2NF3xz6daSELb2zD808vPKRPdwN4ErWhdVOvbfWcWlvajZLW_YFFXFAGVH5vNcsoHTM-NKZo_mS0vL06Gp4GTzKKXJ6Gv-OTfrQl5E3Qq-gIfMoe90cOFV1Io4q3VxO_ntY5Oh0p4AIwBNzK589fiJHL31I742B3HUPatoBJWPYX7mY7N4zHtXTbNwVqPOki-inUklprecHQXBdN-6n_Y9YSaCpWt_XC3BLFev0ULD_rZfZxlmI-fneVHZoOjMCEGZ8t9-M27tS-SOAMUMDDokQ_Zu_bE0E9OYOrer5vfe9LasHPAxW8u2cZjle7tYy6sLnj-chK1UtNS6w_qn6zDYsoBzTRCFtIEVWG8wx1-J-gqwQywM0SNUUl3kfZm1_f60jEFtUnWuKGX-eV4LtK0_t531BJKyksCI8DtzHaf5RaPrmOmCffmMnex2bsgpzTcQIHRAO4R0A0TRSdIlggrfNXaveQWSVpTm2ZC-LuX1tFTZOhonNG3kqzacrTG8yk1sO9uN6sL4hROsi8V-OEEJRysqiBYBZqm_jfSDrnQfNvGFON6-VyHePJuN0WGm1y_3VywJBLRN_oTHTtO3w7deRlWQV8X6I-aq-054OjPY_O9FnLnBFFeBDMPXg2BL7vOUJfwSs2O1f88FdQaV2o2dtj0lg_vn0C9UJk8e-ZWln153S4_lbmOh1O26snjjQrV_6UPoCoCon8NfnPnG0tCv_DBiy1aX-tGYjlcTRKi08NrlRwa4V2fD2k4VQWgR6PPw7Mpxrmbb6gH4IBm4IrXWfRXjYlaNFVu9VAIxwNcUQjstUkCoHLPtCN3sJ585u4I1ssQ2VITdMbXMOCtI_shu-uJI0HA9_0KFMBW8FuKvWI5g1ltbJDliG7LUAe7k2opsOe-T62hMeV27Dp-r5g1GAZggqmOq13t9t92wjzKqtv-EcztgfrOPrTZ2pN-o5_dLcxhhdgOBktn39Hdwb6yVEduooDLWVVTCJcxuqcv6BIefDNisJOBab_qmWcafJyvACT2oCYqqOchNT1"
+        },
+        {
+          "id": "rs_0ed9071fed4e7b17006a84e745ac5887d28cc8f624a28a795c",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeOmC5CdaLYqgXo9OzTrPOHR_ccOnUSOGz8zfXGsygIIZ9eJIVMk2I2EQfVhpV1rcS5JuSlEO5YU-mBjxFtQVghZCRJ_xvRRQ8Q9xG18NyeHNAvi7Hr_W_DJ-Yrm_a0TnlncVipkSGMAhnhL86XOSyFwR6oAwDLaVZbKO4qHEnp_eKpoDRt2PiK6xsURk5L5b5INj6KIpPlY4v0hxyQM26bt8oBSQqsdErRZjlgUYA0kzq0DVpOAK5is1S3K7gUu7StWMzdNtBiLA8qRVza5_TnXZVgqVp5FW_mfJ7ubPztBLZmtDaEcCwaMnaRJjprU14TOFHUS-SFE1nho6usVqLMlCGnb3ykdkFIoB-iZKZWYu8KnYSk-vb3kLI-k3tTXPmnWH_emT_553ITNkapADkXIWTYYrhznC_z7HBuAxxPAsZsQYUxqK6gyz6BaZFJVAI2brO4eOMMeRM5B9K5bKQ6de91Rcie_L8Q7fwLHVItc4ZK_RbrbYZz22oTGchRQTsMGEyqV71ALZmDenQrsA-5N0X5e3UYPaH4c7omk8b4OzbK4mPSOjx2XHjZS_lFkLFLt9HRUJ1awey0pqeYmwoYqoJsAyXW66KQo0-1Azi-Y2whMFzUSEbg47pACmym0P-mMf3kOxlQq6ucnQto5-4KbjFJg4L4_wkacfwU5yV4dLQ0cyh7EXc1ZzxMLQ3F43UiwGxffkkJ5P-O-C3yl_mpcU9tzkvJKrRp2as877CJEfCs3ikKTNCMa5YEHp7rIWKGa1MI_bbyATgeSUBFV20-w1sWGuMcwc0dNP7jgnieEVxHFtiusRveMxPd7Eau1AeEo0j7TMpxtgb6bLH4wo6sc6qV6_aLEzyJMY_Nbyo8wa3soISteD7wfAF3G5nmY4Yuk9pB7CQ0jHCOowVrfyI7mI-Yh_n8lYtp4BqHSWZICeK7X4GHNfomDVvF1oJDT9lEdTDcDdGJJ5VNdCj4zB3YyIU4u0CE2ALC3U_gaecQmakA4TxKFtcBj3MXuaq5j_ph_uvKziTBofYA4K0KCZyJz9--UMLVQyjI-hZEdPPTf4uN9svEh9CvLq-zkSuThrTr0G64RWTOYPjan1zGAunCJifDWAkjzQmABsm_l_VmbbXonqnxtJA3mJmVIlhBKOWUTYA1gYOKPyqtDIK5f_t0uhZRHsgUZ-5fckYhQasEyw6kK9d-IiQ8MKZZJoj3TNlxYd1EbqlmXG4x7BQg2F_9HgbFXUQLcK17hDGP2DrVDBBLbe1Mue_5SsOUB6HFkc3ujKL-qSqMgmHC2IEU2Coy6EFMkoioxgoqPNts3Vnbmyr8x6fZPGX9mzdMSZU11DIylTTgGch5R6g8DNU3GIdm1UOCzIxFPS3zIAU2MGcQbpCJjGR_mBdigAdJ64S6nOhYwQxg8mzRbdBaST_Ma6Ec0-3rI8e3SgNhIQ1f_qJTWS29gGrPUkIfvxnfS7x5CPyj28id9-_TwUE0eLWkHXfSDsbDJxXjSr4Nk-pf0Rzjpv6Kde1pA_tJcQxcVUX6FbVYiauwprdYkmFIjtX8Gq8_uKz8jfMB_i1RG8V3OhTZhvZIG0bBFF6dUh3Yl31z-Zz79xA4nZA55pA1BDldROTSIiH1kc4fy-AHtt7ff-B7woL5XYWDIgjl7bzcwzC4TjnAWm3hpbj8kwGEFiTR-SKPC9v7P3PSeNkoAgbOSK_f4hkMKEWEXdWiS7JkDVWK2yISBFDuwig4JJw2hXTBhvXL02yI8jaEr4slBGLmnFNkW9QIYO7iaWIAuurXP03Vl8ldpmeN5tmlxt1RCjPVSZhy2V4NWSbR6KxQJHqrRPr_RgdEStjON-3py3nMQxcFAgB1nBEIG6Opi9IVMlgSSJ5b7fnvF29xzp35kTLTd63QT-3yCzeBKVwdJgWKBcFClz97ELony1P-08gTujQEIA5u96jOoVkLBNyz_r4zoHEZ4tb0ml1cxnPePJ9S3HvfHVwNZGi0gtou6d-V9bSJ34EaOdh8AWy9UeGorLclUZYyV-o5Qs9Ez_zkW9H4cwMqqrN1uTGIy-_VkFTlMJqvvvblouRzj7A3xEf2iipQ2X6eDwTgVRihUNRIzPtsqrYINbZ4XZwaLOmja3_fsWYioWlJFf3tL-6OOg4gj_rGvajwfZllqn8xgHNSbOvWbvgiqD3CJfrntODwTSy8Q3cfXqfx6dAaKStKKWDZzS3QI3uKsVX46ahLKo2cknHvbnLqX96ZNaeRigd-Byhhnc3iTDg8s5s52eiI39TdF1wRJYkC1WJgDFM5NkjAoHOFnI2yK5C1PS2M-NAZvxNtJ25ohs-6CNK50LXnMUeIRMd5ToOjFhKZktZynTJbR0qhIhJrOarAZT_tq6zwQ4TF6HelO3EArdNDTY8H7rQE1CEwHAoQf5wW74f-osa5t030x0rRfOl6zvcSQxwxMTtsR9_gBSd2JJvM_ogR50guUk_f50P6WGaYsgIrKNLWlRCawYarOLnuioAC-FOV1ZkQMu1e2zrVPATKIzXlEujmcN2-6R8CSB0jF1ys7TjKUlib1RRAT9YLDkqbs5pMFE00K07sKhSJWtELDti9zzGWmQMobemrbjM-2hDUVdcA7WB42OIAIMiVuVpvfh8MPIg86BLqFrlK9FP629aKItWxmI5aXAa2yiHAoDENRLhEfuOBomDJA6FKAcxov-NXadEMZUjYFRWfpA7tEut0Y0xqeYIaB7KnLOPb0SOZhbsTBVzPwomr1gJGyCcqdPiGENtpZr8AYxqtZ1kTrfJSP80sq0BbqR-7S94BJb28n7ofn04nTApRznRIEstPnjwytaUMzpbSu8Car33oCOsgHkOTF7yDNLh2MzO319E4EySUmXwG1WqqklUVu0BV9dHHIdOZM6HC1QYBPAU4_uVJs430WdJuLO98klhejXvbUuNLktxQanJb2hnLLu7Jhow7kkZGcdZsOhHM5yRRk6tXvmJOWCcoGkcRP2ZiiVmxZFfTGSS72r5zBB_p4yNzeo6xOPMqvNeLb71Z5lGbMXo0joJEjQPAR9R6dDRQI9jNiePy70gnB7wJShFTm6aXMjB5ZqHOHT9-r6z7eynWWl5zAceRXY_fjnzG6qTZ-1NYMK6ml3bMCscmvwZw5KgD6SdNt2OKc8qVNRF06fYwkt1EiWnh8jhG-sCyA67LnYbfcPTxzIxUhDeJxZUKX5QGcE01DXU5wWPeX0CRiHcB4xCQEtBK4fxQqTt3nrsmNbWqs6712A0Cyym_mwstA4jfolhkxq6bbktoPQvcLrT1_jadkWG0SfQ0zRMSnlhsX5vFg1Zdn0Iq74x7XwpQB8-5L2IRL9X-4CrwysIZAhnF8zdbMxjtk2Hw5ZqjI_Ub3hj1q3Wk34g6cnWGgMZztUbdUyXR-0sw_FbX60k5aXq2C0KNt7B5pOr96Sv-WkxJHxGsFw5njwq3itTTdCuGqCKyD4zLnDrGXWCjw9rYwm36LzR-rEMWzvCgAesBIv2KEDOioBcdI7cNsGLcoHHmKvh47h8zIU7Z9MIek5o0L46lnq5r1yVXzYmgS50-vQf6aI3P1-00lodR58CPfilqF-hqNRWckDVyJc4-mbZAgIjhQPAyDuYTXiF28hLYorvz2wBgpPZjIlkvzIKBkAeREVM9YzmIxiot-XfWxIe6mCHnM3oRgvgSknWnKzyOwQjU6c_hnFKX4k6GhLCn84w7HD0OFRw3wnLbZ8Hoq6HP5Xx5Qi1-VNwWF6BxVQAV534J2PEBJbeoL7_xT4t1e1AnmF_0oWHTOo5sF8XmlGR0W3yOGTHCqtHbWKDqzo1Y94gpuQgBqT3Xowajl5hHiKruQQK2mz_hJrpCXTrzs14pSg=="
+        },
+        {
+          "id": "rs_0ed9071fed4e7b17006a84e7530cf887d2acb123ca776b86de",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeOgxaCKZK3DSILmPReP5s9QKF2VFtx5rrnhyrTsyrtL0QCyU6JjBMDp4eeEf4A6C10SDkUKHuivb90BaO78kN8mLkieYmba1pfmNsFjAY7Pf-I_0WbT8IewTRWKfeYPjuifZJKzY_TGdpIx5ZvZb_lJRe7JAuG2DheiWTRY2jCLKvR3kswEDIyMD5fBSwLK9wgXIchUT1Zt6ebSyKjv2i3pTjqIT4rGk9y50c5ccjXfX5GGMcGDyowqwKtS-9N3lYVaShQ9BjclFwt3B3edxhOF_3tlmJ5SP-KUmLf_QpZLR-YLYfval3qSeakhr9ejZHXGA_xwOwtRR5qVEAwZsIJcd1Y7RguXxoYIpvZRcVUQjZcFfV7dYvVvqW0xIYfhaey9VoxxVgsxZEp_wIxW9UJtm_AgTHIROrVSYj7NBCYhZIm_pK8dMXBBE-PdMldUFi6HeNBGgYJfXwqMvuunz-t28fsfObxOpBoTBqkwEdV8jA7raqnhgFipYawtFdGNJ63CsmYKYLQ4DL-5qCJZpYVajWqFS0PowhHzqTEO7uwZ__pagigQm_KNKMjYCvtBqGFzYZ8u7Jhej6G4jfhFddO1JUkTcHcy9VwMjDJZWVG9sCJOFEv5ds5NrZPznXD5snkfM4XyAsFGzT16_fkXzbrSsAUCoPlByNlShANP7OareZp8aRdR3Jz8oasraURH3QEYu788mFGVVq_iIYYvXxmYFqYKQ2TgDOovlY1AxSuEygUXIJSwsT9GCsc7PEPc-ni1et-U1pHiCtWkkj3aaKLqFif5FG9lJMYRd3lceS28VSdA9UrDiuEKRgRFFEMBlNcBidbwSeyjnWT1QwArWlCue5sZFn9vN6fm43DoUdcawSJ_m7A6b9VYLyINa6EQBEJh8fcTcR7PZPVvJ6bHp10aY1YDOkB_0-9SDhmVHPrlJWWpnxg-GnPVoxXfGjLbSC0p53P_vrxe-Cpp4sDWqpBsN0u1CgW1nocrm5S_YSd5jzb5yC_kY6o01d240_-7vbUe0heQZOXKe8ZtsALQLXpYfqcNFKwxdFZ-JT1ozkmx9kcgGcFFQKdzSUoIt9GCgrsvcCB2NlJfscPzHlRFp3dfUQUnQefpn76qIHEU0u1Zrr-yGnIeHt-G-1rICQO0qFUIijDmkjwXTn5THxAIxGMSq4L9gQJf6eH-oiYokZnwHw4MQ5F_qzIaGTeFazGUpliXvRBfZKHctSnzS8pw4SBEGml3AX8Hobs2IwNMgSMBjH9UMfmG1he6rbvqqmNXFonTErjPizER62Rj_UkVrfc8DQhXA9F5XBA-Ic5hTrOmIn7LEPOky9OM5cJaQlhLbvMynAMW9ucFkoWK6KRA5te4cvxlngIidy6EG8BpKcS4rBYSHjYpWm00kOLQImyTlY9H0599kkzrHQAHuzodl-IZyCWn8hgf5pi_p68iNdeXdFf-eerFDp0oOdwyO00xTipj7VEQN2XKFJcD5ZEiNPHqtLTCPMRk4AxkQUzHT8gJ4JlAy_MLpbrqDxlYCYgeSxl2Li3WV_RFxpqTDhWWM3Ft4idQu4zj_LoWqCuqa_2P7szqgdmWcsmAJZnjq_VMHrTSGDsk6nkogHHvuvWyIttNQizcQ5uzktaLnnULr31xudGHFdlhAg3pfyRbm4FhdHD5_oOZJLn3CtPQGbQrvN2q2W2dJjhZo6n5FTH0I1qTgWg4jZVHAfg5VUgk4nDi_bFllCYI9AFkzkZj52KXNWVwWU6i_Tf38yJ8uDk2kJh6M4yJmFbHI6Dq8XBInm2oX1jqAUVweYdwqUNtXwOzXn7f0JEG_XL22eKIQlOxEdLvOYQhV_mayF6dD4QCIsc1D0w1I1TRkVvdV1VA0jJ6alY5IGs7jd7dZ6Zr6ojd0gtKRCnHx0rdlqmfljUX7CkjTbLeVc414SEFwidU3a-iFfOhksy4Sb_h2GBQYhbbjub8I_RUxGpUo-Ruhucw5963I-NLgsnVYHT6vzDuE9ENQyHdbZ06C05HA6XtfgyS1vtHtaGSxF2Vx-L8nwv56OQjWPy0e-5y2LtD2aCT8qeG0DyuFuMj9_8fmUQ15nWjnc2ZDQ="
+        },
+        {
+          "id": "msg_0ed9071fed4e7b17006a84e7569c4887d29112e8cdeabdbbda",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky spinach egg oats\",\n      \"title\": \"Warm oats, eggs and spinach\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"porridge oats\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 eggs\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"150 ml\",\n          \"amount\": 150,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"half a teaspoon\",\n          \"amount\": 0.5,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Microwave the oats, water, spinach and paprika in a large bowl for 2 minutes. Stir, add the eggs, pierce the yolks and microwave in short bursts until the eggs are set, stirring once.\",\n      \"why\": \"It keeps breakfast small and warm while eggs provide a substantial whole-food anchor.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Bright tuna chickpea stack\",\n      \"title\": \"Tuna, chickpea and tomato sandwich\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned tuna in spring water, drained\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 large slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Roughly crush the chickpeas with the tuna, lemon juice, oil and black pepper. Layer the mixture and sliced tomato between the bread.\",\n      \"why\": \"This large no-cook lunch fits before the added Wednesday cooking session and uses cupboard chickpeas.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Ember chickpea rice\",\n      \"title\": \"Warm smoky chickpea stew and basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Spoon one freshly cooked portion of hot rice into a bowl and add one hot portion of the smoky chickpea stew.\",\n      \"why\": \"The stew gives tonight a warm anchor and brings the requested smoky harissa-style character without a long cooking session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_chickpea_stew\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Tomato paprika egg oats\",\n      \"title\": \"Warm oats, eggs and tomato\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"porridge oats\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 eggs\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"150 ml\",\n          \"amount\": 150,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"half a teaspoon\",\n          \"amount\": 0.5,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Microwave the oats, water, chopped tomato and paprika in a large bowl for 2 minutes. Stir in the eggs, pierce the yolks and microwave in short bursts until set.\",\n      \"why\": \"It is a quick, warm breakfast for a day already crowded by two late meetings.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Cool crunch ember bowl\",\n      \"title\": \"Chickpea stew, rice, cucumber and lemon\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"quarter of a lemon\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Use the rice that was chilled promptly after Wednesday's cooking. Fold one cold portion each of rice and chickpea stew together, then add diced cucumber and lemon juice.\",\n      \"why\": \"This turns Wednesday's batches into a crisp, portable large lunch rather than repeating the dinner plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_chickpea_stew\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky tuna crown\",\n      \"title\": \"Warm tuna, chickpea and spinach pie with tomato\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"quarter of a lemon\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Serve one freshly baked portion of pie while hot. Slice the tomato, squeeze over the lemon and serve it alongside.\",\n      \"why\": \"The hot pie is a warm anchor, and its crisp pastry top supplies the one proper crust requested this week.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_tuna_chickpea_pie\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Green egg oat bowl\",\n      \"title\": \"Warm oats, eggs and peas\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"porridge oats\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 eggs\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"frozen peas\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"150 ml\",\n          \"amount\": 150,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"quarter of a teaspoon\",\n          \"amount\": 0.25,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Microwave the oats, water, peas and paprika in a large bowl for 2 minutes. Stir in the eggs, pierce the yolks and microwave in short bursts until set.\",\n      \"why\": \"It keeps the liked oats in rotation while changing the vegetables and retaining a warm egg anchor.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Crisp pie green plate\",\n      \"title\": \"Warm tuna and chickpea pie with peas\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"frozen peas\",\n          \"quantity\": \"160 g\",\n          \"amount\": 160,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"quarter of a lemon\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat one pie portion in a hot oven until piping hot and crisp. Boil the peas until hot, drain them and finish with lemon juice.\",\n      \"why\": \"Crisp reheated pastry and hot peas make the pie a different plate while preserving a warm anchor on Friday evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_tuna_chickpea_pie\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 20\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_smoky_chickpea_stew\",\n      \"title\": \"Smoky chickpea and pepper stew\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"red pepper\",\n          \"quantity\": \"1 pepper\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1 lemon\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tablespoon\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"2 teaspoons\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"chilli flakes\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Soften the diced onion and pepper in the oil for 6 minutes. Add the paprika, cumin and chilli for 30 seconds, then add the tomatoes and chickpeas. Simmer for 18 minutes and finish with the lemon juice. Serve one portion hot and chill the second promptly in a shallow container.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_basmati_rice\",\n      \"title\": \"Basmati rice\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"130 g\",\n          \"amount\": 130,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"260 ml\",\n          \"amount\": 260,\n          \"unit\": \"ml\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rinse the rice, combine it with the water and a pinch of salt, cover and simmer gently for 12 minutes. Rest off the heat for 5 minutes. Serve half immediately and spread the remainder in a shallow container to cool quickly before refrigerating for Thursday.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_tuna_chickpea_pie\",\n      \"title\": \"Smoky tuna and chickpea pie\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned tuna in spring water, drained\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"240 g\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"dairy-free puff pastry labelled sesame-free\",\n          \"quantity\": \"160 g\",\n          \"amount\": 160,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 teaspoons\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"chilli flakes\",\n          \"quantity\": \"half a teaspoon\",\n          \"amount\": 0.5,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oven to 220°C, or 200°C fan. Soften the chopped onion in 1 teaspoon oil for 5 minutes. Add the spinach to wilt, then stir in the tomatoes, paprika, chilli, chickpeas and tuna. Transfer to a small baking dish, top with the pastry, cut two steam slits and brush with the remaining oil. Bake for 22 minutes until deeply golden. Serve half and refrigerate the other half once cool. Freeze the unused pastry from the packet on Thursday.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 35,\n      \"cook_on\": \"thu\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_smoky_chickpea_stew\",\n        \"prep_basmati_rice\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"Wednesday is the added cooking day because Thursday's usual session cannot feed the earlier meals. Put the rice on first. While it simmers, chop the onion and pepper and start the stew. Rest the rice while the stew finishes, serve tonight's portions, then cool Thursday's rice and stew quickly in separate shallow containers.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_tuna_chickpea_pie\"\n      ],\n      \"total_minutes\": 40,\n      \"run_through\": \"Keep the chaotic late-meeting session to one preparation. Heat the oven first, soften the onion, wilt the spinach and mix the filling. Top it with pastry and bake. While it bakes, clear the pan and slice the dinner tomato. Serve one portion and chill Friday's portion once cool.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"porridge oats\",\n      \"quantity\": \"500 g pack\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"6 eggs\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned tuna in spring water\",\n      \"quantity\": \"3 x 145 g tins\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"wholemeal bread\",\n      \"quantity\": \"1 small loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"dairy-free puff pastry labelled sesame-free\",\n      \"quantity\": \"1 x 320 g pack\",\n      \"aisle\": \"other\"\n    },\n    {\n      \"term\": \"tinned chopped tomatoes\",\n      \"quantity\": \"2 x 400 g tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tomatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red pepper\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"frozen peas\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"frozen\"\n    },\n    {\n      \"term\": \"ground cumin\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chilli flakes\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-meal-v1",
+        "user_id": "2a000000-0000-4000-8000-000000000001",
+        "request_id": "2a000000-1100-4000-8000-000000000001"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787094758,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787094926,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:06:09.501898+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:07:16.233809+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:07:48.068212+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:08:38.924832+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:09:34.753512+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:10:04.287192+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:11:02.650584+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:12:38.308314+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:15:27.123673+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:15:27.165509+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:15:45.89746+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:17:04.647469+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:17:24.505199+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:17:45.260089+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:17:49.279126+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:18:01.139277+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:19:19.944985+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:19:47.631562+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:20:36.743727+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:21:00.922158+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:22:03.810226+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:22:49.275648+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    }
+  ]
+}

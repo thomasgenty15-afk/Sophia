@@ -1,0 +1,116 @@
+{
+  "cleanupLog": [
+    {
+      "table": "whatsapp_inbound_dedup",
+      "id": "c93f92bf-b42b-4b8c-9f7d-f0d9ed9f82da",
+      "status": 200
+    },
+    {
+      "table": "whatsapp_inbound_dedup",
+      "id": "7b96b567-c025-46b5-835f-b97afc7e6b68",
+      "status": 200
+    },
+    {
+      "table": "whatsapp_inbound_dedup",
+      "id": "7d2ab376-f1c9-49b0-a6ee-dca006a2df99",
+      "status": 200
+    },
+    {
+      "table": "whatsapp_inbound_dedup",
+      "id": "4576e044-a0c5-4b9f-ab47-af74491e8f06",
+      "status": 200
+    },
+    {
+      "table": "whatsapp_inbound_dedup",
+      "id": "4c95b060-d824-487d-80cf-32351329f889",
+      "status": 200
+    },
+    {
+      "table": "whatsapp_pending_actions",
+      "id": "f87fbb05-da58-4022-a97f-3cacaee38e1a",
+      "status": 200
+    },
+    {
+      "table": "scheduled_checkins",
+      "id": "f1806f83-954a-4b5e-b29f-eefc97f44a51",
+      "status": 200
+    },
+    {
+      "table": "chat_messages",
+      "id": "e9cf783f-10ff-402d-a877-315f661bc77d",
+      "status": 200
+    },
+    {
+      "table": "chat_messages",
+      "id": "c407b443-7483-4e4e-8317-4d4d4806a9c7",
+      "status": 200
+    },
+    {
+      "table": "chat_messages",
+      "id": "114f810f-6232-476c-bd1f-a0ca2dcf8b1e",
+      "status": 200
+    },
+    {
+      "table": "chat_messages",
+      "id": "9e02179b-a0e1-49a8-9371-bb868f9f4349",
+      "status": 200
+    },
+    {
+      "table": "chat_messages",
+      "id": "2464f0a0-39b1-46b4-9057-eaab8064a08e",
+      "status": 200
+    },
+    {
+      "table": "chat_messages",
+      "id": "de2ef313-6f26-47bb-84e0-1f660e0c65f5",
+      "status": 200
+    },
+    {
+      "table": "chat_messages",
+      "id": "2b3a4060-a0c8-416b-ac3e-c2d6c844088c",
+      "status": 200
+    },
+    {
+      "table": "chat_messages",
+      "id": "27a919c6-5815-457d-9ef2-b03dde763964",
+      "status": 200
+    },
+    {
+      "table": "chat_messages",
+      "id": "4f4f2752-c180-4748-8fc1-33127d2613fd",
+      "status": 200
+    },
+    {
+      "table": "chat_messages",
+      "id": "38d9c3ce-d7e6-44dd-95bd-9dd37de9fc55",
+      "status": 200
+    },
+    {
+      "table": "chat_messages",
+      "id": "6496c2ba-1d6d-47bb-9d65-6760a4c1dc81",
+      "status": 200
+    },
+    {
+      "table": "user_habit_week_occurrences",
+      "id": "ba6ceb87-87b3-4d7c-878e-2c9221cbcc1b",
+      "status": 200
+    },
+    {
+      "table": "user_habit_week_occurrences",
+      "id": "154cbb49-05db-416c-9dc7-17c33ffcb432",
+      "status": 200
+    },
+    {
+      "table": "user_habit_week_occurrences",
+      "id": "de203918-6ca6-4b93-af3f-5d81f825c8d3",
+      "restored": true
+    }
+  ],
+  "verification": {
+    "checkin": [],
+    "pending": [],
+    "entries": [],
+    "messages": [],
+    "createdOccurrences": []
+  }
+}

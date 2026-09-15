@@ -1,0 +1,149 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'ai besoin que tu me fasses une carte d'attaque pour ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+    "assistant": "Je te propose de creer une carte d'attaque courte pour ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.: Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier. Tu veux que je la cree ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+          "technique": "minimum_version",
+          "instruction": "Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier.",
+          "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+          "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose de creer une carte d'attaque courte pour ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.: Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier. Tu veux que je la cree ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "6f3961ea-305c-41eb-a739-0f1982a374dc",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je parle du sas de dechargement, pas de preparer la zone; juste le moment ou je dois ouvrir le carnet. Et plus petit: deux minutes max, poser le telephone loin et ecrire une ligne.",
+    "assistant": "Ok parfait : on oublie “zone”, et on vise juste le sas au moment où tu ouvres le carnet. 😄\n\nCarte d’attaque (2 minutes max) :\n1) Téléphone posé loin (hors de portée).\n2) Ouvre le carnet.\n3) Écris une seule ligne : “Là, maintenant, mon cerveau a besoin de ____.”\n\nTu la fais tout de suite après ça, ou plutôt dans 30 minutes ? 📱➡️📝",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "cancel",
+    "route_reason_code": "confirmation_correction_to_pending",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "confirmation_correction_to_pending",
+      "selected_handler": "cancel"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux que tu la crees dans Sophia avec ces trois etapes, pour ce soir. Pas un rappel, juste la carte d'attaque.",
+    "assistant": "C'est fait. J'ai créé la carte d'attaque \"Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\" : Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_attack_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "prepare_attack_card"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "6f3961ea-305c-41eb-a739-0f1982a374dc",
+      "attack_card_id": "12972864-00f0-47ec-b030-98b659730ce5",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

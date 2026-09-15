@@ -1,0 +1,30 @@
+═══ V4 — householdDietBlock renvoie à la section SANS CONDITION ═══
+muté
+
+[0m[1m[37m[41m FAILURES [0m
+
+renvoi ② — la section ABSENTE: aucun renvoi mort, et le canal réel est nommé [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_diet_test.ts:406:6[0m
+
+[0m[31mFAILED[0m | 29 passed | 1 failed [0m[38;5;245m(257ms)[0m
+
+[0m[1m[31merror[0m: Test failed
+--- restauré ---
+
+[0m[32mok[0m | 30 passed | 0 failed [0m[38;5;245m(223ms)[0m
+
+25dfb83b035026b47e283d2cef83ca53286177be8811e77a51a28dede99a72a1  supabase/functions/_shared/keel/household_diet.ts
+═══ V4 bis — le renvoi inconditionnel fait rougir AUSSI le banc de § 2.2 ═══
+muté
+[0m[1m[37m[41m FAILURES [0m
+
+renvoi ② — la section ABSENTE: aucun renvoi mort, et le canal réel est nommé [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_diet_test.ts:406:6[0m
+ENSEIGNÉ — ⛔ SANS SECTION, PAS DE RENVOI: le mensonge du 2026-09-13 [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_regime_variant_test.ts:280:6[0m
+
+[0m[31mFAILED[0m | 28 passed | 2 failed [0m[38;5;245m(244ms)[0m
+
+[0m[1m[31merror[0m: Test failed
+--- restauré ---
+
+[0m[32mok[0m | 30 passed | 0 failed [0m[38;5;245m(222ms)[0m
+
+25dfb83b035026b47e283d2cef83ca53286177be8811e77a51a28dede99a72a1  supabase/functions/_shared/keel/household_diet.ts

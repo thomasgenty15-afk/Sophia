@@ -1,0 +1,19 @@
+# Architecture Des Skills
+
+Ce document a été déplacé.
+
+Source canonique :
+
+```txt
+docs/agent-playbook/New/runtime-contracts/00-architecture-doctrine.md
+```
+
+Pour modifier Sophia Brain, lis dans cet ordre :
+
+1. `docs/agent-playbook/New/runtime-contracts/README.md`
+2. `docs/agent-playbook/New/runtime-contracts/00-architecture-doctrine.md`
+3. le contrat runtime du domaine concerné
+4. `docs/agent-playbook/New/test-material/15-chantiers-log.md`
+
+Ce fichier reste uniquement comme redirection de compatibilité pour les anciens
+prompts, plans et logs qui citent encore `13-architecture-skills`.

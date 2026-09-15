@@ -1,0 +1,51 @@
+5fa06ef6 quand une bouche veut ce qu'une autre refuse, le brief demande le composant séparé par boîte — et le compte ; le plafond du bac voit le cran de la note datée
+═══════ ASP4 — 18:24:48
+   retenu: [{"at":"2026-09-06","item":"","kind":"food.exclude","text":"les asperges","quote":null,"scope":"durable","value":null,"source":"written","subject":"member:620d929d-3c61-4af5-8575-150442486648","confidence":null},{"at":"2026-09-06","item":"","kind":"food.prefer","text":"les asperges","quote":null,"scope":"durable","value":null,"source":"written","subject":"member:b60378e6-1956-4dbd-b8dc-7480578a8282","confidence":null}] 
+   items en base: 2
+   ══ ASP4 · quatre · 7 j · balanced / 2 courses · Europe/Paris il est 2026-09-06 18:24
+      empreinte AVANT=987856c47b0c · llm_usage AVANT=11336 · début 16:24:50Z
+      http=200 · 286.254735 s · essais=1 · llm_usage delta=4
+      empreinte APRÈS=987856c47b0c (inchangée ✓)
+      → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/plan-ASP4-20260906-182449.json (68464 octets) · journal 29 lignes
+      ⤺ fixture restaurée ✓
+── énergie par bouche
+   ════ plan-ASP4-20260906-182449.json · quatre
+   ── cibles (production)
+   Paul    entretien 2700  cible 2200  déjeuner 880 kcal ≈ 652 g composés
+   Claire  entretien 1986  cible 1986  déjeuner 794 kcal ≈ 588 g composés
+   Leo     entretien 2459  cible 2459  déjeuner 984 kcal ≈ 729 g composés
+   Nora    entretien 1926  cible 1926  déjeuner 770 kcal ≈ 570 g composés
+   TABLE   cible/jour 8571 kcal · déjeuner 3428 kcal ≈ 2540 g composés
+   ── livré dans les boîtes (bac divisé par ses mangeurs)
+   Claire         12    1129        1358             82             0
+   Leo            12    1129        1358             82             0
+   Nora           12     935        1292             68             0
+   Paul           12    1344        1618             97             0
+   MASSE NON RÉSOLUE (plats en boîtes, ingrédients en g) : 0 / 17475 g = 0 %
+   jour    kcal   protéine   termes non résolus
+   MOYENNE  7272      464 g
+   ── compteurs
+     anchor: {"anchored": 12, "day_incomplete": 0, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 0, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 12}
+     unmet: {"none": 12, "factor_clamped": 0, "pot_ceiling": 0, "both": 0, "not_anchored": 0, "tub_estimate": 12}
+     unmet_band: {"lt_200": 10, "gte_200": 0}
+     densify: moved 0 g · closed 0 kcal · remaining_gte_200 0 · stopped {"closed": 0, "floor": 0, "ceiling": 0, "pot_exhausted": 0, "no_dense_target": 0, "no_box": 0, "no_density": 0}
+     meals_delivered: missing 0 · retry_attempts 1 · merged 12
+     regime_belt: bites 12 separated 0 refused 12 citation_repaired 0 item_repaired 0
+     boîtes à un nom: 24 · g moyens 570 · min 442 · max 763
+   ── explication IA: {"lines": ["J’ai gardé les petits-déjeuners autour de l’avoine mais ajouté du tofu fumé pour donner à chaque repas principal un véritable aliment protéiné.", "Les asperges restent un ajout séparé dans les boîtes de Paul afin que la base commune reste simple et utilisable par tous.", "Les repas principaux changent de forme entre bols, salades, pains garnis et poêlées pour éviter de servir exactement la même assiette plusieurs jours de suite."], "refusal": null}
+   ── plats: 36 · titres distincts 33 · jours composés 6 (fenêtre {'starts_on': '2026-09-07', 'duration_days': 6}) · sessions 3 · issues 75
+── ceinture d'exclusion (journal)
+   {'terms': 0, 'terms_unallocated': 1, 'mouths': 1, 'checked': 12, 'kept': 12, 'refused': 0, 'bites': 0, 'separated': 0, 'not_separated': 0, 'box_scoped': 12, 'bites_before': 0, 'bites_after': 0, 'retried': False}
+   retained_items: {'composition': 2, 'served': None, 'unrouted': 0, 'refused': 0, 'other_subjects': 0, 'craving': 0}
+   {"tag":"keel.household_meal.composition","user_id":"2b252884-e267-4d2f-8394-9edaaef85ee2","household_id":"e2f70120-2795-4ad4-ab80-50e6ebf20b93","mode":"per_portion","deltas":0,"family_service":true,"residual_gaps_count":0,"residual_gaps_max_band":"none"}
+── fuites : terme exclu dans les ITEMS d'une boîte de la bouche exclue (ou une casserole citée) — heuristique de banc
+   boîtes vérifiées 12 · fuites 0
+FIN ASP4 18:29:40
+══════ ARCHIVE plan-ASP4-20260906-182449.json
+   preference_split: {"pairs": 1, "wanters": 1, "composed": 0, "refuser_clean": 1, "refuser_bitten": 0}
+   exclusion_belt: {"mouths": 1, "checked": 12, "kept": 12, "refused": 0, "bites": 0, "separated": 0, "not_separated": 0, "box_scoped": 12}
+   boîtes citant une asperge (jour, moment, bouches, items): []
+   casseroles: []
+   titres avec asperge: []
+"keel.household_meal.preference_split","user_id":"2b252884-e267-4d2f-8394-9edaaef85ee2","household_id":"e2f70120-2795-4ad4-ab80-50e6ebf20b93","intent":"draft","pairs":1,"wanters":1,"composed":0,"refuser_clean":1,"refuser_bitten":0}
+fini 18:29:40

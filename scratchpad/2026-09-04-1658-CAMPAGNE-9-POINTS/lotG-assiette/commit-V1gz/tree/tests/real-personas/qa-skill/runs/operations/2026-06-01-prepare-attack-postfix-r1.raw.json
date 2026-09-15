@@ -1,0 +1,11 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-attack-card-postfix-r1-t01",
+    "user": "Je ne sais pas si je veux juste comprendre les cartes d’attaque ou en préparer une pour mon action du matin.",
+    "http_status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

@@ -1,0 +1,3422 @@
+{
+  "run_id": "daily-two-plans-four-actions-success-20260624-r1",
+  "persona": "rose",
+  "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+  "created_at": "2026-06-24T13:55:41.680Z",
+  "qa_mode": "two_plans_four_actions_all_success",
+  "local_supabase": {
+    "api_url": "http://127.0.0.1:54321"
+  },
+  "fixture": {
+    "qa_plan": {
+      "id": "b638a3d3-d002-463e-ace3-0271706e3771",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "status": "draft",
+      "version": 1101,
+      "title": "QA two-plan daily fixture daily-two-plans-four-actions-success-20260624-r1",
+      "content": {
+        "source": "qa_daily_two_plans_fixture",
+        "variant": "success",
+        "qa_run_id": "daily-two-plans-four-actions-success-20260624-r1"
+      },
+      "generation_attempts": 0,
+      "last_generation_reason": null,
+      "activated_at": null,
+      "completed_at": null,
+      "archived_at": null,
+      "created_at": "2026-06-24T13:55:41.685748+00:00",
+      "updated_at": "2026-06-24T13:55:41.685748+00:00",
+      "generation_feedback": null,
+      "generation_input_snapshot": null
+    },
+    "qa_items": [
+      {
+        "id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Respiration minute avant envie",
+        "description": "Faire une minute de respiration lente avant de répondre à une envie automatique.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "1 fois aujourd’hui",
+        "scheduled_days": null,
+        "time_of_day": "anytime",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_daily_two_plans_fixture",
+          "qa_run_id": "daily-two-plans-four-actions-success-20260624-r1"
+        },
+        "created_at": "2026-06-24T13:55:41.69308+00:00",
+        "updated_at": "2026-06-24T13:55:41.69308+00:00",
+        "activated_at": null,
+        "completed_at": null,
+        "phase_id": "qa-phase",
+        "phase_order": 1,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      },
+      {
+        "id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "title": "Préparer une alternative du soir",
+        "description": "Choisir une activité simple pour occuper le créneau où l’envie arrive habituellement.",
+        "tracking_type": "boolean",
+        "activation_order": 2,
+        "activation_condition": null,
+        "current_habit_state": null,
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "scheduled_days": null,
+        "time_of_day": "evening",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_daily_two_plans_fixture",
+          "qa_run_id": "daily-two-plans-four-actions-success-20260624-r1"
+        },
+        "created_at": "2026-06-24T13:55:41.69308+00:00",
+        "updated_at": "2026-06-24T13:55:41.69308+00:00",
+        "activated_at": null,
+        "completed_at": null,
+        "phase_id": "qa-phase",
+        "phase_order": 1,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_started",
+        "cards_generated_at": null
+      }
+    ],
+    "qa_occurrences": [
+      {
+        "id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+        "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+        "week_start_date": "2026-07-06",
+        "ordinal": 1,
+        "planned_day": "mon",
+        "original_planned_day": null,
+        "actual_day": null,
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "created_at": "2026-06-24T13:55:41.69879+00:00",
+        "updated_at": "2026-06-24T13:55:41.69879+00:00",
+        "default_day": "mon"
+      },
+      {
+        "id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+        "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+        "week_start_date": "2026-07-06",
+        "ordinal": 2,
+        "planned_day": "thu",
+        "original_planned_day": null,
+        "actual_day": null,
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "created_at": "2026-06-24T13:55:41.69879+00:00",
+        "updated_at": "2026-06-24T13:55:41.69879+00:00",
+        "default_day": "thu"
+      }
+    ]
+  },
+  "scheduled_checkin": {
+    "id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+    "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "event_context": "action_evening_review_v2",
+    "draft_message": null,
+    "scheduled_for": "2026-06-24T13:55:36.68+00:00",
+    "status": "pending",
+    "created_at": "2026-06-24T13:55:41.710192+00:00",
+    "processed_at": null,
+    "message_mode": "dynamic",
+    "message_payload": {
+      "source": "qa_dynamic_daily_two_plans_fixture",
+      "variant": "all_success",
+      "version": 1,
+      "timezone": "Europe/Paris",
+      "qa_run_id": "daily-two-plans-four-actions-success-20260624-r1",
+      "local_date": "2026-07-06",
+      "occurrence_ids": [
+        "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+        "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+        "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+        "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+      ],
+      "chat_capability": "daily_action_review",
+      "week_start_date": "2026-07-06",
+      "reviewed_local_date": "2026-07-06"
+    },
+    "origin": "action_review",
+    "delivery_attempt_count": 0,
+    "delivery_last_error": null,
+    "delivery_last_error_at": null,
+    "delivery_last_request_id": null,
+    "recurring_reminder_id": null
+  },
+  "process_checkins": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "processed": 1,
+      "flushed_deferred": 0,
+      "delivered_rendez_vous": 0,
+      "processed_access_notifications": 0,
+      "processed_proactive_candidates": 0,
+      "request_id": "daily-two-plans-four-actions-success-20260624-r1-process"
+    },
+    "raw_text": "{\"success\":true,\"processed\":1,\"flushed_deferred\":0,\"delivered_rendez_vous\":0,\"processed_access_notifications\":0,\"processed_proactive_candidates\":0,\"request_id\":\"daily-two-plans-four-actions-success-20260624-r1-process\"}"
+  },
+  "pending_initial": {
+    "id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+    "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "kind": "scheduled_checkin",
+    "status": "pending",
+    "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+    "payload": {
+      "targets": [
+        {
+          "kind": "habit",
+          "title": "Journée 100% sans cannabis",
+          "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+          "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "dimension": "habits",
+          "description": "Ne pas consommer de cannabis du lever au coucher.",
+          "planned_day": "mon",
+          "time_of_day": "anytime",
+          "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+          "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+          "tracking_type": "count",
+          "week_start_date": "2026-07-06",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "reviewed_local_date": "2026-07-06",
+          "original_planned_day": null
+        },
+        {
+          "kind": "task",
+          "title": "Organiser une soirée 'zéro vide'",
+          "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+          "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "dimension": "missions",
+          "description": "Pour t'aider à valider un 3ème jour off, prévois une soirée à l'extérieur ou une activité très prenante chez toi pour ne laisser aucune place à l'ennui.",
+          "planned_day": "thu",
+          "time_of_day": "anytime",
+          "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+          "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-07-06",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "reviewed_local_date": "2026-07-06",
+          "original_planned_day": "thu"
+        },
+        {
+          "kind": "habit",
+          "title": "Respiration minute avant envie",
+          "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+          "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "dimension": "habits",
+          "description": "Faire une minute de respiration lente avant de répondre à une envie automatique.",
+          "planned_day": "mon",
+          "time_of_day": "anytime",
+          "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+          "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-07-06",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "reviewed_local_date": "2026-07-06",
+          "original_planned_day": null
+        },
+        {
+          "kind": "task",
+          "title": "Préparer une alternative du soir",
+          "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+          "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "dimension": "missions",
+          "description": "Choisir une activité simple pour occuper le créneau où l’envie arrive habituellement.",
+          "planned_day": "thu",
+          "time_of_day": "evening",
+          "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+          "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-07-06",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "reviewed_local_date": "2026-07-06",
+          "original_planned_day": null
+        }
+      ],
+      "timezone": "Europe/Paris",
+      "local_date": "2026-07-06",
+      "message_mode": "conversation",
+      "review_state": {
+        "items": {
+          "049c3b1e-76d6-4240-a526-1a1c15dd0d27": {
+            "title": "Organiser une soirée 'zéro vide'",
+            "outcome": null,
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "mission",
+            "reason_text": null,
+            "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+            "evidence_text": null,
+            "missing_slots": [
+              "outcome"
+            ],
+            "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          },
+          "4e108ef0-c360-4a6d-94d7-29af64af9f65": {
+            "title": "Préparer une alternative du soir",
+            "outcome": null,
+            "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "mission",
+            "reason_text": null,
+            "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+            "evidence_text": null,
+            "missing_slots": [
+              "not_asked",
+              "outcome"
+            ],
+            "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          },
+          "66aed007-4139-4d36-a9c6-0e1b5754a8bf": {
+            "title": "Respiration minute avant envie",
+            "outcome": null,
+            "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "habit",
+            "reason_text": null,
+            "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+            "evidence_text": null,
+            "missing_slots": [
+              "not_asked",
+              "outcome"
+            ],
+            "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          },
+          "a8d1b2aa-da33-4725-8a24-7c1f7a566742": {
+            "title": "Journée 100% sans cannabis",
+            "outcome": null,
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "habit",
+            "reason_text": null,
+            "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+            "evidence_text": null,
+            "missing_slots": [
+              "outcome"
+            ],
+            "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          }
+        },
+        "intent": "open_review",
+        "source": "daily_action_review_v1",
+        "status": "collecting",
+        "skill_id": "daily_action_review_v1",
+        "constraints": [
+          "one_question_max",
+          "no_solution_first",
+          "no_tool_suggestion",
+          "no_plan_adjustment",
+          "no_potion",
+          "no_guilt",
+          "respect_user_stopped",
+          "do_not_mark_without_evidence",
+          "do_not_apply_without_complete_slots"
+        ],
+        "effect_plan": {
+          "allowed": false,
+          "effects": []
+        },
+        "stop_reason": null,
+        "next_question": null,
+        "should_apply_effects": false,
+        "next_question_targets": [
+          "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+          "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+        ],
+        "generated_user_message": null,
+        "remaining_occurrence_ids": [
+          "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+          "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+        ],
+        "asked_occurrence_ids_history": [
+          [
+            "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+            "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+          ]
+        ],
+        "current_focus_occurrence_ids": [
+          "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+          "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+        ],
+        "action_intelligence_by_occurrence_id": {}
+      },
+      "draft_message": "Je fais le point avec toi sur aujourd’hui : journée 100% sans cannabis et soirée “zéro vide”.  \nTu me confirmes ce que tu gardes comme bilan final pour ces deux actions ?",
+      "event_context": "action_evening_review_v2",
+      "occurrence_ids": [
+        "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+        "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+        "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+        "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+      ],
+      "chat_capability": "daily_action_review",
+      "grouping_reason": "same_plan",
+      "week_start_date": "2026-07-06",
+      "asked_occurrence_ids": [
+        "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+        "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+      ],
+      "action_evening_review": true,
+      "already_resolved_targets": [],
+      "initial_note_information": {
+        "evidence": [
+          "event_context=action_evening_review_v2",
+          "process-checkins selected and persisted daily review targets"
+        ],
+        "confidence": "high",
+        "risk_score": 0,
+        "source_flow": "process_checkins",
+        "handoff_reason": "bridge",
+        "source_flow_id": "process_checkins.action_evening_review_v2",
+        "collected_state": {
+          "timezone": "Europe/Paris",
+          "local_date": "2026-07-06",
+          "event_context": "action_evening_review_v2",
+          "target_titles": [
+            "Journée 100% sans cannabis",
+            "Organiser une soirée 'zéro vide'",
+            "Respiration minute avant envie",
+            "Préparer une alternative du soir"
+          ],
+          "week_start_date": "2026-07-06",
+          "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "target_occurrence_ids": [
+            "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+            "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+            "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+            "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+          ],
+          "already_resolved_occurrence_ids": []
+        },
+        "target_dispatcher": "daily_action_review_v1",
+        "structured_context": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Journée 100% sans cannabis",
+              "dimension": "habits",
+              "description": "Ne pas consommer de cannabis du lever au coucher.",
+              "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+              "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742"
+            },
+            {
+              "kind": "task",
+              "title": "Organiser une soirée 'zéro vide'",
+              "dimension": "missions",
+              "description": "Pour t'aider à valider un 3ème jour off, prévois une soirée à l'extérieur ou une activité très prenante chez toi pour ne laisser aucune place à l'ennui.",
+              "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+              "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+            },
+            {
+              "kind": "habit",
+              "title": "Respiration minute avant envie",
+              "dimension": "habits",
+              "description": "Faire une minute de respiration lente avant de répondre à une envie automatique.",
+              "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+              "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf"
+            },
+            {
+              "kind": "task",
+              "title": "Préparer une alternative du soir",
+              "dimension": "missions",
+              "description": "Choisir une activité simple pour occuper le créneau où l’envie arrive habituellement.",
+              "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+              "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+            }
+          ],
+          "source_flow": "process_checkins",
+          "event_context": "action_evening_review_v2",
+          "chat_capability": "daily_action_review",
+          "pending_action_kind": "scheduled_checkin"
+        },
+        "active_flow_summary": "System opened daily review for the selected action targets.",
+        "unresolved_questions": [
+          "Which selected actions were done or not done today.",
+          "If not done, the reason and whether the action remains relevant."
+        ],
+        "user_message_summary": null,
+        "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+        "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+        "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+        "target_local_dispatcher_hint": "daily_action_review_v1",
+        "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+      },
+      "not_yet_asked_occurrence_ids": [
+        "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+        "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+      ]
+    },
+    "expires_at": "2026-06-25T07:55:46.552+00:00",
+    "created_at": "2026-06-24T13:55:46.553873+00:00",
+    "processed_at": null,
+    "not_before": null
+  },
+  "target_occurrences": [
+    {
+      "id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+      "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "planned_day": "mon",
+      "status": "planned",
+      "source": "default_generated",
+      "validated_at": null,
+      "week_start_date": "2026-07-06",
+      "ordinal": 1,
+      "original_planned_day": null,
+      "actual_day": null,
+      "default_day": "mon",
+      "item": {
+        "id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Journée 100% sans cannabis",
+        "description": "Ne pas consommer de cannabis du lever au coucher.",
+        "tracking_type": "count",
+        "activation_order": 4,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 2,
+        "current_reps": 0,
+        "cadence_label": "2 jours / semaine",
+        "scheduled_days": null,
+        "time_of_day": "anytime",
+        "start_after_item_id": null,
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p2-habits-001"
+          }
+        },
+        "created_at": "2026-06-24T13:06:43.296+00:00",
+        "updated_at": "2026-06-24T13:06:43.296+00:00",
+        "activated_at": "2026-06-24T13:06:43.296+00:00",
+        "completed_at": null,
+        "phase_id": "phase-2",
+        "phase_order": 2,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_started",
+        "cards_generated_at": null
+      }
+    },
+    {
+      "id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+      "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "planned_day": "thu",
+      "status": "planned",
+      "source": "default_generated",
+      "validated_at": null,
+      "week_start_date": "2026-07-06",
+      "ordinal": 1,
+      "original_planned_day": "thu",
+      "actual_day": null,
+      "default_day": "thu",
+      "item": {
+        "id": "eca16a71-2291-4913-a059-4728d90b39ae",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "title": "Organiser une soirée 'zéro vide'",
+        "description": "Pour t'aider à valider un 3ème jour off, prévois une soirée à l'extérieur ou une activité très prenante chez toi pour ne laisser aucune place à l'ennui.",
+        "tracking_type": "boolean",
+        "activation_order": 3,
+        "activation_condition": null,
+        "current_habit_state": null,
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "scheduled_days": null,
+        "time_of_day": "anytime",
+        "start_after_item_id": null,
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p2-missions-002"
+          }
+        },
+        "created_at": "2026-06-24T13:06:43.296+00:00",
+        "updated_at": "2026-06-24T13:06:43.296+00:00",
+        "activated_at": "2026-06-24T13:06:43.296+00:00",
+        "completed_at": null,
+        "phase_id": "phase-2",
+        "phase_order": 2,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_started",
+        "cards_generated_at": null
+      }
+    },
+    {
+      "id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+      "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+      "week_start_date": "2026-07-06",
+      "ordinal": 1,
+      "planned_day": "mon",
+      "original_planned_day": null,
+      "actual_day": null,
+      "status": "planned",
+      "source": "manual_change",
+      "validated_at": null,
+      "created_at": "2026-06-24T13:55:41.69879+00:00",
+      "updated_at": "2026-06-24T13:55:41.69879+00:00",
+      "default_day": "mon",
+      "item": {
+        "id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Respiration minute avant envie",
+        "description": "Faire une minute de respiration lente avant de répondre à une envie automatique.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "1 fois aujourd’hui",
+        "scheduled_days": null,
+        "time_of_day": "anytime",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_daily_two_plans_fixture",
+          "qa_run_id": "daily-two-plans-four-actions-success-20260624-r1"
+        },
+        "created_at": "2026-06-24T13:55:41.69308+00:00",
+        "updated_at": "2026-06-24T13:55:41.69308+00:00",
+        "activated_at": null,
+        "completed_at": null,
+        "phase_id": "qa-phase",
+        "phase_order": 1,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    {
+      "id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+      "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+      "week_start_date": "2026-07-06",
+      "ordinal": 2,
+      "planned_day": "thu",
+      "original_planned_day": null,
+      "actual_day": null,
+      "status": "planned",
+      "source": "manual_change",
+      "validated_at": null,
+      "created_at": "2026-06-24T13:55:41.69879+00:00",
+      "updated_at": "2026-06-24T13:55:41.69879+00:00",
+      "default_day": "thu",
+      "item": {
+        "id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "title": "Préparer une alternative du soir",
+        "description": "Choisir une activité simple pour occuper le créneau où l’envie arrive habituellement.",
+        "tracking_type": "boolean",
+        "activation_order": 2,
+        "activation_condition": null,
+        "current_habit_state": null,
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "scheduled_days": null,
+        "time_of_day": "evening",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_daily_two_plans_fixture",
+          "qa_run_id": "daily-two-plans-four-actions-success-20260624-r1"
+        },
+        "created_at": "2026-06-24T13:55:41.69308+00:00",
+        "updated_at": "2026-06-24T13:55:41.69308+00:00",
+        "activated_at": null,
+        "completed_at": null,
+        "phase_id": "qa-phase",
+        "phase_order": 1,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_started",
+        "cards_generated_at": null
+      }
+    }
+  ],
+  "occurrence_snapshots_before": [
+    {
+      "id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+      "week_start_date": "2026-07-06",
+      "ordinal": 1,
+      "planned_day": "mon",
+      "original_planned_day": null,
+      "actual_day": null,
+      "status": "planned",
+      "source": "default_generated",
+      "validated_at": null,
+      "created_at": "2026-06-24T13:07:24.726035+00:00",
+      "updated_at": "2026-06-24T13:16:37.48+00:00",
+      "default_day": "mon"
+    },
+    {
+      "id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+      "week_start_date": "2026-07-06",
+      "ordinal": 1,
+      "planned_day": "thu",
+      "original_planned_day": "thu",
+      "actual_day": null,
+      "status": "planned",
+      "source": "default_generated",
+      "validated_at": null,
+      "created_at": "2026-06-24T13:07:24.71932+00:00",
+      "updated_at": "2026-06-24T13:16:37.48+00:00",
+      "default_day": "thu"
+    },
+    {
+      "id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+      "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+      "week_start_date": "2026-07-06",
+      "ordinal": 1,
+      "planned_day": "mon",
+      "original_planned_day": null,
+      "actual_day": null,
+      "status": "planned",
+      "source": "manual_change",
+      "validated_at": null,
+      "created_at": "2026-06-24T13:55:41.69879+00:00",
+      "updated_at": "2026-06-24T13:55:41.69879+00:00",
+      "default_day": "mon"
+    },
+    {
+      "id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+      "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+      "week_start_date": "2026-07-06",
+      "ordinal": 2,
+      "planned_day": "thu",
+      "original_planned_day": null,
+      "actual_day": null,
+      "status": "planned",
+      "source": "manual_change",
+      "validated_at": null,
+      "created_at": "2026-06-24T13:55:41.69879+00:00",
+      "updated_at": "2026-06-24T13:55:41.69879+00:00",
+      "default_day": "thu"
+    }
+  ],
+  "whatsapp": {
+    "from": "15553958417369",
+    "display_phone": "15556092763741",
+    "phone_number_id": "f3c2f85a90767e93"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "role": "assistant",
+      "text": "Je fais le point avec toi sur aujourd’hui : journée 100% sans cannabis et soirée “zéro vide”.  \nTu me confirmes ce que tu gardes comme bilan final pour ces deux actions ?",
+      "source": "process-checkins",
+      "trace": {
+        "pending_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+        "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+        "target_count": 4
+      }
+    },
+    {
+      "turn": 1,
+      "role": "user",
+      "text": "Oui, tout s'est bien passé pour les quatre. La journée sans cannabis est tenue jusqu'au coucher, la soirée zéro vide était organisée, j'ai fait la respiration minute avant l'envie, et j'ai aussi préparé l'alternative du soir."
+    },
+    {
+      "turn": 1,
+      "role": "assistant",
+      "text": "C’est noté pour les 4 : journée sans cannabis, soirée zéro vide, respiration minute avant envie, et alternative du soir.",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "d46a37e4-c278-4b2c-8be0-47eacd287143",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "done",
+        "entries_count": 4,
+        "occurrence_statuses": [
+          {
+            "id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+            "status": "done"
+          },
+          {
+            "id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+            "status": "done"
+          },
+          {
+            "id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+            "status": "done"
+          },
+          {
+            "id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+            "status": "done"
+          }
+        ]
+      }
+    }
+  ],
+  "latest": {
+    "pending_after": [
+      {
+        "id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+        "status": "done",
+        "payload": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Journée 100% sans cannabis",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "habits",
+              "description": "Ne pas consommer de cannabis du lever au coucher.",
+              "planned_day": "mon",
+              "time_of_day": "anytime",
+              "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+              "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+              "tracking_type": "count",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-07-06",
+              "original_planned_day": null
+            },
+            {
+              "kind": "task",
+              "title": "Organiser une soirée 'zéro vide'",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "missions",
+              "description": "Pour t'aider à valider un 3ème jour off, prévois une soirée à l'extérieur ou une activité très prenante chez toi pour ne laisser aucune place à l'ennui.",
+              "planned_day": "thu",
+              "time_of_day": "anytime",
+              "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+              "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-07-06",
+              "original_planned_day": "thu"
+            },
+            {
+              "kind": "habit",
+              "title": "Respiration minute avant envie",
+              "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "habits",
+              "description": "Faire une minute de respiration lente avant de répondre à une envie automatique.",
+              "planned_day": "mon",
+              "time_of_day": "anytime",
+              "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+              "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-07-06",
+              "original_planned_day": null
+            },
+            {
+              "kind": "task",
+              "title": "Préparer une alternative du soir",
+              "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "missions",
+              "description": "Choisir une activité simple pour occuper le créneau où l’envie arrive habituellement.",
+              "planned_day": "thu",
+              "time_of_day": "evening",
+              "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+              "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-07-06",
+              "original_planned_day": null
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "local_date": "2026-07-06",
+          "completed_at": "2026-06-24T13:56:01.663Z",
+          "message_mode": "conversation",
+          "review_state": {
+            "items": {
+              "049c3b1e-76d6-4240-a526-1a1c15dd0d27": {
+                "title": "Organiser une soirée 'zéro vide'",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": null,
+                "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                "evidence_text": "la soirée zéro vide était organisée",
+                "missing_slots": [],
+                "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              },
+              "4e108ef0-c360-4a6d-94d7-29af64af9f65": {
+                "title": "Préparer une alternative du soir",
+                "outcome": "completed",
+                "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": null,
+                "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                "evidence_text": "j'ai aussi préparé l'alternative du soir",
+                "missing_slots": [],
+                "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              },
+              "66aed007-4139-4d36-a9c6-0e1b5754a8bf": {
+                "title": "Respiration minute avant envie",
+                "outcome": "completed",
+                "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "habit",
+                "reason_text": null,
+                "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                "evidence_text": "j'ai fait la respiration minute avant l'envie",
+                "missing_slots": [],
+                "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              },
+              "a8d1b2aa-da33-4725-8a24-7c1f7a566742": {
+                "title": "Journée 100% sans cannabis",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "habit",
+                "reason_text": null,
+                "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                "evidence_text": "La journée sans cannabis est tenue jusqu'au coucher",
+                "missing_slots": [],
+                "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              }
+            },
+            "intent": "answer_review",
+            "source": "daily_action_review_v1",
+            "status": "complete",
+            "skill_id": "daily_action_review_v1",
+            "constraints": [
+              "one_question_max",
+              "no_solution_first",
+              "no_tool_suggestion",
+              "no_plan_adjustment",
+              "no_potion",
+              "no_guilt",
+              "respect_user_stopped",
+              "do_not_mark_without_evidence",
+              "do_not_apply_without_complete_slots"
+            ],
+            "effect_plan": {
+              "allowed": true,
+              "effects": [
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                  "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                  "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                  "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                  "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                }
+              ]
+            },
+            "stop_reason": "all_required_slots_filled",
+            "next_question": null,
+            "last_user_text": "Oui, tout s'est bien passé pour les quatre. La journée sans cannabis est tenue jusqu'au coucher, la soirée zéro vide était organisée, j'ai fait la respiration minute avant l'envie, et j'ai aussi préparé l'alternative du soir.",
+            "blocked_effects": [],
+            "should_apply_effects": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "items.a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "items.049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "items.66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "items.4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [
+                "items.66aed007-4139-4d36-a9c6-0e1b5754a8bf.missing_slots",
+                "items.4e108ef0-c360-4a6d-94d7-29af64af9f65.missing_slots"
+              ],
+              "preserved_fields": [
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "next_question_targets": [],
+            "generated_user_message": null,
+            "remaining_occurrence_ids": [],
+            "asked_occurrence_ids_history": [
+              [
+                "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+              ],
+              [
+                "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+              ]
+            ],
+            "current_focus_occurrence_ids": [
+              "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+              "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+              "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+              "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+            ],
+            "action_intelligence_by_occurrence_id": {}
+          },
+          "draft_message": "Je fais le point avec toi sur aujourd’hui : journée 100% sans cannabis et soirée “zéro vide”.  \nTu me confirmes ce que tu gardes comme bilan final pour ces deux actions ?",
+          "event_context": "action_evening_review_v2",
+          "occurrence_ids": [
+            "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+            "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+            "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+            "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+          ],
+          "chat_capability": "daily_action_review",
+          "grouping_reason": "same_plan",
+          "week_start_date": "2026-07-06",
+          "completed_flow_memo": {
+            "status": "completed",
+            "completed_at": "2026-06-24T13:56:01.663Z",
+            "source_flow_id": "daily_action_review_v1",
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "c9e15e13-b515-45e1-91d4-e5e433f91a36",
+                "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                "commit_status": "inserted",
+                "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "0f83a6f7-8b9e-4d2f-991d-cb9e106baf27",
+                "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                "commit_status": "inserted",
+                "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "3b7ee506-d39f-43d2-9760-87db03f9048c",
+                "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                "commit_status": "inserted",
+                "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "672fb5af-bce6-402e-ad73-3c9f72f2e82d",
+                "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                "commit_status": "inserted",
+                "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "asked_occurrence_ids": [
+            "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+            "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+          ],
+          "action_evening_review": true,
+          "missing_occurrence_ids": [],
+          "already_resolved_targets": [],
+          "initial_note_information": {
+            "evidence": [
+              "event_context=action_evening_review_v2",
+              "process-checkins selected and persisted daily review targets"
+            ],
+            "confidence": "high",
+            "risk_score": 0,
+            "source_flow": "process_checkins",
+            "handoff_reason": "bridge",
+            "source_flow_id": "process_checkins.action_evening_review_v2",
+            "collected_state": {
+              "timezone": "Europe/Paris",
+              "local_date": "2026-07-06",
+              "event_context": "action_evening_review_v2",
+              "target_titles": [
+                "Journée 100% sans cannabis",
+                "Organiser une soirée 'zéro vide'",
+                "Respiration minute avant envie",
+                "Préparer une alternative du soir"
+              ],
+              "week_start_date": "2026-07-06",
+              "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+              "target_occurrence_ids": [
+                "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+              ],
+              "already_resolved_occurrence_ids": []
+            },
+            "target_dispatcher": "daily_action_review_v1",
+            "structured_context": {
+              "targets": [
+                {
+                  "kind": "habit",
+                  "title": "Journée 100% sans cannabis",
+                  "dimension": "habits",
+                  "description": "Ne pas consommer de cannabis du lever au coucher.",
+                  "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                  "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742"
+                },
+                {
+                  "kind": "task",
+                  "title": "Organiser une soirée 'zéro vide'",
+                  "dimension": "missions",
+                  "description": "Pour t'aider à valider un 3ème jour off, prévois une soirée à l'extérieur ou une activité très prenante chez toi pour ne laisser aucune place à l'ennui.",
+                  "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                  "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+                },
+                {
+                  "kind": "habit",
+                  "title": "Respiration minute avant envie",
+                  "dimension": "habits",
+                  "description": "Faire une minute de respiration lente avant de répondre à une envie automatique.",
+                  "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                  "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf"
+                },
+                {
+                  "kind": "task",
+                  "title": "Préparer une alternative du soir",
+                  "dimension": "missions",
+                  "description": "Choisir une activité simple pour occuper le créneau où l’envie arrive habituellement.",
+                  "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                  "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+                }
+              ],
+              "source_flow": "process_checkins",
+              "event_context": "action_evening_review_v2",
+              "chat_capability": "daily_action_review",
+              "pending_action_kind": "scheduled_checkin"
+            },
+            "active_flow_summary": "System opened daily review for the selected action targets.",
+            "unresolved_questions": [
+              "Which selected actions were done or not done today.",
+              "If not done, the reason and whether the action remains relevant."
+            ],
+            "user_message_summary": null,
+            "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+            "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+            "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+            "target_local_dispatcher_hint": "daily_action_review_v1",
+            "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+          },
+          "daily_review_effects_result": {
+            "failed_effects": [],
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "c9e15e13-b515-45e1-91d4-e5e433f91a36",
+                "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                "commit_status": "inserted",
+                "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "0f83a6f7-8b9e-4d2f-991d-cb9e106baf27",
+                "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                "commit_status": "inserted",
+                "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "3b7ee506-d39f-43d2-9760-87db03f9048c",
+                "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                "commit_status": "inserted",
+                "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "672fb5af-bce6-402e-ad73-3c9f72f2e82d",
+                "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                "commit_status": "inserted",
+                "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "not_yet_asked_occurrence_ids": [
+            "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+            "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+          ],
+          "daily_action_review_diagnosis": {
+            "flow_action": "answer_review",
+            "visible_task": "commit_success",
+            "blocked_effects": [],
+            "selected_targets": [
+              "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+              "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+              "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+              "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+            ],
+            "candidate_summary": [
+              {
+                "title": "Journée 100% sans cannabis",
+                "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742"
+              },
+              {
+                "title": "Organiser une soirée 'zéro vide'",
+                "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+              },
+              {
+                "title": "Respiration minute avant envie",
+                "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf"
+              },
+              {
+                "title": "Préparer une alternative du soir",
+                "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+              }
+            ],
+            "direct_handoff_flag": false,
+            "stabilization_ready": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "items.a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "items.049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "items.66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "items.4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [
+                "items.66aed007-4139-4d36-a9c6-0e1b5754a8bf.missing_slots",
+                "items.4e108ef0-c360-4a6d-94d7-29af64af9f65.missing_slots"
+              ],
+              "preserved_fields": [
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "pending_state_present": true
+          }
+        },
+        "processed_at": "2026-06-24T13:56:05.481+00:00"
+      }
+    ],
+    "entries": [
+      {
+        "id": "c9e15e13-b515-45e1-91d4-e5e433f91a36",
+        "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-07-06",
+          "reason_text": null,
+          "evidence_text": "La journée sans cannabis est tenue jusqu'au coucher",
+          "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "effective_at": "2026-07-06T12:00:00+00:00",
+        "created_at": "2026-06-24T13:56:01.663+00:00"
+      },
+      {
+        "id": "0f83a6f7-8b9e-4d2f-991d-cb9e106baf27",
+        "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-07-06",
+          "reason_text": null,
+          "evidence_text": "la soirée zéro vide était organisée",
+          "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "effective_at": "2026-07-06T12:00:00+00:00",
+        "created_at": "2026-06-24T13:56:01.663+00:00"
+      },
+      {
+        "id": "3b7ee506-d39f-43d2-9760-87db03f9048c",
+        "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-07-06",
+          "reason_text": null,
+          "evidence_text": "j'ai fait la respiration minute avant l'envie",
+          "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "effective_at": "2026-07-06T12:00:00+00:00",
+        "created_at": "2026-06-24T13:56:01.663+00:00"
+      },
+      {
+        "id": "672fb5af-bce6-402e-ad73-3c9f72f2e82d",
+        "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-07-06",
+          "reason_text": null,
+          "evidence_text": "j'ai aussi préparé l'alternative du soir",
+          "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        },
+        "effective_at": "2026-07-06T12:00:00+00:00",
+        "created_at": "2026-06-24T13:56:01.663+00:00"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+        "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+        "planned_day": "mon",
+        "status": "done",
+        "source": "default_generated",
+        "validated_at": "2026-06-24T13:56:01.663+00:00",
+        "updated_at": "2026-06-24T13:56:01.663+00:00"
+      },
+      {
+        "id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+        "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+        "planned_day": "thu",
+        "status": "done",
+        "source": "default_generated",
+        "validated_at": "2026-06-24T13:56:01.663+00:00",
+        "updated_at": "2026-06-24T13:56:01.663+00:00"
+      },
+      {
+        "id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+        "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+        "planned_day": "mon",
+        "status": "done",
+        "source": "manual_change",
+        "validated_at": "2026-06-24T13:56:01.663+00:00",
+        "updated_at": "2026-06-24T13:56:01.663+00:00"
+      },
+      {
+        "id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+        "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+        "planned_day": "thu",
+        "status": "done",
+        "source": "manual_change",
+        "validated_at": "2026-06-24T13:56:01.663+00:00",
+        "updated_at": "2026-06-24T13:56:01.663+00:00"
+      }
+    ]
+  },
+  "verification_after_daily": {
+    "pending": [
+      {
+        "id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+        "status": "done",
+        "processed_at": "2026-06-24T13:56:05.481+00:00",
+        "payload": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Journée 100% sans cannabis",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "habits",
+              "description": "Ne pas consommer de cannabis du lever au coucher.",
+              "planned_day": "mon",
+              "time_of_day": "anytime",
+              "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+              "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+              "tracking_type": "count",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-07-06",
+              "original_planned_day": null
+            },
+            {
+              "kind": "task",
+              "title": "Organiser une soirée 'zéro vide'",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "missions",
+              "description": "Pour t'aider à valider un 3ème jour off, prévois une soirée à l'extérieur ou une activité très prenante chez toi pour ne laisser aucune place à l'ennui.",
+              "planned_day": "thu",
+              "time_of_day": "anytime",
+              "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+              "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-07-06",
+              "original_planned_day": "thu"
+            },
+            {
+              "kind": "habit",
+              "title": "Respiration minute avant envie",
+              "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "habits",
+              "description": "Faire une minute de respiration lente avant de répondre à une envie automatique.",
+              "planned_day": "mon",
+              "time_of_day": "anytime",
+              "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+              "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-07-06",
+              "original_planned_day": null
+            },
+            {
+              "kind": "task",
+              "title": "Préparer une alternative du soir",
+              "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "missions",
+              "description": "Choisir une activité simple pour occuper le créneau où l’envie arrive habituellement.",
+              "planned_day": "thu",
+              "time_of_day": "evening",
+              "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+              "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-07-06",
+              "original_planned_day": null
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "local_date": "2026-07-06",
+          "completed_at": "2026-06-24T13:56:01.663Z",
+          "message_mode": "conversation",
+          "review_state": {
+            "items": {
+              "049c3b1e-76d6-4240-a526-1a1c15dd0d27": {
+                "title": "Organiser une soirée 'zéro vide'",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": null,
+                "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                "evidence_text": "la soirée zéro vide était organisée",
+                "missing_slots": [],
+                "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              },
+              "4e108ef0-c360-4a6d-94d7-29af64af9f65": {
+                "title": "Préparer une alternative du soir",
+                "outcome": "completed",
+                "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": null,
+                "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                "evidence_text": "j'ai aussi préparé l'alternative du soir",
+                "missing_slots": [],
+                "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              },
+              "66aed007-4139-4d36-a9c6-0e1b5754a8bf": {
+                "title": "Respiration minute avant envie",
+                "outcome": "completed",
+                "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "habit",
+                "reason_text": null,
+                "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                "evidence_text": "j'ai fait la respiration minute avant l'envie",
+                "missing_slots": [],
+                "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              },
+              "a8d1b2aa-da33-4725-8a24-7c1f7a566742": {
+                "title": "Journée 100% sans cannabis",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "habit",
+                "reason_text": null,
+                "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                "evidence_text": "La journée sans cannabis est tenue jusqu'au coucher",
+                "missing_slots": [],
+                "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              }
+            },
+            "intent": "answer_review",
+            "source": "daily_action_review_v1",
+            "status": "complete",
+            "skill_id": "daily_action_review_v1",
+            "constraints": [
+              "one_question_max",
+              "no_solution_first",
+              "no_tool_suggestion",
+              "no_plan_adjustment",
+              "no_potion",
+              "no_guilt",
+              "respect_user_stopped",
+              "do_not_mark_without_evidence",
+              "do_not_apply_without_complete_slots"
+            ],
+            "effect_plan": {
+              "allowed": true,
+              "effects": [
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                  "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                  "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                  "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                  "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                }
+              ]
+            },
+            "stop_reason": "all_required_slots_filled",
+            "next_question": null,
+            "last_user_text": "Oui, tout s'est bien passé pour les quatre. La journée sans cannabis est tenue jusqu'au coucher, la soirée zéro vide était organisée, j'ai fait la respiration minute avant l'envie, et j'ai aussi préparé l'alternative du soir.",
+            "blocked_effects": [],
+            "should_apply_effects": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "items.a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "items.049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "items.66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "items.4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [
+                "items.66aed007-4139-4d36-a9c6-0e1b5754a8bf.missing_slots",
+                "items.4e108ef0-c360-4a6d-94d7-29af64af9f65.missing_slots"
+              ],
+              "preserved_fields": [
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "next_question_targets": [],
+            "generated_user_message": null,
+            "remaining_occurrence_ids": [],
+            "asked_occurrence_ids_history": [
+              [
+                "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+              ],
+              [
+                "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+              ]
+            ],
+            "current_focus_occurrence_ids": [
+              "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+              "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+              "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+              "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+            ],
+            "action_intelligence_by_occurrence_id": {}
+          },
+          "draft_message": "Je fais le point avec toi sur aujourd’hui : journée 100% sans cannabis et soirée “zéro vide”.  \nTu me confirmes ce que tu gardes comme bilan final pour ces deux actions ?",
+          "event_context": "action_evening_review_v2",
+          "occurrence_ids": [
+            "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+            "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+            "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+            "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+          ],
+          "chat_capability": "daily_action_review",
+          "grouping_reason": "same_plan",
+          "week_start_date": "2026-07-06",
+          "completed_flow_memo": {
+            "status": "completed",
+            "completed_at": "2026-06-24T13:56:01.663Z",
+            "source_flow_id": "daily_action_review_v1",
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "c9e15e13-b515-45e1-91d4-e5e433f91a36",
+                "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                "commit_status": "inserted",
+                "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "0f83a6f7-8b9e-4d2f-991d-cb9e106baf27",
+                "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                "commit_status": "inserted",
+                "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "3b7ee506-d39f-43d2-9760-87db03f9048c",
+                "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                "commit_status": "inserted",
+                "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "672fb5af-bce6-402e-ad73-3c9f72f2e82d",
+                "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                "commit_status": "inserted",
+                "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "asked_occurrence_ids": [
+            "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+            "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+          ],
+          "action_evening_review": true,
+          "missing_occurrence_ids": [],
+          "already_resolved_targets": [],
+          "initial_note_information": {
+            "evidence": [
+              "event_context=action_evening_review_v2",
+              "process-checkins selected and persisted daily review targets"
+            ],
+            "confidence": "high",
+            "risk_score": 0,
+            "source_flow": "process_checkins",
+            "handoff_reason": "bridge",
+            "source_flow_id": "process_checkins.action_evening_review_v2",
+            "collected_state": {
+              "timezone": "Europe/Paris",
+              "local_date": "2026-07-06",
+              "event_context": "action_evening_review_v2",
+              "target_titles": [
+                "Journée 100% sans cannabis",
+                "Organiser une soirée 'zéro vide'",
+                "Respiration minute avant envie",
+                "Préparer une alternative du soir"
+              ],
+              "week_start_date": "2026-07-06",
+              "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+              "target_occurrence_ids": [
+                "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+              ],
+              "already_resolved_occurrence_ids": []
+            },
+            "target_dispatcher": "daily_action_review_v1",
+            "structured_context": {
+              "targets": [
+                {
+                  "kind": "habit",
+                  "title": "Journée 100% sans cannabis",
+                  "dimension": "habits",
+                  "description": "Ne pas consommer de cannabis du lever au coucher.",
+                  "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                  "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742"
+                },
+                {
+                  "kind": "task",
+                  "title": "Organiser une soirée 'zéro vide'",
+                  "dimension": "missions",
+                  "description": "Pour t'aider à valider un 3ème jour off, prévois une soirée à l'extérieur ou une activité très prenante chez toi pour ne laisser aucune place à l'ennui.",
+                  "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                  "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+                },
+                {
+                  "kind": "habit",
+                  "title": "Respiration minute avant envie",
+                  "dimension": "habits",
+                  "description": "Faire une minute de respiration lente avant de répondre à une envie automatique.",
+                  "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                  "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf"
+                },
+                {
+                  "kind": "task",
+                  "title": "Préparer une alternative du soir",
+                  "dimension": "missions",
+                  "description": "Choisir une activité simple pour occuper le créneau où l’envie arrive habituellement.",
+                  "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                  "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+                }
+              ],
+              "source_flow": "process_checkins",
+              "event_context": "action_evening_review_v2",
+              "chat_capability": "daily_action_review",
+              "pending_action_kind": "scheduled_checkin"
+            },
+            "active_flow_summary": "System opened daily review for the selected action targets.",
+            "unresolved_questions": [
+              "Which selected actions were done or not done today.",
+              "If not done, the reason and whether the action remains relevant."
+            ],
+            "user_message_summary": null,
+            "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+            "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+            "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+            "target_local_dispatcher_hint": "daily_action_review_v1",
+            "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+          },
+          "daily_review_effects_result": {
+            "failed_effects": [],
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "c9e15e13-b515-45e1-91d4-e5e433f91a36",
+                "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                "commit_status": "inserted",
+                "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "0f83a6f7-8b9e-4d2f-991d-cb9e106baf27",
+                "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                "commit_status": "inserted",
+                "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "3b7ee506-d39f-43d2-9760-87db03f9048c",
+                "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                "commit_status": "inserted",
+                "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "672fb5af-bce6-402e-ad73-3c9f72f2e82d",
+                "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                "commit_status": "inserted",
+                "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "not_yet_asked_occurrence_ids": [
+            "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+            "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+          ],
+          "daily_action_review_diagnosis": {
+            "flow_action": "answer_review",
+            "visible_task": "commit_success",
+            "blocked_effects": [],
+            "selected_targets": [
+              "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+              "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+              "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+              "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+            ],
+            "candidate_summary": [
+              {
+                "title": "Journée 100% sans cannabis",
+                "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742"
+              },
+              {
+                "title": "Organiser une soirée 'zéro vide'",
+                "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+              },
+              {
+                "title": "Respiration minute avant envie",
+                "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf"
+              },
+              {
+                "title": "Préparer une alternative du soir",
+                "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+              }
+            ],
+            "direct_handoff_flag": false,
+            "stabilization_ready": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "items.a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "items.049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "items.66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "items.4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [
+                "items.66aed007-4139-4d36-a9c6-0e1b5754a8bf.missing_slots",
+                "items.4e108ef0-c360-4a6d-94d7-29af64af9f65.missing_slots"
+              ],
+              "preserved_fields": [
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "pending_state_present": true
+          }
+        }
+      }
+    ],
+    "entries": [
+      {
+        "id": "c9e15e13-b515-45e1-91d4-e5e433f91a36",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_numeric": null,
+        "value_text": null,
+        "difficulty_level": null,
+        "blocker_hint": null,
+        "created_at": "2026-06-24T13:56:01.663+00:00",
+        "effective_at": "2026-07-06T12:00:00+00:00",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-07-06",
+          "reason_text": null,
+          "evidence_text": "La journée sans cannabis est tenue jusqu'au coucher",
+          "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        }
+      },
+      {
+        "id": "0f83a6f7-8b9e-4d2f-991d-cb9e106baf27",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_numeric": null,
+        "value_text": null,
+        "difficulty_level": null,
+        "blocker_hint": null,
+        "created_at": "2026-06-24T13:56:01.663+00:00",
+        "effective_at": "2026-07-06T12:00:00+00:00",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-07-06",
+          "reason_text": null,
+          "evidence_text": "la soirée zéro vide était organisée",
+          "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        }
+      },
+      {
+        "id": "3b7ee506-d39f-43d2-9760-87db03f9048c",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+        "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_numeric": null,
+        "value_text": null,
+        "difficulty_level": null,
+        "blocker_hint": null,
+        "created_at": "2026-06-24T13:56:01.663+00:00",
+        "effective_at": "2026-07-06T12:00:00+00:00",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-07-06",
+          "reason_text": null,
+          "evidence_text": "j'ai fait la respiration minute avant l'envie",
+          "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        }
+      },
+      {
+        "id": "672fb5af-bce6-402e-ad73-3c9f72f2e82d",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+        "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_numeric": null,
+        "value_text": null,
+        "difficulty_level": null,
+        "blocker_hint": null,
+        "created_at": "2026-06-24T13:56:01.663+00:00",
+        "effective_at": "2026-07-06T12:00:00+00:00",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-07-06",
+          "reason_text": null,
+          "evidence_text": "j'ai aussi préparé l'alternative du soir",
+          "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        }
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+        "status": "done",
+        "source": "default_generated",
+        "validated_at": "2026-06-24T13:56:01.663+00:00",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a"
+      },
+      {
+        "id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+        "status": "done",
+        "source": "default_generated",
+        "validated_at": "2026-06-24T13:56:01.663+00:00",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae"
+      },
+      {
+        "id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+        "status": "done",
+        "source": "manual_change",
+        "validated_at": "2026-06-24T13:56:01.663+00:00",
+        "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+        "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2"
+      },
+      {
+        "id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+        "status": "done",
+        "source": "manual_change",
+        "validated_at": "2026-06-24T13:56:01.663+00:00",
+        "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+        "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326"
+      }
+    ],
+    "messages": [
+      {
+        "id": "a68aba58-a657-43c8-9b26-738ba90ffbda",
+        "role": "assistant",
+        "content": "Je fais le point avec toi sur aujourd’hui : journée 100% sans cannabis et soirée “zéro vide”.  \nTu me confirmes ce que tu gardes comme bilan final pour ces deux actions ?",
+        "metadata": {
+          "to": "+10000000000",
+          "source": "scheduled_checkin",
+          "channel": "whatsapp",
+          "purpose": "action_evening_review",
+          "request_id": "2084a9b1-66e4-434b-ab60-b3ae1c195f6f",
+          "is_proactive": false,
+          "event_context": "action_evening_review_v2",
+          "plan_item_ids": [
+            "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+            "eca16a71-2291-4913-a059-4728d90b39ae",
+            "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+            "828d22fa-dad4-4bd6-b947-8ad930f1f326"
+          ],
+          "occurrence_ids": [
+            "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+            "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+            "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+            "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+          ],
+          "require_opted_in": true,
+          "whatsapp_buttons": [],
+          "whatsapp_template": null,
+          "simulated_whatsapp": true,
+          "original_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "outbound_tracking_id": "ecd8b18e-024e-40e0-9151-5d2468a0b190",
+          "wa_outbound_message_id": "wamid_WEB_SIM_2084a9b1-66e4-434b-ab60-b3ae1c195f6f",
+          "simulation_bypassed_phone": true,
+          "simulation_bypassed_opt_in": null,
+          "already_resolved_occurrence_ids": []
+        },
+        "created_at": "2026-06-24T13:55:46.545798+00:00"
+      },
+      {
+        "id": "e23ad288-5140-4b88-8bdf-5063b94409f3",
+        "role": "user",
+        "content": "Oui, tout s'est bien passé pour les quatre. La journée sans cannabis est tenue jusqu'au coucher, la soirée zéro vide était organisée, j'ai fait la respiration minute avant l'envie, et j'ai aussi préparé l'alternative du soir.",
+        "metadata": {
+          "channel": "whatsapp",
+          "wa_from": "+15553958417369",
+          "wa_type": "text",
+          "request_id": "1fea88ed-3ce9-4559-81d0-4c5a227086ba",
+          "wa_message_id": "wamid_daily-two-plans-four-actions-success-20260624-r1_1_42182b92-a116-446e-806f-3bed8640c62c",
+          "wa_profile_name": "rose QA",
+          "wa_interactive_id": null,
+          "webhook_request_id": "daily-two-plans-four-actions-success-20260624-r1-t01",
+          "wa_interactive_title": null,
+          "daily_action_review_v1": {
+            "stop_reason": "all_required_slots_filled",
+            "skill_status": "complete",
+            "occurrence_ids": [
+              "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+              "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+              "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+              "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+            ],
+            "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+            "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+            "structured_extraction_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+            "structured_extraction_status": "complete"
+          },
+          "structured_extraction_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "structured_extraction_source": "daily_action_review_v1"
+        },
+        "created_at": "2026-06-24T13:56:01.633072+00:00"
+      },
+      {
+        "id": "2703e5b0-5253-4a47-98e2-dc9ae0f3fe16",
+        "role": "assistant",
+        "content": "C’est noté pour les 4 : journée sans cannabis, soirée zéro vide, respiration minute avant envie, et alternative du soir.",
+        "metadata": {
+          "source": "daily_action_review",
+          "channel": "whatsapp",
+          "purpose": "action_evening_review",
+          "is_proactive": false,
+          "event_context": "action_evening_review_v2",
+          "outbound_tracking_id": "d46a37e4-c278-4b2c-8be0-47eacd287143",
+          "wa_outbound_message_id": "wamid_DISABLED"
+        },
+        "created_at": "2026-06-24T13:56:06.735988+00:00"
+      }
+    ]
+  },
+  "cleanup": {
+    "candidates": {
+      "entries": [
+        "c9e15e13-b515-45e1-91d4-e5e433f91a36",
+        "0f83a6f7-8b9e-4d2f-991d-cb9e106baf27",
+        "3b7ee506-d39f-43d2-9760-87db03f9048c",
+        "672fb5af-bce6-402e-ad73-3c9f72f2e82d"
+      ],
+      "messages": [
+        "e23ad288-5140-4b88-8bdf-5063b94409f3",
+        "a68aba58-a657-43c8-9b26-738ba90ffbda"
+      ]
+    },
+    "deleted_entries": [
+      {
+        "id": "c9e15e13-b515-45e1-91d4-e5e433f91a36",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_numeric": null,
+        "value_text": null,
+        "difficulty_level": null,
+        "blocker_hint": null,
+        "created_at": "2026-06-24T13:56:01.663+00:00",
+        "effective_at": "2026-07-06T12:00:00+00:00",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-07-06",
+          "reason_text": null,
+          "evidence_text": "La journée sans cannabis est tenue jusqu'au coucher",
+          "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        }
+      },
+      {
+        "id": "0f83a6f7-8b9e-4d2f-991d-cb9e106baf27",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_numeric": null,
+        "value_text": null,
+        "difficulty_level": null,
+        "blocker_hint": null,
+        "created_at": "2026-06-24T13:56:01.663+00:00",
+        "effective_at": "2026-07-06T12:00:00+00:00",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-07-06",
+          "reason_text": null,
+          "evidence_text": "la soirée zéro vide était organisée",
+          "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        }
+      },
+      {
+        "id": "3b7ee506-d39f-43d2-9760-87db03f9048c",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+        "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_numeric": null,
+        "value_text": null,
+        "difficulty_level": null,
+        "blocker_hint": null,
+        "created_at": "2026-06-24T13:56:01.663+00:00",
+        "effective_at": "2026-07-06T12:00:00+00:00",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-07-06",
+          "reason_text": null,
+          "evidence_text": "j'ai fait la respiration minute avant l'envie",
+          "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        }
+      },
+      {
+        "id": "672fb5af-bce6-402e-ad73-3c9f72f2e82d",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+        "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_numeric": null,
+        "value_text": null,
+        "difficulty_level": null,
+        "blocker_hint": null,
+        "created_at": "2026-06-24T13:56:01.663+00:00",
+        "effective_at": "2026-07-06T12:00:00+00:00",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-07-06",
+          "reason_text": null,
+          "evidence_text": "j'ai aussi préparé l'alternative du soir",
+          "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+          "daily_decision": "completed",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": null,
+          "occurrence_status": "done",
+          "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "reschedule_decision": null,
+          "completed_part_label": null,
+          "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "source_event_context": "action_evening_review_v2",
+          "continuation_planned_day": null,
+          "continuation_plan_item_id": null,
+          "continuation_occurrence_id": null,
+          "continuation_cards_decision": null
+        }
+      }
+    ],
+    "restored_occurrences": [
+      {
+        "id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+        "week_start_date": "2026-07-06",
+        "ordinal": 1,
+        "planned_day": "mon",
+        "original_planned_day": null,
+        "actual_day": null,
+        "status": "planned",
+        "source": "default_generated",
+        "validated_at": null,
+        "created_at": "2026-06-24T13:07:24.726035+00:00",
+        "updated_at": "2026-06-24T13:56:01.663+00:00",
+        "default_day": "mon"
+      },
+      {
+        "id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+        "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+        "week_start_date": "2026-07-06",
+        "ordinal": 1,
+        "planned_day": "thu",
+        "original_planned_day": "thu",
+        "actual_day": null,
+        "status": "planned",
+        "source": "default_generated",
+        "validated_at": null,
+        "created_at": "2026-06-24T13:07:24.71932+00:00",
+        "updated_at": "2026-06-24T13:56:01.663+00:00",
+        "default_day": "thu"
+      }
+    ],
+    "deleted_messages": [
+      {
+        "id": "a68aba58-a657-43c8-9b26-738ba90ffbda",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "role": "assistant",
+        "content": "Je fais le point avec toi sur aujourd’hui : journée 100% sans cannabis et soirée “zéro vide”.  \nTu me confirmes ce que tu gardes comme bilan final pour ces deux actions ?",
+        "agent_used": "companion",
+        "metadata": {
+          "to": "+10000000000",
+          "source": "scheduled_checkin",
+          "channel": "whatsapp",
+          "purpose": "action_evening_review",
+          "request_id": "2084a9b1-66e4-434b-ab60-b3ae1c195f6f",
+          "is_proactive": false,
+          "event_context": "action_evening_review_v2",
+          "plan_item_ids": [
+            "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+            "eca16a71-2291-4913-a059-4728d90b39ae",
+            "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+            "828d22fa-dad4-4bd6-b947-8ad930f1f326"
+          ],
+          "occurrence_ids": [
+            "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+            "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+            "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+            "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+          ],
+          "require_opted_in": true,
+          "whatsapp_buttons": [],
+          "whatsapp_template": null,
+          "simulated_whatsapp": true,
+          "original_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+          "outbound_tracking_id": "ecd8b18e-024e-40e0-9151-5d2468a0b190",
+          "wa_outbound_message_id": "wamid_WEB_SIM_2084a9b1-66e4-434b-ab60-b3ae1c195f6f",
+          "simulation_bypassed_phone": true,
+          "simulation_bypassed_opt_in": null,
+          "already_resolved_occurrence_ids": []
+        },
+        "created_at": "2026-06-24T13:55:46.545798+00:00",
+        "scope": "whatsapp"
+      },
+      {
+        "id": "e23ad288-5140-4b88-8bdf-5063b94409f3",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "role": "user",
+        "content": "Oui, tout s'est bien passé pour les quatre. La journée sans cannabis est tenue jusqu'au coucher, la soirée zéro vide était organisée, j'ai fait la respiration minute avant l'envie, et j'ai aussi préparé l'alternative du soir.",
+        "agent_used": null,
+        "metadata": {
+          "channel": "whatsapp",
+          "wa_from": "+15553958417369",
+          "wa_type": "text",
+          "request_id": "1fea88ed-3ce9-4559-81d0-4c5a227086ba",
+          "wa_message_id": "wamid_daily-two-plans-four-actions-success-20260624-r1_1_42182b92-a116-446e-806f-3bed8640c62c",
+          "wa_profile_name": "rose QA",
+          "wa_interactive_id": null,
+          "webhook_request_id": "daily-two-plans-four-actions-success-20260624-r1-t01",
+          "wa_interactive_title": null,
+          "daily_action_review_v1": {
+            "stop_reason": "all_required_slots_filled",
+            "skill_status": "complete",
+            "occurrence_ids": [
+              "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+              "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+              "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+              "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+            ],
+            "pending_action_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+            "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+            "structured_extraction_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+            "structured_extraction_status": "complete"
+          },
+          "structured_extraction_id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+          "structured_extraction_source": "daily_action_review_v1"
+        },
+        "created_at": "2026-06-24T13:56:01.633072+00:00",
+        "scope": "whatsapp"
+      }
+    ],
+    "deleted_pending": [
+      {
+        "id": "edc54b03-bc9c-463b-b301-1b46c26b0651",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "kind": "scheduled_checkin",
+        "status": "done",
+        "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+        "payload": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Journée 100% sans cannabis",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "habits",
+              "description": "Ne pas consommer de cannabis du lever au coucher.",
+              "planned_day": "mon",
+              "time_of_day": "anytime",
+              "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+              "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+              "tracking_type": "count",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-07-06",
+              "original_planned_day": null
+            },
+            {
+              "kind": "task",
+              "title": "Organiser une soirée 'zéro vide'",
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "missions",
+              "description": "Pour t'aider à valider un 3ème jour off, prévois une soirée à l'extérieur ou une activité très prenante chez toi pour ne laisser aucune place à l'ennui.",
+              "planned_day": "thu",
+              "time_of_day": "anytime",
+              "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+              "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-07-06",
+              "original_planned_day": "thu"
+            },
+            {
+              "kind": "habit",
+              "title": "Respiration minute avant envie",
+              "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "habits",
+              "description": "Faire une minute de respiration lente avant de répondre à une envie automatique.",
+              "planned_day": "mon",
+              "time_of_day": "anytime",
+              "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+              "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-07-06",
+              "original_planned_day": null
+            },
+            {
+              "kind": "task",
+              "title": "Préparer une alternative du soir",
+              "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+              "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+              "dimension": "missions",
+              "description": "Choisir une activité simple pour occuper le créneau où l’envie arrive habituellement.",
+              "planned_day": "thu",
+              "time_of_day": "evening",
+              "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+              "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+              "reviewed_local_date": "2026-07-06",
+              "original_planned_day": null
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "local_date": "2026-07-06",
+          "completed_at": "2026-06-24T13:56:01.663Z",
+          "message_mode": "conversation",
+          "review_state": {
+            "items": {
+              "049c3b1e-76d6-4240-a526-1a1c15dd0d27": {
+                "title": "Organiser une soirée 'zéro vide'",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": null,
+                "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                "evidence_text": "la soirée zéro vide était organisée",
+                "missing_slots": [],
+                "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              },
+              "4e108ef0-c360-4a6d-94d7-29af64af9f65": {
+                "title": "Préparer une alternative du soir",
+                "outcome": "completed",
+                "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": null,
+                "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                "evidence_text": "j'ai aussi préparé l'alternative du soir",
+                "missing_slots": [],
+                "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              },
+              "66aed007-4139-4d36-a9c6-0e1b5754a8bf": {
+                "title": "Respiration minute avant envie",
+                "outcome": "completed",
+                "plan_id": "b638a3d3-d002-463e-ace3-0271706e3771",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "habit",
+                "reason_text": null,
+                "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                "evidence_text": "j'ai fait la respiration minute avant l'envie",
+                "missing_slots": [],
+                "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              },
+              "a8d1b2aa-da33-4725-8a24-7c1f7a566742": {
+                "title": "Journée 100% sans cannabis",
+                "outcome": "completed",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "habit",
+                "reason_text": null,
+                "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                "evidence_text": "La journée sans cannabis est tenue jusqu'au coucher",
+                "missing_slots": [],
+                "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": null
+              }
+            },
+            "intent": "answer_review",
+            "source": "daily_action_review_v1",
+            "status": "complete",
+            "skill_id": "daily_action_review_v1",
+            "constraints": [
+              "one_question_max",
+              "no_solution_first",
+              "no_tool_suggestion",
+              "no_plan_adjustment",
+              "no_potion",
+              "no_guilt",
+              "respect_user_stopped",
+              "do_not_mark_without_evidence",
+              "do_not_apply_without_complete_slots"
+            ],
+            "effect_plan": {
+              "allowed": true,
+              "effects": [
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                  "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                  "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                  "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                },
+                {
+                  "type": "log_daily_action_review",
+                  "source": "daily_action_review_v1",
+                  "outcome": "completed",
+                  "reason_text": null,
+                  "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                  "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                  "still_relevant": null,
+                  "reason_category": "none"
+                }
+              ]
+            },
+            "stop_reason": "all_required_slots_filled",
+            "next_question": null,
+            "last_user_text": "Oui, tout s'est bien passé pour les quatre. La journée sans cannabis est tenue jusqu'au coucher, la soirée zéro vide était organisée, j'ai fait la respiration minute avant l'envie, et j'ai aussi préparé l'alternative du soir.",
+            "blocked_effects": [],
+            "should_apply_effects": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "items.a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "items.049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "items.66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "items.4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [
+                "items.66aed007-4139-4d36-a9c6-0e1b5754a8bf.missing_slots",
+                "items.4e108ef0-c360-4a6d-94d7-29af64af9f65.missing_slots"
+              ],
+              "preserved_fields": [
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "next_question_targets": [],
+            "generated_user_message": null,
+            "remaining_occurrence_ids": [],
+            "asked_occurrence_ids_history": [
+              [
+                "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+              ],
+              [
+                "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+              ]
+            ],
+            "current_focus_occurrence_ids": [
+              "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+              "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+              "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+              "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+            ],
+            "action_intelligence_by_occurrence_id": {}
+          },
+          "draft_message": "Je fais le point avec toi sur aujourd’hui : journée 100% sans cannabis et soirée “zéro vide”.  \nTu me confirmes ce que tu gardes comme bilan final pour ces deux actions ?",
+          "event_context": "action_evening_review_v2",
+          "occurrence_ids": [
+            "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+            "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+            "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+            "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+          ],
+          "chat_capability": "daily_action_review",
+          "grouping_reason": "same_plan",
+          "week_start_date": "2026-07-06",
+          "completed_flow_memo": {
+            "status": "completed",
+            "completed_at": "2026-06-24T13:56:01.663Z",
+            "source_flow_id": "daily_action_review_v1",
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "c9e15e13-b515-45e1-91d4-e5e433f91a36",
+                "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                "commit_status": "inserted",
+                "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "0f83a6f7-8b9e-4d2f-991d-cb9e106baf27",
+                "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                "commit_status": "inserted",
+                "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "3b7ee506-d39f-43d2-9760-87db03f9048c",
+                "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                "commit_status": "inserted",
+                "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "672fb5af-bce6-402e-ad73-3c9f72f2e82d",
+                "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                "commit_status": "inserted",
+                "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "asked_occurrence_ids": [
+            "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+            "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+          ],
+          "action_evening_review": true,
+          "missing_occurrence_ids": [],
+          "already_resolved_targets": [],
+          "initial_note_information": {
+            "evidence": [
+              "event_context=action_evening_review_v2",
+              "process-checkins selected and persisted daily review targets"
+            ],
+            "confidence": "high",
+            "risk_score": 0,
+            "source_flow": "process_checkins",
+            "handoff_reason": "bridge",
+            "source_flow_id": "process_checkins.action_evening_review_v2",
+            "collected_state": {
+              "timezone": "Europe/Paris",
+              "local_date": "2026-07-06",
+              "event_context": "action_evening_review_v2",
+              "target_titles": [
+                "Journée 100% sans cannabis",
+                "Organiser une soirée 'zéro vide'",
+                "Respiration minute avant envie",
+                "Préparer une alternative du soir"
+              ],
+              "week_start_date": "2026-07-06",
+              "scheduled_checkin_id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+              "target_occurrence_ids": [
+                "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+              ],
+              "already_resolved_occurrence_ids": []
+            },
+            "target_dispatcher": "daily_action_review_v1",
+            "structured_context": {
+              "targets": [
+                {
+                  "kind": "habit",
+                  "title": "Journée 100% sans cannabis",
+                  "dimension": "habits",
+                  "description": "Ne pas consommer de cannabis du lever au coucher.",
+                  "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                  "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742"
+                },
+                {
+                  "kind": "task",
+                  "title": "Organiser une soirée 'zéro vide'",
+                  "dimension": "missions",
+                  "description": "Pour t'aider à valider un 3ème jour off, prévois une soirée à l'extérieur ou une activité très prenante chez toi pour ne laisser aucune place à l'ennui.",
+                  "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                  "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+                },
+                {
+                  "kind": "habit",
+                  "title": "Respiration minute avant envie",
+                  "dimension": "habits",
+                  "description": "Faire une minute de respiration lente avant de répondre à une envie automatique.",
+                  "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                  "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf"
+                },
+                {
+                  "kind": "task",
+                  "title": "Préparer une alternative du soir",
+                  "dimension": "missions",
+                  "description": "Choisir une activité simple pour occuper le créneau où l’envie arrive habituellement.",
+                  "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                  "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+                }
+              ],
+              "source_flow": "process_checkins",
+              "event_context": "action_evening_review_v2",
+              "chat_capability": "daily_action_review",
+              "pending_action_kind": "scheduled_checkin"
+            },
+            "active_flow_summary": "System opened daily review for the selected action targets.",
+            "unresolved_questions": [
+              "Which selected actions were done or not done today.",
+              "If not done, the reason and whether the action remains relevant."
+            ],
+            "user_message_summary": null,
+            "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+            "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+            "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+            "target_local_dispatcher_hint": "daily_action_review_v1",
+            "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+          },
+          "daily_review_effects_result": {
+            "failed_effects": [],
+            "committed_effects": [
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "c9e15e13-b515-45e1-91d4-e5e433f91a36",
+                "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                "commit_status": "inserted",
+                "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "0f83a6f7-8b9e-4d2f-991d-cb9e106baf27",
+                "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                "commit_status": "inserted",
+                "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "3b7ee506-d39f-43d2-9760-87db03f9048c",
+                "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                "commit_status": "inserted",
+                "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "reason_category": "none"
+              },
+              {
+                "type": "log_daily_action_review",
+                "source": "daily_action_review_v1",
+                "outcome": "completed",
+                "entry_id": "672fb5af-bce6-402e-ad73-3c9f72f2e82d",
+                "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                "commit_status": "inserted",
+                "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "reason_category": "none"
+              }
+            ]
+          },
+          "not_yet_asked_occurrence_ids": [
+            "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+            "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+          ],
+          "daily_action_review_diagnosis": {
+            "flow_action": "answer_review",
+            "visible_task": "commit_success",
+            "blocked_effects": [],
+            "selected_targets": [
+              "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+              "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+              "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+              "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+            ],
+            "candidate_summary": [
+              {
+                "title": "Journée 100% sans cannabis",
+                "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                "occurrence_id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742"
+              },
+              {
+                "title": "Organiser une soirée 'zéro vide'",
+                "plan_item_id": "eca16a71-2291-4913-a059-4728d90b39ae",
+                "occurrence_id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27"
+              },
+              {
+                "title": "Respiration minute avant envie",
+                "plan_item_id": "55888637-1f8a-4787-bb98-51c44b4c2bf2",
+                "occurrence_id": "66aed007-4139-4d36-a9c6-0e1b5754a8bf"
+              },
+              {
+                "title": "Préparer une alternative du soir",
+                "plan_item_id": "828d22fa-dad4-4bd6-b947-8ad930f1f326",
+                "occurrence_id": "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+              }
+            ],
+            "direct_handoff_flag": false,
+            "stabilization_ready": true,
+            "state_mutation_audit": {
+              "applied_fields": [
+                "current_focus_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "items.a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+                "items.049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+                "items.66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+                "items.4e108ef0-c360-4a6d-94d7-29af64af9f65",
+                "effect_plan",
+                "should_apply_effects",
+                "status",
+                "stop_reason"
+              ],
+              "cleared_fields": [],
+              "restored_fields": [
+                "items.66aed007-4139-4d36-a9c6-0e1b5754a8bf.missing_slots",
+                "items.4e108ef0-c360-4a6d-94d7-29af64af9f65.missing_slots"
+              ],
+              "preserved_fields": [
+                "remaining_occurrence_ids"
+              ],
+              "rejected_changes": [],
+              "server_owned_fields": [
+                "status",
+                "stop_reason",
+                "current_focus_occurrence_ids",
+                "remaining_occurrence_ids",
+                "asked_occurrence_ids_history",
+                "next_question",
+                "next_question_targets",
+                "generated_user_message",
+                "should_apply_effects",
+                "effect_plan",
+                "action_intelligence_by_occurrence_id",
+                "last_user_text",
+                "last_note_information",
+                "last_local_exit_memo"
+              ],
+              "clear_fields_declared": [],
+              "modified_fields_declared": []
+            },
+            "pending_state_present": true
+          }
+        },
+        "expires_at": "2026-06-25T07:55:46.552+00:00",
+        "created_at": "2026-06-24T13:55:46.553873+00:00",
+        "processed_at": "2026-06-24T13:56:05.481+00:00",
+        "not_before": null
+      }
+    ],
+    "deleted_scheduled": [
+      {
+        "id": "f6317ad2-2d0e-48ed-b42f-e43694feed47",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "event_context": "action_evening_review_v2",
+        "draft_message": "Je fais le point avec toi sur aujourd’hui : journée 100% sans cannabis et soirée “zéro vide”.  \nTu me confirmes ce que tu gardes comme bilan final pour ces deux actions ?",
+        "scheduled_for": "2026-06-24T13:55:36.68+00:00",
+        "status": "sent",
+        "created_at": "2026-06-24T13:55:41.710192+00:00",
+        "processed_at": "2026-06-24T13:56:01.663+00:00",
+        "message_mode": "dynamic",
+        "message_payload": {
+          "source": "qa_dynamic_daily_two_plans_fixture",
+          "variant": "all_success",
+          "version": 1,
+          "timezone": "Europe/Paris",
+          "qa_run_id": "daily-two-plans-four-actions-success-20260624-r1",
+          "local_date": "2026-07-06",
+          "occurrence_ids": [
+            "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+            "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+            "66aed007-4139-4d36-a9c6-0e1b5754a8bf",
+            "4e108ef0-c360-4a6d-94d7-29af64af9f65"
+          ],
+          "chat_capability": "daily_action_review",
+          "week_start_date": "2026-07-06",
+          "reviewed_local_date": "2026-07-06"
+        },
+        "origin": "action_review",
+        "delivery_attempt_count": 1,
+        "delivery_last_error": null,
+        "delivery_last_error_at": null,
+        "delivery_last_request_id": "1fea88ed-3ce9-4559-81d0-4c5a227086ba",
+        "recurring_reminder_id": null
+      }
+    ],
+    "deleted_fixture_plan": [
+      {
+        "id": "b638a3d3-d002-463e-ace3-0271706e3771",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "status": "draft",
+        "version": 1101,
+        "title": "QA two-plan daily fixture daily-two-plans-four-actions-success-20260624-r1",
+        "content": {
+          "source": "qa_daily_two_plans_fixture",
+          "variant": "success",
+          "qa_run_id": "daily-two-plans-four-actions-success-20260624-r1"
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": null,
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-06-24T13:55:41.685748+00:00",
+        "updated_at": "2026-06-24T13:55:41.685748+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      }
+    ],
+    "verify": {
+      "pending": [],
+      "scheduled": [],
+      "entries": [],
+      "fixturePlan": [],
+      "existingOccurrences": [
+        {
+          "id": "a8d1b2aa-da33-4725-8a24-7c1f7a566742",
+          "status": "planned",
+          "source": "default_generated",
+          "validated_at": null,
+          "planned_day": "mon"
+        },
+        {
+          "id": "049c3b1e-76d6-4240-a526-1a1c15dd0d27",
+          "status": "planned",
+          "source": "default_generated",
+          "validated_at": null,
+          "planned_day": "thu"
+        }
+      ]
+    }
+  }
+}

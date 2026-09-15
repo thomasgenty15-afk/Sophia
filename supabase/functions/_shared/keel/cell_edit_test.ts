@@ -84,7 +84,7 @@ Deno.test("⛔ mergeCellEdit — SEULE la case demandée est prise ; une case no
     cooking_sessions: [{ day: "wed", preparationIds: ["prep_chicken", "prep_lentils"], runThrough: "", totalMinutes: 40 }] as never,
     shopping_list: [{ term: "poulet rôti", quantity: "500 g", aisle: "meat" }, { term: "lentilles", quantity: "500 g", aisle: "dry" }, { term: "courgettes", quantity: "400 g", aisle: "produce" }] as never,
   });
-  const out = mergeCellEdit({ base: b, retry, cells: [CELL] });
+  const out = mergeCellEdit({ base: b, retry, cells: [CELL] , index: null });
   assertEquals(out.taken, ["fri/dinner"]);
   assertEquals(out.notRendered, []);
   assertEquals(out.unknown, []);
@@ -107,7 +107,7 @@ Deno.test("⛔ mergeCellEdit — SEULE la case demandée est prise ; une case no
 Deno.test("⛔ mergeCellEdit — case demandée absente de la réponse ⇒ `notRendered`, plan de départ rendu tel quel ; case inconnue au départ ⇒ `unknown`", () => {
   const b = base();
   const retry = meal({ dishes: [dish("thu", "lunch", "Dinde, quinoa")], preparations: [], cooking_sessions: [], shopping_list: [] });
-  const out = mergeCellEdit({ base: b, retry, cells: [CELL, { day: "sat", slot: "lunch", text: "x" }] });
+  const out = mergeCellEdit({ base: b, retry, cells: [CELL, { day: "sat", slot: "lunch", text: "x" }] , index: null });
   assertEquals(out.taken, []);
   assertEquals(out.notRendered, ["fri/dinner"]);
   assertEquals(out.unknown, ["sat/lunch"]);

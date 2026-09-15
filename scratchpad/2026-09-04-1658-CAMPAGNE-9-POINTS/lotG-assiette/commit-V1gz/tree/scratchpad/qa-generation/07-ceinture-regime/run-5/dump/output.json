@@ -1,0 +1,786 @@
+{
+  "request_id": "7ce50003-0000-4000-8000-000000000003",
+  "resolved_by": "--request-id",
+  "user_id": "3a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T03:25:47.888Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "204aa4eb-79d9-45d5-90d4-992ad109453b",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T03:24:52.191065+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 16114,
+    "user_message_truncated": false,
+    "user_message_written_chars": 16114,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 16114
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "db167697-f933-4a4c-a73e-feff119e41c2",
+    "created_at": "2026-08-19T03:25:47.22611+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Smoky Bean Bowls\",\n      \"title\": \"Three-bean smoky chilli with brown rice, coriander and lime\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"1 small bunch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the chilli and rice in separate pans on the hob with a splash of water. Serve in bowls topped with plenty of fresh coriander and a squeeze of lime.\",\n      \"why\": \"A hearty, plant-based lunch that uses the hob to keep the oven free for your evening vegetables.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_l_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Roasted Summer Veg Chilli\",\n      \"title\": \"Smoky bean chilli with roasted peppers, courgettes and avocado\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chilli in a pan and the roasted vegetables in the oven at 180C for 10 minutes. Plate up and top with sliced avocado.\",\n      \"why\": \"A smoky, slow-simmered chilli that satisfies the house's craving while using the single oven tray for loud, roasted vegetables.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_d_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chilli_lunch\",\n      \"title\": \"Smoky Three-Bean Chilli (Lunch Portion)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"carrots\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"celery\",\n          \"quantity\": \"1 stick\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned black beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned kidney beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned cannellini beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Sauté the diced onion, garlic, carrot, and celery in oil until soft. Add spices, then the beans and tomatoes. Simmer on the hob for 35 minutes until thick and smoky.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chilli_l_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chilli_l_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chilli_l_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chilli_l_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chilli_dinner\",\n      \"title\": \"Smoky Three-Bean Chilli (Dinner Portion)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"carrots\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"celery\",\n          \"quantity\": \"1 stick\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned black beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned kidney beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned cannellini beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Cooked in the same pot as the lunch portion. Simmer for 35 minutes until rich and fragrant.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chilli_d_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chilli_d_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chilli_d_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chilli_d_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Brown Rice\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"brown rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice and boil in salted water on the hob until tender (about 25-30 minutes). Drain and fluff.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 185\n        },\n        {\n          \"id\": \"box_rice_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 185\n        },\n        {\n          \"id\": \"box_rice_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 185\n        },\n        {\n          \"id\": \"box_rice_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 185\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_roasted_veg\",\n      \"title\": \"Roasted Summer Vegetables\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onions\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"dried oregano\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Chop the vegetables into large chunks. Toss with oil and oregano on your single oven tray. Roast at 200C for 25-30 minutes until charred and soft.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 125\n        },\n        {\n          \"id\": \"box_veg_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 125\n        },\n        {\n          \"id\": \"box_veg_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 125\n        },\n        {\n          \"id\": \"box_veg_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 125\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chilli_lunch\",\n        \"prep_chilli_dinner\",\n        \"prep_rice\",\n        \"prep_roasted_veg\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Preheat the oven to 200C. Chop the roasting vegetables and get them onto the single tray and into the oven. Next, start the chilli base in a large pot on the hob. While the chilli simmers, rinse and start the brown rice in another pot. Once the rice and veg are done, the chilli will be ready to portion out into the 16 boxes.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onions\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 head\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"carrots\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"celery\",\n      \"quantity\": \"2 sticks\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"limes\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"avocados\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"brown rice\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"tinned black beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned kidney beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned cannellini beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"dried oregano\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"At lunch, serve the chilli then the rice; at dinner, place the roasted vegetables first then top with the chilli.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"At lunch, plate the chilli and rice together; at dinner, serve the chilli first then add the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"At lunch, plate the chilli and rice together; at dinner, serve the chilli first then add the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Mix all components together in a bowl for both lunch and dinner.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"one box\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Zesty Smoky Bean Bowls",
+          "title": "Three-bean smoky chilli with brown rice, coriander and lime",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "fresh coriander",
+              "quantity": "1 small bunch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "lime",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Warm the chilli and rice in separate pans on the hob with a splash of water. Serve in bowls topped with plenty of fresh coriander and a squeeze of lime.",
+          "why": "A hearty, plant-based lunch that uses the hob to keep the oven free for your evening vegetables.",
+          "uses": [
+            {
+              "preparation_id": "prep_chilli_lunch",
+              "servings": 1,
+              "box_id": "box_chilli_l_aurele"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Roasted Summer Veg Chilli",
+          "title": "Smoky bean chilli with roasted peppers, courgettes and avocado",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "avocado",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the chilli in a pan and the roasted vegetables in the oven at 180C for 10 minutes. Plate up and top with sliced avocado.",
+          "why": "A smoky, slow-simmered chilli that satisfies the house's craving while using the single oven tray for loud, roasted vegetables.",
+          "uses": [
+            {
+              "preparation_id": "prep_chilli_dinner",
+              "servings": 1,
+              "box_id": "box_chilli_d_aurele"
+            },
+            {
+              "preparation_id": "prep_roasted_veg",
+              "servings": 1,
+              "box_id": "box_veg_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chilli_lunch",
+          "title": "Smoky Three-Bean Chilli (Lunch Portion)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic cloves",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "carrots",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "celery",
+              "quantity": "1 stick",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "tinned black beans",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned kidney beans",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned cannellini beans",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Sauté the diced onion, garlic, carrot, and celery in oil until soft. Add spices, then the beans and tomatoes. Simmer on the hob for 35 minutes until thick and smoky.",
+          "active_minutes": 15,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chilli_l_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_chilli_l_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_chilli_l_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_chilli_l_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 250
+            }
+          ]
+        },
+        {
+          "id": "prep_chilli_dinner",
+          "title": "Smoky Three-Bean Chilli (Dinner Portion)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic cloves",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "carrots",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "celery",
+              "quantity": "1 stick",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "tinned black beans",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned kidney beans",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned cannellini beans",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Cooked in the same pot as the lunch portion. Simmer for 35 minutes until rich and fragrant.",
+          "active_minutes": 5,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chilli_d_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_chilli_d_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_chilli_d_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_chilli_d_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 250
+            }
+          ]
+        },
+        {
+          "id": "prep_rice",
+          "title": "Steamed Brown Rice",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "brown rice",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse the rice and boil in salted water on the hob until tender (about 25-30 minutes). Drain and fluff.",
+          "active_minutes": 5,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 185
+            },
+            {
+              "id": "box_rice_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 185
+            },
+            {
+              "id": "box_rice_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 185
+            },
+            {
+              "id": "box_rice_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 185
+            }
+          ]
+        },
+        {
+          "id": "prep_roasted_veg",
+          "title": "Roasted Summer Vegetables",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "courgettes",
+              "quantity": "3 units",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red onions",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "dried oregano",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Chop the vegetables into large chunks. Toss with oil and oregano on your single oven tray. Roast at 200C for 25-30 minutes until charred and soft.",
+          "active_minutes": 10,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_veg_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 125
+            },
+            {
+              "id": "box_veg_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 125
+            },
+            {
+              "id": "box_veg_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 125
+            },
+            {
+              "id": "box_veg_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 125
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chilli_lunch",
+            "prep_chilli_dinner",
+            "prep_rice",
+            "prep_roasted_veg"
+          ],
+          "total_minutes": 50,
+          "run_through": "Preheat the oven to 200C. Chop the roasting vegetables and get them onto the single tray and into the oven. Next, start the chilli base in a large pot on the hob. While the chilli simmers, rinse and start the brown rice in another pot. Once the rice and veg are done, the chilli will be ready to portion out into the 16 boxes."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "onions",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "red onions",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 head",
+          "aisle": "produce"
+        },
+        {
+          "term": "carrots",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "celery",
+          "quantity": "2 sticks",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "3 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "red peppers",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh coriander",
+          "quantity": "1 bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "limes",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "avocados",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "brown rice",
+          "quantity": "300 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "tinned black beans",
+          "quantity": "400 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned kidney beans",
+          "quantity": "400 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned cannellini beans",
+          "quantity": "400 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chopped tomatoes",
+          "quantity": "800 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "dried oregano",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "portion_note": "At lunch, serve the chilli then the rice; at dinner, place the roasted vegetables first then top with the chilli.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chilli_lunch",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_chilli_dinner",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_roasted_veg",
+              "note": "one box"
+            }
+          ]
+        },
+        {
+          "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "portion_note": "At lunch, plate the chilli and rice together; at dinner, serve the chilli first then add the vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chilli_lunch",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_chilli_dinner",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_roasted_veg",
+              "note": "one box"
+            }
+          ]
+        },
+        {
+          "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "portion_note": "At lunch, plate the chilli and rice together; at dinner, serve the chilli first then add the vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chilli_lunch",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_chilli_dinner",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_roasted_veg",
+              "note": "one box"
+            }
+          ]
+        },
+        {
+          "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+          "portion_note": "Mix all components together in a bowl for both lunch and dinner.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chilli_lunch",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_chilli_dinner",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_roasted_veg",
+              "note": "one box"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Smoky Bean Bowls\",\n      \"title\": \"Three-bean smoky chilli with brown rice, coriander and lime\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"1 small bunch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the chilli and rice in separate pans on the hob with a splash of water. Serve in bowls topped with plenty of fresh coriander and a squeeze of lime.\",\n      \"why\": \"A hearty, plant-based lunch that uses the hob to keep the oven free for your evening vegetables.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_l_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Roasted Summer Veg Chilli\",\n      \"title\": \"Smoky bean chilli with roasted peppers, courgettes and avocado\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chilli in a pan and the roasted vegetables in the oven at 180C for 10 minutes. Plate up and top with sliced avocado.\",\n      \"why\": \"A smoky, slow-simmered chilli that satisfies the house's craving while using the single oven tray for loud, roasted vegetables.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_d_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chilli_lunch\",\n      \"title\": \"Smoky Three-Bean Chilli (Lunch Portion)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"carrots\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"celery\",\n          \"quantity\": \"1 stick\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned black beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned kidney beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned cannellini beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Sauté the diced onion, garlic, carrot, and celery in oil until soft. Add spices, then the beans and tomatoes. Simmer on the hob for 35 minutes until thick and smoky.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chilli_l_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chilli_l_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chilli_l_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chilli_l_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chilli_dinner\",\n      \"title\": \"Smoky Three-Bean Chilli (Dinner Portion)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"carrots\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"celery\",\n          \"quantity\": \"1 stick\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned black beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned kidney beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned cannellini beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Cooked in the same pot as the lunch portion. Simmer for 35 minutes until rich and fragrant.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chilli_d_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chilli_d_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chilli_d_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chilli_d_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Brown Rice\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"brown rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice and boil in salted water on the hob until tender (about 25-30 minutes). Drain and fluff.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 185\n        },\n        {\n          \"id\": \"box_rice_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 185\n        },\n        {\n          \"id\": \"box_rice_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 185\n        },\n        {\n          \"id\": \"box_rice_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 185\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_roasted_veg\",\n      \"title\": \"Roasted Summer Vegetables\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onions\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"dried oregano\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Chop the vegetables into large chunks. Toss with oil and oregano on your single oven tray. Roast at 200C for 25-30 minutes until charred and soft.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 125\n        },\n        {\n          \"id\": \"box_veg_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 125\n        },\n        {\n          \"id\": \"box_veg_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 125\n        },\n        {\n          \"id\": \"box_veg_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 125\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chilli_lunch\",\n        \"prep_chilli_dinner\",\n        \"prep_rice\",\n        \"prep_roasted_veg\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Preheat the oven to 200C. Chop the roasting vegetables and get them onto the single tray and into the oven. Next, start the chilli base in a large pot on the hob. While the chilli simmers, rinse and start the brown rice in another pot. Once the rice and veg are done, the chilli will be ready to portion out into the 16 boxes.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onions\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 head\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"carrots\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"celery\",\n      \"quantity\": \"2 sticks\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"limes\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"avocados\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"brown rice\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"tinned black beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned kidney beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned cannellini beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"dried oregano\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"At lunch, serve the chilli then the rice; at dinner, place the roasted vegetables first then top with the chilli.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"At lunch, plate the chilli and rice together; at dinner, serve the chilli first then add the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"At lunch, plate the chilli and rice together; at dinner, serve the chilli first then add the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Mix all components together in a bowl for both lunch and dinner.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"one box\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "CCKFapG1Hu2cnsEP_pCmiQw",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 19543,
+        "promptTokenCount": 8110,
+        "thoughtsTokenCount": 5970,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8110
+          }
+        ],
+        "candidatesTokenCount": 5463
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T03:24:52.191065+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T03:24:52.979242+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:24:56.268627+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:24:56.28121+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:24:56.28815+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:25:47.22611+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

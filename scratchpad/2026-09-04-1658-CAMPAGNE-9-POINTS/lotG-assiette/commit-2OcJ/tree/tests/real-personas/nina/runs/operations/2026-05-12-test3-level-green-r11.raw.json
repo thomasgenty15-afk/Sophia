@@ -1,0 +1,39 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r11-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "En fait c'est tout le rituel du soir contre les grignotages qui me fatigue. Quand je rentre, j'ai l'impression qu'il y a trop de petits choix à faire, donc je finis par lâcher. Tu peux me l'alléger sans changer tout mon plan ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r11-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r11",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends, la fatigue décisionnelle est un vrai obstacle le soir. Pour alléger ce rituel sans toucher au reste de ton plan, sur quelle action veux-tu qu'on simplifie l'effort en priorité : la préparation de tes alternatives, le choix de tes aliments bruts, ou l'analyse de tes envies ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r11-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "C'est surtout la préparation et le choix quand j'ai faim. Garde le décodage de l'envie tel quel. Je veux que Préparer tes alternatives d'avance devienne zéro cuisine, et que Faire le choix du brut soit décidé avant, pas sur le moment.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

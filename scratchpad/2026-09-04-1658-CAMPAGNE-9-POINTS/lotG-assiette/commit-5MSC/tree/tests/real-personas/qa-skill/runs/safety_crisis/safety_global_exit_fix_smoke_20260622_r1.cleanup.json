@@ -1,0 +1,11 @@
+{
+  "run_id": "safety_global_exit_fix_smoke_20260622_r1",
+  "user_id": "e10e8314-6562-4e71-816e-c1d9099354f0",
+  "scope": "qa-safety-crisis-safety_global_exit_fix_smoke_20260622_r1",
+  "deleted": {
+    "chat_messages": 204,
+    "user_chat_states": 204
+  },
+  "connection_cleanup": "cleanup complete for qa-skill connection=safety_crisis_local_safety_global_exit_fix_smoke_20260622_r1 (e10e8314-6562-4e71-816e-c1d9099354f0)",
+  "errors": []
+}

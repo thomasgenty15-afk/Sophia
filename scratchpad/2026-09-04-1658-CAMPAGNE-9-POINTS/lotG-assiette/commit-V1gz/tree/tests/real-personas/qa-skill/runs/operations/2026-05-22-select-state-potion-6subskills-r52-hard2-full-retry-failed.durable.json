@@ -1,0 +1,92 @@
+[
+  {
+    "potion": "rappel",
+    "user_id": "6b08b0c5-e9d6-40fa-8879-4f57bb964241",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r52_hard2_full_retry_failed_rappel",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "courage",
+    "user_id": "9be378b9-a3fc-428b-9cde-1fc8fcf4ce1b",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r52_hard2_full_retry_failed_courage",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "guerison",
+    "user_id": "bc48488a-0c20-4c3d-8c06-277e4153d52f",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r52_hard2_full_retry_failed_guerison",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "clarte",
+    "user_id": "1e4a7d7b-d9c8-4b6d-8cc1-b3c98e2a854a",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r52_hard2_full_retry_failed_clarte",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "amour",
+    "user_id": "69056f46-7fdf-4d97-b0e5-ffa29a53cbbf",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r52_hard2_full_retry_failed_amour",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "apaisement",
+    "user_id": "3b841fc8-b6ec-49f2-8733-d2b1ec1cd413",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r52_hard2_full_retry_failed_apaisement",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  }
+]

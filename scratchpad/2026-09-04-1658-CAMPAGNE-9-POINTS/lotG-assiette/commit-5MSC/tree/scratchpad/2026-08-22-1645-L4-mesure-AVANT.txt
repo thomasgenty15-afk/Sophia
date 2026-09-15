@@ -1,0 +1,41 @@
+référentiel: 923 lignes
+--- ① index de BASE (aucun apport fixe)
+    lean_protein: refs=3 energy=[110.4, 133.8] kcal/100g  protein=[20.1, 23.8] g/100g
+    lean_protein sentinelle de: zincSource
+--- ② + les 6 apports DÉCLARÉS de la base (whey/malt)
+    lean_protein: refs=9 energy=[114.6, 400.0] kcal/100g  protein=[17.5, 80.0] g/100g
+    lean_protein sentinelle de: (aucune)
+--- ③ + les 6 + UNE Danette déclarée
+    lean_protein: refs=10 energy=[114.0, 400.0] kcal/100g  protein=[8.9, 80.0] g/100g
+    lean_protein sentinelle de: (aucune)
+
+⛔ LE CAS RÉEL D'UNE GÉNÉRATION — chaque porteur n'a QU'UN apport:
+--- ④ + UN SEUL whey (Zorbax, 398 kcal/100g) — le cas de 6 porteurs sur 7
+    lean_protein: refs=4 energy=[111.1, 358.4] kcal/100g  protein=[20.2, 56.1] g/100g
+    lean_protein sentinelle de: (aucune)
+--- ⑤ + UNE SEULE Danette
+    lean_protein: refs=4 energy=[110.7, 133.2] kcal/100g  protein=[5.7, 23.7] g/100g
+    lean_protein sentinelle de: (aucune)
+--- ⑥ + UN SEUL Barleycup (le NON-protéique DÉJÀ en base)
+    lean_protein: refs=4 energy=[111.1, 313.9] kcal/100g  protein=[16.5, 23.7] g/100g
+    lean_protein sentinelle de: (aucune)
+
+LA BORNE D'UN TERME INCONNU DÉCLARÉ lean_protein, à 150 g:
+  base .................. haut=201 kcal · mid=183 kcal
+  + 6 déclarés .......... haut=600 kcal · mid=386 kcal
+  + 6 déclarés + Danette  haut=600 kcal · mid=385 kcal
+  + 1 whey (cas réel) ... haut=538 kcal · mid=352 kcal
+  + 1 Danette (cas réel)  haut=200 kcal · mid=183 kcal
+  + 1 Barleycup (en base) haut=471 kcal · mid=319 kcal
+
+CE QUE LA DANETTE DÉCLARE, RAMENÉ À 100 g:
+  protéines 3.2 g/100g · énergie 120 kcal/100g · part protéique de l'énergie 10.7 %
+  Barleycup (DÉJÀ EN BASE): protéines 15.9 g/100g · part protéique 18.4 %
+
+POUR SITUER — bandes d'énergie de quelques groupes (index de base):
+  lean_protein       refs=  3 [110, 134]
+  dairy              (pas de bande)
+  sweetened_drink    (pas de bande)
+  ultra_processed    (pas de bande)
+  nuts_seeds         refs= 16 [426, 636]
+  poultry            refs= 73 [107, 404]

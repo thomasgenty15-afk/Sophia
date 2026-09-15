@@ -1,0 +1,302 @@
+[
+  {
+    "kind": "off_plan",
+    "locale": "fr-FR",
+    "text": "j'ai commandé une pizza ce soir",
+    "run": 1,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Noted — you ordered a pizza tonight.  And what did you have with it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "fr-FR",
+    "text": "on a mangé au resto hier soir avec des amis",
+    "run": 1,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "That’s useful context. For lunch today, the only things currently in your plan are protein and vegetables.  What was in it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "fr-FR",
+    "text": "j'étais à un mariage samedi, j'ai mangé de tout",
+    "run": 1,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Got it — Saturday at the wedding, you ate everything. ✅  What was in it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "fr-FR",
+    "text": "j'ai mangé chez ma mère hier soir",
+    "run": 1,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Thanks for telling me. I don’t have any meal note to compare that with, so I can’t say anything more specific.  What was in it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "en-US",
+    "text": "I ordered takeout last night",
+    "run": 1,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Got it. Takeout last night is just context, not a problem by itself.  If you want, I can help you make sense of it against today’s lunch targets: protein and vegetables.  What was in it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "en-US",
+    "text": "we ate out at a restaurant yesterday with friends",
+    "run": 1,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Restaurant meal with friends yesterday. That’s useful context for lunch today too: I’d keep the next meal simple and protein-forward, with vegetables if you can.  What was in it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "en-US",
+    "text": "I was at a wedding on Saturday, I ate everything",
+    "run": 1,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "That’s useful context. For Saturday, your lunch targets were protein and vegetables, and “I ate everything” doesn’t tell me whether those were present, only that the meal was unrestricted.  If you want, I can help you phrase that as a clean note for the day.  What was in it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "en-US",
+    "text": "I had a takeaway last night",
+    "run": 1,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "That’s just one meal, not a pattern. One takeaway last night doesn’t tell me much on its own.  What was in it?"
+  },
+  {
+    "kind": "cooked",
+    "locale": "fr-FR",
+    "text": "j'ai mangé du poulet et des brocolis à midi",
+    "run": 1,
+    "relations": [
+      "NULL",
+      "NULL"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "For lunch, both parts of the target are covered: you had chicken for protein and broccoli for vegetables."
+  },
+  {
+    "kind": "cooked",
+    "locale": "fr-FR",
+    "text": "ce midi, saumon, riz complet et haricots verts",
+    "run": 1,
+    "relations": [
+      "NULL",
+      "NULL",
+      "NULL"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Noted: lunch today included salmon, brown rice, and green beans."
+  },
+  {
+    "kind": "cooked",
+    "locale": "en-US",
+    "text": "I had grilled chicken and green beans for lunch",
+    "run": 1,
+    "relations": [
+      "NULL",
+      "NULL"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Noted: protein at lunch is covered, and green beans cover the vegetables at lunch."
+  },
+  {
+    "kind": "cooked",
+    "locale": "en-US",
+    "text": "Grilled salmon with quinoa and green beans for dinner",
+    "run": 1,
+    "relations": [
+      "NULL",
+      "NULL",
+      "NULL"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Three dinner items were reported: grilled salmon, quinoa, and green beans."
+  },
+  {
+    "kind": "off_plan",
+    "locale": "fr-FR",
+    "text": "j'ai commandé une pizza ce soir",
+    "run": 2,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Got it. That means dinner was pizza tonight.  And what did you have with it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "fr-FR",
+    "text": "on a mangé au resto hier soir avec des amis",
+    "run": 2,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Got it — you ate at a restaurant last night with friends.  What was in it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "fr-FR",
+    "text": "j'étais à un mariage samedi, j'ai mangé de tout",
+    "run": 2,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "That was a wedding, and you ate a bit of everything. If you want, I can help you think through what that means for the lunch items listed today.  What was in it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "fr-FR",
+    "text": "j'ai mangé chez ma mère hier soir",
+    "run": 2,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Noted. Yesterday’s dinner at your mother’s is now part of the picture.  What was in it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "en-US",
+    "text": "I ordered takeout last night",
+    "run": 2,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Got it. If you want, I can help you think through how to fit that into today without turning it into a big deal.  What was in it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "en-US",
+    "text": "we ate out at a restaurant yesterday with friends",
+    "run": 2,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "That gives you a real restaurant meal in the mix yesterday, with friends. Helpful context, but it doesn’t tell me the food itself.  What was in it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "en-US",
+    "text": "I was at a wedding on Saturday, I ate everything",
+    "run": 2,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Got it. The wedding on Saturday and “I ate everything” are useful context, but they don’t change anything I can verify from here.  For lunch today, the two items on your list are still just protein and vegetables.  What was in it?"
+  },
+  {
+    "kind": "off_plan",
+    "locale": "en-US",
+    "text": "I had a takeaway last night",
+    "run": 2,
+    "relations": [
+      "off_plan"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Got it — takeaway last night fits naturally as one meal. If you want, I can help you place it against today’s lunch targets, but I won’t assume anything beyond what you said.  What was in it?"
+  },
+  {
+    "kind": "cooked",
+    "locale": "fr-FR",
+    "text": "j'ai mangé du poulet et des brocolis à midi",
+    "run": 2,
+    "relations": [
+      "NULL",
+      "NULL"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Good, that gives you protein and vegetables at lunch.   Also, the two lunch items are now recorded for today."
+  },
+  {
+    "kind": "cooked",
+    "locale": "fr-FR",
+    "text": "ce midi, saumon, riz complet et haricots verts",
+    "run": 2,
+    "relations": [
+      "NULL",
+      "NULL",
+      "NULL"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Noted: salmon, brown rice, and green beans at lunch. That gives you protein and vegetables at the same meal."
+  },
+  {
+    "kind": "cooked",
+    "locale": "en-US",
+    "text": "I had grilled chicken and green beans for lunch",
+    "run": 2,
+    "relations": [
+      "NULL",
+      "NULL"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Noted: grilled chicken and green beans for lunch."
+  },
+  {
+    "kind": "cooked",
+    "locale": "en-US",
+    "text": "Grilled salmon with quinoa and green beans for dinner",
+    "run": 2,
+    "relations": [
+      "NULL",
+      "NULL",
+      "NULL"
+    ],
+    "judgment": [],
+    "rate": [],
+    "reply": "Yes — lean protein is exactly what the line asks for. Log it as usual."
+  }
+]

@@ -1,0 +1,202 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "4b8a6be1-2663-4018-a0c0-a8086bb4550f",
+        "role": "user",
+        "content": "Je me parle durement depuis ce matin, comme si mon erreur disait quelque chose de nul sur moi. J'ai besoin que tu m'aides à redescendre sans me donner de plan.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T16:29:19.146606+00:00"
+      },
+      {
+        "id": "e4069512-c98b-4d72-98ee-245fd58de8c1",
+        "role": "assistant",
+        "content": "C'est vraiment éprouvant quand cette voix intérieure devient si dure. On a souvent tendance à transformer un faux pas en une vérité sur soi, mais une erreur reste un acte, pas ton identité. Je suis là avec toi pour laisser cette tension s'apaiser doucement, sans rien forcer.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T16:29:38.300462+00:00"
+      },
+      {
+        "id": "860fed73-99ab-49cd-83be-c5b445ee4997",
+        "role": "user",
+        "content": "Là ça a un peu baissé. Je veux bien passer sur une potion d'amour pour arrêter de me traiter comme si j'étais mon erreur.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T16:30:18.358955+00:00"
+      },
+      {
+        "id": "8dd11c5c-50b3-4fe7-bdf1-c4835c808ad6",
+        "role": "assistant",
+        "content": "Je suis contente de sentir que la pression redescende un peu. C'est essentiel de ne plus te laisser définir par cette erreur, car tu es bien plus que cela. Qu'est-ce qui t'aiderait le plus à retrouver un regard doux sur toi-même en ce moment ?",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "conversation_skill_local_flow",
+              "status": "continue",
+              "skill_id": "emotional_repair",
+              "flow_action": "confirm_potion_bridge",
+              "reason_code": "emotional_repair_potion_bridge_blocked",
+              "visible_task": "ask_gentle_clarification",
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_turn",
+                  "component": "emotional_repair",
+                  "safety_handoff": false,
+                  "global_dispatcher_skipped": true
+                }
+              ],
+              "allowed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "select_state_potion",
+                  "reason_code": "missing_previous_potion_offer"
+                }
+              ],
+              "response_intent": "exit",
+              "committed_effects": [],
+              "requested_effects": [],
+              "source_dispatcher_local": "emotional_repair.local_dispatcher",
+              "global_dispatcher_skipped": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-15T16:30:30.548954+00:00"
+      },
+      {
+        "id": "73de9489-b6de-46db-9b88-82c20af0cada",
+        "role": "user",
+        "content": "Ce qui m'aiderait, c'est précisément la Potion d'amour. Je veux continuer avec cette potion maintenant.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T16:31:42.864446+00:00"
+      },
+      {
+        "id": "8f6ec548-2894-4fcd-b231-451e75ae6ea7",
+        "role": "assistant",
+        "content": "Je comprends ton souhait de retrouver un peu de douceur envers toi-même. Qu'est-ce qui te semble le plus difficile à apaiser dans ce regard que tu portes sur toi en ce moment ?",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-amour-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "conversation_skill_local_flow",
+              "status": "continue",
+              "skill_id": "emotional_repair",
+              "flow_action": "confirm_potion_bridge",
+              "reason_code": "emotional_repair_potion_bridge_blocked",
+              "visible_task": "ask_gentle_clarification",
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_turn",
+                  "component": "emotional_repair",
+                  "safety_handoff": false,
+                  "global_dispatcher_skipped": true
+                }
+              ],
+              "allowed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "select_state_potion",
+                  "reason_code": "missing_previous_potion_offer"
+                }
+              ],
+              "response_intent": "exit",
+              "committed_effects": [],
+              "requested_effects": [],
+              "source_dispatcher_local": "emotional_repair.local_dispatcher",
+              "global_dispatcher_skipped": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-15T16:32:00.459973+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r16-action-t01",
+    "user": "Pour cette semaine, je veux ajuster seulement l'action Partager un point positif : passe-la à 2 jours / semaine, avec une phrase neutre, sans créneau fixe. Ne touche pas au reste du niveau.",
+    "status": 200,
+    "sophia": "C'est entendu. Je vais modifier l'action 'Partager un point positif' pour qu'elle passe à 2 jours par semaine, avec une consigne de phrase neutre et sans horaire fixe, sans toucher au reste de ton programme. Est-ce que je te prépare ce brouillon ?",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r16-action-t02",
+    "user": "Oui, prépare le brouillon, je veux le valider avant application.",
+    "status": 200,
+    "sophia": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour la rendre plus accessible et enlever la pression que tu ressens. Pour l'instant, rien n'est encore appliqué.\n\nVoici ce que je prévois de changer :\n- Réduire la fréquence à 2 jours par semaine au lieu de 3.\n- Simplifier l'attendu : il s'agira d'écrire une phrase neutre, sans chercher de créneau fixe.\n\nTes autres actions, comme celle de convenir d'un signal de pause avec ton partenaire, restent inchangées. Est-ce que cette proposition te convient ?",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r16-action-t03",
+    "user": "Avant de valider, confirme-moi que le signal de pause et la cartographie ne bougent pas.",
+    "status": 200,
+    "sophia": "Je te propose d'ajuster ton plan pour enlever la pression sur l'action qui te bloque. Pour l'instant, rien n'est encore appliqué.\n\nJe prévois de modifier l'habitude \"Partager un point positif\" : on passerait de 3 à 2 jours par semaine et l'objectif deviendrait simplement d'écrire une phrase neutre, sans chercher de créneau fixe. Cela permet de garder l'intention de ton plan tout en rendant l'exercice beaucoup plus léger.\n\nComme tu l'as demandé, je ne touche pas au signal de pause ni à la cartographie des déclencheurs qui restent inchangés. Est-ce que cette proposition te convient ?",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "none",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 4,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r16-action-t04",
+    "user": "Oui, applique cette modification.",
+    "status": 200,
+    "sophia": "C'est fait, j'ai ajusté ton plan pour qu'il soit plus fluide pour toi. \n\nL'habitude \"Partager un point positif\" est maintenant fixée à 2 jours par semaine avec pour consigne d'écrire une phrase neutre, sans contrainte de créneau horaire. Le signal de pause et la cartographie restent exactement tels qu'ils étaient. Je suis confiant sur le fait que cet allègement va t'aider à maintenir ton élan sans ressentir de pression inutile.",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "success",
+      "executed_tools": [
+        "adjust_plan_item"
+      ]
+    }
+  }
+]

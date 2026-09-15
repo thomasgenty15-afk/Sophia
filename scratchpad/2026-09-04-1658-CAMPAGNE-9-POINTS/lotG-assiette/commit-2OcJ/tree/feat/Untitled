@@ -1,0 +1,1 @@
+npx supabase functions serve --env-file supabase/.env

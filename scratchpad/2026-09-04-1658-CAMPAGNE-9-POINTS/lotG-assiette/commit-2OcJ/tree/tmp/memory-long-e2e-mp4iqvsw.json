@@ -1,0 +1,3899 @@
+{
+  "ok": false,
+  "run_id": "memory-long-e2e-mp4iqvsw",
+  "user": {
+    "id": "ef7b6603-9fa7-4ac1-be2e-8ba45f7d945a",
+    "email": "memory-long-e2e-mp4iqvsw@example.com"
+  },
+  "scopes": {
+    "first": "memory-long-e2e-mp4iqvsw-conversation-a",
+    "second": "memory-long-e2e-mp4iqvsw-conversation-b"
+  },
+  "first_conversation": {
+    "turn_count": 23,
+    "turns": [
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-0",
+        "id": "seed_0",
+        "message": "Contexte durable: je travaille sur un projet perso appele Atlas, un outil de suivi de budget pour freelances.",
+        "response_text": "Ah nickel, Atlas comme nom de projet c’est solide. 😄💸\n\nPour que je t’aide à avancer concrètement : aujourd’hui tu veux plutôt\n1) clarifier la prochaine étape du produit (MVP, fonctionnalités)\nou\n2) avancer sur le budget/monétisation (pricing, modèle, process) ?",
+        "response_body": {
+          "content": "Ah nickel, Atlas comme nom de projet c’est solide. 😄💸\n\nPour que je t’aide à avancer concrètement : aujourd’hui tu veux plutôt\n1) clarifier la prochaine étape du produit (MVP, fonctionnalités)\nou\n2) avancer sur le budget/monétisation (pricing, modèle, process) ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-1",
+        "id": "seed_1",
+        "message": "Atlas est prioritaire pendant les six prochaines semaines, plus que mes autres idees produit.",
+        "response_text": "Tu veux changer quoi precisement: mon ton, mon niveau de challenge, ou le nombre de questions ?",
+        "response_body": {
+          "content": "Tu veux changer quoi precisement: mon ton, mon niveau de challenge, ou le nombre de questions ?",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-2",
+        "id": "seed_2",
+        "message": "Mon objectif pour Atlas est de sortir une beta privee avec trois freelances pilotes avant fin juin.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-3",
+        "id": "seed_3",
+        "message": "Quand je code tard apres 23h30, je dors mal et je fais plus d'erreurs le lendemain.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-4",
+        "id": "seed_4",
+        "message": "Je procrastine surtout quand la prochaine action est floue; aide-moi avec une action minuscule et concrete.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-5",
+        "id": "seed_5",
+        "message": "Ma routine ideale du matin: eau, douche, dix minutes dehors, puis seulement ensuite ouvrir Slack.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-6",
+        "id": "seed_6",
+        "message": "Maya est ma comptable et elle m'aide a clarifier les factures impayees.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-7",
+        "id": "seed_7",
+        "message": "Correction importante: Maya est ma comptable, pas ma soeur.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-8",
+        "id": "seed_8",
+        "message": "Noe est mon frere; il me motive pour courir sans me mettre la pression.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-9",
+        "id": "seed_9",
+        "message": "Je veux courir deux fois par semaine, mais sans culpabiliser si je rate une sortie.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-10",
+        "id": "seed_10",
+        "message": "Hier soir, j'ai couru 22 minutes et ca m'a aide a redescendre la pression.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-11",
+        "id": "seed_11",
+        "message": "Je surveille une allergie aux pistaches; evite de me proposer des desserts avec pistaches ou praline.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-12",
+        "id": "seed_12",
+        "message": "Je ne veux pas que mon allergie ressorte dans une conversation neutre sur Atlas ou la course.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-13",
+        "id": "seed_13",
+        "message": "Je prends parfois du cannabis quand je veux couper la pression; ce sujet doit rester sensible.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-14",
+        "id": "seed_14",
+        "message": "Ne ressors pas le cannabis sauf si je parle directement de consommation, de pression le soir, ou d'envie de couper.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-15",
+        "id": "seed_15",
+        "message": "Le client Boreal me stresse car il change souvent les priorites au dernier moment.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-16",
+        "id": "seed_16",
+        "message": "Boreal est un client freelance, pas un projet perso.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-17",
+        "id": "seed_17",
+        "message": "Quand je dis 'je suis incapable de tenir une routine', c'est du decouragement du moment, pas un trait stable.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-18",
+        "id": "seed_18",
+        "message": "Je prefere des reponses courtes, franches et sans ton moralisateur quand je suis fatigue.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-19",
+        "id": "seed_19",
+        "message": "Si je suis en surcharge, propose-moi une reduction de pression plutot qu'un challenge.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-20",
+        "id": "seed_20",
+        "message": "Vendredi dernier, j'ai oublie d'envoyer une facture a Boreal et Maya m'a aide a la retrouver.",
+        "response_text": "Ah nickel, ça : tu as une preuve que tu peux te rattraper vite quand ça déraille, et que ton réseau (Maya) te sauve la mise 😄\n\nPour que ça n’arrive plus (sans te rajouter de charge mentale), je te propose un filet simple : à chaque vendredi, tu fais un scan “factures à envoyer” en 2 minutes, et tu mets juste une alerte “facture Boreal” + “facture Maya” si tu sais déjà qui part quand.\n\nTu veux qu’on sécurise ça pour quel moment exactement : vendredi soir, ou lundi matin ? 😊",
+        "response_body": {
+          "content": "Ah nickel, ça : tu as une preuve que tu peux te rattraper vite quand ça déraille, et que ton réseau (Maya) te sauve la mise 😄\n\nPour que ça n’arrive plus (sans te rajouter de charge mentale), je te propose un filet simple : à chaque vendredi, tu fais un scan “factures à envoyer” en 2 minutes, et tu mets juste une alerte “facture Boreal” + “facture Maya” si tu sais déjà qui part quand.\n\nTu veux qu’on sécurise ça pour quel moment exactement : vendredi soir, ou lundi matin ? 😊",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-21",
+        "id": "seed_21",
+        "message": "Je veux mesurer mes progres sur une semaine, pas sur une seule journee.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_a-22",
+        "id": "seed_22",
+        "message": "Aujourd'hui j'ai annule une session Atlas parce que j'etais epuise, mais j'ai quand meme clarifie la prochaine action.",
+        "response_text": "C'est une super décision. Franchement, forcer quand on est épuisé, c'est le meilleur moyen de se dégoûter du truc. \n\nLe fait que tu aies quand même pris le temps de clarifier la suite, c'est ça qui compte : tu gardes le fil sans te cramer. C'est exactement la réduction de pression dont on parlait. 🛋️",
+        "response_body": {
+          "content": "C'est une super décision. Franchement, forcer quand on est épuisé, c'est le meilleur moyen de se dégoûter du truc. \n\nLe fait que tu aies quand même pris le temps de clarifier la suite, c'est ça qui compte : tu gardes le fil sans te cramer. C'est exactement la réduction de pression dont on parlait. 🛋️",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      }
+    ],
+    "trace_summary": {
+      "messages_total": 46,
+      "user_messages": 23,
+      "assistant_messages": 23,
+      "turns_total": 23,
+      "memorizer_runs_total": 0,
+      "observability_events_total": 58
+    }
+  },
+  "memorizer": {
+    "ok": true,
+    "request_id": "memory-long-e2e-mp4iqvsw-memorizer",
+    "since_iso": "2026-05-12T20:39:07.478Z",
+    "processed_count": 1,
+    "processed": [
+      {
+        "user_id": "ef7b6603-9fa7-4ac1-be2e-8ba45f7d945a",
+        "timezone": "Europe/Paris",
+        "message_count": 23,
+        "memorizer": {
+          "status": "completed",
+          "reason": null,
+          "processed_message_count": 23,
+          "persisted_count": 19,
+          "extraction_run_id": "ad2fafcc-21e0-4095-acd6-b60af2dc514c",
+          "batch_hash": "45b3ca28771705be4969c5c134e21882393222971ab7fde68ac54688f01cd8dd",
+          "write_decision_count": 19,
+          "extraction_run": {
+            "id": "ad2fafcc-21e0-4095-acd6-b60af2dc514c",
+            "status": "completed",
+            "trigger_type": "daily_batch",
+            "proposed_item_count": 19,
+            "accepted_item_count": 19,
+            "rejected_item_count": 5,
+            "proposed_entity_count": 3,
+            "accepted_entity_count": 0,
+            "duration_ms": 35588,
+            "error_message": null,
+            "durable_writes": {
+              "active_items": 19,
+              "memory_items": 19,
+              "candidate_items": 0
+            },
+            "pre_filter_skip_count": 5,
+            "statement_as_fact_violation_count": 0,
+            "rejection_reasons": {
+              "smart_pre_filter": 5
+            },
+            "write_decision_statuses": {
+              "active": 19
+            }
+          }
+        }
+      }
+    ]
+  },
+  "memory_state": {
+    "items": [
+      {
+        "id": "5ac1f931-87bb-4d2c-a0b8-de8ca7be40f0",
+        "kind": "fact",
+        "status": "active",
+        "content_text": "L'utilisateur travaille sur Atlas, un outil de suivi de budget pour les freelances.",
+        "domain_keys": [
+          "travail.carriere"
+        ],
+        "sensitivity_level": "sensitive",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.141003+00:00"
+      },
+      {
+        "id": "8ba344a7-5c77-4f60-9ce1-39a420a59ef0",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Sortir une beta privée d'Atlas avec trois freelances pilotes avant la fin du mois de juin.",
+        "domain_keys": [
+          "objectifs.court_terme"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.164079+00:00"
+      },
+      {
+        "id": "9efe8d61-2141-48f8-af34-ddbc1020c911",
+        "kind": "fact",
+        "status": "active",
+        "content_text": "Coder après 23h30 dégrade la qualité du sommeil et augmente le taux d'erreurs le lendemain.",
+        "domain_keys": [
+          "sante.sommeil",
+          "travail.performance"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.190051+00:00"
+      },
+      {
+        "id": "55bf5cd4-4c76-46c7-916b-11a195359253",
+        "kind": "fact",
+        "status": "active",
+        "content_text": "L'utilisateur procrastine davantage lorsque la prochaine action à entreprendre est floue.",
+        "domain_keys": [
+          "habitudes.procrastination"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.211564+00:00"
+      },
+      {
+        "id": "d8a2d526-532a-4938-a985-66708bd4d28c",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "L'utilisateur souhaite être aidé par la définition d'actions minuscules et concrètes pour éviter la procrastination.",
+        "domain_keys": [
+          "habitudes.execution"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.226086+00:00"
+      },
+      {
+        "id": "b79ffb4c-120a-4f1b-a2a3-40501cd100bb",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Routine matinale idéale : boire de l'eau, prendre une douche, passer dix minutes dehors, puis ouvrir Slack.",
+        "domain_keys": [
+          "habitudes.execution"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.233502+00:00"
+      },
+      {
+        "id": "b0aaee78-ad98-4956-a0af-872e66faece6",
+        "kind": "fact",
+        "status": "active",
+        "content_text": "Maya est la comptable de l'utilisateur.",
+        "domain_keys": [
+          "travail.carriere"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.237459+00:00"
+      },
+      {
+        "id": "d72664c3-b9c8-416d-81e1-d75125625c2c",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Courir deux fois par semaine sans culpabilité en cas d'échec.",
+        "domain_keys": [
+          "sante.activite_physique",
+          "psychologie.emotions"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.240902+00:00"
+      },
+      {
+        "id": "a000c09c-f8c6-45ec-9cca-7132d4789ffd",
+        "kind": "event",
+        "status": "active",
+        "content_text": "L'utilisateur a couru pendant 22 minutes, ce qui a aidé à réduire sa pression.",
+        "domain_keys": [
+          "sante.activite_physique",
+          "psychologie.emotions"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.244161+00:00"
+      },
+      {
+        "id": "eeb218bb-644d-4e59-a59b-1a0c0b99bf53",
+        "kind": "fact",
+        "status": "active",
+        "content_text": "L'utilisateur a une allergie aux pistaches et doit éviter les pistaches et le praliné.",
+        "domain_keys": [
+          "sante.medical",
+          "sante.alimentation"
+        ],
+        "sensitivity_level": "sensitive",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.247703+00:00"
+      },
+      {
+        "id": "8e7468b0-e143-411e-b31d-a3c1920d39d0",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Ne pas mentionner l'allergie aux pistaches dans des contextes neutres comme le travail ou le sport.",
+        "domain_keys": [
+          "relations.limites"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.251826+00:00"
+      },
+      {
+        "id": "edf5d0b0-5542-4bb5-982f-d9b7ed5432c7",
+        "kind": "fact",
+        "status": "active",
+        "content_text": "L'utilisateur consomme parfois du cannabis pour relâcher la pression.",
+        "domain_keys": [
+          "addictions.cannabis",
+          "psychologie.emotions"
+        ],
+        "sensitivity_level": "sensitive",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.255362+00:00"
+      },
+      {
+        "id": "f8a76189-f380-4291-992e-0d8baa46c49b",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "N'évoquer le cannabis que si l'utilisateur parle de consommation, de pression nocturne ou du besoin de couper.",
+        "domain_keys": [
+          "relations.limites"
+        ],
+        "sensitivity_level": "sensitive",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.258621+00:00"
+      },
+      {
+        "id": "692c73e9-0a8f-4f75-b016-51111bfbe73e",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "L'expression 'je suis incapable de tenir une routine' doit être interprétée comme un découragement passager et non un trait de caractère permanent.",
+        "domain_keys": [
+          "psychologie.emotions"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.262062+00:00"
+      },
+      {
+        "id": "14c3360d-8c5c-4c34-ab28-f48f918845fa",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "En cas de fatigue, l'utilisateur préfère des réponses courtes, franches et sans ton moralisateur.",
+        "domain_keys": [
+          "relations.limites"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.265791+00:00"
+      },
+      {
+        "id": "a85741ef-e615-4f52-a208-040cd73413a3",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "En cas de surcharge, proposer une réduction de la pression plutôt qu'un nouveau défi.",
+        "domain_keys": [
+          "travail.charge"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.269598+00:00"
+      },
+      {
+        "id": "44de7a22-eaea-4af5-a916-373d6041c13e",
+        "kind": "event",
+        "status": "active",
+        "content_text": "L'utilisateur a oublié d'envoyer une facture à Boreal ; Maya l'a aidé à la retrouver.",
+        "domain_keys": [
+          "travail.performance"
+        ],
+        "sensitivity_level": "sensitive",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.273304+00:00"
+      },
+      {
+        "id": "efa5f037-c945-444a-8734-5f29d7c7feae",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "L'utilisateur souhaite mesurer ses progrès sur une base hebdomadaire plutôt que quotidienne.",
+        "domain_keys": [
+          "habitudes.execution"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.276781+00:00"
+      },
+      {
+        "id": "671e5b14-3e6c-4b73-ae90-9fb8e918a246",
+        "kind": "event",
+        "status": "active",
+        "content_text": "L'utilisateur a annulé une session de travail sur Atlas par épuisement, mais a clarifié l'action suivante.",
+        "domain_keys": [
+          "travail.charge",
+          "habitudes.procrastination"
+        ],
+        "sensitivity_level": "normal",
+        "requires_user_initiated": false,
+        "created_at": "2026-05-13T20:39:43.280144+00:00"
+      }
+    ],
+    "topics": [],
+    "links": [],
+    "runs": [
+      {
+        "id": "ad2fafcc-21e0-4095-acd6-b60af2dc514c",
+        "status": "completed",
+        "trigger_type": "daily_batch",
+        "proposed_item_count": 19,
+        "accepted_item_count": 19,
+        "rejected_item_count": 5,
+        "metadata": {
+          "cost": {
+            "model_name": "gemini-3-flash-preview",
+            "estimated_llm_calls": 1
+          },
+          "dry_run": false,
+          "durable_writes": {
+            "active_items": 19,
+            "memory_items": 19,
+            "candidate_items": 0
+          },
+          "write_decisions": [
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "travail.carriere"
+                  ],
+                  "content_text": "L'utilisateur travaille sur Atlas, un outil de suivi de budget pour les freelances.",
+                  "event_end_at": null,
+                  "canonical_key": "travail.carriere.fact.projet_atlas_outil_budget_pour_freelances",
+                  "event_start_at": null,
+                  "evidence_quote": "je travaille sur un projet perso appele Atlas, un outil de suivi de budget pour freelances.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Projet Atlas : outil de budget pour freelances",
+                  "source_message_ids": [
+                    "cfb04006-4180-4277-aa2a-4da0b8bdbfd0"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.carriere"
+                    ],
+                    "content_text": "L'utilisateur travaille sur Atlas, un outil de suivi de budget pour les freelances.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.carriere.fact.projet_atlas_outil_budget_pour_freelances",
+                    "event_start_at": null,
+                    "evidence_quote": "je travaille sur un projet perso appele Atlas, un outil de suivi de budget pour freelances.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Projet Atlas : outil de budget pour freelances",
+                    "source_message_ids": [
+                      "cfb04006-4180-4277-aa2a-4da0b8bdbfd0"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.carriere"
+                    ],
+                    "content_text": "L'utilisateur travaille sur Atlas, un outil de suivi de budget pour les freelances.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.carriere.fact.projet_atlas_outil_budget_pour_freelances",
+                    "event_start_at": null,
+                    "evidence_quote": "je travaille sur un projet perso appele Atlas, un outil de suivi de budget pour freelances.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Projet Atlas : outil de budget pour freelances",
+                    "source_message_ids": [
+                      "cfb04006-4180-4277-aa2a-4da0b8bdbfd0"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "goal"
+                  },
+                  "confidence": 0.9,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "objectifs.court_terme"
+                  ],
+                  "content_text": "Sortir une beta privée d'Atlas avec trois freelances pilotes avant la fin du mois de juin.",
+                  "event_end_at": null,
+                  "canonical_key": "objectifs.court_terme.statement.objectif_atlas_beta_privee_avec_pilotes_ici_fin",
+                  "event_start_at": null,
+                  "evidence_quote": "Mon objectif pour Atlas est de sortir une beta privee avec trois freelances pilotes avant fin juin.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.8,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Objectif Atlas : beta privée avec 3 pilotes d'ici fin juin",
+                  "source_message_ids": [
+                    "c6770e8b-bae1-4552-b96c-b5639cb8bdbb"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "goal"
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "objectifs.court_terme"
+                    ],
+                    "content_text": "Sortir une beta privée d'Atlas avec trois freelances pilotes avant la fin du mois de juin.",
+                    "event_end_at": null,
+                    "canonical_key": "objectifs.court_terme.statement.objectif_atlas_beta_privee_avec_pilotes_ici_fin",
+                    "event_start_at": null,
+                    "evidence_quote": "Mon objectif pour Atlas est de sortir une beta privee avec trois freelances pilotes avant fin juin.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Objectif Atlas : beta privée avec 3 pilotes d'ici fin juin",
+                    "source_message_ids": [
+                      "c6770e8b-bae1-4552-b96c-b5639cb8bdbb"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "goal"
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "objectifs.court_terme"
+                    ],
+                    "content_text": "Sortir une beta privée d'Atlas avec trois freelances pilotes avant la fin du mois de juin.",
+                    "event_end_at": null,
+                    "canonical_key": "objectifs.court_terme.statement.objectif_atlas_beta_privee_avec_pilotes_ici_fin",
+                    "event_start_at": null,
+                    "evidence_quote": "Mon objectif pour Atlas est de sortir une beta privee avec trois freelances pilotes avant fin juin.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Objectif Atlas : beta privée avec 3 pilotes d'ici fin juin",
+                    "source_message_ids": [
+                      "c6770e8b-bae1-4552-b96c-b5639cb8bdbb"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {},
+                  "confidence": 0.9,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "sante.sommeil",
+                    "travail.performance"
+                  ],
+                  "content_text": "Coder après 23h30 dégrade la qualité du sommeil et augmente le taux d'erreurs le lendemain.",
+                  "event_end_at": null,
+                  "canonical_key": "sante.sommeil.fact.impact_negatif_codage_tardif_23h30_sur_sommeil_performance",
+                  "event_start_at": null,
+                  "evidence_quote": "Quand je code tard apres 23h30, je dors mal et je fais plus d'erreurs le lendemain.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Impact négatif du codage tardif (>23h30) sur le sommeil et la performance",
+                  "source_message_ids": [
+                    "74562278-4c9e-478f-bc0e-dfe7e2d650ea"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.sommeil",
+                      "travail.performance"
+                    ],
+                    "content_text": "Coder après 23h30 dégrade la qualité du sommeil et augmente le taux d'erreurs le lendemain.",
+                    "event_end_at": null,
+                    "canonical_key": "sante.sommeil.fact.impact_negatif_codage_tardif_23h30_sur_sommeil_performance",
+                    "event_start_at": null,
+                    "evidence_quote": "Quand je code tard apres 23h30, je dors mal et je fais plus d'erreurs le lendemain.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Impact négatif du codage tardif (>23h30) sur le sommeil et la performance",
+                    "source_message_ids": [
+                      "74562278-4c9e-478f-bc0e-dfe7e2d650ea"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.sommeil",
+                      "travail.performance"
+                    ],
+                    "content_text": "Coder après 23h30 dégrade la qualité du sommeil et augmente le taux d'erreurs le lendemain.",
+                    "event_end_at": null,
+                    "canonical_key": "sante.sommeil.fact.impact_negatif_codage_tardif_23h30_sur_sommeil_performance",
+                    "event_start_at": null,
+                    "evidence_quote": "Quand je code tard apres 23h30, je dors mal et je fais plus d'erreurs le lendemain.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Impact négatif du codage tardif (>23h30) sur le sommeil et la performance",
+                    "source_message_ids": [
+                      "74562278-4c9e-478f-bc0e-dfe7e2d650ea"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {},
+                  "confidence": 0.9,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.procrastination"
+                  ],
+                  "content_text": "L'utilisateur procrastine davantage lorsque la prochaine action à entreprendre est floue.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.procrastination.fact.procrastination_liee_manque_clarte_action_suivante",
+                  "event_start_at": null,
+                  "evidence_quote": "Je procrastine surtout quand la prochaine action est floue",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Procrastination liée au manque de clarté de l'action suivante",
+                  "source_message_ids": [
+                    "f1179256-966d-4d6c-b92b-ff40e5128966"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.procrastination"
+                    ],
+                    "content_text": "L'utilisateur procrastine davantage lorsque la prochaine action à entreprendre est floue.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.procrastination.fact.procrastination_liee_manque_clarte_action_suivante",
+                    "event_start_at": null,
+                    "evidence_quote": "Je procrastine surtout quand la prochaine action est floue",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Procrastination liée au manque de clarté de l'action suivante",
+                    "source_message_ids": [
+                      "f1179256-966d-4d6c-b92b-ff40e5128966"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.procrastination"
+                    ],
+                    "content_text": "L'utilisateur procrastine davantage lorsque la prochaine action à entreprendre est floue.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.procrastination.fact.procrastination_liee_manque_clarte_action_suivante",
+                    "event_start_at": null,
+                    "evidence_quote": "Je procrastine surtout quand la prochaine action est floue",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Procrastination liée au manque de clarté de l'action suivante",
+                    "source_message_ids": [
+                      "f1179256-966d-4d6c-b92b-ff40e5128966"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "preference"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.execution"
+                  ],
+                  "content_text": "L'utilisateur souhaite être aidé par la définition d'actions minuscules et concrètes pour éviter la procrastination.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.execution.statement.preference_pour_des_micro-actions_concretes_contre_procrastination",
+                  "event_start_at": null,
+                  "evidence_quote": "aide-moi avec une action minuscule et concrete.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Préférence pour des micro-actions concrètes contre la procrastination",
+                  "source_message_ids": [
+                    "f1179256-966d-4d6c-b92b-ff40e5128966"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "L'utilisateur souhaite être aidé par la définition d'actions minuscules et concrètes pour éviter la procrastination.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.preference_pour_des_micro-actions_concretes_contre_procrastination",
+                    "event_start_at": null,
+                    "evidence_quote": "aide-moi avec une action minuscule et concrete.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Préférence pour des micro-actions concrètes contre la procrastination",
+                    "source_message_ids": [
+                      "f1179256-966d-4d6c-b92b-ff40e5128966"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "L'utilisateur souhaite être aidé par la définition d'actions minuscules et concrètes pour éviter la procrastination.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.preference_pour_des_micro-actions_concretes_contre_procrastination",
+                    "event_start_at": null,
+                    "evidence_quote": "aide-moi avec une action minuscule et concrete.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Préférence pour des micro-actions concrètes contre la procrastination",
+                    "source_message_ids": [
+                      "f1179256-966d-4d6c-b92b-ff40e5128966"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "preference"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.execution"
+                  ],
+                  "content_text": "Routine matinale idéale : boire de l'eau, prendre une douche, passer dix minutes dehors, puis ouvrir Slack.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.execution.statement.routine_matinale_ideale_eau_douche_exterieur_avant_slack",
+                  "event_start_at": null,
+                  "evidence_quote": "Ma routine ideale du matin: eau, douche, dix minutes dehors, puis seulement ensuite ouvrir Slack.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Routine matinale idéale (eau, douche, extérieur) avant Slack",
+                  "source_message_ids": [
+                    "072c9b5e-a16e-490e-8779-0d87fb39149a"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "Routine matinale idéale : boire de l'eau, prendre une douche, passer dix minutes dehors, puis ouvrir Slack.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.routine_matinale_ideale_eau_douche_exterieur_avant_slack",
+                    "event_start_at": null,
+                    "evidence_quote": "Ma routine ideale du matin: eau, douche, dix minutes dehors, puis seulement ensuite ouvrir Slack.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Routine matinale idéale (eau, douche, extérieur) avant Slack",
+                    "source_message_ids": [
+                      "072c9b5e-a16e-490e-8779-0d87fb39149a"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "Routine matinale idéale : boire de l'eau, prendre une douche, passer dix minutes dehors, puis ouvrir Slack.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.routine_matinale_ideale_eau_douche_exterieur_avant_slack",
+                    "event_start_at": null,
+                    "evidence_quote": "Ma routine ideale du matin: eau, douche, dix minutes dehors, puis seulement ensuite ouvrir Slack.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Routine matinale idéale (eau, douche, extérieur) avant Slack",
+                    "source_message_ids": [
+                      "072c9b5e-a16e-490e-8779-0d87fb39149a"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {},
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "travail.carriere"
+                  ],
+                  "content_text": "Maya est la comptable de l'utilisateur.",
+                  "event_end_at": null,
+                  "canonical_key": "travail.carriere.fact.maya_est_comptable",
+                  "event_start_at": null,
+                  "evidence_quote": "Maya est ma comptable",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.5,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Maya est la comptable",
+                  "source_message_ids": [
+                    "7f4759c2-3edf-41bc-bde6-9fc0012d1248"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.carriere"
+                    ],
+                    "content_text": "Maya est la comptable de l'utilisateur.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.carriere.fact.maya_est_comptable",
+                    "event_start_at": null,
+                    "evidence_quote": "Maya est ma comptable",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Maya est la comptable",
+                    "source_message_ids": [
+                      "7f4759c2-3edf-41bc-bde6-9fc0012d1248"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.carriere"
+                    ],
+                    "content_text": "Maya est la comptable de l'utilisateur.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.carriere.fact.maya_est_comptable",
+                    "event_start_at": null,
+                    "evidence_quote": "Maya est ma comptable",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Maya est la comptable",
+                    "source_message_ids": [
+                      "7f4759c2-3edf-41bc-bde6-9fc0012d1248"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "goal"
+                  },
+                  "confidence": 0.9,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "sante.activite_physique",
+                    "psychologie.emotions"
+                  ],
+                  "content_text": "Courir deux fois par semaine sans culpabilité en cas d'échec.",
+                  "event_end_at": null,
+                  "canonical_key": "sante.activite_physique.statement.objectif_course_pied_semaine_sans_culpabilite",
+                  "event_start_at": null,
+                  "evidence_quote": "Je veux courir deux fois par semaine, mais sans culpabiliser si je rate une sortie.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Objectif course à pied (2x/semaine) sans culpabilité",
+                  "source_message_ids": [
+                    "c352e350-80aa-4dc8-8389-a58761dc2fa5"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "goal"
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique",
+                      "psychologie.emotions"
+                    ],
+                    "content_text": "Courir deux fois par semaine sans culpabilité en cas d'échec.",
+                    "event_end_at": null,
+                    "canonical_key": "sante.activite_physique.statement.objectif_course_pied_semaine_sans_culpabilite",
+                    "event_start_at": null,
+                    "evidence_quote": "Je veux courir deux fois par semaine, mais sans culpabiliser si je rate une sortie.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Objectif course à pied (2x/semaine) sans culpabilité",
+                    "source_message_ids": [
+                      "c352e350-80aa-4dc8-8389-a58761dc2fa5"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "goal"
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique",
+                      "psychologie.emotions"
+                    ],
+                    "content_text": "Courir deux fois par semaine sans culpabilité en cas d'échec.",
+                    "event_end_at": null,
+                    "canonical_key": "sante.activite_physique.statement.objectif_course_pied_semaine_sans_culpabilite",
+                    "event_start_at": null,
+                    "evidence_quote": "Je veux courir deux fois par semaine, mais sans culpabiliser si je rate une sortie.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Objectif course à pied (2x/semaine) sans culpabilité",
+                    "source_message_ids": [
+                      "c352e350-80aa-4dc8-8389-a58761dc2fa5"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "event",
+                  "metadata": {
+                    "temporal_resolution_raw": "hier soir",
+                    "temporal_resolution_timezone": "Europe/Paris",
+                    "temporal_resolution_confidence": 0.92
+                  },
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "sante.activite_physique",
+                    "psychologie.emotions"
+                  ],
+                  "content_text": "L'utilisateur a couru pendant 22 minutes, ce qui a aidé à réduire sa pression.",
+                  "event_end_at": "2026-05-12T22:00:00.000Z",
+                  "canonical_key": "sante.activite_physique.event.course_minutes_pour_reduire_pression",
+                  "event_start_at": "2026-05-12T16:00:00.000Z",
+                  "evidence_quote": "Hier soir, j'ai couru 22 minutes et ca m'a aide a redescendre la pression.",
+                  "time_precision": "part_of_day",
+                  "entity_mentions": [],
+                  "importance_score": 0.5,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Course de 22 minutes pour réduire la pression",
+                  "source_message_ids": [
+                    "6979d3b6-f421-4303-8156-17f5720cf2c1"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "hier soir",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.92
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique",
+                      "psychologie.emotions"
+                    ],
+                    "content_text": "L'utilisateur a couru pendant 22 minutes, ce qui a aidé à réduire sa pression.",
+                    "event_end_at": "2026-05-12T22:00:00.000Z",
+                    "canonical_key": "sante.activite_physique.event.course_minutes_pour_reduire_pression",
+                    "event_start_at": "2026-05-12T16:00:00.000Z",
+                    "evidence_quote": "Hier soir, j'ai couru 22 minutes et ca m'a aide a redescendre la pression.",
+                    "time_precision": "part_of_day",
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Course de 22 minutes pour réduire la pression",
+                    "source_message_ids": [
+                      "6979d3b6-f421-4303-8156-17f5720cf2c1"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "hier soir",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.92
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique",
+                      "psychologie.emotions"
+                    ],
+                    "content_text": "L'utilisateur a couru pendant 22 minutes, ce qui a aidé à réduire sa pression.",
+                    "event_end_at": "2026-05-12T22:00:00.000Z",
+                    "canonical_key": "sante.activite_physique.event.course_minutes_pour_reduire_pression",
+                    "event_start_at": "2026-05-12T16:00:00.000Z",
+                    "evidence_quote": "Hier soir, j'ai couru 22 minutes et ca m'a aide a redescendre la pression.",
+                    "time_precision": "part_of_day",
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Course de 22 minutes pour réduire la pression",
+                    "source_message_ids": [
+                      "6979d3b6-f421-4303-8156-17f5720cf2c1"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {},
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "sante.medical",
+                    "sante.alimentation"
+                  ],
+                  "content_text": "L'utilisateur a une allergie aux pistaches et doit éviter les pistaches et le praliné.",
+                  "event_end_at": null,
+                  "canonical_key": "sante.medical.fact.allergie_aux_pistaches_praline",
+                  "event_start_at": null,
+                  "evidence_quote": "Je surveille une allergie aux pistaches; evite de me proposer des desserts avec pistaches ou praline.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.9,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Allergie aux pistaches et praliné",
+                  "source_message_ids": [
+                    "0cb4e63d-5df8-41f3-a0a0-94b84bd6ef83"
+                  ],
+                  "sensitivity_categories": [
+                    "health"
+                  ],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.medical",
+                      "sante.alimentation"
+                    ],
+                    "content_text": "L'utilisateur a une allergie aux pistaches et doit éviter les pistaches et le praliné.",
+                    "event_end_at": null,
+                    "canonical_key": "sante.medical.fact.allergie_aux_pistaches_praline",
+                    "event_start_at": null,
+                    "evidence_quote": "Je surveille une allergie aux pistaches; evite de me proposer des desserts avec pistaches ou praline.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.9,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Allergie aux pistaches et praliné",
+                    "source_message_ids": [
+                      "0cb4e63d-5df8-41f3-a0a0-94b84bd6ef83"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.medical",
+                      "sante.alimentation"
+                    ],
+                    "content_text": "L'utilisateur a une allergie aux pistaches et doit éviter les pistaches et le praliné.",
+                    "event_end_at": null,
+                    "canonical_key": "sante.medical.fact.allergie_aux_pistaches_praline",
+                    "event_start_at": null,
+                    "evidence_quote": "Je surveille une allergie aux pistaches; evite de me proposer des desserts avec pistaches ou praline.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.9,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Allergie aux pistaches et praliné",
+                    "source_message_ids": [
+                      "0cb4e63d-5df8-41f3-a0a0-94b84bd6ef83"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "boundary"
+                  },
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "relations.limites"
+                  ],
+                  "content_text": "Ne pas mentionner l'allergie aux pistaches dans des contextes neutres comme le travail ou le sport.",
+                  "event_end_at": null,
+                  "canonical_key": "relations.limites.statement.confidentialite_allergie_hors_contexte_alimentaire",
+                  "event_start_at": null,
+                  "evidence_quote": "Je ne veux pas que mon allergie ressorte dans une conversation neutre sur Atlas ou la course.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Confidentialité de l'allergie hors contexte alimentaire",
+                  "source_message_ids": [
+                    "8af966a7-c5d9-4ea5-8e48-d93377809543"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "boundary"
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "relations.limites"
+                    ],
+                    "content_text": "Ne pas mentionner l'allergie aux pistaches dans des contextes neutres comme le travail ou le sport.",
+                    "event_end_at": null,
+                    "canonical_key": "relations.limites.statement.confidentialite_allergie_hors_contexte_alimentaire",
+                    "event_start_at": null,
+                    "evidence_quote": "Je ne veux pas que mon allergie ressorte dans une conversation neutre sur Atlas ou la course.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Confidentialité de l'allergie hors contexte alimentaire",
+                    "source_message_ids": [
+                      "8af966a7-c5d9-4ea5-8e48-d93377809543"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "boundary"
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "relations.limites"
+                    ],
+                    "content_text": "Ne pas mentionner l'allergie aux pistaches dans des contextes neutres comme le travail ou le sport.",
+                    "event_end_at": null,
+                    "canonical_key": "relations.limites.statement.confidentialite_allergie_hors_contexte_alimentaire",
+                    "event_start_at": null,
+                    "evidence_quote": "Je ne veux pas que mon allergie ressorte dans une conversation neutre sur Atlas ou la course.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Confidentialité de l'allergie hors contexte alimentaire",
+                    "source_message_ids": [
+                      "8af966a7-c5d9-4ea5-8e48-d93377809543"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {},
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "addictions.cannabis",
+                    "psychologie.emotions"
+                  ],
+                  "content_text": "L'utilisateur consomme parfois du cannabis pour relâcher la pression.",
+                  "event_end_at": null,
+                  "canonical_key": "addictions.cannabis.fact.consommation_occasionnelle_cannabis_pour_gerer_pression",
+                  "event_start_at": null,
+                  "evidence_quote": "Je prends parfois du cannabis quand je veux couper la pression; ce sujet doit rester sensible.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.8,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Consommation occasionnelle de cannabis pour gérer la pression",
+                  "source_message_ids": [
+                    "b237beea-ab5f-4c09-bec5-e5cd7eb4ce19"
+                  ],
+                  "sensitivity_categories": [
+                    "addiction"
+                  ],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "addictions.cannabis",
+                      "psychologie.emotions"
+                    ],
+                    "content_text": "L'utilisateur consomme parfois du cannabis pour relâcher la pression.",
+                    "event_end_at": null,
+                    "canonical_key": "addictions.cannabis.fact.consommation_occasionnelle_cannabis_pour_gerer_pression",
+                    "event_start_at": null,
+                    "evidence_quote": "Je prends parfois du cannabis quand je veux couper la pression; ce sujet doit rester sensible.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Consommation occasionnelle de cannabis pour gérer la pression",
+                    "source_message_ids": [
+                      "b237beea-ab5f-4c09-bec5-e5cd7eb4ce19"
+                    ],
+                    "sensitivity_categories": [
+                      "addiction"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "addictions.cannabis",
+                      "psychologie.emotions"
+                    ],
+                    "content_text": "L'utilisateur consomme parfois du cannabis pour relâcher la pression.",
+                    "event_end_at": null,
+                    "canonical_key": "addictions.cannabis.fact.consommation_occasionnelle_cannabis_pour_gerer_pression",
+                    "event_start_at": null,
+                    "evidence_quote": "Je prends parfois du cannabis quand je veux couper la pression; ce sujet doit rester sensible.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Consommation occasionnelle de cannabis pour gérer la pression",
+                    "source_message_ids": [
+                      "b237beea-ab5f-4c09-bec5-e5cd7eb4ce19"
+                    ],
+                    "sensitivity_categories": [
+                      "addiction"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "boundary",
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category"
+                  },
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "relations.limites"
+                  ],
+                  "content_text": "N'évoquer le cannabis que si l'utilisateur parle de consommation, de pression nocturne ou du besoin de couper.",
+                  "event_end_at": null,
+                  "canonical_key": "relations.limites.statement.conditions_evocation_sujet_cannabis",
+                  "event_start_at": null,
+                  "evidence_quote": "Ne ressors pas le cannabis sauf si je parle directement de consommation, de pression le soir, ou d'envie de couper.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.8,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Conditions d'évocation du sujet cannabis",
+                  "source_message_ids": [
+                    "bb637e76-42ce-4ac1-9b79-1ac4b4e90bdc"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "boundary",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "relations.limites"
+                    ],
+                    "content_text": "N'évoquer le cannabis que si l'utilisateur parle de consommation, de pression nocturne ou du besoin de couper.",
+                    "event_end_at": null,
+                    "canonical_key": "relations.limites.statement.conditions_evocation_sujet_cannabis",
+                    "event_start_at": null,
+                    "evidence_quote": "Ne ressors pas le cannabis sauf si je parle directement de consommation, de pression le soir, ou d'envie de couper.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Conditions d'évocation du sujet cannabis",
+                    "source_message_ids": [
+                      "bb637e76-42ce-4ac1-9b79-1ac4b4e90bdc"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "boundary",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "relations.limites"
+                    ],
+                    "content_text": "N'évoquer le cannabis que si l'utilisateur parle de consommation, de pression nocturne ou du besoin de couper.",
+                    "event_end_at": null,
+                    "canonical_key": "relations.limites.statement.conditions_evocation_sujet_cannabis",
+                    "event_start_at": null,
+                    "evidence_quote": "Ne ressors pas le cannabis sauf si je parle directement de consommation, de pression le soir, ou d'envie de couper.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Conditions d'évocation du sujet cannabis",
+                    "source_message_ids": [
+                      "bb637e76-42ce-4ac1-9b79-1ac4b4e90bdc"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "boundary"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "psychologie.emotions"
+                  ],
+                  "content_text": "L'expression 'je suis incapable de tenir une routine' doit être interprétée comme un découragement passager et non un trait de caractère permanent.",
+                  "event_end_at": null,
+                  "canonical_key": "psychologie.emotions.statement.interpretation_decouragement_sur_les_routines",
+                  "event_start_at": null,
+                  "evidence_quote": "Quand je say 'je suis incapable de tenir une routine', c'est du decouragement du moment, pas un trait stable.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Interprétation du découragement sur les routines",
+                  "source_message_ids": [
+                    "165b1237-2252-40bc-9bfb-9484160c2472"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "boundary"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "psychologie.emotions"
+                    ],
+                    "content_text": "L'expression 'je suis incapable de tenir une routine' doit être interprétée comme un découragement passager et non un trait de caractère permanent.",
+                    "event_end_at": null,
+                    "canonical_key": "psychologie.emotions.statement.interpretation_decouragement_sur_les_routines",
+                    "event_start_at": null,
+                    "evidence_quote": "Quand je say 'je suis incapable de tenir une routine', c'est du decouragement du moment, pas un trait stable.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Interprétation du découragement sur les routines",
+                    "source_message_ids": [
+                      "165b1237-2252-40bc-9bfb-9484160c2472"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "boundary"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "psychologie.emotions"
+                    ],
+                    "content_text": "L'expression 'je suis incapable de tenir une routine' doit être interprétée comme un découragement passager et non un trait de caractère permanent.",
+                    "event_end_at": null,
+                    "canonical_key": "psychologie.emotions.statement.interpretation_decouragement_sur_les_routines",
+                    "event_start_at": null,
+                    "evidence_quote": "Quand je say 'je suis incapable de tenir une routine', c'est du decouragement du moment, pas un trait stable.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Interprétation du découragement sur les routines",
+                    "source_message_ids": [
+                      "165b1237-2252-40bc-9bfb-9484160c2472"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "preference"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "relations.limites"
+                  ],
+                  "content_text": "En cas de fatigue, l'utilisateur préfère des réponses courtes, franches et sans ton moralisateur.",
+                  "event_end_at": null,
+                  "canonical_key": "relations.limites.statement.preference_communication_cas_fatigue_court_franc_non-moralisateur",
+                  "event_start_at": null,
+                  "evidence_quote": "Je prefere des reponses courtes, franches et sans ton moralisateur quand je suis fatigue.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Préférence de communication en cas de fatigue (court, franc, non-moralisateur)",
+                  "source_message_ids": [
+                    "6ae9b949-1689-4a37-ad21-7abc27a71aa5"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "relations.limites"
+                    ],
+                    "content_text": "En cas de fatigue, l'utilisateur préfère des réponses courtes, franches et sans ton moralisateur.",
+                    "event_end_at": null,
+                    "canonical_key": "relations.limites.statement.preference_communication_cas_fatigue_court_franc_non-moralisateur",
+                    "event_start_at": null,
+                    "evidence_quote": "Je prefere des reponses courtes, franches et sans ton moralisateur quand je suis fatigue.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Préférence de communication en cas de fatigue (court, franc, non-moralisateur)",
+                    "source_message_ids": [
+                      "6ae9b949-1689-4a37-ad21-7abc27a71aa5"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "relations.limites"
+                    ],
+                    "content_text": "En cas de fatigue, l'utilisateur préfère des réponses courtes, franches et sans ton moralisateur.",
+                    "event_end_at": null,
+                    "canonical_key": "relations.limites.statement.preference_communication_cas_fatigue_court_franc_non-moralisateur",
+                    "event_start_at": null,
+                    "evidence_quote": "Je prefere des reponses courtes, franches et sans ton moralisateur quand je suis fatigue.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Préférence de communication en cas de fatigue (court, franc, non-moralisateur)",
+                    "source_message_ids": [
+                      "6ae9b949-1689-4a37-ad21-7abc27a71aa5"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "preference"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "travail.charge"
+                  ],
+                  "content_text": "En cas de surcharge, proposer une réduction de la pression plutôt qu'un nouveau défi.",
+                  "event_end_at": null,
+                  "canonical_key": "travail.charge.statement.preference_pour_reduction_pression_cas_surcharge",
+                  "event_start_at": null,
+                  "evidence_quote": "Si je suis en surcharge, propose-moi une reduction de pression plutot qu'un challenge.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Préférence pour la réduction de pression en cas de surcharge",
+                  "source_message_ids": [
+                    "0865de95-2176-4c72-bcc6-49b5774d0f08"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.charge"
+                    ],
+                    "content_text": "En cas de surcharge, proposer une réduction de la pression plutôt qu'un nouveau défi.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.charge.statement.preference_pour_reduction_pression_cas_surcharge",
+                    "event_start_at": null,
+                    "evidence_quote": "Si je suis en surcharge, propose-moi une reduction de pression plutot qu'un challenge.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Préférence pour la réduction de pression en cas de surcharge",
+                    "source_message_ids": [
+                      "0865de95-2176-4c72-bcc6-49b5774d0f08"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.charge"
+                    ],
+                    "content_text": "En cas de surcharge, proposer une réduction de la pression plutôt qu'un nouveau défi.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.charge.statement.preference_pour_reduction_pression_cas_surcharge",
+                    "event_start_at": null,
+                    "evidence_quote": "Si je suis en surcharge, propose-moi une reduction de pression plutot qu'un challenge.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Préférence pour la réduction de pression en cas de surcharge",
+                    "source_message_ids": [
+                      "0865de95-2176-4c72-bcc6-49b5774d0f08"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "event",
+                  "metadata": {
+                    "temporal_resolution_raw": "vendredi dernier",
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category",
+                    "temporal_resolution_timezone": "Europe/Paris",
+                    "temporal_resolution_confidence": 0.88
+                  },
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "travail.performance"
+                  ],
+                  "content_text": "L'utilisateur a oublié d'envoyer une facture à Boreal ; Maya l'a aidé à la retrouver.",
+                  "event_end_at": "2026-05-08T22:00:00.000Z",
+                  "canonical_key": "travail.performance.event.oubli_facture_boreal_resolu_avec_aide_maya",
+                  "event_start_at": "2026-05-07T22:00:00.000Z",
+                  "evidence_quote": "Vendredi dernier, j'ai oublie d'envoyer une facture a Boreal et Maya m'a aide a la retrouver.",
+                  "time_precision": "day",
+                  "entity_mentions": [],
+                  "importance_score": 0.5,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Oubli de facture Boreal résolu avec l'aide de Maya",
+                  "source_message_ids": [
+                    "7e9ea126-22ac-4e3d-9171-512bab0085af"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "vendredi dernier",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.88
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.performance"
+                    ],
+                    "content_text": "L'utilisateur a oublié d'envoyer une facture à Boreal ; Maya l'a aidé à la retrouver.",
+                    "event_end_at": "2026-05-08T22:00:00.000Z",
+                    "canonical_key": "travail.performance.event.oubli_facture_boreal_resolu_avec_aide_maya",
+                    "event_start_at": "2026-05-07T22:00:00.000Z",
+                    "evidence_quote": "Vendredi dernier, j'ai oublie d'envoyer une facture a Boreal et Maya m'a aide a la retrouver.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Oubli de facture Boreal résolu avec l'aide de Maya",
+                    "source_message_ids": [
+                      "7e9ea126-22ac-4e3d-9171-512bab0085af"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "vendredi dernier",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.88
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.performance"
+                    ],
+                    "content_text": "L'utilisateur a oublié d'envoyer une facture à Boreal ; Maya l'a aidé à la retrouver.",
+                    "event_end_at": "2026-05-08T22:00:00.000Z",
+                    "canonical_key": "travail.performance.event.oubli_facture_boreal_resolu_avec_aide_maya",
+                    "event_start_at": "2026-05-07T22:00:00.000Z",
+                    "evidence_quote": "Vendredi dernier, j'ai oublie d'envoyer une facture a Boreal et Maya m'a aide a la retrouver.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Oubli de facture Boreal résolu avec l'aide de Maya",
+                    "source_message_ids": [
+                      "7e9ea126-22ac-4e3d-9171-512bab0085af"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "preference"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.execution"
+                  ],
+                  "content_text": "L'utilisateur souhaite mesurer ses progrès sur une base hebdomadaire plutôt que quotidienne.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.execution.statement.mesure_des_progres_echelle_semaine",
+                  "event_start_at": null,
+                  "evidence_quote": "Je veux mesurer mes progres sur une semaine, pas sur une seule journee.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Mesure des progrès à l'échelle de la semaine",
+                  "source_message_ids": [
+                    "27e06f78-7c63-4bbf-8ed2-65bd4e0585f1"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "L'utilisateur souhaite mesurer ses progrès sur une base hebdomadaire plutôt que quotidienne.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.mesure_des_progres_echelle_semaine",
+                    "event_start_at": null,
+                    "evidence_quote": "Je veux mesurer mes progres sur une semaine, pas sur une seule journee.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Mesure des progrès à l'échelle de la semaine",
+                    "source_message_ids": [
+                      "27e06f78-7c63-4bbf-8ed2-65bd4e0585f1"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "L'utilisateur souhaite mesurer ses progrès sur une base hebdomadaire plutôt que quotidienne.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.mesure_des_progres_echelle_semaine",
+                    "event_start_at": null,
+                    "evidence_quote": "Je veux mesurer mes progres sur une semaine, pas sur une seule journee.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Mesure des progrès à l'échelle de la semaine",
+                    "source_message_ids": [
+                      "27e06f78-7c63-4bbf-8ed2-65bd4e0585f1"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "event",
+                  "metadata": {
+                    "temporal_resolution_raw": "aujourd'hui",
+                    "temporal_resolution_timezone": "Europe/Paris",
+                    "temporal_resolution_confidence": 0.9
+                  },
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "travail.charge",
+                    "habitudes.procrastination"
+                  ],
+                  "content_text": "L'utilisateur a annulé une session de travail sur Atlas par épuisement, mais a clarifié l'action suivante.",
+                  "event_end_at": "2026-05-13T22:00:00.000Z",
+                  "canonical_key": "travail.charge.event.annulation_session_atlas_pour_epuisement_clarification_action_suivante",
+                  "event_start_at": "2026-05-12T22:00:00.000Z",
+                  "evidence_quote": "Aujourd'hui j'ai annule une session Atlas parce que j'etais epuise, mais j'ai quand meme clarifie la prochaine action.",
+                  "time_precision": "day",
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Annulation session Atlas pour épuisement et clarification action suivante",
+                  "source_message_ids": [
+                    "f5a69663-f0e5-4d0e-ae04-60e7395ea26c"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "aujourd'hui",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.9
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.charge",
+                      "habitudes.procrastination"
+                    ],
+                    "content_text": "L'utilisateur a annulé une session de travail sur Atlas par épuisement, mais a clarifié l'action suivante.",
+                    "event_end_at": "2026-05-13T22:00:00.000Z",
+                    "canonical_key": "travail.charge.event.annulation_session_atlas_pour_epuisement_clarification_action_suivante",
+                    "event_start_at": "2026-05-12T22:00:00.000Z",
+                    "evidence_quote": "Aujourd'hui j'ai annule une session Atlas parce que j'etais epuise, mais j'ai quand meme clarifie la prochaine action.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Annulation session Atlas pour épuisement et clarification action suivante",
+                    "source_message_ids": [
+                      "f5a69663-f0e5-4d0e-ae04-60e7395ea26c"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "aujourd'hui",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.9
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.charge",
+                      "habitudes.procrastination"
+                    ],
+                    "content_text": "L'utilisateur a annulé une session de travail sur Atlas par épuisement, mais a clarifié l'action suivante.",
+                    "event_end_at": "2026-05-13T22:00:00.000Z",
+                    "canonical_key": "travail.charge.event.annulation_session_atlas_pour_epuisement_clarification_action_suivante",
+                    "event_start_at": "2026-05-12T22:00:00.000Z",
+                    "evidence_quote": "Aujourd'hui j'ai annule une session Atlas parce que j'etais epuise, mais j'ai quand meme clarifie la prochaine action.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Annulation session Atlas pour épuisement et clarification action suivante",
+                    "source_message_ids": [
+                      "f5a69663-f0e5-4d0e-ae04-60e7395ea26c"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            }
+          ],
+          "memorizer_v2_async": true,
+          "pre_filter_skip_count": 5,
+          "rejected_observations": [
+            {
+              "text": "Atlas est prioritaire pendant les six prochaines semaines, plus que mes autres idees produit.",
+              "reason": "smart_pre_filter"
+            },
+            {
+              "text": "Maya est ma comptable et elle m'aide a clarifier les factures impayees.",
+              "reason": "smart_pre_filter"
+            },
+            {
+              "text": "Noe est mon frere; il me motive pour courir sans me mettre la pression.",
+              "reason": "smart_pre_filter"
+            },
+            {
+              "text": "Le client Boreal me stresse car il change souvent les priorites au dernier moment.",
+              "reason": "smart_pre_filter"
+            },
+            {
+              "text": "Boreal est un client freelance, pas un projet perso.",
+              "reason": "smart_pre_filter"
+            }
+          ],
+          "persisted_memory_items": [
+            {
+              "status": "active",
+              "canonical_key": "travail.carriere.fact.projet_atlas_outil_budget_pour_freelances",
+              "memory_item_id": "5ac1f931-87bb-4d2c-a0b8-de8ca7be40f0"
+            },
+            {
+              "status": "active",
+              "canonical_key": "objectifs.court_terme.statement.objectif_atlas_beta_privee_avec_pilotes_ici_fin",
+              "memory_item_id": "8ba344a7-5c77-4f60-9ce1-39a420a59ef0"
+            },
+            {
+              "status": "active",
+              "canonical_key": "sante.sommeil.fact.impact_negatif_codage_tardif_23h30_sur_sommeil_performance",
+              "memory_item_id": "9efe8d61-2141-48f8-af34-ddbc1020c911"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.procrastination.fact.procrastination_liee_manque_clarte_action_suivante",
+              "memory_item_id": "55bf5cd4-4c76-46c7-916b-11a195359253"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.execution.statement.preference_pour_des_micro-actions_concretes_contre_procrastination",
+              "memory_item_id": "d8a2d526-532a-4938-a985-66708bd4d28c"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.execution.statement.routine_matinale_ideale_eau_douche_exterieur_avant_slack",
+              "memory_item_id": "b79ffb4c-120a-4f1b-a2a3-40501cd100bb"
+            },
+            {
+              "status": "active",
+              "canonical_key": "travail.carriere.fact.maya_est_comptable",
+              "memory_item_id": "b0aaee78-ad98-4956-a0af-872e66faece6"
+            },
+            {
+              "status": "active",
+              "canonical_key": "sante.activite_physique.statement.objectif_course_pied_semaine_sans_culpabilite",
+              "memory_item_id": "d72664c3-b9c8-416d-81e1-d75125625c2c"
+            },
+            {
+              "status": "active",
+              "canonical_key": "sante.activite_physique.event.course_minutes_pour_reduire_pression",
+              "memory_item_id": "a000c09c-f8c6-45ec-9cca-7132d4789ffd"
+            },
+            {
+              "status": "active",
+              "canonical_key": "sante.medical.fact.allergie_aux_pistaches_praline",
+              "memory_item_id": "eeb218bb-644d-4e59-a59b-1a0c0b99bf53"
+            },
+            {
+              "status": "active",
+              "canonical_key": "relations.limites.statement.confidentialite_allergie_hors_contexte_alimentaire",
+              "memory_item_id": "8e7468b0-e143-411e-b31d-a3c1920d39d0"
+            },
+            {
+              "status": "active",
+              "canonical_key": "addictions.cannabis.fact.consommation_occasionnelle_cannabis_pour_gerer_pression",
+              "memory_item_id": "edf5d0b0-5542-4bb5-982f-d9b7ed5432c7"
+            },
+            {
+              "status": "active",
+              "canonical_key": "relations.limites.statement.conditions_evocation_sujet_cannabis",
+              "memory_item_id": "f8a76189-f380-4291-992e-0d8baa46c49b"
+            },
+            {
+              "status": "active",
+              "canonical_key": "psychologie.emotions.statement.interpretation_decouragement_sur_les_routines",
+              "memory_item_id": "692c73e9-0a8f-4f75-b016-51111bfbe73e"
+            },
+            {
+              "status": "active",
+              "canonical_key": "relations.limites.statement.preference_communication_cas_fatigue_court_franc_non-moralisateur",
+              "memory_item_id": "14c3360d-8c5c-4c34-ab28-f48f918845fa"
+            },
+            {
+              "status": "active",
+              "canonical_key": "travail.charge.statement.preference_pour_reduction_pression_cas_surcharge",
+              "memory_item_id": "a85741ef-e615-4f52-a208-040cd73413a3"
+            },
+            {
+              "status": "active",
+              "canonical_key": "travail.performance.event.oubli_facture_boreal_resolu_avec_aide_maya",
+              "memory_item_id": "44de7a22-eaea-4af5-a916-373d6041c13e"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.execution.statement.mesure_des_progres_echelle_semaine",
+              "memory_item_id": "efa5f037-c945-444a-8734-5f29d7c7feae"
+            },
+            {
+              "status": "active",
+              "canonical_key": "travail.charge.event.annulation_session_atlas_pour_epuisement_clarification_action_suivante",
+              "memory_item_id": "671e5b14-3e6c-4b73-ae90-9fb8e918a246"
+            }
+          ],
+          "statement_as_fact_violation_count": 0
+        },
+        "started_at": "2026-05-13T20:39:07.706048+00:00",
+        "finished_at": "2026-05-13T20:39:43.283+00:00"
+      }
+    ]
+  },
+  "second_conversation": {
+    "turn_count": 8,
+    "turns": [
+      {
+        "id": "trivial",
+        "message": "Salut, tu vas bien ?",
+        "expected_memory": "none_or_light",
+        "expected_terms": [],
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-trivial",
+        "response_text": "Salut 🙂 Oui ça va, merci. Et toi, comment ça se passe ce soir ?",
+        "response_body": {
+          "content": "Salut 🙂 Oui ça va, merci. Et toi, comment ça se passe ce soir ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "atlas_project",
+        "message": "Tu peux me rappeler ce que tu as retenu sur Atlas et mon objectif concret ?",
+        "expected_memory": "targeted",
+        "min_matches": 3,
+        "expected_terms": [
+          "atlas",
+          "beta",
+          "freelance",
+          "juin"
+        ],
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-atlas_project",
+        "response_text": "Carrément 🙂 Sur Atlas, j’ai retenu 2 trucs :\n\n1) Ta façon de mesurer tes progrès : tu préfères une base hebdomadaire plutôt que quotidienne.  \n2) Le contexte d’“avant” : tu avais annulé une session par épuisement, mais ensuite tu avais clarifié quelle serait l’action suivante.\n\nPar contre, là je n’ai pas ton objectif concret affiché dans ce fil (je vois bien qu’on travaille un cap, mais l’objectif exact n’est pas sous les yeux).\n\nTu parles de quel objectif concret exactement : celui d’Atlas en ce moment, ou ton objectif global de vie/discipline ? 😊",
+        "response_body": {
+          "content": "Carrément 🙂 Sur Atlas, j’ai retenu 2 trucs :\n\n1) Ta façon de mesurer tes progrès : tu préfères une base hebdomadaire plutôt que quotidienne.  \n2) Le contexte d’“avant” : tu avais annulé une session par épuisement, mais ensuite tu avais clarifié quelle serait l’action suivante.\n\nPar contre, là je n’ai pas ton objectif concret affiché dans ce fil (je vois bien qu’on travaille un cap, mais l’objectif exact n’est pas sous les yeux).\n\nTu parles de quel objectif concret exactement : celui d’Atlas en ce moment, ou ton objectif global de vie/discipline ? 😊",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "micro_action",
+        "message": "Je suis fatigue et je bloque: propose-moi une prochaine action adaptee a moi.",
+        "expected_memory": "targeted",
+        "min_matches": 2,
+        "expected_terms": [
+          "minuscule",
+          "concrete",
+          "pression",
+          "fatigue"
+        ],
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-micro_action",
+        "response_text": "Ah merde… quand t’es fatigué, c’est normal de bloquer 😕🙂\n\nOn vise une action minuscule, sans réfléchir, juste pour relancer ton cerveau:\n1) Pendant 2 minutes: bois un grand verre d’eau, puis douche rapide ou lavage visage.\n2) Ensuite: écris 1 seule phrase “la prochaine action maintenant” (même si c’est juste: ouvrir Slack et regarder 10 minutes).\n3) Stop au bout de 10 minutes, même si ça pourrait continuer.\n\nTu préfères que ta mini-action soit plutôt A “côté corps (eau/douche)” ou B “côté boulot (Slack)”?",
+        "response_body": {
+          "content": "Ah merde… quand t’es fatigué, c’est normal de bloquer 😕🙂\n\nOn vise une action minuscule, sans réfléchir, juste pour relancer ton cerveau:\n1) Pendant 2 minutes: bois un grand verre d’eau, puis douche rapide ou lavage visage.\n2) Ensuite: écris 1 seule phrase “la prochaine action maintenant” (même si c’est juste: ouvrir Slack et regarder 10 minutes).\n3) Stop au bout de 10 minutes, même si ça pourrait continuer.\n\nTu préfères que ta mini-action soit plutôt A “côté corps (eau/douche)” ou B “côté boulot (Slack)”?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "allergy",
+        "message": "On choisit un dessert: qu'est-ce que tu dois eviter pour moi ?",
+        "expected_memory": "sensitive_targeted",
+        "min_matches": 3,
+        "expected_terms": [
+          "allerg",
+          "pistache",
+          "praline"
+        ],
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-allergy",
+        "response_text": "Vu qu'on choisit un dessert, je dois absolument écarter tout ce qui contient des pistaches ou du praliné à cause de ton allergie ❌🍦\n\nOn reste sur quelque chose de sûr pour toi. Un truc aux fruits ou tout chocolat, ça te tente ?",
+        "response_body": {
+          "content": "Vu qu'on choisit un dessert, je dois absolument écarter tout ce qui contient des pistaches ou du praliné à cause de ton allergie ❌🍦\n\nOn reste sur quelque chose de sûr pour toi. Un truc aux fruits ou tout chocolat, ça te tente ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "neutral_running",
+        "message": "Pour ma prochaine sortie course, redonne-moi le bon cadre sans sortir les sujets sensibles inutiles.",
+        "expected_memory": "topic_light",
+        "min_matches": 2,
+        "expected_terms": [
+          "courir",
+          "deux fois",
+          "culpabiliser"
+        ],
+        "forbidden_terms": [
+          "cannabis",
+          "pistache",
+          "allerg"
+        ],
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-neutral_running",
+        "response_text": "On reste sur l'essentiel pour ta prochaine sortie : 22 minutes de course, deux fois par semaine.\n\nL'idée, c'est vraiment de garder ce rythme sans te mettre la pression. Si tu n'y vas pas une fois, ce n'est pas grave, on ne cherche pas la perfection mais la régularité qui te fait du bien. C'est ton moment pour faire baisser la pression, rien de plus 🏃‍♂️\n\nSi tu veux que je t'envoie un petit rappel au bon moment pour t'aider à t'y mettre, on peut programmer une Initiative dans ton tableau de bord. Ça permet d'avoir ce petit coup de pouce sans que tu aies besoin d'y penser.",
+        "response_body": {
+          "content": "On reste sur l'essentiel pour ta prochaine sortie : 22 minutes de course, deux fois par semaine.\n\nL'idée, c'est vraiment de garder ce rythme sans te mettre la pression. Si tu n'y vas pas une fois, ce n'est pas grave, on ne cherche pas la perfection mais la régularité qui te fait du bien. C'est ton moment pour faire baisser la pression, rien de plus 🏃‍♂️\n\nSi tu veux que je t'envoie un petit rappel au bon moment pour t'aider à t'y mettre, on peut programmer une Initiative dans ton tableau de bord. Ça permet d'avoir ce petit coup de pouce sans que tu aies besoin d'y penser.",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "maya_boreal",
+        "message": "Qui est Maya, et quel est le lien avec Boreal ?",
+        "expected_memory": "cross_topic",
+        "min_matches": 3,
+        "expected_terms": [
+          "maya",
+          "comptable",
+          "boreal",
+          "facture"
+        ],
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-maya_boreal",
+        "response_text": "Je n’ai pas assez de contexte pour te dire qui est “Maya” de façon fiable. Il existe plusieurs “Maya” possibles (personne, personnage, marque, projet…), et “Boreal” aussi peut renvoyer à différentes choses. 😅\n\nTu parles de “Maya” et “Boreal” dans quel cadre exactement ?\n- un livre/série/film ?\n- une entreprise/projet ?\n- un jeu/une appli ?\n- autre (et tu as une phrase ou un lien où tu as vu ça) ? 🌙",
+        "response_body": {
+          "content": "Je n’ai pas assez de contexte pour te dire qui est “Maya” de façon fiable. Il existe plusieurs “Maya” possibles (personne, personnage, marque, projet…), et “Boreal” aussi peut renvoyer à différentes choses. 😅\n\nTu parles de “Maya” et “Boreal” dans quel cadre exactement ?\n- un livre/série/film ?\n- une entreprise/projet ?\n- un jeu/une appli ?\n- autre (et tu as une phrase ou un lien où tu as vu ça) ? 🌙",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "math_no_memory",
+        "message": "Message sans besoin de contexte: reponds simplement 'OK recu'.",
+        "expected_memory": "none",
+        "min_matches": 1,
+        "expected_terms": [
+          "ok"
+        ],
+        "forbidden_terms": [
+          "atlas",
+          "maya",
+          "boreal",
+          "cannabis",
+          "pistache"
+        ],
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-math_no_memory",
+        "response_text": "OK recu ✅😊",
+        "response_body": {
+          "content": "OK recu ✅😊",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "sensitive_cannabis",
+        "message": "Quand je parle de pression le soir et d'envie de couper, qu'est-ce que tu dois garder en tete ?",
+        "expected_memory": "sensitive_targeted",
+        "min_matches": 3,
+        "expected_terms": [
+          "cannabis",
+          "pression",
+          "sensible"
+        ],
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-sensitive_cannabis",
+        "response_text": "OK recu ✅😊\n\nQuand tu me dis “pression le soir” + “envie de couper”, je dois garder en tête :\n1) On ne négocie pas avec la fatigue : on vise petit, simple, faisable même si t’es à plat.\n2) On protège ta capacité à te calmer : pas d’actions qui demandent trop de réflexion ou de “décisions sensibles”.\n3) La règle c’est “relancer, pas résoudre” : une micro-action suffit pour te remettre en mouvement, puis stop.\n4) Le but du soir : baisser la pression, pas augmenter l’exigence.",
+        "response_body": {
+          "content": "OK recu ✅😊\n\nQuand tu me dis “pression le soir” + “envie de couper”, je dois garder en tête :\n1) On ne négocie pas avec la fatigue : on vise petit, simple, faisable même si t’es à plat.\n2) On protège ta capacité à te calmer : pas d’actions qui demandent trop de réflexion ou de “décisions sensibles”.\n3) La règle c’est “relancer, pas résoudre” : une micro-action suffit pour te remettre en mouvement, puis stop.\n4) Le but du soir : baisser la pression, pas augmenter l’exigence.",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      }
+    ],
+    "trace_summary": {
+      "messages_total": 16,
+      "user_messages": 8,
+      "assistant_messages": 8,
+      "turns_total": 9,
+      "memorizer_runs_total": 0,
+      "observability_events_total": 49
+    },
+    "evaluations": [
+      {
+        "id": "trivial",
+        "expected_memory": "none_or_light",
+        "matched_terms": [],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "none",
+        "context_need": "minimal",
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [],
+          "domain_keys": [],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "Salut 🙂 Oui ça va, merci. Et toi, comment ça se passe ce soir ?"
+      },
+      {
+        "id": "atlas_project",
+        "expected_memory": "targeted",
+        "matched_terms": [
+          "atlas"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": false,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "broad",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global",
+            "action"
+          ],
+          "domain_keys": [
+            "objectifs.long_terme"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 2,
+          "payload_item_ids": [
+            "efa5f037-c945-444a-8734-5f29d7c7feae",
+            "671e5b14-3e6c-4b73-ae90-9fb8e918a246"
+          ],
+          "sensitive_excluded_count": 2,
+          "fallback_used": true
+        },
+        "response_preview": "Carrément 🙂 Sur Atlas, j’ai retenu 2 trucs :\n\n1) Ta façon de mesurer tes progrès : tu préfères une base hebdomadaire plutôt que quotidienne.  \n2) Le contexte d’“avant” : tu avais annulé une session par épuisement, mais ensuite tu avais clarifié quelle serait l’action suivante.\n\nPar contre, là je n’ai pas ton objectif concret affiché dans ce fil (je vois bien qu’on travaille un cap, mais l’objectif exact n’est pas sous les yeux).\n\nTu parles de quel objectif concret exactement : celui d’Atlas en ce moment, ou ton objectif global de vie/discipline ? 😊"
+      },
+      {
+        "id": "micro_action",
+        "expected_memory": "targeted",
+        "matched_terms": [
+          "minuscule",
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "broad",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "objectifs.court_terme",
+            "habitudes.execution"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "8ba344a7-5c77-4f60-9ce1-39a420a59ef0",
+            "efa5f037-c945-444a-8734-5f29d7c7feae",
+            "b79ffb4c-120a-4f1b-a2a3-40501cd100bb",
+            "d8a2d526-532a-4938-a985-66708bd4d28c"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "Ah merde… quand t’es fatigué, c’est normal de bloquer 😕🙂\n\nOn vise une action minuscule, sans réfléchir, juste pour relancer ton cerveau:\n1) Pendant 2 minutes: bois un grand verre d’eau, puis douche rapide ou lavage visage.\n2) Ensuite: écris 1 seule phrase “la prochaine action maintenant” (même si c’est juste: ouvrir Slack et regarder 10 minutes).\n3) Stop au bout de 10 minutes, même si ça pourrait continuer.\n\nTu préfères que ta mini-action soit plutôt A “côté corps (eau/douche)” ou B “côté boulot (Slack)”?"
+      },
+      {
+        "id": "allergy",
+        "expected_memory": "sensitive_targeted",
+        "matched_terms": [
+          "allerg",
+          "pistache",
+          "praline"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "light",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "sante.alimentation"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "eeb218bb-644d-4e59-a59b-1a0c0b99bf53",
+            "d8a2d526-532a-4938-a985-66708bd4d28c",
+            "b0aaee78-ad98-4956-a0af-872e66faece6",
+            "edf5d0b0-5542-4bb5-982f-d9b7ed5432c7"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "Vu qu'on choisit un dessert, je dois absolument écarter tout ce qui contient des pistaches ou du praliné à cause de ton allergie ❌🍦\n\nOn reste sur quelque chose de sûr pour toi. Un truc aux fruits ou tout chocolat, ça te tente ?"
+      },
+      {
+        "id": "neutral_running",
+        "expected_memory": "topic_light",
+        "matched_terms": [
+          "deux fois"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": false,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "broad",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "sante.activite_physique",
+            "addictions.autre"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 2,
+          "payload_item_ids": [
+            "d72664c3-b9c8-416d-81e1-d75125625c2c",
+            "a000c09c-f8c6-45ec-9cca-7132d4789ffd"
+          ],
+          "sensitive_excluded_count": 2,
+          "fallback_used": false
+        },
+        "response_preview": "On reste sur l'essentiel pour ta prochaine sortie : 22 minutes de course, deux fois par semaine.\n\nL'idée, c'est vraiment de garder ce rythme sans te mettre la pression. Si tu n'y vas pas une fois, ce n'est pas grave, on ne cherche pas la perfection mais la régularité qui te fait du bien. C'est ton moment pour faire baisser la pression, rien de plus 🏃‍♂️\n\nSi tu veux que je t'envoie un petit rappel au bon moment pour t'aider à t'y mettre, on peut programmer une Initiative dans ton tableau de bord. Ça permet d'avoir ce petit coup de pouce sans que tu aies besoin d'y penser."
+      },
+      {
+        "id": "maya_boreal",
+        "expected_memory": "cross_topic",
+        "matched_terms": [
+          "maya",
+          "boreal"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": false,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "broad",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [
+            "topic"
+          ],
+          "domain_keys": [],
+          "topic_decision": "create_candidate",
+          "active_topic_id": null,
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "Je n’ai pas assez de contexte pour te dire qui est “Maya” de façon fiable. Il existe plusieurs “Maya” possibles (personne, personnage, marque, projet…), et “Boreal” aussi peut renvoyer à différentes choses. 😅\n\nTu parles de “Maya” et “Boreal” dans quel cadre exactement ?\n- un livre/série/film ?\n- une entreprise/projet ?\n- un jeu/une appli ?\n- autre (et tu as une phrase ou un lien où tu as vu ça) ? 🌙"
+      },
+      {
+        "id": "math_no_memory",
+        "expected_memory": "none",
+        "matched_terms": [
+          "ok"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "none",
+        "context_need": "minimal",
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [],
+          "domain_keys": [],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "OK recu ✅😊"
+      },
+      {
+        "id": "sensitive_cannabis",
+        "expected_memory": "sensitive_targeted",
+        "matched_terms": [
+          "pression",
+          "sensible"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": false,
+        "privacy_ok": true,
+        "dispatcher_ok": false,
+        "memory_mode": "light",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "psychologie.emotions",
+            "habitudes.procrastination"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 1,
+          "payload_item_ids": [
+            "671e5b14-3e6c-4b73-ae90-9fb8e918a246"
+          ],
+          "sensitive_excluded_count": 1,
+          "fallback_used": false
+        },
+        "response_preview": "OK recu ✅😊\n\nQuand tu me dis “pression le soir” + “envie de couper”, je dois garder en tête :\n1) On ne négocie pas avec la fatigue : on vise petit, simple, faisable même si t’es à plat.\n2) On protège ta capacité à te calmer : pas d’actions qui demandent trop de réflexion ou de “décisions sensibles”.\n3) La règle c’est “relancer, pas résoudre” : une micro-action suffit pour te remettre en mouvement, puis stop.\n4) Le but du soir : baisser la pression, pas augmenter l’exigence."
+      }
+    ],
+    "traces": {
+      "trivial": {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-trivial",
+        "dispatcher_memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 795,
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [],
+          "domain_keys": [],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "atlas_project": {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-atlas_project",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "Atlas",
+              "type": "entity",
+              "priority": "high",
+              "query_hint": "Qui ou quoi est Atlas pour l'utilisateur",
+              "entity_type": "project",
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "objectif concret",
+              "type": "topic",
+              "priority": "high",
+              "query_hint": "Objectif concret et buts principaux",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "objectifs.long_terme",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "Vision et objectifs long terme",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "broad",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "medium",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 850,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global",
+            "action"
+          ],
+          "domain_keys": [
+            "objectifs.long_terme"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 2,
+          "payload_item_ids": [
+            "efa5f037-c945-444a-8734-5f29d7c7feae",
+            "671e5b14-3e6c-4b73-ae90-9fb8e918a246"
+          ],
+          "sensitive_excluded_count": 2,
+          "fallback_used": true
+        },
+        "model_selection": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Atlas",
+                "type": "entity",
+                "priority": "high",
+                "query_hint": "Qui ou quoi est Atlas pour l'utilisateur",
+                "entity_type": "project",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "objectif concret",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "Objectif concret et buts principaux",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "objectifs.long_terme",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "Vision et objectifs long terme",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "broad",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "medium",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "micro_action": {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-micro_action",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "Atlas",
+              "type": "topic",
+              "priority": "high",
+              "query_hint": "projet Atlas et objectifs associes",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "objectifs.court_terme",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "objectifs concrets recents",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            },
+            {
+              "key": "habitudes.execution",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "preferences d'execution et blocages passés",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "broad",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "medium",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1594,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "objectifs.court_terme",
+            "habitudes.execution"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "8ba344a7-5c77-4f60-9ce1-39a420a59ef0",
+            "efa5f037-c945-444a-8734-5f29d7c7feae",
+            "b79ffb4c-120a-4f1b-a2a3-40501cd100bb",
+            "d8a2d526-532a-4938-a985-66708bd4d28c"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Atlas",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "projet Atlas et objectifs associes",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "objectifs.court_terme",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "objectifs concrets recents",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "preferences d'execution et blocages passés",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "broad",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "medium",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "allergy": {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-allergy",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "sante.alimentation",
+              "type": "domain_key",
+              "priority": "high",
+              "query_hint": "aliments à éviter, restrictions alimentaires, sucre, dessert",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            },
+            {
+              "key": "preferences alimentaires",
+              "type": "topic",
+              "priority": "medium",
+              "query_hint": "ce que je dois éviter manger",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "taxonomy_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1345,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "sante.alimentation"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "eeb218bb-644d-4e59-a59b-1a0c0b99bf53",
+            "d8a2d526-532a-4938-a985-66708bd4d28c",
+            "b0aaee78-ad98-4956-a0af-872e66faece6",
+            "edf5d0b0-5542-4bb5-982f-d9b7ed5432c7"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "standard",
+          "model": "gemini-3-flash-preview",
+          "source": "memory_plan_standard",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "aliments à éviter, restrictions alimentaires, sucre, dessert",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "preferences alimentaires",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "ce que je dois éviter manger",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "neutral_running": {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-neutral_running",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "course_a_pied",
+              "type": "topic",
+              "priority": "high",
+              "query_hint": "cadre sortie course",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "sante.activite_physique",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "limites et cadre sport",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            },
+            {
+              "key": "addictions.autre",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "sujets sensibles eviter",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "broad",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "medium",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1775,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "sante.activite_physique",
+            "addictions.autre"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 2,
+          "payload_item_ids": [
+            "d72664c3-b9c8-416d-81e1-d75125625c2c",
+            "a000c09c-f8c6-45ec-9cca-7132d4789ffd"
+          ],
+          "sensitive_excluded_count": 2,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "standard",
+          "model": "gemini-3-flash-preview",
+          "source": "memory_plan_standard",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "course_a_pied",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "cadre sortie course",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "sante.activite_physique",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "limites et cadre sport",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "addictions.autre",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "sujets sensibles eviter",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "broad",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "medium",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "maya_boreal": {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-maya_boreal",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "Maya",
+              "type": "entity",
+              "priority": "high",
+              "query_hint": "Qui est Maya ?",
+              "entity_type": "person",
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "Boreal",
+              "type": "entity",
+              "priority": "high",
+              "query_hint": "Qu'est-ce que Boreal et lien avec Maya ?",
+              "entity_type": "organization",
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "broad",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1389,
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [
+            "topic"
+          ],
+          "domain_keys": [],
+          "topic_decision": "create_candidate",
+          "active_topic_id": null,
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Maya",
+                "type": "entity",
+                "priority": "high",
+                "query_hint": "Qui est Maya ?",
+                "entity_type": "person",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "Boreal",
+                "type": "entity",
+                "priority": "high",
+                "query_hint": "Qu'est-ce que Boreal et lien avec Maya ?",
+                "entity_type": "organization",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "broad",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "math_no_memory": {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-math_no_memory",
+        "dispatcher_memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1524,
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [],
+          "domain_keys": [],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      },
+      "sensitive_cannabis": {
+        "request_id": "memory-long-e2e-mp4iqvsw-conversation_b-sensitive_cannabis",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "pression le soir",
+              "type": "topic",
+              "priority": "high",
+              "query_hint": "pression le soir envie de couper",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "psychologie.emotions",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "pression et stress le soir",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            },
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "envie de couper et evitement",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 2007,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "psychologie.emotions",
+            "habitudes.procrastination"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": null,
+          "payload_item_count": 1,
+          "payload_item_ids": [
+            "671e5b14-3e6c-4b73-ae90-9fb8e918a246"
+          ],
+          "sensitive_excluded_count": 1,
+          "fallback_used": false
+        },
+        "model_selection": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "pression le soir",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "pression le soir envie de couper",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "psychologie.emotions",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "pression et stress le soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "envie de couper et evitement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        }
+      }
+    }
+  },
+  "checks": {
+    "first_conversation_20_plus_turns": true,
+    "memorizer_completed": true,
+    "memories_persisted": true,
+    "second_dispatcher_all_ok": false,
+    "second_semantic_all_ok": false,
+    "privacy_no_forbidden_leaks": true
+  }
+}

@@ -1,0 +1,211 @@
+{
+  "user_id": "de8f6263-058e-4315-b728-790777f1f0f9",
+  "user_chat_states": {
+    "status": 200,
+    "body": [
+      {
+        "user_id": "de8f6263-058e-4315-b728-790777f1f0f9",
+        "current_mode": "companion",
+        "risk_level": 0,
+        "investigation_state": null,
+        "short_term_context": "",
+        "last_interaction_at": "2026-06-22T17:15:00.315+00:00",
+        "updated_at": "2026-06-22T17:15:00.318409+00:00",
+        "unprocessed_msg_count": 0,
+        "last_processed_at": "2026-06-22T17:15:00.315+00:00",
+        "scope": "web",
+        "temp_memory": {
+          "companion_question_rhythm": {
+            "preference": "normal",
+            "recent_turns": [
+              0
+            ],
+            "last_updated_at": "2026-06-22T17:14:00.303Z",
+            "last_turn_had_question": false,
+            "turns_since_last_question": 1
+          }
+        }
+      }
+    ]
+  },
+  "scheduled_checkins": {
+    "status": 400,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column scheduled_checkins.message does not exist"
+    }
+  },
+  "recent_messages": {
+    "status": 200,
+    "body": [
+      {
+        "id": "5aff629f-3b7a-4ac8-a56f-9e45f6c73426",
+        "role": "assistant",
+        "content": "Tu la retrouves dans Dashboard > Ressources. C’est l’endroit pour consulter tes cartes existantes, pas pour en lancer une nouvelle. Certaines cartes ne sont visibles que si elles ont déjà été générées.",
+        "created_at": "2026-06-22T17:15:00.321876+00:00",
+        "metadata": {
+          "request_id": "223dfc8a-6f07-4ccc-bc38-fbb4f8d3a503",
+          "route_owner": "product_help",
+          "agent_latency_ms": 4839,
+          "selected_handler": "product_help",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 2380,
+          "runtime_safety_risk_band": "none"
+        }
+      },
+      {
+        "id": "f2540d11-5bf8-40d1-ac1f-65dde9b94bd7",
+        "role": "user",
+        "content": "Et si je veux juste consulter mes cartes existantes sans rien créer, c'est une vue ou ça lance une nouvelle carte ?",
+        "created_at": "2026-06-22T17:14:53.061835+00:00",
+        "metadata": {
+          "request_id": "223dfc8a-6f07-4ccc-bc38-fbb4f8d3a503",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "be9e72a1-dd82-40fc-8729-397199b698fb",
+        "role": "assistant",
+        "content": "Tu les retrouves dans Dashboard > Ressources, rangées par niveau. Si la carte d’attaque vient d’une mission ou d’une habitude du Plan, elle apparaît aussi sur l’item concerné.",
+        "created_at": "2026-06-22T17:14:28.993164+00:00",
+        "metadata": {
+          "request_id": "36eb2adc-9aae-4747-842e-768fccf6a9ee",
+          "route_owner": "product_help",
+          "agent_latency_ms": 4198,
+          "selected_handler": "product_help",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 2203,
+          "runtime_safety_risk_band": "none"
+        }
+      },
+      {
+        "id": "5a8ee68a-0e56-4edb-b1aa-0d6419e5683a",
+        "role": "user",
+        "content": "Question produit seulement : où est-ce que je retrouve mes cartes d'attaque une fois préparées ?",
+        "created_at": "2026-06-22T17:14:22.56252+00:00",
+        "metadata": {
+          "request_id": "36eb2adc-9aae-4747-842e-768fccf6a9ee",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "25c8ed69-f1e7-42ee-8b5d-b5821cca9604",
+        "role": "assistant",
+        "content": "C’est séparé : une carte d’attaque sert à te remettre en mouvement sans modifier ton plan.  \nSi elle ne colle plus, tu la refais ; ton plan, lui, reste inchangé 🙂",
+        "created_at": "2026-06-22T17:14:00.326385+00:00",
+        "metadata": {
+          "request_id": "b1ef598e-8e7b-46b0-9168-62b5c67c7aef",
+          "route_owner": "normal_reply",
+          "agent_latency_ms": 1150,
+          "selected_handler": null,
+          "context_latency_ms": 79,
+          "dispatcher_latency_ms": 2157,
+          "runtime_safety_risk_band": "none"
+        }
+      },
+      {
+        "id": "211f1b1c-edb2-47d7-b791-21e91263ee5b",
+        "role": "user",
+        "content": "Je change de sujet : question produit seulement, quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?",
+        "created_at": "2026-06-22T17:13:47.943783+00:00",
+        "metadata": {
+          "request_id": "b1ef598e-8e7b-46b0-9168-62b5c67c7aef",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "d4269002-befd-4c1d-879f-6a8f10b5070b",
+        "role": "assistant",
+        "content": "C'est programmé pour mardi 23 juin à 09:00: je te ferai un rappel pour vérifier ça.\n\nUne carte d’attaque ne se modifie pas librement après coup : si elle ne colle plus, il faut en refaire une nouvelle version. Et c’est noté pour mardi 23 juin à 09:00 : je te ferai un rappel pour vérifier ça. Par rapport à quelle mission ou habitude tu veux te débloquer ?",
+        "created_at": "2026-06-22T17:13:19.56767+00:00",
+        "metadata": {
+          "request_id": "f692c496-8ea5-4a44-b919-41271932b1ba",
+          "route_owner": "coaching_recommendation",
+          "agent_latency_ms": 15274,
+          "selected_handler": "coaching_recommendation",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 3356,
+          "runtime_safety_risk_band": "none"
+        }
+      },
+      {
+        "id": "1643573c-929d-4e23-818c-c308122f5446",
+        "role": "user",
+        "content": "Petite question produit : une carte d'attaque, je peux la modifier après coup ? Et rappelle-moi demain à 9h de vérifier ça.",
+        "created_at": "2026-06-22T17:13:00.89603+00:00",
+        "metadata": {
+          "request_id": "f692c496-8ea5-4a44-b919-41271932b1ba",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "bbc15662-c40d-4ee9-9ea2-fc712abc63a9",
+        "role": "assistant",
+        "content": "Plutôt une carte d’attaque si tu veux te remettre en mouvement sans toucher au plan. Mais pour te guider proprement : c’est quoi l’action qui te bloque ?",
+        "created_at": "2026-06-22T17:12:34.507913+00:00",
+        "metadata": {
+          "request_id": "122b4838-39e1-4b52-b3b8-98fd8d3ed13f",
+          "route_owner": "coaching_recommendation",
+          "agent_latency_ms": 15774,
+          "selected_handler": "coaching_recommendation",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 2415,
+          "runtime_safety_risk_band": "none"
+        }
+      },
+      {
+        "id": "3e97e760-8a47-4632-8163-ed141b02f730",
+        "role": "user",
+        "content": "Ok, si mon but c'est juste de me remettre en mouvement tout de suite sans changer le plan, tu m'orientes vers quoi ?",
+        "created_at": "2026-06-22T17:12:16.289616+00:00",
+        "metadata": {
+          "request_id": "122b4838-39e1-4b52-b3b8-98fd8d3ed13f",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "849c5bca-d90e-4c66-b7d6-b173b6b36269",
+        "role": "assistant",
+        "content": "L’ajustement du plan sert quand le fond du plan ne colle plus : trop lourd, mal placé, devenu invalide ou à revoir.\nLa carte d’attaque sert à préparer le passage à l’action : rendre le premier geste plus simple, plus clair et moins coûteux.\n\nEn bref : plan à revoir = ajustement ; action à préparer = carte d’attaque.",
+        "created_at": "2026-06-22T17:11:54.289148+00:00",
+        "metadata": {
+          "request_id": "8e300bb2-3f20-4db5-a454-43c1d9af0419",
+          "route_owner": "product_help",
+          "agent_latency_ms": 4668,
+          "selected_handler": "product_help",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 2559,
+          "runtime_safety_risk_band": "none"
+        }
+      },
+      {
+        "id": "54eeef1d-c661-469e-8874-a64bf8419ef8",
+        "role": "user",
+        "content": "J'hésite entre ajuster mon plan et faire une carte d'attaque : dans Sophia, ça sert à quoi chacun ?",
+        "created_at": "2026-06-22T17:11:47.040224+00:00",
+        "metadata": {
+          "request_id": "8e300bb2-3f20-4db5-a454-43c1d9af0419",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      }
+    ]
+  },
+  "conversation_turn_traces": {
+    "status": 200,
+    "body": []
+  }
+}

@@ -1,0 +1,60 @@
+--- scratchpad/2026-09-13-ATTRIBUTION/sauvegardes/banc-lot-F.ts.ORIG	2026-09-13 22:43:38
++++ scratchpad/2026-09-11-FIABILITE-RECETTES/banc-lot-F.ts	2026-09-13 22:45:14
+@@ -1828,6 +1828,57 @@
+   realCap: PLAFOND_REEL,
+   compositionPatch: ({ prompt, turn }) => {
+     if (turn === 0) return null;
++    // ══════════════════════════════════════════════════════════════════════
++    // ⟳ 2026-09-13 · LOT 1 D'ATTRIBUTION — LE REJEU PASSE AVANT LA FABRIQUE
++    // ══════════════════════════════════════════════════════════════════════
++    //
++    // ⛔ LE DÉFAUT MESURÉ. `--rejouer-tour=1:<sortie>` posait bien la réponse
++    // RÉELLE dans `compositionSequence[1]`, et ce crochet l'écrasait aussitôt
++    // par un patch FABRIQUÉ depuis la consigne (`transport-lot-F.ts` ≈ 511 :
++    // « si patch !== null, il gagne »). Les runs marqués « rejeu » du
++    // 2026-09-13 ont donc mesuré une réponse du BANC, en croyant mesurer celle
++    // du fournisseur — très exactement le substitut silencieux que ce chantier
++    // interdit.
++    //
++    // ⚠️ SEULEMENT LE TOUR VISÉ. Les autres tours gardent la fabrique : un
++    // rejeu de tour 1 ne dit rien du tour 2, et servir la même réponse deux
++    // fois ferait passer un tour pour deux.
++    if (rejeu !== null && rejeu.tour === turn) {
++      // ══════════════════════════════════════════════════════════════════
++      // ⛔ UNE SEULE CLÉ EST RÉÉCRITE, ET IL LE FAUT : `base_version`.
++      // ══════════════════════════════════════════════════════════════════
++      //
++      // Elle porte le `request_id` de la demande d'ORIGINE. Resservie telle
++      // quelle, la réponse réelle se fait refuser `base_version_stale` et
++      // n'atteint JAMAIS la fusion : on mesure alors le patch fabriqué du tour
++      // suivant en croyant mesurer le modèle. Mesuré le 2026-09-13.
++      //
++      // ⚠️ RIEN D'AUTRE NE BOUGE. Les `unit_id`, les ingrédients, les
++      // quantités, les `for_member_id` restent EXACTEMENT ceux que le
++      // fournisseur a rendus : c'est le seul champ que le protocole lie à la
++      // demande, et l'échanger est ce que le modèle ferait lui-même s'il
++      // relisait la consigne d'aujourd'hui.
++      const version = versionDeBase(texteDeLaConsigne(prompt));
++      let texte = rejeu.texte;
++      try {
++        const lu = JSON.parse(texte) as { repair?: Record<string, unknown> };
++        if (lu.repair && typeof lu.repair === "object" && version !== "") {
++          const avant = String(lu.repair.base_version ?? "");
++          lu.repair.base_version = version;
++          texte = JSON.stringify(lu);
++          console.log(
++            `   ⟳ REJEU (tour ${turn}) : réponse RÉELLE archivée, ` +
++              `base_version « ${avant} » → « ${version} » (seul champ réécrit).`,
++          );
++          return texte;
++        }
++      } catch { /* pas un patch JSON : on rend le texte tel quel */ }
++      console.log(
++        `   ⟳ REJEU (tour ${turn}) : la fabrique du banc s'abstient, ` +
++          `la réponse RÉELLE archivée passe telle quelle.`,
++      );
++      return null;
++    }
+     // ⛔ EN MODE PAYANT, LE CROCHET S'EFFACE. Le transport a déjà laissé sortir
+     // l'appel ; si on arrive ici c'est que le plafond est atteint, et servir un
+     // patch fabriqué ferait passer une réponse du BANC pour une réponse du

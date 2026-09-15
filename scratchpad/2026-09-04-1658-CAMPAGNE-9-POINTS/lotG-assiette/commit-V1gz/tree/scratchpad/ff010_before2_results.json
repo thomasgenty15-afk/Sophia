@@ -1,0 +1,122 @@
+{
+  "before-fr-dinner": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "fullChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "87a04d6b-f8ac-436d-9b5b-0fae407fad39"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Tonight is roast chicken with brown rice and green beans.",
+      "fullChars": 26682,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "b6f0ee15-232f-40fe-8f17-94d8e36fdc2a"
+    }
+  ],
+  "before-my-share": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Tonight’s dish is roast chicken, brown rice, and green beans. Your share is the larger protein and starch portion.",
+      "fullChars": 22473,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "182cb5e4-4161-4658-9a79-d17f0766f5e3"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Tonight is roast chicken, brown rice, and green beans. Your share is the larger protein and starch portion.",
+      "fullChars": 22473,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "cb857006-caa2-4c54-9e8b-3875494f444f"
+    }
+  ],
+  "before-minor-nutella": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Ana chose not to keep Nutella at home. That’s a household choice, not a nutrition rule.",
+      "fullChars": 22747,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "8a9acc51-3881-4ee4-9a09-bc3a0f3fc0dc"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Ana chose not to keep Nutella at home. That’s the household decision in place.",
+      "fullChars": 22747,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "2071e9ea-59f4-471d-b92b-9d71949dd617"
+    }
+  ],
+  "before-shared-other": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Sam is on the same dinner: sheet-pan sausages and peppers. I don’t have a serving note for Sam, only Rob’s larger protein and starch share.",
+      "fullChars": 25160,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "9326c121-6309-4e75-8ebd-14a317608b95"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Sam’s portion isn’t specified here. I only see that Rob has the larger protein and starch share.",
+      "fullChars": 22326,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "b2d2a2a3-76fe-4a3c-9d29-8533e79eb307"
+    }
+  ],
+  "before-solo": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Owen doesn’t prescribe dinner from here. What I can see is only today’s lunch focus: protein first, with vegetables alongside it.",
+      "fullChars": 21376,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "18f60501-e013-45a6-aa48-55a63d1cdb8c"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "fullChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "47d1a753-439b-4de9-85ac-fb8ce99caa93"
+    }
+  ],
+  "before-rich": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "fullChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "9038c1d8-a1cd-4a76-ba2b-916b0e634720"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Tonight’s dinner is slow-braised beef with root vegetables.  \nFor you, the serving note is full protein share, moderate starch, generous vegetables.",
+      "fullChars": 24948,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "dee334f0-2a78-41f5-b715-33f05b935adc"
+    }
+  ]
+}

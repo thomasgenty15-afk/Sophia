@@ -1,0 +1,2429 @@
+{
+  "ok": true,
+  "run_id": "memory-rag-probe-mp4cruad",
+  "source_report_path": "/Users/ahmedamara/Dev/Sophia 2/tmp/memory-real-eval-paraphrase-mp49ofqp.json",
+  "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp",
+  "user": {
+    "id": "1bd42c59-3668-44cc-8204-ca0ca11c0c26",
+    "email": "memory-real-eval-paraphrase-mp49ofqp@example.com"
+  },
+  "scope": "memory-rag-probe-mp4cruad-scope",
+  "active_memory_item_count": 20,
+  "active_memory_items": [
+    {
+      "id": "851bcc21-ebee-4fd1-9205-9eaba38d7f1c",
+      "content_text": "Je prepare un voyage a Lisbonne en juin.",
+      "domain_keys": [
+        "habitudes.planification"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "voyage_lisbonne",
+            "title": "Voyage a Lisbonne"
+          }
+        }
+      ]
+    },
+    {
+      "id": "d1a36cd4-8b0f-49dd-8b47-b5b4beaee647",
+      "content_text": "Je surveille mon allergie aux noix.",
+      "domain_keys": [
+        "sante.alimentation"
+      ],
+      "sensitivity_level": "sensitive",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "famille_lina",
+            "title": "Famille et soutien de Lina"
+          }
+        }
+      ]
+    },
+    {
+      "id": "2ecba53e-a2c9-43c4-83d2-4d388bbaef20",
+      "content_text": "Je prefere des hebergements calmes, loin des quartiers trop festifs.",
+      "domain_keys": [
+        "habitudes.environnement"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "voyage_lisbonne",
+            "title": "Voyage a Lisbonne"
+          }
+        }
+      ]
+    },
+    {
+      "id": "1074cc08-e643-4d47-aeb6-ebb42961d838",
+      "content_text": "Lundi matin, j'ai reserve le train pour aller a l'aeroport.",
+      "domain_keys": [
+        "habitudes.planification"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "voyage_lisbonne",
+            "title": "Voyage a Lisbonne"
+          }
+        }
+      ]
+    },
+    {
+      "id": "b1634b91-fe0a-42a9-89b4-1f7ddfb7c1c2",
+      "content_text": "J'ai une allergie aux noix.",
+      "domain_keys": [
+        "sante.alimentation"
+      ],
+      "sensitivity_level": "sensitive",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "famille_lina",
+            "title": "Famille et soutien de Lina"
+          }
+        }
+      ]
+    },
+    {
+      "id": "6ee510fd-41fc-4ee7-87e1-26bcf7e4313b",
+      "content_text": "Evite de me proposer des snacks avec noix, noisettes ou amandes.",
+      "domain_keys": [
+        "sante.alimentation",
+        "relations.limites"
+      ],
+      "sensitivity_level": "sensitive",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "sante_allergies",
+            "title": "Sante et allergies alimentaires"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ea328ff3-aa64-42e9-82d0-2fedd9603b0c",
+      "content_text": "Mardi soir, j'ai eu des plaques rouges apres un dessert dont je ne connaissais pas la composition.",
+      "domain_keys": [
+        "sante.alimentation",
+        "sante.douleur"
+      ],
+      "sensitivity_level": "sensitive",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "sante_allergies",
+            "title": "Sante et allergies alimentaires"
+          }
+        }
+      ]
+    },
+    {
+      "id": "19950a3d-8c52-4392-bdbc-94f101ac6544",
+      "content_text": "Mon medecin s'appelle Dr Morel.",
+      "domain_keys": [
+        "sante.medical"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "sante_allergies",
+            "title": "Sante et allergies alimentaires"
+          }
+        }
+      ]
+    },
+    {
+      "id": "604551c9-9170-4255-9d17-09c98970b5a9",
+      "content_text": "Je ne veux pas de conseil medical non sollicite.",
+      "domain_keys": [
+        "relations.limites"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "sante_allergies",
+            "title": "Sante et allergies alimentaires"
+          }
+        }
+      ]
+    },
+    {
+      "id": "c1699f97-8d8a-45e6-9b46-9f991787ca91",
+      "content_text": "L'objectif est de jouer Blackbird en septembre.",
+      "domain_keys": [
+        "objectifs.court_terme"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "pratique_guitare",
+            "title": "Pratique de la guitare"
+          }
+        }
+      ]
+    },
+    {
+      "id": "46fdd536-f025-4b97-8ca2-87a36941c286",
+      "content_text": "Douze minutes au metronome m'aident plus qu'une longue session vague pour la guitare.",
+      "domain_keys": [
+        "habitudes.execution"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "pratique_guitare",
+            "title": "Pratique de la guitare"
+          }
+        }
+      ]
+    },
+    {
+      "id": "811e3f6e-c660-4682-9c69-3b5e3067b11b",
+      "content_text": "Hier, j'ai pratique 14 minutes d'arpeges et ca m'a remis en confiance.",
+      "domain_keys": [
+        "habitudes.execution",
+        "psychologie.emotions"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "pratique_guitare",
+            "title": "Pratique de la guitare"
+          }
+        }
+      ]
+    },
+    {
+      "id": "0baf7bf5-936e-46d4-b8e0-7c596abbf139",
+      "content_text": "Le client Orion me stresse quand il change le brief au dernier moment.",
+      "domain_keys": [
+        "travail.conflits",
+        "psychologie.emotions"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "travail_orion",
+            "title": "Travail et client Orion"
+          }
+        }
+      ]
+    },
+    {
+      "id": "18c74628-81cb-4463-b501-1ef685337f6e",
+      "content_text": "Lina est ma cousine.",
+      "domain_keys": [
+        "relations.famille"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "famille_lina",
+            "title": "Famille et soutien de Lina"
+          }
+        }
+      ]
+    },
+    {
+      "id": "207e78ee-0b92-464a-a71d-491334e1bece",
+      "content_text": "Quand je prepare un deplacement, je veux des reponses sous forme de checklist.",
+      "domain_keys": [
+        "habitudes.planification"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "preferences_deplacement",
+            "title": "Preferences pour les deplacements"
+          }
+        }
+      ]
+    },
+    {
+      "id": "0fe17f8a-dd6a-44d6-9017-9c47dacb20c3",
+      "content_text": "Quand je dis 'je suis incapable de gerer mes voyages', c'est du stress.",
+      "domain_keys": [
+        "psychologie.emotions"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "travail_orion",
+            "title": "Travail et client Orion"
+          }
+        }
+      ]
+    },
+    {
+      "id": "7cb12a0a-57df-44a9-beb4-659345d15030",
+      "content_text": "L'utilisateur perd ses moyens quand plusieurs reservations s'empilent.",
+      "domain_keys": [
+        "habitudes.planification",
+        "psychologie.emotions"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "preferences_deplacement",
+            "title": "Preferences pour les deplacements"
+          }
+        }
+      ]
+    },
+    {
+      "id": "3d151170-ed59-44e7-a7ff-19bf3555047f",
+      "content_text": "Vendredi dernier, j'ai oublie de confirmer l'hotel et j'ai du appeler en urgence.",
+      "domain_keys": [
+        "habitudes.planification"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "voyage_lisbonne",
+            "title": "Voyage a Lisbonne"
+          }
+        }
+      ]
+    },
+    {
+      "id": "291eb858-d03f-4a45-88c5-4e02f1ad4e80",
+      "content_text": "Je ne veux pas que mon allergie ressorte dans une conversation neutre sur la guitare.",
+      "domain_keys": [
+        "relations.limites",
+        "sante.alimentation"
+      ],
+      "sensitivity_level": "sensitive",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "famille_lina",
+            "title": "Famille et soutien de Lina"
+          }
+        }
+      ]
+    },
+    {
+      "id": "87680dd4-42b8-4bf2-a5e3-80216a96fc51",
+      "content_text": "J'ai quand meme prepare ma valise aujourd'hui.",
+      "domain_keys": [
+        "habitudes.planification"
+      ],
+      "sensitivity_level": "normal",
+      "topic_links": [
+        {
+          "topic": {
+            "slug": "voyage_lisbonne",
+            "title": "Voyage a Lisbonne"
+          }
+        }
+      ]
+    }
+  ],
+  "probes": [
+    {
+      "id": "lisbon",
+      "request_id": "memory-rag-probe-mp4cruad-lisbon",
+      "message": "Je repars sur le voyage dont je t'ai parle. Tu peux me rappeler les points importants que tu as retenus sur Lisbonne ?",
+      "response_text": "Carrément 🙂 Voici les points importants que j’ai retenus pour ton voyage à Lisbonne en juin :\n\n- Tu pars bientôt à Lisbonne, en juin.\n- Tu préfères des hébergements calmes, pas trop dans les quartiers festifs.\n- Tu as déjà géré le train pour aller à l’aéroport (lundi matin).\n- Tu as quand même préparé ta valise aujourd’hui.\n- La dernière fois, tu avais oublié de confirmer l’hôtel, donc on garde ça en point d’attention (check avant de partir).\n\nTu veux que je te fasse une mini-checklist “avant départ” (ultra courte) ?",
+      "response_body": {
+        "content": "Carrément 🙂 Voici les points importants que j’ai retenus pour ton voyage à Lisbonne en juin :\n\n- Tu pars bientôt à Lisbonne, en juin.\n- Tu préfères des hébergements calmes, pas trop dans les quartiers festifs.\n- Tu as déjà géré le train pour aller à l’aéroport (lundi matin).\n- Tu as quand même préparé ta valise aujourd’hui.\n- La dernière fois, tu avais oublié de confirmer l’hôtel, donc on garde ça en point d’attention (check avant de partir).\n\nTu veux que je te fasse une mini-checklist “avant départ” (ultra courte) ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "expected_terms": [
+        "lisbonne",
+        "juin",
+        "calme",
+        "quartier",
+        "festif",
+        "aeroport"
+      ],
+      "matched_terms": [
+        "lisbonne",
+        "juin",
+        "calme",
+        "quartier",
+        "festif",
+        "aeroport"
+      ],
+      "semantic_check_ok": true
+    },
+    {
+      "id": "health_food",
+      "request_id": "memory-rag-probe-mp4cruad-health_food",
+      "message": "On cherche un restaurant ensemble: quels ingredients dois-tu eviter pour moi d'apres ce que je t'ai deja dit ?",
+      "response_text": "Ah je vois le souci 😅 mais je n’ai pas accès à ce que tu m’avais dit avant (je n’ai pas de mémoire de l’historique au-delà de cette discussion).\n\nDu coup, pour que je te donne une liste béton d’ingrédients à éviter, redis-moi juste tes exclusions: allergies (même “petite”), intolérances, et régime (végétarien/végan, sans lactose, sans gluten, etc.). 🍽️\n\nDonne-moi A) allergies B) intolérances C) aliments que tu refuses, et je te fais le filtrage.",
+      "response_body": {
+        "content": "Ah je vois le souci 😅 mais je n’ai pas accès à ce que tu m’avais dit avant (je n’ai pas de mémoire de l’historique au-delà de cette discussion).\n\nDu coup, pour que je te donne une liste béton d’ingrédients à éviter, redis-moi juste tes exclusions: allergies (même “petite”), intolérances, et régime (végétarien/végan, sans lactose, sans gluten, etc.). 🍽️\n\nDonne-moi A) allergies B) intolérances C) aliments que tu refuses, et je te fais le filtrage.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "expected_terms": [
+        "allerg",
+        "noix",
+        "noisette",
+        "amande"
+      ],
+      "matched_terms": [
+        "allerg"
+      ],
+      "semantic_check_ok": false
+    },
+    {
+      "id": "work_family",
+      "request_id": "memory-rag-probe-mp4cruad-work_family",
+      "message": "Je suis un peu perdu entre le dossier Orion et ma cousine Lina. Qu'est-ce que tu as retenu de chacun ?",
+      "response_text": "Je comprends, ça fait beaucoup de choses à gérer en même temps. Voici ce que j'ai en tête pour t'aider à y voir plus clair :\n\nCôté pro, il y a le dossier Orion. Ce que j'ai retenu, c'est que c'est une grosse source de stress pour toi, surtout quand le client change le brief au dernier moment. C'est souvent là que ça dérape.\n\nCôté perso, il y a Lina, qui est ta cousine.\n\nPour Orion, est-ce qu'il y a une urgence là tout de suite ou c'est juste la charge mentale qui pèse ? 📈",
+      "response_body": {
+        "content": "Je comprends, ça fait beaucoup de choses à gérer en même temps. Voici ce que j'ai en tête pour t'aider à y voir plus clair :\n\nCôté pro, il y a le dossier Orion. Ce que j'ai retenu, c'est que c'est une grosse source de stress pour toi, surtout quand le client change le brief au dernier moment. C'est souvent là que ça dérape.\n\nCôté perso, il y a Lina, qui est ta cousine.\n\nPour Orion, est-ce qu'il y a une urgence là tout de suite ou c'est juste la charge mentale qui pèse ? 📈",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "expected_terms": [
+        "orion",
+        "client",
+        "brief",
+        "lina",
+        "cousine"
+      ],
+      "matched_terms": [
+        "orion",
+        "client",
+        "brief",
+        "lina",
+        "cousine"
+      ],
+      "semantic_check_ok": true
+    }
+  ],
+  "scoped_messages": [
+    {
+      "role": "user",
+      "content": "Je repars sur le voyage dont je t'ai parle. Tu peux me rappeler les points importants que tu as retenus sur Lisbonne ?",
+      "metadata": {
+        "probe_id": "lisbon",
+        "probe_index": 0,
+        "force_full_ai": true,
+        "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+        "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+      },
+      "created_at": "2026-05-13T17:48:07.895749+00:00",
+      "agent_used": null
+    },
+    {
+      "role": "assistant",
+      "content": "Carrément 🙂 Voici les points importants que j’ai retenus pour ton voyage à Lisbonne en juin :\n\n- Tu pars bientôt à Lisbonne, en juin.\n- Tu préfères des hébergements calmes, pas trop dans les quartiers festifs.\n- Tu as déjà géré le train pour aller à l’aéroport (lundi matin).\n- Tu as quand même préparé ta valise aujourd’hui.\n- La dernière fois, tu avais oublié de confirmer l’hôtel, donc on garde ça en point d’attention (check avant de partir).\n\nTu veux que je te fasse une mini-checklist “avant départ” (ultra courte) ?",
+      "metadata": {
+        "channel": "web",
+        "probe_id": "lisbon",
+        "request_id": "memory-rag-probe-mp4cruad-lisbon",
+        "probe_index": 0,
+        "force_full_ai": true,
+        "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "surface_id": null,
+          "agent_model": "gpt-5.4-nano",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": null,
+          "outage_fallback": false,
+          "agent_model_tier": "lite",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": false,
+          "agent_model_source": "memory_plan_lite",
+          "outage_failed_mode": null,
+          "research_requested": false,
+          "research_sources_count": 0,
+          "coaching_intervention_pending": null
+        },
+        "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+      },
+      "created_at": "2026-05-13T17:48:27.146082+00:00",
+      "agent_used": "companion"
+    },
+    {
+      "role": "user",
+      "content": "On cherche un restaurant ensemble: quels ingredients dois-tu eviter pour moi d'apres ce que je t'ai deja dit ?",
+      "metadata": {
+        "probe_id": "health_food",
+        "probe_index": 1,
+        "force_full_ai": true,
+        "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+        "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+      },
+      "created_at": "2026-05-13T17:48:27.26462+00:00",
+      "agent_used": null
+    },
+    {
+      "role": "assistant",
+      "content": "Ah je vois le souci 😅 mais je n’ai pas accès à ce que tu m’avais dit avant (je n’ai pas de mémoire de l’historique au-delà de cette discussion).\n\nDu coup, pour que je te donne une liste béton d’ingrédients à éviter, redis-moi juste tes exclusions: allergies (même “petite”), intolérances, et régime (végétarien/végan, sans lactose, sans gluten, etc.). 🍽️\n\nDonne-moi A) allergies B) intolérances C) aliments que tu refuses, et je te fais le filtrage.",
+      "metadata": {
+        "channel": "web",
+        "probe_id": "health_food",
+        "request_id": "memory-rag-probe-mp4cruad-health_food",
+        "probe_index": 1,
+        "force_full_ai": true,
+        "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "surface_id": null,
+          "agent_model": "gpt-5.4-nano",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": "On cherche un restaurant ensemble: quels ingredients dois-tu eviter pour moi d'apres ce que je t'ai deja dit ?",
+          "outage_fallback": false,
+          "agent_model_tier": "lite",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": true,
+          "agent_model_source": "memory_plan_lite",
+          "outage_failed_mode": null,
+          "research_requested": true,
+          "research_sources_count": 5,
+          "coaching_intervention_pending": null
+        },
+        "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+      },
+      "created_at": "2026-05-13T17:48:49.999123+00:00",
+      "agent_used": "companion"
+    },
+    {
+      "role": "user",
+      "content": "Je suis un peu perdu entre le dossier Orion et ma cousine Lina. Qu'est-ce que tu as retenu de chacun ?",
+      "metadata": {
+        "probe_id": "work_family",
+        "probe_index": 2,
+        "force_full_ai": true,
+        "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+        "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+      },
+      "created_at": "2026-05-13T17:48:50.466502+00:00",
+      "agent_used": null
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends, ça fait beaucoup de choses à gérer en même temps. Voici ce que j'ai en tête pour t'aider à y voir plus clair :\n\nCôté pro, il y a le dossier Orion. Ce que j'ai retenu, c'est que c'est une grosse source de stress pour toi, surtout quand le client change le brief au dernier moment. C'est souvent là que ça dérape.\n\nCôté perso, il y a Lina, qui est ta cousine.\n\nPour Orion, est-ce qu'il y a une urgence là tout de suite ou c'est juste la charge mentale qui pèse ? 📈",
+      "metadata": {
+        "channel": "web",
+        "probe_id": "work_family",
+        "request_id": "memory-rag-probe-mp4cruad-work_family",
+        "probe_index": 2,
+        "force_full_ai": true,
+        "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "surface_id": null,
+          "agent_model": "gemini-3-flash-preview",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": null,
+          "outage_fallback": false,
+          "agent_model_tier": "standard",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": false,
+          "agent_model_source": "memory_plan_standard",
+          "outage_failed_mode": null,
+          "research_requested": false,
+          "research_sources_count": 0,
+          "coaching_intervention_pending": null
+        },
+        "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+      },
+      "created_at": "2026-05-13T17:49:04.590822+00:00",
+      "agent_used": "companion"
+    }
+  ],
+  "trace": {
+    "user_id": "1bd42c59-3668-44cc-8204-ca0ca11c0c26",
+    "window": {
+      "from": "2026-05-13T11:49:04.609Z",
+      "to": "2026-05-13T17:49:04.609Z",
+      "scope": "memory-rag-probe-mp4cruad-scope"
+    },
+    "summary": {
+      "messages_total": 6,
+      "user_messages": 3,
+      "assistant_messages": 3,
+      "turns_total": 5,
+      "memorizer_runs_total": 0,
+      "observability_events_total": 25
+    },
+    "messages": [
+      {
+        "id": "3c9e8f27-a100-43bd-b560-92b17710d639",
+        "role": "user",
+        "content": "Je repars sur le voyage dont je t'ai parle. Tu peux me rappeler les points importants que tu as retenus sur Lisbonne ?",
+        "scope": "memory-rag-probe-mp4cruad-scope",
+        "created_at": "2026-05-13T17:48:07.895749+00:00",
+        "agent_used": null,
+        "metadata": {
+          "probe_id": "lisbon",
+          "probe_index": 0,
+          "force_full_ai": true,
+          "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+          "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+        }
+      },
+      {
+        "id": "f0167809-1e0e-4f29-ba94-70e8bc39ce67",
+        "role": "assistant",
+        "content": "Carrément 🙂 Voici les points importants que j’ai retenus pour ton voyage à Lisbonne en juin :\n\n- Tu pars bientôt à Lisbonne, en juin.\n- Tu préfères des hébergements calmes, pas trop dans les quartiers festifs.\n- Tu as déjà géré le train pour aller à l’aéroport (lundi matin).\n- Tu as quand même préparé ta valise aujourd’hui.\n- La dernière fois, tu avais oublié de confirmer l’hôtel, donc on garde ça en point d’attention (check avant de partir).\n\nTu veux que je te fasse une mini-checklist “avant départ” (ultra courte) ?",
+        "scope": "memory-rag-probe-mp4cruad-scope",
+        "created_at": "2026-05-13T17:48:27.146082+00:00",
+        "agent_used": "companion",
+        "metadata": {
+          "channel": "web",
+          "probe_id": "lisbon",
+          "request_id": "memory-rag-probe-mp4cruad-lisbon",
+          "probe_index": 0,
+          "force_full_ai": true,
+          "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          },
+          "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+        }
+      },
+      {
+        "id": "d5aa70e0-eedd-44f6-90a1-e420bfd6a0d6",
+        "role": "user",
+        "content": "On cherche un restaurant ensemble: quels ingredients dois-tu eviter pour moi d'apres ce que je t'ai deja dit ?",
+        "scope": "memory-rag-probe-mp4cruad-scope",
+        "created_at": "2026-05-13T17:48:27.26462+00:00",
+        "agent_used": null,
+        "metadata": {
+          "probe_id": "health_food",
+          "probe_index": 1,
+          "force_full_ai": true,
+          "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+          "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+        }
+      },
+      {
+        "id": "9fcd6ee8-c5cb-4588-8cb1-1269894c59d9",
+        "role": "assistant",
+        "content": "Ah je vois le souci 😅 mais je n’ai pas accès à ce que tu m’avais dit avant (je n’ai pas de mémoire de l’historique au-delà de cette discussion).\n\nDu coup, pour que je te donne une liste béton d’ingrédients à éviter, redis-moi juste tes exclusions: allergies (même “petite”), intolérances, et régime (végétarien/végan, sans lactose, sans gluten, etc.). 🍽️\n\nDonne-moi A) allergies B) intolérances C) aliments que tu refuses, et je te fais le filtrage.",
+        "scope": "memory-rag-probe-mp4cruad-scope",
+        "created_at": "2026-05-13T17:48:49.999123+00:00",
+        "agent_used": "companion",
+        "metadata": {
+          "channel": "web",
+          "probe_id": "health_food",
+          "request_id": "memory-rag-probe-mp4cruad-health_food",
+          "probe_index": 1,
+          "force_full_ai": true,
+          "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": "On cherche un restaurant ensemble: quels ingredients dois-tu eviter pour moi d'apres ce que je t'ai deja dit ?",
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": true,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": true,
+            "research_sources_count": 5,
+            "coaching_intervention_pending": null
+          },
+          "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+        }
+      },
+      {
+        "id": "be997594-cd70-40c0-bbda-a3854800dcd6",
+        "role": "user",
+        "content": "Je suis un peu perdu entre le dossier Orion et ma cousine Lina. Qu'est-ce que tu as retenu de chacun ?",
+        "scope": "memory-rag-probe-mp4cruad-scope",
+        "created_at": "2026-05-13T17:48:50.466502+00:00",
+        "agent_used": null,
+        "metadata": {
+          "probe_id": "work_family",
+          "probe_index": 2,
+          "force_full_ai": true,
+          "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+          "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+        }
+      },
+      {
+        "id": "88be611f-9126-46e6-916a-bc2d1a252e08",
+        "role": "assistant",
+        "content": "Je comprends, ça fait beaucoup de choses à gérer en même temps. Voici ce que j'ai en tête pour t'aider à y voir plus clair :\n\nCôté pro, il y a le dossier Orion. Ce que j'ai retenu, c'est que c'est une grosse source de stress pour toi, surtout quand le client change le brief au dernier moment. C'est souvent là que ça dérape.\n\nCôté perso, il y a Lina, qui est ta cousine.\n\nPour Orion, est-ce qu'il y a une urgence là tout de suite ou c'est juste la charge mentale qui pèse ? 📈",
+        "scope": "memory-rag-probe-mp4cruad-scope",
+        "created_at": "2026-05-13T17:49:04.590822+00:00",
+        "agent_used": "companion",
+        "metadata": {
+          "channel": "web",
+          "probe_id": "work_family",
+          "request_id": "memory-rag-probe-mp4cruad-work_family",
+          "probe_index": 2,
+          "force_full_ai": true,
+          "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gemini-3-flash-preview",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "standard",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_standard",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          },
+          "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+        }
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": null,
+        "request_id": "memory-real-eval-paraphrase-mp49ofqp",
+        "started_at": "2026-05-13T16:23:24.503318+00:00",
+        "scope": "memory-rag-probe-mp4cruad-scope",
+        "channel": null,
+        "user_message": null,
+        "assistant_messages": [],
+        "dispatcher": {},
+        "surface": {},
+        "retrieval": {},
+        "injection": null,
+        "model_selection": null,
+        "turn_summary": null,
+        "events": [
+          {
+            "id": 14629,
+            "at": "2026-05-13T16:23:24.503318+00:00",
+            "event_name": "memory.daily_memorizer.completed",
+            "source_component": "trigger-memorizer-daily",
+            "payload": {
+              "hours": 24,
+              "memorizer": {
+                "reason": null,
+                "status": "completed",
+                "batch_hash": "6db7fa4dbee248a8585ca51b5a77b8a4fc7c21e337858a4312df635615d15f4c",
+                "extraction_run": {
+                  "id": "e10a5f72-1080-4aa7-9288-9b5490e03579",
+                  "status": "completed",
+                  "duration_ms": 114347,
+                  "trigger_type": "daily_batch",
+                  "error_message": null,
+                  "durable_writes": {
+                    "active_items": 20,
+                    "memory_items": 22,
+                    "candidate_items": 2
+                  },
+                  "rejection_reasons": {
+                    "other": 2,
+                    "smart_pre_filter": 2,
+                    "missing_sensitive_tag": 1
+                  },
+                  "accepted_item_count": 22,
+                  "proposed_item_count": 22,
+                  "rejected_item_count": 5,
+                  "accepted_entity_count": 0,
+                  "pre_filter_skip_count": 2,
+                  "proposed_entity_count": 8,
+                  "write_decision_statuses": {
+                    "active": 20,
+                    "candidate": 2
+                  },
+                  "statement_as_fact_violation_count": 0
+                },
+                "persisted_count": 22,
+                "extraction_run_id": "e10a5f72-1080-4aa7-9288-9b5490e03579",
+                "write_decision_count": 22,
+                "processed_message_count": 20
+              },
+              "since_iso": "2026-05-12T16:21:30.115Z",
+              "message_count": 20,
+              "message_limit": null
+            }
+          }
+        ]
+      },
+      {
+        "turn_id": null,
+        "request_id": "d1b8ad09-5a69-48fa-987b-3d54654a1c9e",
+        "started_at": "2026-05-13T16:24:09.243816+00:00",
+        "scope": "memory-rag-probe-mp4cruad-scope",
+        "channel": null,
+        "user_message": null,
+        "assistant_messages": [],
+        "dispatcher": {},
+        "surface": {},
+        "retrieval": {},
+        "injection": null,
+        "model_selection": null,
+        "turn_summary": null,
+        "events": [
+          {
+            "id": 14630,
+            "at": "2026-05-13T16:24:09.243816+00:00",
+            "event_name": "memory.compaction.topic.completed",
+            "source_component": "trigger-topic-compaction",
+            "payload": {
+              "issues": [],
+              "reason": "correction_pending",
+              "status": "completed",
+              "dry_run": false,
+              "topic_id": "ef54c19f-da2e-49ad-bd2e-0aa926f370f3",
+              "trigger_type": "correction",
+              "load_threshold": 5,
+              "sensitivity_max": "normal",
+              "active_item_count": 5,
+              "unsupported_claim_count": 0
+            }
+          },
+          {
+            "id": 14631,
+            "at": "2026-05-13T16:24:18.390445+00:00",
+            "event_name": "memory.compaction.topic.completed",
+            "source_component": "trigger-topic-compaction",
+            "payload": {
+              "issues": [],
+              "reason": "correction_pending",
+              "status": "completed",
+              "dry_run": false,
+              "topic_id": "ee358e3b-ae95-4fc8-92cb-9a7c5faeb93f",
+              "trigger_type": "correction",
+              "load_threshold": 5,
+              "sensitivity_max": "sensitive",
+              "active_item_count": 4,
+              "unsupported_claim_count": 0
+            }
+          },
+          {
+            "id": 14632,
+            "at": "2026-05-13T16:24:26.246191+00:00",
+            "event_name": "memory.compaction.topic.completed",
+            "source_component": "trigger-topic-compaction",
+            "payload": {
+              "issues": [],
+              "reason": "correction_pending",
+              "status": "completed",
+              "dry_run": false,
+              "topic_id": "719bc371-ee9e-44a4-85fc-5a9b94da2dba",
+              "trigger_type": "correction",
+              "load_threshold": 5,
+              "sensitivity_max": "sensitive",
+              "active_item_count": 4,
+              "unsupported_claim_count": 0
+            }
+          },
+          {
+            "id": 14634,
+            "at": "2026-05-13T16:24:33.205693+00:00",
+            "event_name": "memory.compaction.topic.completed",
+            "source_component": "trigger-topic-compaction",
+            "payload": {
+              "issues": [],
+              "reason": "correction_pending",
+              "status": "completed",
+              "dry_run": false,
+              "topic_id": "b83b05d1-183d-4d72-a058-1995cbd786b2",
+              "trigger_type": "correction",
+              "load_threshold": 5,
+              "sensitivity_max": "normal",
+              "active_item_count": 3,
+              "unsupported_claim_count": 0
+            }
+          },
+          {
+            "id": 14636,
+            "at": "2026-05-13T16:24:38.125363+00:00",
+            "event_name": "memory.compaction.topic.completed",
+            "source_component": "trigger-topic-compaction",
+            "payload": {
+              "issues": [],
+              "reason": "correction_pending",
+              "status": "completed",
+              "dry_run": false,
+              "topic_id": "e2363153-bda6-4533-8eb6-17de2d064e83",
+              "trigger_type": "correction",
+              "load_threshold": 5,
+              "sensitivity_max": "normal",
+              "active_item_count": 2,
+              "unsupported_claim_count": 0
+            }
+          },
+          {
+            "id": 14638,
+            "at": "2026-05-13T16:24:42.729251+00:00",
+            "event_name": "memory.compaction.topic.completed",
+            "source_component": "trigger-topic-compaction",
+            "payload": {
+              "issues": [],
+              "reason": "correction_pending",
+              "status": "completed",
+              "dry_run": false,
+              "topic_id": "e35b4d0d-3acf-43cb-b230-e789bf6ada82",
+              "trigger_type": "correction",
+              "load_threshold": 5,
+              "sensitivity_max": "normal",
+              "active_item_count": 2,
+              "unsupported_claim_count": 0
+            }
+          }
+        ]
+      },
+      {
+        "turn_id": "3c9e8f27-a100-43bd-b560-92b17710d639",
+        "request_id": "memory-rag-probe-mp4cruad-lisbon",
+        "started_at": "2026-05-13T17:48:07.895749+00:00",
+        "scope": "memory-rag-probe-mp4cruad-scope",
+        "channel": "web",
+        "user_message": {
+          "id": "3c9e8f27-a100-43bd-b560-92b17710d639",
+          "role": "user",
+          "content": "Je repars sur le voyage dont je t'ai parle. Tu peux me rappeler les points importants que tu as retenus sur Lisbonne ?",
+          "scope": "memory-rag-probe-mp4cruad-scope",
+          "created_at": "2026-05-13T17:48:07.895749+00:00",
+          "agent_used": null,
+          "metadata": {
+            "probe_id": "lisbon",
+            "probe_index": 0,
+            "force_full_ai": true,
+            "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+            "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+          }
+        },
+        "assistant_messages": [
+          {
+            "id": "f0167809-1e0e-4f29-ba94-70e8bc39ce67",
+            "role": "assistant",
+            "content": "Carrément 🙂 Voici les points importants que j’ai retenus pour ton voyage à Lisbonne en juin :\n\n- Tu pars bientôt à Lisbonne, en juin.\n- Tu préfères des hébergements calmes, pas trop dans les quartiers festifs.\n- Tu as déjà géré le train pour aller à l’aéroport (lundi matin).\n- Tu as quand même préparé ta valise aujourd’hui.\n- La dernière fois, tu avais oublié de confirmer l’hôtel, donc on garde ça en point d’attention (check avant de partir).\n\nTu veux que je te fasse une mini-checklist “avant départ” (ultra courte) ?",
+            "scope": "memory-rag-probe-mp4cruad-scope",
+            "created_at": "2026-05-13T17:48:27.146082+00:00",
+            "agent_used": "companion",
+            "metadata": {
+              "channel": "web",
+              "probe_id": "lisbon",
+              "request_id": "memory-rag-probe-mp4cruad-lisbon",
+              "probe_index": 0,
+              "force_full_ai": true,
+              "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+              "router_decision_v2": {
+                "next_mode": "companion",
+                "risk_score": 2,
+                "surface_id": null,
+                "agent_model": "gpt-5.4-nano",
+                "target_mode": "companion",
+                "outage_error": null,
+                "safety_level": "NONE",
+                "stop_checkup": false,
+                "surface_level": null,
+                "checkup_active": false,
+                "interrupt_kind": "NONE",
+                "research_query": null,
+                "outage_fallback": false,
+                "agent_model_tier": "lite",
+                "llm_retry_job_id": null,
+                "llm_retry_queued": false,
+                "research_executed": false,
+                "agent_model_source": "memory_plan_lite",
+                "outage_failed_mode": null,
+                "research_requested": false,
+                "research_sources_count": 0,
+                "coaching_intervention_pending": null
+              },
+              "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+            }
+          }
+        ],
+        "dispatcher": {
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Lisbonne",
+                "type": "entity",
+                "priority": "high",
+                "query_hint": "voyage Lisbonne points importants retenus",
+                "entity_type": "place",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "voyage",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "projets de voyage et discussions passées",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "broad",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "medium",
+            "reasoning_complexity": "low"
+          }
+        },
+        "surface": {
+          "state_transition": {
+            "addon": null,
+            "after": {},
+            "before": {},
+            "target_mode": "companion",
+            "memory_plan_intent": "reflection",
+            "memory_plan_context_need": "targeted"
+          },
+          "addon": null
+        },
+        "retrieval": {},
+        "injection": {
+          "mode": "companion",
+          "memory_blocks": {
+            "events": null,
+            "topics": null,
+            "globals": null,
+            "identity": null
+          },
+          "surface_addon": null,
+          "elements_loaded": [
+            "temporal",
+            "facts",
+            "dashboard_capabilities_lite_addon"
+          ],
+          "estimated_tokens": 795
+        },
+        "model_selection": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Lisbonne",
+                "type": "entity",
+                "priority": "high",
+                "query_hint": "voyage Lisbonne points importants retenus",
+                "entity_type": "place",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "voyage",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "projets de voyage et discussions passées",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "broad",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "medium",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        },
+        "turn_summary": {
+          "created_at": "2026-05-13T17:48:27.155115+00:00",
+          "channel": "web",
+          "scope": "memory-rag-probe-mp4cruad-scope",
+          "latency_total_ms": 19257,
+          "latency_dispatcher_ms": 12889,
+          "latency_context_ms": 6,
+          "latency_agent_ms": 6259,
+          "context_profile": "companion",
+          "context_elements": [
+            "temporal",
+            "facts",
+            "dashboard_capabilities_lite_addon",
+            "memory_v2_active_payload"
+          ],
+          "context_tokens": 795,
+          "target_dispatcher": "companion",
+          "target_initial": "companion",
+          "target_final": "companion",
+          "risk_score": 2,
+          "agent_model": "gpt-5.4-nano",
+          "agent_outcome": "tool_call",
+          "agent_tool": null
+        },
+        "events": [
+          {
+            "id": 15294,
+            "at": "2026-05-13T17:48:20.787616+00:00",
+            "event_name": "dispatcher.memory_plan_generated",
+            "source_component": "router",
+            "payload": {
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "Lisbonne",
+                    "type": "entity",
+                    "priority": "high",
+                    "query_hint": "voyage Lisbonne points importants retenus",
+                    "entity_type": "place",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "voyage",
+                    "type": "topic",
+                    "priority": "medium",
+                    "query_hint": "projets de voyage et discussions passées",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "broad",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "medium",
+                "reasoning_complexity": "low"
+              },
+              "user_message_preview": "Je repars sur le voyage dont je t'ai parle. Tu peux me rappeler les points importants que tu as retenus sur Lisbonne ?"
+            }
+          },
+          {
+            "id": 15296,
+            "at": "2026-05-13T17:48:20.794131+00:00",
+            "event_name": "surface.state_transition",
+            "source_component": "surface_state",
+            "payload": {
+              "addon": null,
+              "after": {},
+              "before": {},
+              "target_mode": "companion",
+              "memory_plan_intent": "reflection",
+              "memory_plan_context_need": "targeted"
+            }
+          },
+          {
+            "id": 15298,
+            "at": "2026-05-13T17:48:20.812592+00:00",
+            "event_name": "context.memory_injected",
+            "source_component": "context_loader",
+            "payload": {
+              "mode": "companion",
+              "memory_blocks": {
+                "events": null,
+                "topics": null,
+                "globals": null,
+                "identity": null
+              },
+              "surface_addon": null,
+              "elements_loaded": [
+                "temporal",
+                "facts",
+                "dashboard_capabilities_lite_addon"
+              ],
+              "estimated_tokens": 795
+            }
+          },
+          {
+            "id": 15300,
+            "at": "2026-05-13T17:48:20.829642+00:00",
+            "event_name": "memory.runtime.active.loaded",
+            "source_component": "memory_v2_runtime_active",
+            "payload": {
+              "v1": null,
+              "total_ms": 10,
+              "loader_ms": 7,
+              "fallback_used": false,
+              "retrieval_mode": "topic_continuation",
+              "rollout_bucket": 72,
+              "topic_decision": "switch",
+              "active_topic_id": "ef54c19f-da2e-49ad-bd2e-0aa926f370f3",
+              "retrieval_hints": [],
+              "payload_item_ids": [
+                "851bcc21-ebee-4fd1-9205-9eaba38d7f1c",
+                "2ecba53e-a2c9-43c4-83d2-4d388bbaef20",
+                "1074cc08-e643-4d47-aeb6-ebb42961d838",
+                "87680dd4-42b8-4bf2-a5e3-80216a96fc51",
+                "3d151170-ed59-44e7-a7ff-19bf3555047f"
+              ],
+              "retrieval_policy": "semantic_first",
+              "topic_confidence": 0.6940740740740741,
+              "loader_plan_budget": {
+                "max_items": 8,
+                "event_items": 3,
+                "topic_items": 5,
+                "action_items": 3,
+                "global_items": 4,
+                "max_entities": 4
+              },
+              "loader_plan_reason": "dispatcher_memory_plan",
+              "payload_item_count": 5,
+              "loaded_scope_counts": {
+                "event": 0,
+                "topic": 5,
+                "action": 0,
+                "entity": 0,
+                "global": 0
+              },
+              "topic_router_skipped": false,
+              "cross_topic_cache_hit": false,
+              "dispatcher_memory_mode": "broad",
+              "dispatcher_context_need": "targeted",
+              "invalid_injection_count": 0,
+              "loader_plan_domain_keys": [],
+              "sensitive_excluded_count": 0,
+              "loader_plan_domain_prefixes": [],
+              "loader_plan_requested_scopes": [
+                "topic"
+              ],
+              "dispatcher_memory_plan_applied": true
+            }
+          },
+          {
+            "id": 15302,
+            "at": "2026-05-13T17:48:20.833967+00:00",
+            "event_name": "router.model_selected",
+            "source_component": "router",
+            "payload": {
+              "tier": "lite",
+              "model": "gpt-5.4-nano",
+              "source": "memory_plan_lite",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "Lisbonne",
+                    "type": "entity",
+                    "priority": "high",
+                    "query_hint": "voyage Lisbonne points importants retenus",
+                    "entity_type": "place",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "voyage",
+                    "type": "topic",
+                    "priority": "medium",
+                    "query_hint": "projets de voyage et discussions passées",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "broad",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "medium",
+                "reasoning_complexity": "low"
+              },
+              "effective_mode": "companion",
+              "explicit_model": null,
+              "requested_target_mode": "companion"
+            }
+          },
+          {
+            "id": 15304,
+            "at": "2026-05-13T17:48:27.123787+00:00",
+            "event_name": "router_momentum_state_applied",
+            "source_component": "router",
+            "payload": {
+              "dimensions": {
+                "consent": "open",
+                "engagement": "high",
+                "progression": "unknown",
+                "emotional_load": "low"
+              },
+              "state_after": "friction_legere",
+              "next_summary": {
+                "state": "friction_legere",
+                "consent": "open",
+                "engagement": "high",
+                "updated_at": "2026-05-13T17:48:27.104Z",
+                "progression": "unknown",
+                "state_reason": "engaged_but_not_clearly_progressing",
+                "emotional_load": "low",
+                "stable_since_at": "2026-05-13T17:48:27.104Z",
+                "top_blocker_stage": null,
+                "top_blocker_action": null,
+                "top_blocker_category": null,
+                "active_blockers_count": 0,
+                "chronic_blockers_count": 0,
+                "pending_transition_target": null,
+                "pending_transition_confirmations": null
+              },
+              "state_before": "friction_legere",
+              "state_reason": "engaged_but_not_clearly_progressing",
+              "blocker_summary": {
+                "top_stage": null,
+                "top_action": null,
+                "active_count": 0,
+                "top_category": null,
+                "chronic_count": 0
+              },
+              "metrics_snapshot": {
+                "last_gap_hours": null,
+                "missed_actions_7d": null,
+                "emotional_high_72h": null,
+                "partial_actions_7d": null,
+                "improved_vitals_14d": null,
+                "worsened_vitals_14d": null,
+                "completed_actions_7d": null,
+                "emotional_medium_72h": null,
+                "consent_soft_declines_7d": null,
+                "consent_explicit_stops_7d": null,
+                "days_since_last_user_message": 0
+              },
+              "previous_summary": {
+                "state": "friction_legere",
+                "consent": "open",
+                "engagement": "medium",
+                "updated_at": "2026-05-13T17:48:27.104Z",
+                "progression": "unknown",
+                "state_reason": "initial_state",
+                "emotional_load": "low",
+                "stable_since_at": null,
+                "top_blocker_stage": null,
+                "top_blocker_action": null,
+                "top_blocker_category": null,
+                "active_blockers_count": 0,
+                "chronic_blockers_count": 0,
+                "pending_transition_target": null,
+                "pending_transition_confirmations": null
+              },
+              "classifier_source": "router",
+              "pending_transition": null
+            }
+          }
+        ]
+      },
+      {
+        "turn_id": "d5aa70e0-eedd-44f6-90a1-e420bfd6a0d6",
+        "request_id": "memory-rag-probe-mp4cruad-health_food",
+        "started_at": "2026-05-13T17:48:27.26462+00:00",
+        "scope": "memory-rag-probe-mp4cruad-scope",
+        "channel": "web",
+        "user_message": {
+          "id": "d5aa70e0-eedd-44f6-90a1-e420bfd6a0d6",
+          "role": "user",
+          "content": "On cherche un restaurant ensemble: quels ingredients dois-tu eviter pour moi d'apres ce que je t'ai deja dit ?",
+          "scope": "memory-rag-probe-mp4cruad-scope",
+          "created_at": "2026-05-13T17:48:27.26462+00:00",
+          "agent_used": null,
+          "metadata": {
+            "probe_id": "health_food",
+            "probe_index": 1,
+            "force_full_ai": true,
+            "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+            "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+          }
+        },
+        "assistant_messages": [
+          {
+            "id": "9fcd6ee8-c5cb-4588-8cb1-1269894c59d9",
+            "role": "assistant",
+            "content": "Ah je vois le souci 😅 mais je n’ai pas accès à ce que tu m’avais dit avant (je n’ai pas de mémoire de l’historique au-delà de cette discussion).\n\nDu coup, pour que je te donne une liste béton d’ingrédients à éviter, redis-moi juste tes exclusions: allergies (même “petite”), intolérances, et régime (végétarien/végan, sans lactose, sans gluten, etc.). 🍽️\n\nDonne-moi A) allergies B) intolérances C) aliments que tu refuses, et je te fais le filtrage.",
+            "scope": "memory-rag-probe-mp4cruad-scope",
+            "created_at": "2026-05-13T17:48:49.999123+00:00",
+            "agent_used": "companion",
+            "metadata": {
+              "channel": "web",
+              "probe_id": "health_food",
+              "request_id": "memory-rag-probe-mp4cruad-health_food",
+              "probe_index": 1,
+              "force_full_ai": true,
+              "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+              "router_decision_v2": {
+                "next_mode": "companion",
+                "risk_score": 2,
+                "surface_id": null,
+                "agent_model": "gpt-5.4-nano",
+                "target_mode": "companion",
+                "outage_error": null,
+                "safety_level": "NONE",
+                "stop_checkup": false,
+                "surface_level": null,
+                "checkup_active": false,
+                "interrupt_kind": "NONE",
+                "research_query": "On cherche un restaurant ensemble: quels ingredients dois-tu eviter pour moi d'apres ce que je t'ai deja dit ?",
+                "outage_fallback": false,
+                "agent_model_tier": "lite",
+                "llm_retry_job_id": null,
+                "llm_retry_queued": false,
+                "research_executed": true,
+                "agent_model_source": "memory_plan_lite",
+                "outage_failed_mode": null,
+                "research_requested": true,
+                "research_sources_count": 5,
+                "coaching_intervention_pending": null
+              },
+              "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+            }
+          }
+        ],
+        "dispatcher": {
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "allergies, restrictions alimentaires, ingrédients à éviter",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "preferences_alimentaires",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "goûts et régimes alimentaires",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "broad",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "medium",
+            "reasoning_complexity": "low"
+          }
+        },
+        "surface": {
+          "state_transition": {
+            "addon": null,
+            "after": {},
+            "before": {},
+            "target_mode": "companion",
+            "memory_plan_intent": "reflection",
+            "memory_plan_context_need": "targeted"
+          },
+          "addon": null
+        },
+        "retrieval": {},
+        "injection": {
+          "mode": "companion",
+          "memory_blocks": {
+            "events": null,
+            "topics": null,
+            "globals": null,
+            "identity": null
+          },
+          "surface_addon": null,
+          "elements_loaded": [
+            "temporal",
+            "facts",
+            "recent_turns",
+            "injected_context",
+            "dashboard_capabilities_lite_addon"
+          ],
+          "estimated_tokens": 1517
+        },
+        "model_selection": {
+          "tier": "lite",
+          "model": "gpt-5.4-nano",
+          "source": "memory_plan_lite",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "allergies, restrictions alimentaires, ingrédients à éviter",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "preferences_alimentaires",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "goûts et régimes alimentaires",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "broad",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "medium",
+            "reasoning_complexity": "low"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        },
+        "turn_summary": {
+          "created_at": "2026-05-13T17:48:50.002081+00:00",
+          "channel": "web",
+          "scope": "memory-rag-probe-mp4cruad-scope",
+          "latency_total_ms": 22738,
+          "latency_dispatcher_ms": 11120,
+          "latency_context_ms": 6,
+          "latency_agent_ms": 11181,
+          "context_profile": "companion",
+          "context_elements": [
+            "temporal",
+            "facts",
+            "recent_turns",
+            "injected_context",
+            "dashboard_capabilities_lite_addon",
+            "memory_v2_active_payload"
+          ],
+          "context_tokens": 1517,
+          "target_dispatcher": "companion",
+          "target_initial": "companion",
+          "target_final": "companion",
+          "risk_score": 2,
+          "agent_model": "gpt-5.4-nano",
+          "agent_outcome": "text",
+          "agent_tool": null
+        },
+        "events": [
+          {
+            "id": 15306,
+            "at": "2026-05-13T17:48:38.387864+00:00",
+            "event_name": "dispatcher.memory_plan_generated",
+            "source_component": "router",
+            "payload": {
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "sante.alimentation",
+                    "type": "domain_key",
+                    "priority": "high",
+                    "query_hint": "allergies, restrictions alimentaires, ingrédients à éviter",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  },
+                  {
+                    "key": "preferences_alimentaires",
+                    "type": "topic",
+                    "priority": "medium",
+                    "query_hint": "goûts et régimes alimentaires",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "broad",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "taxonomy_first",
+                "context_budget_tier": "medium",
+                "reasoning_complexity": "low"
+              },
+              "user_message_preview": "On cherche un restaurant ensemble: quels ingredients dois-tu eviter pour moi d'apres ce que je t'ai deja dit ?"
+            }
+          },
+          {
+            "id": 15308,
+            "at": "2026-05-13T17:48:38.394287+00:00",
+            "event_name": "surface.state_transition",
+            "source_component": "surface_state",
+            "payload": {
+              "addon": null,
+              "after": {},
+              "before": {},
+              "target_mode": "companion",
+              "memory_plan_intent": "reflection",
+              "memory_plan_context_need": "targeted"
+            }
+          },
+          {
+            "id": 15310,
+            "at": "2026-05-13T17:48:38.411607+00:00",
+            "event_name": "context.memory_injected",
+            "source_component": "context_loader",
+            "payload": {
+              "mode": "companion",
+              "memory_blocks": {
+                "events": null,
+                "topics": null,
+                "globals": null,
+                "identity": null
+              },
+              "surface_addon": null,
+              "elements_loaded": [
+                "temporal",
+                "facts",
+                "recent_turns",
+                "injected_context",
+                "dashboard_capabilities_lite_addon"
+              ],
+              "estimated_tokens": 1517
+            }
+          },
+          {
+            "id": 15312,
+            "at": "2026-05-13T17:48:38.796272+00:00",
+            "event_name": "memory.runtime.active.loaded",
+            "source_component": "memory_v2_runtime_active",
+            "payload": {
+              "v1": null,
+              "total_ms": 369,
+              "loader_ms": 369,
+              "fallback_used": false,
+              "retrieval_mode": "cross_topic_lookup",
+              "rollout_bucket": 72,
+              "topic_decision": "skipped",
+              "active_topic_id": "ef54c19f-da2e-49ad-bd2e-0aa926f370f3",
+              "retrieval_hints": [],
+              "payload_item_ids": [
+                "d1a36cd4-8b0f-49dd-8b47-b5b4beaee647",
+                "b1634b91-fe0a-42a9-89b4-1f7ddfb7c1c2",
+                "ea328ff3-aa64-42e9-82d0-2fedd9603b0c",
+                "291eb858-d03f-4a45-88c5-4e02f1ad4e80"
+              ],
+              "retrieval_policy": "taxonomy_first",
+              "topic_confidence": 0.6940740740740741,
+              "loader_plan_budget": {
+                "max_items": 8,
+                "event_items": 3,
+                "topic_items": 5,
+                "action_items": 3,
+                "global_items": 4,
+                "max_entities": 4
+              },
+              "loader_plan_reason": "dispatcher_memory_plan",
+              "payload_item_count": 4,
+              "loaded_scope_counts": {
+                "event": 0,
+                "topic": 0,
+                "action": 0,
+                "entity": 0,
+                "global": 4
+              },
+              "topic_router_skipped": true,
+              "cross_topic_cache_hit": false,
+              "dispatcher_memory_mode": "broad",
+              "dispatcher_context_need": "targeted",
+              "invalid_injection_count": 0,
+              "loader_plan_domain_keys": [
+                "sante.alimentation"
+              ],
+              "sensitive_excluded_count": 0,
+              "loader_plan_domain_prefixes": [],
+              "loader_plan_requested_scopes": [
+                "topic",
+                "global"
+              ],
+              "dispatcher_memory_plan_applied": true
+            }
+          },
+          {
+            "id": 15314,
+            "at": "2026-05-13T17:48:48.422877+00:00",
+            "event_name": "router.model_selected",
+            "source_component": "router",
+            "payload": {
+              "tier": "lite",
+              "model": "gpt-5.4-nano",
+              "source": "memory_plan_lite",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "sante.alimentation",
+                    "type": "domain_key",
+                    "priority": "high",
+                    "query_hint": "allergies, restrictions alimentaires, ingrédients à éviter",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  },
+                  {
+                    "key": "preferences_alimentaires",
+                    "type": "topic",
+                    "priority": "medium",
+                    "query_hint": "goûts et régimes alimentaires",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "broad",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "taxonomy_first",
+                "context_budget_tier": "medium",
+                "reasoning_complexity": "low"
+              },
+              "effective_mode": "companion",
+              "explicit_model": null,
+              "requested_target_mode": "companion"
+            }
+          },
+          {
+            "id": 15316,
+            "at": "2026-05-13T17:48:49.991994+00:00",
+            "event_name": "router_momentum_state_applied",
+            "source_component": "router",
+            "payload": {
+              "dimensions": {
+                "consent": "open",
+                "engagement": "high",
+                "progression": "unknown",
+                "emotional_load": "low"
+              },
+              "state_after": "friction_legere",
+              "next_summary": {
+                "state": "friction_legere",
+                "consent": "open",
+                "engagement": "high",
+                "updated_at": "2026-05-13T17:48:49.985Z",
+                "progression": "unknown",
+                "state_reason": "engaged_but_not_clearly_progressing",
+                "emotional_load": "low",
+                "stable_since_at": "2026-05-13T17:48:27.104Z",
+                "top_blocker_stage": null,
+                "top_blocker_action": null,
+                "top_blocker_category": null,
+                "active_blockers_count": 0,
+                "chronic_blockers_count": 0,
+                "pending_transition_target": null,
+                "pending_transition_confirmations": null
+              },
+              "state_before": "friction_legere",
+              "state_reason": "engaged_but_not_clearly_progressing",
+              "blocker_summary": {
+                "top_stage": null,
+                "top_action": null,
+                "active_count": 0,
+                "top_category": null,
+                "chronic_count": 0
+              },
+              "metrics_snapshot": {
+                "last_gap_hours": null,
+                "missed_actions_7d": null,
+                "emotional_high_72h": null,
+                "partial_actions_7d": null,
+                "improved_vitals_14d": null,
+                "worsened_vitals_14d": null,
+                "completed_actions_7d": null,
+                "emotional_medium_72h": null,
+                "consent_soft_declines_7d": null,
+                "consent_explicit_stops_7d": null,
+                "days_since_last_user_message": 0
+              },
+              "previous_summary": {
+                "state": "friction_legere",
+                "consent": "open",
+                "engagement": "high",
+                "updated_at": "2026-05-13T17:48:27.104Z",
+                "progression": "unknown",
+                "state_reason": "engaged_but_not_clearly_progressing",
+                "emotional_load": "low",
+                "stable_since_at": "2026-05-13T17:48:27.104Z",
+                "top_blocker_stage": null,
+                "top_blocker_action": null,
+                "top_blocker_category": null,
+                "active_blockers_count": 0,
+                "chronic_blockers_count": 0,
+                "pending_transition_target": null,
+                "pending_transition_confirmations": null
+              },
+              "classifier_source": "router",
+              "pending_transition": null
+            }
+          }
+        ]
+      },
+      {
+        "turn_id": "be997594-cd70-40c0-bbda-a3854800dcd6",
+        "request_id": "memory-rag-probe-mp4cruad-work_family",
+        "started_at": "2026-05-13T17:48:50.466502+00:00",
+        "scope": "memory-rag-probe-mp4cruad-scope",
+        "channel": "web",
+        "user_message": {
+          "id": "be997594-cd70-40c0-bbda-a3854800dcd6",
+          "role": "user",
+          "content": "Je suis un peu perdu entre le dossier Orion et ma cousine Lina. Qu'est-ce que tu as retenu de chacun ?",
+          "scope": "memory-rag-probe-mp4cruad-scope",
+          "created_at": "2026-05-13T17:48:50.466502+00:00",
+          "agent_used": null,
+          "metadata": {
+            "probe_id": "work_family",
+            "probe_index": 2,
+            "force_full_ai": true,
+            "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+            "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+          }
+        },
+        "assistant_messages": [
+          {
+            "id": "88be611f-9126-46e6-916a-bc2d1a252e08",
+            "role": "assistant",
+            "content": "Je comprends, ça fait beaucoup de choses à gérer en même temps. Voici ce que j'ai en tête pour t'aider à y voir plus clair :\n\nCôté pro, il y a le dossier Orion. Ce que j'ai retenu, c'est que c'est une grosse source de stress pour toi, surtout quand le client change le brief au dernier moment. C'est souvent là que ça dérape.\n\nCôté perso, il y a Lina, qui est ta cousine.\n\nPour Orion, est-ce qu'il y a une urgence là tout de suite ou c'est juste la charge mentale qui pèse ? 📈",
+            "scope": "memory-rag-probe-mp4cruad-scope",
+            "created_at": "2026-05-13T17:49:04.590822+00:00",
+            "agent_used": "companion",
+            "metadata": {
+              "channel": "web",
+              "probe_id": "work_family",
+              "request_id": "memory-rag-probe-mp4cruad-work_family",
+              "probe_index": 2,
+              "force_full_ai": true,
+              "rag_probe_run_id": "memory-rag-probe-mp4cruad",
+              "router_decision_v2": {
+                "next_mode": "companion",
+                "risk_score": 2,
+                "surface_id": null,
+                "agent_model": "gemini-3-flash-preview",
+                "target_mode": "companion",
+                "outage_error": null,
+                "safety_level": "NONE",
+                "stop_checkup": false,
+                "surface_level": null,
+                "checkup_active": false,
+                "interrupt_kind": "NONE",
+                "research_query": null,
+                "outage_fallback": false,
+                "agent_model_tier": "standard",
+                "llm_retry_job_id": null,
+                "llm_retry_queued": false,
+                "research_executed": false,
+                "agent_model_source": "memory_plan_standard",
+                "outage_failed_mode": null,
+                "research_requested": false,
+                "research_sources_count": 0,
+                "coaching_intervention_pending": null
+              },
+              "source_report_run_id": "memory-real-eval-paraphrase-mp49ofqp"
+            }
+          }
+        ],
+        "dispatcher": {
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Lina",
+                "type": "entity",
+                "priority": "high",
+                "query_hint": "cousine Lina",
+                "entity_type": "person",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "Orion",
+                "type": "entity",
+                "priority": "high",
+                "query_hint": "dossier Orion projet",
+                "entity_type": "project",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "broad",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "medium",
+            "reasoning_complexity": "medium"
+          }
+        },
+        "surface": {
+          "state_transition": {
+            "addon": null,
+            "after": {},
+            "before": {},
+            "target_mode": "companion",
+            "memory_plan_intent": "inventory",
+            "memory_plan_context_need": "targeted"
+          },
+          "addon": null
+        },
+        "retrieval": {},
+        "injection": {
+          "mode": "companion",
+          "memory_blocks": {
+            "events": null,
+            "topics": null,
+            "globals": null,
+            "identity": null
+          },
+          "surface_addon": null,
+          "elements_loaded": [
+            "temporal",
+            "facts",
+            "recent_turns",
+            "injected_context",
+            "dashboard_capabilities_lite_addon"
+          ],
+          "estimated_tokens": 1716
+        },
+        "model_selection": {
+          "tier": "standard",
+          "model": "gemini-3-flash-preview",
+          "source": "memory_plan_standard",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Lina",
+                "type": "entity",
+                "priority": "high",
+                "query_hint": "cousine Lina",
+                "entity_type": "person",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "Orion",
+                "type": "entity",
+                "priority": "high",
+                "query_hint": "dossier Orion projet",
+                "entity_type": "project",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "broad",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "medium",
+            "reasoning_complexity": "medium"
+          },
+          "effective_mode": "companion",
+          "explicit_model": null,
+          "requested_target_mode": "companion"
+        },
+        "turn_summary": {
+          "created_at": "2026-05-13T17:49:04.595162+00:00",
+          "channel": "web",
+          "scope": "memory-rag-probe-mp4cruad-scope",
+          "latency_total_ms": 14130,
+          "latency_dispatcher_ms": 11973,
+          "latency_context_ms": 7,
+          "latency_agent_ms": 1726,
+          "context_profile": "companion",
+          "context_elements": [
+            "temporal",
+            "facts",
+            "recent_turns",
+            "injected_context",
+            "dashboard_capabilities_lite_addon",
+            "memory_v2_active_payload"
+          ],
+          "context_tokens": 1716,
+          "target_dispatcher": "companion",
+          "target_initial": "companion",
+          "target_final": "companion",
+          "risk_score": 2,
+          "agent_model": "gemini-3-flash-preview",
+          "agent_outcome": "text",
+          "agent_tool": null
+        },
+        "events": [
+          {
+            "id": 15323,
+            "at": "2026-05-13T17:49:02.43946+00:00",
+            "event_name": "dispatcher.memory_plan_generated",
+            "source_component": "router",
+            "payload": {
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "Lina",
+                    "type": "entity",
+                    "priority": "high",
+                    "query_hint": "cousine Lina",
+                    "entity_type": "person",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "Orion",
+                    "type": "entity",
+                    "priority": "high",
+                    "query_hint": "dossier Orion projet",
+                    "entity_type": "project",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "broad",
+                "context_need": "targeted",
+                "model_tier_hint": "standard",
+                "plan_confidence": 0.7,
+                "response_intent": "inventory",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "medium",
+                "reasoning_complexity": "medium"
+              },
+              "user_message_preview": "Je suis un peu perdu entre le dossier Orion et ma cousine Lina. Qu'est-ce que tu as retenu de chacun ?"
+            }
+          },
+          {
+            "id": 15325,
+            "at": "2026-05-13T17:49:02.444903+00:00",
+            "event_name": "surface.state_transition",
+            "source_component": "surface_state",
+            "payload": {
+              "addon": null,
+              "after": {},
+              "before": {},
+              "target_mode": "companion",
+              "memory_plan_intent": "inventory",
+              "memory_plan_context_need": "targeted"
+            }
+          },
+          {
+            "id": 15327,
+            "at": "2026-05-13T17:49:02.462757+00:00",
+            "event_name": "context.memory_injected",
+            "source_component": "context_loader",
+            "payload": {
+              "mode": "companion",
+              "memory_blocks": {
+                "events": null,
+                "topics": null,
+                "globals": null,
+                "identity": null
+              },
+              "surface_addon": null,
+              "elements_loaded": [
+                "temporal",
+                "facts",
+                "recent_turns",
+                "injected_context",
+                "dashboard_capabilities_lite_addon"
+              ],
+              "estimated_tokens": 1716
+            }
+          },
+          {
+            "id": 15329,
+            "at": "2026-05-13T17:49:02.837634+00:00",
+            "event_name": "memory.runtime.active.loaded",
+            "source_component": "memory_v2_runtime_active",
+            "payload": {
+              "v1": null,
+              "total_ms": 366,
+              "loader_ms": 363,
+              "fallback_used": true,
+              "retrieval_mode": "cross_topic_lookup",
+              "rollout_bucket": 72,
+              "topic_decision": "skipped",
+              "active_topic_id": "ef54c19f-da2e-49ad-bd2e-0aa926f370f3",
+              "retrieval_hints": [],
+              "payload_item_ids": [
+                "18c74628-81cb-4463-b501-1ef685337f6e",
+                "0fe17f8a-dd6a-44d6-9017-9c47dacb20c3",
+                "c1699f97-8d8a-45e6-9b46-9f991787ca91",
+                "0baf7bf5-936e-46d4-b8e0-7c596abbf139"
+              ],
+              "retrieval_policy": "semantic_first",
+              "topic_confidence": 0.6940740740740741,
+              "loader_plan_budget": {
+                "max_items": 8,
+                "event_items": 3,
+                "topic_items": 5,
+                "action_items": 3,
+                "global_items": 4,
+                "max_entities": 4
+              },
+              "loader_plan_reason": "dispatcher_memory_plan",
+              "payload_item_count": 4,
+              "loaded_scope_counts": {
+                "event": 0,
+                "topic": 0,
+                "action": 0,
+                "entity": 0,
+                "global": 4
+              },
+              "topic_router_skipped": true,
+              "cross_topic_cache_hit": false,
+              "dispatcher_memory_mode": "broad",
+              "dispatcher_context_need": "targeted",
+              "invalid_injection_count": 0,
+              "loader_plan_domain_keys": [],
+              "sensitive_excluded_count": 0,
+              "loader_plan_domain_prefixes": [],
+              "loader_plan_requested_scopes": [
+                "global"
+              ],
+              "dispatcher_memory_plan_applied": true
+            }
+          },
+          {
+            "id": 15331,
+            "at": "2026-05-13T17:49:02.842885+00:00",
+            "event_name": "router.model_selected",
+            "source_component": "router",
+            "payload": {
+              "tier": "standard",
+              "model": "gemini-3-flash-preview",
+              "source": "memory_plan_standard",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "Lina",
+                    "type": "entity",
+                    "priority": "high",
+                    "query_hint": "cousine Lina",
+                    "entity_type": "person",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "Orion",
+                    "type": "entity",
+                    "priority": "high",
+                    "query_hint": "dossier Orion projet",
+                    "entity_type": "project",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "broad",
+                "context_need": "targeted",
+                "model_tier_hint": "standard",
+                "plan_confidence": 0.7,
+                "response_intent": "inventory",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "medium",
+                "reasoning_complexity": "medium"
+              },
+              "effective_mode": "companion",
+              "explicit_model": null,
+              "requested_target_mode": "companion"
+            }
+          },
+          {
+            "id": 15333,
+            "at": "2026-05-13T17:49:04.581936+00:00",
+            "event_name": "router_momentum_state_applied",
+            "source_component": "router",
+            "payload": {
+              "dimensions": {
+                "consent": "open",
+                "engagement": "high",
+                "progression": "unknown",
+                "emotional_load": "low"
+              },
+              "state_after": "friction_legere",
+              "next_summary": {
+                "state": "friction_legere",
+                "consent": "open",
+                "engagement": "high",
+                "updated_at": "2026-05-13T17:49:04.573Z",
+                "progression": "unknown",
+                "state_reason": "engaged_but_not_clearly_progressing",
+                "emotional_load": "low",
+                "stable_since_at": "2026-05-13T17:48:27.104Z",
+                "top_blocker_stage": null,
+                "top_blocker_action": null,
+                "top_blocker_category": null,
+                "active_blockers_count": 0,
+                "chronic_blockers_count": 0,
+                "pending_transition_target": null,
+                "pending_transition_confirmations": null
+              },
+              "state_before": "friction_legere",
+              "state_reason": "engaged_but_not_clearly_progressing",
+              "blocker_summary": {
+                "top_stage": null,
+                "top_action": null,
+                "active_count": 0,
+                "top_category": null,
+                "chronic_count": 0
+              },
+              "metrics_snapshot": {
+                "last_gap_hours": null,
+                "missed_actions_7d": null,
+                "emotional_high_72h": null,
+                "partial_actions_7d": null,
+                "improved_vitals_14d": null,
+                "worsened_vitals_14d": null,
+                "completed_actions_7d": null,
+                "emotional_medium_72h": null,
+                "consent_soft_declines_7d": null,
+                "consent_explicit_stops_7d": null,
+                "days_since_last_user_message": 0
+              },
+              "previous_summary": {
+                "state": "friction_legere",
+                "consent": "open",
+                "engagement": "high",
+                "updated_at": "2026-05-13T17:48:49.985Z",
+                "progression": "unknown",
+                "state_reason": "engaged_but_not_clearly_progressing",
+                "emotional_load": "low",
+                "stable_since_at": "2026-05-13T17:48:27.104Z",
+                "top_blocker_stage": null,
+                "top_blocker_action": null,
+                "top_blocker_category": null,
+                "active_blockers_count": 0,
+                "chronic_blockers_count": 0,
+                "pending_transition_target": null,
+                "pending_transition_confirmations": null
+              },
+              "classifier_source": "router",
+              "pending_transition": null
+            }
+          }
+        ]
+      }
+    ],
+    "memorizer_runs": [],
+    "unassigned_events": []
+  },
+  "trace_summary": {
+    "summary": {
+      "messages_total": 6,
+      "user_messages": 3,
+      "assistant_messages": 3,
+      "turns_total": 5,
+      "memorizer_runs_total": 0,
+      "observability_events_total": 25
+    },
+    "turns": [
+      {
+        "request_id": "memory-real-eval-paraphrase-mp49ofqp",
+        "user_message": null,
+        "dispatcher_memory_mode": null,
+        "dispatcher_context_need": null,
+        "dispatcher_response_intent": null,
+        "injected": false,
+        "injection_tokens": null,
+        "active_loader": null,
+        "retrieval": {
+          "globals": null,
+          "topics": null,
+          "events": null
+        }
+      },
+      {
+        "request_id": "d1b8ad09-5a69-48fa-987b-3d54654a1c9e",
+        "user_message": null,
+        "dispatcher_memory_mode": null,
+        "dispatcher_context_need": null,
+        "dispatcher_response_intent": null,
+        "injected": false,
+        "injection_tokens": null,
+        "active_loader": null,
+        "retrieval": {
+          "globals": null,
+          "topics": null,
+          "events": null
+        }
+      },
+      {
+        "request_id": "memory-rag-probe-mp4cruad-lisbon",
+        "user_message": "Je repars sur le voyage dont je t'ai parle. Tu peux me rappeler les points importants que tu as retenus sur Lisbonne ?",
+        "dispatcher_memory_mode": "broad",
+        "dispatcher_context_need": "targeted",
+        "dispatcher_response_intent": "reflection",
+        "injected": true,
+        "injection_tokens": 795,
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [
+            "topic"
+          ],
+          "domain_keys": [],
+          "topic_decision": "switch",
+          "active_topic_id": "ef54c19f-da2e-49ad-bd2e-0aa926f370f3",
+          "payload_item_count": 5,
+          "payload_item_ids": [
+            "851bcc21-ebee-4fd1-9205-9eaba38d7f1c",
+            "2ecba53e-a2c9-43c4-83d2-4d388bbaef20",
+            "1074cc08-e643-4d47-aeb6-ebb42961d838",
+            "87680dd4-42b8-4bf2-a5e3-80216a96fc51",
+            "3d151170-ed59-44e7-a7ff-19bf3555047f"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "retrieval": {
+          "globals": null,
+          "topics": null,
+          "events": null
+        }
+      },
+      {
+        "request_id": "memory-rag-probe-mp4cruad-health_food",
+        "user_message": "On cherche un restaurant ensemble: quels ingredients dois-tu eviter pour moi d'apres ce que je t'ai deja dit ?",
+        "dispatcher_memory_mode": "broad",
+        "dispatcher_context_need": "targeted",
+        "dispatcher_response_intent": "reflection",
+        "injected": true,
+        "injection_tokens": 1517,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "topic",
+            "global"
+          ],
+          "domain_keys": [
+            "sante.alimentation"
+          ],
+          "topic_decision": "skipped",
+          "active_topic_id": "ef54c19f-da2e-49ad-bd2e-0aa926f370f3",
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "d1a36cd4-8b0f-49dd-8b47-b5b4beaee647",
+            "b1634b91-fe0a-42a9-89b4-1f7ddfb7c1c2",
+            "ea328ff3-aa64-42e9-82d0-2fedd9603b0c",
+            "291eb858-d03f-4a45-88c5-4e02f1ad4e80"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "retrieval": {
+          "globals": null,
+          "topics": null,
+          "events": null
+        }
+      },
+      {
+        "request_id": "memory-rag-probe-mp4cruad-work_family",
+        "user_message": "Je suis un peu perdu entre le dossier Orion et ma cousine Lina. Qu'est-ce que tu as retenu de chacun ?",
+        "dispatcher_memory_mode": "broad",
+        "dispatcher_context_need": "targeted",
+        "dispatcher_response_intent": "inventory",
+        "injected": true,
+        "injection_tokens": 1716,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "global"
+          ],
+          "domain_keys": [],
+          "topic_decision": "skipped",
+          "active_topic_id": "ef54c19f-da2e-49ad-bd2e-0aa926f370f3",
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "18c74628-81cb-4463-b501-1ef685337f6e",
+            "0fe17f8a-dd6a-44d6-9017-9c47dacb20c3",
+            "c1699f97-8d8a-45e6-9b46-9f991787ca91",
+            "0baf7bf5-936e-46d4-b8e0-7c596abbf139"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": true
+        },
+        "retrieval": {
+          "globals": null,
+          "topics": null,
+          "events": null
+        }
+      }
+    ]
+  },
+  "checks": {
+    "all_probes_have_semantic_hits": false,
+    "scoped_conversation_persisted": true,
+    "dispatcher_plan_observed": true,
+    "active_loader_observed": true,
+    "memory_payload_observed": true
+  }
+}

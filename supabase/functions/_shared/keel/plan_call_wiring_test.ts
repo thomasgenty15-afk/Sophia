@@ -88,13 +88,29 @@ Deno.test("⛔ CÂBLAGE — chaque appel modèle d'une lane de plan passe par `p
   }
 });
 
-Deno.test("⛔ CÂBLAGE — le compte des appels est celui qu'on croit (8 pour le foyer)", () => {
+Deno.test("⛔ CÂBLAGE — le compte des appels est celui qu'on croit (2 pour le foyer)", () => {
   // Si ce nombre bouge, ce n'est pas ce test qu'on ajuste: c'est un appel
   // modèle de plus dans une requête dont le budget en autorise deux après la
   // composition. Il doit être vu.
   // ⟳ 2026-09-11 · LOT 7 — les 5 appels de la lane individuelle sont partis
   // avec elle. Le compte du foyer, lui, n'a pas bougé.
-  assertEquals(count(HOUSE, "generateWithGemini("), 8);
+  //
+  // ⟳ 2026-09-12 · ÉTAPE C4 — 8 → 9. Le neuvième est `final_repair`, le SEUL
+  // site qui s'exécute après la garde finale et le seul qui puisse réparer un
+  // plancher protéique (4 plans sur 6 en défaut le 2026-09-11). Ce test a fait
+  // exactement ce pour quoi il existe: il l'a VU.
+  //
+  // ⛔ ET NEUF SITES NE FONT PAS NEUF APPELS. Le budget en autorise toujours
+  // deux, partagés: `plan_budget_test.ts` le prouve site par site, et le
+  // journal `plan_repair_pass.calls_made` compte les appels RÉELLEMENT partis.
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — 9 → 2. Les sept sites d'amont ne
+  // rappellent plus le modèle : ils DÉPOSENT leur constat, et une seule
+  // décision part après la garde finale, quand tous les défauts du même plan
+  // sont connus. Il reste la COMPOSITION et la RÉPARATION UNIQUE.
+  //
+  // ⛔ SI CE NOMBRE REMONTE, ce n'est pas ce test qu'on ajuste: c'est un site
+  // d'appel qui a rouvert une file d'attente que le lot 1 a fermée.
+  assertEquals(count(HOUSE, "generateWithGemini("), 2);
 });
 
 Deno.test("⛔ CÂBLAGE — la MUTATION fait rougir : un littéral qui revient est détecté", () => {

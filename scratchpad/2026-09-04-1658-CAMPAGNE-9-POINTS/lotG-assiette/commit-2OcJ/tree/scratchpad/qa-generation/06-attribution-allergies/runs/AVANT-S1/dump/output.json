@@ -1,0 +1,919 @@
+{
+  "request_id": "b2000001-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000012",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-18T23:58:36.159Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "880cedee-a618-4d14-91bc-20c48fd075d5",
+      "status": "breaker_skip",
+      "created_at": "2026-08-18T23:55:36.035165+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16134,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16134,
+    "user_message_chars": 14970,
+    "user_message_truncated": false,
+    "user_message_written_chars": 14970,
+    "independent_counters": {
+      "system_prompt_chars": 16134,
+      "prompt_chars": 14970
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "1d93714e-f73f-44c5-a701-cb89a7735335",
+    "created_at": "2026-08-18T23:58:35.587053+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 3,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Summer Berry Morning Porridge\",\n      \"title\": \"Oats with whole milk and fresh berries\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"whole milk\",\n          \"quantity\": \"200 ml\",\n          \"amount\": 200,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"mixed berries\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Simmer the oats and milk in a small pan until creamy, then top with the fresh berries.\",\n      \"why\": \"A warm, small breakfast as the coach recommends for those who aren't early eaters.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Golden Seed Butter Toast\",\n      \"title\": \"Toasted bread with sunflower seed butter\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Toast the bread and spread generously with the sunflower seed butter.\",\n      \"why\": \"I have swapped the requested pistachio butter for sunflower seed butter to protect against the medical allergy constraint.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Honey and Seed Yogurt Bowl\",\n      \"title\": \"Greek yogurt with honey and sunflower seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon the yogurt into a bowl, drizzle with honey and scatter the seeds on top.\",\n      \"why\": \"A fresh, protein-rich start that avoids fennel as requested.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Summer Green Bean Chicken\",\n      \"title\": \"Pan-seared chicken thighs with new potatoes and green beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Warm the contents of the box in a wide pan over a medium heat with a splash of water until steaming.\",\n      \"why\": \"The green beans are the loud vegetable here, providing a fresh crunch to the plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Power Chicken and Potato Pan\",\n      \"title\": \"Large portion of seared chicken and potatoes with green beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the larger portion in a pan until the chicken is hot through and the potatoes are sizzling.\",\n      \"why\": \"A larger share of protein and starch to support muscle gain goals.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Vibrant Green Chicken Plate\",\n      \"title\": \"Chicken thighs with extra green beans and light potatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Pan-heat the portion until hot, ensuring the green beans stay bright and crisp.\",\n      \"why\": \"Generous vegetables and full protein with a lighter starch share as requested.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Crimson Pepper Beef Stir-fry\",\n      \"title\": \"Beef and bell pepper stir-fry with steamed rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the beef and peppers in a hot pan; warm the rice separately with a teaspoon of water.\",\n      \"why\": \"A warm dinner featuring loud bell peppers to ensure you don't leave the table hungry.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Starch-Fuelled Beef Stir-fry\",\n      \"title\": \"Large beef and pepper stir-fry with extra rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Heat the beef and the large rice portion in a pan until piping hot.\",\n      \"why\": \"Starch follows the session: a larger rice portion here fuels your muscle gain stretch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Garden Pepper Beef Bowl\",\n      \"title\": \"Beef stir-fry with extra peppers and light rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Warm the beef and pepper mix thoroughly, serving with the smaller rice portion.\",\n      \"why\": \"Focused on generous vegetables and full protein while keeping the starch share lower.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_potatoes\",\n      \"title\": \"Pan-Seared Chicken and New Potatoes\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"new potatoes\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Halve the potatoes and boil in salted water until tender (15 mins). Meanwhile, season and pan-sear the chicken thighs in oil until golden and cooked through. Steam the green beans over the potatoes for the last 4 minutes. Drain and toss everything together.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_chicken_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_chicken_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 400\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_peppers\",\n      \"title\": \"Beef and Bell Pepper Stir-fry\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"beef strips\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spring onions\",\n          \"quantity\": \"1 bunch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Slice peppers and onions. Heat oil in a large pan or wok. Sear the beef strips quickly on high heat until browned, then remove. Toss in the peppers and onions, stir-fry for 5 minutes, then return the beef to the pan to combine.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_beef_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Basmati Rice\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice and boil in a pot with double the volume of water. Cover and simmer for 12 minutes, then let stand for 5 minutes before fluffing.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken_potatoes\",\n        \"prep_beef_peppers\",\n        \"prep_rice\"\n      ],\n      \"total_minutes\": 45,\n      \"run_through\": \"Start the potatoes boiling. While they cook, get the rice on another ring. Sear the chicken thighs in a large pan. Once the chicken is done, use that pan for the beef and pepper stir-fry. Steam the green beans over the potatoes for the final few minutes. Box all portions according to the gram weights.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"chicken thighs\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"beef strips\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"new potatoes\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spring onions\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"oats\",\n      \"quantity\": \"40 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"whole milk\",\n      \"quantity\": \"200 ml\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"mixed berries\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Greek yogurt\",\n      \"quantity\": \"150 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sunflower seeds\",\n      \"quantity\": \"1 packet\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"100 ml\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"A larger share of chicken and potatoes for lunch, and a generous rice portion with the beef for dinner.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_potatoes\",\n          \"note\": \"Large protein and starch portion.\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"Full protein share.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Large starch share.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"Child-size portions of the shared chicken and beef dishes.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_potatoes\",\n          \"note\": \"Small portion.\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"Small portion.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Small portion.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Full protein share with extra vegetables and a smaller starch share; no fennel.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_potatoes\",\n          \"note\": \"Generous green beans, full chicken share, few potatoes.\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"Generous peppers, full beef share.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Small starch share.\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Summer Berry Morning Porridge",
+          "title": "Oats with whole milk and fresh berries",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "oats",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "whole milk",
+              "quantity": "200 ml",
+              "amount": 200,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "mixed berries",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Simmer the oats and milk in a small pan until creamy, then top with the fresh berries.",
+          "why": "A warm, small breakfast as the coach recommends for those who aren't early eaters.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Golden Seed Butter Toast",
+          "title": "Toasted bread with sunflower seed butter",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "sunflower seed butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Toast the bread and spread generously with the sunflower seed butter.",
+          "why": "I have swapped the requested pistachio butter for sunflower seed butter to protect against the medical allergy constraint.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Honey and Seed Yogurt Bowl",
+          "title": "Greek yogurt with honey and sunflower seeds",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "honey",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "sunflower seeds",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Spoon the yogurt into a bowl, drizzle with honey and scatter the seeds on top.",
+          "why": "A fresh, protein-rich start that avoids fennel as requested.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Summer Green Bean Chicken",
+          "title": "Pan-seared chicken thighs with new potatoes and green beans",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Warm the contents of the box in a wide pan over a medium heat with a splash of water until steaming.",
+          "why": "The green beans are the loud vegetable here, providing a fresh crunch to the plate.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_potatoes",
+              "servings": 1,
+              "box_id": "box_chicken_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Power Chicken and Potato Pan",
+          "title": "Large portion of seared chicken and potatoes with green beans",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [],
+          "method": "Reheat the larger portion in a pan until the chicken is hot through and the potatoes are sizzling.",
+          "why": "A larger share of protein and starch to support muscle gain goals.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_potatoes",
+              "servings": 1,
+              "box_id": "box_chicken_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Vibrant Green Chicken Plate",
+          "title": "Chicken thighs with extra green beans and light potatoes",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [],
+          "method": "Pan-heat the portion until hot, ensuring the green beans stay bright and crisp.",
+          "why": "Generous vegetables and full protein with a lighter starch share as requested.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_potatoes",
+              "servings": 1,
+              "box_id": "box_chicken_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Crimson Pepper Beef Stir-fry",
+          "title": "Beef and bell pepper stir-fry with steamed rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Reheat the beef and peppers in a hot pan; warm the rice separately with a teaspoon of water.",
+          "why": "A warm dinner featuring loud bell peppers to ensure you don't leave the table hungry.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_peppers",
+              "servings": 1,
+              "box_id": "box_beef_marceau"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Starch-Fuelled Beef Stir-fry",
+          "title": "Large beef and pepper stir-fry with extra rice",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [],
+          "method": "Heat the beef and the large rice portion in a pan until piping hot.",
+          "why": "Starch follows the session: a larger rice portion here fuels your muscle gain stretch.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_peppers",
+              "servings": 1,
+              "box_id": "box_beef_bertille"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Garden Pepper Beef Bowl",
+          "title": "Beef stir-fry with extra peppers and light rice",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [],
+          "method": "Warm the beef and pepper mix thoroughly, serving with the smaller rice portion.",
+          "why": "Focused on generous vegetables and full protein while keeping the starch share lower.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_peppers",
+              "servings": 1,
+              "box_id": "box_beef_ysoline"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken_potatoes",
+          "title": "Pan-Seared Chicken and New Potatoes",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "chicken thighs",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "new potatoes",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "green beans",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Halve the potatoes and boil in salted water until tender (15 mins). Meanwhile, season and pan-sear the chicken thighs in oil until golden and cooked through. Steam the green beans over the potatoes for the last 4 minutes. Drain and toss everything together.",
+          "active_minutes": 15,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_chicken_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_chicken_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 400
+            }
+          ]
+        },
+        {
+          "id": "prep_beef_peppers",
+          "title": "Beef and Bell Pepper Stir-fry",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "beef strips",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "bell peppers",
+              "quantity": "3 units",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "spring onions",
+              "quantity": "1 bunch",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Slice peppers and onions. Heat oil in a large pan or wok. Sear the beef strips quickly on high heat until browned, then remove. Toss in the peppers and onions, stir-fry for 5 minutes, then return the beef to the pan to combine.",
+          "active_minutes": 10,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beef_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_beef_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 350
+            },
+            {
+              "id": "box_beef_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_rice",
+          "title": "Steamed Basmati Rice",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse the rice and boil in a pot with double the volume of water. Cover and simmer for 12 minutes, then let stand for 5 minutes before fluffing.",
+          "active_minutes": 2,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 100
+            },
+            {
+              "id": "box_rice_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_rice_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 150
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken_potatoes",
+            "prep_beef_peppers",
+            "prep_rice"
+          ],
+          "total_minutes": 45,
+          "run_through": "Start the potatoes boiling. While they cook, get the rice on another ring. Sear the chicken thighs in a large pan. Once the chicken is done, use that pan for the beef and pepper stir-fry. Steam the green beans over the potatoes for the final few minutes. Box all portions according to the gram weights."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "chicken thighs",
+          "quantity": "600 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "beef strips",
+          "quantity": "500 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "new potatoes",
+          "quantity": "500 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "green beans",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "bell peppers",
+          "quantity": "3 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "spring onions",
+          "quantity": "1 bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "basmati rice",
+          "quantity": "200 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "oats",
+          "quantity": "40 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "whole milk",
+          "quantity": "200 ml",
+          "aisle": "dairy"
+        },
+        {
+          "term": "mixed berries",
+          "quantity": "50 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "bread",
+          "quantity": "1 loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "sunflower seed butter",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Greek yogurt",
+          "quantity": "150 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "honey",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "sunflower seeds",
+          "quantity": "1 packet",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "100 ml",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "portion_note": "A larger share of chicken and potatoes for lunch, and a generous rice portion with the beef for dinner.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_potatoes",
+              "note": "Large protein and starch portion."
+            },
+            {
+              "preparation_id": "prep_beef_peppers",
+              "note": "Full protein share."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Large starch share."
+            }
+          ]
+        },
+        {
+          "member_id": "2a937736-693a-45f1-97a6-110f535ae004",
+          "portion_note": "Child-size portions of the shared chicken and beef dishes.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_potatoes",
+              "note": "Small portion."
+            },
+            {
+              "preparation_id": "prep_beef_peppers",
+              "note": "Small portion."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Small portion."
+            }
+          ]
+        },
+        {
+          "member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "portion_note": "Full protein share with extra vegetables and a smaller starch share; no fennel.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_potatoes",
+              "note": "Generous green beans, full chicken share, few potatoes."
+            },
+            {
+              "preparation_id": "prep_beef_peppers",
+              "note": "Generous peppers, full beef share."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Small starch share."
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Summer Berry Morning Porridge\",\n      \"title\": \"Oats with whole milk and fresh berries\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"whole milk\",\n          \"quantity\": \"200 ml\",\n          \"amount\": 200,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"mixed berries\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Simmer the oats and milk in a small pan until creamy, then top with the fresh berries.\",\n      \"why\": \"A warm, small breakfast as the coach recommends for those who aren't early eaters.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Golden Seed Butter Toast\",\n      \"title\": \"Toasted bread with sunflower seed butter\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Toast the bread and spread generously with the sunflower seed butter.\",\n      \"why\": \"I have swapped the requested pistachio butter for sunflower seed butter to protect against the medical allergy constraint.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Honey and Seed Yogurt Bowl\",\n      \"title\": \"Greek yogurt with honey and sunflower seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon the yogurt into a bowl, drizzle with honey and scatter the seeds on top.\",\n      \"why\": \"A fresh, protein-rich start that avoids fennel as requested.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Summer Green Bean Chicken\",\n      \"title\": \"Pan-seared chicken thighs with new potatoes and green beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Warm the contents of the box in a wide pan over a medium heat with a splash of water until steaming.\",\n      \"why\": \"The green beans are the loud vegetable here, providing a fresh crunch to the plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Power Chicken and Potato Pan\",\n      \"title\": \"Large portion of seared chicken and potatoes with green beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the larger portion in a pan until the chicken is hot through and the potatoes are sizzling.\",\n      \"why\": \"A larger share of protein and starch to support muscle gain goals.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Vibrant Green Chicken Plate\",\n      \"title\": \"Chicken thighs with extra green beans and light potatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Pan-heat the portion until hot, ensuring the green beans stay bright and crisp.\",\n      \"why\": \"Generous vegetables and full protein with a lighter starch share as requested.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Crimson Pepper Beef Stir-fry\",\n      \"title\": \"Beef and bell pepper stir-fry with steamed rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the beef and peppers in a hot pan; warm the rice separately with a teaspoon of water.\",\n      \"why\": \"A warm dinner featuring loud bell peppers to ensure you don't leave the table hungry.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Starch-Fuelled Beef Stir-fry\",\n      \"title\": \"Large beef and pepper stir-fry with extra rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Heat the beef and the large rice portion in a pan until piping hot.\",\n      \"why\": \"Starch follows the session: a larger rice portion here fuels your muscle gain stretch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Garden Pepper Beef Bowl\",\n      \"title\": \"Beef stir-fry with extra peppers and light rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Warm the beef and pepper mix thoroughly, serving with the smaller rice portion.\",\n      \"why\": \"Focused on generous vegetables and full protein while keeping the starch share lower.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_potatoes\",\n      \"title\": \"Pan-Seared Chicken and New Potatoes\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"new potatoes\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Halve the potatoes and boil in salted water until tender (15 mins). Meanwhile, season and pan-sear the chicken thighs in oil until golden and cooked through. Steam the green beans over the potatoes for the last 4 minutes. Drain and toss everything together.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_chicken_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_chicken_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 400\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_peppers\",\n      \"title\": \"Beef and Bell Pepper Stir-fry\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"beef strips\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spring onions\",\n          \"quantity\": \"1 bunch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Slice peppers and onions. Heat oil in a large pan or wok. Sear the beef strips quickly on high heat until browned, then remove. Toss in the peppers and onions, stir-fry for 5 minutes, then return the beef to the pan to combine.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_beef_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Basmati Rice\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice and boil in a pot with double the volume of water. Cover and simmer for 12 minutes, then let stand for 5 minutes before fluffing.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken_potatoes\",\n        \"prep_beef_peppers\",\n        \"prep_rice\"\n      ],\n      \"total_minutes\": 45,\n      \"run_through\": \"Start the potatoes boiling. While they cook, get the rice on another ring. Sear the chicken thighs in a large pan. Once the chicken is done, use that pan for the beef and pepper stir-fry. Steam the green beans over the potatoes for the final few minutes. Box all portions according to the gram weights.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"chicken thighs\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"beef strips\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"new potatoes\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spring onions\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"oats\",\n      \"quantity\": \"40 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"whole milk\",\n      \"quantity\": \"200 ml\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"mixed berries\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Greek yogurt\",\n      \"quantity\": \"150 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sunflower seeds\",\n      \"quantity\": \"1 packet\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"100 ml\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"A larger share of chicken and potatoes for lunch, and a generous rice portion with the beef for dinner.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_potatoes\",\n          \"note\": \"Large protein and starch portion.\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"Full protein share.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Large starch share.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"Child-size portions of the shared chicken and beef dishes.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_potatoes\",\n          \"note\": \"Small portion.\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"Small portion.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Small portion.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Full protein share with extra vegetables and a smaller starch share; no fennel.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_potatoes\",\n          \"note\": \"Generous green beans, full chicken share, few potatoes.\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"Generous peppers, full beef share.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Small starch share.\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "gPGEavrDIIbe7M8P8arsiA4",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 19405,
+        "promptTokenCount": 8069,
+        "cacheTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4049
+          }
+        ],
+        "thoughtsTokenCount": 5968,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8069
+          }
+        ],
+        "candidatesTokenCount": 5368,
+        "cachedContentTokenCount": 4049
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:55:36.035165+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:55:36.0434+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:55:36.0453+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:55:36.048609+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:36.075451+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:36.100233+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:36.600762+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:41.11424+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:41.64948+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:45.909522+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:45.917642+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:45.923801+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:57:45.937671+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:57:45.943335+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:57:46.589265+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:57:52.151067+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:57:52.155792+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:57:52.159953+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:57:52.163535+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:58:35.587053+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

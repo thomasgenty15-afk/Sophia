@@ -1,0 +1,54 @@
+{
+  "memory_items": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column memory_items.should_persist_default does not exist"
+    }
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "311b6352-beb8-4318-b9ec-bda69045066f",
+        "title": "marche",
+        "status": "active",
+        "tracking_type": "boolean",
+        "updated_at": "2026-05-06T09:30:00+00:00"
+      },
+      {
+        "id": "2c35c946-701e-4f83-9210-1b1d6ea1ae24",
+        "title": "Préparer la présentation client",
+        "status": "active",
+        "tracking_type": "milestone",
+        "updated_at": "2026-05-06T18:51:42.873055+00:00"
+      },
+      {
+        "id": "499b33fd-2636-4dd9-af62-fe61b7ddf6c5",
+        "title": "Envoyer le mail de cadrage",
+        "status": "active",
+        "tracking_type": "boolean",
+        "updated_at": "2026-05-06T09:30:00+00:00"
+      }
+    ]
+  },
+  "user_plan_item_entries": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

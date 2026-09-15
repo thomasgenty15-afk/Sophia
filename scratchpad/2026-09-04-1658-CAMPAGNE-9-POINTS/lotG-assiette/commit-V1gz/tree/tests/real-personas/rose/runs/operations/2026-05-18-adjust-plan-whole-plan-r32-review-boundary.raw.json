@@ -1,0 +1,387 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r32-review-boundary-t01",
+    "user": "Cette semaine j'ai seulement fait le point positif une fois et le signal de pause m'a semblé lourd. Je ne sais pas encore si je veux modifier le plan, j'essaie juste de comprendre ce que ça dit de mon rythme.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r32-review-boundary-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-18-adjust-plan-whole-plan-r32-review-boundary",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, déjà je note deux trucs : tu as réussi à faire au moins 1 point positif, et tu sens que le “signal de pause” te pèse. Ça suffit largement pour lire ton rythme, sans te juger. 😌\n\nCe que ça dit probablement :\n- ton énergie est là, mais tu as besoin que les “exercices” restent simples et courts\n- si ça devient “lourd”, c’est peut-être le cadre (fréquence/forme) qui te freine plus que le fond\n\nPour avancer sans modifier tout de suite : prends une seule question et observe ta semaine en mode détective. Qu’est-ce qui a rendu le signal de pause lourd : le moment choisi, la difficulté à trouver un signal, ou le fait d’y penser trop souvent ? 🙂",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "track_progress_plan_item"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r32-review-boundary-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "beeed857-50ba-46e8-8ac0-4bc1b6347a70",
+        "ts": "2026-05-18T12:55:59.372+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 10998,
+          "latency_ms": 5553,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 761,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "historique point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "signal de pause lourd",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r32-review-boundary-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "historique point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "signal de pause lourd",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "user_reflecting_on_rhythm_and_friction",
+                "detected": true,
+                "confidence_band": "medium"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [
+            {
+              "effect_type": "track_progress_plan_item",
+              "explicitness": "explicit",
+              "payload_hint": {
+                "status_hint": "partial",
+                "current_reps": 1,
+                "target_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c"
+              },
+              "target_status": "identified",
+              "confidence_band": "high"
+            }
+          ],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "beeed857-50ba-46e8-8ac0-4bc1b6347a70",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "plan_adjustment",
+            "surface_id": "plan_item.reduce",
+            "prop_reason": "user_reports_low_execution_and_friction_on_specific_items",
+            "source_span": "le signal de pause m'a semblé lourd. Je ne sais pas encore si je veux modifier le plan",
+            "target_hint": "signal de pause",
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "identified",
+            "operation_type": "adjust_plan_item",
+            "confidence_band": "medium",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_plan_adjustment"
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [
+            "track_progress_plan_item"
+          ],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "track_progress_plan_item"
+          }
+        ],
+        "skill_run": {
+          "output": {
+            "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+            "status": "continue",
+            "skill_id": "execution_breakdown",
+            "diagnosis": {
+              "stage": "diagnosis",
+              "blocker_candidates": [
+                "flou",
+                "energie",
+                "friction_demarrage"
+              ]
+            },
+            "state_patch": {
+              "summary": "Execution blocker diagnosis in progress."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "diagnose_blocker",
+            "recommendation_need": {
+              "type": "execution_repair",
+              "needed": true,
+              "urgency": "medium",
+              "constraints": [
+                "understand_before_solution"
+              ]
+            },
+            "operation_suggestions": [
+              {
+                "reason": "clear_execution_block_can_use_attack_card",
+                "urgency": "medium",
+                "operation_type": "prepare_attack_card",
+                "confidence_band": "medium",
+                "source_skill_id": "execution_breakdown",
+                "operation_input_hint": {
+                  "scope": {
+                    "kind": "plan_item",
+                    "title": "Convenir d'un signal de pause",
+                    "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5"
+                  },
+                  "target": {
+                    "kind": "plan_item",
+                    "title": "Convenir d'un signal de pause",
+                    "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5"
+                  },
+                  "blocker": {
+                    "type": "execution_block"
+                  }
+                },
+                "requires_user_consent": true
+              }
+            ],
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Cette semaine j'ai seulement fait le point positif une fois et le signal de pause m'a semblé lourd. Je ne sais pas encore si je veux modifier le plan, j'essaie juste de comprendre ce que ça dit de mon rythme.",
+                "confidence_band": "medium",
+                "sensitivity_level": 1,
+                "evidence_source_ids": [
+                  "beeed857-50ba-46e8-8ac0-4bc1b6347a70"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "timing": "now",
+            "decision": "recommend_operation",
+            "cta_style": "soft",
+            "confidence": 0.72,
+            "surface_id": "attack_card",
+            "alternatives": [],
+            "operation_type": "prepare_attack_card",
+            "operation_input": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Convenir d'un signal de pause",
+                "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Convenir d'un signal de pause",
+                "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "do_not_recommend": [],
+            "executor_tool_id": "prepare_attack_card",
+            "requires_consent": true,
+            "recommendation_id": "skill:execution_breakdown:prepare_attack_card:qa-rose-2026-05-18-adjust-plan-whole-plan-r32-review-boundary-t01",
+            "user_facing_offer": "Je peux te proposer Carte d'attaque si tu veux passer par le flow propre.",
+            "presentation_level": 2
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 9807,
+        "created_at": "2026-05-18T12:55:59.373741+00:00"
+      },
+      "trace_error": null,
+      "_http_status": 200
+    }
+  }
+]

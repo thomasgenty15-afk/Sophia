@@ -1,0 +1,282 @@
+{
+  "run_id": "phase2-real-20260515-green-2",
+  "created_at": "2026-05-15T18:12:23.730Z",
+  "supabase_url": "http://127.0.0.1:54321",
+  "auth": {
+    "user_id": "1a262913-36d2-4c61-ac16-5fb3541e7b29",
+    "email": "qa-phase2-phase2-real-20260515-green-2@example.com",
+    "password": "Qa1!da18ba84-aff7-4427-acf3-0a0e612bc731"
+  },
+  "scenarios": {
+    "s1-action-memory": {
+      "turns": [
+        {
+          "turn": 1,
+          "request_id": "phase2-real-20260515-green-2-s1-action-memory-t01",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Pour Session focus courte, souvenirs mémorisés uniquement : qu'est-ce qui aide au démarrage ?",
+          "assistant": "Oui. Pour Session focus courte, ce qui ressort est simple :\n- Sur Session focus courte, tu démarres mieux quand tu ouvres directement un fichier déjà prêt et que tu lances un minuteur de 12 minutes.\n- quand la cible augmente, garder un démarrage sous 15 minutes éviter que l'habitude devienne intimidante.\nDonc je garderais surtout ça : préparer le démarrage, puis lancer le minuteur directement.",
+          "trace": {
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "reason_code": "normal_reply_default",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "6b02ec2f-fc93-43c5-a639-fb46c20e4bde",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "Session focus courte démarrage patterns",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                },
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "aide au démarrage focus",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "attack_card",
+              "surface_id": "attack_card",
+              "prop_reason": "user_asking_for_startup_help_on_specific_action",
+              "source_span": "qu'est-ce qui aide au démarrage ?",
+              "target_hint": "Session focus courte",
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "identified",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_attack_card"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {}
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        }
+      ]
+    },
+    "s1-action-memory-after-polish": {
+      "turns": [
+        {
+          "turn": 1,
+          "request_id": "phase2-real-20260515-green-2-s1-action-memory-after-polish-t01",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Pour Session focus courte, souvenirs mémorisés uniquement : qu'est-ce qui aide au démarrage ?",
+          "assistant": "Oui. Pour Session focus courte, ce qui ressort est simple :\n- Sur Session focus courte, tu démarres mieux quand tu ouvres directement un fichier déjà prêt et que tu lances un minuteur de 12 minutes.\n- quand la cible augmente, garder un démarrage sous 15 minutes éviter que l'habitude devienne intimidante.\nDonc je garderais surtout ça : préparer le démarrage, puis lancer le minuteur directement.",
+          "trace": {
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "reason_code": "normal_reply_default",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "6b02ec2f-fc93-43c5-a639-fb46c20e4bde",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "Session focus courte démarrage aide",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                },
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "aide au démarrage focus",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "attack_card",
+              "surface_id": "attack_card",
+              "prop_reason": "user_asking_for_startup_help_on_specific_action",
+              "source_span": "qu'est-ce qui aide au démarrage ?",
+              "target_hint": "Session focus courte",
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "identified",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_attack_card"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {}
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        }
+      ]
+    }
+  },
+  "seed": {
+    "cycle_id": "36ec4883-ff00-4c33-8369-5495d58acb9e",
+    "previous_transformation_id": "34edebd6-d6c7-4408-a867-efddc0667e4a",
+    "transformation_id": "2d8fda17-4a7e-4329-b5ba-41d5fe6d3cc5",
+    "plan_id": "3831ccd6-e7b5-4358-8cc0-cd535f26b404",
+    "focus_item_id": "6b02ec2f-fc93-43c5-a639-fb46c20e4bde",
+    "focus_previous_item_id": "c6e5234d-7e58-41a4-b3fb-0ed1bf3b62ab",
+    "walk_item_id": "c8757e82-d8f5-47d3-9c29-562ad79bb080",
+    "mission_item_id": "571def9a-3b96-4318-bf21-bcc84da9f04f",
+    "clarification_item_id": "ad365375-378b-489e-8ea0-e4f0b0c09142",
+    "items": [
+      {
+        "id": "6b02ec2f-fc93-43c5-a639-fb46c20e4bde",
+        "title": "Session focus courte",
+        "kind": "habit",
+        "dimension": "habits",
+        "action_family_key": "habit:session_focus"
+      },
+      {
+        "id": "c8757e82-d8f5-47d3-9c29-562ad79bb080",
+        "title": "Marche de decompression",
+        "kind": "habit",
+        "dimension": "habits",
+        "action_family_key": "habit:marche_decompression"
+      },
+      {
+        "id": "571def9a-3b96-4318-bf21-bcc84da9f04f",
+        "title": "Bloquer les creneaux de la semaine",
+        "kind": "task",
+        "dimension": "missions",
+        "action_family_key": null
+      },
+      {
+        "id": "ad365375-378b-489e-8ea0-e4f0b0c09142",
+        "title": "Clarifier le premier pas du dossier",
+        "kind": "task",
+        "dimension": "clarifications",
+        "action_family_key": null
+      }
+    ],
+    "memory_items": [
+      {
+        "id": "ba4efd5a-769a-4d67-8924-7368d2da57f8",
+        "kind": "action_observation",
+        "canonical_key": "qa_action_exact:6b02ec2f-fc93-43c5-a639-fb46c20e4bde",
+        "metadata": {
+          "memory_type": "action_execution_profile",
+          "source": "phase2_real_qa_seed"
+        }
+      },
+      {
+        "id": "1e8869fe-4506-4aab-a504-9ef1d238b065",
+        "kind": "action_observation",
+        "canonical_key": "qa_action_family:habit:session_focus",
+        "metadata": {
+          "memory_type": "action_execution_profile",
+          "source": "phase2_real_qa_seed"
+        }
+      },
+      {
+        "id": "dcf6b3a7-0196-44cf-8659-35a17b71b89c",
+        "kind": "statement",
+        "canonical_key": "level_execution_handoff:34edebd6-d6c7-4408-a867-efddc0667e4a",
+        "metadata": {
+          "memory_type": "level_execution_handoff",
+          "source": "phase2_real_qa_seed",
+          "previous_level_id": "34edebd6-d6c7-4408-a867-efddc0667e4a",
+          "previous_transformation_id": "34edebd6-d6c7-4408-a867-efddc0667e4a",
+          "next_level_id": "2d8fda17-4a7e-4329-b5ba-41d5fe6d3cc5",
+          "next_transformation_id": "2d8fda17-4a7e-4329-b5ba-41d5fe6d3cc5"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,797 @@
+{
+  "run_id": "clarification-corrections-20260603-r3-product-help-antifp",
+  "scope": "qa-normal-conversation-clarification-corrections-20260603-r3-product-help-antifp",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-clarification-corrections-20260603-r3-product-help-antifp-1780496654643@example.com",
+  "user_id": "4979694e-af2c-46a9-beb6-9a1788eba692",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiI0OTc5Njk0ZS1hZjJjLTQ2YTktYmViNi05YTE3ODhlYmE2OTIiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgwNTAwMjU0LCJpYXQiOjE3ODA0OTY2NTQsImVtYWlsIjoicWEtbm9ybWFsLWNsYXJpZmljYXRpb24tY29ycmVjdGlvbnMtMjAyNjA2MDMtcjMtcHJvZHVjdC1oZWxwLWFudGlmcC0xNzgwNDk2NjU0NjQzQGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InFhLW5vcm1hbC1jbGFyaWZpY2F0aW9uLWNvcnJlY3Rpb25zLTIwMjYwNjAzLXIzLXByb2R1Y3QtaGVscC1hbnRpZnAtMTc4MDQ5NjY1NDY0M0BleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicWFfcnVuX2lkIjoiY2xhcmlmaWNhdGlvbi1jb3JyZWN0aW9ucy0yMDI2MDYwMy1yMy1wcm9kdWN0LWhlbHAtYW50aWZwIiwic3ViIjoiNDk3OTY5NGUtYWYyYy00NmE5LWJlYjYtOWExNzg4ZWJhNjkyIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODA0OTY2NTR9XSwic2Vzc2lvbl9pZCI6IjIyMDFhOGIxLTNiMjgtNGM3NS1hODIzLTI0ZDMxNDFhNzhmOCIsImlzX2Fub255bW91cyI6ZmFsc2V9.8aMcgCcdNMBJVhhEkgu3b3Ez-QRveQCltZe4_f2Beng",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-03T14:24:14.900Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-03T14:24:49.478Z",
+      "user": "Explique-moi la différence entre une carte d'attaque et une carte de défense.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Carte de defense: Une carte de defense sert quand quelque chose risque de faire derailler l'action: impulsion, piege, pression, evitement ou reaction automatique.\n\nComment l'utiliser: Une carte de defense peut etre generee librement depuis Ressources, ou etre liee au plan depuis une mission ou une habitude. Elle se retrouve ensuite dans Ressources, ou elle peut etre consultee et utilisee. Processus: identifier un moment concret, reperer le piege observable, definir mon geste faisable en moins de 30 secondes, puis prevoir un plan B simple.\n\nCe que ca apporte:\n- Donne une reponse simple pour les moments de risque.\n- Anticipe les pieges concrets.\n\nImportant: une carte de defense peut etre ajustee depuis la plateforme/Ressources quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, on peut en preparer une nouvelle version apres confirmation. 🙂",
+      "trace_short": {
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason": "skill_entry_signal",
+        "safety": "low",
+        "skill_entry_ids": [
+          "product_help"
+        ],
+        "tool_skill_intents": [],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "product_help",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-06-03T14:24:49.440Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-06-03T14:24:49.440Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-06-03T14:24:49.440Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-06-03T14:24:49.440Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-06-03T14:24:49.440Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-06-03T14:24:49.440Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__conversation_risk_history": [
+                  0
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-06-03T14:24:49.442171+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "clarification-corrections-20260603-r3-product-help-antifp-t01",
+        "user_id": "4979694e-af2c-46a9-beb6-9a1788eba692",
+        "channel": "web",
+        "scope": "qa-normal-conversation-clarification-corrections-20260603-r3-product-help-antifp",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Carte de defense: Une carte de defense sert quand quelque chose risque de faire derailler l'action: impulsion, piege, pression, evitement ou reaction automatique.\n\nComment l'utiliser: Une carte de defense peut etre generee librement depuis Ressources, ou etre liee au plan depuis une mission ou une habitude. Elle se retrouve ensuite dans Ressources, ou elle peut etre consultee et utilisee. Processus: identifier un moment concret, reperer le piege observable, definir mon geste faisable en moins de 30 secondes, puis prevoir un plan B simple.\n\nCe que ca apporte:\n- Donne une reponse simple pour les moments de risque.\n- Anticipe les pieges concrets.\n\nImportant: une carte de defense peut etre ajustee depuis la plateforme/Ressources quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, on peut en preparer une nouvelle version apres confirmation. 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "clarification-corrections-20260603-r3-product-help-antifp-t01",
+              "source_message_id": "e2fdc6cc-d406-420a-a887-74e5f5b69d6f",
+              "user_id": "4979694e-af2c-46a9-beb6-9a1788eba692",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "detected": false,
+                    "weight": 3.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "detected": false,
+                    "weight": 2.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "detected": false,
+                    "weight": 2,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "detected": false,
+                    "weight": 1.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "detected": false,
+                    "weight": 0.7,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "detected": false,
+                    "weight": 1,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "detected": false,
+                    "weight": 10,
+                    "contribution": 0,
+                    "evidence": null
+                  }
+                ],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "confidence_band": "low",
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {
+                  "product_help": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "user_asks_for_definition_and_difference_between_attack_and_defense_cards"
+                  }
+                },
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "skill_entry_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "selected_handler": "product_help"
+            },
+            "turn_agenda_summary": {
+              "task_count": 1,
+              "owners": [
+                "product_help"
+              ],
+              "operation_types": [],
+              "constraints": {},
+              "tasks": [
+                {
+                  "task_id": "reply:fallback",
+                  "kind": "reply",
+                  "owner": "product_help",
+                  "operation_type": null,
+                  "intent": "reply",
+                  "source": "route_decision",
+                  "status": "pending",
+                  "reason_code": "skill_entry_signal"
+                }
+              ]
+            },
+            "skill_run": {
+              "selected_skill_id": "product_help",
+              "reason_code": "skill_entry_signal",
+              "output": {
+                "skill_id": "product_help",
+                "status": "complete",
+                "response_intent": "unclear",
+                "memory_trace": {
+                  "memory_used_for_response": false,
+                  "memory_item_ids_used": [],
+                  "correction_detected": false,
+                  "correction_target_item_ids": []
+                },
+                "reply": "Carte de defense: Une carte de defense sert quand quelque chose risque de faire derailler l'action: impulsion, piege, pression, evitement ou reaction automatique.\n\nComment l'utiliser: Une carte de defense peut etre generee librement depuis Ressources, ou etre liee au plan depuis une mission ou une habitude. Elle se retrouve ensuite dans Ressources, ou elle peut etre consultee et utilisee. Processus: identifier un moment concret, reperer le piege observable, definir mon geste faisable en moins de 30 secondes, puis prevoir un plan B simple.\n\nCe que ca apporte:\n- Donne une reponse simple pour les moments de risque.\n- Anticipe les pieges concrets.\n\nImportant: une carte de defense peut etre ajustee depuis la plateforme/Ressources quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, on peut en preparer une nouvelle version apres confirmation.",
+                "diagnosis": {
+                  "feature_id": "resources.defense_card",
+                  "feature_label": "Carte de defense",
+                  "intent": "unclear",
+                  "target": {
+                    "kind": "feature_catalog",
+                    "feature_id": "resources.defense_card",
+                    "confidence_band": "high"
+                  },
+                  "grounding": {
+                    "catalog_feature_ids": [
+                      "resources.defense_card",
+                      "resources.attack_card"
+                    ],
+                    "db_sources_required": false,
+                    "db_sources_used": [
+                      {
+                        "source_type": "catalog",
+                        "id": "resources.defense_card",
+                        "label": "Carte de defense"
+                      }
+                    ]
+                  },
+                  "bridge": null,
+                  "operation_bridge": {
+                    "skill_or_operation": "prepare_defense_card",
+                    "trigger_phrases": [
+                      "prepare une carte de defense",
+                      "j'ai besoin d'un plan b",
+                      "aide-moi pour le moment ou je risque de craquer"
+                    ],
+                    "requires_confirmation": true
+                  },
+                  "constraints": [
+                    "non_mutating",
+                    "do_not_execute_tool",
+                    "do_not_claim_object_exists_without_source",
+                    "do_not_render_status_block",
+                    "short_reply"
+                  ],
+                  "locations": [
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources"
+                  ],
+                  "intake_status": "structured",
+                  "intake_errors": []
+                },
+                "recommendation_need": {
+                  "needed": false,
+                  "type": "none",
+                  "urgency": "none",
+                  "constraints": [
+                    "product_help_does_not_execute_operations",
+                    "operation_bridge_requires_confirmation_when_present",
+                    "non_mutating",
+                    "do_not_execute_tool",
+                    "do_not_claim_object_exists_without_source",
+                    "do_not_render_status_block",
+                    "short_reply"
+                  ]
+                },
+                "operation_suggestions": [],
+                "memory_write_candidates": [],
+                "effects": {
+                  "requested": [],
+                  "allowed": [],
+                  "blocked": [],
+                  "committed": []
+                },
+                "state_patch": {
+                  "summary": "Product help structured intake: unclear / resources.defense_card",
+                  "product_help_intake_errors": [],
+                  "product_help_decision": {
+                    "intent": "unclear",
+                    "target": {
+                      "kind": "feature_catalog",
+                      "feature_id": "resources.defense_card",
+                      "confidence_band": "high"
+                    },
+                    "bridge": null,
+                    "operation_suggestions": []
+                  }
+                }
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "clarification-corrections-20260603-r3-product-help-antifp-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "product_help"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "clarification-corrections-20260603-r3-product-help-antifp-t01",
+            "source_message_id": "e2fdc6cc-d406-420a-a887-74e5f5b69d6f",
+            "user_id": "4979694e-af2c-46a9-beb6-9a1788eba692",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_asks_for_definition_and_difference_between_attack_and_defense_cards"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "product_help"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "product_help"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "product_help",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "skill_entry_signal"
+              }
+            ]
+          },
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "product_help",
+              "status": "complete",
+              "response_intent": "unclear",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "Carte de defense: Une carte de defense sert quand quelque chose risque de faire derailler l'action: impulsion, piege, pression, evitement ou reaction automatique.\n\nComment l'utiliser: Une carte de defense peut etre generee librement depuis Ressources, ou etre liee au plan depuis une mission ou une habitude. Elle se retrouve ensuite dans Ressources, ou elle peut etre consultee et utilisee. Processus: identifier un moment concret, reperer le piege observable, definir mon geste faisable en moins de 30 secondes, puis prevoir un plan B simple.\n\nCe que ca apporte:\n- Donne une reponse simple pour les moments de risque.\n- Anticipe les pieges concrets.\n\nImportant: une carte de defense peut etre ajustee depuis la plateforme/Ressources quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, on peut en preparer une nouvelle version apres confirmation.",
+              "diagnosis": {
+                "feature_id": "resources.defense_card",
+                "feature_label": "Carte de defense",
+                "intent": "unclear",
+                "target": {
+                  "kind": "feature_catalog",
+                  "feature_id": "resources.defense_card",
+                  "confidence_band": "high"
+                },
+                "grounding": {
+                  "catalog_feature_ids": [
+                    "resources.defense_card",
+                    "resources.attack_card"
+                  ],
+                  "db_sources_required": false,
+                  "db_sources_used": [
+                    {
+                      "source_type": "catalog",
+                      "id": "resources.defense_card",
+                      "label": "Carte de defense"
+                    }
+                  ]
+                },
+                "bridge": null,
+                "operation_bridge": {
+                  "skill_or_operation": "prepare_defense_card",
+                  "trigger_phrases": [
+                    "prepare une carte de defense",
+                    "j'ai besoin d'un plan b",
+                    "aide-moi pour le moment ou je risque de craquer"
+                  ],
+                  "requires_confirmation": true
+                },
+                "constraints": [
+                  "non_mutating",
+                  "do_not_execute_tool",
+                  "do_not_claim_object_exists_without_source",
+                  "do_not_render_status_block",
+                  "short_reply"
+                ],
+                "locations": [
+                  "Dashboard > Plan",
+                  "Dashboard > Ressources"
+                ],
+                "intake_status": "structured",
+                "intake_errors": []
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "product_help_does_not_execute_operations",
+                  "operation_bridge_requires_confirmation_when_present",
+                  "non_mutating",
+                  "do_not_execute_tool",
+                  "do_not_claim_object_exists_without_source",
+                  "do_not_render_status_block",
+                  "short_reply"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "summary": "Product help structured intake: unclear / resources.defense_card",
+                "product_help_intake_errors": [],
+                "product_help_decision": {
+                  "intent": "unclear",
+                  "target": {
+                    "kind": "feature_catalog",
+                    "feature_id": "resources.defense_card",
+                    "confidence_band": "high"
+                  },
+                  "bridge": null,
+                  "operation_suggestions": []
+                }
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "clarification-corrections-20260603-r3-product-help-antifp-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-03T14:24:49.478Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-03T14:25:15.702Z"
+}

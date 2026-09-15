@@ -1,0 +1,533 @@
+{
+  "counts": {
+    "user_potion_sessions": 0,
+    "user_recurring_reminders": 0,
+    "scheduled_checkins": 0
+  },
+  "user_potion_sessions": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column user_potion_sessions.created_at does not exist"
+    }
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column scheduled_checkins.source_type does not exist"
+    }
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "b5489aab-3673-44a9-89e0-8d57afaf2c92",
+        "role": "user",
+        "content": "Je veux vraiment préparer une potion de guérison, pas juste être rassuré. Hier j ai abandonné un engagement que je voulais tenir, et depuis ça me laisse surtout de la honte.",
+        "scope": "qa-state-potion-state_potion_postfix_20260603_r3-guerison_field",
+        "metadata": {
+          "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-guerison_field-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:44:44.934528+00:00"
+      },
+      {
+        "id": "ad258ff7-397e-4ab9-ae36-5258f9da1a3e",
+        "role": "assistant",
+        "content": "Tu veux que je t’aide surtout à préparer la potion de guérison, ou plutôt à traverser la honte et la culpabilité ? 🙂",
+        "scope": "qa-state-potion-state_potion_postfix_20260603_r3-guerison_field",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-guerison_field-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-03T18:45:59.449477+00:00"
+      },
+      {
+        "id": "5f112262-b7ac-4aa7-83e3-5ce2324322ee",
+        "role": "user",
+        "content": "Préparer la potion, oui. L épisode à mettre c est : j ai abandonné mon engagement hier.",
+        "scope": "qa-state-potion-state_potion_postfix_20260603_r3-guerison_field",
+        "metadata": {
+          "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-guerison_field-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:46:19.878963+00:00"
+      },
+      {
+        "id": "8b48a7ad-55de-4da1-91e0-f1e0e6cc73b0",
+        "role": "assistant",
+        "content": "Tu ressens surtout de la honte ? 🙂",
+        "scope": "qa-state-potion-state_potion_postfix_20260603_r3-guerison_field",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-guerison_field-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_clarifying",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_clarifying",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T18:46:58.498437+00:00"
+      },
+      {
+        "id": "51c3ff1d-6a0d-4d23-b6b1-7c91ebe18e94",
+        "role": "user",
+        "content": "Oui, c est surtout de la honte.",
+        "scope": "qa-state-potion-state_potion_postfix_20260603_r3-guerison_field",
+        "metadata": {
+          "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-guerison_field-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:47:14.675151+00:00"
+      },
+      {
+        "id": "48f0d0ba-fc87-45dd-9b1c-623e77dd804f",
+        "role": "assistant",
+        "content": "Ce que je comprends : avoir abandonné un engagement hier ; honte\n\nJe te conseille de choisir une potion de réparation. Le shift recommandé est de réparer la trace émotionnelle sans rouvrir toute l'analyse.\n\nPourquoi cette potion : Tu as mentionné avoir abandonné un engagement hier et ressentir de la honte. Cette potion est là pour t'aider à te relever de cet épisode sans t'enfoncer davantage.\nPetit pas immédiat : Je comprends que tu ressentes de la honte après avoir abandonné cet engagement. C'est un sentiment lourd, et je suis là pour t'aider à le traverser avec douceur.\n\nÀ mettre dans la plateforme :\nPotion : Potion de guerison\n- Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ? avoir abandonné un engagement hier\n- Tu ressens surtout quoi ? De la honte\nDans la plateforme, tu pourras aussi préciser si c'est lié à ton plan ou hors plan.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+        "scope": "qa-state-potion-state_potion_postfix_20260603_r3-guerison_field",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-guerison_field-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "une potion de réparation",
+                    "immediate_step": "Je comprends que tu ressentes de la honte après avoir abandonné cet engagement. C'est un sentiment lourd, et je suis là pour t'aider à le traverser avec douceur.",
+                    "platform_steps": [
+                      "ouvre la section État / Potions",
+                      "choisis la potion recommandée",
+                      "active-la depuis la plateforme si elle te convient"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "avoir abandonné un engagement hier",
+                          "question_id": "recent_hurt",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?"
+                        },
+                        {
+                          "value": "De la honte",
+                          "question_id": "dominant_feeling",
+                          "option_label": "De la honte",
+                          "option_value": "honte",
+                          "question_label": "Tu ressens surtout quoi ?"
+                        }
+                      ],
+                      "potion_type": "guerison",
+                      "potion_title": "Potion de guerison",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Tu as mentionné avoir abandonné un engagement hier et ressentir de la honte. Cette potion est là pour t'aider à te relever de cet épisode sans t'enfoncer davantage.",
+                    "platform_destination": "dans la section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "avoir abandonné un engagement hier ; honte",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "Le shift recommandé est de réparer la trace émotionnelle sans rouvrir toute l'analyse."
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_platform_handoff_delivered",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T18:47:29.556+00:00"
+      }
+    ]
+  },
+  "user_chat_states": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+        "current_mode": "companion",
+        "temp_memory": {
+          "__conversation_risk_last": {
+            "at": "2026-06-03T18:44:25.328Z",
+            "score": 1,
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__active_tool_skill_intake": {
+            "mode": "platform_handoff",
+            "draft": {
+              "mode": "platform_handoff",
+              "operation_type": "select_state_potion",
+              "recommendation": {
+                "avoid": [],
+                "preserve": [],
+                "potion_label": "une potion de clarté",
+                "immediate_step": "Je suis là pour t'aider à retrouver le fil et le sens de ce qui compte pour toi.",
+                "platform_steps": [
+                  "ouvre la section État / Potions",
+                  "choisis la potion recommandée",
+                  "active-la depuis la plateforme si elle te convient"
+                ],
+                "platform_inputs": {
+                  "answers": [
+                    {
+                      "value": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                      "question_id": "plan_meaning_loss_reason",
+                      "option_label": null,
+                      "option_value": null,
+                      "question_label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?"
+                    }
+                  ],
+                  "potion_type": "clarte",
+                  "potion_title": "Potion de clarte",
+                  "optional_free_text": null
+                },
+                "why_this_potion": "Tu fais les actions, mais tu ne sens plus pourquoi elles comptent pour toi aujourd'hui.",
+                "platform_destination": "dans la section État / Potions"
+              },
+              "no_chat_mutation": true,
+              "missing_decisions": [],
+              "user_state_summary": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+              "executable_from_chat": false,
+              "desired_shift_summary": "Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre."
+            },
+            "phase": "confirmation",
+            "status": "apply_attempt",
+            "skill_id": "select_state_potion",
+            "max_turns": 6,
+            "created_at": "2026-06-03T18:43:12.076Z",
+            "turn_count": 3,
+            "updated_at": "2026-06-03T18:44:25.342Z",
+            "intake_state": {
+              "state": {
+                "kind": "confusion_overload",
+                "status": "identified",
+                "evidence": [
+                  "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                ],
+                "intensity": "medium",
+                "confidence": "high"
+              },
+              "context": {
+                "topic_hint": null,
+                "target_hint": null,
+                "handoff_summary": null,
+                "related_plan_item_id": null
+              },
+              "details": {
+                "fields": [
+                  {
+                    "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                    "status": "locked",
+                    "evidence": [
+                      "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                    ],
+                    "required": true,
+                    "question_id": "plan_meaning_loss_reason",
+                    "locked_value": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                    "user_evidence": [
+                      "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "identified",
+                "answers": [
+                  {
+                    "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                    "answer": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                    "evidence": [
+                      "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                    ],
+                    "question_id": "plan_meaning_loss_reason"
+                  }
+                ],
+                "evidence": [
+                  "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                ],
+                "optional_free_text": null,
+                "required_question_ids": [
+                  "plan_meaning_loss_reason"
+                ]
+              },
+              "skill_id": "select_state_potion",
+              "shortlist": {
+                "status": "missing",
+                "options": [],
+                "evidence": []
+              },
+              "confidence": "high",
+              "missing_slots": [],
+              "selected_potion": {
+                "value": "clarte",
+                "status": "identified",
+                "evidence": [
+                  "structured_operation_input"
+                ],
+                "confidence": "high"
+              },
+              "current_sub_skill": "draft_generation",
+              "generated_user_message": null,
+              "explicit_potion_request": {
+                "status": "identified",
+                "evidence": [
+                  "Je veux une potion de clarté."
+                ],
+                "potion_type": "clarte"
+              }
+            },
+            "operation_input": {
+              "state": {
+                "kind": "confusion_overload",
+                "evidence": [
+                  "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                ],
+                "intensity": "medium"
+              },
+              "context": {
+                "topic_hint": null,
+                "target_hint": null,
+                "handoff_summary": null,
+                "related_plan_item_id": null
+              },
+              "details": {
+                "fields": [
+                  {
+                    "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                    "status": "locked",
+                    "evidence": [
+                      "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                    ],
+                    "required": true,
+                    "question_id": "plan_meaning_loss_reason",
+                    "locked_value": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                    "user_evidence": [
+                      "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "answers": [
+                  {
+                    "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                    "answer": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                    "evidence": [
+                      "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                    ],
+                    "question_id": "plan_meaning_loss_reason"
+                  }
+                ],
+                "optional_free_text": null,
+                "required_question_ids": [
+                  "plan_meaning_loss_reason"
+                ]
+              },
+              "potion_type": "clarte",
+              "intake_state": {
+                "state": {
+                  "kind": "confusion_overload",
+                  "status": "identified",
+                  "evidence": [
+                    "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                  ],
+                  "intensity": "medium",
+                  "confidence": "high"
+                },
+                "context": {
+                  "topic_hint": null,
+                  "target_hint": null,
+                  "handoff_summary": null,
+                  "related_plan_item_id": null
+                },
+                "details": {
+                  "fields": [
+                    {
+                      "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                      "status": "locked",
+                      "evidence": [
+                        "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                      ],
+                      "required": true,
+                      "question_id": "plan_meaning_loss_reason",
+                      "locked_value": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                      "user_evidence": [
+                        "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                      ],
+                      "proposed_value": null,
+                      "needs_user_confirmation": false
+                    }
+                  ],
+                  "status": "identified",
+                  "answers": [
+                    {
+                      "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                      "answer": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                      "evidence": [
+                        "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                      ],
+                      "question_id": "plan_meaning_loss_reason"
+                    }
+                  ],
+                  "evidence": [
+                    "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                  ],
+                  "optional_free_text": null,
+                  "required_question_ids": [
+                    "plan_meaning_loss_reason"
+                  ]
+                },
+                "skill_id": "select_state_potion",
+                "shortlist": {
+                  "status": "missing",
+                  "options": [],
+                  "evidence": []
+                },
+                "confidence": "high",
+                "missing_slots": [],
+                "selected_potion": {
+                  "value": "clarte",
+                  "status": "identified",
+                  "evidence": [
+                    "structured_operation_input"
+                  ],
+                  "confidence": "high"
+                },
+                "current_sub_skill": "draft_generation",
+                "generated_user_message": null,
+                "explicit_potion_request": {
+                  "status": "identified",
+                  "evidence": [
+                    "Je veux une potion de clarté."
+                  ],
+                  "potion_type": "clarte"
+                }
+              },
+              "explicit_potion_type": "clarte"
+            },
+            "no_chat_mutation": true
+          },
+          "__conversation_risk_history": [
+            0,
+            1,
+            1
+          ],
+          "__coaching_intervention_history": []
+        },
+        "updated_at": "2026-06-03T18:44:25.345013+00:00"
+      }
+    ]
+  }
+}

@@ -1,0 +1,890 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je crois que le programme ne colle plus trop à ma semaine. Avec le boulot j'ai vite l'impression d'être en retard.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah ouais, je vois le délire… quand le boulot s’invite, t’as l’impression de courir après ton propre programme, et ça finit par user la motivation 😕\n\nOn va juste remettre le truc à la semaine, sans tout casser :\n1) On identifie ce qui est “réellement faisable” malgré le boulot (version minimum).\n2) On garde le rythme qui te donne une victoire, pas une sensation de retard.\n\nDis-moi juste : aujourd’hui, le “retard”, c’est plutôt parce que tu rattes les séances d’habitudes (trop tard / pas assez de temps), ou parce que tu n’arrives pas à faire les missions quand elles sont prévues ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t01",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "9b9198c8-de16-4c74-a823-a16ee96b4e32",
+        "ts": "2026-05-13T13:14:12.506+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3978,
+          "latency_ms": 8479,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 424,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "travail.charge",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "contexte travail et charge",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "organisation de la semaine",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t01",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "travail.charge",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "contexte travail et charge",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "organisation de la semaine",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              },
+              "demotivation_repair": {
+                "reason": "feeling behind and overwhelmed by workload",
+                "detected": true,
+                "confidence_band": "medium"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [],
+          "source_message_id": "9b9198c8-de16-4c74-a823-a16ee96b4e32",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "plan_adjustment",
+            "surface_id": "plan_item.reduce",
+            "prop_reason": "user_feels_overwhelmed_by_schedule_and_work",
+            "source_span": "le programme ne colle plus trop à ma semaine",
+            "target_hint": "programme de la semaine",
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "ambiguous",
+            "operation_type": "adjust_plan_item",
+            "confidence_band": "high",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_plan_adjustment"
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "demotivation_repair",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "On ne va pas modifier ton plan juste parce que tu as un moment de decrochage. D'abord, je veux comprendre ce qui bloque: energie trop basse, premiere etape floue, ou peur de refaire le meme schema ?",
+            "status": "continue",
+            "skill_id": "demotivation_repair",
+            "diagnosis": {
+              "motivation_state": "unclear"
+            },
+            "state_patch": {
+              "summary": "Demotivation diagnosis: unclear."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "motivation_diagnosis",
+            "recommendation_need": {
+              "type": "motivation_repair",
+              "needed": true,
+              "urgency": "medium",
+              "constraints": [
+                "no_moralizing",
+                "prefer_attack_card_over_plan_edit",
+                "understand_before_solution"
+              ]
+            },
+            "operation_suggestions": [
+              {
+                "reason": "demotivation_state_regulation_before_action",
+                "urgency": "medium",
+                "operation_type": "select_state_potion",
+                "confidence_band": "medium",
+                "source_skill_id": "demotivation_repair",
+                "operation_input_hint": {
+                  "state": "fear_avoidance",
+                  "potion_type": "courage"
+                },
+                "requires_user_consent": true
+              }
+            ],
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Je crois que le programme ne colle plus trop à ma semaine. Avec le boulot j'ai vite l'impression d'être en retard.",
+                "confidence_band": "medium",
+                "sensitivity_level": 2,
+                "evidence_source_ids": [
+                  "9b9198c8-de16-4c74-a823-a16ee96b4e32"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "demotivation_repair"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "cooldown_or_contraindications_exhausted_surfaces",
+            "timing": "later",
+            "decision": "defer",
+            "cta_style": "none",
+            "confidence": 0.7,
+            "alternatives": [],
+            "do_not_recommend": [],
+            "requires_consent": false,
+            "recommendation_id": "rec_qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t01_1778678049320",
+            "presentation_level": 0
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 11714,
+        "created_at": "2026-05-13T13:14:12.508984+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Plutôt les missions quand elles sont prévues. La suite arrive vite, je finis avec deux trucs en retard et après j'ai envie de laisser tomber.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah ouais, je vois le piège : “je fais la prochaine mission” → et comme tu en as deux en retard d’un coup, ton cerveau le traduit direct en “à quoi bon”. 😕\n\nDu coup on va sécuriser le système autour de tes missions, version anti-retard :\n1) Tu gardes “missions prévues”, mais on évite le double-retard : ta suite ne doit jamais te laisser face à 2 choses en souffrance.\n2) Quand tu sens que ça dérive (boulot), tu bascules tout de suite sur une “mission minimum” (petite victoire, même si c’est pas parfait).\n\nPour que je te verrouille un ajustement propre : en général, tes “2 trucs en retard”, c’est plutôt ceux de la même journée, ou deux jours d’affilée ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t02",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "649e71d7-ad40-41c9-a020-4ee6fa8e8e9c",
+        "ts": "2026-05-13T13:14:34.08+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4205,
+          "latency_ms": 7549,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 405,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "sentiment de retard et missions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "psychologie.motivation",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "envie de laisser tomber",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t02",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "sentiment de retard et missions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "psychologie.motivation",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "envie de laisser tomber",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "demotivation_repair": {
+                "reason": "user_expresses_desire_to_quit_due_to_perceived_failure",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "missions",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "649e71d7-ad40-41c9-a020-4ee6fa8e8e9c",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "operation_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "reason_code": "operation_intent_start",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 11339,
+        "created_at": "2026-05-13T13:14:34.081341+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Deux jours d'affilée. Et ce n'est pas une mission précise : c'est le rythme du programme qui me met vite en dette.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t03",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah ouais… 2 jours d’affilée, et c’est pas “une mission”, c’est le système qui te mange. 😕  \nCe que ton cerveau vit là, c’est pas de la flemme : c’est l’effet “retard qui s’empile → je lâche”.\n\nOn va t’éviter la dette en mettant une règle simple, version anti-dette :\n- On arrête de viser le rythme “normal” quand le boulot déborde.\n- Pendant 2 jours “critiques”, ton programme doit rester en mode maintenance : une micro-action par jour, et basta, sans enchaîner.\n\nConcrètement, dès aujourd’hui, t’as besoin de choisir un seul format :\nA) 10 minutes “mission prévue” (même si c’est pas la mission complète)  \nB) 1 “étape de friction” (préparer le truc : ouvrir, planifier, sortir le matériel, 10-15 min)\n\nTu prends A ou B ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t03",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "797d1943-71c3-4f3d-a35b-507e742d1018",
+        "ts": "2026-05-13T13:14:56.933+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4388,
+          "latency_ms": 8738,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 367,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "rythme et dette de programme",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t03",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "rythme et dette de programme",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              },
+              "execution_breakdown": {
+                "reason": "pacing_friction",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [],
+          "source_message_id": "797d1943-71c3-4f3d-a35b-507e742d1018",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "plan_adjustment",
+            "surface_id": "plan_item.reduce",
+            "prop_reason": "user_reports_pacing_debt",
+            "source_span": "c'est le rythme du programme qui me met vite en dette",
+            "target_hint": "rythme du programme",
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "missing",
+            "operation_type": "adjust_plan_item",
+            "confidence_band": "high",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_plan_adjustment"
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+            "status": "continue",
+            "skill_id": "execution_breakdown",
+            "diagnosis": {
+              "stage": "diagnosis",
+              "blocker_candidates": [
+                "flou",
+                "energie",
+                "friction_demarrage"
+              ]
+            },
+            "state_patch": {
+              "summary": "Execution blocker diagnosis in progress."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "diagnose_blocker",
+            "recommendation_need": {
+              "type": "execution_repair",
+              "needed": true,
+              "urgency": "medium",
+              "constraints": [
+                "understand_before_solution"
+              ]
+            },
+            "operation_suggestions": [
+              {
+                "reason": "clear_execution_block_can_use_attack_card",
+                "urgency": "medium",
+                "operation_type": "prepare_attack_card",
+                "confidence_band": "medium",
+                "source_skill_id": "execution_breakdown",
+                "operation_input_hint": {
+                  "scope": {
+                    "kind": "plan_item",
+                    "title": "Nettoyer ton environnement direct",
+                    "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+                  },
+                  "target": {
+                    "kind": "plan_item",
+                    "title": "Nettoyer ton environnement direct",
+                    "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+                  },
+                  "blocker": {
+                    "type": "execution_block"
+                  }
+                },
+                "requires_user_consent": true
+              }
+            ],
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Deux jours d'affilée. Et ce n'est pas une mission précise : c'est le rythme du programme qui me met vite en dette.",
+                "confidence_band": "medium",
+                "sensitivity_level": 1,
+                "evidence_source_ids": [
+                  "797d1943-71c3-4f3d-a35b-507e742d1018"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "cooldown_or_contraindications_exhausted_surfaces",
+            "timing": "later",
+            "decision": "defer",
+            "cta_style": "none",
+            "confidence": 0.7,
+            "alternatives": [],
+            "do_not_recommend": [],
+            "requires_consent": false,
+            "recommendation_id": "rec_qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t03_1778678095083",
+            "presentation_level": 0
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 10631,
+        "created_at": "2026-05-13T13:14:56.937317+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t04",
+    "auth_method": "get-jwt.sh",
+    "user": "A, mais applique-le au programme entier : ralentis la cadence globale et baisse le volume total pour les semaines chargées.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t04",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, carrément. On ne touche pas “au fond” du programme, mais on l’adapte au rythme de ta vraie semaine chargée : ralentir la cadence globale + baisser le volume, sinon tu finis en dette et tu lâches. 😕\n\nConcrètement, voilà la règle à appliquer quand la semaine est “poisseuse” :\n1) On passe en mode mini (moins de missions “à faire”, plus de missions “à tenir”)\n2) On fixe une limite simple de volume pour la semaine (genre max X missions/habitudes prévues, le reste = report)\n3) On protège le flux : on ne laisse pas 2 retards s’empiler (sinon ça déclenche l’envie de tout stopper)\n\nPour l’appliquer “au programme entier”, j’ai besoin d’un seul truc : quand tu dis semaine chargée, c’est plutôt combien de missions/habitudes que tu veux garder max au total (A: 1-2 / B: 2-3 / C: 3-4) ? 👇",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t04",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "7e93f92b-8860-4478-bfb8-828673624276",
+        "ts": "2026-05-13T13:15:23.526+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4646,
+          "latency_ms": 8807,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 383,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "rythme et cadence du programme",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "travail.charge",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "semaines chargées boulot",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r6-t04",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "rythme et cadence du programme",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "travail.charge",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "semaines chargées boulot",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "execution_breakdown": {
+                "active": true,
+                "reason": "user_refining_adjustment_strategy_for_work_load",
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "operation_intents": [],
+          "source_message_id": "7e93f92b-8860-4478-bfb8-828673624276",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_handoff_requested",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Plan: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une transformation active existe. Tu peux y consulter le niveau actif, ouvrir les semaines, valider certains elements.\n\nLimites importantes:\n- Ce n'est pas un journal libre d'actions ou de bilans.\n- Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.",
+            "status": "complete",
+            "skill_id": "product_help",
+            "diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "operation_bridge": null
+            },
+            "state_patch": {
+              "summary": "Product help answered for dashboard.plan."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "how_to",
+            "recommendation_need": {
+              "type": "none",
+              "needed": false,
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_bridge_requires_confirmation_when_present"
+              ]
+            },
+            "operation_suggestions": []
+          },
+          "reason_code": "skill_handoff_requested",
+          "selected_skill_id": "product_help"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 13917,
+        "created_at": "2026-05-13T13:15:23.52933+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

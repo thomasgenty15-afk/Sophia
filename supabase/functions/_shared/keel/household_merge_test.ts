@@ -70,6 +70,7 @@ function memberOf(over: Partial<PortionMember> = {}): PortionMember {
     habits: [],
     habitNote: null,
     requiredDensity: null,
+    proteinBrief: null,
     ...over,
   };
 }
@@ -1189,13 +1190,13 @@ Deno.test("LA FUSION N'ÉCRIT JAMAIS SUR LE COMPTE DU SECONDAIRE", async () => {
   // les lignes de `p_user_id` ET de la même nature, et `p_user_id` est le
   // MAÎTRE. Le jour où quelqu'un y passe autre chose, ce test tombe.
   const src = await generatorSource();
-  const calls = src.split('rpc(\n      "write_student_meal_plan"').length - 1 +
-    (src.split('"write_student_meal_plan",').length - 1);
+  const calls = src.split('rpc(\n      "keel_household_publish_generation"').length - 1 +
+    (src.split('"keel_household_publish_generation",').length - 1);
   assert(calls >= 1, "l'appel d'écriture est introuvable — test à réviser");
-  const at = src.indexOf('"write_student_meal_plan"');
+  const at = src.indexOf('"keel_household_publish_generation"');
   const args = src.slice(at, at + 400);
   assert(
-    /p_user_id:\s*userId/.test(args),
+    /p_user:\s*userId/.test(args),
     "l'écriture ne se fait plus sur le compte du MAÎTRE. Une fusion qui écrit " +
       "sur le compte du secondaire écraserait le plan qu'elle est censée " +
       "préserver — et la défusion de D8 n'aurait plus rien à retrouver.",
@@ -1412,10 +1413,18 @@ const batch = (
   };
 };
 /** Les cases d'une grille jour × moment, dans l'ordre. */
+// ⟳ 2026-09-14 · BÊTA 1A ② — `memberId: null` PARTOUT ICI, ET C'EST LE DÉCOR
+// DE LA FUSION: une reprise nomme UNE personne, la case n'a personne à
+// départager, et la porte de case reste ouverte comme avant ce lot. Le décor
+// où la case NOMME sa bouche est celui de `household_regime_variant_test.ts`.
 const cellsOf = (days: readonly string[], slots: readonly string[]) =>
-  days.flatMap((day) => slots.map((slot) => ({ day, slot })));
+  days.flatMap((day) => slots.map((slot) => ({ day, slot, memberId: null })));
 /** LES CASES DE LA FUSION MESURÉE, et rien d'autre à déclarer avec elles. */
-const NO_DEDICATED_CELLS: readonly { day: string; slot: string }[] = [];
+const NO_DEDICATED_CELLS: readonly {
+  day: string;
+  slot: string;
+  memberId: string | null;
+}[] = [];
 
 /** 3 moments. Le plafond de base est donc 3 × jours, à la main. */
 const THREE_MEALS = [
@@ -1476,6 +1485,7 @@ const PROMPT_BASE = {
   habits: [],
   habitNote: null,
   requiredDensity: null,
+  proteinBrief: null,
   focusAxis: null,
   dietBlock: "",
   doctrineBlock: "",
@@ -2146,7 +2156,7 @@ Deno.test("LE CONSTAT EST BRANCHÉ, ET IL S'ÉCRIT DANS `generated_from`", async
     "la forme OBTENUE n'est plus archivée à côté de la forme DEMANDÉE.",
   );
   const observedAt = src.indexOf("observeMergeShape({");
-  const writeAt = src.indexOf('"write_student_meal_plan"');
+  const writeAt = src.indexOf('"keel_household_publish_generation"');
   assert(observedAt >= 0 && writeAt >= 0, "marqueurs introuvables — test à réviser");
   assert(
     observedAt < writeAt,
@@ -3005,7 +3015,7 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
   // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
   // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v32_the_recipe_says_what_holds_it");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v33_the_recipe_writes_the_shopping_list");
   // ⚠️ v10 DEPUIS LE LOT G (2026-08-14), ET C'EST LA MOITIÉ DU LOT QUI COMPTE
   // ICI: le TRONC ne bouge toujours pas (la ligne au-dessus le tient), la lane
   // du FOYER si. Deux populations neuves y voient une consigne différente —
@@ -3380,44 +3390,39 @@ Deno.test("C7 ④ — SEPT CASES DOUBLÉES DONT UNE CLONÉE PAR LE TITRE: 6 + 1"
   assertEquals(seen.observed, "some_meals_dedicated");
 });
 
-Deno.test("C7 ① — LA RELANCE D'ANCRE NE PEUT PLUS PERDRE UN PLAT DÉDIÉ", async () => {
+Deno.test("C7 ① — UNE RÉPARATION NE PEUT PLUS PERDRE UN PLAT DÉDIÉ", async () => {
+  const HANDLER = await generatorSource();
   // ⚠️ MESURÉ LE 2026-08-12, run 1: réponse 1 à 18 plats et 9 dédiés sur 9;
   // relance à 20 plats écrêtés à 18, 7 dédiés. `retried.dishes.length >=
-  // meal.dishes.length` est VRAI des deux côtés — le plafond écrête les deux —
-  // donc la relance a été acceptée, et Zoé a perdu son déjeuner et son dîner du
+  // meal.dishes.length` était VRAI des deux côtés — le plafond écrête les deux —
+  // donc la relance était acceptée, et Zoé perdait son déjeuner et son dîner du
   // dimanche.
-  const src = await generatorSource();
+  //
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — LE DÉFAUT EST FERMÉ PAR CONSTRUCTION, pas
+  // par un comparateur. Une réparation ne rend plus un plan: elle rend un
+  // PATCH, qui ne peut porter que les unités autorisées. Une unité absente du
+  // patch garde la version du MEILLEUR plan; une unité hors périmètre rejette
+  // le patch ENTIER. Un plat dédié ne peut donc plus disparaître «en passant».
   assert(
-    /const dedicatedBefore = dedicatedMealsIn\(meal\);/.test(src),
-    "le plan d'avant la relance n'est plus mesuré: le critère redevient aveugle.",
+    HANDLER.includes("c4Fusion = applyRepairPatch({"),
+    "l'application de patch a disparu: une réparation reprendrait tout le plan",
   );
   assert(
-    /const dedicatedAfter = dedicatedMealsIn\(retried\);/.test(src),
-    "le plan de la relance n'est plus mesuré.",
+    !HANDLER.includes("meal = retried;"),
+    "une adoption en bloc est revenue: le plan entier du modèle remplacerait le nôtre",
+  );
+  // ⛔ ET LA GARDE DE LONGUEUR N'EST PLUS NÉCESSAIRE, DONC PLUS PRÉSENTE: un
+  // patch EST plus court que le plan, c'est son contrat. L'ancien garde-fou
+  // rejetait justement les réparations locales valides.
+  assert(
+    !HANDLER.includes("retried.dishes.length >= meal.dishes.length"),
+    "le garde-fou de longueur est revenu: il rejetterait toute réparation locale",
   );
   assert(
-    /dedicatedAfter >= dedicatedBefore/.test(src),
-    "la relance n'est plus comparée sur les plats DÉDIÉS: un plan qui perd " +
-      "deux repas de la personne reprise repasse, parce que le total est le même.",
-  );
-  // ⚠️ L'ANCIENNE MOITIÉ RESTE UNE MOITIÉ. La remplacer ferait l'erreur qu'on
-  // répare, dans l'autre sens: une relance plus courte serait acceptée pour peu
-  // qu'elle serve la personne reprise.
-  assert(
-    /retried\.dishes\.length >= meal\.dishes\.length/.test(src),
-    "le critère de LONGUEUR a disparu: une relance plus courte redevient " +
-      "acceptable dès qu'elle sert la personne reprise.",
-  );
-  // Le compte n'est pas recalculé à la main: c'est le MÊME constat, avec le
-  // MÊME dénominateur, que celui qui sera archivé.
-  assert(
-    /dedicatedMealsIn = \([\s\S]{0,400}?observeMergeShape\(\{[\s\S]{0,300}?eaterCells: mergedEaterCells/
-      .test(src),
-    "le compte de plats dédiés de la relance ne passe plus par " +
-      "`observeMergeShape` avec les cases de la personne reprise.",
+    !HANDLER.includes('c4Note("plan_repair_rejected:shorter_plan")'),
+    "`shorter_plan` est revenu",
   );
 });
-
 Deno.test("C7 ② — LE GÉNÉRATEUR DONNE AU PLAFOND LES CASES D'ELLE", async () => {
   // Le nombre dit COMBIEN de place ouvrir; les cases disent OÙ un plat de plus
   // a le droit de vivre. Sans elles, le plat dédié redevient la première chose
@@ -3778,12 +3783,18 @@ Deno.test("LOT B — les TROIS bouts qui promettent un plat lisent la forme SERV
     "le budget de FUSION lit encore le barreau brut.",
   );
   // ② LE BLOC DE RÉGIME — celui qui écrit « their OWN dish is not bound by the
-  //    sentence above ». Le servir sous un plafond `one_dish` promettrait un
-  //    plat que la ligne de forme interdit, dans le même prompt.
+  //    sentence above ». Il doit nommer EXACTEMENT les bouches à qui la section
+  //    `A DISH OF THEIR OWN` enseigne la forme.
+  //
+  // ⟳ 2026-09-14 (§ 2.2) — C'EST `promptDishBearers`, PAS `dishBearingMembers`.
+  // Les deux sont égaux hors fusion (l'un est la projection de la grille,
+  // l'autre y ajoute la personne reprise); lire ici la liste de composition
+  // laisserait une fusion promettre un plat à personne dans le même message qui
+  // en commande un à la personne reprise.
   assert(
-    /divergingNames: dishBearingMembers\.map/.test(src),
-    "le bloc de régime nomme encore les divergents du CALCUL, pas ceux à qui la " +
-      "consigne promet vraiment un plat.",
+    /divergingNames: promptDishBearers\.map/.test(src),
+    "le bloc de régime nomme d'autres bouches que celles à qui la section " +
+      "`A DISH OF THEIR OWN` enseigne la forme.",
   );
   // ③ LE BLOC DE FUSION — `buildMergeBlock` écrit la consigne de reprise à
   //    partir de la forme qu'on lui donne.
@@ -3853,12 +3864,22 @@ Deno.test("LOT C — la liste des porteurs atteint le PARSEUR, sur les deux chem
 
 Deno.test("LOT C — la liste des porteurs atteint le PROMPT, et c'est la même", async () => {
   const src = await generatorSource();
-  assert(/dishBearers: ladder !== null && mergedMember !== null/.test(src),
-    "le bloc d'attribution ne reçoit plus la personne reprise sur une fusion.");
+  // ⟳ 2026-09-14 (§ 2.2) — LA LISTE EST ÉCRITE UNE FOIS, ET LES DEUX BRANCHES
+  // VIVENT LÀ. Le champ du prompt ne porte plus d'expression du tout: il lit la
+  // constante, comme le bloc de régime et le compteur du journal.
+  assert(
+    /const promptDishBearers: \{ memberId: string; displayName: string \}\[\] =\s*\n\s*ladder !== null && mergedMember !== null/
+      .test(src),
+    "la liste du prompt ne traite plus la fusion en premier.",
+  );
   assert(
     /: dishBearingMembers\.map\(\(m\) => \(\{\s*memberId: m\.memberId,\s*displayName: m\.displayName,\s*\}\)\)/
       .test(src),
-    "le bloc d'attribution ne reçoit plus les bouches de la composition.",
+    "la liste du prompt ne reçoit plus les bouches de la composition.",
+  );
+  assert(
+    /dishBearers: promptDishBearers,/.test(src),
+    "le bloc d'attribution recalcule sa liste au lieu de lire la seule.",
   );
 });
 
@@ -3876,11 +3897,12 @@ Deno.test("LOT C — ⛔ l'écart demandé/attribué est ARCHIVÉ", async () => 
   // zéro et appellent des corrections opposées.
   const src = await generatorSource();
   assert(
-    /const dishOwnersTrace = \{\s*asked: eaterBudget\?\.dedicatedDishesAsked \?\? 0,\s*declared: meal\.dish_owner_counts\.declared,\s*attributed: meal\.dish_owner_counts\.attributed,\s*refused: meal\.dish_owner_counts\.refused,\s*\};/
+    /const dishOwnersTrace = \{\s*asked: eaterBudget\?\.dedicatedDishesAsked \?\? 0,\s*declared: meal\.dish_owner_counts\.declared,\s*attributed: meal\.dish_owner_counts\.attributed,\s*refused: meal\.dish_owner_counts\.refused,\s*refused_dropped: meal\.dish_owner_counts\.refused_dropped,\s*\};/
       .test(src),
-    "l'écart entre les plats dédiés RÉCLAMÉS, DÉCLARÉS, ATTRIBUÉS et REFUSÉS " +
-      "n'est plus archivé: un modèle qui ignore la consigne redevient " +
-      "indiscernable d'un modèle dont on refuse l'attribution.",
+    "l'écart entre les plats dédiés RÉCLAMÉS, DÉCLARÉS, ATTRIBUÉS, REFUSÉS et " +
+      "REFUSÉS-PUIS-TOMBÉS n'est plus archivé: un modèle qui ignore la consigne " +
+      "redevient indiscernable d'un modèle dont on refuse l'attribution, et le " +
+      "plat que le parseur retire redevient invisible.",
   );
   // ⚠️ ET IL EST LISIBLE SUR UN APERÇU. `generated_from` n'existe que sur une
   // ligne ÉCRITE; toute vérification par `intent: "draft"` était donc aveugle,

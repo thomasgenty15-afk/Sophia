@@ -141,47 +141,62 @@ Deno.test("CÂBLAGE — la ceinture pose regimeBites sur le plat, au niveau PLAT
   assert(/regimeBites: dishRegimeBites,/.test(src), "le plat rendu ne porte pas dishRegimeBites");
 });
 
-Deno.test("CÂBLAGE — le générateur compte, relance le flagrant seulement, archive, journalise", async () => {
+Deno.test("CÂBLAGE — le générateur compte le flagrant, archive, journalise — et n'appelle plus", async () => {
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — CE TEST ÉPINGLAIT UNE RELANCE LOCALE
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // Il exigeait que le flagrant appelle le modèle, reprenne des cellules par
+  // parties, et sache revenir en arrière (`preSwap`). Les trois ont disparu
+  // ENSEMBLE, et c'est cohérent: sans appel, il n'y a rien à fusionner ni à
+  // défaire. La relance était d'ailleurs déjà sautée sur `portion_v1`, le seul
+  // chemin vivant (`swapRetrySkipped`) — ce qui change est qu'elle ne peut plus
+  // repartir le jour où la condition change.
+  //
+  // ⛔ LA MESURE, ELLE, DOIT RESTER ENTIÈRE: c'est elle qui dit si le calendrier
+  // a commandé le plat qu'il devait.
   const src = await read("../../generate-household-meal-v1/index.ts");
   assert(/regime: m\.diet,/.test(src), "les cellules ne portent plus le régime de la bouche");
   assert(/regimeBites: d\.regimeBites,/.test(src), "la vue swap ne porte plus regimeBites");
+  assert(/let swap = swapPresence\(/.test(src), "la mesure du flagrant a disparu");
+  assert(/tag: "keel\.household_meal\.swap_presence"/.test(src), "le journal swap_presence a disparu");
+  assert(/swap: \{\s*\.\.\.swap\.counters,/.test(src), "generated_from.household.swap n'est plus archivé");
   // ⟳ 2026-09-09 — `improvementRetries` = `!adoptingDraft && !editing`: la même
   // coupure sur l'adoption d'un aperçu ET sur une reprise locale (`edit_cells`),
   // qui ne doit pas réécrire ce que la fusion garantit intact.
-  assert(/swap\.counters\.flagrant && improvementRetries && strictestRegime !== null/.test(src), "la relance ne se déclenche plus sur le seul cas flagrant");
-  assert(/const improvementRetries = !adoptingDraft && !editing;/.test(src), "la coupure des relances ne nomme plus l'adoption ET la reprise locale");
-  assert(/source: `\$\{FN_NAME\}\.swap_retry`/.test(src), "la relance swap n'a plus sa source");
-  assert(/after\.counters\.cells_carrying > swap\.counters\.cells_carrying/.test(src), "l'acceptation n'exige plus des cellules qui portent");
-  // ⟳ 2026-09-06: le manque n'est plus une condition d'acceptation — la boucle qui suit
-  // le répare, et le retour en arrière (`preSwap`) garantit qu'un plan carné avec des
-  // repas manquants n'est jamais livré (voir le test ci-dessus).
-  assert(/retried\.regime_belt\.refused <= meal\.regime_belt\.refused/.test(src), "l'acceptation laisse la ceinture refuser davantage");
-  assert(/retried\.regime_belt\.refused <= meal\.regime_belt\.refused/.test(src), "l'acceptation laisse la ceinture refuser davantage");
-  assert(/tag: "keel\.household_meal\.swap_presence"/.test(src), "le journal swap_presence a disparu");
-  // ⟳ 2026-09-06: une relance refusée dit laquelle des quatre conditions l'a refusée.
-  assert(/tag: "keel\.household_meal\.swap_retry_rejected"/.test(src), "le rejet de la relance du flagrant est muet");
-  assert(/retry_rejected_by: swapRetryRejectedBy,/.test(src), "le motif de rejet n'est pas archivé");
-  assert(/swap: \{\s*\.\.\.swap\.counters,/.test(src), "generated_from.household.swap n'est plus archivé");
-  // ⟳ 2026-09-06 (M07 r2): la relance du flagrant tourne AVANT la boucle « personne
-  // sans repas » (qui répare ce qu'elle casse), et on revient au plan d'avant si la
-  // boucle n'y arrive pas. Le manque ne la refuse plus en bloc.
-  const swapAt = src.indexOf("let swap = swapPresence(");
-  const loopAt = src.indexOf("const UNFED_RETRIES_MAX = 3;");
-  const restorableAt = src.indexOf("const restorable = delivered.mouths");
-  assert(swapAt > -1 && loopAt > swapAt && restorableAt > loopAt, "ordre attendu: relance du flagrant → boucle personne sans repas → dernier recours");
-  assert(!/\? "missing"/.test(src.slice(swapAt, loopAt)), "le manque refuse encore la relance du flagrant en bloc");
-  assert(/preSwap = \{ meal, mealSourceText, delivered, swap \};/.test(src), "l'instantané d'avant la relance a disparu");
-  assert(/if \(preSwap !== null && delivered\.missing > preSwap\.delivered\.missing\) \{/.test(src.slice(loopAt, restorableAt)), "le retour en arrière ne suit plus la boucle");
-  assert((src.match(/retry_reverted: swapReverted,/g) || []).length === 2, "retry_reverted absent du journal ou de l'archive");
-  // ⟳ 2026-09-06 (M07 r3, rejetée par `carrying` en entier) — par parties: les cellules
-  // qui portent ENFIN le composant sont prises, le reste du plan ne bouge pas.
-  const swapBlock = src.slice(swapAt, loopAt);
-  assert(/const repaired = \[\.\.\.absentBefore\]\.filter\(\(c\) => !absentAfter\.has\(c\)\);/.test(swapBlock), "les cellules réparées ne sont plus « absentes avant, portées après »");
-  assert(/mergeRetryCells\(\{ base: meal, retry: retried, cells: repaired \}\)/.test(swapBlock), "la relance du flagrant rejette encore le plan entier sans rien garder");
-  assert(/mergedSwap\.counters\.cells_carrying > swap\.counters\.cells_carrying/.test(swapBlock), "la fusion partielle n'exige plus de porter davantage");
-  assert(/swap_retry_merged/.test(swapBlock), "la fusion partielle du flagrant n'est pas journalisée");
-  assert(/preSwap = \{ meal, mealSourceText, delivered, swap \};/.test(swapBlock.slice(swapBlock.indexOf("swap_retry_merged") - 1200, swapBlock.indexOf("swap_retry_merged"))), "la fusion partielle ne garde pas l'instantané: le retour en arrière ne la couvre pas");
-  assert((src.match(/retry_merged_cells: swapRetryMergedCells,/g) || []).length === 2, "retry_merged_cells absent du journal ou de l'archive");
+  assert(
+    /const improvementRetries = !adoptingDraft && !editing;/.test(src),
+    "la coupure des relances ne nomme plus l'adoption ET la reprise locale",
+  );
+  // ⛔ PLUS AUCUN APPEL DEPUIS CE SITE, ET C'EST LA PROPRIÉTÉ DU LOT.
+  assert(
+    !/source: `\$\{FN_NAME\}\.swap_retry`/.test(src),
+    "la relance locale du flagrant est revenue: elle consommerait le budget " +
+      "avant que tous les défauts soient connus",
+  );
+  assert(
+    !/tag: "keel\.household_meal\.swap_retry_rejected"/.test(src) &&
+      !/swap_retry_merged/.test(src) &&
+      !/keel\.household_meal\.swap_retry_reverted/.test(src),
+    "la fusion par parties ou le retour en arrière du flagrant sont revenus " +
+      "sans leur appel: deux branches que rien ne peut plus atteindre",
+  );
+  // ⛔ ET LE CONSTAT REJOINT LA DÉCISION COMMUNE, avec sa consigne tunée.
+  assert(
+    /swapRetryInstruction\(\{/.test(src),
+    "le constat du flagrant ne compose plus sa consigne",
+  );
+  assert(
+    /cause: "swap_flagrant"/.test(src),
+    "le constat du flagrant n'a plus de cause nommée",
+  );
+  // ⚠️ LA CONDITION DE SAUT EST GARDÉE À L'IDENTIQUE: sur `portion_v1` le
+  // remède écrit « cite-le depuis LEURS BOÎTES », des boîtes que ce chemin n'a
+  // plus. La mesure tourne, le remède se tait.
+  assert(
+    /sizing\.path !== "portion_v1" && strictestRegime !== null/.test(src),
+    "le constat du flagrant ne saute plus le chemin où son remède est sans objet",
+  );
 });
 
 Deno.test("CÂBLAGE — v28: l'échappatoire « nothing clashes » nomme la sortie, à côté de la clé \"boxes\"", async () => {

@@ -54,6 +54,9 @@ import {
   handleDeterministicButton,
 } from "../_shared/chat/deterministic_buttons.ts";
 import {
+  redirectTypedMealDeclaration,
+} from "../_shared/chat/meal_text_redirect_io.ts";
+import {
   classifyArmedQuestionReply,
   resolveArmedQuestion,
 } from "../_shared/chat/armed_question.ts";
@@ -318,6 +321,35 @@ Deno.serve(async (req) => {
       return jsonResponse(req, {
         ok: true,
         handled_by: deterministic.reason,
+        armed_resolution: armedResolution,
+        request_id: requestId,
+      }, { status: 200 });
+    }
+
+    // ── GARDE 5bis : LE REPAS TAPÉ EN TEXTE LIBRE ────────────────────────────
+    //
+    // « j'ai mangé une pizza » est le geste le plus naturel du produit, et
+    // c'était le seul des trois chemins de déclaration à ne rien produire
+    // d'utilisable: une ligne sans énergie et sans créneau, écrite en silence
+    // par le plancher, pendant que la réponse confirmait le repas.
+    //
+    // ⛔ ICI, ET PAS DANS LE MOTEUR. Le plancher vit DANS `processMessage`:
+    // s'arrêter avant lui est ce qui arrête l'écriture muette, sans désarmer
+    // aucune garde ni toucher au plancher lui-même. Toute la logique — y
+    // compris les trois façons de rendre la main au dispatcher — est dans
+    // `meal_text_redirect_io.ts`, et sa décision produit dans le module pur.
+    const mealRedirect = await redirectTypedMealDeclaration(admin, {
+      message: effectiveMessage,
+      requestId,
+    });
+    if (mealRedirect.handled) {
+      await markInboundProcessed(admin, {
+        dedupId: claim.dedupId,
+        chatMessageId: inboundChatId,
+      });
+      return jsonResponse(req, {
+        ok: true,
+        handled_by: mealRedirect.reason,
         armed_resolution: armedResolution,
         request_id: requestId,
       }, { status: 200 });

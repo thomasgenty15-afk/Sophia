@@ -1,0 +1,701 @@
+{
+  "dishes": [
+    {
+      "name": "Brouillade avoine et cheddar",
+      "title": "Blancs d'œufs, avoine, cheddar et yaourt grec",
+      "slot": "breakfast",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "blancs d'œufs",
+          "quantity": "210 g de blancs d'œufs",
+          "amount": 210,
+          "unit": "g",
+          "state": "raw",
+          "part": "egg_oat_main",
+          "ref": "egg_white"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "13.5 g de flocons d'avoine",
+          "amount": 13.5,
+          "unit": "g",
+          "state": "raw",
+          "part": "egg_oat_main",
+          "ref": "oats"
+        },
+        {
+          "term": "cheddar",
+          "quantity": "30 g de cheddar",
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "part": "cheddar_finish",
+          "ref": "cheddar"
+        }
+      ],
+      "components": [
+        {
+          "id": "egg_oat_main",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "cheddar_finish",
+          "role": "garnish_fat",
+          "part_of": "egg_oat_main"
+        }
+      ],
+      "method": "Cuire les flocons d'avoine avec un peu d'eau. Brouiller les blancs d'œufs, incorporer le cheddar, puis servir avec le yaourt grec déjà prévu.",
+      "why": "Cette assiette associe des aliments simples, une source de protéines et un petit-déjeuner régulier.",
+      "density_check": 109.4,
+      "uses": [],
+      "same_day": {
+        "kind": "cook_fresh",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Bol de poulet au couscous",
+      "title": "Poulet, poivron, couscous, tomate, feta et huile",
+      "slot": "lunch",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "tomate",
+          "quantity": "100 g de tomate",
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "part": "tomato_side",
+          "ref": "tomato"
+        },
+        {
+          "term": "feta",
+          "quantity": "20 g de feta",
+          "amount": 20,
+          "unit": "g",
+          "state": "raw",
+          "part": "feta_finish",
+          "ref": "feta"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "18 g d'huile d'olive",
+          "amount": 18,
+          "unit": "g",
+          "state": "raw",
+          "part": "tomato_dressing",
+          "ref": "olive_oil"
+        }
+      ],
+      "components": [
+        {
+          "id": "chicken_base",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "couscous_side",
+          "role": "separable_side",
+          "part_of": null
+        },
+        {
+          "id": "tomato_side",
+          "role": "separable_side",
+          "part_of": null
+        },
+        {
+          "id": "feta_finish",
+          "role": "garnish_fat",
+          "part_of": "chicken_base"
+        },
+        {
+          "id": "tomato_dressing",
+          "role": "seasoning",
+          "part_of": "tomato_side"
+        }
+      ],
+      "method": "Réchauffer le poulet et le couscous, puis ajouter la tomate, la feta et l'huile d'olive.",
+      "why": "Le poulet rôti et le couscous forment un déjeuner complet, rapide à assembler et différent du dîner.",
+      "density_check": 139.7,
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_couscous",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Dinde rôtie, riz et feta",
+      "title": "Dinde, poivrons, riz et feta",
+      "slot": "dinner",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "feta",
+          "quantity": "87.7 g de feta",
+          "amount": 87.7,
+          "unit": "g",
+          "state": "raw",
+          "part": "feta_finish",
+          "ref": "feta"
+        }
+      ],
+      "components": [
+        {
+          "id": "turkey_base",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "rice_side",
+          "role": "separable_side",
+          "part_of": null
+        },
+        {
+          "id": "feta_finish",
+          "role": "garnish_fat",
+          "part_of": "turkey_base"
+        }
+      ],
+      "method": "Réchauffer la dinde, les poivrons et le riz, puis émietter la feta dessus.",
+      "why": "La dinde, le riz et la feta donnent un dîner chaud et nourrissant sans reprendre la forme du déjeuner.",
+      "density_check": 174.0,
+      "uses": [
+        {
+          "preparation_id": "prep_turkey",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_rice",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Brouillade au cheddar frais",
+      "title": "Blancs d'œufs, cheddar, tomate, pain et yaourt grec",
+      "slot": "breakfast",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "blancs d'œufs",
+          "quantity": "220 g de blancs d'œufs",
+          "amount": 220,
+          "unit": "g",
+          "state": "raw",
+          "part": "egg_main",
+          "ref": "egg_white"
+        },
+        {
+          "term": "cheddar",
+          "quantity": "30 g de cheddar",
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "part": "cheddar_finish",
+          "ref": "cheddar"
+        },
+        {
+          "term": "tomate",
+          "quantity": "30 g de tomate",
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "part": "tomato_side",
+          "ref": "tomato"
+        },
+        {
+          "term": "pain complet",
+          "quantity": "15 g de pain complet",
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "part": "bread_side",
+          "ref": "wholemeal_bread"
+        }
+      ],
+      "components": [
+        {
+          "id": "egg_main",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "cheddar_finish",
+          "role": "garnish_fat",
+          "part_of": "egg_main"
+        },
+        {
+          "id": "tomato_side",
+          "role": "separable_side",
+          "part_of": null
+        },
+        {
+          "id": "bread_side",
+          "role": "separable_side",
+          "part_of": null
+        }
+      ],
+      "method": "Brouiller les blancs d'œufs avec le cheddar, griller le pain et servir avec la tomate crue et le yaourt grec déjà prévu.",
+      "why": "Cette variante garde le petit-déjeuner régulier tout en changeant les accompagnements et la texture.",
+      "density_check": 100.3,
+      "uses": [],
+      "same_day": {
+        "kind": "cook_fresh",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Pita de poulet au houmous",
+      "title": "Pita de poulet, couscous, laitue, houmous et citron",
+      "slot": "lunch",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "pita complète",
+          "quantity": "60 g de pita complète",
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "part": "filled_chicken",
+          "ref": "pita_wholemeal"
+        },
+        {
+          "term": "houmous",
+          "quantity": "20 g de houmous",
+          "amount": 20,
+          "unit": "g",
+          "state": "raw",
+          "part": "hummus_sauce",
+          "ref": "hummus"
+        },
+        {
+          "term": "laitue",
+          "quantity": "50 g de laitue",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "part": "salad_side",
+          "ref": "lettuce"
+        },
+        {
+          "term": "citron",
+          "quantity": "10 g de citron",
+          "amount": 10,
+          "unit": "g",
+          "state": "raw",
+          "part": "salad_side",
+          "ref": "lemon"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1.25 g d'huile d'olive",
+          "amount": 1.25,
+          "unit": "g",
+          "state": "raw",
+          "part": "olive_finish",
+          "ref": "olive_oil"
+        }
+      ],
+      "components": [
+        {
+          "id": "filled_chicken",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "couscous_side",
+          "role": "separable_side",
+          "part_of": null
+        },
+        {
+          "id": "salad_side",
+          "role": "separable_side",
+          "part_of": null
+        },
+        {
+          "id": "hummus_sauce",
+          "role": "sauce",
+          "part_of": "filled_chicken"
+        },
+        {
+          "id": "olive_finish",
+          "role": "garnish_fat",
+          "part_of": "filled_chicken"
+        }
+      ],
+      "method": "Réchauffer le poulet et le couscous, garnir la pita avec le houmous, puis ajouter la laitue, le citron et l'huile d'olive.",
+      "why": "La pita transforme les mêmes préparations en déjeuner à manger avec les mains, avec des aliments simples et rassasiants.",
+      "density_check": 138.8,
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_couscous",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Dinde rôtie au parmesan",
+      "title": "Dinde, poivrons, riz, tomate, parmesan et huile",
+      "slot": "dinner",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "tomate",
+          "quantity": "150 g de tomate",
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "part": "tomato_side",
+          "ref": "tomato"
+        },
+        {
+          "term": "parmesan",
+          "quantity": "30 g de parmesan",
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "part": "parmesan_finish",
+          "ref": "parmesan"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "11.07 g d'huile d'olive",
+          "amount": 11.07,
+          "unit": "g",
+          "state": "raw",
+          "part": "tomato_dressing",
+          "ref": "olive_oil"
+        }
+      ],
+      "components": [
+        {
+          "id": "turkey_base",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "rice_side",
+          "role": "separable_side",
+          "part_of": null
+        },
+        {
+          "id": "tomato_side",
+          "role": "separable_side",
+          "part_of": null
+        },
+        {
+          "id": "parmesan_finish",
+          "role": "garnish_fat",
+          "part_of": "turkey_base"
+        },
+        {
+          "id": "tomato_dressing",
+          "role": "seasoning",
+          "part_of": "tomato_side"
+        }
+      ],
+      "method": "Réchauffer la dinde, les poivrons et le riz. Ajouter la tomate, le parmesan et l'huile d'olive au moment de servir.",
+      "why": "La tomate, le parmesan et l'huile donnent au même lot de dinde une assiette différente, chaude et complète.",
+      "density_check": 147.7,
+      "uses": [
+        {
+          "preparation_id": "prep_turkey",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_rice",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    }
+  ],
+  "preparations": [
+    {
+      "id": "prep_chicken",
+      "title": "Poulet rôti aux poivrons",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "blanc de poulet",
+          "quantity": "500 g de blanc de poulet",
+          "amount": 500,
+          "unit": "g",
+          "state": "raw",
+          "part": "chicken_main",
+          "ref": "chicken_breast"
+        },
+        {
+          "term": "poivron",
+          "quantity": "200 g de poivron",
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "part": "roasted_peppers",
+          "ref": "bell_pepper"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "10 g d'huile d'olive",
+          "amount": 10,
+          "unit": "g",
+          "state": "raw",
+          "part": "roasting_fat",
+          "ref": "olive_oil"
+        }
+      ],
+      "components": [
+        {
+          "id": "chicken_main",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "roasted_peppers",
+          "role": "separable_side",
+          "part_of": null
+        },
+        {
+          "id": "roasting_fat",
+          "role": "garnish_fat",
+          "part_of": "chicken_main"
+        }
+      ],
+      "method": "Disposer le poulet et le poivron sur une plaque, les enrober d'huile d'olive, puis rôtir jusqu'à ce que le poulet soit cuit. Laisser tiédir et répartir au frais.",
+      "active_minutes": 15,
+      "total_minutes": 35,
+      "cook_on": "mon"
+    },
+    {
+      "id": "prep_couscous",
+      "title": "Couscous complet préparé",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "couscous complet",
+          "quantity": "80 g de couscous complet",
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "part": "couscous_main",
+          "ref": "couscous_wholemeal"
+        }
+      ],
+      "components": [
+        {
+          "id": "couscous_main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Verser de l'eau chaude sur le couscous complet, couvrir, puis égrener avant de répartir au frais.",
+      "active_minutes": 5,
+      "total_minutes": 10,
+      "cook_on": "mon"
+    },
+    {
+      "id": "prep_turkey",
+      "title": "Dinde rôtie aux poivrons",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "blanc de dinde",
+          "quantity": "500 g de blanc de dinde",
+          "amount": 500,
+          "unit": "g",
+          "state": "raw",
+          "part": "turkey_main",
+          "ref": "turkey_breast"
+        },
+        {
+          "term": "poivron",
+          "quantity": "200 g de poivron",
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "part": "roasted_peppers",
+          "ref": "bell_pepper"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "40 g d'huile d'olive",
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "part": "roasting_fat",
+          "ref": "olive_oil"
+        }
+      ],
+      "components": [
+        {
+          "id": "turkey_main",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "roasted_peppers",
+          "role": "separable_side",
+          "part_of": null
+        },
+        {
+          "id": "roasting_fat",
+          "role": "garnish_fat",
+          "part_of": "turkey_main"
+        }
+      ],
+      "method": "Disposer la dinde et le poivron sur une plaque, les arroser d'huile d'olive, puis rôtir jusqu'à ce que la dinde soit cuite. Laisser tiédir et répartir au frais.",
+      "active_minutes": 15,
+      "total_minutes": 35,
+      "cook_on": "mon"
+    },
+    {
+      "id": "prep_rice",
+      "title": "Riz blanc cuit",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "riz blanc",
+          "quantity": "160 g de riz blanc",
+          "amount": 160,
+          "unit": "g",
+          "state": "raw",
+          "part": "rice_main",
+          "ref": "white_rice"
+        }
+      ],
+      "components": [
+        {
+          "id": "rice_main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Cuire le riz blanc dans l'eau jusqu'à absorption complète, puis refroidir rapidement et répartir au frais.",
+      "active_minutes": 5,
+      "total_minutes": 25,
+      "cook_on": "mon"
+    }
+  ],
+  "cooking_sessions": [
+    {
+      "day": "mon",
+      "preparation_ids": [
+        "prep_chicken",
+        "prep_couscous",
+        "prep_turkey",
+        "prep_rice"
+      ],
+      "total_minutes": 55,
+      "run_through": "Préchauffer le four, préparer les plaques de poulet et de dinde avec les poivrons, puis enfourner les deux préparations. Mettre le riz à cuire pendant la cuisson au four, hydrater le couscous ensuite, puis laisser tiédir et répartir chaque préparation au réfrigérateur."
+    }
+  ],
+  "member_portions": [
+    {
+      "member_id": "e3717b2d-67ad-4f3d-b44d-c09760bacf81",
+      "day": "mon",
+      "slot": "breakfast",
+      "instruction": "Servir 200 g de yaourt grec avec 210 g de blancs d'œufs, 13.5 g de flocons d'avoine et 30 g de cheddar.",
+      "density_check": 109.4
+    },
+    {
+      "member_id": "e3717b2d-67ad-4f3d-b44d-c09760bacf81",
+      "day": "mon",
+      "slot": "lunch",
+      "instruction": "Servir 275 g de poulet et poivrons, 104 g de couscous, 100 g de tomate, 20 g de feta et 18 g d'huile d'olive.",
+      "density_check": 139.7
+    },
+    {
+      "member_id": "e3717b2d-67ad-4f3d-b44d-c09760bacf81",
+      "day": "mon",
+      "slot": "dinner",
+      "instruction": "Servir 285 g de dinde et poivrons, 208 g de riz et 87.7 g de feta.",
+      "density_check": 174.0
+    },
+    {
+      "member_id": "e3717b2d-67ad-4f3d-b44d-c09760bacf81",
+      "day": "tue",
+      "slot": "breakfast",
+      "instruction": "Servir 200 g de yaourt grec avec 220 g de blancs d'œufs, 30 g de cheddar, 30 g de tomate et 15 g de pain complet.",
+      "density_check": 100.3
+    },
+    {
+      "member_id": "e3717b2d-67ad-4f3d-b44d-c09760bacf81",
+      "day": "tue",
+      "slot": "lunch",
+      "instruction": "Servir 275 g de poulet et poivrons, 104 g de couscous, 60 g de pita, 20 g de houmous, 50 g de laitue, 10 g de citron et 1.25 g d'huile d'olive.",
+      "density_check": 138.8
+    },
+    {
+      "member_id": "e3717b2d-67ad-4f3d-b44d-c09760bacf81",
+      "day": "tue",
+      "slot": "dinner",
+      "instruction": "Servir 285 g de dinde et poivrons, 208 g de riz, 150 g de tomate, 30 g de parmesan et 11.07 g d'huile d'olive.",
+      "density_check": 147.7
+    }
+  ],
+  "explanation": []
+}

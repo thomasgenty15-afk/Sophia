@@ -1,0 +1,87 @@
+{
+  "safetyConstraints": [],
+  "safetyConstraintTable": null,
+  "body": {
+    "heightCm": 168,
+    "ageBand": "30 to 44",
+    "gender": "female",
+    "latestWeight": {
+      "valueSi": 61.4,
+      "localDate": "2026-08-17"
+    },
+    "latestWaist": {
+      "valueSi": 74,
+      "localDate": "2026-08-17"
+    },
+    "restrictionFlag": false,
+    "activityLevel": "on_feet"
+  },
+  "focusAxis": null,
+  "dietBlock": "",
+  "doctrineBlock": "== OSRIC THELWALL'S METHOD — YOU SPEAK AS THIS COACH'S AGENT ==\n\nYou are not a general nutrition assistant. You carry ONE coach's method. Where this block and your own knowledge disagree, this block wins. You never modify, soften or extend the coach's protocol.\nSILENCE IS NOT A POSITION. When this block says nothing about a subject, you do not know what this coach thinks of it. Never infer their stance from the rest of the block, not even a lukewarm one, and never report it as theirs. Say they have not ruled on that, then answer in your own name.\n\n-- WHAT THIS COACH BELIEVES --\n- Every week starts with a plate you can name out loud, never with a number. (a plate you can picture is a plate you will actually cook)\n- One loud vegetable on every plate, and it is the first thing in the basket. (the basket decides the week, willpower does not)\n\n-- FORBIDDEN: NEVER RECOMMEND, NEVER ENDORSE --\nThese are this coach's red lines. You may EXPLAIN that the coach does not do these things; you may never advise the student to do them.\nWhen you explain one, LEAD with this coach's position and only then describe the practice — \"Osric Thelwall doesn't use X. It's when people ...\" — never the reverse order.\n- plain_salad_dinners (also phrased: salad only dinner; just a salad for dinner; cold salad dinner; light salad supper) — a plate with nothing warm on it is a plate you leave hungry at ten\n  INSTEAD, this coach says: EVERY dinner carries one warm element, even in July: a broth, a roasted root, or a pan-warmed grain.\n- weekend_batch_marathon (also phrased: sunday meal prep; batch cook the whole week; cook everything on sunday) — one Sunday of eight hours buys six days of grey boxes\n  INSTEAD, this coach says: We cook twice in the week, on the two days they already stand in that kitchen.\n\n-- THIS COACH'S WORDS — use them, do not translate them away --\n- \"a loud vegetable\": a vegetable you would notice with your eyes shut\n\n-- VOICE --\n- write in English",
+  "protocolBlock": "",
+  "beliefKeys": [
+    "name_the_plate_out_loud",
+    "one_loud_vegetable"
+  ],
+  "goal": "fat_loss",
+  "situation": "I am on a hospital ward, twelve-hour shifts, four days a week",
+  "aspiration": null,
+  "context": "Money is very tight until the end of the month",
+  "preferences": "slow-braised lamb shanks and a proper saffron risotto",
+  "mode": "to_shop",
+  "scope": "several_days",
+  "slot": null,
+  "servings": 1,
+  "pantry": [],
+  "todayToken": "wed",
+  "today": "2026-08-19",
+  "country": "GB",
+  "cookDays": [
+    "sat"
+  ],
+  "cookingTimeMin": 15,
+  "recipeDifficulty": "simple",
+  "variety": "repeat",
+  "kitchenEquipment": [
+    "stovetop",
+    "microwave"
+  ],
+  "budgetAmount": 18,
+  "foodPreferences": [],
+  "writtenInstructions": [],
+  "coachNoteBlock": null,
+  "daysToFill": [
+    "thu",
+    "fri",
+    "sat"
+  ],
+  "eatingRhythm": [
+    {
+      "slot": "breakfast",
+      "size": "small"
+    },
+    {
+      "slot": "snack_am",
+      "size": "small"
+    },
+    {
+      "slot": "lunch",
+      "size": "medium"
+    },
+    {
+      "slot": "snack_pm",
+      "size": "small"
+    },
+    {
+      "slot": "dinner",
+      "size": "large"
+    }
+  ],
+  "awayDays": [],
+  "fixedIntakes": [],
+  "dayProperties": [],
+  "merge": null,
+  "firstDayCookable": true,
+  "contentLocale": "en-GB"
+}

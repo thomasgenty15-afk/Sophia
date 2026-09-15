@@ -1,0 +1,101 @@
+{
+  "run_id": "product_help_retest_20260622_r1",
+  "turn": 4,
+  "user_message": "Je change de sujet : question produit seulement, quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?",
+  "http_status": 200,
+  "ok": true,
+  "reply_content": "C’est séparé : une carte d’attaque sert à te remettre en mouvement sans modifier ton plan.  \nSi elle ne colle plus, tu la refais ; ton plan, lui, reste inchangé 🙂",
+  "response_owner": "normal_reply",
+  "reason_code": "coaching_recommendation_exit_to_global",
+  "direct_effects": [],
+  "direct_effects_to_run": [],
+  "skill_signals": {
+    "product_help": {
+      "detected": true,
+      "confidence_band": "high",
+      "reason": "product_help_question"
+    }
+  },
+  "skill_run": {
+    "selected_skill_id": "coaching_recommendation",
+    "reason_code": "active_coaching_recommendation",
+    "status": "exit",
+    "latency_ms": 8959,
+    "exit_target": "global",
+    "exit_note_information": {
+      "source_flow_id": "coaching_recommendation",
+      "handoff_reason": "topic_change",
+      "target_dispatcher": "global",
+      "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"Question produit autonome sur la carte d'attaque: le user demande si elle modifie le plan ou si elle est séparée.\",\"active_flow_summary\":\"coaching_recommendation helps choose a Sophia feature and never executes tools.\",\"collected_state\":{\"user_need_summary\":\"Le user pose une question produit sur la carte d'attaque et ajoute une demande de rappel ponctuel déjà prise en charge par la lane directe.\",\"candidate_features\":[],\"current_recommendation\":null,\"parent_context\":null,\"dispatcher_signal_context\":{\"reason\":\"The user wants immediate movement without changing the plan, which is a plan-linked coaching need.\",\"confidence\":0.84,\"coaching_type\":\"plan_action\",\"action_context\":{\"source\":\"plan\",\"plan_id\":null,\"plan_title\":null,\"action_type\":\"other\",\"action_title\":null,\"plan_item_id\":null},\"activation_checks\":{\"is_coaching_need\":true,\"is_about_plan_action\":true,\"needs_type_confirmation\":true,\"has_concrete_plan_action\":false,\"is_about_emotional_state\":false,\"is_about_non_plan_action\":false},\"emotional_state_context\":null}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"constraints\":[\"coaching_recommendation_never_executes_tools\",\"recommendation_only\"],\"evidence\":[\"Je change de sujet : question produit seulement\",\"quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?\"]}",
+      "user_words": [
+        "Je change de sujet : question produit seulement, quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?",
+        "Je change de sujet : question produit seulement",
+        "quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?"
+      ],
+      "structured_context": {
+        "user_message_summary": "Question produit autonome sur la carte d'attaque: le user demande si elle modifie le plan ou si elle est séparée.",
+        "active_flow_summary": "coaching_recommendation helps choose a Sophia feature and never executes tools.",
+        "collected_state": {
+          "user_need_summary": "Le user pose une question produit sur la carte d'attaque et ajoute une demande de rappel ponctuel déjà prise en charge par la lane directe.",
+          "candidate_features": [],
+          "current_recommendation": null,
+          "parent_context": null,
+          "dispatcher_signal_context": {
+            "reason": "The user wants immediate movement without changing the plan, which is a plan-linked coaching need.",
+            "confidence": 0.84,
+            "coaching_type": "plan_action",
+            "action_context": {
+              "source": "plan",
+              "plan_id": null,
+              "plan_title": null,
+              "action_type": "other",
+              "action_title": null,
+              "plan_item_id": null
+            },
+            "activation_checks": {
+              "is_coaching_need": true,
+              "is_about_plan_action": true,
+              "needs_type_confirmation": true,
+              "has_concrete_plan_action": false,
+              "is_about_emotional_state": false,
+              "is_about_non_plan_action": false
+            },
+            "emotional_state_context": null
+          }
+        },
+        "unresolved_questions": [],
+        "recommended_next_focus": "global",
+        "constraints": [
+          "coaching_recommendation_never_executes_tools",
+          "recommendation_only"
+        ],
+        "evidence": [
+          "Je change de sujet : question produit seulement",
+          "quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?"
+        ]
+      },
+      "confidence": "high"
+    }
+  },
+  "tool_skill_run": null,
+  "effect_ledger": {
+    "turn_id": "b1ef598e-8e7b-46b0-9168-62b5c67c7aef",
+    "counts": {
+      "requested": 0,
+      "allowed": 0,
+      "blocked": 0,
+      "committed": 0,
+      "failed": 0,
+      "proposed": 0,
+      "delivered": 0,
+      "cancelled": 0,
+      "superseded": 0,
+      "asked": 0,
+      "resolved": 0,
+      "topic_change": 0
+    },
+    "entries": []
+  },
+  "tool_execution": "none",
+  "executed_tools": []
+}

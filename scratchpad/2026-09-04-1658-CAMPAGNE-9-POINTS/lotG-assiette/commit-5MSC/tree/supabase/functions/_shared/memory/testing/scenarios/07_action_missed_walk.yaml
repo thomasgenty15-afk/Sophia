@@ -1,0 +1,60 @@
+{
+  "id": "07_action_missed_walk",
+  "description": "Missed action should become an action observation linked to the current plan action.",
+  "scenario_version": 1,
+  "initial_state": {
+    "topics": [
+      {
+        "slug": "marche_soir",
+        "title": "Marche du soir",
+        "lifecycle_stage": "durable",
+      },
+    ],
+  },
+  "turns": [
+    {
+      "user": "J'ai pas fait ma marche hier soir.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "retrieval_hints": ["dated_reference", "action_related"],
+        "topic_decision": "stay",
+        "created_items": [
+          {
+            "kind": "action_observation",
+            "contains": ["pas fait", "marche"],
+            "domain_keys_any_of": ["habitudes.execution"],
+            "linked_topic_slug": "marche_soir",
+            "linked_action": true,
+          },
+        ],
+      },
+    },
+    {
+      "user": "Je l'ai decalee a ce matin et ca a marche.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "retrieval_hints": ["dated_reference", "action_related"],
+        "topic_decision": "stay",
+        "created_items": [
+          {
+            "kind": "action_observation",
+            "contains": ["decalee", "ce matin", "marche"],
+            "domain_keys_any_of": ["habitudes.reprise_apres_echec"],
+            "linked_topic_slug": "marche_soir",
+            "linked_action": true,
+          },
+        ],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

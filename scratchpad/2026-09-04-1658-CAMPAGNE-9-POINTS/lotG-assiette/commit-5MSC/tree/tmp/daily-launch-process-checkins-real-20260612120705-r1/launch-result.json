@@ -1,0 +1,367 @@
+{
+  "runId": "daily-launch-process-checkins-real-20260612120705-r1",
+  "httpStatus": 200,
+  "processResponse": {
+    "success": true,
+    "processed": 1,
+    "flushed_deferred": 0,
+    "delivered_rendez_vous": 0,
+    "processed_access_notifications": 0,
+    "processed_proactive_candidates": 0,
+    "request_id": "daily-launch-process-checkins-real-20260612120705-r1-process"
+  },
+  "afterCheckin": {
+    "id": "eeb92c72-2cd0-43c9-a8e9-500dea9fc2c9",
+    "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "event_context": "action_evening_review_v2",
+    "draft_message": "Je reviens sur “Faire un sas de décompression (sans fumer)” (les deux occurrences à passer en revue).\nComment ça s’est passé pour toi ?",
+    "scheduled_for": "2026-06-12T12:06:06.179+00:00",
+    "status": "awaiting_user",
+    "created_at": "2026-06-12T12:07:06.321239+00:00",
+    "processed_at": "2026-06-12T12:07:09.752+00:00",
+    "message_mode": "dynamic",
+    "message_payload": {
+      "source": "qa_process_checkins_daily_launch",
+      "version": 2,
+      "weekday": "fri",
+      "timezone": "Europe/Paris",
+      "qa_run_id": "daily-launch-process-checkins-real-20260612120705-r1",
+      "local_date": "2026-06-12",
+      "plan_item_ids": [
+        "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+        "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+      ],
+      "occurrence_ids": [
+        "14fdee14-ccb0-47b9-a5ce-5693a657b97b",
+        "3be65289-e810-4a73-b48a-26e0fc8b45ac"
+      ],
+      "transformations": [
+        {
+          "title": "Faire un sas de décompression (sans fumer)",
+          "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526"
+        },
+        {
+          "title": "Faire un sas de décompression (sans fumer)",
+          "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526"
+        }
+      ],
+      "week_start_date": "2026-06-08",
+      "reviewed_local_date": "2026-06-12",
+      "selected_review_window": "qa_current_open_occurrences",
+      "evening_review_local_time": "20:30"
+    },
+    "origin": "action_review",
+    "delivery_attempt_count": 1,
+    "delivery_last_error": null,
+    "delivery_last_error_at": null,
+    "delivery_last_request_id": "3f7296a4-6212-4b1c-83ce-5eafc37f41ee",
+    "recurring_reminder_id": null
+  },
+  "pendings": [
+    {
+      "id": "4cb2e726-4f00-4c10-96c2-44685ef44e2a",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "kind": "scheduled_checkin",
+      "status": "pending",
+      "scheduled_checkin_id": "eeb92c72-2cd0-43c9-a8e9-500dea9fc2c9",
+      "payload": {
+        "targets": [
+          {
+            "kind": "habit",
+            "title": "Faire un sas de décompression (sans fumer)",
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+            "dimension": "habits",
+            "planned_day": "mon",
+            "time_of_day": "evening",
+            "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+            "occurrence_id": "14fdee14-ccb0-47b9-a5ce-5693a657b97b",
+            "tracking_type": "boolean",
+            "week_start_date": "2026-06-08",
+            "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+            "reviewed_local_date": "2026-06-12",
+            "original_planned_day": null
+          },
+          {
+            "kind": "habit",
+            "title": "Faire un sas de décompression (sans fumer)",
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+            "dimension": "habits",
+            "planned_day": "tue",
+            "time_of_day": "evening",
+            "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+            "occurrence_id": "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+            "tracking_type": "boolean",
+            "week_start_date": "2026-06-08",
+            "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+            "reviewed_local_date": "2026-06-12",
+            "original_planned_day": null
+          }
+        ],
+        "timezone": "Europe/Paris",
+        "local_date": "2026-06-12",
+        "message_mode": "conversation",
+        "review_state": {
+          "items": {
+            "14fdee14-ccb0-47b9-a5ce-5693a657b97b": {
+              "title": "Faire un sas de décompression (sans fumer)",
+              "outcome": null,
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "low",
+              "plan_label": null,
+              "action_type": "habit",
+              "reason_text": null,
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "evidence_text": null,
+              "missing_slots": [
+                "outcome"
+              ],
+              "occurrence_id": "14fdee14-ccb0-47b9-a5ce-5693a657b97b",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            },
+            "3be65289-e810-4a73-b48a-26e0fc8b45ac": {
+              "title": "Faire un sas de décompression (sans fumer)",
+              "outcome": null,
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "low",
+              "plan_label": null,
+              "action_type": "habit",
+              "reason_text": null,
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "evidence_text": null,
+              "missing_slots": [
+                "outcome"
+              ],
+              "occurrence_id": "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            }
+          },
+          "intent": "open_review",
+          "source": "daily_action_review_v1",
+          "status": "collecting",
+          "skill_id": "daily_action_review_v1",
+          "constraints": [
+            "one_question_max",
+            "no_solution_first",
+            "no_tool_suggestion",
+            "no_plan_adjustment",
+            "no_potion",
+            "no_guilt",
+            "respect_user_stopped",
+            "do_not_mark_without_evidence",
+            "do_not_apply_without_complete_slots"
+          ],
+          "effect_plan": {
+            "allowed": false,
+            "effects": []
+          },
+          "stop_reason": null,
+          "next_question": null,
+          "should_apply_effects": false,
+          "next_question_targets": [
+            "14fdee14-ccb0-47b9-a5ce-5693a657b97b",
+            "3be65289-e810-4a73-b48a-26e0fc8b45ac"
+          ],
+          "generated_user_message": null,
+          "remaining_occurrence_ids": [],
+          "asked_occurrence_ids_history": [
+            [
+              "14fdee14-ccb0-47b9-a5ce-5693a657b97b",
+              "3be65289-e810-4a73-b48a-26e0fc8b45ac"
+            ]
+          ],
+          "current_focus_occurrence_ids": [
+            "14fdee14-ccb0-47b9-a5ce-5693a657b97b",
+            "3be65289-e810-4a73-b48a-26e0fc8b45ac"
+          ],
+          "action_intelligence_by_occurrence_id": {}
+        },
+        "draft_message": "Je reviens sur “Faire un sas de décompression (sans fumer)” (les deux occurrences à passer en revue).\nComment ça s’est passé pour toi ?",
+        "event_context": "action_evening_review_v2",
+        "occurrence_ids": [
+          "14fdee14-ccb0-47b9-a5ce-5693a657b97b",
+          "3be65289-e810-4a73-b48a-26e0fc8b45ac"
+        ],
+        "chat_capability": "daily_action_review",
+        "grouping_reason": "priority",
+        "week_start_date": "2026-06-08",
+        "asked_occurrence_ids": [
+          "14fdee14-ccb0-47b9-a5ce-5693a657b97b",
+          "3be65289-e810-4a73-b48a-26e0fc8b45ac"
+        ],
+        "action_evening_review": true,
+        "already_resolved_targets": [],
+        "initial_note_information": {
+          "evidence": [
+            "event_context=action_evening_review_v2",
+            "process-checkins selected and persisted daily review targets"
+          ],
+          "confidence": "high",
+          "risk_score": 0,
+          "source_flow": "process_checkins",
+          "handoff_reason": "bridge",
+          "source_flow_id": "process_checkins.action_evening_review_v2",
+          "collected_state": {
+            "timezone": "Europe/Paris",
+            "local_date": "2026-06-12",
+            "event_context": "action_evening_review_v2",
+            "target_titles": [
+              "Faire un sas de décompression (sans fumer)",
+              "Faire un sas de décompression (sans fumer)"
+            ],
+            "week_start_date": "2026-06-08",
+            "scheduled_checkin_id": "eeb92c72-2cd0-43c9-a8e9-500dea9fc2c9",
+            "target_occurrence_ids": [
+              "14fdee14-ccb0-47b9-a5ce-5693a657b97b",
+              "3be65289-e810-4a73-b48a-26e0fc8b45ac"
+            ],
+            "already_resolved_occurrence_ids": []
+          },
+          "no_chat_mutation": {
+            "db_write_committed": false,
+            "potion_session_created": false,
+            "scheduled_checkin_created": false,
+            "recurring_reminder_created": false,
+            "executable_confirmation_generated": false
+          },
+          "target_dispatcher": "daily_action_review_v1",
+          "structured_context": {
+            "targets": [
+              {
+                "kind": "habit",
+                "title": "Faire un sas de décompression (sans fumer)",
+                "dimension": "habits",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "occurrence_id": "14fdee14-ccb0-47b9-a5ce-5693a657b97b"
+              },
+              {
+                "kind": "habit",
+                "title": "Faire un sas de décompression (sans fumer)",
+                "dimension": "habits",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "occurrence_id": "3be65289-e810-4a73-b48a-26e0fc8b45ac"
+              }
+            ],
+            "source_flow": "process_checkins",
+            "event_context": "action_evening_review_v2",
+            "chat_capability": "daily_action_review",
+            "pending_action_kind": "scheduled_checkin"
+          },
+          "active_flow_summary": "System opened daily review for the selected action targets.",
+          "unresolved_questions": [
+            "Which selected actions were completed, partial, or missed today.",
+            "If partial or missed, the evidence/reason needed by the reducer."
+          ],
+          "user_message_summary": null,
+          "recommended_next_focus": "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+          "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+          "source_flow_state_summary": "Daily action review pending action is active and waiting for the user's outcome evidence.",
+          "target_local_dispatcher_hint": "daily_action_review_v1",
+          "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher."
+        },
+        "not_yet_asked_occurrence_ids": []
+      },
+      "expires_at": "2026-06-13T06:07:09.744+00:00",
+      "created_at": "2026-06-12T12:07:09.746626+00:00",
+      "processed_at": null,
+      "not_before": null
+    }
+  ],
+  "messages": [
+    {
+      "id": "24a57ae6-b100-4585-a036-1c72d48b3719",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "role": "assistant",
+      "content": "Je reviens sur “Faire un sas de décompression (sans fumer)” (les deux occurrences à passer en revue).\nComment ça s’est passé pour toi ?",
+      "scope": "whatsapp",
+      "metadata": {
+        "to": "+33699103022",
+        "source": "scheduled_checkin",
+        "channel": "whatsapp",
+        "purpose": "action_evening_review",
+        "request_id": "3f7296a4-6212-4b1c-83ce-5eafc37f41ee",
+        "is_proactive": false,
+        "event_context": "action_evening_review_v2",
+        "plan_item_ids": [
+          "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+        ],
+        "occurrence_ids": [
+          "14fdee14-ccb0-47b9-a5ce-5693a657b97b",
+          "3be65289-e810-4a73-b48a-26e0fc8b45ac"
+        ],
+        "require_opted_in": true,
+        "whatsapp_buttons": [],
+        "whatsapp_template": null,
+        "simulated_whatsapp": true,
+        "original_checkin_id": "eeb92c72-2cd0-43c9-a8e9-500dea9fc2c9",
+        "outbound_tracking_id": "13be3d11-b128-425f-ac66-ac77446e2a94",
+        "wa_outbound_message_id": "wamid_WEB_SIM_3f7296a4-6212-4b1c-83ce-5eafc37f41ee",
+        "simulation_bypassed_phone": false,
+        "simulation_bypassed_opt_in": null,
+        "already_resolved_occurrence_ids": []
+      },
+      "created_at": "2026-06-12T12:07:09.735919+00:00"
+    }
+  ],
+  "logs": "[Info] [process-checkins] request_id=daily-launch-process-checkins-real-20260612120705-r1-process due_checkins=1\n[Info] {\"tag\":\"openai_http\",\"request_id\":\"daily-launch-process-checkins-real-20260612120705-r1-process\",\"source\":\"scheduled_checkins:dynamic_whatsapp\",\"model\":\"gpt-5.2\",\"status\":200,\"ok\":true,\"duration_ms\":2713,\"timeout_ms\":240000,\"attempt\":1,\"chain_index\":0}\n[Info] {\"tag\":\"openai_result\",\"request_id\":\"daily-launch-process-checkins-real-20260612120705-r1-process\",\"source\":\"scheduled_checkins:dynamic_whatsapp\",\"model\":\"gpt-5.2\",\"json_mode\":false,\"tool_choice\":\"auto\",\"has_tools\":false,\"outcome\":\"text\",\"attempt\":1,\"chain_index\":0}\nserving the request with supabase/functions/whatsapp-send\n",
+  "touched": {
+    "isolatedDueRows": [
+      {
+        "id": "8363fc9a-540b-4756-945b-eafdd7fc0f0f",
+        "original_scheduled_for": "2026-06-08T16:14:17.309+00:00",
+        "isolated_scheduled_for": "2026-06-12T20:07:06.179Z"
+      },
+      {
+        "id": "666976c4-762d-4014-8eb0-c00a6b75f951",
+        "original_scheduled_for": "2026-06-09T20:42:01.669+00:00",
+        "isolated_scheduled_for": "2026-06-12T20:07:07.179Z"
+      }
+    ],
+    "qaCheckinId": "eeb92c72-2cd0-43c9-a8e9-500dea9fc2c9",
+    "qaPhone": "+33699103022"
+  },
+  "targets": [
+    {
+      "id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "week_start_date": "2026-06-08",
+      "planned_day": "mon",
+      "ordinal": 1,
+      "status": "active",
+      "occurrence_id": "14fdee14-ccb0-47b9-a5ce-5693a657b97b",
+      "occurrence_status": "planned",
+      "title": "Faire un sas de décompression (sans fumer)",
+      "dimension": "habits",
+      "kind": "habit"
+    },
+    {
+      "id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "week_start_date": "2026-06-08",
+      "planned_day": "tue",
+      "ordinal": 2,
+      "status": "active",
+      "occurrence_id": "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+      "occurrence_status": "planned",
+      "title": "Faire un sas de décompression (sans fumer)",
+      "dimension": "habits",
+      "kind": "habit"
+    }
+  ],
+  "processStartedAt": "2026-06-12T12:07:06.179Z"
+}

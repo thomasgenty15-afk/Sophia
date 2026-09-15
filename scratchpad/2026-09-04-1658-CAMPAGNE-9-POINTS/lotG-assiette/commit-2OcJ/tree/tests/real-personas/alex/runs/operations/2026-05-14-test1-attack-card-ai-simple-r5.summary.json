@@ -1,0 +1,243 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r5-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'aimerais préparer une carte d'attaque pour m'aider à faire mon sas de déchargement ce soir.",
+    "assistant": "C'est noté pour ton sas de déchargement. Quelle approche préfères-tu : préparer le terrain (setup facile), un texte de recadrage (si tu négocies), ou un mot de bascule (si tu risques d'esquiver) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "structured_ai_missing_technique",
+        "status": "missing",
+        "question": "C'est noté pour ton sas de déchargement. Quelle approche préfères-tu : préparer le terrain (setup facile), un texte de recadrage (si tu négocies), ou un mot de bascule (si tu risques d'esquiver) ?",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "intake_state": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "J'aimerais préparer une carte d'attaque pour m'aider à faire mon sas de déchargement ce soir."
+              ],
+              "confidence": "high",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "blocker": {
+              "type": "avoidance",
+              "evidence": [
+                "m'aider à faire mon sas de déchargement"
+              ],
+              "confidence": 0.7
+            },
+            "skill_id": "prepare_attack_card",
+            "technique": {
+              "value": null,
+              "status": "ambiguous",
+              "options": [
+                {
+                  "title": "Préparer le terrain",
+                  "reason": "Idéal pour s'assurer que le carnet et le stylo sont déjà prêts au bon endroit.",
+                  "example": "Téléphone loin, carnet ouvert sur le bureau avec un stylo.",
+                  "description": "Retirer de la friction avant que le moment d'action arrive.",
+                  "recommended": true,
+                  "technique_key": "preparer_terrain"
+                },
+                {
+                  "title": "Le texte magique",
+                  "reason": "Utile si tu as tendance à te dire 'encore 5 minutes sur mon téléphone' au moment du sas.",
+                  "example": "Un texte de 3 lignes à relire pour stopper la négociation.",
+                  "description": "Faire baisser le combat intérieur quand on commence à négocier.",
+                  "recommended": false,
+                  "technique_key": "texte_recadrage"
+                },
+                {
+                  "title": "Mot de bascule",
+                  "reason": "Efficace si tu sens que tu risques d'esquiver l'habitude au dernier moment.",
+                  "example": "M'envoyer un mot court pour que je reprenne le contexte avec toi.",
+                  "description": "Un mot simple à envoyer quand le moment devient fragile.",
+                  "recommended": false,
+                  "technique_key": "pre_engagement"
+                }
+              ],
+              "evidence": [],
+              "confidence": "low",
+              "fit_warning": null,
+              "explicitly_requested": false
+            },
+            "confidence": "medium",
+            "constraints": [],
+            "current_step": "technique_selection",
+            "missing_slots": [
+              "technique"
+            ],
+            "activation_keyword": {
+              "value": null,
+              "status": "missing",
+              "options": [],
+              "evidence": [],
+              "confidence": "low",
+              "rejected_value": null
+            },
+            "generated_user_message": "C'est noté pour ton sas de déchargement. Quelle approche préfères-tu : préparer le terrain (setup facile), un texte de recadrage (si tu négocies), ou un mot de bascule (si tu risques d'esquiver) ?"
+          },
+          "technique_options": [
+            {
+              "title": "Préparer le terrain",
+              "reason": "Idéal pour s'assurer que le carnet et le stylo sont déjà prêts au bon endroit.",
+              "example": "Téléphone loin, carnet ouvert sur le bureau avec un stylo.",
+              "description": "Retirer de la friction avant que le moment d'action arrive.",
+              "recommended": true,
+              "technique_key": "preparer_terrain"
+            },
+            {
+              "title": "Le texte magique",
+              "reason": "Utile si tu as tendance à te dire 'encore 5 minutes sur mon téléphone' au moment du sas.",
+              "example": "Un texte de 3 lignes à relire pour stopper la négociation.",
+              "description": "Faire baisser le combat intérieur quand on commence à négocier.",
+              "recommended": false,
+              "technique_key": "texte_recadrage"
+            },
+            {
+              "title": "Mot de bascule",
+              "reason": "Efficace si tu sens que tu risques d'esquiver l'habitude au dernier moment.",
+              "example": "M'envoyer un mot court pour que je reprenne le contexte avec toi.",
+              "description": "Un mot simple à envoyer quand le moment devient fragile.",
+              "recommended": false,
+              "technique_key": "pre_engagement"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Préparer le terrain",
+            "reason": "Idéal pour s'assurer que le carnet et le stylo sont déjà prêts au bon endroit.",
+            "example": "Téléphone loin, carnet ouvert sur le bureau avec un stylo.",
+            "description": "Retirer de la friction avant que le moment d'action arrive.",
+            "recommended": true,
+            "technique_key": "preparer_terrain"
+          },
+          {
+            "title": "Le texte magique",
+            "reason": "Utile si tu as tendance à te dire 'encore 5 minutes sur mon téléphone' au moment du sas.",
+            "example": "Un texte de 3 lignes à relire pour stopper la négociation.",
+            "description": "Faire baisser le combat intérieur quand on commence à négocier.",
+            "recommended": false,
+            "technique_key": "texte_recadrage"
+          },
+          {
+            "title": "Mot de bascule",
+            "reason": "Efficace si tu sens que tu risques d'esquiver l'habitude au dernier moment.",
+            "example": "M'envoyer un mot court pour que je reprenne le contexte avec toi.",
+            "description": "Un mot simple à envoyer quand le moment devient fragile.",
+            "recommended": false,
+            "technique_key": "pre_engagement"
+          }
+        ],
+        "activation_keyword_options": []
+      },
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r5-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Texte de recadrage. Le problème c'est que je commence à me raconter que je le ferai plus tard et je finis par scroller.",
+    "assistant": "Voici ta carte d'attaque :\n\n✨ *Le texte magique*\nCible : Faire le sas de déchargement\nTexte : « Le scroll est un piège, le sas est ma liberté. Je ne négocie pas. Je pose le téléphone et je décharge maintenant. »\n\nMode d'emploi : Lis-le dès que tu commences à négocier.\n\nOn valide ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Stop à la négociation",
+          "technique": "texte_recadrage",
+          "instruction": "Relis ce texte dès que tu commences à te dire 'je le ferai plus tard'.",
+          "mode_emploi": "Lis ce texte à voix haute dès que l'envie de scroller arrive, puis pose ton téléphone.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Il court-circuite la rationalisation de la procrastination en rappelant l'objectif immédiat.",
+          "generated_asset": "Le scroll est un piège, le sas est ma liberté. Je ne négocie pas avec mon futur moi. Je pose le téléphone, je prends 2 minutes pour décharger maintenant.",
+          "technique_title": "Le texte magique",
+          "supporting_points": [
+            "Casser le cycle du scroll",
+            "Reprendre le contrôle immédiat",
+            "Éviter la charge mentale accumulée"
+          ],
+          "activation_keyword": null
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ta carte d'attaque :\n\n✨ *Le texte magique*\nCible : Faire le sas de déchargement\nTexte : « Le scroll est un piège, le sas est ma liberté. Je ne négocie pas. Je pose le téléphone et je décharge maintenant. »\n\nMode d'emploi : Lis-le dès que tu commences à négocier.\n\nOn valide ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "5dcd5b3d-d759-418e-980f-575d1864d722",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r5-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, valide et crée-la.",
+    "assistant": "C'est fait. J'ai créé cette carte d'attaque :\n\nStop à la négociation\nTechnique : Le texte magique\nLe scroll est un piège, le sas est ma liberté. Je ne négocie pas avec mon futur moi. Je pose le téléphone, je prends 2 minutes pour décharger maintenant.\n\nMode d'emploi : Lis ce texte à voix haute dès que l'envie de scroller arrive, puis pose ton téléphone.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_attack_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "5dcd5b3d-d759-418e-980f-575d1864d722",
+      "attack_card_id": "57b82ba8-68c9-43b1-876a-db12db6d79a9",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

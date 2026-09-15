@@ -1,0 +1,139 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress2-r4-t01",
+    "user": "Mission ponctuelle : 'ranger tous mes papiers'. Je veux que tu proposes un ajustement plus petit, par exemple 'trier seulement trois documents', et que tu me demandes avant de l'appliquer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r4-t01",
+      "user_id": "9041016b-4a09-4e58-8e35-cddf795cdb67",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress2-r4",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Yes, bonne idée : on passe d’un gros “ranger tout” à un truc faisable maintenant, sans te cramer. 📄🙂\n\nOn peut ajuster en mode micro-mission : “trier seulement trois documents” (tu choisis lesquels : facture / contrat / courrier administratif, par ex.).\n\nAvant de l’appliquer, confirme juste A ou B :\nA) tu mets 3 documents au hasard dans un premier lot\nB) tu me donnes les 3 documents exacts (titres ou type)",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r4-t01",
+        "user_id": "9041016b-4a09-4e58-8e35-cddf795cdb67",
+        "source_message_id": "6539cc83-82c2-4b38-a2c9-c29eea97dda1",
+        "ts": "2026-05-06T14:26:15.01+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 541,
+          "latency_ms": 19578,
+          "tokens_out": 423,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "reasoning": "Nouvelle demande de tâche nécessitant l'activation du skill de planification avec une règle d'ajustement personnalisée.",
+            "target_id": "skill_router"
+          },
+          "signals": [
+            {
+              "type": "intent",
+              "value": "task_creation",
+              "evidence": "L'utilisateur souhaite créer une mission 'ranger tous mes papiers'."
+            },
+            {
+              "type": "logic_preference",
+              "value": "downsizing_request",
+              "evidence": "L'utilisateur demande explicitement de proposer une version réduite de la tâche avant de l'appliquer."
+            }
+          ],
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r4-t01",
+          "user_id": "9041016b-4a09-4e58-8e35-cddf795cdb67",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "entry": {
+              "execution_breakdown": {
+                "reason": "execution_blocked",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "L'utilisateur définit une tâche d'organisation personnelle sans risque de sécurité.",
+            "risk_band": "low"
+          },
+          "operation_intake": {
+            "parameters": {
+              "original_task": "ranger tous mes papiers",
+              "suggested_adjustment": "trier seulement trois documents",
+              "confirmation_required": true
+            },
+            "operation_type": "create_task"
+          },
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Mission ponctuelle : 'ranger tous mes papiers'. Je veux que tu proposes un ajustement plus petit, par exemple 'trier seulement trois documents', et que tu me demandes avant de l'appliquer.",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "6539cc83-82c2-4b38-a2c9-c29eea97dda1",
+          "pending_tool_skill_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "reason_code": "tool_skill_intent_start",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 21391,
+        "created_at": "2026-05-06T14:26:15.014337+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

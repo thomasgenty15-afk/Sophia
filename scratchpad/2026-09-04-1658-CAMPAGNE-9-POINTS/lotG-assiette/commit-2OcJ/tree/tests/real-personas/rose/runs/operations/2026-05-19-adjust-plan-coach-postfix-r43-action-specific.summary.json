@@ -1,0 +1,654 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r43-action-specific-t01",
+    "status": 200,
+    "ok": true,
+    "user": "L'action 'Partager un point positif' me met encore une pression bizarre. Je veux ajuster seulement cette action, pas le niveau : garder l'idée positive, mais que ça devienne un merci très concret au lieu d'un compliment réussi.",
+    "assistant": "Si je comprends bien, tu souhaites ajuster l'action 'Partager un point positif' pour qu'elle devienne un 'merci très concret au lieu d'un compliment réussi', car l'approche actuelle te met une pression bizarre. Je peux te préparer une proposition pour ce changement. Est-ce que c'est bien ça ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de retirer l'habitude du plan.",
+          "Proposer des changements à d'autres actions ou au niveau global du plan.",
+          "Formuler une nouvelle instruction qui pourrait être perçue comme un nouveau 'compliment réussi' déguisé."
+        ],
+        "scope": "action",
+        "preserve": [
+          "L'existence de l'habitude 'Partager un point positif'.",
+          "La fréquence et le moment de l'habitude (3 jours/semaine, soir).",
+          "L'objectif global d'introduire des interactions positives dans le plan.",
+          "Le scope de l'ajustement : uniquement cette action spécifique."
+        ],
+        "warnings": [
+          "Ne pas modifier la fréquence ou le moment de l'habitude, car la demande est explicitement limitée à l'action et non au niveau.",
+          "Ne pas supprimer l'habitude, car l'utilisateur souhaite 'garder l'idée positive'.",
+          "Ne pas introduire de concepts qui s'éloignent de la gratitude ou du remerciement concret."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Guidelines action: Le rôle de l'action est de créer un moment positif. L'intention de cultiver la positivité doit être préservée. Le changement doit être un 'pont mini' pour faciliter l'exécution. Il ne doit pas y avoir de changement de nature de l'action sans demande explicite de l'utilisateur.",
+          "Guidelines niveau: L'utilisateur a explicitement demandé de ne pas toucher au niveau. La charge et le rythme du niveau courant doivent rester stables. Aucune baisse temporaire ou globale du niveau n'est à considérer. Le cœur du niveau doit être préservé.",
+          "Guidelines whole_plan: La trajectoire globale du plan, sa cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire associés doivent être préservés. Le changement doit être localisé et ne pas impacter la stratégie globale."
+        ],
+        "observation": "L'utilisateur exprime une persistance de la pression autour de l'action 'Partager un point positif', malgré les ajustements précédents. La difficulté réside dans la nature de l'expression positive attendue ('compliment réussi'), qui génère une charge mentale. L'intention de base de cultiver le positif est maintenue, mais la forme doit évoluer vers une expression plus simple et moins performative : un 'merci très concret'. Il s'agit d'un affinement du 'pont mini' pour rendre l'action plus accessible et authentique pour l'utilisateur.",
+        "recommendation": "Ajuster l'instruction de l'habitude 'Partager un point positif' pour qu'elle se concentre explicitement sur l'expression d'un 'merci très concret', en lieu et place de la recherche d'un 'point positif' ou d'un 'compliment réussi'. Cela doit réduire la pression tout en préservant l'objectif d'introduire de la positivité.",
+        "options_to_discuss": [
+          "Comment s'assurer que le 'merci très concret' reste simple et ne redevienne pas une source de pression (ex: 'un merci très concret pour une action spécifique, même minime') ?"
+        ],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "action",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "action",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de retirer l'habitude du plan.",
+        "Proposer des changements à d'autres actions ou au niveau global du plan.",
+        "Formuler une nouvelle instruction qui pourrait être perçue comme un nouveau 'compliment réussi' déguisé."
+      ],
+      "scope": "action",
+      "preserve": [
+        "L'existence de l'habitude 'Partager un point positif'.",
+        "La fréquence et le moment de l'habitude (3 jours/semaine, soir).",
+        "L'objectif global d'introduire des interactions positives dans le plan.",
+        "Le scope de l'ajustement : uniquement cette action spécifique."
+      ],
+      "warnings": [
+        "Ne pas modifier la fréquence ou le moment de l'habitude, car la demande est explicitement limitée à l'action et non au niveau.",
+        "Ne pas supprimer l'habitude, car l'utilisateur souhaite 'garder l'idée positive'.",
+        "Ne pas introduire de concepts qui s'éloignent de la gratitude ou du remerciement concret."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Guidelines action: Le rôle de l'action est de créer un moment positif. L'intention de cultiver la positivité doit être préservée. Le changement doit être un 'pont mini' pour faciliter l'exécution. Il ne doit pas y avoir de changement de nature de l'action sans demande explicite de l'utilisateur.",
+        "Guidelines niveau: L'utilisateur a explicitement demandé de ne pas toucher au niveau. La charge et le rythme du niveau courant doivent rester stables. Aucune baisse temporaire ou globale du niveau n'est à considérer. Le cœur du niveau doit être préservé.",
+        "Guidelines whole_plan: La trajectoire globale du plan, sa cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire associés doivent être préservés. Le changement doit être localisé et ne pas impacter la stratégie globale."
+      ],
+      "observation": "L'utilisateur exprime une persistance de la pression autour de l'action 'Partager un point positif', malgré les ajustements précédents. La difficulté réside dans la nature de l'expression positive attendue ('compliment réussi'), qui génère une charge mentale. L'intention de base de cultiver le positif est maintenue, mais la forme doit évoluer vers une expression plus simple et moins performative : un 'merci très concret'. Il s'agit d'un affinement du 'pont mini' pour rendre l'action plus accessible et authentique pour l'utilisateur.",
+      "recommendation": "Ajuster l'instruction de l'habitude 'Partager un point positif' pour qu'elle se concentre explicitement sur l'expression d'un 'merci très concret', en lieu et place de la recherche d'un 'point positif' ou d'un 'compliment réussi'. Cela doit réduire la pression tout en préservant l'objectif d'introduire de la positivité.",
+      "options_to_discuss": [
+        "Comment s'assurer que le 'merci très concret' reste simple et ne redevienne pas une source de pression (ex: 'un merci très concret pour une action spécifique, même minime') ?"
+      ],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r43-action-specific-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r43-action-specific-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prépare le brouillon sans appliquer. Je veux que l'instruction exacte soit : 'dire merci pour un truc concret', et garder 3 jours par semaine.",
+    "assistant": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour qu'elle soit plus simple et moins source de pression. Actuellement, l'instruction est 'écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif'. Je vais la modifier pour qu'elle devienne 'dire merci pour un truc concret'. Ce changement vise à alléger la charge mentale en te permettant de te concentrer sur une gratitude simple et directe, sans la pression de trouver un 'point positif' ou un 'compliment réussi'. La fréquence de cette habitude restera bien de 3 jours par semaine, et aucune autre action de ton plan ne sera modifiée. Qu'en penses-tu ? Rien n'est appliqué tant que tu n'as pas validé. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "difficulty": "medium",
+            "instruction": "dire merci pour un truc concret",
+            "target_reps": 3,
+            "cadence_label": "3 jours / semaine"
+          },
+          "title": "Ajustement - Partager un point positif",
+          "confidence": "high",
+          "ack_summary": {
+            "changed": [
+              "ajustement de \"Partager un point positif\""
+            ],
+            "unchanged": [
+              "le reste du plan n'est pas touché"
+            ],
+            "confidence": "high",
+            "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+            "follow_up_needed": null
+          },
+          "scope_label": "Partager un point positif",
+          "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+          "decision_basis": {
+            "evidence": [
+              "Oui, prépare le brouillon sans appliquer. Je veux que l'instruction exacte soit : 'dire merci pour un truc concret', et garder 3 jours par semaine.",
+              "L'action 'Partager un point positif'",
+              "me met encore une pression bizarre",
+              "Je veux ajuster seulement cette action",
+              "garder l'idée positive, mais que ça devienne un merci très concret au lieu d'un compliment réussi",
+              "me met encore une pression bizarre"
+            ],
+            "confidence": "high",
+            "uncertainty": [],
+            "user_problem": "Partager un point positif bloque parce que l'entree est trop lourde.",
+            "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+            "must_preserve": [
+              "reprendre Partager un point positif apres la version mini"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "ajuster le plan de facon minimale",
+          "change_rationale": {
+            "why_this_change": "Ajuster \"Partager un point positif\" traite le blocage identifié sans changer le reste du plan.",
+            "success_condition": "L'action redevient faisable.",
+            "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+          },
+          "adjust_plan_result": {
+            "scope": "action",
+            "rationale": {
+              "confidence": "high",
+              "missing_info": [],
+              "user_problem": "Partager un point positif bloque parce que l'entree est trop lourde.",
+              "expected_effect": "Le changement réduit la friction locale tout en gardant l'intention. L'action redevient faisable.",
+              "why_this_change": "Ajuster \"Partager un point positif\" traite le blocage identifié sans changer le reste du plan."
+            },
+            "boundaries": {
+              "explanation": "L'ajustement est strictement limité à l'habitude 'Partager un point positif' et n'a aucun impact sur les autres éléments du plan ou sa trajectoire globale.",
+              "affected_scope": "action ciblée uniquement",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "objectif global",
+                "autres actions du plan",
+                "structure complète du plan"
+              ]
+            },
+            "applied_change": {
+              "summary": "L'instruction de l'habitude 'Partager un point positif' a été modifiée pour la rendre plus simple et moins contraignante, en se concentrant sur la gratitude concrète.",
+              "changed_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "after": "dire merci pour un truc concret",
+                  "title": "Partager un point positif",
+                  "before": "écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif",
+                  "reason": "Pour réduire la pression et rendre l'action plus concrète et faisable, en te concentrant sur la gratitude simple.",
+                  "capability": "change_action_frequency"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "La fréquence de 3 jours par semaine est conservée, comme tu l'as demandé, ainsi que son rôle d'introduire de la positivité."
+                },
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Le reste de ton plan",
+                  "reason": "Aucune autre action ou habitude n'est modifiée, et la trajectoire globale de ton plan reste stable."
+                }
+              ]
+            },
+            "user_message_brief": "J'ai une proposition pour alléger l'habitude 'Partager un point positif' en changeant son instruction, tout en gardant sa fréquence de 3 jours par semaine. Qu'en penses-tu ?",
+            "user_message_detailed": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour qu'elle soit plus simple et moins source de pression. Voici ce que je compte changer :\n*   **Action :** 'Partager un point positif'\n    *   **Avant :** L'instruction était 'écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif'.\n    *   **Après :** L'instruction deviendra 'dire merci pour un truc concret'.\n    *   **Pourquoi ça aide :** Ce changement vise à alléger la charge mentale que tu ressens en te permettant de te concentrer sur une gratitude simple et directe, sans la pression de trouver un 'point positif' ou un 'compliment réussi'. L'idée est de rendre cette habitude plus concrète et faisable au quotidien.\n\nCe qui ne bouge pas :\n*   La fréquence de cette habitude restera de 3 jours par semaine, comme tu l'as demandé.\n*   L'objectif global d'introduire des interactions positives dans ton plan est maintenu.\n*   Aucune autre action ou habitude de ton plan ne sera modifiée, et la trajectoire globale de ton plan reste stable.\n\nJe suis confiant que cette modification ciblée t'aidera à retrouver le plaisir de cette habitude sans la pression. Rien n'est appliqué tant que tu n'as pas validé."
+          },
+          "execution_strategy": "patch_existing",
+          "allowed_patch_fields": [
+            "difficulty",
+            "duration_minutes",
+            "instruction",
+            "paused",
+            "target_reps",
+            "cadence_label"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait ! J'ai ajusté l'habitude 'Partager un point positif' comme tu l'as demandé. Désormais, l'instruction est 'dire merci pour un truc concret'. L'objectif est de rendre cette habitude plus légère et plus facile à intégrer dans ton quotidien, en te libérant de la pression de la formulation complexe. La fréquence de 3 jours par semaine est maintenue, et le reste de ton plan reste inchangé. Je suis confiant que cette petite modification t'aidera à retrouver le plaisir de cette habitude positive.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour qu'elle soit plus simple et moins source de pression. Actuellement, l'instruction est 'écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif'. Je vais la modifier pour qu'elle devienne 'dire merci pour un truc concret'. Ce changement vise à alléger la charge mentale en te permettant de te concentrer sur une gratitude simple et directe, sans la pression de trouver un 'point positif' ou un 'compliment réussi'. La fréquence de cette habitude restera bien de 3 jours par semaine, et aucune autre action de ton plan ne sera modifiée. Qu'en penses-tu ? Rien n'est appliqué tant que tu n'as pas validé."
+      },
+      "status": "draft_review",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "610fbcca-e44e-490d-a5de-49f6f7963a91",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de retirer l'habitude du plan.",
+          "Proposer des changements à d'autres actions ou au niveau global du plan.",
+          "Formuler une nouvelle instruction qui pourrait être perçue comme un nouveau 'compliment réussi' déguisé."
+        ],
+        "scope": "action",
+        "preserve": [
+          "L'existence de l'habitude 'Partager un point positif'.",
+          "La fréquence et le moment de l'habitude (3 jours/semaine, soir).",
+          "L'objectif global d'introduire des interactions positives dans le plan.",
+          "Le scope de l'ajustement : uniquement cette action spécifique."
+        ],
+        "warnings": [
+          "Ne pas modifier la fréquence ou le moment de l'habitude, car la demande est explicitement de 'garder 3 jours par semaine', ce qui est déjà le cas.",
+          "Ne pas supprimer l'habitude, car l'utilisateur souhaite 'garder l'idée positive'.",
+          "Ne pas introduire de concepts qui s'éloignent de la gratitude ou du remerciement concret."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Guidelines action: Le rôle de l'action est de créer un moment positif. L'intention de cultiver la positivité doit être préservée. Le changement doit être un 'pont mini' pour faciliter l'exécution. Il ne doit pas y avoir de changement de nature de l'action sans demande explicite de l'utilisateur.",
+          "Guidelines niveau: L'utilisateur a explicitement demandé de ne pas toucher au niveau. La charge et le rythme du niveau courant doivent rester stables. Aucune baisse temporaire ou globale du niveau n'est à considérer. Le cœur du niveau doit être préservé.",
+          "Guidelines whole_plan: La trajectoire globale du plan, sa cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire associés doivent être préservés. Le changement doit être localisé et ne pas impacter la stratégie globale."
+        ],
+        "observation": "L'utilisateur exprime une persistance de la pression autour de l'action 'Partager un point positif', malgré les ajustements précédents. La difficulté réside dans la nature de l'expression positive attendue ('compliment réussi'), qui génère une charge mentale. L'intention de base de cultiver le positif est maintenue, mais la forme doit évoluer vers une expression plus simple et moins performative : un 'merci très concret'. Il s'agit d'un affinement du 'pont mini' pour rendre l'action plus accessible et authentique pour l'utilisateur.",
+        "recommendation": "Ajuster l'instruction de l'habitude 'Partager un point positif' pour qu'elle se concentre explicitement sur l'expression d'un 'merci très concret', en lieu et place de la recherche d'un 'point positif' ou d'un 'compliment réussi'. La fréquence de 3 jours par semaine étant déjà en place, elle doit être maintenue. Cela doit réduire la pression tout en préservant l'objectif d'introduire de la positivité.",
+        "options_to_discuss": [
+          "Comment s'assurer que le 'merci très concret' reste simple et ne redevienne pas une source de pression (ex: 'un merci très concret pour une action spécifique, même minime') ?"
+        ],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "action",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "action",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de retirer l'habitude du plan.",
+        "Proposer des changements à d'autres actions ou au niveau global du plan.",
+        "Formuler une nouvelle instruction qui pourrait être perçue comme un nouveau 'compliment réussi' déguisé."
+      ],
+      "scope": "action",
+      "preserve": [
+        "L'existence de l'habitude 'Partager un point positif'.",
+        "La fréquence et le moment de l'habitude (3 jours/semaine, soir).",
+        "L'objectif global d'introduire des interactions positives dans le plan.",
+        "Le scope de l'ajustement : uniquement cette action spécifique."
+      ],
+      "warnings": [
+        "Ne pas modifier la fréquence ou le moment de l'habitude, car la demande est explicitement de 'garder 3 jours par semaine', ce qui est déjà le cas.",
+        "Ne pas supprimer l'habitude, car l'utilisateur souhaite 'garder l'idée positive'.",
+        "Ne pas introduire de concepts qui s'éloignent de la gratitude ou du remerciement concret."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Guidelines action: Le rôle de l'action est de créer un moment positif. L'intention de cultiver la positivité doit être préservée. Le changement doit être un 'pont mini' pour faciliter l'exécution. Il ne doit pas y avoir de changement de nature de l'action sans demande explicite de l'utilisateur.",
+        "Guidelines niveau: L'utilisateur a explicitement demandé de ne pas toucher au niveau. La charge et le rythme du niveau courant doivent rester stables. Aucune baisse temporaire ou globale du niveau n'est à considérer. Le cœur du niveau doit être préservé.",
+        "Guidelines whole_plan: La trajectoire globale du plan, sa cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire associés doivent être préservés. Le changement doit être localisé et ne pas impacter la stratégie globale."
+      ],
+      "observation": "L'utilisateur exprime une persistance de la pression autour de l'action 'Partager un point positif', malgré les ajustements précédents. La difficulté réside dans la nature de l'expression positive attendue ('compliment réussi'), qui génère une charge mentale. L'intention de base de cultiver le positif est maintenue, mais la forme doit évoluer vers une expression plus simple et moins performative : un 'merci très concret'. Il s'agit d'un affinement du 'pont mini' pour rendre l'action plus accessible et authentique pour l'utilisateur.",
+      "recommendation": "Ajuster l'instruction de l'habitude 'Partager un point positif' pour qu'elle se concentre explicitement sur l'expression d'un 'merci très concret', en lieu et place de la recherche d'un 'point positif' ou d'un 'compliment réussi'. La fréquence de 3 jours par semaine étant déjà en place, elle doit être maintenue. Cela doit réduire la pression tout en préservant l'objectif d'introduire de la positivité.",
+      "options_to_discuss": [
+        "Comment s'assurer que le 'merci très concret' reste simple et ne redevienne pas une source de pression (ex: 'un merci très concret pour une action spécifique, même minime') ?"
+      ],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r43-action-specific-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r43-action-specific-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Ça me va, mais je veux être sûre que ce n'est pas interprété comme un allègement du niveau. On garde vraiment juste cette action, même fréquence, le reste intact ?",
+    "assistant": "Je n'ai encore rien appliqué. Le brouillon actuel prévoit:\n\n1. Partager un point positif: avant, écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif; maintenant, dire merci pour un truc concret. Pourquoi: Pour réduire la pression et rendre l'action plus concrète et faisable, en te concentrant sur la gratitude simple.\n\nCe qui reste inchangé:\n- Partager un point positif: La fréquence de 3 jours par semaine est conservée, comme tu l'as demandé, ainsi que son rôle d'introduire de la positivité.\n- Le reste de ton plan: Aucune autre action ou habitude n'est modifiée, et la trajectoire globale de ton plan reste stable.\n\nSi ça te va, dis-moi clairement de l'appliquer. Sinon, dis-moi ce que tu veux modifier dans ce brouillon. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "draft_review_details",
+      "reason_code": "normal_reply_default",
+      "operation_id": "610fbcca-e44e-490d-a5de-49f6f7963a91",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer un allègement général du niveau.",
+          "Suggérer de modifier d'autres actions.",
+          "Utiliser des termes ambigus sur la portée du changement."
+        ],
+        "scope": "action",
+        "preserve": [
+          "L'instruction 'dire merci pour un truc concret' pour l'action 'Partager un point positif'.",
+          "La fréquence de 3 jours par semaine pour cette action.",
+          "Le fait que seule cette action est modifiée.",
+          "L'intégrité et la charge du niveau actuel.",
+          "L'ensemble des autres actions et missions du plan.",
+          "L'objectif global d'introduire de la positivité via cette action."
+        ],
+        "warnings": [
+          "Ne pas utiliser de formulation qui pourrait laisser entendre une baisse de la charge globale du plan ou du niveau.",
+          "Ne pas introduire de nouvelles propositions ou de modifications au-delà de ce qui a été explicitement demandé et validé (l'instruction de l'action et le maintien de la fréquence)."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Guidelines action: Le rôle de l'action est de créer un moment positif. L'intention de cultiver la positivité doit être préservée. Le changement doit être un 'pont mini' pour faciliter l'exécution. Il ne doit pas y avoir de changement de nature de l'action sans demande explicite de l'utilisateur.",
+          "Guidelines niveau: L'utilisateur a explicitement demandé de ne pas toucher au niveau. La charge et le rythme du niveau courant doivent rester stables. Aucune baisse temporaire ou globale du niveau n'est à considérer. Le cœur du niveau doit être préservé.",
+          "Guidelines whole_plan: La trajectoire globale du plan, sa cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire associés doivent être préservés. Le changement doit être localisé et ne pas impacter la stratégie globale."
+        ],
+        "observation": "L'utilisateur valide la proposition d'ajustement de l'action, mais exprime une inquiétude quant à l'interprétation de ce changement comme un 'allègement du niveau' global. Il cherche une confirmation explicite que le changement est strictement limité à l'action concernée, que la fréquence est maintenue, et que le reste du plan reste intact. Il s'agit d'une demande de réassurance sur les limites du scope de l'ajustement.",
+        "recommendation": "Le sous-skill doit réaffirmer avec force et clarté que l'ajustement est chirurgical : il ne concerne que l'instruction de l'action 'Partager un point positif', que sa fréquence est maintenue à 3 jours par semaine, et qu'il n'y a absolument aucun impact sur le niveau global du plan ou sur les autres actions. L'objectif est de lever toute ambiguïté sur la portée du changement.",
+        "options_to_discuss": [],
+        "questions_to_clarify": []
+      },
+      "draft_review_decision": {
+        "decision": "explain",
+        "evidence": [
+          "je veux être sûre que ce n'est pas interprété comme un allègement du niveau",
+          "On garde vraiment juste cette action, même fréquence, le reste intact ?"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "coaching_guidance_audit": {
+        "scope": "action",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "action",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer un allègement général du niveau.",
+        "Suggérer de modifier d'autres actions.",
+        "Utiliser des termes ambigus sur la portée du changement."
+      ],
+      "scope": "action",
+      "preserve": [
+        "L'instruction 'dire merci pour un truc concret' pour l'action 'Partager un point positif'.",
+        "La fréquence de 3 jours par semaine pour cette action.",
+        "Le fait que seule cette action est modifiée.",
+        "L'intégrité et la charge du niveau actuel.",
+        "L'ensemble des autres actions et missions du plan.",
+        "L'objectif global d'introduire de la positivité via cette action."
+      ],
+      "warnings": [
+        "Ne pas utiliser de formulation qui pourrait laisser entendre une baisse de la charge globale du plan ou du niveau.",
+        "Ne pas introduire de nouvelles propositions ou de modifications au-delà de ce qui a été explicitement demandé et validé (l'instruction de l'action et le maintien de la fréquence)."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Guidelines action: Le rôle de l'action est de créer un moment positif. L'intention de cultiver la positivité doit être préservée. Le changement doit être un 'pont mini' pour faciliter l'exécution. Il ne doit pas y avoir de changement de nature de l'action sans demande explicite de l'utilisateur.",
+        "Guidelines niveau: L'utilisateur a explicitement demandé de ne pas toucher au niveau. La charge et le rythme du niveau courant doivent rester stables. Aucune baisse temporaire ou globale du niveau n'est à considérer. Le cœur du niveau doit être préservé.",
+        "Guidelines whole_plan: La trajectoire globale du plan, sa cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire associés doivent être préservés. Le changement doit être localisé et ne pas impacter la stratégie globale."
+      ],
+      "observation": "L'utilisateur valide la proposition d'ajustement de l'action, mais exprime une inquiétude quant à l'interprétation de ce changement comme un 'allègement du niveau' global. Il cherche une confirmation explicite que le changement est strictement limité à l'action concernée, que la fréquence est maintenue, et que le reste du plan reste intact. Il s'agit d'une demande de réassurance sur les limites du scope de l'ajustement.",
+      "recommendation": "Le sous-skill doit réaffirmer avec force et clarté que l'ajustement est chirurgical : il ne concerne que l'instruction de l'action 'Partager un point positif', que sa fréquence est maintenue à 3 jours par semaine, et qu'il n'y a absolument aucun impact sur le niveau global du plan ou sur les autres actions. L'objectif est de lever toute ambiguïté sur la portée du changement.",
+      "options_to_discuss": [],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r43-action-specific-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r43-action-specific-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, applique ce brouillon exactement : seulement 'Partager un point positif', instruction 'dire merci pour un truc concret', fréquence 3 jours, rien d'autre.",
+    "assistant": "C'est fait ! J'ai ajusté l'habitude 'Partager un point positif' comme tu l'as demandé. Désormais, l'instruction est 'dire merci pour un truc concret'. L'objectif est de rendre cette habitude plus légère et plus facile à intégrer dans ton quotidien, en te libérant de la pression de la formulation complexe. La fréquence de 3 jours par semaine est maintenue, et le reste de ton plan reste inchangé. Je suis confiant que cette petite modification t'aidera à retrouver le plaisir de cette habitude positive. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "executed",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "610fbcca-e44e-490d-a5de-49f6f7963a91",
+      "plan_patch_id": "ee153acc-83bb-4f51-aa58-abbebb9ffeb5",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de retirer l'habitude du plan.",
+          "Proposer des changements à d'autres actions ou au niveau global du plan.",
+          "Formuler une nouvelle instruction qui pourrait être perçue comme un nouveau 'compliment réussi' déguisé."
+        ],
+        "scope": "action",
+        "preserve": [
+          "L'existence de l'habitude 'Partager un point positif'.",
+          "La fréquence et le moment de l'habitude (3 jours/semaine, soir).",
+          "L'objectif global d'introduire des interactions positives dans le plan.",
+          "Le scope de l'ajustement : uniquement cette action spécifique."
+        ],
+        "warnings": [
+          "Ne pas modifier la fréquence ou le moment de l'habitude, car la demande est explicitement de 'garder 3 jours par semaine', ce qui est déjà le cas.",
+          "Ne pas supprimer l'habitude, car l'utilisateur souhaite 'garder l'idée positive'.",
+          "Ne pas introduire de concepts qui s'éloignent de la gratitude ou du remerciement concret."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Guidelines action: Le rôle de l'action est de créer un moment positif. L'intention de cultiver la positivité doit être préservée. Le changement doit être un 'pont mini' pour faciliter l'exécution. Il ne doit pas y avoir de changement de nature de l'action sans demande explicite de l'utilisateur.",
+          "Guidelines niveau: L'utilisateur a explicitement demandé de ne pas toucher au niveau. La charge et le rythme du niveau courant doivent rester stables. Aucune baisse temporaire ou globale du niveau n'est à considérer. Le cœur du niveau doit être préservé.",
+          "Guidelines whole_plan: La trajectoire globale du plan, sa cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire associés doivent être préservés. Le changement doit être localisé et ne pas impacter la stratégie globale."
+        ],
+        "observation": "L'utilisateur exprime une persistance de la pression autour de l'action 'Partager un point positif', malgré les ajustements précédents. La difficulté réside dans la nature de l'expression positive attendue ('compliment réussi'), qui génère une charge mentale. L'intention de base de cultiver le positif est maintenue, mais la forme doit évoluer vers une expression plus simple et moins performative : un 'merci très concret'. Il s'agit d'un affinement du 'pont mini' pour rendre l'action plus accessible et authentique pour l'utilisateur.",
+        "recommendation": "Ajuster l'instruction de l'habitude 'Partager un point positif' pour qu'elle se concentre explicitement sur l'expression d'un 'merci très concret', en lieu et place de la recherche d'un 'point positif' ou d'un 'compliment réussi'. La fréquence de 3 jours par semaine étant déjà en place, elle doit être maintenue. Cela doit réduire la pression tout en préservant l'objectif d'introduire de la positivité.",
+        "options_to_discuss": [
+          "Comment s'assurer que le 'merci très concret' reste simple et ne redevienne pas une source de pression (ex: 'un merci très concret pour une action spécifique, même minime') ?"
+        ],
+        "questions_to_clarify": []
+      },
+      "bridge_plan_item_id": null,
+      "coaching_guidance_audit": {
+        "scope": "action",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "action",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de retirer l'habitude du plan.",
+        "Proposer des changements à d'autres actions ou au niveau global du plan.",
+        "Formuler une nouvelle instruction qui pourrait être perçue comme un nouveau 'compliment réussi' déguisé."
+      ],
+      "scope": "action",
+      "preserve": [
+        "L'existence de l'habitude 'Partager un point positif'.",
+        "La fréquence et le moment de l'habitude (3 jours/semaine, soir).",
+        "L'objectif global d'introduire des interactions positives dans le plan.",
+        "Le scope de l'ajustement : uniquement cette action spécifique."
+      ],
+      "warnings": [
+        "Ne pas modifier la fréquence ou le moment de l'habitude, car la demande est explicitement de 'garder 3 jours par semaine', ce qui est déjà le cas.",
+        "Ne pas supprimer l'habitude, car l'utilisateur souhaite 'garder l'idée positive'.",
+        "Ne pas introduire de concepts qui s'éloignent de la gratitude ou du remerciement concret."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Guidelines action: Le rôle de l'action est de créer un moment positif. L'intention de cultiver la positivité doit être préservée. Le changement doit être un 'pont mini' pour faciliter l'exécution. Il ne doit pas y avoir de changement de nature de l'action sans demande explicite de l'utilisateur.",
+        "Guidelines niveau: L'utilisateur a explicitement demandé de ne pas toucher au niveau. La charge et le rythme du niveau courant doivent rester stables. Aucune baisse temporaire ou globale du niveau n'est à considérer. Le cœur du niveau doit être préservé.",
+        "Guidelines whole_plan: La trajectoire globale du plan, sa cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire associés doivent être préservés. Le changement doit être localisé et ne pas impacter la stratégie globale."
+      ],
+      "observation": "L'utilisateur exprime une persistance de la pression autour de l'action 'Partager un point positif', malgré les ajustements précédents. La difficulté réside dans la nature de l'expression positive attendue ('compliment réussi'), qui génère une charge mentale. L'intention de base de cultiver le positif est maintenue, mais la forme doit évoluer vers une expression plus simple et moins performative : un 'merci très concret'. Il s'agit d'un affinement du 'pont mini' pour rendre l'action plus accessible et authentique pour l'utilisateur.",
+      "recommendation": "Ajuster l'instruction de l'habitude 'Partager un point positif' pour qu'elle se concentre explicitement sur l'expression d'un 'merci très concret', en lieu et place de la recherche d'un 'point positif' ou d'un 'compliment réussi'. La fréquence de 3 jours par semaine étant déjà en place, elle doit être maintenue. Cela doit réduire la pression tout en préservant l'objectif d'introduire de la positivité.",
+      "options_to_discuss": [
+        "Comment s'assurer que le 'merci très concret' reste simple et ne redevienne pas une source de pression (ex: 'un merci très concret pour une action spécifique, même minime') ?"
+      ],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r43-action-specific-t04",
+    "trace_error": null
+  }
+]

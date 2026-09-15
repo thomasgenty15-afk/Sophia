@@ -1,0 +1,1818 @@
+{
+  "runId": "2026-06-08-product-help-local-real-r1",
+  "persona": "alex",
+  "email": "alex12@gmail.com",
+  "userId": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "scope": "qa-product-help-local-2026-06-08-product-help-local-real-r1",
+  "history": [
+    {
+      "role": "user",
+      "content": "J'ai vu la mention carte d'attaque dans Sophia, concrètement ça sert à quoi ?"
+    },
+    {
+      "role": "assistant",
+      "content": "Cherches-tu à comprendre à quoi sert une carte d'attaque ou veux-tu en préparer une pour ton action ? 🙂"
+    },
+    {
+      "role": "user",
+      "content": "Juste comprendre pour l'instant, pas en préparer une."
+    },
+    {
+      "role": "assistant",
+      "content": "C'est un outil pour t'aider à démarrer quand tu bloques sur une tâche. Concrètement, une carte d'attaque transforme une action qui te semble lourde ou intimidante en une version 'minimale' et très concrète. Le but est de réduire la friction au maximum pour que tu puisses enfin te lancer sans trop d'effort. 🙂"
+    },
+    {
+      "role": "user",
+      "content": "Et si j'en ai une, je la retrouve où dans l'app ?"
+    },
+    {
+      "role": "assistant",
+      "content": "An invalid response was received from the upstream server"
+    }
+  ],
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-2026-06-08-product-help-local-real-r1-t01",
+      "user": "J'ai vu la mention carte d'attaque dans Sophia, concrètement ça sert à quoi ?",
+      "assistant": "Cherches-tu à comprendre à quoi sert une carte d'attaque ou veux-tu en préparer une pour ton action ? 🙂",
+      "http_status": 200,
+      "ok": true,
+      "raw_body": {
+        "ok": true,
+        "request_id": "qa-2026-06-08-product-help-local-real-r1-t01",
+        "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+        "channel": "web",
+        "scope": "qa-product-help-local-2026-06-08-product-help-local-real-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Cherches-tu à comprendre à quoi sert une carte d'attaque ou veux-tu en préparer une pour ton action ? 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-2026-06-08-product-help-local-real-r1-t01",
+              "source_message_id": "ff764fdf-92f7-4872-8570-2e3defd02a3a",
+              "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "detected": false,
+                    "weight": 3.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "detected": false,
+                    "weight": 2.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "detected": false,
+                    "weight": 2,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "detected": false,
+                    "weight": 1.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "detected": false,
+                    "weight": 0.7,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "detected": false,
+                    "weight": 1,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "detected": false,
+                    "weight": 10,
+                    "contribution": 0,
+                    "evidence": null
+                  }
+                ],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "confidence_band": "low",
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {
+                  "product_help": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "user_asks_definition_and_utility_of_a_specific_surface"
+                  }
+                },
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "orientation_clarification",
+              "selected_handler": "orientation_clarification",
+              "blocked_paths": [
+                {
+                  "path": "tool_skill_router",
+                  "reason_code": "clarification_required"
+                },
+                {
+                  "path": "product_help",
+                  "reason_code": "clarification_required"
+                },
+                {
+                  "path": "operation_runtime_pipeline",
+                  "reason_code": "clarification_required"
+                },
+                {
+                  "path": "direct_effects",
+                  "reason_code": "clarification_required"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "clarification_required",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "turn_agenda_summary": {
+              "task_count": 1,
+              "owners": [
+                "dispatcher"
+              ],
+              "operation_types": [],
+              "constraints": {},
+              "tasks": [
+                {
+                  "task_id": "clarification:dispatcher",
+                  "kind": "clarification",
+                  "owner": "dispatcher",
+                  "operation_type": null,
+                  "intent": "clarify",
+                  "source": "dispatcher",
+                  "status": "asked",
+                  "reason_code": "clarification_required"
+                }
+              ]
+            },
+            "effect_ledger": {
+              "turn_id": "qa-2026-06-08-product-help-local-real-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 1,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "qa-2026-06-08-product-help-local-real-r1-t01:agenda:asked:clarification:dispatcher",
+                  "kind": "clarification",
+                  "effect_type": "clarification.intent",
+                  "operation_type": null,
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "dispatcher",
+                  "status": "asked",
+                  "reason_code": "clarification_required",
+                  "source": "dispatcher",
+                  "payload_summary": {
+                    "task_id": "clarification:dispatcher",
+                    "source": "dispatcher",
+                    "evidence": [
+                      "product_help",
+                      "prepare_attack_card"
+                    ]
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": null,
+                  "no_chat_mutation": true,
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": "dispatcher",
+                  "ambiguity_kind": "intent",
+                  "candidate_ids": [
+                    "product_help",
+                    "prepare_attack_card"
+                  ],
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "orientation_clarification"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-2026-06-08-product-help-local-real-r1-t01",
+            "source_message_id": "ff764fdf-92f7-4872-8570-2e3defd02a3a",
+            "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_asks_definition_and_utility_of_a_specific_surface"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "orientation_clarification",
+            "selected_handler": "orientation_clarification",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_router",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "product_help",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "operation_runtime_pipeline",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "direct_effects",
+                "reason_code": "clarification_required"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "clarification_required",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "dispatcher"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "clarification:dispatcher",
+                "kind": "clarification",
+                "owner": "dispatcher",
+                "operation_type": null,
+                "intent": "clarify",
+                "source": "dispatcher",
+                "status": "asked",
+                "reason_code": "clarification_required"
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-2026-06-08-product-help-local-real-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 1,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-2026-06-08-product-help-local-real-r1-t01:agenda:asked:clarification:dispatcher",
+                "kind": "clarification",
+                "effect_type": "clarification.intent",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "dispatcher",
+                "status": "asked",
+                "reason_code": "clarification_required",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "clarification:dispatcher",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "product_help",
+                    "prepare_attack_card"
+                  ]
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": "dispatcher",
+                "ambiguity_kind": "intent",
+                "candidate_ids": [
+                  "product_help",
+                  "prepare_attack_card"
+                ],
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "orientation_clarification"
+        },
+        "trace_error": null
+      },
+      "trace": {
+        "turn_frame": {
+          "turn_id": "qa-2026-06-08-product-help-local-real-r1-t01",
+          "source_message_id": "ff764fdf-92f7-4872-8570-2e3defd02a3a",
+          "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": null
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_asks_definition_and_utility_of_a_specific_surface"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "orientation_clarification",
+          "selected_handler": "orientation_clarification",
+          "blocked_paths": [
+            {
+              "path": "tool_skill_router",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "product_help",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "operation_runtime_pipeline",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "direct_effects",
+              "reason_code": "clarification_required"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "clarification_required",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "dispatcher"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "clarification:dispatcher",
+              "kind": "clarification",
+              "owner": "dispatcher",
+              "operation_type": null,
+              "intent": "clarify",
+              "source": "dispatcher",
+              "status": "asked",
+              "reason_code": "clarification_required"
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-2026-06-08-product-help-local-real-r1-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 1,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-2026-06-08-product-help-local-real-r1-t01:agenda:asked:clarification:dispatcher",
+              "kind": "clarification",
+              "effect_type": "clarification.intent",
+              "operation_type": null,
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "dispatcher",
+              "status": "asked",
+              "reason_code": "clarification_required",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "clarification:dispatcher",
+                "source": "dispatcher",
+                "evidence": [
+                  "product_help",
+                  "prepare_attack_card"
+                ]
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": "dispatcher",
+              "ambiguity_kind": "intent",
+              "candidate_ids": [
+                "product_help",
+                "prepare_attack_card"
+              ],
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "orientation_clarification"
+      },
+      "short_trace": {
+        "http_status": 200,
+        "response_owner": "orientation_clarification",
+        "selected_handler": "orientation_clarification",
+        "route_reason": "clarification_required",
+        "safety": "low",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        },
+        "executed_tools": [],
+        "durable_effect": [],
+        "skill_run_id": null,
+        "skill_status": null,
+        "skill_intent": null,
+        "product_flow_action": null,
+        "product_visible_task": null,
+        "product_mode": null,
+        "product_return_to_parent": null,
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "request_id": "qa-2026-06-08-product-help-local-real-r1-t02",
+      "user": "Juste comprendre pour l'instant, pas en préparer une.",
+      "assistant": "C'est un outil pour t'aider à démarrer quand tu bloques sur une tâche. Concrètement, une carte d'attaque transforme une action qui te semble lourde ou intimidante en une version 'minimale' et très concrète. Le but est de réduire la friction au maximum pour que tu puisses enfin te lancer sans trop d'effort. 🙂",
+      "http_status": 200,
+      "ok": true,
+      "raw_body": {
+        "ok": true,
+        "request_id": "qa-2026-06-08-product-help-local-real-r1-t02",
+        "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+        "channel": "web",
+        "scope": "qa-product-help-local-2026-06-08-product-help-local-real-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est un outil pour t'aider à démarrer quand tu bloques sur une tâche. Concrètement, une carte d'attaque transforme une action qui te semble lourde ou intimidante en une version 'minimale' et très concrète. Le but est de réduire la friction au maximum pour que tu puisses enfin te lancer sans trop d'effort. 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-2026-06-08-product-help-local-real-r1-t02",
+              "source_message_id": "0f3ba17a-87a2-495b-aa45-f1dfd3cb6e76",
+              "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "detected": false,
+                    "weight": 3.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "detected": false,
+                    "weight": 2.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "detected": false,
+                    "weight": 2,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "detected": false,
+                    "weight": 1.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "detected": false,
+                    "weight": 0.7,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "detected": false,
+                    "weight": 1,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "detected": false,
+                    "weight": 10,
+                    "contribution": 0,
+                    "evidence": "0;decay=0.55;recovery=0"
+                  }
+                ],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "confidence_band": "low",
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {
+                  "product_help": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "user_explicitly_asks_to_understand_feature_without_creating"
+                  }
+                },
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "blocked_paths": [
+                {
+                  "path": "tool_skill_router",
+                  "reason_code": "orientation_clarification_resolved_conversation_skill"
+                },
+                {
+                  "path": "direct_effects",
+                  "reason_code": "orientation_clarification_resolved_conversation_skill"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "orientation_clarification_resolved_conversation_skill",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "selected_handler": "product_help"
+            },
+            "turn_agenda_summary": {
+              "task_count": 1,
+              "owners": [
+                "product_help"
+              ],
+              "operation_types": [],
+              "constraints": {},
+              "tasks": [
+                {
+                  "task_id": "reply:fallback",
+                  "kind": "reply",
+                  "owner": "product_help",
+                  "operation_type": null,
+                  "intent": "reply",
+                  "source": "route_decision",
+                  "status": "pending",
+                  "reason_code": "orientation_clarification_resolved_conversation_skill"
+                }
+              ]
+            },
+            "skill_run": {
+              "selected_skill_id": "product_help",
+              "reason_code": "orientation_clarification_resolved_conversation_skill",
+              "output": {
+                "skill_id": "product_help",
+                "status": "continue",
+                "response_intent": "explain_feature",
+                "memory_trace": {
+                  "memory_used_for_response": false,
+                  "memory_item_ids_used": [],
+                  "correction_detected": false,
+                  "correction_target_item_ids": []
+                },
+                "reply": "C'est un outil pour t'aider à démarrer quand tu bloques sur une tâche. Concrètement, une carte d'attaque transforme une action qui te semble lourde ou intimidante en une version 'minimale' et très concrète. Le but est de réduire la friction au maximum pour que tu puisses enfin te lancer sans trop d'effort.",
+                "diagnosis": {
+                  "local_flow": true,
+                  "flow_action": "answer_product_question",
+                  "mode": "standalone",
+                  "target": {
+                    "kind": "feature_catalog",
+                    "feature_id": "attack_card",
+                    "object_type": "attack_card",
+                    "object_ref": null,
+                    "confidence": "high"
+                  },
+                  "grounding": {
+                    "catalog_feature_ids": [
+                      "attack_card"
+                    ],
+                    "surface_ids": [
+                      "attack_card"
+                    ],
+                    "db_sources_required": false,
+                    "db_sources_used": [],
+                    "active_flow_used": false,
+                    "missing_grounding_reason": null
+                  },
+                  "bridge": {
+                    "needed": true,
+                    "operation_type": "prepare_attack_card",
+                    "kind": "explain_only",
+                    "executable": false,
+                    "why": "L'utilisateur a explicitement décliné la proposition de préparation pour se concentrer sur la compréhension."
+                  },
+                  "visible_task": "answer_product_question",
+                  "return_to_parent_flow": false,
+                  "reason_code": "product_help_local_answer_product_question",
+                  "evidence": [
+                    "User message: 'Juste comprendre pour l'instant, pas en préparer une.'",
+                    "Previous assistant turn offered to explain or prepare.",
+                    "Target feature identified as attack_card from registry."
+                  ]
+                },
+                "recommendation_need": {
+                  "needed": false,
+                  "type": "none",
+                  "urgency": "none",
+                  "constraints": [
+                    "product_help_does_not_execute_operations",
+                    "operation_suggestions_always_empty",
+                    "requested_allowed_committed_effects_empty"
+                  ]
+                },
+                "operation_suggestions": [],
+                "memory_write_candidates": [],
+                "effects": {
+                  "requested": [],
+                  "allowed": [],
+                  "blocked": [],
+                  "committed": []
+                },
+                "state_patch": {
+                  "product_help_local_state": {
+                    "skill_id": "product_help",
+                    "status": "answered",
+                    "mode": "standalone",
+                    "product_help_state": {
+                      "stage": "answering",
+                      "last_intent": "explain_feature",
+                      "last_target": {
+                        "kind": "feature_catalog",
+                        "feature_id": "attack_card",
+                        "object_type": "attack_card",
+                        "object_ref": null,
+                        "confidence": "high"
+                      },
+                      "last_answer_summary": "L'utilisateur souhaite comprendre l'utilité d'une carte d'attaque sans en créer une pour le moment.",
+                      "last_catalog_feature_ids": [
+                        "attack_card"
+                      ],
+                      "last_locations": [
+                        "Dashboard > Plan"
+                      ],
+                      "parent_flow_context": null,
+                      "turn_count": 1,
+                      "max_turns": 3,
+                      "updated_at": "2026-06-08T15:51:05.208Z"
+                    }
+                  },
+                  "product_help_subskill_trace": null,
+                  "summary": "L'utilisateur souhaite comprendre l'utilité d'une carte d'attaque sans en créer une pour le moment."
+                }
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-2026-06-08-product-help-local-real-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "product_help"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-2026-06-08-product-help-local-real-r1-t02",
+            "source_message_id": "0f3ba17a-87a2-495b-aa45-f1dfd3cb6e76",
+            "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_explicitly_asks_to_understand_feature_without_creating"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_router",
+                "reason_code": "orientation_clarification_resolved_conversation_skill"
+              },
+              {
+                "path": "direct_effects",
+                "reason_code": "orientation_clarification_resolved_conversation_skill"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "orientation_clarification_resolved_conversation_skill",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "product_help"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "product_help"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "product_help",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "orientation_clarification_resolved_conversation_skill"
+              }
+            ]
+          },
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "orientation_clarification_resolved_conversation_skill",
+            "output": {
+              "skill_id": "product_help",
+              "status": "continue",
+              "response_intent": "explain_feature",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "C'est un outil pour t'aider à démarrer quand tu bloques sur une tâche. Concrètement, une carte d'attaque transforme une action qui te semble lourde ou intimidante en une version 'minimale' et très concrète. Le but est de réduire la friction au maximum pour que tu puisses enfin te lancer sans trop d'effort.",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "answer_product_question",
+                "mode": "standalone",
+                "target": {
+                  "kind": "feature_catalog",
+                  "feature_id": "attack_card",
+                  "object_type": "attack_card",
+                  "object_ref": null,
+                  "confidence": "high"
+                },
+                "grounding": {
+                  "catalog_feature_ids": [
+                    "attack_card"
+                  ],
+                  "surface_ids": [
+                    "attack_card"
+                  ],
+                  "db_sources_required": false,
+                  "db_sources_used": [],
+                  "active_flow_used": false,
+                  "missing_grounding_reason": null
+                },
+                "bridge": {
+                  "needed": true,
+                  "operation_type": "prepare_attack_card",
+                  "kind": "explain_only",
+                  "executable": false,
+                  "why": "L'utilisateur a explicitement décliné la proposition de préparation pour se concentrer sur la compréhension."
+                },
+                "visible_task": "answer_product_question",
+                "return_to_parent_flow": false,
+                "reason_code": "product_help_local_answer_product_question",
+                "evidence": [
+                  "User message: 'Juste comprendre pour l'instant, pas en préparer une.'",
+                  "Previous assistant turn offered to explain or prepare.",
+                  "Target feature identified as attack_card from registry."
+                ]
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "product_help_does_not_execute_operations",
+                  "operation_suggestions_always_empty",
+                  "requested_allowed_committed_effects_empty"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "product_help_local_state": {
+                  "skill_id": "product_help",
+                  "status": "answered",
+                  "mode": "standalone",
+                  "product_help_state": {
+                    "stage": "answering",
+                    "last_intent": "explain_feature",
+                    "last_target": {
+                      "kind": "feature_catalog",
+                      "feature_id": "attack_card",
+                      "object_type": "attack_card",
+                      "object_ref": null,
+                      "confidence": "high"
+                    },
+                    "last_answer_summary": "L'utilisateur souhaite comprendre l'utilité d'une carte d'attaque sans en créer une pour le moment.",
+                    "last_catalog_feature_ids": [
+                      "attack_card"
+                    ],
+                    "last_locations": [
+                      "Dashboard > Plan"
+                    ],
+                    "parent_flow_context": null,
+                    "turn_count": 1,
+                    "max_turns": 3,
+                    "updated_at": "2026-06-08T15:51:05.208Z"
+                  }
+                },
+                "product_help_subskill_trace": null,
+                "summary": "L'utilisateur souhaite comprendre l'utilité d'une carte d'attaque sans en créer une pour le moment."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-2026-06-08-product-help-local-real-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help"
+        },
+        "trace_error": null
+      },
+      "trace": {
+        "turn_frame": {
+          "turn_id": "qa-2026-06-08-product-help-local-real-r1-t02",
+          "source_message_id": "0f3ba17a-87a2-495b-aa45-f1dfd3cb6e76",
+          "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": "0;decay=0.55;recovery=0"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_explicitly_asks_to_understand_feature_without_creating"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "blocked_paths": [
+            {
+              "path": "tool_skill_router",
+              "reason_code": "orientation_clarification_resolved_conversation_skill"
+            },
+            {
+              "path": "direct_effects",
+              "reason_code": "orientation_clarification_resolved_conversation_skill"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "orientation_clarification_resolved_conversation_skill",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "product_help"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "product_help"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "product_help",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "orientation_clarification_resolved_conversation_skill"
+            }
+          ]
+        },
+        "skill_run": {
+          "selected_skill_id": "product_help",
+          "reason_code": "orientation_clarification_resolved_conversation_skill",
+          "output": {
+            "skill_id": "product_help",
+            "status": "continue",
+            "response_intent": "explain_feature",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "C'est un outil pour t'aider à démarrer quand tu bloques sur une tâche. Concrètement, une carte d'attaque transforme une action qui te semble lourde ou intimidante en une version 'minimale' et très concrète. Le but est de réduire la friction au maximum pour que tu puisses enfin te lancer sans trop d'effort.",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "answer_product_question",
+              "mode": "standalone",
+              "target": {
+                "kind": "feature_catalog",
+                "feature_id": "attack_card",
+                "object_type": "attack_card",
+                "object_ref": null,
+                "confidence": "high"
+              },
+              "grounding": {
+                "catalog_feature_ids": [
+                  "attack_card"
+                ],
+                "surface_ids": [
+                  "attack_card"
+                ],
+                "db_sources_required": false,
+                "db_sources_used": [],
+                "active_flow_used": false,
+                "missing_grounding_reason": null
+              },
+              "bridge": {
+                "needed": true,
+                "operation_type": "prepare_attack_card",
+                "kind": "explain_only",
+                "executable": false,
+                "why": "L'utilisateur a explicitement décliné la proposition de préparation pour se concentrer sur la compréhension."
+              },
+              "visible_task": "answer_product_question",
+              "return_to_parent_flow": false,
+              "reason_code": "product_help_local_answer_product_question",
+              "evidence": [
+                "User message: 'Juste comprendre pour l'instant, pas en préparer une.'",
+                "Previous assistant turn offered to explain or prepare.",
+                "Target feature identified as attack_card from registry."
+              ]
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_suggestions_always_empty",
+                "requested_allowed_committed_effects_empty"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "product_help_local_state": {
+                "skill_id": "product_help",
+                "status": "answered",
+                "mode": "standalone",
+                "product_help_state": {
+                  "stage": "answering",
+                  "last_intent": "explain_feature",
+                  "last_target": {
+                    "kind": "feature_catalog",
+                    "feature_id": "attack_card",
+                    "object_type": "attack_card",
+                    "object_ref": null,
+                    "confidence": "high"
+                  },
+                  "last_answer_summary": "L'utilisateur souhaite comprendre l'utilité d'une carte d'attaque sans en créer une pour le moment.",
+                  "last_catalog_feature_ids": [
+                    "attack_card"
+                  ],
+                  "last_locations": [
+                    "Dashboard > Plan"
+                  ],
+                  "parent_flow_context": null,
+                  "turn_count": 1,
+                  "max_turns": 3,
+                  "updated_at": "2026-06-08T15:51:05.208Z"
+                }
+              },
+              "product_help_subskill_trace": null,
+              "summary": "L'utilisateur souhaite comprendre l'utilité d'une carte d'attaque sans en créer une pour le moment."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-2026-06-08-product-help-local-real-r1-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "product_help"
+      },
+      "short_trace": {
+        "http_status": 200,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason": "orientation_clarification_resolved_conversation_skill",
+        "safety": "low",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        },
+        "executed_tools": [],
+        "durable_effect": [],
+        "skill_run_id": "product_help",
+        "skill_status": "continue",
+        "skill_intent": "explain_feature",
+        "product_flow_action": "answer_product_question",
+        "product_visible_task": "answer_product_question",
+        "product_mode": "standalone",
+        "product_return_to_parent": false,
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "request_id": "qa-2026-06-08-product-help-local-real-r1-t03",
+      "user": "Et si j'en ai une, je la retrouve où dans l'app ?",
+      "assistant": "An invalid response was received from the upstream server",
+      "http_status": 502,
+      "ok": false,
+      "raw_body": {
+        "message": "An invalid response was received from the upstream server"
+      },
+      "trace": null,
+      "short_trace": {
+        "http_status": 502,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": null,
+        "executed_tools": [],
+        "durable_effect": [],
+        "skill_run_id": null,
+        "skill_status": null,
+        "skill_intent": null,
+        "product_flow_action": null,
+        "product_visible_task": null,
+        "product_mode": null,
+        "product_return_to_parent": null,
+        "trace_error": null
+      }
+    }
+  ],
+  "incidents": [
+    {
+      "kind": "http_401_invalid_gateway_key",
+      "turn_attempt": 2,
+      "user": "Juste comprendre pour l'instant, pas en préparer une.",
+      "http_status": 401,
+      "resolution": "retry with correct local ANON_KEY"
+    },
+    {
+      "kind": "http_502_upstream_invalid_response",
+      "turn_attempt": 3,
+      "user": "Et si j'en ai une, je la retrouve où dans l'app ?",
+      "http_status": 502,
+      "assistant": "An invalid response was received from the upstream server",
+      "resolution": "retry same turn after no valid trace"
+    }
+  ]
+}

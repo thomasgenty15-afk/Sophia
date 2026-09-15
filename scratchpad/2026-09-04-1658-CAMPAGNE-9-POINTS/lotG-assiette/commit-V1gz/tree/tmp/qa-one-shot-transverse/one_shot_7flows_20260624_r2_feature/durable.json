@@ -1,0 +1,130 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages_count": 6,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je remarque un pattern: tous les soirs avant de fermer l’ordi, j’aurais besoin que Sophia me pousse à préparer le bureau du lendemain. Est-ce que ça ressemble à une opportunité produit à ranger quelque part ?",
+      "created_at": "2026-06-24T19:44:56.786007+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260624_r2_feature-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui, ça ressemble bien à une opportunité produit de type initiatives : un rituel récurrent où Sophia te pousse à préparer le bureau du lendemain, tous les soirs avant de fermer l’ordi.\n\nSi tu veux, je peux t’aider à le formuler en une initiative claire avec quoi dire, quand le dire et à quelle fréquence.",
+      "created_at": "2026-06-24T19:45:05.508125+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260624_r2_feature-t01",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Oui, et rappelle-moi dans 45 minutes de vider la tasse sur le bureau pendant que je regarde comment formuler cette initiative.",
+      "created_at": "2026-06-24T19:45:14.638384+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260624_r2_feature-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui, ça ressemble clairement à une initiative. C’est un rituel récurrent du soir, donc le bon format est : quoi dire, quand le dire avant de fermer l’ordi, et à quel rythme si c’est tous les soirs.\n\nExemple simple : « Avant de fermer l’ordi, prépare le bureau pour demain. »\n\nTu peux ensuite la retrouver dans Initiatives.",
+      "created_at": "2026-06-24T19:45:23.501012+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260624_r2_feature-t02",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Crée d’abord le rappel: rappelle-moi dans 47 minutes de vider la tasse sur le bureau.",
+      "created_at": "2026-06-24T19:45:32.438866+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260624_r2_feature-t03",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui, ça ressemble bien à une initiative : un rituel récurrent du soir pour préparer le bureau avant demain. Tu peux la formuler simplement comme : « Avant de fermer l’ordi, prépare le bureau pour demain. »",
+      "created_at": "2026-06-24T19:45:50.321292+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260624_r2_feature-t03",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "c9900534-5dc1-4129-848d-00dc94ea94ac",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-24T19:45:05.496Z",
+        "turn_count": 3,
+        "updated_at": "2026-06-24T19:45:50.308Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 3,
+            "trigger_context": "tous les soirs avant de fermer l’ordi",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "User wants Sophia to prompt them in a repeated evening moment to prepare the desk for the next day.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated context and requested recurring support fit initiatives.",
+              "trigger_context": "tous les soirs avant de fermer l’ordi",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "User wants Sophia to prompt them in a repeated evening moment to prepare the desk for the next day."
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-24T19:45:05.496Z",
+        "turn_count": 3,
+        "updated_at": "2026-06-24T19:45:50.308Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 3,
+            "trigger_context": "tous les soirs avant de fermer l’ordi",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "User wants Sophia to prompt them in a repeated evening moment to prepare the desk for the next day.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated context and requested recurring support fit initiatives.",
+              "trigger_context": "tous les soirs avant de fermer l’ordi",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "User wants Sophia to prompt them in a repeated evening moment to prepare the desk for the next day."
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T19:45:50.315508+00:00"
+  }
+}

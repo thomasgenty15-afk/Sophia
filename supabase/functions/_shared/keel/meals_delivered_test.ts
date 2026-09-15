@@ -216,10 +216,18 @@ Deno.test("LA RELANCE nomme la bouche, la case, le plat, la cause ET le remède"
   assert(text.includes("Rice bowl"), text);
   assert(text.includes("box of their OWN"), text);
   assert(text.includes("swapped"), text);
-  assert(
-    text.includes("do NOT shorten the plan"),
-    "rien n'interdit de réparer en retirant des journées",
-  );
+  // ⟳ 2026-09-13 · LOT 1 — LES DEUX INTERDITS GLOBAUX ONT ÉTÉ RETIRÉS.
+  //
+  // ⛔ « leave every other dish exactly as it is » et « do NOT shorten the
+  // plan » partaient dans la MÊME instruction que les autres défauts du plan,
+  // dont le périmètre ouvre d'autres repas et même des unités à CRÉER. Ils
+  // contredisaient les blocs voisins, et ils supposaient une réponse en forme
+  // de plan alors qu'on demande un patch. Ce qui les remplace n'est pas une
+  // consigne, c'est une GARDE: le patch ne porte que les unités autorisées.
+  assert(!/shorten the plan/i.test(text), text);
+  assert(!/leave every other dish/i.test(text), text);
+  // ⚠️ ET L'ADRESSE, ELLE, RESTE: c'est elle qui empêche de tout recomposer.
+  assert(text.includes("each on its own day and slot"), text);
 });
 
 Deno.test("⟳ LA RELANCE NOMME LE LIEN FAUTIF quand la boîte existe déjà", () => {
@@ -263,25 +271,39 @@ Deno.test("⟳ LA RELANCE PARTIELLE ne demande QUE les cellules nommées, et seu
   assert(partial.indexOf("Léa") < partial.indexOf("RETURN ONLY"), partial);
 });
 
-Deno.test("CÂBLAGE — la relance est PARTIELLE dans le générateur", async () => {
+Deno.test("CÂBLAGE — le constat de bouche non nourrie est situé, et sans second schéma", async () => {
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — CE SITE NE RAPPELLE PLUS LE MODÈLE : sa
+  // consigne rejoint la décision commune (`c4UpstreamDefects`).
+  //
+  // ⟳ 2026-09-13 · LOT 1 — `partial: false`, ET C'EST UN SCHÉMA DE MOINS. Le
+  // bloc partiel décrit un objet à clés `dishes` / `preparations` /
+  // `cooking_sessions` : c'était un SECOND schéma de sortie à côté de
+  // `{"repair":{…}}`, dans le même appel. Le raccourcissement qu'il visait est
+  // désormais tenu par le PÉRIMÈTRE, pas par une phrase.
   const src = await generatorSource();
-  const at = src.indexOf("const instruction = unfedRetryInstruction(");
-  assert(at > 0, "la relance n'est plus appelée");
-  const call = src.slice(at, src.indexOf("      );", at) + 8);
+  const at = src.indexOf("const texte = unfedRetryInstruction(");
+  assert(at > 0, "la consigne « bouche non nourrie » n'est plus composée");
+  const call = src.slice(at, at + 1600);
   assert(
-    /partial: true/.test(call),
-    "la relance rend encore un plan entier: 85 s et 12 k jetons par tour\n" + call,
+    /partial: false/.test(call),
+    "le bloc partiel est revenu: c'est un second schéma de sortie\n" + call,
   );
   assert(
     /tableTerms: householdExclusionTerms/.test(call),
     "les mots que la table entière évite ne sont plus passés\n" + call,
   );
   // ⟳ LOT 14 (2026-09-08) — LA LANGUE SUIT LE CHEMIN, elle n'est pas figée.
-  // Sur `portion_v1` le moteur autore les couvercles: demander « nomme-la sur
-  // une boîte » ferait écrire une sortie qu'on jette.
   assert(
     /wording: sizing\.path === "portion_v1"/.test(call),
-    "la relance demande la même chose aux deux chemins\n" + call,
+    "la demande demande la même chose aux deux chemins\n" + call,
+  );
+  // ⛔ ET ELLE EST ADRESSÉE À L'UNITÉ RÉSERVÉE. Une portion attendue et absente
+  // n'existe dans aucun tableau : sans cette cause, elle n'a d'adresse nulle
+  // part, et le périmètre de réparation reste vide.
+  assert(
+    /cause: miss\.cause === "no_dish" \? "cell_without_dish" : "mouth_unfed"/
+      .test(src),
+    "le constat ne distingue plus « aucun plat ici » de « pas de part dans le plat »",
   );
 });
 
@@ -513,24 +535,29 @@ Deno.test("⛔ LE CAS QUI MORD — une bouche n'est PAS attendue au goûter d'un
   );
 });
 
-Deno.test("CÂBLAGE — la relance remplace le TEXTE SOURCE en même temps que le plan", async () => {
+Deno.test("CÂBLAGE — le plan retenu et son TEXTE SOURCE sont la MÊME version", async () => {
   const src = await generatorSource();
-  // ⛔ LA CICATRICE, ET ELLE EST RÉELLE: la relance d'exclusion faisait
-  // `meal = retried` sans `mealSourceText = retryResult`, et `reconcilePortions`
-  // relisait les parts de la réponse d'AVANT. Les deux vont ensemble.
-  const block = src.slice(
-    src.indexOf("unfed retry failed") - 3000,
-    src.indexOf("unfed retry failed"),
-  );
-  assert(block.includes("meal = retried;"), "la relance n'adopte plus son plan");
+  // ⛔ LA CICATRICE, ET ELLE EST RÉELLE: une relance faisait `meal = retried`
+  // sans `mealSourceText = retryResult`, et `reconcilePortions` relisait les
+  // parts de la réponse d'AVANT.
+  //
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — LA MÊME EXIGENCE, PLUS FORTE. Le texte
+  // brut d'un patch ne contient que les unités réparées: le poser tel quel
+  // ferait disparaître les autres plats de tous ses lecteurs. C'est le texte
+  // FUSIONNÉ qui est posé, et les deux lignes sont adjacentes.
+  const at = src.indexOf("meal = c4Fusion.plan;");
+  assert(at > 0, "le plan fusionné n'est plus adopté");
+  const block = src.slice(at, at + 200);
   assert(
-    block.includes("mealSourceText = retryResult;"),
-    "la relance adopte le plan sans son texte source: les parts réconciliées " +
-      "seront celles de la réponse d'avant",
+    block.includes("mealSourceText = c4FusedText;"),
+    "le plan fusionné est adopté sans son texte source: les parts réconciliées " +
+      "seront celles de la version d'avant\n" + block,
   );
+  // ⛔ ET LE TEXTE BRUT DE LA CANDIDATE N'EST PLUS JAMAIS POSÉ.
   assert(
-    block.includes("retried.dishes.length >= meal.dishes.length"),
-    "rien n'empêche la relance de « nourrir tout le monde » en retirant des jours",
+    !/mealSourceText = answer;/.test(src) &&
+      !/mealSourceText = retryResult;/.test(src),
+    "le texte brut d'une réponse de réparation est redevenu le texte du plan",
   );
 });
 
@@ -579,6 +606,42 @@ Deno.test("CÂBLAGE — le journal part AVANT tout refus", async () => {
   );
 });
 
+Deno.test("CÂBLAGE — `box_counts.meals_delivered` se RELIT après la pose des couvercles", async () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-14 — DEUX COMPTEURS SE CONTREDISAIENT SUR LE MÊME RUN.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Sur `request_id 6970f8e1`: `box_counts.meals_delivered` = « fed 24/24 ·
+  // missing 0 · double 0 », corps 422 du même run = 16 cases `double`. La cause
+  // était un ORDRE DE LIGNES: `delivered` était affecté pour la dernière fois
+  // avant la boucle C4, donc avant `reconcilePortions` — avant que les
+  // couvercles n'existent. Sans boîtes, « un plat de table sans boîte nourrit
+  // tout le monde »: le compteur lisait 24/24 sur un plan sans contenants.
+  //
+  // ⛔ CE QUE CE TEST TIENT: la relecture existe, elle est APRÈS
+  // `reconcilePortions`, et c'est bien ELLE que la trace publie.
+  const src = await generatorSource();
+  const reconcile = src.indexOf("} = reconcilePortions(");
+  const releve = src.indexOf("const deliveredNow = (() => {");
+  assert(reconcile > 0, "`reconcilePortions` a disparu du générateur");
+  assert(
+    releve > 0,
+    "la relecture de `mealsDelivered` pour `box_counts` a disparu: le compteur " +
+      "redevient un souvenir d'avant la pose des couvercles",
+  );
+  assert(
+    releve > reconcile,
+    "la relecture est remontée AVANT `reconcilePortions`: elle mesure de " +
+      "nouveau un plan qui n'a pas encore de contenants",
+  );
+  assert(
+    /meals_delivered: \{\s*mouths: mouthCells\.length,(?:\s*\/\/[^\n]*\n)*\s*measured: deliveredNow !== null,\s*expected: deliveredOut\.expected,\s*fed: deliveredOut\.fed,\s*missing: deliveredOut\.missing,\s*by_cause: deliveredOut\.byCause,/
+      .test(src),
+    "la trace ne publie plus la relecture: `box_counts.meals_delivered` peut " +
+      "de nouveau contredire le refus du même run",
+  );
+});
+
 Deno.test("CÂBLAGE — le compteur « sans boîte » ne saute plus les bouches retirées", async () => {
   const src = stripComments(
     await Deno.readTextFile(new URL("./meal_generation.ts", import.meta.url)),
@@ -598,39 +661,38 @@ Deno.test("CÂBLAGE — le compteur « sans boîte » ne saute plus les bouches 
 // ⟳ 2026-09-04 · CE QUE LA CAMPAGNE DE TROIS MOIS A TROUVÉ AU PREMIER TIR
 // ---------------------------------------------------------------------------
 
-Deno.test("CÂBLAGE — la relance INSISTE, et elle s'arrête quand elle n'améliore plus", async () => {
+Deno.test("CÂBLAGE — la bouche non nourrie n'a plus sa propre série d'appels", async () => {
   const src = await generatorSource();
-  // ── LE FAIT MESURÉ ────────────────────────────────────────────────────
+  // ── LE FAIT MESURÉ, ET CE QU'IL EST DEVENU ────────────────────────────
   // Fenêtre de cinq jours, foyer de cinq bouches: `missing_before: 6` →
-  // `missing: 5` après UNE relance, puis 422. Une relance réécrit le plan
-  // ENTIER: elle répare des cases et en casse d'autres. Il faut insister sur
-  // ce qui manque ENCORE.
+  // `missing: 5` après UNE relance, puis 422. La réponse d'alors était
+  // d'INSISTER: jusqu'à trois tours, chacun un plan entier.
+  //
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — CE N'EST PLUS LA RÉPONSE. Trois tours ici
+  // plus deux ailleurs, c'était cinq appels pour une requête; le plan de
+  // fermeture en autorise DEUX pour la requête entière, décidés une fois que
+  // tous les défauts du même plan sont connus. La portion manquante y est
+  // mieux servie qu'avant: elle a désormais une ADRESSE (une unité réservée),
+  // ce qu'aucune relance d'ici ne pouvait lui donner.
   assert(
-    /const UNFED_RETRIES_MAX = 3;/.test(src),
-    "la relance ne fait plus ses trois tours: une relance partielle est bon marché, un refus non",
+    !/const UNFED_RETRIES_MAX/.test(src),
+    "la série d'appels propre à la bouche non nourrie est revenue: elle " +
+      "dépenserait le budget avant que le plan soit pesé",
+  );
+  // ⛔ LA MESURE, ELLE, RESTE — et elle est journalisée avec son dénominateur.
+  assert(
+    /tag: "keel\.household_meal\.unfed_seen"/.test(src),
+    "la mesure « personne sans repas » ne sort plus du générateur",
   );
   assert(
-    /attempt <= UNFED_RETRIES_MAX && !delivered\.allFed/.test(src),
-    "la boucle ne s'arrête plus dès que tout le monde est servi: elle " +
-      "dépenserait un appel modèle pour rien",
+    /all_fed: delivered\.allFed/.test(src) && /missing: delivered\.missing/.test(src),
+    "le journal ne porte plus « tout le monde est servi » et son compte",
   );
-  // ⛔ ET LE PLAFOND N'EST PAS UNE GARANTIE DE PROGRÈS. Un tour qui n'améliore
-  // rien doit couper la série, sinon on paie une minute pour la même réponse.
-  const block = src.slice(
-    src.indexOf("const UNFED_RETRIES_MAX"),
-    src.indexOf("LE DERNIER RECOURS, ET IL DÉPEND DE LA CAUSE"),
+  // ⛔ ET LE PLAFOND COMMUN EST CELUI DU MODULE, pas un nombre local.
+  assert(
+    /maxCalls: PLAN_REPAIR_MAX_CALLS/.test(src),
+    "le plafond d'appels n'est plus celui de `plan_repair_loop.ts`",
   );
-  // ⟳ 2026-09-05: `break;` en fin de ligne aussi — la fusion par parties a deux
-  // sorties sur une ligne (`if (…) break;`). Quatre sorties désormais: rien à
-  // fusionner, fusion qui n'améliore pas, exception, instruction vide.
-  assertEquals(
-    (block.match(/\bbreak;/g) || []).length >= 4,
-    true,
-    "la boucle n'a plus ses quatre sorties (rien à fusionner, fusion sans gain, " +
-      "exception, instruction vide)\n" + block.slice(-400),
-  );
-  assert(/if \(merge\.cells\.length === 0\) \{\n\s*rejected\([^\n]*\);\n\s*break;/.test(block), "la sortie « rien à fusionner » a disparu, ou n'est plus journalisée");
-  assert(/if \(!\(merged\.missing < delivered\.missing\)\) \{\n\s*rejected\("merge_no_gain"\);\n\s*break;/.test(block), "la sortie « fusion sans gain » a disparu, ou n'est plus journalisée");
 });
 
 Deno.test("CÂBLAGE — CE QUE LA PERSONNE A ÉCRIT SURVIT AU REFUS", async () => {
@@ -664,54 +726,44 @@ Deno.test("CÂBLAGE — CE QUE LA PERSONNE A ÉCRIT SURVIT AU REFUS", async () =
   );
 });
 
-Deno.test("CÂBLAGE — LA RELANCE COMPTE SES TENTATIVES, PAS SEULEMENT SES SUCCÈS", async () => {
+Deno.test("CÂBLAGE — ON COMPTE LES APPELS PARTIS, PAS SEULEMENT LES SUCCÈS", async () => {
   const src = await generatorSource();
   // ── LE DÉFAUT, MESURÉ SUR DEUX FOYERS INDÉPENDANTS (2026-09-04) ───────
   // `unfedRetried` n'était posé que dans la branche d'acceptation. Il rendait
-  // donc `false` dans deux états opposés: « aucune relance tentée » et
-  // « relance tentée, revenue, puis REJETÉE ». Un tir réel affichait
-  // `{missing: 12, missing_before: 12, retried: false}` pendant que le journal
-  // du modèle portait un `unfed_retry` bien parti.
+  // `false` dans deux états opposés: « aucune relance tentée » et « relance
+  // tentée, revenue, puis REJETÉE ».
   //
-  // ⛔ CE QU'UN BOOLÉEN NE PEUT PAS DIRE est exactement l'état intéressant:
-  // « j'ai essayé deux fois et j'ai tout rejeté ». Il distingue une relance
-  // INUTILE d'une relance NON APPELÉE, et les deux demandent l'inverse l'un de
-  // l'autre.
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — LE COMPTEUR EST DEVENU UNIQUE ET GLOBAL.
+  // Sept compteurs locaux ne pouvaient pas dire ce qu'une requête a payé;
+  // `c4CallsMade` le dit, et il monte AVANT l'`await` — un appel qui jette est
+  // un appel parti.
   assert(
-    /unfedRetryAttempts \+= 1;/.test(src),
-    "les tentatives de relance ne sont plus comptées: un booléen ne peut pas " +
-      "distinguer « pas tentée » de « tentée puis rejetée »",
+    /c4CallsMade \+= 1;/.test(src),
+    "les appels de réparation ne sont plus comptés",
   );
+  const attempt = src.indexOf("c4CallsMade += 1;");
+  // ⟳ 2026-09-14 · BÊTA 2B — L'ANCRE A CHANGÉ, PAS LA POSITION. L'appel est
+// enveloppé par `appelModele(…)` depuis que les pannes du fournisseur ont un
+// jeton au lieu d'une chaîne anglaise. Le site est le même.
+  const depart = src.indexOf("generateWithGemini(", attempt);
   assert(
-    /unfedRetryAccepted \+= 1;/.test(src),
-    "les relances ACCEPTÉES ne sont plus comptées à part",
+    attempt > 0 && depart > attempt && depart - attempt < 400,
+    "le compteur monte après l'appel: une requête qui a payé deux appels en " +
+      "déclarerait zéro",
   );
-  // ⛔ ET LA TENTATIVE SE COMPTE AVANT LE VERDICT. Posée dans la branche
-  // d'acceptation, elle recréerait le défaut sous un autre nom.
-  const attempt = src.indexOf("unfedRetryAttempts += 1;");
-  const verdict = src.indexOf("after.missing < delivered.missing");
-  assert(attempt > 0 && verdict > attempt, "la tentative est comptée après son verdict");
   // Les deux nombres sortent, dans le journal ET dans l'archive.
-  assertEquals(
-    (src.match(/retry_attempts: unfedRetryAttempts,/g) || []).length,
-    2,
-    "les tentatives ne sortent pas sur les deux surfaces (journal et archive)",
+  assert(
+    (src.match(/calls_made: c4CallsMade,/g) || []).length >= 2,
+    "les appels ne sortent pas sur les deux surfaces (journal et archive)",
   );
-  // ⛔ ET SUR QUELLE CAUSE. « La relance a échoué » ne dit pas quoi faire;
-  // « elle échoue systématiquement sur les trous de RÉGIME » désigne le geste.
-  assertEquals(
-    (src.match(/retry_on: unfedRetryOn,/g) || []).length,
-    2,
-    "la cause sur laquelle la relance a été dépensée ne sort pas",
+  // ⛔ ET AUCUN COMPTEUR LOCAL N'EST REVENU LE CONTOURNER.
+  assert(
+    !/unfedRetryAttempts/.test(src) && !/exclusionRetryAttempts \+= 1/.test(src) &&
+      !/splitRetryAttempts \+= 1/.test(src) && !/swapRetryAttempts \+= 1/.test(src),
+    "un compteur de relance local est revenu: il rouvrirait un budget caché",
   );
-  // ⟳ 2026-09-04 — ET LE REPLI SUR LA BOÎTE DE TABLE est compté à part, sur les deux surfaces.
-  assertEquals((src.match(/restored_fallback: unfedRestoredFallback,/g) || []).length, 2, "le repli n'est pas compté sur le journal ET l'archive");
-  assert(/boxId: m\.boxId, day: m\.day, slot: m\.slot/.test(src), "le recours ne reçoit plus la case: il ne peut plus remplacer une boîte jetée");
 });
 
-// ⟳ 2026-09-05 — R2-D. Une relance « Poulet, riz » rendue SANS boîtes faisait
-// passer la végétarienne de manquante à nourrie: la ceinture par boîte n'avait
-// rien à retirer, et la règle ③ nourrissait tout le monde.
 Deno.test("⛔ UN PLAT SANS BOÎTE NE NOURRIT PAS LA BOUCHE DONT LA LIGNE LE MORD", () => {
   const chicken = dish({ title: "Poulet, riz", boxes: [], regimeBites: ["vegetarian"] });
   const table = [
@@ -942,32 +994,52 @@ Deno.test("RELANCE — un mot que la TABLE évite change le plat pour tous, jama
   assert(folded.includes("this TABLE asked"), folded);
 });
 
-Deno.test("CÂBLAGE — le relogement précède la relance, et la relance connaît les mots de la table", async () => {
+Deno.test("CÂBLAGE — le relogement précède le constat, et le constat connaît les mots de la table", async () => {
   const src = await generatorSource();
   const rehomeAt = src.indexOf("rehomeHeldOff(");
-  const loopAt = src.indexOf("const UNFED_RETRIES_MAX = 3;");
+  const seenAt = src.indexOf('tag: "keel.household_meal.unfed_seen"');
   const swapAt = src.indexOf("let swap = swapPresence(");
   assert(rehomeAt > -1, "la lane foyer n'appelle plus le relogement");
-  assert(swapAt < rehomeAt && rehomeAt < loopAt, "ordre attendu: relance du flagrant → relogement → boucle « personne sans repas »");
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — L'ORDRE EST LE MÊME, le troisième terme a
+  // changé de nature: la boucle d'appels est devenue un CONSTAT.
+  assert(
+    swapAt < rehomeAt && rehomeAt < seenAt,
+    "ordre attendu: mesure du flagrant → relogement → constat « personne sans repas »",
+  );
   const rehomeBlock = src.slice(rehomeAt - 3000, rehomeAt);
   assert(/scanRegimeSources\(/.test(rehomeBlock), "la ceinture du relogement ne lit plus le régime par BOÎTE");
   assert(/surface: "ingredients"/.test(rehomeBlock), "la ceinture du relogement ne lit plus l'exclusion sur les items déclarés");
-  const loop = src.slice(loopAt, src.indexOf("LE DERNIER RECOURS, ET IL DÉPEND DE LA CAUSE"));
-  assert(/tableTerms:/.test(loop), "la relance ne reçoit plus les mots que la table évite");
-  assert(/unfed_retry_rejected/.test(loop), "un tour rejeté n'est plus journalisé avec son motif");
   assert((src.match(/rehomed: unfedRehomed,/g) || []).length === 2, "`rehomed` absent du journal ou de l'archive");
+  // ⛔ ET LES MOTS DE LA TABLE ATTEIGNENT TOUJOURS LA CONSIGNE, là où elle est
+  // maintenant composée.
+  const texteAt = src.indexOf("const texte = unfedRetryInstruction(");
+  assert(texteAt > 0 && /tableTerms:/.test(src.slice(texteAt, texteAt + 1200)),
+    "le constat ne reçoit plus les mots que la table évite");
 });
 
-Deno.test("CÂBLAGE — la relance d'exclusion prend ses cellules réparées quand le plan entier ne passe pas", async () => {
+Deno.test("CÂBLAGE — l'exclusion CONSTATE, et la reprise par parties est devenue un patch", async () => {
   const src = await generatorSource();
-  const start = src.indexOf("source: `${FN_NAME}.exclusion_retry`");
-  const end = src.indexOf('tag: "keel.household_meal.exclusion_belt"');
-  assert(start > -1 && end > start);
-  const block = src.slice(start, end);
-  assert(/mergeRetryCells\(\{/.test(block), "la relance d'exclusion rejette encore le plan entier sans rien garder");
-  assert(/exclusion_retry_rejected/.test(block), "le rejet de la relance d'exclusion n'est pas journalisé");
-  assert(/mealSourceText = retryResult;/.test(block), "la relance d'exclusion adopte le plan sans son texte source: les portions sont relues sur la réponse d'avant");
-  assert(/retry_attempts: exclusionRetryAttempts,/.test(src), "`retry_attempts` absent du journal exclusion_belt");
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — `mergeRetryCells` recollait des cellules
+  // d'une réponse ENTIÈRE quand le plan entier ne passait pas. Le patch fait
+  // mieux et plus strictement: il n'ouvre que les unités en cause, et une
+  // opération invalide rejette tout au lieu de laisser un demi-plan.
+  assert(
+    !/source: `\$\{FN_NAME\}\.exclusion_retry`/.test(src),
+    "la relance locale d'exclusion est revenue",
+  );
+  assert(
+    /applyRepairPatch\(\{/.test(src),
+    "l'application de patch a disparu: plus rien ne répare une morsure",
+  );
+  // ⛔ ET LE COMPTEUR DE LA CEINTURE RESTE, avec son dénominateur.
+  assert(
+    /tag: "keel\.household_meal\.exclusion_belt"/.test(src),
+    "le journal de la ceinture d'exclusion a disparu",
+  );
+  assert(
+    /bites: bitesBefore\.length/.test(src),
+    "le journal ne porte plus le nombre de morsures vues",
+  );
 });
 
 Deno.test("RELANCE — la boîte existe et porte l'item évité : on remplace l'item, on ne réécrit pas la boîte", () => {

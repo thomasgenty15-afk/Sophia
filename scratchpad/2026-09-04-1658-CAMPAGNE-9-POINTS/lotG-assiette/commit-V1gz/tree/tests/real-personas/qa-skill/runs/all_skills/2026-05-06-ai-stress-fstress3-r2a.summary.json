@@ -1,0 +1,102 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress3-r2a-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Programme-moi un soutien récurrent chaque lundi à 08h, message 'Choisir un pas minuscule'.",
+    "assistant": "Je te programme ça : soutien récurrent chaque lundi à 08h avec le message “Choisir un pas minuscule” 😄✅  \nTu confirmes juste : c’est bien lundi prochain (et pas un lundi déjà commencé) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "create_recurring_reminder",
+    "route_reason_code": "tool_skill_intent_start",
+    "route_decision": {
+      "reason_code": "tool_skill_intent_start",
+      "blocked_paths": [],
+      "route_version": "v1",
+      "response_owner": "tool_skill",
+      "memory_use_kind": "none",
+      "selected_handler": "create_recurring_reminder",
+      "direct_effects_to_run": [],
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": []
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "turn_frame_direct_effects": [],
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [],
+    "tool_skill_run": {
+      "reason_code": "tool_skill_intent_start",
+      "selected_handler": "create_recurring_reminder"
+    },
+    "pending_tool_skill_confirmation": null,
+    "recommendation": null,
+    "memory_write_candidates_emitted": 0,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress3-r2a-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Pas lundi finalement : chaque mercredi à 18h, même message, à partir de mercredi prochain.",
+    "assistant": "Ok, mercredi à 18h à partir de mercredi prochain, avec “Choisir un pas minuscule” ✅🙂\n\nJuste une précision: tu veux bien “mercredi prochain” = le mercredi 13 mai 2026 (à 18h heure de Paris) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "route_decision": {
+      "reason_code": "normal_reply_default",
+      "blocked_paths": [],
+      "route_version": "v1",
+      "response_owner": "normal_reply",
+      "memory_use_kind": "none",
+      "direct_effects_to_run": [],
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": []
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "turn_frame_direct_effects": [],
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [],
+    "tool_skill_run": null,
+    "pending_tool_skill_confirmation": {
+      "classification": "correction"
+    },
+    "recommendation": null,
+    "memory_write_candidates_emitted": 0,
+    "trace_error": null
+  }
+]

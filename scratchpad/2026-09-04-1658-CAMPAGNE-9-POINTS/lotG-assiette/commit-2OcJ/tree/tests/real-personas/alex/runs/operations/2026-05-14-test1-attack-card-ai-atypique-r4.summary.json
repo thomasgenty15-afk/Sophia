@@ -1,0 +1,22 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r4-t01",
+    "status": 200,
+    "ok": true,
+    "user": "fais moi un truc d'attaque pour le machin du soir avec le carnet, j'ai pas d'idée de technique et j'ai pas envie d'un pavé",
+    "assistant": "Ok : pour “le machin du soir” avec le carnet, voilà une carte d’attaque ultra simple (1 minute) 🧠➡️  \n- Écris juste : “Ce que je fais ce soir, c’est ____.”  \n- Puis : “La première action (petite) c’est ____.”  \n- Et stop : tu sors du carnet et tu lances la première action 5 minutes.\n\nTu veux que ce soit plutôt pour te lancer (démarrer) ou pour te recentrer (calmer/clarifier) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

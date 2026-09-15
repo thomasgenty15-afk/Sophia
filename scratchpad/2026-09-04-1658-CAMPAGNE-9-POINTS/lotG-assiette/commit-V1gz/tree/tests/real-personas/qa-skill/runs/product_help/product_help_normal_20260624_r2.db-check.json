@@ -1,0 +1,141 @@
+[
+  {
+    "table": "user_attack_cards",
+    "status": 200,
+    "count": 0,
+    "ok": true
+  },
+  {
+    "table": "user_defense_cards",
+    "status": 200,
+    "count": 0,
+    "ok": true
+  },
+  {
+    "table": "user_support_cards",
+    "status": 200,
+    "count": 0,
+    "ok": true
+  },
+  {
+    "table": "user_recurring_reminders",
+    "status": 200,
+    "count": 0,
+    "ok": true
+  },
+  {
+    "table": "scheduled_checkins",
+    "status": 200,
+    "count": 0,
+    "ok": true
+  },
+  {
+    "table": "user_chat_states",
+    "status": 200,
+    "count": 1,
+    "ok": true,
+    "body": [
+      {
+        "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+        "temp_memory": {
+          "__active_skill_state": {
+            "status": "active",
+            "version": 1,
+            "skill_id": "product_help",
+            "started_at": "2026-06-24T13:11:12.153Z",
+            "turn_count": 1,
+            "updated_at": "2026-06-24T13:11:12.153Z",
+            "working_state": {
+              "product_help_local_state": {
+                "mode": "standalone",
+                "status": "open",
+                "skill_id": "product_help",
+                "product_help_state": {
+                  "stage": "answering",
+                  "max_turns": 3,
+                  "turn_count": 1,
+                  "updated_at": "2026-06-24T13:11:10.405Z",
+                  "last_intent": "where_is_it",
+                  "last_target": {
+                    "kind": "feature_catalog",
+                    "confidence": "high",
+                    "feature_id": "resources.overview",
+                    "object_ref": null,
+                    "object_type": "unknown"
+                  },
+                  "last_locations": [
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources",
+                    "Dashboard > Plan"
+                  ],
+                  "last_answer_summary": "Question de destination produit sur l'endroit où consulter les elements cites, sans creation.",
+                  "parent_flow_context": null,
+                  "last_catalog_feature_ids": [
+                    "resources.overview",
+                    "resources.attack_card",
+                    "resources.defense_card",
+                    "resources.potions",
+                    "resources.plan_cards"
+                  ]
+                }
+              }
+            }
+          },
+          "__active_conversation_skill_v1": {
+            "status": "active",
+            "version": 1,
+            "skill_id": "product_help",
+            "started_at": "2026-06-24T13:11:12.153Z",
+            "turn_count": 1,
+            "updated_at": "2026-06-24T13:11:12.153Z",
+            "working_state": {
+              "product_help_local_state": {
+                "mode": "standalone",
+                "status": "open",
+                "skill_id": "product_help",
+                "product_help_state": {
+                  "stage": "answering",
+                  "max_turns": 3,
+                  "turn_count": 1,
+                  "updated_at": "2026-06-24T13:11:10.405Z",
+                  "last_intent": "where_is_it",
+                  "last_target": {
+                    "kind": "feature_catalog",
+                    "confidence": "high",
+                    "feature_id": "resources.overview",
+                    "object_ref": null,
+                    "object_type": "unknown"
+                  },
+                  "last_locations": [
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources",
+                    "Dashboard > Plan"
+                  ],
+                  "last_answer_summary": "Question de destination produit sur l'endroit où consulter les elements cites, sans creation.",
+                  "parent_flow_context": null,
+                  "last_catalog_feature_ids": [
+                    "resources.overview",
+                    "resources.attack_card",
+                    "resources.defense_card",
+                    "resources.potions",
+                    "resources.plan_cards"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+]

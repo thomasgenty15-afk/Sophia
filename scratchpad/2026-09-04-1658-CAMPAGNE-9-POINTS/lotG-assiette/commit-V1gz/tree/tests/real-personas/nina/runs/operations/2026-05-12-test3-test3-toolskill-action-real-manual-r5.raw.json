@@ -1,0 +1,110 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r5-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Le truc autour de mon environnement dans le plan me bloque. Je veux pas l enlever, mais la marche d entree est trop grosse pour aujourd hui.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r5-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r5",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends, on garde l'objectif mais on réduit la marche pour aujourd'hui. Est-ce que tu préfères qu'on passe sur une version ultra-flash (genre 1 minute chrono) ou qu'on remplace par une action plus 'passive' qui demande moins d'effort de démarrage ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r5-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Version ultra-flash : 1 minute sur la table visible. Mais je veux que le nettoyage complet reste juste apres, comme suite naturelle.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r5-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r5",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Avant de modifier ce niveau, qu'est-ce qui le rend trop lourd concretement, et quoi faut-il changer en premier: nombre d'actions, intensite, timing, ou priorite ? Je vois notamment dans le plan: Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r5-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Je ne parle pas du niveau entier, seulement de l action Nettoyer ton environnement direct. Je veux une version pont de 1 minute sur la table visible, puis garder le nettoyage complet juste apres.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r5-t03",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r5",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Tu veux plutot reduire, clarifier, remplacer, reequilibrer, ou mettre en pause cette action ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r5-t04",
+    "auth_method": "get-jwt.sh",
+    "user": "Reduire, clairement. La version pont doit etre 1 minute sur la table visible, pas 5 minutes.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r5-t04",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r5",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose de créer une version ultra-courte de 1 minute pour l'action 'Nettoyer ton environnement direct'. L'idée est de se concentrer uniquement sur la table visible pour lancer le mouvement sans aucune pression. Rien n'est encore appliqué ou enregistré : c'est une proposition pour débloquer la situation. Cette version mini servira de pont pour démarrer, et l'action complète restera prévue juste après pour quand tu auras l'élan. Est-ce que cela te convient ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  }
+]

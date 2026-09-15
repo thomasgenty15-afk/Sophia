@@ -1,0 +1,27 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1b-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je dois me remettre sur mon dossier mais j’arrive pas à commencer.",
+    "assistant": "Quand tu dis « ton dossier », tu veux surtout t’aider à attaquer quelle action précise : l’ouvrir, t’y remettre, avancer dessus ou le terminer ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_selected_handler": "prepare_attack_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1b-t01",
+    "trace_error": null
+  }
+]

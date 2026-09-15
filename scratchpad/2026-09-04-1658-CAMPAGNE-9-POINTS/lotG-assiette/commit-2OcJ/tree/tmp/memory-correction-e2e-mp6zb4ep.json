@@ -1,0 +1,2998 @@
+{
+  "ok": false,
+  "run_id": "memory-correction-e2e-mp6zb4ep",
+  "user": {
+    "id": "c79a678b-0f53-4ffa-a168-025613354d22",
+    "email": "memory-correction-e2e-mp6zb4ep@example.com"
+  },
+  "scopes": {
+    "initial": "memory-correction-e2e-mp6zb4ep-initial",
+    "correction": "memory-correction-e2e-mp6zb4ep-correction",
+    "retrieval": "memory-correction-e2e-mp6zb4ep-retrieval"
+  },
+  "plan_ids": {
+    "cycleId": "7d30551a-2a0a-4f9c-ad68-f5eb45a6464b",
+    "transformationId": "b62bbe1e-f0d3-4e0e-904e-bd453f387e7d",
+    "planId": "5ac95e07-d65a-4f35-b942-8ad7e4f92cdf",
+    "pushups": "de4eb166-637b-405e-b6b6-1c35ab62a244"
+  },
+  "initial_conversation": {
+    "turns": [
+      {
+        "request_id": "memory-correction-e2e-mp6zb4ep-initial-0-attempt-1",
+        "message": "Contexte test memoire: je veux que les apprentissages lies a mes actions soient retenus.",
+        "response_text": "Ok 👍 Je note l’intention : tu veux que les apprentissages liés à tes actions soient retenus (pas juste les actions elles-mêmes) 🙂\n\nDu coup, pour que ce soit vraiment utile : quand tu dis “apprentissages”, tu veux plutôt qu’on retienne quoi exactement ? A) ce qui a marché / B) ce qui t’a bloqué / C) les deux ?",
+        "response_body": {
+          "content": "Ok 👍 Je note l’intention : tu veux que les apprentissages liés à tes actions soient retenus (pas juste les actions elles-mêmes) 🙂\n\nDu coup, pour que ce soit vraiment utile : quand tu dis “apprentissages”, tu veux plutôt qu’on retienne quoi exactement ? A) ce qui a marché / B) ce qui t’a bloqué / C) les deux ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-correction-e2e-mp6zb4ep-initial-1-attempt-1",
+        "message": "Action active Faire 12 pompes: aujourd'hui j'ai fait les 12 repetitions.",
+        "response_text": "Yes 🔥 12/12 c’est fait aujourd’hui, nickel. 👍\n\nTu veux que je fasse comme repère “succès du jour” pour les prochaines fois, ou tu préfères juste qu’on ajuste le nombre si ça devient trop facile/dur ? 🙂",
+        "response_body": {
+          "content": "Yes 🔥 12/12 c’est fait aujourd’hui, nickel. 👍\n\nTu veux que je fasse comme repère “succès du jour” pour les prochaines fois, ou tu préfères juste qu’on ajuste le nombre si ça devient trop facile/dur ? 🙂",
+          "mode": "companion",
+          "tool_execution": "success",
+          "executed_tools": [
+            "track_progress_plan_item"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-correction-e2e-mp6zb4ep-initial-2-attempt-1",
+        "message": "Observation importante pour l'action Faire 12 pompes: les pompes marchent mieux juste apres le petit-dejeuner.",
+        "response_text": "Yes 🔥 je note exactement ça : “Faire 12 pompes” marche mieux juste après le petit-déjeuner. 👍  \nJe te propose d’utiliser “Réduire une action” pour ajuster le timing/fit de cette habitude, sans rien changer tout de suite si tu préfères. 😊\n\nTu veux qu’on fasse l’ajustement via “Réduire une action” ? A/B",
+        "response_body": {
+          "content": "Yes 🔥 je note exactement ça : “Faire 12 pompes” marche mieux juste après le petit-déjeuner. 👍  \nJe te propose d’utiliser “Réduire une action” pour ajuster le timing/fit de cette habitude, sans rien changer tout de suite si tu préfères. 😊\n\nTu veux qu’on fasse l’ajustement via “Réduire une action” ? A/B",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-correction-e2e-mp6zb4ep-initial-3-attempt-1",
+        "message": "Garde ce souvenir pour l'action Faire 12 pompes: le declencheur utile est apres le petit-dejeuner.",
+        "response_text": "Yes 🔥 je garde ce souvenir : après le petit-déjeuner pour Faire 12 pompes. 👍  \nTu veux que je te le transforme aussi en rappel dans l’outil Rappels, ou tu préfères juste garder la note ici ? 😊",
+        "response_body": {
+          "content": "Yes 🔥 je garde ce souvenir : après le petit-déjeuner pour Faire 12 pompes. 👍  \nTu veux que je te le transforme aussi en rappel dans l’outil Rappels, ou tu préfères juste garder la note ici ? 😊",
+          "mode": "companion",
+          "tool_execution": "success",
+          "executed_tools": [
+            "track_progress_plan_item"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-correction-e2e-mp6zb4ep-initial-4-attempt-1",
+        "message": "Ce n'est pas une remarque generale de sport, c'est bien un apprentissage de mon action active Faire 12 pompes.",
+        "response_text": "Yes 🔥 compris : c’est un apprentissage spécifique à ton action active “Faire 12 pompes”, pas une remarque générale. ✅\n\nJe le formule bien comme repère : “déclencheur utile = juste après le petit-déjeuner”. 👍  \nTu veux que je le note aussi en version “si c’est trop dur, je garde quand même le timing, mais j’ajuste le nombre demain” ? A/B",
+        "response_body": {
+          "content": "Yes 🔥 compris : c’est un apprentissage spécifique à ton action active “Faire 12 pompes”, pas une remarque générale. ✅\n\nJe le formule bien comme repère : “déclencheur utile = juste après le petit-déjeuner”. 👍  \nTu veux que je le note aussi en version “si c’est trop dur, je garde quand même le timing, mais j’ajuste le nombre demain” ? A/B",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-correction-e2e-mp6zb4ep-initial-5-attempt-1",
+        "message": "A cote, j'ai une idee de lecture sur le design, mais ce n'est pas une action active.",
+        "response_text": "Carrément, note l’idée quand même 😄📚  \nTu veux que je l’utilise juste comme info “inspiration”, ou tu veux qu’on en fasse une petite prochaine action (ex: 20 min de lecture) ? A/B",
+        "response_body": {
+          "content": "Carrément, note l’idée quand même 😄📚  \nTu veux que je l’utilise juste comme info “inspiration”, ou tu veux qu’on en fasse une petite prochaine action (ex: 20 min de lecture) ? A/B",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      }
+    ]
+  },
+  "correction_conversation": {
+    "turns": [
+      {
+        "request_id": "memory-correction-e2e-mp6zb4ep-correction-0-attempt-1",
+        "message": "Correction importante sur mon action Faire 12 pompes.",
+        "response_text": "Qu'est-ce que tu souhaites modifier exactement sur tes 12 pompes, et pour quelle raison ?",
+        "response_body": {
+          "content": "Qu'est-ce que tu souhaites modifier exactement sur tes 12 pompes, et pour quelle raison ?",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-correction-e2e-mp6zb4ep-correction-1-attempt-1",
+        "message": "Oublie l'ancien souvenir disant que les pompes marchent mieux apres le petit-dejeuner.",
+        "response_text": "C'est entendu, je vais supprimer cette information concernant le petit-déjeuner pour ton habitude de pompes. Est-ce que tu souhaites que je prépare la mise à jour de ton plan ?",
+        "response_body": {
+          "content": "C'est entendu, je vais supprimer cette information concernant le petit-déjeuner pour ton habitude de pompes. Est-ce que tu souhaites que je prépare la mise à jour de ton plan ?",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-correction-e2e-mp6zb4ep-correction-2-attempt-1",
+        "message": "En fait, remplace-le: pour Faire 12 pompes, ca marche mieux avant la douche, quand je pose le tapis dans la salle de bain.",
+        "response_text": "C'est bien noté. On oublie le petit-déjeuner : tes 12 pompes se feront désormais dans la salle de bain, juste avant la douche, au moment où tu poses ton tapis. Rien n'est encore modifié dans ton plan, est-ce que tu veux que je prépare cette proposition concrète ?",
+        "response_body": {
+          "content": "C'est bien noté. On oublie le petit-déjeuner : tes 12 pompes se feront désormais dans la salle de bain, juste avant la douche, au moment où tu poses ton tapis. Rien n'est encore modifié dans ton plan, est-ce que tu veux que je prépare cette proposition concrète ?",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-correction-e2e-mp6zb4ep-correction-3-attempt-1",
+        "message": "Garde la nouvelle version uniquement: pompes avant la douche, pas apres le petit-dejeuner.",
+        "response_text": "Je te propose d'ajuster l'action 'Faire 12 pompes' pour qu'elle soit plus facile à réaliser. Rien n'est encore appliqué. Je suggère de créer une version mini avant ta douche (et non après le petit-déjeuner) pour servir de pont. L'action complète de 12 pompes reste ton objectif à terme, mais ce changement permet de lever le blocage immédiat sans toucher au reste de ton organisation. Est-ce que cela te convient ?",
+        "response_body": {
+          "content": "Je te propose d'ajuster l'action 'Faire 12 pompes' pour qu'elle soit plus facile à réaliser. Rien n'est encore appliqué. Je suggère de créer une version mini avant ta douche (et non après le petit-déjeuner) pour servir de pont. L'action complète de 12 pompes reste ton objectif à terme, mais ce changement permet de lever le blocage immédiat sans toucher au reste de ton organisation. Est-ce que cela te convient ?",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      }
+    ],
+    "trace_summary": {
+      "messages_total": 8,
+      "user_messages": 4,
+      "assistant_messages": 4,
+      "turns_total": 5,
+      "memorizer_runs_total": 0,
+      "observability_events_total": 9
+    }
+  },
+  "retrieval_conversation": {
+    "turn": {
+      "request_id": "memory-correction-e2e-mp6zb4ep-retrieval-0-attempt-1",
+      "message": "Pour mon action Faire 12 pompes, d'apres mes souvenirs memorises uniquement, quel est le bon declencheur maintenant ? Reponds concretement.",
+      "response_text": "D'après tes souvenirs mémorisés uniquement pour mon action Faire 12 pompes :\n- Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.\n- L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.\n- L'utilisateur a observé que faire 12 pompes fonctionne mieux avant la douche, en posant le tapis dans la salle de bain.",
+      "response_body": {
+        "content": "D'après tes souvenirs mémorisés uniquement pour mon action Faire 12 pompes :\n- Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.\n- L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.\n- L'utilisateur a observé que faire 12 pompes fonctionne mieux avant la douche, en posant le tapis dans la salle de bain.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      }
+    },
+    "trace_summary": {
+      "messages_total": 2,
+      "user_messages": 1,
+      "assistant_messages": 1,
+      "turns_total": 3,
+      "memorizer_runs_total": 0,
+      "observability_events_total": 8
+    },
+    "trace": {
+      "dispatcher_memory_plan": {
+        "targets": [
+          {
+            "key": "Faire 12 pompes",
+            "type": "action",
+            "priority": "high",
+            "query_hint": "déclencheur ou trigger pour l'action faire 12 pompes",
+            "entity_type": null,
+            "expansion_policy": null,
+            "retrieval_policy": "semantic_first"
+          },
+          {
+            "key": "habitudes.environnement",
+            "type": "domain_key",
+            "priority": "medium",
+            "query_hint": "déclencheur pompes",
+            "entity_type": null,
+            "expansion_policy": null,
+            "retrieval_policy": "taxonomy_first"
+          }
+        ],
+        "memory_mode": "light",
+        "context_need": "targeted",
+        "model_tier_hint": "lite",
+        "plan_confidence": 0.7,
+        "response_intent": "reflection",
+        "retrieval_policy": "semantic_first",
+        "context_budget_tier": "small",
+        "reasoning_complexity": "low"
+      },
+      "injected": true,
+      "active_loader": {
+        "retrieval_mode": "cross_topic_lookup",
+        "requested_scopes": [
+          "global",
+          "action"
+        ],
+        "action_targets": [
+          "Faire 12 pompes"
+        ],
+        "payload_item_count": 4,
+        "payload_item_ids": [
+          "24b9941a-458e-46f3-932d-181fa532fcf0",
+          "5dd4f6fe-ecd1-4f6f-bee8-6a8864d4dc26",
+          "243ebb52-e004-40de-a66e-002dd7fec13b",
+          "72f64052-d5ef-498d-97f2-3935973632e5"
+        ]
+      }
+    },
+    "evaluation": {
+      "matched_terms": [
+        "pompes",
+        "douche"
+      ],
+      "stale_breakfast_claim": true,
+      "payload_item_count": 4,
+      "requested_scopes": [
+        "global",
+        "action"
+      ],
+      "action_targets": [
+        "Faire 12 pompes"
+      ],
+      "dispatcher_memory_mode": "light",
+      "response_preview": "D'après tes souvenirs mémorisés uniquement pour mon action Faire 12 pompes :\n- Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.\n- L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.\n- L'utilisateur a observé que faire 12 pompes fonctionne mieux avant la douche, en posant le tapis dans la salle de bain.",
+      "ok": false
+    }
+  },
+  "memorizer": {
+    "initial": {
+      "ok": true,
+      "request_id": "memory-correction-e2e-mp6zb4ep-memorizer-initial-attempt-1",
+      "since_iso": "2026-05-15T12:54:31.057Z",
+      "processed_count": 1,
+      "processed": [
+        {
+          "user_id": "c79a678b-0f53-4ffa-a168-025613354d22",
+          "timezone": "Europe/Paris",
+          "message_count": 6,
+          "memorizer": {
+            "status": "completed",
+            "reason": null,
+            "processed_message_count": 6,
+            "persisted_count": 5,
+            "extraction_run_id": "fafdc069-43d3-4954-858b-d53156226942",
+            "batch_hash": "ab1d135dd2f881f62315ed4762fb4ecf0e0302a1f1e9f392e49c5ba4a56237f1",
+            "write_decision_count": 5,
+            "extraction_run": {
+              "id": "fafdc069-43d3-4954-858b-d53156226942",
+              "status": "completed",
+              "trigger_type": "daily_batch",
+              "proposed_item_count": 5,
+              "accepted_item_count": 5,
+              "rejected_item_count": 0,
+              "proposed_entity_count": 0,
+              "accepted_entity_count": 0,
+              "duration_ms": 19415,
+              "error_message": null,
+              "durable_writes": {
+                "active_items": 3,
+                "memory_items": 5,
+                "candidate_items": 2
+              },
+              "pre_filter_skip_count": 0,
+              "statement_as_fact_violation_count": 0,
+              "rejection_reasons": {},
+              "write_decision_statuses": {
+                "active": 3,
+                "candidate": 2
+              }
+            }
+          }
+        }
+      ]
+    },
+    "correction": {
+      "ok": true,
+      "request_id": "memory-correction-e2e-mp6zb4ep-memorizer-correction-attempt-1",
+      "since_iso": "2026-05-15T12:54:31.057Z",
+      "processed_count": 1,
+      "processed": [
+        {
+          "user_id": "c79a678b-0f53-4ffa-a168-025613354d22",
+          "timezone": "Europe/Paris",
+          "message_count": 4,
+          "memorizer": {
+            "status": "completed",
+            "reason": null,
+            "processed_message_count": 4,
+            "persisted_count": 1,
+            "extraction_run_id": "67c115b3-973e-4897-aa62-ad7ffa176a5f",
+            "batch_hash": "21bf188a79204ab25ecf955b66bfdf8de89b747ab7f22aceb23332b0efab757b",
+            "write_decision_count": 1,
+            "extraction_run": {
+              "id": "67c115b3-973e-4897-aa62-ad7ffa176a5f",
+              "status": "completed",
+              "trigger_type": "daily_batch",
+              "proposed_item_count": 1,
+              "accepted_item_count": 1,
+              "rejected_item_count": 1,
+              "proposed_entity_count": 0,
+              "accepted_entity_count": 0,
+              "duration_ms": 11288,
+              "error_message": null,
+              "durable_writes": {
+                "active_items": 1,
+                "memory_items": 1,
+                "candidate_items": 0
+              },
+              "pre_filter_skip_count": 1,
+              "statement_as_fact_violation_count": 0,
+              "rejection_reasons": {
+                "smart_pre_filter": 1
+              },
+              "write_decision_statuses": {
+                "active": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "memory_state_before_correction": {
+    "items": [
+      {
+        "id": "72f64052-d5ef-498d-97f2-3935973632e5",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "L'utilisateur souhaite que les apprentissages liés à ses actions soient retenus par l'assistant.",
+        "normalized_summary": "Souhaite la mémorisation des apprentissages liés aux actions.",
+        "domain_keys": [
+          "habitudes.execution"
+        ],
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "statement_role": "goal",
+          "write_decision_reason": "high_confidence_unlinked"
+        },
+        "superseded_by_item_id": null,
+        "created_at": "2026-05-15T13:56:09.926385+00:00"
+      },
+      {
+        "id": "6e5b8015-95a8-4267-85ba-c412df425b88",
+        "kind": "event",
+        "status": "candidate",
+        "content_text": "L'utilisateur a effectué 12 répétitions de pompes aujourd'hui.",
+        "normalized_summary": "Réalisation de 12 pompes le 15 mai 2026.",
+        "domain_keys": [
+          "sante.activite_physique"
+        ],
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "write_decision_reason": "ambiguous_link",
+          "temporal_resolution_raw": "aujourd'hui",
+          "sensitivity_promoted_from": "normal",
+          "sensitivity_promotion_reason": "sensitive_content_or_category",
+          "temporal_resolution_timezone": "Europe/Paris",
+          "temporal_resolution_confidence": 0.9
+        },
+        "superseded_by_item_id": null,
+        "created_at": "2026-05-15T13:56:09.938861+00:00"
+      },
+      {
+        "id": "5dd4f6fe-ecd1-4f6f-bee8-6a8864d4dc26",
+        "kind": "action_observation",
+        "status": "active",
+        "content_text": "L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.",
+        "normalized_summary": "Les pompes sont plus efficaces après le petit-déjeuner.",
+        "domain_keys": [
+          "habitudes.environnement",
+          "sante.activite_physique"
+        ],
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "action_family_key": "habit:pompes_matin",
+          "write_decision_reason": "high_confidence_linked",
+          "sensitivity_promoted_from": "normal",
+          "sensitivity_promotion_reason": "sensitive_content_or_category"
+        },
+        "superseded_by_item_id": null,
+        "created_at": "2026-05-15T13:56:09.950951+00:00"
+      },
+      {
+        "id": "24b9941a-458e-46f3-932d-181fa532fcf0",
+        "kind": "action_observation",
+        "status": "active",
+        "content_text": "Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.",
+        "normalized_summary": "Déclencheur des pompes : après le petit-déjeuner.",
+        "domain_keys": [
+          "habitudes.planification"
+        ],
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "action_family_key": "habit:pompes_matin",
+          "write_decision_reason": "high_confidence_linked",
+          "sensitivity_promoted_from": "normal",
+          "sensitivity_promotion_reason": "sensitive_content_or_category"
+        },
+        "superseded_by_item_id": null,
+        "created_at": "2026-05-15T13:56:09.963896+00:00"
+      },
+      {
+        "id": "366f5b0e-dca7-4134-85a1-d94dfa001ac3",
+        "kind": "fact",
+        "status": "candidate",
+        "content_text": "L'utilisateur a une idée de lecture sur le design, bien que ce ne soit pas considéré comme une action active.",
+        "normalized_summary": "Idée de lecture sur le design.",
+        "domain_keys": [
+          "objectifs.court_terme"
+        ],
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "write_decision_reason": "ambiguous_link"
+        },
+        "superseded_by_item_id": null,
+        "created_at": "2026-05-15T13:56:09.975986+00:00"
+      }
+    ],
+    "actionLinks": [
+      {
+        "id": "e8153986-8914-4bed-934c-ec93fb5da1c8",
+        "memory_item_id": "5dd4f6fe-ecd1-4f6f-bee8-6a8864d4dc26",
+        "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+        "aggregation_kind": "single_occurrence",
+        "confidence": 0.94,
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "matched_by": [
+            "metadata_action_family_key",
+            "title_stem",
+            "title_token_overlap",
+            "alias_token_presence",
+            "has_occurrence"
+          ],
+          "match_score": 2.76,
+          "action_variant": {
+            "target_reps": 12,
+            "time_of_day": "morning",
+            "current_reps": 12,
+            "cadence_label": "12 repetitions, trois fois cette semaine",
+            "scheduled_days": [
+              "mon",
+              "wed",
+              "fri"
+            ],
+            "recent_entry_outcomes": [
+              {
+                "outcome": "done",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:31.057+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:51.301+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:55:31.758+00:00"
+              }
+            ]
+          },
+          "action_family_key": "habit:pompes_matin",
+          "start_after_item_id": null
+        },
+        "created_at": "2026-05-15T13:56:09.956997+00:00",
+        "memory_items": {
+          "id": "5dd4f6fe-ecd1-4f6f-bee8-6a8864d4dc26",
+          "kind": "action_observation",
+          "status": "active",
+          "metadata": {
+            "created_by": "memorizer_v2",
+            "prompt_version": "memory.memorizer.extraction.v1",
+            "action_family_key": "habit:pompes_matin",
+            "write_decision_reason": "high_confidence_linked",
+            "sensitivity_promoted_from": "normal",
+            "sensitivity_promotion_reason": "sensitive_content_or_category"
+          },
+          "content_text": "L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.",
+          "normalized_summary": "Les pompes sont plus efficaces après le petit-déjeuner."
+        }
+      },
+      {
+        "id": "d7cb355b-3db0-400c-a16c-1a1cd130d22f",
+        "memory_item_id": "24b9941a-458e-46f3-932d-181fa532fcf0",
+        "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+        "aggregation_kind": "single_occurrence",
+        "confidence": 0.94,
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "matched_by": [
+            "metadata_action_family_key",
+            "title_exact",
+            "title_stem",
+            "title_token_overlap",
+            "alias",
+            "has_occurrence"
+          ],
+          "match_score": 3.41,
+          "action_variant": {
+            "target_reps": 12,
+            "time_of_day": "morning",
+            "current_reps": 12,
+            "cadence_label": "12 repetitions, trois fois cette semaine",
+            "scheduled_days": [
+              "mon",
+              "wed",
+              "fri"
+            ],
+            "recent_entry_outcomes": [
+              {
+                "outcome": "done",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:31.057+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:51.301+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:55:31.758+00:00"
+              }
+            ]
+          },
+          "action_family_key": "habit:pompes_matin",
+          "start_after_item_id": null
+        },
+        "created_at": "2026-05-15T13:56:09.971126+00:00",
+        "memory_items": {
+          "id": "24b9941a-458e-46f3-932d-181fa532fcf0",
+          "kind": "action_observation",
+          "status": "active",
+          "metadata": {
+            "created_by": "memorizer_v2",
+            "prompt_version": "memory.memorizer.extraction.v1",
+            "action_family_key": "habit:pompes_matin",
+            "write_decision_reason": "high_confidence_linked",
+            "sensitivity_promoted_from": "normal",
+            "sensitivity_promotion_reason": "sensitive_content_or_category"
+          },
+          "content_text": "Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.",
+          "normalized_summary": "Déclencheur des pompes : après le petit-déjeuner."
+        }
+      },
+      {
+        "id": "657c0798-d55f-4323-802a-bfa4e2c12e69",
+        "memory_item_id": "366f5b0e-dca7-4134-85a1-d94dfa001ac3",
+        "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+        "aggregation_kind": "single_occurrence",
+        "confidence": 0.57,
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "matched_by": [
+            "has_occurrence"
+          ],
+          "match_score": 0.1,
+          "action_variant": {
+            "target_reps": 12,
+            "time_of_day": "morning",
+            "current_reps": 12,
+            "cadence_label": "12 repetitions, trois fois cette semaine",
+            "scheduled_days": [
+              "mon",
+              "wed",
+              "fri"
+            ],
+            "recent_entry_outcomes": [
+              {
+                "outcome": "done",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:31.057+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:51.301+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:55:31.758+00:00"
+              }
+            ]
+          },
+          "action_family_key": "habit:pompes_matin",
+          "start_after_item_id": null
+        },
+        "created_at": "2026-05-15T13:56:09.979742+00:00",
+        "memory_items": {
+          "id": "366f5b0e-dca7-4134-85a1-d94dfa001ac3",
+          "kind": "fact",
+          "status": "candidate",
+          "metadata": {
+            "created_by": "memorizer_v2",
+            "prompt_version": "memory.memorizer.extraction.v1",
+            "write_decision_reason": "ambiguous_link"
+          },
+          "content_text": "L'utilisateur a une idée de lecture sur le design, bien que ce ne soit pas considéré comme une action active.",
+          "normalized_summary": "Idée de lecture sur le design."
+        }
+      }
+    ],
+    "changeLog": [],
+    "runs": [
+      {
+        "id": "fafdc069-43d3-4954-858b-d53156226942",
+        "status": "completed",
+        "trigger_type": "daily_batch",
+        "proposed_item_count": 5,
+        "accepted_item_count": 5,
+        "rejected_item_count": 0,
+        "metadata": {
+          "cost": {
+            "model_name": "gemini-3-flash-preview",
+            "estimated_llm_calls": 1
+          },
+          "dry_run": false,
+          "durable_writes": {
+            "active_items": 3,
+            "memory_items": 5,
+            "candidate_items": 2
+          },
+          "write_decisions": [
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "goal"
+                  },
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.execution"
+                  ],
+                  "content_text": "L'utilisateur souhaite que les apprentissages liés à ses actions soient retenus par l'assistant.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.execution.statement.souhaite_memorisation_des_apprentissages_lies_aux_actions.",
+                  "event_start_at": null,
+                  "evidence_quote": "je veux que les apprentissages lies a mes actions soient retenus.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.8,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Souhaite la mémorisation des apprentissages liés aux actions.",
+                  "source_message_ids": [
+                    "6d5d0c81-081e-48bb-a3c5-aacc649ee00e"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "goal"
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "L'utilisateur souhaite que les apprentissages liés à ses actions soient retenus par l'assistant.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.souhaite_memorisation_des_apprentissages_lies_aux_actions.",
+                    "event_start_at": null,
+                    "evidence_quote": "je veux que les apprentissages lies a mes actions soient retenus.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Souhaite la mémorisation des apprentissages liés aux actions.",
+                    "source_message_ids": [
+                      "6d5d0c81-081e-48bb-a3c5-aacc649ee00e"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "goal"
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "L'utilisateur souhaite que les apprentissages liés à ses actions soient retenus par l'assistant.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.souhaite_memorisation_des_apprentissages_lies_aux_actions.",
+                    "event_start_at": null,
+                    "evidence_quote": "je veux que les apprentissages lies a mes actions soient retenus.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Souhaite la mémorisation des apprentissages liés aux actions.",
+                    "source_message_ids": [
+                      "6d5d0c81-081e-48bb-a3c5-aacc649ee00e"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "ambiguous_link",
+              "status": "candidate",
+              "candidate": {
+                "item": {
+                  "kind": "event",
+                  "metadata": {
+                    "temporal_resolution_raw": "aujourd'hui",
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category",
+                    "temporal_resolution_timezone": "Europe/Paris",
+                    "temporal_resolution_confidence": 0.9
+                  },
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "sante.activite_physique"
+                  ],
+                  "content_text": "L'utilisateur a effectué 12 répétitions de pompes aujourd'hui.",
+                  "event_end_at": "2026-05-15T22:00:00.000Z",
+                  "canonical_key": "sante.activite_physique.event.realisation_pompes_mai_2026.",
+                  "event_start_at": "2026-05-15T13:54:39.778Z",
+                  "evidence_quote": "aujourd'hui j'ai fait les 12 repetitions.",
+                  "time_precision": "day",
+                  "entity_mentions": [],
+                  "importance_score": 0.5,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Réalisation de 12 pompes le 15 mai 2026.",
+                  "source_message_ids": [
+                    "f39b1ced-d17b-46fa-9b4c-f6737db3a64b"
+                  ],
+                  "sensitivity_categories": [
+                    "health"
+                  ],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "aujourd'hui",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.9
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a effectué 12 répétitions de pompes aujourd'hui.",
+                    "event_end_at": "2026-05-15T22:00:00.000Z",
+                    "canonical_key": "sante.activite_physique.event.realisation_pompes_mai_2026.",
+                    "event_start_at": "2026-05-15T13:54:39.778Z",
+                    "evidence_quote": "aujourd'hui j'ai fait les 12 repetitions.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Réalisation de 12 pompes le 15 mai 2026.",
+                    "source_message_ids": [
+                      "f39b1ced-d17b-46fa-9b4c-f6737db3a64b"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "aujourd'hui",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.9
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a effectué 12 répétitions de pompes aujourd'hui.",
+                    "event_end_at": "2026-05-15T22:00:00.000Z",
+                    "canonical_key": "sante.activite_physique.event.realisation_pompes_mai_2026.",
+                    "event_start_at": "2026-05-15T13:54:39.778Z",
+                    "evidence_quote": "aujourd'hui j'ai fait les 12 repetitions.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Réalisation de 12 pompes le 15 mai 2026.",
+                    "source_message_ids": [
+                      "f39b1ced-d17b-46fa-9b4c-f6737db3a64b"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_linked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "action_observation",
+                  "metadata": {
+                    "action_family_key": "habit:pompes_matin",
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.environnement",
+                    "sante.activite_physique"
+                  ],
+                  "content_text": "L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_apres_petit-dejeuner.",
+                  "event_start_at": null,
+                  "evidence_quote": "les pompes marchent mieux juste apres le petit-dejeuner.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Les pompes sont plus efficaces après le petit-déjeuner.",
+                  "source_message_ids": [
+                    "eee0e658-1658-4152-aa6c-e118254fae32",
+                    "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                  ],
+                  "sensitivity_categories": [
+                    "health"
+                  ],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_apres_petit-dejeuner.",
+                    "event_start_at": null,
+                    "evidence_quote": "les pompes marchent mieux juste apres le petit-dejeuner.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Les pompes sont plus efficaces après le petit-déjeuner.",
+                    "source_message_ids": [
+                      "eee0e658-1658-4152-aa6c-e118254fae32",
+                      "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_apres_petit-dejeuner.",
+                    "event_start_at": null,
+                    "evidence_quote": "les pompes marchent mieux juste apres le petit-dejeuner.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Les pompes sont plus efficaces après le petit-déjeuner.",
+                    "source_message_ids": [
+                      "eee0e658-1658-4152-aa6c-e118254fae32",
+                      "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_apres_petit-dejeuner.",
+                    "event_start_at": null,
+                    "evidence_quote": "les pompes marchent mieux juste apres le petit-dejeuner.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Les pompes sont plus efficaces après le petit-déjeuner.",
+                    "source_message_ids": [
+                      "eee0e658-1658-4152-aa6c-e118254fae32",
+                      "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "metadata": {
+                    "matched_by": [
+                      "metadata_action_family_key",
+                      "title_stem",
+                      "title_token_overlap",
+                      "alias_token_presence",
+                      "has_occurrence"
+                    ],
+                    "match_score": 2.76,
+                    "action_variant": {
+                      "target_reps": 12,
+                      "time_of_day": "morning",
+                      "current_reps": 12,
+                      "cadence_label": "12 repetitions, trois fois cette semaine",
+                      "scheduled_days": [
+                        "mon",
+                        "wed",
+                        "fri"
+                      ],
+                      "recent_entry_outcomes": [
+                        {
+                          "outcome": "done",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:31.057+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:51.301+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:55:31.758+00:00"
+                        }
+                      ]
+                    },
+                    "action_family_key": "habit:pompes_matin",
+                    "start_after_item_id": null
+                  },
+                  "confidence": 0.94,
+                  "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+                  "occurrence_ids": [
+                    "647ccb84-f526-477e-8892-073b0295fdd9",
+                    "6ff4004d-21c0-4dcd-8eb9-17c90ae0a211",
+                    "9457b6a7-9f68-44af-b703-2367c25e3934"
+                  ],
+                  "aggregation_kind": "single_occurrence",
+                  "action_family_key": "habit:pompes_matin",
+                  "observation_window_end": "2026-05-15T13:55:31.758+00:00",
+                  "observation_window_start": "2026-05-15T13:54:31.057+00:00"
+                },
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_linked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "action_observation",
+                  "metadata": {
+                    "action_family_key": "habit:pompes_matin",
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.planification"
+                  ],
+                  "content_text": "Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.planification.action_observation.declencheur_des_pompes_apres_petit-dejeuner.",
+                  "event_start_at": null,
+                  "evidence_quote": "le declencheur utile est apres le petit-dejeuner.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Déclencheur des pompes : après le petit-déjeuner.",
+                  "source_message_ids": [
+                    "f9042074-3c0b-47a2-a11e-b4d6e8b5f5be",
+                    "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                  ],
+                  "sensitivity_categories": [
+                    "health"
+                  ],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.planification"
+                    ],
+                    "content_text": "Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.planification.action_observation.declencheur_des_pompes_apres_petit-dejeuner.",
+                    "event_start_at": null,
+                    "evidence_quote": "le declencheur utile est apres le petit-dejeuner.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Déclencheur des pompes : après le petit-déjeuner.",
+                    "source_message_ids": [
+                      "f9042074-3c0b-47a2-a11e-b4d6e8b5f5be",
+                      "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.planification"
+                    ],
+                    "content_text": "Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.planification.action_observation.declencheur_des_pompes_apres_petit-dejeuner.",
+                    "event_start_at": null,
+                    "evidence_quote": "le declencheur utile est apres le petit-dejeuner.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Déclencheur des pompes : après le petit-déjeuner.",
+                    "source_message_ids": [
+                      "f9042074-3c0b-47a2-a11e-b4d6e8b5f5be",
+                      "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.planification"
+                    ],
+                    "content_text": "Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.planification.action_observation.declencheur_des_pompes_apres_petit-dejeuner.",
+                    "event_start_at": null,
+                    "evidence_quote": "le declencheur utile est apres le petit-dejeuner.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Déclencheur des pompes : après le petit-déjeuner.",
+                    "source_message_ids": [
+                      "f9042074-3c0b-47a2-a11e-b4d6e8b5f5be",
+                      "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "metadata": {
+                    "matched_by": [
+                      "metadata_action_family_key",
+                      "title_exact",
+                      "title_stem",
+                      "title_token_overlap",
+                      "alias",
+                      "has_occurrence"
+                    ],
+                    "match_score": 3.41,
+                    "action_variant": {
+                      "target_reps": 12,
+                      "time_of_day": "morning",
+                      "current_reps": 12,
+                      "cadence_label": "12 repetitions, trois fois cette semaine",
+                      "scheduled_days": [
+                        "mon",
+                        "wed",
+                        "fri"
+                      ],
+                      "recent_entry_outcomes": [
+                        {
+                          "outcome": "done",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:31.057+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:51.301+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:55:31.758+00:00"
+                        }
+                      ]
+                    },
+                    "action_family_key": "habit:pompes_matin",
+                    "start_after_item_id": null
+                  },
+                  "confidence": 0.94,
+                  "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+                  "occurrence_ids": [
+                    "647ccb84-f526-477e-8892-073b0295fdd9",
+                    "6ff4004d-21c0-4dcd-8eb9-17c90ae0a211",
+                    "9457b6a7-9f68-44af-b703-2367c25e3934"
+                  ],
+                  "aggregation_kind": "single_occurrence",
+                  "action_family_key": "habit:pompes_matin",
+                  "observation_window_end": "2026-05-15T13:55:31.758+00:00",
+                  "observation_window_start": "2026-05-15T13:54:31.057+00:00"
+                },
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "ambiguous_link",
+              "status": "candidate",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {},
+                  "confidence": 0.9,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "objectifs.court_terme"
+                  ],
+                  "content_text": "L'utilisateur a une idée de lecture sur le design, bien que ce ne soit pas considéré comme une action active.",
+                  "event_end_at": null,
+                  "canonical_key": "objectifs.court_terme.fact.idee_lecture_sur_design.",
+                  "event_start_at": null,
+                  "evidence_quote": "j'ai une idee de lecture sur le design, mais ce n'est pas une action active.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.3,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Idée de lecture sur le design.",
+                  "source_message_ids": [
+                    "47c1dc93-8bc8-4369-a25f-197f099efaa3"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "objectifs.court_terme"
+                    ],
+                    "content_text": "L'utilisateur a une idée de lecture sur le design, bien que ce ne soit pas considéré comme une action active.",
+                    "event_end_at": null,
+                    "canonical_key": "objectifs.court_terme.fact.idee_lecture_sur_design.",
+                    "event_start_at": null,
+                    "evidence_quote": "j'ai une idee de lecture sur le design, mais ce n'est pas une action active.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.3,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Idée de lecture sur le design.",
+                    "source_message_ids": [
+                      "47c1dc93-8bc8-4369-a25f-197f099efaa3"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "objectifs.court_terme"
+                    ],
+                    "content_text": "L'utilisateur a une idée de lecture sur le design, bien que ce ne soit pas considéré comme une action active.",
+                    "event_end_at": null,
+                    "canonical_key": "objectifs.court_terme.fact.idee_lecture_sur_design.",
+                    "event_start_at": null,
+                    "evidence_quote": "j'ai une idee de lecture sur le design, mais ce n'est pas une action active.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.3,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Idée de lecture sur le design.",
+                    "source_message_ids": [
+                      "47c1dc93-8bc8-4369-a25f-197f099efaa3"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "objectifs.court_terme"
+                    ],
+                    "content_text": "L'utilisateur a une idée de lecture sur le design, bien que ce ne soit pas considéré comme une action active.",
+                    "event_end_at": null,
+                    "canonical_key": "objectifs.court_terme.fact.idee_lecture_sur_design.",
+                    "event_start_at": null,
+                    "evidence_quote": "j'ai une idee de lecture sur le design, mais ce n'est pas une action active.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.3,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Idée de lecture sur le design.",
+                    "source_message_ids": [
+                      "47c1dc93-8bc8-4369-a25f-197f099efaa3"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "metadata": {
+                    "matched_by": [
+                      "has_occurrence"
+                    ],
+                    "match_score": 0.1,
+                    "action_variant": {
+                      "target_reps": 12,
+                      "time_of_day": "morning",
+                      "current_reps": 12,
+                      "cadence_label": "12 repetitions, trois fois cette semaine",
+                      "scheduled_days": [
+                        "mon",
+                        "wed",
+                        "fri"
+                      ],
+                      "recent_entry_outcomes": [
+                        {
+                          "outcome": "done",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:31.057+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:51.301+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:55:31.758+00:00"
+                        }
+                      ]
+                    },
+                    "action_family_key": "habit:pompes_matin",
+                    "start_after_item_id": null
+                  },
+                  "confidence": 0.5680000000000001,
+                  "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+                  "occurrence_ids": [
+                    "647ccb84-f526-477e-8892-073b0295fdd9",
+                    "6ff4004d-21c0-4dcd-8eb9-17c90ae0a211",
+                    "9457b6a7-9f68-44af-b703-2367c25e3934"
+                  ],
+                  "aggregation_kind": "single_occurrence",
+                  "action_family_key": "habit:pompes_matin",
+                  "observation_window_end": "2026-05-15T13:55:31.758+00:00",
+                  "observation_window_start": "2026-05-15T13:54:31.057+00:00"
+                },
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            }
+          ],
+          "correction_results": [],
+          "memorizer_v2_async": true,
+          "pre_filter_skip_count": 0,
+          "rejected_observations": [],
+          "persisted_memory_items": [
+            {
+              "status": "active",
+              "canonical_key": "habitudes.execution.statement.souhaite_memorisation_des_apprentissages_lies_aux_actions.",
+              "memory_item_id": "72f64052-d5ef-498d-97f2-3935973632e5"
+            },
+            {
+              "status": "candidate",
+              "canonical_key": "sante.activite_physique.event.realisation_pompes_mai_2026.",
+              "memory_item_id": "6e5b8015-95a8-4267-85ba-c412df425b88"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_apres_petit-dejeuner.",
+              "memory_item_id": "5dd4f6fe-ecd1-4f6f-bee8-6a8864d4dc26"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.planification.action_observation.declencheur_des_pompes_apres_petit-dejeuner.",
+              "memory_item_id": "24b9941a-458e-46f3-932d-181fa532fcf0"
+            },
+            {
+              "status": "candidate",
+              "canonical_key": "objectifs.court_terme.fact.idee_lecture_sur_design.",
+              "memory_item_id": "366f5b0e-dca7-4134-85a1-d94dfa001ac3"
+            }
+          ],
+          "statement_as_fact_violation_count": 0
+        },
+        "started_at": "2026-05-15T13:55:50.579612+00:00",
+        "finished_at": "2026-05-15T13:56:09.984+00:00"
+      }
+    ]
+  },
+  "memory_state_after_correction": {
+    "items": [
+      {
+        "id": "72f64052-d5ef-498d-97f2-3935973632e5",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "L'utilisateur souhaite que les apprentissages liés à ses actions soient retenus par l'assistant.",
+        "normalized_summary": "Souhaite la mémorisation des apprentissages liés aux actions.",
+        "domain_keys": [
+          "habitudes.execution"
+        ],
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "statement_role": "goal",
+          "write_decision_reason": "high_confidence_unlinked"
+        },
+        "superseded_by_item_id": null,
+        "created_at": "2026-05-15T13:56:09.926385+00:00"
+      },
+      {
+        "id": "6e5b8015-95a8-4267-85ba-c412df425b88",
+        "kind": "event",
+        "status": "candidate",
+        "content_text": "L'utilisateur a effectué 12 répétitions de pompes aujourd'hui.",
+        "normalized_summary": "Réalisation de 12 pompes le 15 mai 2026.",
+        "domain_keys": [
+          "sante.activite_physique"
+        ],
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "write_decision_reason": "ambiguous_link",
+          "temporal_resolution_raw": "aujourd'hui",
+          "sensitivity_promoted_from": "normal",
+          "sensitivity_promotion_reason": "sensitive_content_or_category",
+          "temporal_resolution_timezone": "Europe/Paris",
+          "temporal_resolution_confidence": 0.9
+        },
+        "superseded_by_item_id": null,
+        "created_at": "2026-05-15T13:56:09.938861+00:00"
+      },
+      {
+        "id": "5dd4f6fe-ecd1-4f6f-bee8-6a8864d4dc26",
+        "kind": "action_observation",
+        "status": "active",
+        "content_text": "L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.",
+        "normalized_summary": "Les pompes sont plus efficaces après le petit-déjeuner.",
+        "domain_keys": [
+          "habitudes.environnement",
+          "sante.activite_physique"
+        ],
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "action_family_key": "habit:pompes_matin",
+          "write_decision_reason": "high_confidence_linked",
+          "sensitivity_promoted_from": "normal",
+          "sensitivity_promotion_reason": "sensitive_content_or_category"
+        },
+        "superseded_by_item_id": null,
+        "created_at": "2026-05-15T13:56:09.950951+00:00"
+      },
+      {
+        "id": "24b9941a-458e-46f3-932d-181fa532fcf0",
+        "kind": "action_observation",
+        "status": "active",
+        "content_text": "Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.",
+        "normalized_summary": "Déclencheur des pompes : après le petit-déjeuner.",
+        "domain_keys": [
+          "habitudes.planification"
+        ],
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "action_family_key": "habit:pompes_matin",
+          "write_decision_reason": "high_confidence_linked",
+          "sensitivity_promoted_from": "normal",
+          "sensitivity_promotion_reason": "sensitive_content_or_category"
+        },
+        "superseded_by_item_id": null,
+        "created_at": "2026-05-15T13:56:09.963896+00:00"
+      },
+      {
+        "id": "366f5b0e-dca7-4134-85a1-d94dfa001ac3",
+        "kind": "fact",
+        "status": "candidate",
+        "content_text": "L'utilisateur a une idée de lecture sur le design, bien que ce ne soit pas considéré comme une action active.",
+        "normalized_summary": "Idée de lecture sur le design.",
+        "domain_keys": [
+          "objectifs.court_terme"
+        ],
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "write_decision_reason": "ambiguous_link"
+        },
+        "superseded_by_item_id": null,
+        "created_at": "2026-05-15T13:56:09.975986+00:00"
+      },
+      {
+        "id": "243ebb52-e004-40de-a66e-002dd7fec13b",
+        "kind": "action_observation",
+        "status": "active",
+        "content_text": "L'utilisateur a observé que faire 12 pompes fonctionne mieux avant la douche, en posant le tapis dans la salle de bain.",
+        "normalized_summary": "Les pompes sont plus efficaces avant la douche avec le tapis dans la salle de bain.",
+        "domain_keys": [
+          "habitudes.environnement",
+          "sante.activite_physique"
+        ],
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "write_decision_reason": "high_confidence_linked"
+        },
+        "superseded_by_item_id": null,
+        "created_at": "2026-05-15T13:57:55.763344+00:00"
+      }
+    ],
+    "actionLinks": [
+      {
+        "id": "e8153986-8914-4bed-934c-ec93fb5da1c8",
+        "memory_item_id": "5dd4f6fe-ecd1-4f6f-bee8-6a8864d4dc26",
+        "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+        "aggregation_kind": "single_occurrence",
+        "confidence": 0.94,
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "matched_by": [
+            "metadata_action_family_key",
+            "title_stem",
+            "title_token_overlap",
+            "alias_token_presence",
+            "has_occurrence"
+          ],
+          "match_score": 2.76,
+          "action_variant": {
+            "target_reps": 12,
+            "time_of_day": "morning",
+            "current_reps": 12,
+            "cadence_label": "12 repetitions, trois fois cette semaine",
+            "scheduled_days": [
+              "mon",
+              "wed",
+              "fri"
+            ],
+            "recent_entry_outcomes": [
+              {
+                "outcome": "done",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:31.057+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:51.301+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:55:31.758+00:00"
+              }
+            ]
+          },
+          "action_family_key": "habit:pompes_matin",
+          "start_after_item_id": null
+        },
+        "created_at": "2026-05-15T13:56:09.956997+00:00",
+        "memory_items": {
+          "id": "5dd4f6fe-ecd1-4f6f-bee8-6a8864d4dc26",
+          "kind": "action_observation",
+          "status": "active",
+          "metadata": {
+            "created_by": "memorizer_v2",
+            "prompt_version": "memory.memorizer.extraction.v1",
+            "action_family_key": "habit:pompes_matin",
+            "write_decision_reason": "high_confidence_linked",
+            "sensitivity_promoted_from": "normal",
+            "sensitivity_promotion_reason": "sensitive_content_or_category"
+          },
+          "content_text": "L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.",
+          "normalized_summary": "Les pompes sont plus efficaces après le petit-déjeuner."
+        }
+      },
+      {
+        "id": "d7cb355b-3db0-400c-a16c-1a1cd130d22f",
+        "memory_item_id": "24b9941a-458e-46f3-932d-181fa532fcf0",
+        "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+        "aggregation_kind": "single_occurrence",
+        "confidence": 0.94,
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "matched_by": [
+            "metadata_action_family_key",
+            "title_exact",
+            "title_stem",
+            "title_token_overlap",
+            "alias",
+            "has_occurrence"
+          ],
+          "match_score": 3.41,
+          "action_variant": {
+            "target_reps": 12,
+            "time_of_day": "morning",
+            "current_reps": 12,
+            "cadence_label": "12 repetitions, trois fois cette semaine",
+            "scheduled_days": [
+              "mon",
+              "wed",
+              "fri"
+            ],
+            "recent_entry_outcomes": [
+              {
+                "outcome": "done",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:31.057+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:51.301+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:55:31.758+00:00"
+              }
+            ]
+          },
+          "action_family_key": "habit:pompes_matin",
+          "start_after_item_id": null
+        },
+        "created_at": "2026-05-15T13:56:09.971126+00:00",
+        "memory_items": {
+          "id": "24b9941a-458e-46f3-932d-181fa532fcf0",
+          "kind": "action_observation",
+          "status": "active",
+          "metadata": {
+            "created_by": "memorizer_v2",
+            "prompt_version": "memory.memorizer.extraction.v1",
+            "action_family_key": "habit:pompes_matin",
+            "write_decision_reason": "high_confidence_linked",
+            "sensitivity_promoted_from": "normal",
+            "sensitivity_promotion_reason": "sensitive_content_or_category"
+          },
+          "content_text": "Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.",
+          "normalized_summary": "Déclencheur des pompes : après le petit-déjeuner."
+        }
+      },
+      {
+        "id": "657c0798-d55f-4323-802a-bfa4e2c12e69",
+        "memory_item_id": "366f5b0e-dca7-4134-85a1-d94dfa001ac3",
+        "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+        "aggregation_kind": "single_occurrence",
+        "confidence": 0.57,
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "matched_by": [
+            "has_occurrence"
+          ],
+          "match_score": 0.1,
+          "action_variant": {
+            "target_reps": 12,
+            "time_of_day": "morning",
+            "current_reps": 12,
+            "cadence_label": "12 repetitions, trois fois cette semaine",
+            "scheduled_days": [
+              "mon",
+              "wed",
+              "fri"
+            ],
+            "recent_entry_outcomes": [
+              {
+                "outcome": "done",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:31.057+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:51.301+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:55:31.758+00:00"
+              }
+            ]
+          },
+          "action_family_key": "habit:pompes_matin",
+          "start_after_item_id": null
+        },
+        "created_at": "2026-05-15T13:56:09.979742+00:00",
+        "memory_items": {
+          "id": "366f5b0e-dca7-4134-85a1-d94dfa001ac3",
+          "kind": "fact",
+          "status": "candidate",
+          "metadata": {
+            "created_by": "memorizer_v2",
+            "prompt_version": "memory.memorizer.extraction.v1",
+            "write_decision_reason": "ambiguous_link"
+          },
+          "content_text": "L'utilisateur a une idée de lecture sur le design, bien que ce ne soit pas considéré comme une action active.",
+          "normalized_summary": "Idée de lecture sur le design."
+        }
+      },
+      {
+        "id": "1c767bd4-4438-41d1-ae66-5c3daabae404",
+        "memory_item_id": "243ebb52-e004-40de-a66e-002dd7fec13b",
+        "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+        "aggregation_kind": "single_occurrence",
+        "confidence": 0.94,
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "matched_by": [
+            "title_exact",
+            "title_stem",
+            "title_token_overlap",
+            "alias",
+            "has_occurrence"
+          ],
+          "match_score": 2.51,
+          "action_variant": {
+            "target_reps": 12,
+            "time_of_day": "morning",
+            "current_reps": 12,
+            "cadence_label": "12 repetitions, trois fois cette semaine",
+            "scheduled_days": [
+              "mon",
+              "wed",
+              "fri"
+            ],
+            "recent_entry_outcomes": [
+              {
+                "outcome": "done",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:31.057+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:54:51.301+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T13:55:31.758+00:00"
+              }
+            ]
+          },
+          "action_family_key": "habit:pompes_matin",
+          "start_after_item_id": null
+        },
+        "created_at": "2026-05-15T13:57:55.775129+00:00",
+        "memory_items": {
+          "id": "243ebb52-e004-40de-a66e-002dd7fec13b",
+          "kind": "action_observation",
+          "status": "active",
+          "metadata": {
+            "created_by": "memorizer_v2",
+            "prompt_version": "memory.memorizer.extraction.v1",
+            "write_decision_reason": "high_confidence_linked"
+          },
+          "content_text": "L'utilisateur a observé que faire 12 pompes fonctionne mieux avant la douche, en posant le tapis dans la salle de bain.",
+          "normalized_summary": "Les pompes sont plus efficaces avant la douche avec le tapis dans la salle de bain."
+        }
+      }
+    ],
+    "changeLog": [],
+    "runs": [
+      {
+        "id": "67c115b3-973e-4897-aa62-ad7ffa176a5f",
+        "status": "completed",
+        "trigger_type": "daily_batch",
+        "proposed_item_count": 1,
+        "accepted_item_count": 1,
+        "rejected_item_count": 1,
+        "metadata": {
+          "cost": {
+            "model_name": "gemini-3-flash-preview",
+            "estimated_llm_calls": 1
+          },
+          "dry_run": false,
+          "durable_writes": {
+            "active_items": 1,
+            "memory_items": 1,
+            "candidate_items": 0
+          },
+          "write_decisions": [
+            {
+              "reason": "high_confidence_linked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "action_observation",
+                  "metadata": {},
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.environnement",
+                    "sante.activite_physique"
+                  ],
+                  "content_text": "L'utilisateur a observé que faire 12 pompes fonctionne mieux avant la douche, en posant le tapis dans la salle de bain.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_avant_douche_avec",
+                  "event_start_at": null,
+                  "evidence_quote": "pour Faire 12 pompes, ca marche mieux avant la douche, quand je pose le tapis dans la salle de bain.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Les pompes sont plus efficaces avant la douche avec le tapis dans la salle de bain.",
+                  "source_message_ids": [
+                    "dabcf2fe-5af6-447a-813a-d01663c71ecd"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a observé que faire 12 pompes fonctionne mieux avant la douche, en posant le tapis dans la salle de bain.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_avant_douche_avec",
+                    "event_start_at": null,
+                    "evidence_quote": "pour Faire 12 pompes, ca marche mieux avant la douche, quand je pose le tapis dans la salle de bain.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Les pompes sont plus efficaces avant la douche avec le tapis dans la salle de bain.",
+                    "source_message_ids": [
+                      "dabcf2fe-5af6-447a-813a-d01663c71ecd"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a observé que faire 12 pompes fonctionne mieux avant la douche, en posant le tapis dans la salle de bain.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_avant_douche_avec",
+                    "event_start_at": null,
+                    "evidence_quote": "pour Faire 12 pompes, ca marche mieux avant la douche, quand je pose le tapis dans la salle de bain.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Les pompes sont plus efficaces avant la douche avec le tapis dans la salle de bain.",
+                    "source_message_ids": [
+                      "dabcf2fe-5af6-447a-813a-d01663c71ecd"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {},
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a observé que faire 12 pompes fonctionne mieux avant la douche, en posant le tapis dans la salle de bain.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_avant_douche_avec",
+                    "event_start_at": null,
+                    "evidence_quote": "pour Faire 12 pompes, ca marche mieux avant la douche, quand je pose le tapis dans la salle de bain.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Les pompes sont plus efficaces avant la douche avec le tapis dans la salle de bain.",
+                    "source_message_ids": [
+                      "dabcf2fe-5af6-447a-813a-d01663c71ecd"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "metadata": {
+                    "matched_by": [
+                      "title_exact",
+                      "title_stem",
+                      "title_token_overlap",
+                      "alias",
+                      "has_occurrence"
+                    ],
+                    "match_score": 2.51,
+                    "action_variant": {
+                      "target_reps": 12,
+                      "time_of_day": "morning",
+                      "current_reps": 12,
+                      "cadence_label": "12 repetitions, trois fois cette semaine",
+                      "scheduled_days": [
+                        "mon",
+                        "wed",
+                        "fri"
+                      ],
+                      "recent_entry_outcomes": [
+                        {
+                          "outcome": "done",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:31.057+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:51.301+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:55:31.758+00:00"
+                        }
+                      ]
+                    },
+                    "action_family_key": "habit:pompes_matin",
+                    "start_after_item_id": null
+                  },
+                  "confidence": 0.94,
+                  "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+                  "occurrence_ids": [
+                    "647ccb84-f526-477e-8892-073b0295fdd9",
+                    "6ff4004d-21c0-4dcd-8eb9-17c90ae0a211",
+                    "9457b6a7-9f68-44af-b703-2367c25e3934"
+                  ],
+                  "aggregation_kind": "single_occurrence",
+                  "action_family_key": "habit:pompes_matin",
+                  "observation_window_end": "2026-05-15T13:55:31.758+00:00",
+                  "observation_window_start": "2026-05-15T13:54:31.057+00:00"
+                },
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            }
+          ],
+          "correction_results": [
+            {
+              "reason": "semantic_similarity",
+              "status": "skipped",
+              "target_hint": "déclencheur pompes après petit-déjeuner",
+              "operation_type": "supersede"
+            },
+            {
+              "reason": "semantic_similarity",
+              "status": "skipped",
+              "target_hint": "pompes fonctionnent mieux après petit-déjeuner",
+              "operation_type": "supersede"
+            }
+          ],
+          "memorizer_v2_async": true,
+          "pre_filter_skip_count": 1,
+          "rejected_observations": [
+            {
+              "text": "Garde la nouvelle version uniquement: pompes avant la douche, pas apres le petit-dejeuner.",
+              "reason": "smart_pre_filter"
+            }
+          ],
+          "persisted_memory_items": [
+            {
+              "status": "active",
+              "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_avant_douche_avec",
+              "memory_item_id": "243ebb52-e004-40de-a66e-002dd7fec13b"
+            }
+          ],
+          "statement_as_fact_violation_count": 0
+        },
+        "started_at": "2026-05-15T13:57:44.505963+00:00",
+        "finished_at": "2026-05-15T13:57:55.786+00:00"
+      },
+      {
+        "id": "fafdc069-43d3-4954-858b-d53156226942",
+        "status": "completed",
+        "trigger_type": "daily_batch",
+        "proposed_item_count": 5,
+        "accepted_item_count": 5,
+        "rejected_item_count": 0,
+        "metadata": {
+          "cost": {
+            "model_name": "gemini-3-flash-preview",
+            "estimated_llm_calls": 1
+          },
+          "dry_run": false,
+          "durable_writes": {
+            "active_items": 3,
+            "memory_items": 5,
+            "candidate_items": 2
+          },
+          "write_decisions": [
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "goal"
+                  },
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.execution"
+                  ],
+                  "content_text": "L'utilisateur souhaite que les apprentissages liés à ses actions soient retenus par l'assistant.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.execution.statement.souhaite_memorisation_des_apprentissages_lies_aux_actions.",
+                  "event_start_at": null,
+                  "evidence_quote": "je veux que les apprentissages lies a mes actions soient retenus.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.8,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Souhaite la mémorisation des apprentissages liés aux actions.",
+                  "source_message_ids": [
+                    "6d5d0c81-081e-48bb-a3c5-aacc649ee00e"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "goal"
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "L'utilisateur souhaite que les apprentissages liés à ses actions soient retenus par l'assistant.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.souhaite_memorisation_des_apprentissages_lies_aux_actions.",
+                    "event_start_at": null,
+                    "evidence_quote": "je veux que les apprentissages lies a mes actions soient retenus.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Souhaite la mémorisation des apprentissages liés aux actions.",
+                    "source_message_ids": [
+                      "6d5d0c81-081e-48bb-a3c5-aacc649ee00e"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "goal"
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "L'utilisateur souhaite que les apprentissages liés à ses actions soient retenus par l'assistant.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.souhaite_memorisation_des_apprentissages_lies_aux_actions.",
+                    "event_start_at": null,
+                    "evidence_quote": "je veux que les apprentissages lies a mes actions soient retenus.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Souhaite la mémorisation des apprentissages liés aux actions.",
+                    "source_message_ids": [
+                      "6d5d0c81-081e-48bb-a3c5-aacc649ee00e"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "ambiguous_link",
+              "status": "candidate",
+              "candidate": {
+                "item": {
+                  "kind": "event",
+                  "metadata": {
+                    "temporal_resolution_raw": "aujourd'hui",
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category",
+                    "temporal_resolution_timezone": "Europe/Paris",
+                    "temporal_resolution_confidence": 0.9
+                  },
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "sante.activite_physique"
+                  ],
+                  "content_text": "L'utilisateur a effectué 12 répétitions de pompes aujourd'hui.",
+                  "event_end_at": "2026-05-15T22:00:00.000Z",
+                  "canonical_key": "sante.activite_physique.event.realisation_pompes_mai_2026.",
+                  "event_start_at": "2026-05-15T13:54:39.778Z",
+                  "evidence_quote": "aujourd'hui j'ai fait les 12 repetitions.",
+                  "time_precision": "day",
+                  "entity_mentions": [],
+                  "importance_score": 0.5,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Réalisation de 12 pompes le 15 mai 2026.",
+                  "source_message_ids": [
+                    "f39b1ced-d17b-46fa-9b4c-f6737db3a64b"
+                  ],
+                  "sensitivity_categories": [
+                    "health"
+                  ],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "aujourd'hui",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.9
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a effectué 12 répétitions de pompes aujourd'hui.",
+                    "event_end_at": "2026-05-15T22:00:00.000Z",
+                    "canonical_key": "sante.activite_physique.event.realisation_pompes_mai_2026.",
+                    "event_start_at": "2026-05-15T13:54:39.778Z",
+                    "evidence_quote": "aujourd'hui j'ai fait les 12 repetitions.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Réalisation de 12 pompes le 15 mai 2026.",
+                    "source_message_ids": [
+                      "f39b1ced-d17b-46fa-9b4c-f6737db3a64b"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "aujourd'hui",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.9
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a effectué 12 répétitions de pompes aujourd'hui.",
+                    "event_end_at": "2026-05-15T22:00:00.000Z",
+                    "canonical_key": "sante.activite_physique.event.realisation_pompes_mai_2026.",
+                    "event_start_at": "2026-05-15T13:54:39.778Z",
+                    "evidence_quote": "aujourd'hui j'ai fait les 12 repetitions.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Réalisation de 12 pompes le 15 mai 2026.",
+                    "source_message_ids": [
+                      "f39b1ced-d17b-46fa-9b4c-f6737db3a64b"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_linked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "action_observation",
+                  "metadata": {
+                    "action_family_key": "habit:pompes_matin",
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.environnement",
+                    "sante.activite_physique"
+                  ],
+                  "content_text": "L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_apres_petit-dejeuner.",
+                  "event_start_at": null,
+                  "evidence_quote": "les pompes marchent mieux juste apres le petit-dejeuner.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Les pompes sont plus efficaces après le petit-déjeuner.",
+                  "source_message_ids": [
+                    "eee0e658-1658-4152-aa6c-e118254fae32",
+                    "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                  ],
+                  "sensitivity_categories": [
+                    "health"
+                  ],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_apres_petit-dejeuner.",
+                    "event_start_at": null,
+                    "evidence_quote": "les pompes marchent mieux juste apres le petit-dejeuner.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Les pompes sont plus efficaces après le petit-déjeuner.",
+                    "source_message_ids": [
+                      "eee0e658-1658-4152-aa6c-e118254fae32",
+                      "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_apres_petit-dejeuner.",
+                    "event_start_at": null,
+                    "evidence_quote": "les pompes marchent mieux juste apres le petit-dejeuner.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Les pompes sont plus efficaces après le petit-déjeuner.",
+                    "source_message_ids": [
+                      "eee0e658-1658-4152-aa6c-e118254fae32",
+                      "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_apres_petit-dejeuner.",
+                    "event_start_at": null,
+                    "evidence_quote": "les pompes marchent mieux juste apres le petit-dejeuner.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Les pompes sont plus efficaces après le petit-déjeuner.",
+                    "source_message_ids": [
+                      "eee0e658-1658-4152-aa6c-e118254fae32",
+                      "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "metadata": {
+                    "matched_by": [
+                      "metadata_action_family_key",
+                      "title_stem",
+                      "title_token_overlap",
+                      "alias_token_presence",
+                      "has_occurrence"
+                    ],
+                    "match_score": 2.76,
+                    "action_variant": {
+                      "target_reps": 12,
+                      "time_of_day": "morning",
+                      "current_reps": 12,
+                      "cadence_label": "12 repetitions, trois fois cette semaine",
+                      "scheduled_days": [
+                        "mon",
+                        "wed",
+                        "fri"
+                      ],
+                      "recent_entry_outcomes": [
+                        {
+                          "outcome": "done",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:31.057+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:51.301+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:55:31.758+00:00"
+                        }
+                      ]
+                    },
+                    "action_family_key": "habit:pompes_matin",
+                    "start_after_item_id": null
+                  },
+                  "confidence": 0.94,
+                  "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+                  "occurrence_ids": [
+                    "647ccb84-f526-477e-8892-073b0295fdd9",
+                    "6ff4004d-21c0-4dcd-8eb9-17c90ae0a211",
+                    "9457b6a7-9f68-44af-b703-2367c25e3934"
+                  ],
+                  "aggregation_kind": "single_occurrence",
+                  "action_family_key": "habit:pompes_matin",
+                  "observation_window_end": "2026-05-15T13:55:31.758+00:00",
+                  "observation_window_start": "2026-05-15T13:54:31.057+00:00"
+                },
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_linked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "action_observation",
+                  "metadata": {
+                    "action_family_key": "habit:pompes_matin",
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.planification"
+                  ],
+                  "content_text": "Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.planification.action_observation.declencheur_des_pompes_apres_petit-dejeuner.",
+                  "event_start_at": null,
+                  "evidence_quote": "le declencheur utile est apres le petit-dejeuner.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Déclencheur des pompes : après le petit-déjeuner.",
+                  "source_message_ids": [
+                    "f9042074-3c0b-47a2-a11e-b4d6e8b5f5be",
+                    "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                  ],
+                  "sensitivity_categories": [
+                    "health"
+                  ],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.planification"
+                    ],
+                    "content_text": "Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.planification.action_observation.declencheur_des_pompes_apres_petit-dejeuner.",
+                    "event_start_at": null,
+                    "evidence_quote": "le declencheur utile est apres le petit-dejeuner.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Déclencheur des pompes : après le petit-déjeuner.",
+                    "source_message_ids": [
+                      "f9042074-3c0b-47a2-a11e-b4d6e8b5f5be",
+                      "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.planification"
+                    ],
+                    "content_text": "Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.planification.action_observation.declencheur_des_pompes_apres_petit-dejeuner.",
+                    "event_start_at": null,
+                    "evidence_quote": "le declencheur utile est apres le petit-dejeuner.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Déclencheur des pompes : après le petit-déjeuner.",
+                    "source_message_ids": [
+                      "f9042074-3c0b-47a2-a11e-b4d6e8b5f5be",
+                      "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.planification"
+                    ],
+                    "content_text": "Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.planification.action_observation.declencheur_des_pompes_apres_petit-dejeuner.",
+                    "event_start_at": null,
+                    "evidence_quote": "le declencheur utile est apres le petit-dejeuner.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Déclencheur des pompes : après le petit-déjeuner.",
+                    "source_message_ids": [
+                      "f9042074-3c0b-47a2-a11e-b4d6e8b5f5be",
+                      "1f5f5b88-2fe9-453c-8222-37991e1a971a"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "metadata": {
+                    "matched_by": [
+                      "metadata_action_family_key",
+                      "title_exact",
+                      "title_stem",
+                      "title_token_overlap",
+                      "alias",
+                      "has_occurrence"
+                    ],
+                    "match_score": 3.41,
+                    "action_variant": {
+                      "target_reps": 12,
+                      "time_of_day": "morning",
+                      "current_reps": 12,
+                      "cadence_label": "12 repetitions, trois fois cette semaine",
+                      "scheduled_days": [
+                        "mon",
+                        "wed",
+                        "fri"
+                      ],
+                      "recent_entry_outcomes": [
+                        {
+                          "outcome": "done",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:31.057+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:51.301+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:55:31.758+00:00"
+                        }
+                      ]
+                    },
+                    "action_family_key": "habit:pompes_matin",
+                    "start_after_item_id": null
+                  },
+                  "confidence": 0.94,
+                  "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+                  "occurrence_ids": [
+                    "647ccb84-f526-477e-8892-073b0295fdd9",
+                    "6ff4004d-21c0-4dcd-8eb9-17c90ae0a211",
+                    "9457b6a7-9f68-44af-b703-2367c25e3934"
+                  ],
+                  "aggregation_kind": "single_occurrence",
+                  "action_family_key": "habit:pompes_matin",
+                  "observation_window_end": "2026-05-15T13:55:31.758+00:00",
+                  "observation_window_start": "2026-05-15T13:54:31.057+00:00"
+                },
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "ambiguous_link",
+              "status": "candidate",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {},
+                  "confidence": 0.9,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "objectifs.court_terme"
+                  ],
+                  "content_text": "L'utilisateur a une idée de lecture sur le design, bien que ce ne soit pas considéré comme une action active.",
+                  "event_end_at": null,
+                  "canonical_key": "objectifs.court_terme.fact.idee_lecture_sur_design.",
+                  "event_start_at": null,
+                  "evidence_quote": "j'ai une idee de lecture sur le design, mais ce n'est pas une action active.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.3,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Idée de lecture sur le design.",
+                  "source_message_ids": [
+                    "47c1dc93-8bc8-4369-a25f-197f099efaa3"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "objectifs.court_terme"
+                    ],
+                    "content_text": "L'utilisateur a une idée de lecture sur le design, bien que ce ne soit pas considéré comme une action active.",
+                    "event_end_at": null,
+                    "canonical_key": "objectifs.court_terme.fact.idee_lecture_sur_design.",
+                    "event_start_at": null,
+                    "evidence_quote": "j'ai une idee de lecture sur le design, mais ce n'est pas une action active.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.3,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Idée de lecture sur le design.",
+                    "source_message_ids": [
+                      "47c1dc93-8bc8-4369-a25f-197f099efaa3"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "objectifs.court_terme"
+                    ],
+                    "content_text": "L'utilisateur a une idée de lecture sur le design, bien que ce ne soit pas considéré comme une action active.",
+                    "event_end_at": null,
+                    "canonical_key": "objectifs.court_terme.fact.idee_lecture_sur_design.",
+                    "event_start_at": null,
+                    "evidence_quote": "j'ai une idee de lecture sur le design, mais ce n'est pas une action active.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.3,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Idée de lecture sur le design.",
+                    "source_message_ids": [
+                      "47c1dc93-8bc8-4369-a25f-197f099efaa3"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "objectifs.court_terme"
+                    ],
+                    "content_text": "L'utilisateur a une idée de lecture sur le design, bien que ce ne soit pas considéré comme une action active.",
+                    "event_end_at": null,
+                    "canonical_key": "objectifs.court_terme.fact.idee_lecture_sur_design.",
+                    "event_start_at": null,
+                    "evidence_quote": "j'ai une idee de lecture sur le design, mais ce n'est pas une action active.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.3,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Idée de lecture sur le design.",
+                    "source_message_ids": [
+                      "47c1dc93-8bc8-4369-a25f-197f099efaa3"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "metadata": {
+                    "matched_by": [
+                      "has_occurrence"
+                    ],
+                    "match_score": 0.1,
+                    "action_variant": {
+                      "target_reps": 12,
+                      "time_of_day": "morning",
+                      "current_reps": 12,
+                      "cadence_label": "12 repetitions, trois fois cette semaine",
+                      "scheduled_days": [
+                        "mon",
+                        "wed",
+                        "fri"
+                      ],
+                      "recent_entry_outcomes": [
+                        {
+                          "outcome": "done",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:31.057+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:54:51.301+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T13:55:31.758+00:00"
+                        }
+                      ]
+                    },
+                    "action_family_key": "habit:pompes_matin",
+                    "start_after_item_id": null
+                  },
+                  "confidence": 0.5680000000000001,
+                  "plan_item_id": "de4eb166-637b-405e-b6b6-1c35ab62a244",
+                  "occurrence_ids": [
+                    "647ccb84-f526-477e-8892-073b0295fdd9",
+                    "6ff4004d-21c0-4dcd-8eb9-17c90ae0a211",
+                    "9457b6a7-9f68-44af-b703-2367c25e3934"
+                  ],
+                  "aggregation_kind": "single_occurrence",
+                  "action_family_key": "habit:pompes_matin",
+                  "observation_window_end": "2026-05-15T13:55:31.758+00:00",
+                  "observation_window_start": "2026-05-15T13:54:31.057+00:00"
+                },
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            }
+          ],
+          "correction_results": [],
+          "memorizer_v2_async": true,
+          "pre_filter_skip_count": 0,
+          "rejected_observations": [],
+          "persisted_memory_items": [
+            {
+              "status": "active",
+              "canonical_key": "habitudes.execution.statement.souhaite_memorisation_des_apprentissages_lies_aux_actions.",
+              "memory_item_id": "72f64052-d5ef-498d-97f2-3935973632e5"
+            },
+            {
+              "status": "candidate",
+              "canonical_key": "sante.activite_physique.event.realisation_pompes_mai_2026.",
+              "memory_item_id": "6e5b8015-95a8-4267-85ba-c412df425b88"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.environnement.action_observation.les_pompes_sont_plus_efficaces_apres_petit-dejeuner.",
+              "memory_item_id": "5dd4f6fe-ecd1-4f6f-bee8-6a8864d4dc26"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.planification.action_observation.declencheur_des_pompes_apres_petit-dejeuner.",
+              "memory_item_id": "24b9941a-458e-46f3-932d-181fa532fcf0"
+            },
+            {
+              "status": "candidate",
+              "canonical_key": "objectifs.court_terme.fact.idee_lecture_sur_design.",
+              "memory_item_id": "366f5b0e-dca7-4134-85a1-d94dfa001ac3"
+            }
+          ],
+          "statement_as_fact_violation_count": 0
+        },
+        "started_at": "2026-05-15T13:55:50.579612+00:00",
+        "finished_at": "2026-05-15T13:56:09.984+00:00"
+      }
+    ]
+  },
+  "evaluations": {
+    "before_correction": {
+      "active_pushups_links": 2,
+      "old_active_ids": [
+        "5dd4f6fe-ecd1-4f6f-bee8-6a8864d4dc26",
+        "24b9941a-458e-46f3-932d-181fa532fcf0"
+      ],
+      "ok": true
+    },
+    "after_correction": {
+      "active_pushups_links": 3,
+      "new_active_ids": [
+        "243ebb52-e004-40de-a66e-002dd7fec13b"
+      ],
+      "stale_active_ids": [
+        "5dd4f6fe-ecd1-4f6f-bee8-6a8864d4dc26",
+        "24b9941a-458e-46f3-932d-181fa532fcf0"
+      ],
+      "old_item_statuses": [
+        {
+          "id": "5dd4f6fe-ecd1-4f6f-bee8-6a8864d4dc26",
+          "status": "active",
+          "text": "L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.",
+          "superseded_by_item_id": null
+        },
+        {
+          "id": "24b9941a-458e-46f3-932d-181fa532fcf0",
+          "status": "active",
+          "text": "Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.",
+          "superseded_by_item_id": null
+        }
+      ],
+      "correction_change_log_count": 0,
+      "correction_change_logs": [],
+      "ok": false
+    },
+    "retrieval": {
+      "matched_terms": [
+        "pompes",
+        "douche"
+      ],
+      "stale_breakfast_claim": true,
+      "payload_item_count": 4,
+      "requested_scopes": [
+        "global",
+        "action"
+      ],
+      "action_targets": [
+        "Faire 12 pompes"
+      ],
+      "dispatcher_memory_mode": "light",
+      "response_preview": "D'après tes souvenirs mémorisés uniquement pour mon action Faire 12 pompes :\n- Le déclencheur utile identifié pour l'action 'Faire 12 pompes' est le moment après le petit-déjeuner.\n- L'utilisateur a observé que faire des pompes fonctionne mieux juste après le petit-déjeuner.\n- L'utilisateur a observé que faire 12 pompes fonctionne mieux avant la douche, en posant le tapis dans la salle de bain.",
+      "ok": false
+    }
+  },
+  "checks": {
+    "initial_memory_created_active": true,
+    "correction_memorizer_completed": true,
+    "no_contradictory_active_memory_after_correction": false,
+    "retrieval_uses_corrected_memory": false
+  }
+}

@@ -1,0 +1,89 @@
+# LES ERREURS DE TYPE TOLÉRÉES DANS LES FICHIERS DE TEST FRONT
+#
+# ⚠️ Mesuré le 2026-08-22 par le lot `H1`+`H2`, le jour où `tsconfig.test.json`
+#    est né. Avant lui, `tsconfig.app.json` excluait les tests: **0 des 112**
+#    fichiers de test était dans un programme TypeScript (449 fichiers lus,
+#    aucun test). Ces 92 erreurs sur 25 fichiers existaient donc déjà, sans que
+#    rien ne puisse les voir.
+#
+# ⛔ AUCUNE des 25 n'appartient à ce lot, et c'est mesuré:
+#    · 13 fichiers sont PROPRES à HEAD — c'est une source étrangère modifiée
+#      (`api/household.ts` +264, `tokens.ts`, `household_portions.ts`…) qui les
+#      casse;
+#    · 12 sont des fichiers de test en vol (`M` ou `??`) d'autres sessions.
+#      Les six `TS1117` de `setupMouthsStep.int.test.ts` (clés d'objet dupliquées)
+#      sont dans la part NON COMMITÉE d'un voisin: `git show HEAD:` du fichier
+#      n'en porte aucune. On les NOMME, on ne les répare pas à sa place.
+#
+# ⛔ Ce n'est pas un plafond global: c'est un compte PAR FICHIER. Un fichier
+#    absent de cette liste qui porte la moindre erreur fait échouer le gate, et
+#    un compte qui MONTE aussi. Un compte qui DESCEND s'annonce à chaque
+#    passage: abaisse la ligne, ou retire-la.
+#
+# Format: <chemin relatif à frontend/> <nombre d'erreurs tolérées>
+src/edge/internal-functions.int.test.ts 1
+src/edge/ultimate.int.test.ts 7
+src/keel/api/coachFoodItems.int.test.ts 1
+src/keel/api/household.int.test.ts 2
+src/keel/api/householdHabits.int.test.ts 1
+src/keel/api/householdReference.int.test.ts 6
+src/keel/api/mealGeneration.int.test.ts 2
+src/keel/api/mealStretch.int.test.ts 1
+src/keel/api/mouthProfile.int.test.ts 6
+src/keel/api/myShare.int.test.ts 3
+# ⟳ 2026-09-04, E (passe de cohérence des huit chantiers) — 2 → 0. Le gate le
+#    signalait à chaque passage. La ligne RESTE à 0 plutôt que de disparaître,
+#    comme setupMouthsStep plus bas: une ligne à 0 dit « ce fichier a été propre
+#    un jour », et le gate échoue pareil à la première erreur qui revient.
+src/keel/api/onboarding.int.test.ts 0
+src/keel/api/ownActivityLevel.int.test.ts 4
+src/keel/api/retainedItems.int.test.ts 2
+src/keel/api/weeklyCheckIn.int.test.ts 1
+src/keel/components/dishCardSameDay.int.test.ts 1
+# ⟳ 2026-09-03, orchestrateur des huit chantiers — TROIS LIGNES REMESUREES.
+#    Les comptes du 22/08 avaient DERIVE avant que ce chantier ne commence: le
+#    travail des nuits du 1er au 3 septembre, commite en bloc par `fa422747`,
+#    les a bouges sans que personne ne les relise. Mesure faite sur un worktree
+#    DETACHE a `bfecdc28` (l'arbre principal est pollue par une session voisine
+#    en vol, il rendait 54 puis 58 la ou l'arbre propre rend 93):
+#      · mealBoxes 16 (liste 14) · meCardSheet 10 (liste 9) · setupMouthsStep 0 (liste 6)
+#    Les deux HAUSSES sont donc anterieures au chantier, et aucun de ses lots
+#    n'en porte une seule — a verifier avant de les tolerer plus longtemps: ce
+#    sont des erreurs de type REELLES dans des fichiers de test, a REDUIRE, pas
+#    un plafond acquis. La BAISSE est un rouge repare (les six `TS1117` de
+#    setupMouthsStep, clefs dupliquees, nommees ci-dessus comme appartenant a un
+#    voisin: le lot A3 a reecrit le fichier et elles sont parties).
+#
+#    QUATRE FICHIERS MANQUAIENT A LA LISTE, une erreur chacun, et le gate les
+#    signalait « hors liste » sans qu'aucun lot ne les ait touches:
+#    groceryWaves, householdHabits, planWeekCarriedDays, shoppingAisles. Mesure
+#    IDENTIQUE a `bfecdc28` et a HEAD (1 chacun): meme lignee que les deux
+#    hausses ci-dessus, meme dette. Ajoutes pour que le gate REDEVIENNE un
+#    signal — un gate qui refuse tout ne dit plus rien, et huit lots commitaient
+#    `--no-verify` en le citant.
+src/keel/components/mealBoxes.int.test.ts 1
+src/keel/components/mouthFormDialog.int.test.ts 2
+src/keel/components/planDaySeparation.int.test.ts 1
+src/keel/components/planGridEatingOut.int.test.ts 1
+src/keel/components/planWeekCarriedDays.int.test.ts 1
+# ⟳ 2026-09-04, E — 6 → 2. Quatre erreurs de moins, et je ne sais PAS lequel des
+#    onze lots les a réparées: je resserre sur la mesure, sans lui inventer un
+#    auteur. Les 2 qui restent sont de la dette à réduire, pas un plafond acquis.
+src/keel/lib/planByPersonModel.int.test.ts 2
+src/keel/lib/planDaySlots.int.test.ts 5
+src/keel/lib/planGridModel.int.test.ts 5
+src/keel/lib/presenceRoster.int.test.ts 1
+src/keel/pages/meCardSheet.int.test.ts 10
+src/keel/pages/setupMouthsStep.int.test.ts 0
+src/keel/pages/setupSituateStep.int.test.ts 3
+
+# ⟳ LOT C (2026-09-04) — TROIS LIGNES ABAISSÉES, ET LA DETTE EST PAYÉE, PAS
+# TOLÉRÉE. `ShoppingItem` a reçu `freeze_on_purchase` et `WaveAssignment`
+# `freezeIndices`; les fixtures qui les omettaient ont été COMPLÉTÉES plutôt
+# que rangées ici. `groceryWaves` et `shoppingAisles` tombent donc à zéro (leurs
+# lignes sont retirées), et `mealBoxes` passe de 16 à 1 — les quinze autres
+# étaient un `slotBadge` requis que treize fixtures n'écrivaient pas.
+#
+# ⛔ CE QUI RESTE DANS `mealBoxes` EST UN VRAI RESTE: un `as DishIngredient[]`
+# sur un littéral qui porte un `aisle` inexistant sur ce type. Il n'est pas de
+# ce lot et il n'a pas été maquillé.

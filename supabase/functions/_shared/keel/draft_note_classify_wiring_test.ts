@@ -237,7 +237,9 @@ const REFUSAL_GATE = "if (note.refusal !== null || note.usable === null) {";
 // (nomenclature §2.6) et son écrivain supprimé: le jalon est désormais
 // L'ÉCRITURE DU PLAN ELLE-MÊME, ce qui est plus direct et ne peut plus
 // disparaître sans que le produit disparaisse avec.
-const PLAN_WRITE = '"write_student_meal_plan"';
+// La publication foyer est désormais clôturée avec son bail dans une RPC
+// atomique. C'est ce site vivant qui délimite l'avant/après écriture.
+const PLAN_WRITE = '"keel_household_publish_generation"';
 const DRAFT_RETURN = "if (isDraft) {";
 
 // ---------------------------------------------------------------------------
@@ -656,8 +658,7 @@ const CUTS: readonly Cut[] = [
     // changé, et n'aurait rien à voir avec ce qu'on veut tenir.
     name: "le vocabulaire redevient les ingrédients seuls",
     expects: "LE VOCABULAIRE DU PLAN N'ATTEINT PLUS",
-    apply: (src) =>
-      src.replace(/planFoods: planVocabularyOf\(/, "planFoods: foodTermsOf("),
+    apply: setField("planFoods", "foodTermsOf(dishes)"),
   },
   {
     name: "la source sort du vocabulaire",
@@ -922,8 +923,7 @@ const FEEDBACK: Lane = {
     {
       name: "le vocabulaire du bilan redevient les ingrédients seuls",
       expects: "LE VOCABULAIRE DU PLAN N'ATTEINT PLUS",
-      apply: (src) =>
-        src.replace(/planFoods: planVocabularyOf\(/, "planFoods: foodTermsOf("),
+      apply: setField("planFoods", "foodTermsOf(dishes)"),
     },
     {
       name: "la source du bilan devient celle du brouillon",

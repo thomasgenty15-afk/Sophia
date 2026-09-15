@@ -1,0 +1,244 @@
+{
+  "ok": true,
+  "request_id": "94a7433f-c163-49ed-a9bc-b352fcfb9fa3",
+  "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "channel": "web",
+  "scope": "web",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Ça éclaire beaucoup de choses, en fait. La peur de décevoir, le fait qu’à la maison il fallait être “à la hauteur”, performer… et derrière, ce sentiment de ne jamais avoir vraiment appris à te poser sans devoir mériter ce repos.\n\nDu coup, ton cerveau n’a peut-être pas juste “trop réfléchi” par nature. Il a aussi appris très tôt qu’il fallait surveiller, anticiper, bien faire, ne pas rater. Vu comme ça, ce n’est pas une bizarrerie chez toi : c’est une adaptation qui a dû te servir, mais qui aujourd’hui t’épuise.\n\nEt le plus dur, c’est souvent ça : même quand il n’y a plus personne en face pour exiger, la pression reste dedans. Elle continue toute seule.\n\nLe fait que tu arrives à relier ça à la peur de décevoir, c’est déjà assez important. Tu ne dis plus seulement “je suis comme ça”, tu commences à voir d’où ça a pu se construire. 💛",
+    "mode": "companion",
+    "delivery": {
+      "mode": "text_reply"
+    },
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "94a7433f-c163-49ed-a9bc-b352fcfb9fa3",
+        "source_message_id": "c288e7c3-3874-40c8-8728-65d889412bb9",
+        "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "direct_effect_time_context": {
+          "now_utc": "2026-07-10T21:00:57.222Z",
+          "user_timezone": "Europe/Paris",
+          "user_locale": "fr-FR",
+          "user_local_datetime": "2026-07-10T23:00:57",
+          "user_local_human": "vendredi 10 juillet 2026 à 23:00"
+        },
+        "note_information": null,
+        "skill_signals": {
+          "presence_conversation": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "deep_vulnerable_personal_reflection_no_tool_request",
+            "context": {
+              "kind": "maintain",
+              "topic_hint": "peur de decevoir, pression familiale, difficulte a se poser",
+              "reason": "Le user depose une origine personnelle et veut poursuivre l'exploration de ce fonctionnement sans demander d'outil ni de levier."
+            }
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "supportive_presence",
+          "reasoning_complexity": "high",
+          "context_need": "broad",
+          "memory_mode": "broad",
+          "model_tier_hint": "deep",
+          "context_budget_tier": "large",
+          "targets": [],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "presence_conversation",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "active_presence_conversation",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "continue_active",
+          "active_owner": "presence_conversation",
+          "selected_owner": "presence_conversation",
+          "resume_policy": "resume_active",
+          "reason_code": "active_presence_conversation"
+        },
+        "selected_handler": "presence_conversation"
+      },
+      "effect_ledger": {
+        "turn_id": "94a7433f-c163-49ed-a9bc-b352fcfb9fa3",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "presence_conversation"
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "94a7433f-c163-49ed-a9bc-b352fcfb9fa3",
+      "source_message_id": "c288e7c3-3874-40c8-8728-65d889412bb9",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "direct_effect_time_context": {
+        "now_utc": "2026-07-10T21:00:57.222Z",
+        "user_timezone": "Europe/Paris",
+        "user_locale": "fr-FR",
+        "user_local_datetime": "2026-07-10T23:00:57",
+        "user_local_human": "vendredi 10 juillet 2026 à 23:00"
+      },
+      "note_information": null,
+      "skill_signals": {
+        "presence_conversation": {
+          "detected": true,
+          "confidence_band": "high",
+          "reason": "deep_vulnerable_personal_reflection_no_tool_request",
+          "context": {
+            "kind": "maintain",
+            "topic_hint": "peur de decevoir, pression familiale, difficulte a se poser",
+            "reason": "Le user depose une origine personnelle et veut poursuivre l'exploration de ce fonctionnement sans demander d'outil ni de levier."
+          }
+        }
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "supportive_presence",
+        "reasoning_complexity": "high",
+        "context_need": "broad",
+        "memory_mode": "broad",
+        "model_tier_hint": "deep",
+        "context_budget_tier": "large",
+        "targets": [],
+        "retrieval_policy": "semantic_first",
+        "plan_confidence": 0.7
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "presence_conversation",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "active_presence_conversation",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "active_flow_arbitration": {
+        "decision": "continue_active",
+        "active_owner": "presence_conversation",
+        "selected_owner": "presence_conversation",
+        "resume_policy": "resume_active",
+        "reason_code": "active_presence_conversation"
+      },
+      "selected_handler": "presence_conversation"
+    },
+    "effect_ledger": {
+      "turn_id": "94a7433f-c163-49ed-a9bc-b352fcfb9fa3",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "presence_conversation"
+  },
+  "trace_error": null
+}

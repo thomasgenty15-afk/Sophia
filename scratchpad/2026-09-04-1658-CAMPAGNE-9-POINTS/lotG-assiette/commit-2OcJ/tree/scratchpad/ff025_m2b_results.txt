@@ -1,0 +1,15 @@
+# FF-025 run réel — suite=m2b repeats=3 cas=1
+🔴 M2b R7 — l'invitation FR part à un fil ancré en français
+    invite=edu phraseFR=false
+    ledger=["photo_invitation | chat | - | 13e21921-4840-42cd-9343-d29e12a4f5a2 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    reply="A pizza tonight is fine if it fits the rest of your day. The main thing is what you pair with it and how much you actually want, not the pizza by itself.\n\nIf you have a photo of it, send it over: even a rough one tells me more than a description, and if you do"
+🔴 M2b R7 — l'invitation FR part à un fil ancré en français
+    invite=edu phraseFR=false
+    ledger=["photo_invitation | chat | - | e7b9061a-e68e-484a-a19d-99fd417905e1 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    reply="Pizza for tonight noted. On the nutrition side, that’s your dinner choice; if you want to keep the meal steadier, the simplest lever is to add a bit of protein or vegetables alongside it.\n\nIf you have a photo of it, send it over: even a rough one tells me more"
+🔴 M2b R7 — l'invitation FR part à un fil ancré en français
+    invite=edu phraseFR=false
+    ledger=["photo_invitation | chat | - | f67c9e8c-3cdb-45b4-af93-6010a30ff6a6 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."]
+    reply="Got it. For pizza, the useful bit is the base: it already gives you protein and fat, so the main thing to watch is the portion and what comes with it. If you want, I can help you place it in the day without overcomplicating it.\n\nIf you have a photo of it, send"
+
+# élèves nettoyés: 3

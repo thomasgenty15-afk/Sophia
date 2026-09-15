@@ -1,0 +1,37 @@
+
+=== budget-dinner · sans_foyer
+  run 1: full_chars=null
+    « That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan. »
+  run 2: full_chars=null
+    « That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan. »
+  run 3: full_chars=null
+    « That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan. »
+
+=== budget-doctrine · sans_foyer
+  run 1: full_chars=24458
+    « Rae doesn’t count calories. He builds the plate around a protein anchor instead.  Start with protein at the meal, then add vegetables; eggs at breakfast are one of his defaults. »
+  run 2: full_chars=24458
+    « Rae doesn’t use calorie counting. He builds the plate around a protein anchor instead. For lunch today, the concrete lines are protein and vegetables; that’s the frame he works with. »
+  run 3: full_chars=27292
+    « Rae doesn’t use calorie counting. He builds each meal around a protein anchor instead, so the plate has a clear center without turning food into accounting.  For breakfast, he’d start with eggs; at lunch, lean protein and vegetables. »
+
+=== budget-dinner · avec_foyer
+  run 1: full_chars=27092
+    « Tonight’s dinner is slow-braised beef with root vegetables.  For shopping, I only have the first 12 items in this window, and the list is longer. If you want the rest, open the meals screen. »
+  run 2: full_chars=27092
+    « Tonight is slow-braised beef with root vegetables.  For shopping, I only have the first 12 items of a longer list: shopping item 1 through shopping item 12. For the rest, check the meals screen. »
+  run 3: full_chars=27092
+    « Tonight’s dinner is slow-braised beef with root vegetables.  For shopping, I only have the first 12 items in this window, and the list is longer. Check the meals screen for the rest. »
+
+=== budget-doctrine · avec_foyer
+  run 1: full_chars=27092
+    « Rae doesn’t count calories. It turns eating into accounting.  He builds the plate around a protein anchor instead, with protein first at the meal and vegetables alongside it. »
+  run 2: full_chars=27092
+    « Rae doesn’t use calorie counting. He builds the plate around a protein anchor instead, so the focus is on protein first, then the rest of the plate around that. »
+  run 3: full_chars=27092
+    « Rae doesn’t use calorie counting. He builds the plate around a protein anchor instead, because counting turns eating into accounting.  For lunch today, the plan already points to protein and vegetables. »
+
+--- BUDGET ---
+budget-dinner: sans=[] avec=[27092, 27092, 27092] Δmax=27092
+budget-doctrine: sans=[24458, 24458, 27292] avec=[27092, 27092, 27092] Δmax=-200
+plafond dur = 32 000 caractères (COMPANION_PROMPT_MAX_TOKENS 8000 × 4)

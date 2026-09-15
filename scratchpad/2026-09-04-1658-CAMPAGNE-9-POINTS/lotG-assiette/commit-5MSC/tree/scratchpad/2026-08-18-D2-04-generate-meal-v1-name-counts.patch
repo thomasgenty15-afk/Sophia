@@ -1,0 +1,51 @@
+diff --git a/supabase/functions/generate-meal-v1/index.ts b/supabase/functions/generate-meal-v1/index.ts
+index 5cb493b7..022f8e5a 100644
+--- a/supabase/functions/generate-meal-v1/index.ts
++++ b/supabase/functions/generate-meal-v1/index.ts
+@@ -2106,6 +2194,12 @@ Deno.serve(async (req) => {
+       return jsonResponse(req, {
+         ok: true,
+         draft: true,
++        // ── ④ · LE COMPTEUR DU NOM, SUR CETTE LANE AUSSI ────────────────
++        // Même place et même nom que sur la lane foyer (racine, `names`): un
++        // compteur rangé à la racine d'un côté et sous une enveloppe de
++        // l'autre n'est lisible par aucune requête qui regarde toute la
++        // population. Voir le commentaire de l'archive, plus bas.
++        names: meal.name_counts,
+         ...boxTrace,
+         // `null` ET PAS UN IDENTIFIANT FABRIQUÉ: l'écran doit pouvoir
+         // distinguer un aperçu d'un plan, et un id inventé serait la première
+@@ -2302,6 +2396,33 @@ Deno.serve(async (req) => {
+             // ÉCRIT MÊME À ZÉRO, comme `dish_owners` sur la lane foyer: une clé
+             // absente ne se distingue pas d'un lot débranché.
+             same_day: meal.same_day_counts,
++            // ══════════════════════════════════════════════════════════════
++            // ④ — LE COMPTEUR DU NOM, ET IL FERME UN ZÉRO AMBIGU.
++            // ══════════════════════════════════════════════════════════════
++            //
++            // ⛔ CE QU'IL CORRIGE, ET C'EST EXACTEMENT LE PIÈGE DU VOISIN
++            // `same_day`. `dishes[].name` est DÉCLARÉ PAR LE MODÈLE, et le
++            // parseur partagé le REFUSE dans trois cas (trop long, vide,
++            // recopie du titre) — voir `DISH_NAME_MAX_CHARS`. Un nom refusé
++            // s'écrit `null` en base, c'est-à-dire la MÊME valeur qu'un nom
++            // jamais déclaré. Sans ces trois nombres, « 40 % des plats n'ont
++            // pas de nom » ne dit pas s'il faut resserrer le prompt ou
++            // desserrer la garde: le zéro est ambigu, et un lot désarmé
++            // ressemble trait pour trait à un lot qui marche.
++            //
++            // ⚠️ LE COMPTEUR EXISTAIT DÉJÀ — `parseGeneratedMeal` le calcule
++            // pour LES DEUX lanes depuis L7 ③ — et seule la lane FOYER
++            // l'archivait. Ce n'est donc pas un calcul neuf, c'est un lecteur
++            // qui manquait: la moitié débranchée que ce dépôt paie en boucle.
++            // Le commentaire de `generate-household-meal-v1` qui disait « son
++            // fichier n'appartient pas à ce lot » est désormais périmé.
++            //
++            // `declared === kept + refused` est vérifiable de l'extérieur, sur
++            // la ligne, sans relire un seul plat.
++            //
++            // ÉCRIT MÊME À ZÉRO, comme `same_day` juste au-dessus: une clé
++            // absente ne se distingue pas d'un lot débranché.
++            names: meal.name_counts,
+             // ── LOT 4 · LES GRAMMES, COMPTÉS SUR CETTE LANE AUSSI ──────────
+             // La MÊME expression que celle rendue sur l'aperçu, quinze lignes
+             // plus haut: deux comptages divergeraient au premier champ ajouté,

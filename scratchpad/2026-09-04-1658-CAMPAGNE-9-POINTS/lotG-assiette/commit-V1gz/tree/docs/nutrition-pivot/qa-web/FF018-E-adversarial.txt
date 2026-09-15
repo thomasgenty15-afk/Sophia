@@ -1,0 +1,51 @@
+# FF-018 · PHASE E — revue adversariale
+
+
+▌ E1 — photo puis correction immédiate (départ PROPRE)
+  lignes avant photo : 0
+  après photo : 1 ligne(s)
+   · 83e49168-74b2-4066-b2c8-9b406fb5e396 → src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+  flow ouvert : oui
+  réponse : « Got it — turkey, not chicken. I’ll treat that as the protein in the photo. »
+  après correction : 1 ligne(s)
+   · 83e49168-74b2-4066-b2c8-9b406fb5e396 → src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+  ✅ aucune ligne de plus (1 → 1)
+  ligne photo après amendement : src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+
+▌ E2 — un flow TEXTE déjà ouvert, puis une photo
+  tour texte : « Got it. For lunch, I’ve noted protein, and the vegetables part is still unreported.
+
+And what did you have with it? »
+  lignes : 1 — src=chat disq=null subject=- fgr=lean_protein band=null qty=null/null subst=null weight=0.8 analyzed=no plan_rel=null foods=[] dropped=[]
+  flow texte : {"source":"text","eventIds":["72ab969f-d26d-4b68-ac4a-770b1c19f840"]}
+  photo HTTP 200, event c00b666e-edc1-47b6-9283-56f050171012
+  flow après photo : {"source":"photo","eventIds":["c00b666e-edc1-47b6-9283-56f050171012"]}
+  🔴 la cible du flow TEXTE survit à l'ouverture photo — avant=["72ab969f-d26d-4b68-ac4a-770b1c19f840"] après=["c00b666e-edc1-47b6-9283-56f050171012"]
+  lignes finales : 2 — src=chat disq=null subject=- fgr=lean_protein band=null qty=null/null subst=null weight=0.8 analyzed=no plan_rel=null foods=[] dropped=[] ;; src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+
+▌ E3 — course photo ‖ texte (3 passes)
+  passe 1 : photo=200 texte=200 | 1 ligne(s) (photo 1) | flow=présent
+     · src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli florets] dropped=[]
+  passe 2 : photo=200 texte=200 | 1 ligne(s) (photo 1) | flow=présent
+     · src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+  passe 3 : photo=200 texte=200 | 1 ligne(s) (photo 1) | flow=présent
+     · src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]
+
+▌ E4 — accusé de photo alors que le dernier tour était CRITIQUE
+  HTTP 200 — 1 ligne(s) : src=photo disq=null subject=eaten_meal fgr=non_starchy_veg band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[cooked salmon, couscous, green beans, butter or oil-based sauce] dropped=[]
+  accusé livré : « I see cooked salmon, couscous, green beans, butter or oil-based sauce. Counted toward "Vegetables at lunch". I can also see "Protein at lunch" here, but I have not counted this photo toward it - tell me which one to count. »
+  flow de correction ouvert : non (gaté)
+  questions inscrites : []
+  → l'accusé contient une SOLLICITATION : OUI
+  → ticks quick_tap écrits : 0
+
+▌ E5a — DEUX plats jumeaux (poulet / canard) le même jour
+  🔴 semis impossible : new row for relation "student_generated_meals" violates check constraint "student_generated_meals_mode_check"
+
+▌ E5b — UN SEUL plat, au CANARD, contre une assiette de poulet
+  🔴 semis impossible : new row for relation "student_generated_meals" violates check constraint "student_generated_meals_mode_check"
+
+▌ E5c — UN SEUL plat, au POULET (le cas nominal : la coche doit partir)
+  🔴 semis impossible : new row for relation "student_generated_meals" violates check constraint "student_generated_meals_mode_check"
+
+nettoyage OK

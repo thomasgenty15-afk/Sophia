@@ -1,0 +1,5 @@
+le rétrécissement compare ce que les boîtes VONT tirer, pas ce qu'elles tirent encore : il défaisait la croissance
+
+FC4 rejoué sur a3c6af19 (16:06) : cinq casseroles rétrécies, courses suivies, 0 fuite, 0 manque — mais `capped_by_pot 3`. Le rétrécissement comparait les tirages BRUTS (avant dimensionnement) à la masse que la croissance venait d'agrandir pour les boîtes dimensionnées : il rendait ce que la passe d'avant avait donné, puis le plafond de casserole mordait. Même base que `neededPotFactor` désormais : grammes × facteur résolu de la boîte.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

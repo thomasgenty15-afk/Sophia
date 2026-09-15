@@ -1,0 +1,196 @@
+{
+    "coach": {
+        "beliefs": 5,
+        "coach_email": "qa0805.coach.marc@keeltest.dev",
+        "doctrine_published": true
+    },
+    "account": {
+        "email": "qa1a.solo@keeltest.dev",
+        "gender": "female",
+        "locale": "en-GB",
+        "country": "GB",
+        "user_id": "1a000000-0000-4000-8000-000000000001",
+        "timezone": "Europe/London",
+        "full_name": "Iris",
+        "height_cm": 173,
+        "birth_date": "1989-03-14",
+        "activity_level": "trains_hard"
+    },
+    "body_measures": [
+        {
+            "kind": "weight",
+            "value": 68.4,
+            "source": "setup",
+            "local_date": "2026-08-18"
+        },
+        {
+            "kind": "waist",
+            "value": 79,
+            "source": "plan_card",
+            "local_date": "2026-08-18"
+        }
+    ],
+    "student_goals": {
+        "id": "68e698d9-4021-4f61-add2-cab7d08c1296",
+        "goal": "muscle_gain",
+        "situation": null,
+        "aspiration": "Carry my own kayak down to the water by spring",
+        "created_at": "2026-08-18T21:02:55.091172+00:00",
+        "focus_axis": null,
+        "updated_at": "2026-08-18T21:38:40.021435+00:00",
+        "content_locale": "en-GB",
+        "target_waist_cm": null,
+        "target_weight_kg": 74,
+        "practical_constraints": {
+            "variety": "varied",
+            "away_days": [
+                {
+                    "day": "wed",
+                    "kind": "away",
+                    "slots": [
+                        "lunch"
+                    ]
+                }
+            ],
+            "cook_days": [
+                "tue",
+                "thu"
+            ],
+            "diet_asked": true,
+            "allergy_check": {
+                "self": true,
+                "members": [
+                ]
+            },
+            "budget_amount": 63,
+            "eating_rhythm": [
+                {
+                    "size": "small",
+                    "slot": "breakfast"
+                },
+                {
+                    "size": "large",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ],
+            "fixed_intakes": [
+                {
+                    "days": [
+                    ],
+                    "unit": "g",
+                    "label": "Vanilla whey shake",
+                    "amount": 31,
+                    "food_ref": "declared_vanilla_whey_shake",
+                    "nutrition": "declared",
+                    "serving_grams": 31,
+                    "protein_g_per_serving": 24,
+                    "energy_kcal_per_serving": 118
+                }
+            ],
+            "cooking_time_min": 45,
+            "kitchen_equipment": [
+                "stovetop",
+                "microwave",
+                "blender"
+            ],
+            "recipe_difficulty": "keen"
+        },
+        "target_pace_kg_per_week": 0.25
+    },
+    "weekly_reviews": [
+        {
+            "week": "2026-08-17",
+            "biofeedback": {
+                "source": "in_app_measures_card",
+                "waist_cm": 79
+            }
+        }
+    ],
+    "activity_sessions": [
+        {
+            "date": "2026-08-18",
+            "kind": "strength",
+            "intensity": "hard",
+            "duration_min": 75
+        }
+    ],
+    "safety_constraints": [
+        {
+            "kind": "allergy",
+            "notes": null,
+            "status": "active",
+            "diet_ref": null,
+            "severity": "medical",
+            "allergen_ref": "sesame",
+            "condition_ref": null,
+            "medication_class": null
+        },
+        {
+            "kind": "diet",
+            "notes": null,
+            "status": "active",
+            "diet_ref": "pescatarian",
+            "severity": "strict",
+            "allergen_ref": null,
+            "condition_ref": null,
+            "medication_class": null
+        },
+        {
+            "kind": "intolerance",
+            "notes": "hard cheese in small amounts is fine",
+            "status": "active",
+            "diet_ref": null,
+            "severity": "strict",
+            "allergen_ref": "dairy",
+            "condition_ref": null,
+            "medication_class": null
+        },
+        {
+            "kind": "dislike",
+            "notes": null,
+            "status": "active",
+            "diet_ref": null,
+            "severity": "preference",
+            "allergen_ref": "beetroot",
+            "condition_ref": null,
+            "medication_class": null
+        },
+        {
+            "kind": "medical",
+            "notes": null,
+            "status": "active",
+            "diet_ref": null,
+            "severity": "medical",
+            "allergen_ref": null,
+            "condition_ref": null,
+            "medication_class": "levothyroxine"
+        },
+        {
+            "kind": "dislike",
+            "notes": "cannot stand it",
+            "status": "active",
+            "diet_ref": null,
+            "severity": "preference",
+            "allergen_ref": "aubergine",
+            "condition_ref": null,
+            "medication_class": null
+        }
+    ],
+    "request_body_fields": {
+        "mode": "from_pantry",
+        "pantry": [
+            "tinned chickpeas",
+            "basmati rice",
+            "frozen peas",
+            "smoked paprika"
+        ],
+        "window": "2026-08-19 -> 2026-08-21",
+        "context": "two late meetings, Thursday evening is chaotic",
+        "servings": 1,
+        "preferences": "smoky harissa flavours, and one proper roast"
+    }
+}

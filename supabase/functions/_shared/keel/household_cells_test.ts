@@ -13,15 +13,16 @@
 // ══════════════════════════════════════════════════════════════════════════
 // LES MUTATIONS QUE CES ÉPREUVES DOIVENT FAIRE ROUGIR
 // ══════════════════════════════════════════════════════════════════════════
-//   M1 — `cellRegimeFor` rend le PLUS STRICT au lieu du majoritaire (la règle
-//        d'avant, `strictestRegimeAt`). ROUGE: la table de trois omnivores et
-//        d'une végane cesserait de dédier la végane.
+//   M1 — `cellRegimeFor` rend le MAJORITAIRE des mangeurs au lieu de la ligne
+//        de la table (`baseRegime`, la règle d'avant le 2026-09-14). ROUGE: la
+//        table de trois omnivores et d'une végane dédierait la VÉGANE, c'est-à-
+//        dire la seule personne que la base déclarée au prompt sert déjà.
 //   M2 — `cellCharacterFor` rend `light` dès qu'UN mangeur l'a demandé.
 //        ROUGE: `light_mixed` tomberait à zéro et un dîner partagé
 //        deviendrait léger pour quelqu'un qui n'a rien demandé.
-//   M3 — `dedicatedInCell` compare `>=` au lieu de `>`. ROUGE: une bouche qui
-//        porte elle-même le régime de sa case recevrait un second plat
-//        identique au premier.
+//   M3 — `dedicatedInCell` ignore `demands` (il dédie sur le seul régime).
+//        ROUGE: l'omnivore en prise de masse à une table végane cesserait de
+//        recevoir son plat, et une table entièrement végane en paierait un.
 //   M4 — la projection `byMouth` recalculée avec le rythme de la MAISON pour
 //        tout le monde. ROUGE: `mouthCells` et la grille cesseraient de
 //        parler du même plan (l'épreuve de projection).
@@ -44,6 +45,7 @@ import {
   householdCells,
 } from "./household_cells.ts";
 import { memberMealCells } from "./household_presence.ts";
+import type { ServingAxisDemands } from "./household_portions.ts";
 import type { EatingOccasionSlot } from "./meal_generation.ts";
 
 // ---------------------------------------------------------------------------
@@ -56,12 +58,31 @@ const RYTHME3: EatingOccasionSlot[] = [
   { slot: "dinner", size: null },
 ];
 
+/** Aucune exigence sur aucun axe — la bouche mange ce que la casserole donne. */
+const RIEN_DEMANDE: ServingAxisDemands = {
+  protein: null,
+  starch: null,
+  vegetables: null,
+};
+
+/**
+ * ⛔ CE QUE `muscle_gain` ÉCRIT SUR L'AXE PROTÉINE. C'est la seule demande
+ * qu'une casserole descendue au végane ne peut pas rendre (`REGIME_PROTEIN_
+ * CEILING = "full"`), et donc le seul motif de contrat qui ouvre un plat.
+ */
+const PLUS_DE_PROTEINE: ServingAxisDemands = {
+  protein: "larger",
+  starch: null,
+  vegetables: null,
+};
+
 function mouth(over: Partial<CellMouth> & { memberId: string }): CellMouth {
   return {
     eatingSlots: null,
     away: [],
     lightSlots: [],
     diet: null,
+    demands: RIEN_DEMANDE,
     ownMealSlots: [],
     ...over,
   };
@@ -72,6 +93,7 @@ const NO_SPENT = { day: null, slots: [] as string[] };
 function grid(over: Partial<Parameters<typeof householdCells>[0]> = {}) {
   return householdCells({
     mouths: [],
+    baseRegime: null,
     houseRhythm: RYTHME3,
     windowDays: ["mon"],
     gridSlots: ["breakfast", "lunch", "dinner"],
@@ -244,33 +266,55 @@ Deno.test("une case VIDE n'est jamais légère, même si son demandeur est absen
 });
 
 // ---------------------------------------------------------------------------
-// ④ LE RÉGIME DE LA CASE — le majoritaire, égalité au plus strict
+// ④ LE RÉGIME DE LA CASE — la ligne de la TABLE, portée jusqu'ici
 // ---------------------------------------------------------------------------
 
-Deno.test("le régime d'une case est le MAJORITAIRE de ses mangeurs", () => {
-  assertEquals(cellRegimeFor([null, null, null, "vegan"]), null);
-  assertEquals(cellRegimeFor(["vegan", "vegan", "vegan", null]), "vegan");
-  assertEquals(cellRegimeFor(["vegetarian", "vegetarian", null]), "vegetarian");
+Deno.test("le régime d'une case est la LIGNE DE LA TABLE, pas un vote", () => {
+  const troisOmnivoresEtUneVegane = [
+    mouth({ memberId: "paul" }),
+    mouth({ memberId: "claire" }),
+    mouth({ memberId: "leo" }),
+    mouth({ memberId: "nora", diet: "vegan" }),
+  ];
+  assertEquals(cellRegimeFor("vegan", troisOmnivoresEtUneVegane), "vegan");
+  // Le majoritaire aurait rendu `null` ici: c'est exactement la mutation M1.
+  assertEquals(cellRegimeFor(null, troisOmnivoresEtUneVegane), null);
 });
 
-Deno.test("à ÉGALITÉ, le plus strict gagne — et l'ordre du roster n'y change rien", () => {
-  assertEquals(cellRegimeFor(["vegan", null]), "vegan");
-  assertEquals(cellRegimeFor([null, "vegan"]), "vegan");
-  assertEquals(cellRegimeFor(["vegetarian", "vegan"]), "vegan");
-  assertEquals(cellRegimeFor(["vegan", "vegetarian"]), "vegan");
-  assertEquals(cellRegimeFor(["pescatarian", "vegetarian"]), "vegetarian");
+Deno.test("aucun mangeur ⇒ aucun régime, même quand la table en déclare un", () => {
+  assertEquals(cellRegimeFor("vegan", []), null);
+  assertEquals(cellRegimeFor(null, []), null);
 });
 
-Deno.test("aucun mangeur ⇒ aucun régime", () => {
-  assertEquals(cellRegimeFor([]), null);
-});
-
-// ---------------------------------------------------------------------------
-// ⑤ LES PLATS À PART — la minorité stricte a le sien
-// ---------------------------------------------------------------------------
-
-Deno.test("une VÉGANE à une table omnivore reçoit son plat, à chaque case", () => {
+Deno.test("la grille porte la ligne de la table sur TOUTES ses cases pleines", () => {
   const out = grid({
+    baseRegime: "vegan",
+    mouths: [mouth({ memberId: "nora", diet: "vegan" }), mouth({ memberId: "paul" })],
+  });
+  for (const c of out.cells) assertEquals(c.regime, "vegan");
+  assertEquals(out.counters.regime_by_cell, { vegan: 3 });
+});
+
+// ---------------------------------------------------------------------------
+// ⑤ LES PLATS À PART — la base ne peut pas nourrir cette bouche
+// ---------------------------------------------------------------------------
+//
+// ⟳ 2026-09-14 (§ 2.2) — LA RÈGLE A CHANGÉ DE CAMP, ET LES ÉPREUVES AVEC.
+// La grille dédiait la MINORITÉ STRICTE de chaque case (la végane à une table
+// omnivore), pendant que le seul régime que le prompt transmet est celui de la
+// TABLE (« the BASE … follows the STRICTEST line declared at this table »).
+// Mesuré sur le message réellement envoyé le 2026-09-13, foyer de quatre: la
+// section `A DISH OF THEIR OWN` commandait un plat à Lea, la végane, sur une
+// page qui déclarait la base végane et nommait Nils et Iris comme les bouches
+// qui mangent le leur — puis excluait Lea de ces plats-là.
+
+Deno.test("le CAS NOMINAL: une végane à une table omnivore ⇒ AUCUN second plat", () => {
+  // ⛔ C'EST LE CAS QUI PASSE, ET IL EST LE PLUS FRÉQUENT. La base suit la
+  // ligne la plus stricte, donc elle est mangeable par les quatre; personne ne
+  // réclame plus de protéine que la casserole végane peut rendre. Une recette
+  // commune compatible suffit, et rien n'est cuisiné deux fois.
+  const out = grid({
+    baseRegime: "vegan",
     mouths: [
       mouth({ memberId: "paul" }),
       mouth({ memberId: "claire" }),
@@ -278,50 +322,81 @@ Deno.test("une VÉGANE à une table omnivore reçoit son plat, à chaque case", 
       mouth({ memberId: "nora", diet: "vegan" }),
     ],
   });
+  assertEquals(out.counters.dedicated_cells, 0);
+  assertEquals(out.counters.dedicated_mouths, 0);
+  for (const c of out.cells) {
+    assertEquals(c.regime, "vegan");
+    assertEquals(c.dedicated, []);
+  }
+});
+
+Deno.test("⛔ l'OMNIVORE EN PRISE DE MASSE, lui, reçoit son plat à chaque case", () => {
+  // Le cas mesuré au tir N=2 du 2026-09-13: Max (prise de masse) et Lea
+  // (végane). La casserole végane ne peut pas pousser l'axe protéine seul —
+  // `REGIME_PROTEIN_CEILING = "full"` —, donc sa part ne sort plus de là.
+  const out = grid({
+    baseRegime: "vegan",
+    mouths: [
+      mouth({ memberId: "max", demands: PLUS_DE_PROTEINE }),
+      mouth({ memberId: "lea", diet: "vegan" }),
+    ],
+  });
   assertEquals(out.counters.dedicated_cells, 3);
   assertEquals(out.counters.dedicated_mouths, 3);
   assertEquals(out.counters.dedicated_by_reason.regime, 3);
   assertEquals(out.counters.dedicated_by_reason.own_meal, 0);
   for (const c of out.cells) {
-    assertEquals(c.regime, null, "la casserole suit la majorité omnivore");
-    assertEquals(c.dedicated, [{ memberId: "nora", reason: "regime" }]);
+    assertEquals(c.dedicated, [{ memberId: "max", reason: "regime", baseEdible: true }]);
   }
 });
 
-Deno.test("une table majoritairement végane nourrit l'omnivore SANS second plat", () => {
+Deno.test("⛔ UNE TABLE ENTIÈREMENT VÉGANE NE PAIE AUCUN SECOND PLAT", () => {
+  // La contre-épreuve qui mord: la même prise de masse, mais la bouche PORTE
+  // elle-même la ligne. Un plat végane de plus, cuisiné à côté d'un plat
+  // végane, n'est pas une variante — c'est une cuisson payée pour rien.
   const out = grid({
+    baseRegime: "vegan",
     mouths: [
-      mouth({ memberId: "a", diet: "vegan" }),
+      mouth({ memberId: "a", diet: "vegan", demands: PLUS_DE_PROTEINE }),
       mouth({ memberId: "b", diet: "vegan" }),
-      mouth({ memberId: "c", diet: "vegan" }),
-      mouth({ memberId: "omni" }),
     ],
   });
   for (const c of out.cells) {
     assertEquals(c.regime, "vegan");
-    assertEquals(
-      c.dedicated,
-      [],
-      "moins strict que sa case ⇒ il mange la casserole: les exclusions sont emboîtées",
-    );
+    assertEquals(c.dedicated, []);
   }
   assertEquals(out.counters.dedicated_cells, 0);
 });
 
-Deno.test("deux minorités strictes dans la même case sortent toutes les deux", () => {
+Deno.test("une table SANS aucun régime ne dédie personne, quelles que soient les demandes", () => {
+  // `baseRegime: null` = personne n'a rien déclaré. Aucune ligne, donc aucune
+  // impossibilité: une part plus grande a son canal, et ce n'est pas un plat.
   const out = grid({
+    baseRegime: null,
     mouths: [
-      mouth({ memberId: "a" }),
-      mouth({ memberId: "b" }),
-      mouth({ memberId: "vega", diet: "vegan" }),
-      mouth({ memberId: "vege", diet: "vegetarian" }),
+      mouth({ memberId: "a", demands: PLUS_DE_PROTEINE }),
+      mouth({ memberId: "b", demands: PLUS_DE_PROTEINE }),
+    ],
+  });
+  assertEquals(out.counters.dedicated_cells, 0);
+  for (const c of out.cells) assertEquals(c.regime, null);
+});
+
+Deno.test("deux omnivores à exigence sortent tous les deux, dans la même case", () => {
+  const out = grid({
+    baseRegime: "vegan",
+    mouths: [
+      mouth({ memberId: "lea", diet: "vegan" }),
+      mouth({ memberId: "nils", demands: PLUS_DE_PROTEINE }),
+      mouth({ memberId: "iris", demands: PLUS_DE_PROTEINE }),
+      mouth({ memberId: "paul" }),
     ],
   });
   const lunch = out.cells.find((c) => c.slot === "lunch");
-  assertEquals(lunch?.regime, null);
+  assertEquals(lunch?.regime, "vegan");
   assertEquals(lunch?.dedicated, [
-    { memberId: "vega", reason: "regime" },
-    { memberId: "vege", reason: "regime" },
+    { memberId: "iris", reason: "regime", baseEdible: true },
+    { memberId: "nils", reason: "regime", baseEdible: true },
   ]);
 });
 
@@ -345,7 +420,7 @@ Deno.test("un repas à soi ne dédie QUE son moment", () => {
   });
   assertEquals(
     out.cells.find((c) => c.slot === "breakfast")?.dedicated,
-    [{ memberId: "marc", reason: "own_meal" }],
+    [{ memberId: "marc", reason: "own_meal", baseEdible: true }],
   );
   assertEquals(out.cells.find((c) => c.slot === "lunch")?.dedicated, []);
   assertEquals(out.counters.dedicated_by_reason.own_meal, 1);
@@ -356,12 +431,16 @@ Deno.test("régime ET repas à soi ⇒ UNE seule sortie, et c'est le régime", (
   const out = dedicatedInCell(
     "breakfast",
     [
-      mouth({ memberId: "a" }),
-      mouth({ memberId: "nora", diet: "vegan", ownMealSlots: ["breakfast"] }),
+      mouth({ memberId: "a", diet: "vegan" }),
+      mouth({
+        memberId: "nils",
+        demands: PLUS_DE_PROTEINE,
+        ownMealSlots: ["breakfast"],
+      }),
     ],
-    null,
+    "vegan",
   );
-  assertEquals(out, [{ memberId: "nora", reason: "regime" }]);
+  assertEquals(out, [{ memberId: "nils", reason: "regime", baseEdible: true }]);
 });
 
 // ---------------------------------------------------------------------------
@@ -387,7 +466,10 @@ Deno.test("⛔ une bouche SANS GLUTEN dans une case VÉGÉTARIENNE a son plat", 
     ],
     "vegetarian",
   );
-  assertEquals(out, [{ memberId: "lubna", reason: "regime" }]);
+  // ⟳ 2026-09-14 · BÊTA 1A — `baseEdible: FALSE`, ET C'EST LE SEUL CAS QUI
+  // REFUSE UN PLAN. Un plat végétarien peut contenir du blé: Lubna n'a
+  // strictement RIEN à manger sur cette case sans un plat à elle.
+  assertEquals(out, [{ memberId: "lubna", reason: "regime", baseEdible: false }]);
 });
 
 Deno.test("⛔ ET L'INVERSE: une bouche VÉGÉTARIENNE dans une case SANS GLUTEN", () => {
@@ -401,7 +483,9 @@ Deno.test("⛔ ET L'INVERSE: une bouche VÉGÉTARIENNE dans une case SANS GLUTEN
     ],
     "gluten_free",
   );
-  assertEquals(out, [{ memberId: "zoe", reason: "regime" }]);
+  // La symétrie vaut aussi pour la prémisse ⓪: un plat sans gluten peut
+  // contenir du poulet.
+  assertEquals(out, [{ memberId: "zoe", reason: "regime", baseEdible: false }]);
 });
 
 Deno.test("⚠️ ET LA GARDE A UN CAS QUI PASSE: même régime que sa case ⇒ rien", () => {
@@ -466,6 +550,7 @@ Deno.test("PROJECTION — `byMouth` reproduit `mouthCells` octet pour octet", ()
   ];
   const out = householdCells({
     mouths,
+    baseRegime: "vegan",
     houseRhythm: RYTHME3,
     windowDays,
     gridSlots: ["breakfast", "lunch", "dinner"],
@@ -506,6 +591,7 @@ Deno.test("DÉTERMINISME — deux appels identiques rendent la même grille", ()
       mouth({ memberId: "b", diet: "vegan", lightSlots: ["dinner"] }),
       mouth({ memberId: "a", ownMealSlots: ["breakfast"] }),
     ],
+    baseRegime: "vegan" as const,
     houseRhythm: RYTHME3,
     windowDays: ["mon", "tue"],
     gridSlots: ["breakfast", "lunch", "dinner"],
@@ -516,40 +602,47 @@ Deno.test("DÉTERMINISME — deux appels identiques rendent la même grille", ()
 });
 
 // ---------------------------------------------------------------------------
-// ⑧ L'ÉCART AVEC LA RÈGLE D'AUJOURD'HUI
+// ⑧ L'ÉCART — il vaut ZÉRO, et c'est ce qu'il sert à dire
 // ---------------------------------------------------------------------------
+//
+// ⟳ 2026-09-14 (§ 2.2) — Il mesurait deux RÈGLES concurrentes. Il n'y en a
+// plus qu'une: `dishBearingMembers` est la projection de `cells[].dedicated`.
+// Ce qu'il mesure désormais, c'est qu'une SECONDE LISTE n'a pas été rouverte
+// ailleurs — en production, sans qu'aucun test ait eu à la prévoir.
 
-// ⚠️ TROIS OMNIVORES, PAS UN. À deux bouches, une végane et un omnivore sont à
-// ÉGALITÉ, et l'égalité va au plus strict: la table mange végane et personne
-// n'est dédié. Il faut une vraie MINORITÉ pour que l'écart existe — c'est la
-// règle de `cellRegimeFor`, et l'écrire ici évite d'aller « corriger » le
-// module la prochaine fois que ce test surprend quelqu'un.
-function tableAvecUneVegane() {
+function tableQuiDedieNils() {
   return grid({
+    baseRegime: "vegan",
     mouths: [
+      mouth({ memberId: "lea", diet: "vegan" }),
+      mouth({ memberId: "nils", demands: PLUS_DE_PROTEINE }),
       mouth({ memberId: "paul" }),
-      mouth({ memberId: "claire" }),
-      mouth({ memberId: "leo" }),
-      mouth({ memberId: "nora", diet: "vegan" }),
     ],
   });
 }
 
-Deno.test("l'écart NOMME la végane que la règle d'aujourd'hui ne dédie pas", () => {
-  const delta = dishBearingDelta(tableAvecUneVegane().cells, []);
-  assertEquals(delta.onlyInCells, ["nora"]);
+Deno.test("l'écart est NUL quand la liste du prompt EST la projection de la grille", () => {
+  const delta = dishBearingDelta(tableQuiDedieNils().cells, ["nils"]);
+  assertEquals(delta.onlyInCells, []);
+  assertEquals(delta.onlyInCurrent, []);
+  assertEquals(delta.delta, 0);
+});
+
+Deno.test("l'écart NOMME une bouche que la grille dédie et que le prompt oublie", () => {
+  const delta = dishBearingDelta(tableQuiDedieNils().cells, []);
+  assertEquals(delta.onlyInCells, ["nils"]);
   assertEquals(delta.onlyInCurrent, []);
   assertEquals(delta.delta, 1);
 });
 
-Deno.test("l'écart est NUL quand les deux règles nomment les mêmes bouches", () => {
-  assertEquals(dishBearingDelta(tableAvecUneVegane().cells, ["nora"]).delta, 0);
-});
-
-Deno.test("l'écart nomme AUSSI la bouche que la règle d'aujourd'hui dédie seule", () => {
-  const delta = dishBearingDelta(tableAvecUneVegane().cells, ["nora", "paul"]);
+Deno.test("l'écart NOMME aussi une bouche que le prompt ajoute de son côté", () => {
+  const delta = dishBearingDelta(tableQuiDedieNils().cells, ["nils", "lea"]);
   assertEquals(delta.onlyInCells, []);
-  assertEquals(delta.onlyInCurrent, ["paul"], "l'omnivore à exigence de R5");
+  assertEquals(
+    delta.onlyInCurrent,
+    ["lea"],
+    "la végane: la base SUIT sa ligne, lui promettre un plat est le défaut du 2026-09-13",
+  );
   assertEquals(delta.delta, 1);
 });
 
@@ -719,10 +812,14 @@ Deno.test("un plat de table dont tous les mangeurs sont dédiés ne nourrit PERS
 Deno.test("les compteurs de partition ont un DÉNOMINATEUR non nul sur un vrai plan", () => {
   const out = grid({
     windowDays: ["mon", "tue"],
+    baseRegime: "vegan",
     mouths: [
       mouth({ memberId: "paul" }),
       mouth({ memberId: "claire" }),
-      mouth({ memberId: "nora", diet: "vegan" }),
+      // ⟳ 2026-09-14 (§ 2.2) — C'EST NORA QUI CHANGE DE CAMP. La base suit la
+      // ligne végane; celui qui ne peut pas en manger sa part est l'omnivore
+      // en prise de masse, pas la végane.
+      mouth({ memberId: "nora", demands: PLUS_DE_PROTEINE }),
     ],
   });
   const dishes = out.cells

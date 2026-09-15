@@ -1,0 +1,143 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-friction-wording-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je tourne autour d'un truc bête: le soir je sais que je dois préparer le carnet, mais au moment venu je cherche le stylo, je déplace deux trucs, et je finis par rouvrir le téléphone. Tu peux me faire un petit outil anti-dérapage pour ça ?",
+    "assistant": "Carrément. Ton problème n’est pas “le carnet”, c’est le moment du basculement (stylo introuvable + micro-désordre + traction du téléphone) 😅\n\nMini-outil anti-dérapage (30 secondes) : le protocole “Carnet prêt”\n1) Pose le stylo sur le carnet (toujours au même endroit)\nRègle bête mais imparable : carnet = stylo attaché/posé dessus, point.\n\n2) Fais le rituel d’ouverture (sans téléphone)\nQuand tu t’assois le soir, tu fais juste :\n- carnet dans la zone\n- stylo dans la main\n- 1 page ou 2 lignes max (même “rien aujourd’hui” compte)\n\n3) Verrouille la tentation en mode “terrain”\nAvant de sortir le téléphone :\n- téléphone dans une position où tu peux le voir pas le toucher facilement (ex: plus loin de 1 bras)\n- ou écran face cachée, 1 geste = tu le rallumes moins “par réflexe”\n\n4) Fixe une “porte de sortie”\nSi tu bloques : tu écris uniquement 1 phrase :\n“Ce soir, mon prochain petit pas c’est : …”\nComme ça tu ne repars pas dans la recherche d’outils.\n\nOption bonus ultra simple (pour ton cas précis)\nTu crées une “zone carnet” ultra petite : 1 plateau/1 coin de table où seuls le carnet et le stylo peuvent être.\nLe soir, tu ne “ranges” pas : tu remets seulement “au bon endroit”.\n\nDis-moi juste un truc : tu cherches le stylo parce qu’il est souvent ailleurs, ou parce que tu as tendance à le laisser “au fil de la journée” n’importe où ? 🖊️",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-friction-wording-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Ok mais je veux pas juste un conseil dans le chat. Fais-en une vraie carte d'attaque pour l'action où je dois préparer la zone carnet/stylo, avec le truc du téléphone loin.",
+    "assistant": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nPrepare l'environnement de \"Préparer ta zone de déchargement\" pendant 2 minutes, sans obligation d'aller plus loin.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Préparer ta zone de déchargement",
+          "technique": "preparer_terrain",
+          "instruction": "Prepare l'environnement de \"Préparer ta zone de déchargement\" pendant 2 minutes, sans obligation d'aller plus loin.",
+          "mode_emploi": "Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.",
+          "target_label": "Préparer ta zone de déchargement",
+          "why_it_helps": "Retirer de la friction avant que le moment d'action arrive.",
+          "generated_asset": "Prepare l'environnement de \"Préparer ta zone de déchargement\" pendant 2 minutes, sans obligation d'aller plus loin.",
+          "technique_title": "Preparer le terrain",
+          "supporting_points": [],
+          "activation_keyword": null
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nPrepare l'environnement de \"Préparer ta zone de déchargement\" pendant 2 minutes, sans obligation d'aller plus loin.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "0834cbb8-d666-4b8d-b94f-a82d1b1522fc",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-friction-wording-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui crée-la.",
+    "assistant": "C'est fait. J'ai créé cette carte d'attaque :\n\nCarte d'attaque - Préparer ta zone de déchargement\nTechnique : Preparer le terrain\nPrepare l'environnement de \"Préparer ta zone de déchargement\" pendant 2 minutes, sans obligation d'aller plus loin.\n\nMode d'emploi : Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_attack_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "prepare_attack_card"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "0834cbb8-d666-4b8d-b94f-a82d1b1522fc",
+      "attack_card_id": "9a132cfb-68c7-4c06-bc4d-b89fb249ace2",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

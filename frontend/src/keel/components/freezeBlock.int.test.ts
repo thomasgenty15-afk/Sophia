@@ -49,7 +49,9 @@ describe("les quatre surfaces la rendent", () => {
   it("la liste de courses ouvre chaque course par le bloc « à congeler », même à une seule course", () => {
     const s = src("./ShoppingListPanel.tsx");
     expect(s).toContain("renderFreezeBlock(wave.indices)");
-    expect(s).toContain("renderFreezeBlock(props.items.map((_, i) => i))");
+    // ⟳ 2026-09-12 · C3 — l'ancre suit `items`, la liste ACHETABLE (l'eau du
+    // robinet en est retirée), et plus `props.items` brut.
+    expect(s).toContain("renderFreezeBlock(items.map((_, i) => i))");
   });
   it("la carte du jour montre le bloc HORS du dépliant, et la carte de session porte la phrase", () => {
     const s = src("./plan/PlanDayBlock.tsx");

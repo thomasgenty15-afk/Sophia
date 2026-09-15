@@ -1,0 +1,580 @@
+{
+  "counts": {
+    "user_potion_sessions": 0,
+    "user_recurring_reminders": 0,
+    "scheduled_checkins": 0
+  },
+  "user_potion_sessions": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column user_potion_sessions.created_at does not exist"
+    }
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column scheduled_checkins.source_type does not exist"
+    }
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "1b32a7d3-eac3-4a06-b8c1-32dae7a91682",
+        "role": "user",
+        "content": "Je veux préparer une potion d apaisement. Ce qui me met sous pression là, c est une discussion qui tourne en boucle, et je me sens à cran.",
+        "scope": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination",
+        "metadata": {
+          "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:47:48.289427+00:00"
+      },
+      {
+        "id": "ffece5f8-526d-4e1d-82ed-5bf369cfe92f",
+        "role": "assistant",
+        "content": "Ok, ce qui te met sous pression, c'est une discussion qui tourne en boucle. Et tu te sens à cran, c'est bien ça ? 🙂",
+        "scope": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_clarifying",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_clarifying",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T18:48:09.068067+00:00"
+      },
+      {
+        "id": "2a130b88-87dc-42d0-a348-5edb48ffd146",
+        "role": "user",
+        "content": "Oui, c est bien ça : discussion qui tourne en boucle, et je suis à cran.",
+        "scope": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination",
+        "metadata": {
+          "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:48:25.261406+00:00"
+      },
+      {
+        "id": "662ecbc5-7756-4592-b13a-8ea47bd1397a",
+        "role": "assistant",
+        "content": "Ce que je comprends : une discussion qui tourne en boucle ; a_cran\n\nJe te conseille de choisir une potion d'apaisement court. Le shift recommandé est de redescendre la pression avant de reprendre.\n\nPourquoi cette potion : Tu te sens à cran à cause d'une discussion qui tourne en boucle et tu as besoin de redescendre en pression.\nPetit pas immédiat : Je vois que cette discussion qui tourne en boucle te met à cran. Prends un instant pour respirer. Laisse la pression redescendre un peu.\n\nÀ mettre dans la plateforme :\nPotion : Potion d'apaisement\n- Qu'est-ce qui te met le plus sous pression la ? une discussion qui tourne en boucle\n- Tu te sens plutot comment ? A cran\nDans la plateforme, tu pourras aussi préciser si c'est lié à ton plan ou hors plan.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+        "scope": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "une potion d'apaisement court",
+                    "immediate_step": "Je vois que cette discussion qui tourne en boucle te met à cran. Prends un instant pour respirer. Laisse la pression redescendre un peu.",
+                    "platform_steps": [
+                      "ouvre la section État / Potions",
+                      "choisis la potion recommandée",
+                      "active-la depuis la plateforme si elle te convient"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "une discussion qui tourne en boucle",
+                          "question_id": "pressure_source",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Qu'est-ce qui te met le plus sous pression la ?"
+                        },
+                        {
+                          "value": "A cran",
+                          "question_id": "pressure_state",
+                          "option_label": "A cran",
+                          "option_value": "a_cran",
+                          "question_label": "Tu te sens plutot comment ?"
+                        }
+                      ],
+                      "potion_type": "apaisement",
+                      "potion_title": "Potion d'apaisement",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Tu te sens à cran à cause d'une discussion qui tourne en boucle et tu as besoin de redescendre en pression.",
+                    "platform_destination": "dans la section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "une discussion qui tourne en boucle ; a_cran",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "Le shift recommandé est de redescendre la pression avant de reprendre."
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_platform_handoff_delivered",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T18:49:04.376154+00:00"
+      },
+      {
+        "id": "956e4ef2-7d9a-42d9-9897-95214467078c",
+        "role": "user",
+        "content": "Et concrètement je vais où dans la plateforme pour la lancer ?",
+        "scope": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination",
+        "metadata": {
+          "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:49:22.041473+00:00"
+      },
+      {
+        "id": "2b11a0c9-6c8b-4ad3-9bbd-2adce5f8664a",
+        "role": "assistant",
+        "content": "Tu peux la reprendre dans la plateforme, dans la section État / Potions.\nChoisis : Potion d'apaisement.\nÀ renseigner :\n- Qu'est-ce qui te met le plus sous pression la ? une discussion qui tourne en boucle\n- Tu te sens plutot comment ? A cran\nJe ne lance pas de potion depuis le chat. 🙂",
+        "scope": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "repeat_handoff",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_platform_destination_followup",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "une potion d'apaisement court",
+                    "immediate_step": "Je vois que cette discussion qui tourne en boucle te met à cran. Prends un instant pour respirer. Laisse la pression redescendre un peu.",
+                    "platform_steps": [
+                      "ouvre la section État / Potions",
+                      "choisis la potion recommandée",
+                      "active-la depuis la plateforme si elle te convient"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "une discussion qui tourne en boucle",
+                          "question_id": "pressure_source",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Qu'est-ce qui te met le plus sous pression la ?"
+                        },
+                        {
+                          "value": "A cran",
+                          "question_id": "pressure_state",
+                          "option_label": "A cran",
+                          "option_value": "a_cran",
+                          "question_label": "Tu te sens plutot comment ?"
+                        }
+                      ],
+                      "potion_type": "apaisement",
+                      "potion_title": "Potion d'apaisement",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Tu te sens à cran à cause d'une discussion qui tourne en boucle et tu as besoin de redescendre en pression.",
+                    "platform_destination": "dans la section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "une discussion qui tourne en boucle ; a_cran",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "Le shift recommandé est de redescendre la pression avant de reprendre."
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_platform_destination_followup",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T18:49:25.476301+00:00"
+      }
+    ]
+  },
+  "user_chat_states": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "user_id": "3e9be660-ab33-4740-bf85-d85d8d3ac5c0",
+        "current_mode": "companion",
+        "temp_memory": {
+          "__conversation_risk_last": {
+            "at": "2026-06-03T18:44:25.328Z",
+            "score": 1,
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__active_tool_skill_intake": {
+            "mode": "platform_handoff",
+            "draft": {
+              "mode": "platform_handoff",
+              "operation_type": "select_state_potion",
+              "recommendation": {
+                "avoid": [],
+                "preserve": [],
+                "potion_label": "une potion de clarté",
+                "immediate_step": "Je suis là pour t'aider à retrouver le fil et le sens de ce qui compte pour toi.",
+                "platform_steps": [
+                  "ouvre la section État / Potions",
+                  "choisis la potion recommandée",
+                  "active-la depuis la plateforme si elle te convient"
+                ],
+                "platform_inputs": {
+                  "answers": [
+                    {
+                      "value": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                      "question_id": "plan_meaning_loss_reason",
+                      "option_label": null,
+                      "option_value": null,
+                      "question_label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?"
+                    }
+                  ],
+                  "potion_type": "clarte",
+                  "potion_title": "Potion de clarte",
+                  "optional_free_text": null
+                },
+                "why_this_potion": "Tu fais les actions, mais tu ne sens plus pourquoi elles comptent pour toi aujourd'hui.",
+                "platform_destination": "dans la section État / Potions"
+              },
+              "no_chat_mutation": true,
+              "missing_decisions": [],
+              "user_state_summary": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+              "executable_from_chat": false,
+              "desired_shift_summary": "Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre."
+            },
+            "phase": "confirmation",
+            "status": "apply_attempt",
+            "skill_id": "select_state_potion",
+            "max_turns": 6,
+            "created_at": "2026-06-03T18:43:12.076Z",
+            "turn_count": 3,
+            "updated_at": "2026-06-03T18:44:25.342Z",
+            "intake_state": {
+              "state": {
+                "kind": "confusion_overload",
+                "status": "identified",
+                "evidence": [
+                  "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                ],
+                "intensity": "medium",
+                "confidence": "high"
+              },
+              "context": {
+                "topic_hint": null,
+                "target_hint": null,
+                "handoff_summary": null,
+                "related_plan_item_id": null
+              },
+              "details": {
+                "fields": [
+                  {
+                    "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                    "status": "locked",
+                    "evidence": [
+                      "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                    ],
+                    "required": true,
+                    "question_id": "plan_meaning_loss_reason",
+                    "locked_value": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                    "user_evidence": [
+                      "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "identified",
+                "answers": [
+                  {
+                    "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                    "answer": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                    "evidence": [
+                      "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                    ],
+                    "question_id": "plan_meaning_loss_reason"
+                  }
+                ],
+                "evidence": [
+                  "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                ],
+                "optional_free_text": null,
+                "required_question_ids": [
+                  "plan_meaning_loss_reason"
+                ]
+              },
+              "skill_id": "select_state_potion",
+              "shortlist": {
+                "status": "missing",
+                "options": [],
+                "evidence": []
+              },
+              "confidence": "high",
+              "missing_slots": [],
+              "selected_potion": {
+                "value": "clarte",
+                "status": "identified",
+                "evidence": [
+                  "structured_operation_input"
+                ],
+                "confidence": "high"
+              },
+              "current_sub_skill": "draft_generation",
+              "generated_user_message": null,
+              "explicit_potion_request": {
+                "status": "identified",
+                "evidence": [
+                  "Je veux une potion de clarté."
+                ],
+                "potion_type": "clarte"
+              }
+            },
+            "operation_input": {
+              "state": {
+                "kind": "confusion_overload",
+                "evidence": [
+                  "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                ],
+                "intensity": "medium"
+              },
+              "context": {
+                "topic_hint": null,
+                "target_hint": null,
+                "handoff_summary": null,
+                "related_plan_item_id": null
+              },
+              "details": {
+                "fields": [
+                  {
+                    "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                    "status": "locked",
+                    "evidence": [
+                      "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                    ],
+                    "required": true,
+                    "question_id": "plan_meaning_loss_reason",
+                    "locked_value": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                    "user_evidence": [
+                      "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "answers": [
+                  {
+                    "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                    "answer": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                    "evidence": [
+                      "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                    ],
+                    "question_id": "plan_meaning_loss_reason"
+                  }
+                ],
+                "optional_free_text": null,
+                "required_question_ids": [
+                  "plan_meaning_loss_reason"
+                ]
+              },
+              "potion_type": "clarte",
+              "intake_state": {
+                "state": {
+                  "kind": "confusion_overload",
+                  "status": "identified",
+                  "evidence": [
+                    "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                  ],
+                  "intensity": "medium",
+                  "confidence": "high"
+                },
+                "context": {
+                  "topic_hint": null,
+                  "target_hint": null,
+                  "handoff_summary": null,
+                  "related_plan_item_id": null
+                },
+                "details": {
+                  "fields": [
+                    {
+                      "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                      "status": "locked",
+                      "evidence": [
+                        "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                      ],
+                      "required": true,
+                      "question_id": "plan_meaning_loss_reason",
+                      "locked_value": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                      "user_evidence": [
+                        "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                      ],
+                      "proposed_value": null,
+                      "needs_user_confirmation": false
+                    }
+                  ],
+                  "status": "identified",
+                  "answers": [
+                    {
+                      "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                      "answer": "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi.",
+                      "evidence": [
+                        "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                      ],
+                      "question_id": "plan_meaning_loss_reason"
+                    }
+                  ],
+                  "evidence": [
+                    "Je continue à faire les actions du plan, mais je ne sens plus bien le lien avec mon pourquoi."
+                  ],
+                  "optional_free_text": null,
+                  "required_question_ids": [
+                    "plan_meaning_loss_reason"
+                  ]
+                },
+                "skill_id": "select_state_potion",
+                "shortlist": {
+                  "status": "missing",
+                  "options": [],
+                  "evidence": []
+                },
+                "confidence": "high",
+                "missing_slots": [],
+                "selected_potion": {
+                  "value": "clarte",
+                  "status": "identified",
+                  "evidence": [
+                    "structured_operation_input"
+                  ],
+                  "confidence": "high"
+                },
+                "current_sub_skill": "draft_generation",
+                "generated_user_message": null,
+                "explicit_potion_request": {
+                  "status": "identified",
+                  "evidence": [
+                    "Je veux une potion de clarté."
+                  ],
+                  "potion_type": "clarte"
+                }
+              },
+              "explicit_potion_type": "clarte"
+            },
+            "no_chat_mutation": true
+          },
+          "__conversation_risk_history": [
+            0,
+            1,
+            1
+          ],
+          "__coaching_intervention_history": []
+        },
+        "updated_at": "2026-06-03T18:44:25.345013+00:00"
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+# Run Bug Sheet - global-dispatcher-5t-20260617-r1
+
+- Run report: `docs/agent-playbook/New/test-material/qa-run-reports/2026-06-17-global-dispatcher-5t-r1.md`
+- Raw: `tmp/qa-normal-conversation/global-dispatcher-5t-20260617-r1/state.json`
+- Validite QA: valide techniquement; run local `/functions/v1/test-send-message`, `force_full_ai=true`, hors sandbox, 5 tours HTTP 200, cleanup cible execute.
+
+| Bug id | Tours | Famille | Domaine owner | Source amont | Symptome visible | Preuve systeme | Correction attendue | Statut | Fix reference | Tests requis |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `R1-B01` | T1 | `BF-ROUTE-01` | dispatcher global / `coaching_recommendation` | signal `coaching_recommendation` trop large | Sophia recommande `state_potion` et `adjust_plan` alors que le user demande seulement de poser le blocage sans outil | `response_owner=coaching_recommendation`, `route_reason=coaching_recommendation_signal`, active state cree | Resserer l'intake structure: blocage personnel sans demande de capacite reste `normal_reply`; interdire IDs internes dans visible | open |  | Test dispatcher positif/paraphrase/anti-faux-positif + mini-run reel |
+| `R1-B02` | T2 | `BF-ROUTE-02` | `coaching_recommendation.local_dispatcher` / active flow policy | objection utilisateur non modelisee comme reformulation/sortie | Le user demande "ne me parle pas en noms de modules", Sophia repete `state_potion` et ajoute `coach_preferences` | `route_reason=active_coaching_recommendation`, active state `turn_count=2` | Ajouter branche structuree de reformulation humaine ou `exit_to_global_dispatcher` quand le user refuse les noms de modules | open |  | Test local active flow sur correction de style + rerun QA |
+| `R1-B03` | T5 | `BF-ROUTE-03` | dispatcher global / status arbitration | verification durable traitee comme normal reply | Reponse visible correcte mais sans owner status/effect-ledger explicite | `response_owner=normal_reply`, `route_reason=normal_reply_default`, rappel DB present avant cleanup | Router les questions "qu'est-ce qui a vraiment ete cree/modifie" vers status/effect audit quand elles portent sur effets durables | open |  | Test status recap/effect ledger apres reminder + anti-faux-positif conversationnel |

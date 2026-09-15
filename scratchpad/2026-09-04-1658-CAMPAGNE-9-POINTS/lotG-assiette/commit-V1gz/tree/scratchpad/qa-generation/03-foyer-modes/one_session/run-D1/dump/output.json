@@ -1,0 +1,1035 @@
+{
+  "request_id": "3a020001-0000-4000-8000-000000F00001",
+  "resolved_by": "--request-id",
+  "user_id": "3a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T02:25:13.510Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "b2149660-f44c-418e-a2c9-f2af8e8bf608",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T02:23:07.21958+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16183,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16183,
+    "user_message_chars": 17580,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17580,
+    "independent_counters": {
+      "system_prompt_chars": 16183,
+      "prompt_chars": 17580
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "10d10b1c-7958-4294-822c-f9f5c216727b",
+    "created_at": "2026-08-19T02:25:12.817274+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 2,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Black Bean & Tomato Pot\",\n      \"title\": \"Smoky black bean stew with crusty bread\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"crusty baguette\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the black bean stew portion in a small pan until bubbling. Serve in a bowl with the bread on the side.\",\n      \"why\": \"This vegan dish provides a hearty, smoky lunch that meets the house's request for slow-cooked flavours using plant-based protein.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_bean_stew\",\n          \"servings\": 1,\n          \"box_id\": \"box_bean_stew_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Rich Beef & Smoked Paprika Stew\",\n      \"title\": \"Smoky beef and tomato stew with crusty bread\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [\n        {\n          \"term\": \"crusty baguette\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the beef stew in a pan over medium heat until piping hot. Serve with the bread.\",\n      \"why\": \"Aurele's own dish uses beef to satisfy the smoky, slow-cooked theme while providing a high-protein lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_stew\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_stew_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Rich Beef & Smoked Paprika Stew\",\n      \"title\": \"Smoky beef and tomato stew with crusty bread\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [\n        {\n          \"term\": \"crusty baguette\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the beef stew in a pan until hot. Serve with the crusty bread.\",\n      \"why\": \"This beef-based dish avoids sweet potato and provides the smoky profile Marceline requested.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_stew\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_stew_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Rich Beef & Smoked Paprika Stew\",\n      \"title\": \"Smoky beef and tomato stew with crusty bread\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [\n        {\n          \"term\": \"crusty baguette\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the stew in a pan. Serve with the bread, ensuring no sesame products are nearby.\",\n      \"why\": \"A safe, sesame-free beef stew that delivers the smoky flavour profile requested by the household.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_stew\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_stew_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Charred Cauliflower & Chickpea Roast\",\n      \"title\": \"Smoky roasted cauliflower and chickpeas with quinoa\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the cauliflower and chickpea mix in the oven at 180C for 10 minutes. Reheat the quinoa in a pan with a splash of water. Combine and serve.\",\n      \"why\": \"A vegan dinner featuring a loud vegetable (cauliflower) and a warm grain, fulfilling the coach's dinner requirements.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chickpea_cauli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chickpea_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Paprika Chicken & Cauliflower\",\n      \"title\": \"Roasted smoky chicken thighs with cauliflower and quinoa\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and cauliflower in the oven until hot. Reheat the quinoa in a pan. Serve with the cauliflower as the primary focus.\",\n      \"why\": \"This protein-rich dish uses the single oven tray efficiently to provide a warm, smoky dinner for Aurele.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_cauli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Paprika Chicken & Cauliflower\",\n      \"title\": \"Roasted smoky chicken thighs with cauliflower and quinoa\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken, cauliflower, and quinoa. Serve the chicken and quinoa first, followed by the cauliflower.\",\n      \"why\": \"A smoky, warm dinner for Marceline that avoids sweet potato and uses cauliflower as the loud vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_cauli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Paprika Chicken & Cauliflower\",\n      \"title\": \"Roasted smoky chicken thighs with cauliflower and quinoa\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and cauliflower in the oven. Reheat the quinoa in a pan. Serve hot, ensuring no sesame contamination.\",\n      \"why\": \"A safe, warm, and smoky chicken dinner for Solveig that aligns with the coach's requirement for a loud vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_cauli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_beef_stew\",\n      \"title\": \"Rich Smoky Beef Stew\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"beef chuck, diced\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion, finely chopped\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves, minced\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"beef stock\",\n          \"quantity\": \"200 ml\",\n          \"amount\": 200,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Brown the beef in oil in a large pot. Add onions and garlic, cooking until soft. Stir in paprika, tomatoes, and stock. Cover and simmer on low heat for 40 minutes until the beef is tender.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 50,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_stew_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_stew_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_stew_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_stew_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_bean_stew\",\n      \"title\": \"Smoky Black Bean Stew\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans, drained\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"onion, chopped\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove, minced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"vegetable stock\",\n          \"quantity\": \"150 ml\",\n          \"amount\": 150,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Sauté onion and garlic in oil. Add paprika, beans, tomatoes, and stock. Simmer for 20 minutes until thickened and flavours are deep.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_bean_stew_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_bean_stew_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_bean_stew_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_bean_stew_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chicken_cauli\",\n      \"title\": \"Smoky Roast Chicken & Cauliflower\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs, bone-in\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cauliflower, in florets\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Toss chicken and cauliflower with oil and paprika. Spread on one half of the oven tray (sharing with the chickpeas). Roast at 200C for 35 minutes until the chicken is cooked through and cauliflower is charred.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chickpea_cauli\",\n      \"title\": \"Smoky Roast Chickpeas & Cauliflower\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"chickpeas, drained\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cauliflower, in florets\",\n          \"quantity\": \"0.5 unit\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Toss chickpeas and cauliflower with oil and paprika. Spread on the other half of the oven tray. Roast at 200C for 25-30 minutes until crisp.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chickpea_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chickpea_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chickpea_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chickpea_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_quinoa\",\n      \"title\": \"Basic Cooked Quinoa\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"quinoa\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"500 ml\",\n          \"amount\": 500,\n          \"unit\": \"ml\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rinse quinoa. Bring water to a boil, add quinoa, cover and simmer for 15 minutes. Remove from heat and let stand for 5 minutes before fluffing with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_quinoa_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_quinoa_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_quinoa_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_quinoa_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_beef_stew\",\n        \"prep_bean_stew\",\n        \"prep_chicken_cauli\",\n        \"prep_chickpea_cauli\",\n        \"prep_quinoa\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start by putting the quinoa on the hob. Preheat the oven to 200C. Chop all vegetables. Start the beef stew and the bean stew in separate pots on the hob. While they simmer, arrange the chicken and chickpeas on the single oven tray (separated) and put them in the oven. Fluff the quinoa when done. Once the stews and roast are finished, weigh and box into the named containers.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"beef chuck\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"chicken thighs, bone-in\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"2 cans\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chickpeas\",\n      \"quantity\": \"1 can\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"cauliflower\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tinned chopped tomatoes\",\n      \"quantity\": \"2 cans\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"quinoa\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"crusty baguette\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"other\"\n    },\n    {\n      \"term\": \"beef stock cubes\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"vegetable stock cubes\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Serve vegetables first on the plate, then the protein, then the starch.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_stew\",\n          \"note\": \"one portion of beef stew\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken_cauli\",\n          \"note\": \"one portion of roast chicken and cauliflower\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"one portion of quinoa\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Serve protein and starch first on the plate, then the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_stew\",\n          \"note\": \"one portion of beef stew\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken_cauli\",\n          \"note\": \"one portion of roast chicken and cauliflower\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"one portion of quinoa\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve protein and starch first on the plate, then the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_stew\",\n          \"note\": \"one portion of beef stew\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken_cauli\",\n          \"note\": \"one portion of roast chicken and cauliflower\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"one portion of quinoa\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Serve all components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_bean_stew\",\n          \"note\": \"one portion of black bean stew\"\n        },\n        {\n          \"preparation_id\": \"prep_chickpea_cauli\",\n          \"note\": \"one portion of roast chickpeas and cauliflower\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"one portion of quinoa\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Smoky Black Bean & Tomato Pot",
+          "title": "Smoky black bean stew with crusty bread",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "crusty baguette",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Reheat the black bean stew portion in a small pan until bubbling. Serve in a bowl with the bread on the side.",
+          "why": "This vegan dish provides a hearty, smoky lunch that meets the house's request for slow-cooked flavours using plant-based protein.",
+          "uses": [
+            {
+              "preparation_id": "prep_bean_stew",
+              "servings": 1,
+              "box_id": "box_bean_stew_theodule"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Rich Beef & Smoked Paprika Stew",
+          "title": "Smoky beef and tomato stew with crusty bread",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "ingredients": [
+            {
+              "term": "crusty baguette",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Reheat the beef stew in a pan over medium heat until piping hot. Serve with the bread.",
+          "why": "Aurele's own dish uses beef to satisfy the smoky, slow-cooked theme while providing a high-protein lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_stew",
+              "servings": 1,
+              "box_id": "box_beef_stew_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Rich Beef & Smoked Paprika Stew",
+          "title": "Smoky beef and tomato stew with crusty bread",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "ingredients": [
+            {
+              "term": "crusty baguette",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Reheat the beef stew in a pan until hot. Serve with the crusty bread.",
+          "why": "This beef-based dish avoids sweet potato and provides the smoky profile Marceline requested.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_stew",
+              "servings": 1,
+              "box_id": "box_beef_stew_marceline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Rich Beef & Smoked Paprika Stew",
+          "title": "Smoky beef and tomato stew with crusty bread",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "ingredients": [
+            {
+              "term": "crusty baguette",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Reheat the stew in a pan. Serve with the bread, ensuring no sesame products are nearby.",
+          "why": "A safe, sesame-free beef stew that delivers the smoky flavour profile requested by the household.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_stew",
+              "servings": 1,
+              "box_id": "box_beef_stew_solveig"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Charred Cauliflower & Chickpea Roast",
+          "title": "Smoky roasted cauliflower and chickpeas with quinoa",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Reheat the cauliflower and chickpea mix in the oven at 180C for 10 minutes. Reheat the quinoa in a pan with a splash of water. Combine and serve.",
+          "why": "A vegan dinner featuring a loud vegetable (cauliflower) and a warm grain, fulfilling the coach's dinner requirements.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_cauli",
+              "servings": 1,
+              "box_id": "box_chickpea_theodule"
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "servings": 1,
+              "box_id": "box_quinoa_theodule"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Smoky Paprika Chicken & Cauliflower",
+          "title": "Roasted smoky chicken thighs with cauliflower and quinoa",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "ingredients": [],
+          "method": "Reheat the chicken and cauliflower in the oven until hot. Reheat the quinoa in a pan. Serve with the cauliflower as the primary focus.",
+          "why": "This protein-rich dish uses the single oven tray efficiently to provide a warm, smoky dinner for Aurele.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_cauli",
+              "servings": 1,
+              "box_id": "box_chicken_aurele"
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "servings": 1,
+              "box_id": "box_quinoa_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Smoky Paprika Chicken & Cauliflower",
+          "title": "Roasted smoky chicken thighs with cauliflower and quinoa",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "ingredients": [],
+          "method": "Reheat the chicken, cauliflower, and quinoa. Serve the chicken and quinoa first, followed by the cauliflower.",
+          "why": "A smoky, warm dinner for Marceline that avoids sweet potato and uses cauliflower as the loud vegetable.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_cauli",
+              "servings": 1,
+              "box_id": "box_chicken_marceline"
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "servings": 1,
+              "box_id": "box_quinoa_marceline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Smoky Paprika Chicken & Cauliflower",
+          "title": "Roasted smoky chicken thighs with cauliflower and quinoa",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "ingredients": [],
+          "method": "Reheat the chicken and cauliflower in the oven. Reheat the quinoa in a pan. Serve hot, ensuring no sesame contamination.",
+          "why": "A safe, warm, and smoky chicken dinner for Solveig that aligns with the coach's requirement for a loud vegetable.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_cauli",
+              "servings": 1,
+              "box_id": "box_chicken_solveig"
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "servings": 1,
+              "box_id": "box_quinoa_solveig"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_beef_stew",
+          "title": "Rich Smoky Beef Stew",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "beef chuck, diced",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onion, finely chopped",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic cloves, minced",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "tinned chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "beef stock",
+              "quantity": "200 ml",
+              "amount": 200,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Brown the beef in oil in a large pot. Add onions and garlic, cooking until soft. Stir in paprika, tomatoes, and stock. Cover and simmer on low heat for 40 minutes until the beef is tender.",
+          "active_minutes": 10,
+          "total_minutes": 50,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beef_stew_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_beef_stew_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_beef_stew_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_beef_stew_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 250
+            }
+          ]
+        },
+        {
+          "id": "prep_bean_stew",
+          "title": "Smoky Black Bean Stew",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "black beans, drained",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "onion, chopped",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic clove, minced",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "tinned chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "vegetable stock",
+              "quantity": "150 ml",
+              "amount": 150,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Sauté onion and garlic in oil. Add paprika, beans, tomatoes, and stock. Simmer for 20 minutes until thickened and flavours are deep.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_bean_stew_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_bean_stew_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_bean_stew_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_bean_stew_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 250
+            }
+          ]
+        },
+        {
+          "id": "prep_chicken_cauli",
+          "title": "Smoky Roast Chicken & Cauliflower",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "chicken thighs, bone-in",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "cauliflower, in florets",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Toss chicken and cauliflower with oil and paprika. Spread on one half of the oven tray (sharing with the chickpeas). Roast at 200C for 35 minutes until the chicken is cooked through and cauliflower is charred.",
+          "active_minutes": 10,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_chicken_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_chicken_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_chicken_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_chickpea_cauli",
+          "title": "Smoky Roast Chickpeas & Cauliflower",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "chickpeas, drained",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cauliflower, in florets",
+              "quantity": "0.5 unit",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Toss chickpeas and cauliflower with oil and paprika. Spread on the other half of the oven tray. Roast at 200C for 25-30 minutes until crisp.",
+          "active_minutes": 5,
+          "total_minutes": 35,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chickpea_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_chickpea_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_chickpea_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_chickpea_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 250
+            }
+          ]
+        },
+        {
+          "id": "prep_quinoa",
+          "title": "Basic Cooked Quinoa",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "quinoa",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "500 ml",
+              "amount": 500,
+              "unit": "ml",
+              "state": null
+            }
+          ],
+          "method": "Rinse quinoa. Bring water to a boil, add quinoa, cover and simmer for 15 minutes. Remove from heat and let stand for 5 minutes before fluffing with a fork.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_quinoa_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_quinoa_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_quinoa_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_quinoa_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 150
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_beef_stew",
+            "prep_bean_stew",
+            "prep_chicken_cauli",
+            "prep_chickpea_cauli",
+            "prep_quinoa"
+          ],
+          "total_minutes": 50,
+          "run_through": "Start by putting the quinoa on the hob. Preheat the oven to 200C. Chop all vegetables. Start the beef stew and the bean stew in separate pots on the hob. While they simmer, arrange the chicken and chickpeas on the single oven tray (separated) and put them in the oven. Fluff the quinoa when done. Once the stews and roast are finished, weigh and box into the named containers."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "beef chuck",
+          "quantity": "800 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "chicken thighs, bone-in",
+          "quantity": "800 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "black beans",
+          "quantity": "2 cans",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chickpeas",
+          "quantity": "1 can",
+          "aisle": "pantry"
+        },
+        {
+          "term": "cauliflower",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "onions",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "tinned chopped tomatoes",
+          "quantity": "2 cans",
+          "aisle": "pantry"
+        },
+        {
+          "term": "quinoa",
+          "quantity": "250 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "crusty baguette",
+          "quantity": "2 units",
+          "aisle": "other"
+        },
+        {
+          "term": "beef stock cubes",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        },
+        {
+          "term": "vegetable stock cubes",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "portion_note": "Serve vegetables first on the plate, then the protein, then the starch.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beef_stew",
+              "note": "one portion of beef stew"
+            },
+            {
+              "preparation_id": "prep_chicken_cauli",
+              "note": "one portion of roast chicken and cauliflower"
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "note": "one portion of quinoa"
+            }
+          ]
+        },
+        {
+          "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "portion_note": "Serve protein and starch first on the plate, then the vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beef_stew",
+              "note": "one portion of beef stew"
+            },
+            {
+              "preparation_id": "prep_chicken_cauli",
+              "note": "one portion of roast chicken and cauliflower"
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "note": "one portion of quinoa"
+            }
+          ]
+        },
+        {
+          "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "portion_note": "Serve protein and starch first on the plate, then the vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beef_stew",
+              "note": "one portion of beef stew"
+            },
+            {
+              "preparation_id": "prep_chicken_cauli",
+              "note": "one portion of roast chicken and cauliflower"
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "note": "one portion of quinoa"
+            }
+          ]
+        },
+        {
+          "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+          "portion_note": "Serve all components together on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_bean_stew",
+              "note": "one portion of black bean stew"
+            },
+            {
+              "preparation_id": "prep_chickpea_cauli",
+              "note": "one portion of roast chickpeas and cauliflower"
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "note": "one portion of quinoa"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Black Bean & Tomato Pot\",\n      \"title\": \"Smoky black bean stew with crusty bread\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"crusty baguette\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the black bean stew portion in a small pan until bubbling. Serve in a bowl with the bread on the side.\",\n      \"why\": \"This vegan dish provides a hearty, smoky lunch that meets the house's request for slow-cooked flavours using plant-based protein.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_bean_stew\",\n          \"servings\": 1,\n          \"box_id\": \"box_bean_stew_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Rich Beef & Smoked Paprika Stew\",\n      \"title\": \"Smoky beef and tomato stew with crusty bread\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [\n        {\n          \"term\": \"crusty baguette\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the beef stew in a pan over medium heat until piping hot. Serve with the bread.\",\n      \"why\": \"Aurele's own dish uses beef to satisfy the smoky, slow-cooked theme while providing a high-protein lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_stew\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_stew_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Rich Beef & Smoked Paprika Stew\",\n      \"title\": \"Smoky beef and tomato stew with crusty bread\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [\n        {\n          \"term\": \"crusty baguette\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the beef stew in a pan until hot. Serve with the crusty bread.\",\n      \"why\": \"This beef-based dish avoids sweet potato and provides the smoky profile Marceline requested.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_stew\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_stew_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Rich Beef & Smoked Paprika Stew\",\n      \"title\": \"Smoky beef and tomato stew with crusty bread\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [\n        {\n          \"term\": \"crusty baguette\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the stew in a pan. Serve with the bread, ensuring no sesame products are nearby.\",\n      \"why\": \"A safe, sesame-free beef stew that delivers the smoky flavour profile requested by the household.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_stew\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_stew_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Charred Cauliflower & Chickpea Roast\",\n      \"title\": \"Smoky roasted cauliflower and chickpeas with quinoa\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the cauliflower and chickpea mix in the oven at 180C for 10 minutes. Reheat the quinoa in a pan with a splash of water. Combine and serve.\",\n      \"why\": \"A vegan dinner featuring a loud vegetable (cauliflower) and a warm grain, fulfilling the coach's dinner requirements.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chickpea_cauli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chickpea_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Paprika Chicken & Cauliflower\",\n      \"title\": \"Roasted smoky chicken thighs with cauliflower and quinoa\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and cauliflower in the oven until hot. Reheat the quinoa in a pan. Serve with the cauliflower as the primary focus.\",\n      \"why\": \"This protein-rich dish uses the single oven tray efficiently to provide a warm, smoky dinner for Aurele.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_cauli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Paprika Chicken & Cauliflower\",\n      \"title\": \"Roasted smoky chicken thighs with cauliflower and quinoa\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken, cauliflower, and quinoa. Serve the chicken and quinoa first, followed by the cauliflower.\",\n      \"why\": \"A smoky, warm dinner for Marceline that avoids sweet potato and uses cauliflower as the loud vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_cauli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Paprika Chicken & Cauliflower\",\n      \"title\": \"Roasted smoky chicken thighs with cauliflower and quinoa\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and cauliflower in the oven. Reheat the quinoa in a pan. Serve hot, ensuring no sesame contamination.\",\n      \"why\": \"A safe, warm, and smoky chicken dinner for Solveig that aligns with the coach's requirement for a loud vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_cauli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_beef_stew\",\n      \"title\": \"Rich Smoky Beef Stew\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"beef chuck, diced\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion, finely chopped\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves, minced\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"beef stock\",\n          \"quantity\": \"200 ml\",\n          \"amount\": 200,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Brown the beef in oil in a large pot. Add onions and garlic, cooking until soft. Stir in paprika, tomatoes, and stock. Cover and simmer on low heat for 40 minutes until the beef is tender.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 50,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_stew_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_stew_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_stew_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_stew_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_bean_stew\",\n      \"title\": \"Smoky Black Bean Stew\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans, drained\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"onion, chopped\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove, minced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"vegetable stock\",\n          \"quantity\": \"150 ml\",\n          \"amount\": 150,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Sauté onion and garlic in oil. Add paprika, beans, tomatoes, and stock. Simmer for 20 minutes until thickened and flavours are deep.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_bean_stew_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_bean_stew_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_bean_stew_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_bean_stew_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chicken_cauli\",\n      \"title\": \"Smoky Roast Chicken & Cauliflower\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs, bone-in\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cauliflower, in florets\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Toss chicken and cauliflower with oil and paprika. Spread on one half of the oven tray (sharing with the chickpeas). Roast at 200C for 35 minutes until the chicken is cooked through and cauliflower is charred.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chickpea_cauli\",\n      \"title\": \"Smoky Roast Chickpeas & Cauliflower\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"chickpeas, drained\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cauliflower, in florets\",\n          \"quantity\": \"0.5 unit\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Toss chickpeas and cauliflower with oil and paprika. Spread on the other half of the oven tray. Roast at 200C for 25-30 minutes until crisp.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chickpea_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chickpea_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chickpea_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_chickpea_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_quinoa\",\n      \"title\": \"Basic Cooked Quinoa\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"quinoa\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"500 ml\",\n          \"amount\": 500,\n          \"unit\": \"ml\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rinse quinoa. Bring water to a boil, add quinoa, cover and simmer for 15 minutes. Remove from heat and let stand for 5 minutes before fluffing with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_quinoa_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_quinoa_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_quinoa_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_quinoa_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_beef_stew\",\n        \"prep_bean_stew\",\n        \"prep_chicken_cauli\",\n        \"prep_chickpea_cauli\",\n        \"prep_quinoa\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start by putting the quinoa on the hob. Preheat the oven to 200C. Chop all vegetables. Start the beef stew and the bean stew in separate pots on the hob. While they simmer, arrange the chicken and chickpeas on the single oven tray (separated) and put them in the oven. Fluff the quinoa when done. Once the stews and roast are finished, weigh and box into the named containers.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"beef chuck\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"chicken thighs, bone-in\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"2 cans\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chickpeas\",\n      \"quantity\": \"1 can\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"cauliflower\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tinned chopped tomatoes\",\n      \"quantity\": \"2 cans\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"quinoa\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"crusty baguette\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"other\"\n    },\n    {\n      \"term\": \"beef stock cubes\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"vegetable stock cubes\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Serve vegetables first on the plate, then the protein, then the starch.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_stew\",\n          \"note\": \"one portion of beef stew\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken_cauli\",\n          \"note\": \"one portion of roast chicken and cauliflower\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"one portion of quinoa\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Serve protein and starch first on the plate, then the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_stew\",\n          \"note\": \"one portion of beef stew\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken_cauli\",\n          \"note\": \"one portion of roast chicken and cauliflower\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"one portion of quinoa\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve protein and starch first on the plate, then the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_stew\",\n          \"note\": \"one portion of beef stew\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken_cauli\",\n          \"note\": \"one portion of roast chicken and cauliflower\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"one portion of quinoa\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Serve all components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_bean_stew\",\n          \"note\": \"one portion of black bean stew\"\n        },\n        {\n          \"preparation_id\": \"prep_chickpea_cauli\",\n          \"note\": \"one portion of roast chickpeas and cauliflower\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"one portion of quinoa\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "1BOFauH3MfKIvdIPiryAUQ",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 20730,
+        "promptTokenCount": 8816,
+        "thoughtsTokenCount": 4515,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8816
+          }
+        ],
+        "candidatesTokenCount": 7399
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T02:23:07.21958+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T02:23:08.007143+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:23:11.02751+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:23:11.040017+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:23:11.049473+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:24:11.063328+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:24:11.073082+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:24:11.506588+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:24:15.846803+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:24:16.320004+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:24:20.654238+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:24:20.663348+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:24:20.673226+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:25:12.817274+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

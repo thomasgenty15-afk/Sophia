@@ -1,0 +1,351 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-rationale-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Ce niveau me paraît mal calibré. Je ne veux pas tout casser, mais ça me tombe dessus dès que je le regarde.",
+    "assistant": "Ah ouais… quand “ça te tombe dessus” dès que tu regardes, c’est souvent un signal : soit c’est trop haut pour ton moment, soit c’est présenté d’une manière qui te déclenche. 😬\n\nOn va éviter de tout casser, mais on peut recalibrer proprement :\n1) On garde l’objectif, mais on baisse la portion “à faire maintenant” (format micro).\n2) On sépare “regarder” (trigger) de “agir” (action courte, sécurisée).\n3) On rend le niveau tolérable dès les 5 premières minutes.\n\nDis-moi juste : quand tu dis “ça me tombe dessus”, c’est plutôt la quantité (trop de charge), ou le ton/la menace perçue (“je dois y arriver”) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "niveau de difficulté du plan",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-rationale-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-rationale-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Pour ce niveau, c'est surtout parce que mes soirées sont déjà prises et j'ai peu d'énergie. Je veux garder une priorité claire et alléger autour.",
+    "assistant": "Je te propose d'ajuster le niveau actuel: alleger la charge du niveau actuel sans supprimer l'intention. Tu veux que je l'applique ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "alléger le plan et garder une priorité",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "current_level",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "intensity",
+            "reason_change": "energy_low",
+            "load_adjustment": "lighter",
+            "level_adjustment": "reduce_load"
+          },
+          "title": "Ajustement - niveau actuel",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "niveau actuel: charge ajustée vers \"lighter\"",
+              "cible de changement: intensity"
+            ],
+            "unchanged": [
+              "le cœur du niveau reste préservé",
+              "chaque action n'est pas réécrite automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+            "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+          },
+          "scope_label": "niveau actuel",
+          "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+          "decision_basis": {
+            "evidence": [
+              "Pour ce niveau, c'est surtout parce que mes soirées sont déjà prises et j'ai peu d'énergie. Je veux garder une priorité claire et alléger autour.",
+              "operation_input.scope",
+              "message.reduce_load",
+              "message.wrong_focus",
+              "message.energy_low",
+              "message.load_or_intensity"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "actions exactes du niveau a choisir pour une modification fine"
+            ],
+            "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+            "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+            "must_preserve": [
+              "intention du plan",
+              "coeur du niveau"
+            ]
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "alleger la charge du niveau actuel sans supprimer l'intention",
+          "change_rationale": {
+            "why_this_change": "Alléger intensity répond au problème \"energy_low\" tout en gardant le cœur du niveau.",
+            "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+            "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+          },
+          "execution_strategy": "level_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "level_adjustment",
+            "load_adjustment",
+            "focus_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose d'ajuster le niveau actuel: alleger la charge du niveau actuel sans supprimer l'intention. Tu veux que je l'applique ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "efd3606c-2586-42ac-85ab-239ba0405885",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-rationale-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-rationale-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Ok applique cette logique au niveau, sans prétendre que chaque action est déjà réécrite une par une.",
+    "assistant": "J'ai préparé l'ajustement du niveau actuel : niveau actuel: charge ajustée vers \"lighter\"; cible de changement: intensity. Ce qui ne change pas : le cœur du niveau reste préservé; chaque action n'est pas réécrite automatiquement. Pourquoi ça aide : La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.. Confiance : medium.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "efd3606c-2586-42ac-85ab-239ba0405885",
+      "plan_patch_id": "249a04f9-4d7b-4ef2-879e-afbecaf47975",
+      "selected_handler": "adjust_plan_item",
+      "bridge_plan_item_id": null
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-rationale-r1-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-rationale-r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Tu peux me dire précisément ce qui a changé, ce qui n'a pas changé, et pourquoi ?",
+    "assistant": "Oui. Je te détaille ce qui a changé vs ce qui n’a pas changé, et le “pourquoi” derrière le recalibrage. Tu vas voir, l’idée c’est d’alléger le ressenti, sans casser la direction. 🌙\n\nCe qui a changé (côté niveau)\n- La charge/intensité a été abaissée sur le niveau actuel, pour que ce que tu vois le soir ne te “tombe pas dessus”.\n- L’effet recherché: moins de pression immédiate, plus de faisabilité quand ton énergie est basse.\n\nCe qui n’a pas changé\n- La direction globale du niveau: l’intention principale reste la même.\n- La logique générale: on ne supprime pas l’objectif, on réduit la partie “à absorber maintenant”.\n- Je ne peux pas garantir “action par action” que chaque item a été réécrit/reshapé individuellement juste à partir de ce que tu vois dans le chat.\n\nPourquoi ça aide\n- Si tes soirées sont déjà prises + peu d’énergie, le cerveau interprète “niveau à faire” comme une montagne. Donc tu te crispe au moment même où tu consultes.\n- En baissant l’intensité autour, tu réduis le déclencheur (le choc visuel/mental), et tu gardes une priorité claire, plus compatible avec ta réalité.\n\nSi tu veux du vraiment précis “item par item”, il me faut que tu me dises quel niveau tu regardes exactement (nom/écran ou ce que tu vois à l’écran), et je te dis ce qui, en pratique, est censé avoir été allégé. Tu regardes quel intitulé de niveau là maintenant ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "Plan: Le Plan est l'espace principal d'execution d'une transformation active. Il montre les niveaux, les semaines, les elements du plan et l'avancement.\n\nCe que ca apporte:\n- Donne une vue claire de ce qui est a faire maintenant.\n- Evite de melanger les actions du moment avec toute la transformation.\n- Montre ce qui est termine, actif ou a venir, dont les semaines et niveaux futurs qui peuvent etre verrouilles.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une transformation active existe. Tu peux y consulter le niveau actif, ouvrir les semaines, valider certains elements.",
+        "status": "complete",
+        "skill_id": "product_help",
+        "diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "state_patch": {
+          "summary": "Product help answered for dashboard.plan."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "benefits",
+        "recommendation_need": {
+          "type": "none",
+          "needed": false,
+          "urgency": "none",
+          "constraints": [
+            "product_help_does_not_execute_operations",
+            "operation_bridge_requires_confirmation_when_present"
+          ]
+        },
+        "operation_suggestions": []
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "product_help"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-rationale-r1-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-rationale-r1-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Résume-moi ce qui a été décidé pour ce niveau.",
+    "assistant": "Ok. Pour ce niveau, voilà ce qui a été décidé, en clair 🌙\n\n1) On garde l’intention (direction générale), mais on baisse la charge.\nObjectif: que ça ne te tombe pas dessus dès que tu regardes.\n\n2) On privilégie la faisabilité le soir, vu que tes soirées sont déjà prises et que tu as peu d’énergie.\nDonc: moins de pression immédiate, plus de “c’est faisable maintenant/ce soir”.\n\n3) On évite de “tout casser”.\nLa logique choisie, c’est recalibrer l’intensité et le ressenti, sans réécrire chaque action une par une.\n\nSi tu veux, je peux aussi te le reformuler en une phrase “mantra” pour que ça reste net quand tu ouvres le niveau. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-rationale-r1-t05",
+    "trace_error": null
+  }
+]

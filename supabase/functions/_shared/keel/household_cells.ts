@@ -44,7 +44,8 @@
 import { type MealCell, memberMealCells } from "./household_presence.ts";
 import { type ExpectedDish, mouthsFedByDish } from "./box_expected.ts";
 import type { DietaryRegime } from "./dietary_regime.ts";
-import { regimeCovers, regimeStrictness } from "./household_diet.ts";
+import { dietBaseEdible, dietDiverges } from "./household_diet.ts";
+import type { ServingAxisDemands } from "./household_portions.ts";
 import type { AwayDay, EatingOccasionSlot } from "./meal_generation.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -109,6 +110,17 @@ export interface CellMouth {
   lightSlots: readonly string[];
   /** Son régime déclaré, `null` = rien de déclaré. */
   diet: DietaryRegime | null;
+  /**
+   * ⟳ 2026-09-14 (§ 2.2) — CE QUE SA DIRECTION DE SERVICE RÉCLAME À LA
+   * CASSEROLE. `servingDemandsFor(m)` chez l'appelant, jamais une seconde
+   * lecture ici: c'est la MÊME valeur que `divergingMembers` lit dans le
+   * handler, et c'est ce qui rend les deux listes incapables de diverger.
+   *
+   * ⛔ REQUIS, jamais `?`. Un défaut « aucune demande » ferait une grille qui
+   * ne dédie plus personne pour un contrat — c'est-à-dire exactement le défaut
+   * que ce lot ferme, remis en place en silence par un champ oublié.
+   */
+  demands: ServingAxisDemands;
   /** Les moments où elle a déclaré son propre repas (`ownMealSlots`). */
   ownMealSlots: readonly string[];
 }
@@ -117,6 +129,26 @@ export interface CellMouth {
 export interface DedicatedMouth {
   memberId: string;
   reason: DedicatedReason;
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-14 · BÊTA 1A — LA BASE DE CETTE CASE EST-ELLE MANGEABLE PAR
+   *                ELLE ? La prémisse ⓪, portée jusqu'à la garde finale.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ SANS CE CHAMP, « elle ne peut RIEN manger ici » et « elle mangerait
+   * mieux autre chose » rendent le même `reason: "regime"`. Les deux se
+   * réparent à des endroits opposés: le premier EMPÊCHE de livrer, le second
+   * s'annonce. Mesuré le 2026-09-14 en rejouant la référence N=2: un contrôle
+   * qui ne lisait que `reason` refusait 6 cases d'un plan dont le plancher
+   * protéique est tenu.
+   *
+   * `true` sur `own_meal` par construction: une habitude ne dit rien de la
+   * comestibilité de la table.
+   *
+   * ⛔ REQUIS, jamais `?`. Un défaut à `true` désarmerait la seule cause
+   * bloquante du lot; un défaut à `false` refuserait tous les foyers mixtes.
+   */
+  baseEdible: boolean;
 }
 
 export interface HouseholdCell {
@@ -129,18 +161,28 @@ export interface HouseholdCell {
   /**
    * LE RÉGIME QUE LE PLAT PARTAGÉ DE CETTE CASE DOIT SUIVRE.
    *
-   * ⛔ LE MAJORITAIRE, PAS LE PLUS STRICT — et c'est un RENVERSEMENT, décidé le
-   * 2026-09-07. `strictestRegimeAt` (R4) fait suivre la casserole au plus
-   * strict de tout le foyer: une table de quatre dont une personne est végane
-   * mange végane toute la semaine, et seuls les omnivores qui ont déclaré une
-   * exigence contraire reçoivent un plat à eux. La décision produit inverse la
-   * charge: **la minorité stricte a son plat**.
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-14 (§ 2.2) — C'EST `baseRegime`, LA LIGNE QUE LE PROMPT DIT
+   * ══════════════════════════════════════════════════════════════════════
    *
-   * ⚠️ CE N'EST PAS UNE PERTE DE SÉCURITÉ, et la raison est structurelle: les
-   * exclusions des régimes sont EMBOÎTÉES (`pescatarian ⊂ vegetarian ⊂ vegan`,
-   * prouvé paire par paire dans `household_diet_test.ts`). Une bouche MOINS
-   * stricte que sa case peut donc manger le plat de sa case; l'inverse est
-   * faux, et c'est exactement la population que `dedicated` nomme.
+   * ⛔ CE CHAMP A PORTÉ LE MAJORITAIRE (`cellRegimeFor`, 2026-09-07), ET LE
+   * MAJORITAIRE N'ATTEIGNAIT LE MODÈLE PAR AUCUN CHEMIN. Le seul régime que le
+   * message transmet est celui du bloc `WHAT THE SHARED BASE MUST RESPECT` —
+   * « the BASE the table shares … follows the STRICTEST line declared at this
+   * table » (R4). Le calendrier, lui, n'imprime aucun régime par case: l'étape
+   * 1 de la méthode renvoie à « the diet the calendar prints for that cell »,
+   * qui n'existe pas.
+   *
+   * Résultat mesuré sur le prompt réellement transmis (N=4, 2026-09-13): la
+   * section `A DISH OF THEIR OWN` commandait un plat à **Lea**, la végane,
+   * pendant que la base déclarée SUIVAIT SA LIGNE et que la phrase voisine
+   * nommait **Nils et Iris**. Le même message ordonnait un plat à part à la
+   * seule personne que la casserole servait déjà, puis l'excluait de ce plat
+   * (« Lea take no box and no share of those own dishes »).
+   *
+   * ⚠️ LA GRILLE NE CHOISIT DONC PLUS DE RÉGIME: elle reçoit celui de la table
+   * et le porte, case par case. Une case sans mangeur n'a pas de plat, donc pas
+   * de régime — `null`, comme avant.
    *
    * ⚠️ ET L'ALLERGIE N'EST PAS ICI. Elle ne dédie jamais: l'union de sécurité
    * retire l'allergène de LA CASSEROLE, fail-closed, avant tout ceci.
@@ -222,42 +264,23 @@ export function cellKeyOf(day: string, slot: string): string {
 }
 
 /**
- * LE RÉGIME DU PLAT PARTAGÉ D'UNE CASE — le MAJORITAIRE de ses mangeurs.
+ * LE RÉGIME DU PLAT PARTAGÉ D'UNE CASE — celui de la TABLE, porté jusqu'ici.
  *
- * Égalité ⇒ le plus strict. Ce n'est pas de la prudence décorative: à deux
- * véganes contre deux omnivores, servir omnivore obligerait à cuisiner DEUX
- * plats dédiés là où un seul plat végane nourrit les quatre.
+ * ⛔ LA GRILLE NE CHOISIT PLUS (2026-09-14, § 2.2). Elle a porté un
+ * MAJORITAIRE par case (`cellRegimeFor`) du 2026-09-07 au 2026-09-14; ce
+ * régime-là n'a jamais atteint le modèle, et il nommait d'autres bouches que
+ * le seul bloc qui, lui, l'atteint. Voir le pavé de `HouseholdCell.regime`.
  *
- * `[]` ⇒ `null`, et l'appelant sait que la case est vide.
+ * `[]` ⇒ `null`, et l'appelant sait que la case est vide: une case sans
+ * mangeur n'a pas de plat, donc pas de ligne à suivre.
  *
  * PURE: no I/O, no clock, no randomness.
  */
 export function cellRegimeFor(
-  diets: readonly (DietaryRegime | null)[],
+  base: DietaryRegime | null,
+  eaters: readonly CellMouth[],
 ): DietaryRegime | null {
-  if (diets.length === 0) return null;
-  const tally = new Map<string, number>();
-  for (const d of diets) {
-    const key = d ?? "";
-    tally.set(key, (tally.get(key) ?? 0) + 1);
-  }
-  let best: DietaryRegime | null = null;
-  let bestCount = -1;
-  for (const [key, count] of tally) {
-    const regime = key === "" ? null : (key as DietaryRegime);
-    // ⛔ LE DÉPARTAGE EST EXPLICITE, JAMAIS L'ORDRE DE LA `Map`. Une égalité
-    // tranchée par l'ordre d'insertion rendrait le régime d'une case
-    // dépendant de l'ordre du roster — un plan qui change parce qu'on a
-    // ajouté quelqu'un, sans qu'une seule ligne de test bouge.
-    if (
-      count > bestCount ||
-      (count === bestCount && regimeStrictness(regime) > regimeStrictness(best))
-    ) {
-      best = regime;
-      bestCount = count;
-    }
-  }
-  return best;
+  return eaters.length === 0 ? null : base;
 }
 
 /**
@@ -283,6 +306,22 @@ export function cellCharacterFor(
  * `own_meal`, parce qu'une impossibilité ne devient pas une habitude quand la
  * personne a aussi déclaré son propre repas.
  *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-14 (§ 2.2) — LE MOTIF `regime` EST `dietDiverges`, APPELÉ
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ IL Y AVAIT DEUX PRÉDICATS POUR UNE MÊME QUESTION, ET ILS NOMMAIENT DES
+ * GENS DIFFÉRENTS. Ici: « cette bouche est-elle PLUS STRICTE que sa case ? ».
+ * Dans le handler (`divergingMembers`): « la casserole descendue au plus strict
+ * peut-elle SERVIR cette bouche ? ». Sur un foyer d'une végane et de trois
+ * omnivores, le premier nommait la végane et le second les omnivores — et le
+ * prompt partait avec les deux réponses, chacune dans un bloc.
+ *
+ * `dietDiverges` porte désormais les trois prémisses (⓪ la base n'est pas
+ * mangeable — c'est la ligne `regimeCovers` qui vivait ICI depuis le
+ * 2026-09-08 ; ① la bouche porte elle-même la ligne ; ② son contrat ne sort
+ * plus de la casserole). Une seule écriture, deux lecteurs.
+ *
  * PURE: no I/O, no clock, no randomness.
  */
 export function dedicatedInCell(
@@ -293,21 +332,22 @@ export function dedicatedInCell(
   const out: DedicatedMouth[] = [];
   const seen = new Set<string>();
   for (const m of eaters) {
-    // ⟳ 2026-09-08 — ÉTAIT `regimeStrictness(m.diet) > regimeStrictness(regime)`.
-    // C'EST LA LIGNE DE SÉCURITÉ DE CE FICHIER: elle décide qui reçoit un plat
-    // à soi. Un compte de groupes exclus ne l'ordonne correctement que sur un
-    // axe emboîté; `gluten_free` n'exclut AUCUN groupe (sa garantie est dans
-    // les formes de surface), donc il comptait zéro et personne ne recevait
-    // son plat. Voir `REGIME_COVERS` dans `household_diet.ts`.
-    if (!regimeCovers(regime, m.diet)) {
-      out.push({ memberId: m.memberId, reason: "regime" });
+    if (dietDiverges({ strictest: regime, own: m.diet, demands: m.demands })) {
+      out.push({
+        memberId: m.memberId,
+        reason: "regime",
+        // ⟳ 2026-09-14 · BÊTA 1A — LA PRÉMISSE ⓪, APPELÉE. Voir le pavé de
+        // `DedicatedMouth.baseEdible`.
+        baseEdible: dietBaseEdible({ strictest: regime, own: m.diet }),
+      });
       seen.add(m.memberId);
     }
   }
   for (const m of eaters) {
     if (seen.has(m.memberId)) continue;
     if (m.ownMealSlots.includes(slot)) {
-      out.push({ memberId: m.memberId, reason: "own_meal" });
+      // Une habitude ne dit rien de la comestibilité de la table.
+      out.push({ memberId: m.memberId, reason: "own_meal", baseEdible: true });
       seen.add(m.memberId);
     }
   }
@@ -321,6 +361,19 @@ export function dedicatedInCell(
 
 export interface HouseholdCellsInput {
   mouths: readonly CellMouth[];
+  /**
+   * ⟳ 2026-09-14 (§ 2.2) — LA LIGNE QUE LA BASE PARTAGÉE SUIT, R4.
+   *
+   * `strictestRegimeAt(platedMembers)` chez l'appelant — c'est-à-dire la MÊME
+   * valeur que `householdDietBlock` écrit dans le prompt. La grille ne la
+   * recalcule pas: deux lectures d'une même ligne ont déjà produit un message
+   * qui commandait un plat à part à la personne dont la base suivait la ligne.
+   *
+   * ⛔ REQUIS ET NULLABLE, jamais `?`. `null` = personne n'a rien déclaré, et
+   * alors aucune case ne dédie pour un régime. Un défaut silencieux à `null`
+   * désarmerait la seule porte qui décide qui reçoit une variante.
+   */
+  baseRegime: DietaryRegime | null;
   /** Le rythme de la maison, pour les bouches qui n'ont rien déclaré. */
   houseRhythm: readonly EatingOccasionSlot[];
   /** Les jours de la fenêtre, en jetons, dans l'ordre. */
@@ -402,7 +455,7 @@ export function householdCells(
     for (const slot of input.gridSlots) {
       const key = cellKeyOf(day, slot);
       const eaters = eatersByKey.get(key) ?? [];
-      const regime = cellRegimeFor(eaters.map((m) => m.diet));
+      const regime = cellRegimeFor(input.baseRegime, eaters);
       const dedicated = dedicatedInCell(slot, eaters, regime);
       const character = cellCharacterFor(slot, eaters);
       const cell: HouseholdCell = {
@@ -453,14 +506,16 @@ export function householdCells(
 }
 
 /**
- * L'ÉCART ENTRE LES DÉDIÉS DE LA GRILLE ET CEUX QUE LA LANE DÉCIDE AUJOURD'HUI.
+ * L'ÉCART ENTRE LES DÉDIÉS DE LA GRILLE ET LA LISTE QUE LE PROMPT EMPORTE.
  *
- * ⛔ IL EXISTE PARCE QUE LA RÈGLE CHANGE, ET QU'ON VEUT LE VOIR AVANT DE
- * L'APPLIQUER. `dishBearingMembers` (R4/R5) dédie les bouches MOINS strictes
- * que la table qui ont une exigence de service; la grille dédie les bouches
- * PLUS strictes que leur case. Sur un foyer d'un végane et trois omnivores, la
- * première n'en dédie aucune et la seconde dédie le végane: l'écart vaut 1, et
- * c'est très exactement ce que le lot suivant va appliquer.
+ * ⟳ 2026-09-14 (§ 2.2) — IL VAUT DÉSORMAIS ZÉRO PAR CONSTRUCTION, ET C'EST
+ * EXACTEMENT CE QU'IL SERT À DIRE. `dishBearingMembers` est la projection de
+ * `cells[].dedicated` sur le roster; le jour où quelqu'un rouvre une seconde
+ * liste à côté — ce que ce fichier a payé deux fois —, ce nombre cesse d'être
+ * nul dans le journal de production, sans qu'aucun test n'ait à le prévoir.
+ *
+ * ⛔ CE N'EST PAS UN COMPTEUR DE RÉUSSITE. Il ne dit rien de la qualité de la
+ * décision; il dit seulement qu'il n'y en a qu'une.
  *
  * PURE: no I/O, no clock, no randomness.
  */

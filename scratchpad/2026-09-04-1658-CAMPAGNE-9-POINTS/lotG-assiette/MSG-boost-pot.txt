@@ -1,0 +1,5 @@
+le cran d'une note datée passe aussi par le bac : la part de ce mangeur grossit dans la somme du bac (arbitrage 3, suite)
+
+N3 (8a, quatre, « Claire a du sport le mardi soir ») : `note_boost {member_days 1, applied 0}` et la boîte de Claire mardi soir inchangée — Claire mange en bac avec Léo (`common_pot_day`, 14/28 sur ce foyer), l'ancre ne la dimensionne pas, le cran côté ancre (a5d1b636) était inerte pour elle. `PotEater.noteBoost` (optionnel, 0 par défaut) entre dans `potFactorFor` : `needed += part du repas × (1 + cran)` — sa part, pas celle des autres ; l'index le nourrit depuis `noteBoostByKey` (hissée hors du bloc d'ancrage) et compte `note_boost.applied_pot`. Test : deux corps identiques, la somme passe de 2 à 2,25 parts ; un cran nul ne change rien.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

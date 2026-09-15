@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sophia — maquette de direction</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   MAQUETTE DE JUGEMENT — direction « la fiche ».
+   Autonome : aucune requête réseau, polices embarquées en base64 plus bas.
+   Ce fichier n’est PAS destiné au dépôt ; il existe pour juger la direction
+   sur pièce à 1280 px et à 320 px.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* @FONTFACE_SLOT */
+
+:root {
+  /* ── surfaces et encres ────────────────────────────────────────────────── */
+  --paper:        #FBF8FA;
+  --paper-2:      #F4EFF2;
+  --ink:          #23191F;
+  --ink-soft:     #6A5A64;
+  --line:         #E3DAE0;
+  --line-strong:  #8E7886;
+
+  /* ── figue — la teinte de marque ───────────────────────────────────────── */
+  --fig-50:   #F9F1F5;
+  --fig-100:  #EFE0E9;
+  --fig-300:  #C9A3B8;
+  --fig-600:  #7E3C61;
+  --fig-700:  #632C4C;
+  --fig-800:  #4A2039;
+  --fig-900:  #331629;
+  --fig-950:  #24101E;
+
+  /* ── jetons d’illustration : les cinq seuls que connaît une figure ─────── */
+  --ill-ink:      var(--ink);
+  --ill-ink-soft: var(--ink-soft);
+  --ill-paper:    var(--paper);
+  --ill-wash:     var(--fig-100);
+  --ill-fig:      var(--fig-700);
+
+  /* Young Serif — display uniquement, >= 20 px. Une seule graisse : la
+     hiérarchie se fait à la taille et à l’espace, jamais au gras. */
+  --font-display: "Young Serif", Georgia, "Times New Roman", serif;
+  /* Public Sans — texte, chiffres, libellés. La chaîne de repli emoji est
+     reprise telle quelle de src/index.css : elle évite les tofus. */
+  --font-text:    "Public Sans", system-ui, -apple-system, "Segoe UI", Helvetica,
+                  Arial, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+
+  --r-fiche: 16px;
+  --r-card:  12px;
+  --r-part:  4px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+img, svg { max-width: 100%; height: auto; display: block; }
+
+/* ── LE PLANCHER DE LISIBILITÉ D’UNE FIGURE ────────────────────────────────
+   Une figure porte du texte à 9-13 unités sur une grille de 480. Étirée sur
+   les 280 px utiles d’un téléphone de 320, ce texte tombe à 5-7 px : la figure
+   est là, et elle ne se lit plus. Mesuré, pas supposé.
+   La réponse n’est pas d’agrandir le texte de la figure — ça casserait la
+   grille commune aux six agents. C’est de donner à la figure une largeur
+   PLANCHER et de laisser son conteneur défiler sous ce plancher. Le débordement
+   est borné au conteneur : la PAGE, elle, ne défile jamais horizontalement. */
+.fig-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+.fig-scroll > svg { min-width: 380px; }
+
+/* ── L’ÉQUERRE ── la signature. Un coin ouvert en haut à gauche, jamais un
+      cadre. 2 px, rayon 8, bras de 20. Elle marque l’origine de tout ce qui
+      est SPÉCIFIÉ : une section, une fiche, une figure, le nom de la marque. */
+.eq { position: relative; padding-left: 18px; }
+.eq::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0.18em;
+  width: 10px; height: 14px;
+  border-left: 2px solid var(--fig-700);
+  border-top: 2px solid var(--fig-700);
+  border-top-left-radius: 5px;
+}
+
+/* ── typographie ───────────────────────────────────────────────────────── */
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0;
+}
+h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.05rem, 1.35rem + 3.9vw, 4.15rem);
+  line-height: 0.99;
+  letter-spacing: -0.021em;
+  font-weight: 600;
+  margin: 20px 0 0;
+  max-width: 15ch;
+  text-wrap: balance;
+}
+h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 1.2rem + 2.1vw, 2.7rem);
+  line-height: 1.06;
+  letter-spacing: -0.016em;
+  font-weight: 600;
+  margin: 16px 0 0;
+  max-width: 20ch;
+  text-wrap: balance;
+}
+.lede {
+  font-size: 1.125rem;
+  line-height: 1.62;
+  color: var(--ink-soft);
+  max-width: 46ch;
+  margin: 22px 0 0;
+}
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+
+/* ── en-tête ───────────────────────────────────────────────────────────── */
+header { border-bottom: 1px solid var(--line); }
+.bar {
+  display: flex; align-items: center; gap: 24px;
+  min-height: 68px;
+}
+.mark {
+  font-family: var(--font-display);
+  font-size: 21px; font-weight: 600; letter-spacing: -0.015em;
+  color: var(--ink); text-decoration: none;
+}
+.mark.eq { padding-left: 16px; }
+.mark.eq::before { top: 0.30em; width: 8px; height: 12px; }
+
+/* L’INTERRUPTEUR DES DEUX MONDES. Deux mots, casse normale, aucun tracking :
+   « Communities » en capitales espacées réclamait 88 px là où le bloc de
+   gauche en reçoit 71 (AUDIT §4 n°3). Deux mots courts en casse normale
+   tiennent dans 132 px, et le monde actif est marqué par un filet de 2 px
+   sous le mot — pas par une pastille, qui serait un état. */
+.worlds { display: flex; gap: 4px; margin-left: 4px; }
+.worlds a {
+  font-size: 14px; text-decoration: none; color: var(--ink-soft);
+  padding: 6px 10px 5px; border-bottom: 2px solid transparent; border-radius: 2px;
+}
+.worlds a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--fig-700); font-weight: 600; }
+.worlds a:hover { color: var(--ink); }
+.spacer { flex: 1 1 auto; }
+.locale { font-size: 13px; color: var(--ink-soft); text-decoration: none; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  font: inherit; font-size: 15px; font-weight: 500;
+  padding: 11px 20px; border-radius: 999px; text-decoration: none;
+  border: 1px solid transparent; cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.btn-primary { background: var(--fig-700); color: var(--paper); }
+.btn-primary:hover { background: var(--fig-800); }
+.btn-secondary { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+.btn-secondary:hover { background: var(--fig-50); }
+.btn-sm { font-size: 14px; padding: 8px 16px; }
+a:focus-visible, .btn:focus-visible {
+  outline: 2px solid var(--fig-600); outline-offset: 3px; border-radius: 4px;
+}
+
+/* ── le hero ───────────────────────────────────────────────────────────── */
+/* ⚠ `padding-block`, PAS le raccourci `padding`. .hero et .bar portent aussi
+   la classe .wrap, qui pose le padding horizontal de la page. Un raccourci
+   `padding: 84px 0 76px` remet ce padding horizontal à ZÉRO : mesuré à 320 px,
+   l’en-tête et le titre sortaient des deux côtés de l’écran. */
+.hero { padding-block: 84px 76px; }
+.hero-grid {
+  display: grid; grid-template-columns: 1.02fr 1fr; gap: 64px; align-items: center;
+}
+.cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+.terms { margin: 18px 0 0; font-size: 14px; color: var(--ink-soft); max-width: 42ch; }
+.terms b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* LA RÉSERVE. Elle est ici parce que /start interroge d’abord
+   `keel_free_signup_available` : si le programme du coach maison n’est pas
+   publié, la porte est fermée (AUDIT §10). Une page qui promet une entrée
+   immédiate sans cette réserve ment une fois sur deux. */
+.reserve {
+  margin: 12px 0 0; font-size: 13px; line-height: 1.5;
+  color: var(--ink-soft); max-width: 40ch;
+}
+
+/* ── la bande de faits ─────────────────────────────────────────────────── */
+.facts { border-top: 1px solid var(--line); padding: 44px 0 0; margin-top: 76px; }
+.facts ul {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px;
+}
+.facts li p { margin: 8px 0 0; font-size: 15px; line-height: 1.55; color: var(--ink-soft); max-width: 34ch; }
+.facts li h3 {
+  font-family: var(--font-display); font-size: 1.2rem; font-weight: 600;
+  letter-spacing: -0.01em; margin: 10px 0 0; color: var(--ink);
+}
+
+/* ── LA BANDE PRO — même marque, autre température, ET FOND CLAIR.
+      Une maquette de produit ne se pose JAMAIS sur un fond sombre. Le produit
+      est en clair uniquement ; sur fond sombre, la surface de l’app devenait
+      l’objet le plus saturé de la page et montrait un écran qui n’existe pas.
+      Constaté sur capture, corrigé en règle (CHARTE §6.4). ─────────────────*/
+.pro { background: var(--paper-2); margin-top: 96px; padding: 84px 0; }
+
+/* ── LE BLOC SOMBRE — un seul par page, et il ne porte pas de figure.
+      Il porte la phrase que le site n’a pas le droit d’illustrer : celle où
+      l’on dit ce qu’on ne sait pas. Le remappage de --ill-fig vers --fig-300
+      reste déclaré : sans lui l’équerre tomberait à 2,4:1. ─────────────────*/
+.dark {
+  background: var(--fig-950); color: var(--paper);
+  padding: 76px 0;
+  --ill-fig: var(--fig-300);
+  --ill-ink-soft: var(--fig-300);
+}
+.dark .say {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1rem + 2.1vw, 2.35rem);
+  line-height: 1.16; letter-spacing: -0.012em; font-weight: 400;
+  color: var(--paper); margin: 14px 0 0; max-width: 26ch;
+}
+.dark .say-note { color: var(--fig-300); font-size: 15px; margin: 18px 0 0; max-width: 44ch; }
+.pro .label, .dark .label { color: var(--ink-soft); }
+.dark .label { color: var(--fig-300); }
+.dark .eq::before { border-color: var(--fig-300); }
+.dark h2 { color: var(--paper); }
+.dark .lede { color: var(--fig-300); }
+.dark .btn-secondary { color: var(--paper); border-color: var(--fig-300); }
+.dark .btn-secondary:hover { background: var(--fig-900); }
+.pro-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 64px; align-items: center; }
+
+footer { padding: 40px 0 64px; font-size: 13px; color: var(--ink-soft); }
+
+/* ── 320 px ────────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .hero-grid, .pro-grid { grid-template-columns: 1fr; gap: 44px; }
+  .facts ul { grid-template-columns: 1fr; gap: 28px; }
+  .pro-grid > .fig-slot { order: 2; }
+}
+@media (max-width: 640px) {
+  .wrap { padding: 0 20px; }
+  body { font-size: 16px; }
+  /* L’EMPILEMENT DE L’AUDIT §4 n°2 : le bloc de droite fait 275 px déconnecté ;
+     sur 320 px il ne reste rien au reste. Les deux mondes passent SOUS la
+     marque, sur leur propre ligne, et le bloc de gauche prend la largeur du
+     plus large des deux — pas leur somme. */
+  .bar { flex-wrap: wrap; gap: 10px 14px; padding-top: 12px; min-height: 0; }
+  .worlds { order: 3; width: 100%; margin: 0 0 10px -10px; }
+  .hero { padding-block: 44px 40px; }
+  .facts { margin-top: 48px; padding-top: 32px; }
+  .pro { margin-top: 56px; padding: 56px 0; }
+  .dark { padding: 52px 0; }
+  h1 { max-width: 100%; }
+  .cta-row .btn { flex: 1 1 auto; }
+  /* La figure prend toute la largeur de l’écran, bords compris : 40 px gagnés
+     sur le plancher de 380, donc moins de défilement à parcourir. */
+  .fig-scroll { margin-inline: -20px; padding-inline: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <a class="mark eq" href="#">Sophia</a>
+    <nav class="worlds" aria-label="Deux mondes">
+      <a href="#" aria-current="page">Le foyer</a>
+      <a href="#pro">Le pro</a>
+    </nav>
+    <span class="spacer"></span>
+    <a class="locale" href="#">EN</a>
+    <a class="btn btn-primary btn-sm" href="#">Commencer</a>
+  </div>
+</header>
+
+<main>
+  <section class="wrap hero">
+    <div class="hero-grid">
+      <div>
+        <p class="label eq">Le foyer</p>
+        <h1>Une seule casserole. La part de chacun, écrite.</h1>
+        <p class="lede">
+          Sophia compose la semaine de votre maison en sessions de cuisine — pas
+          en plats isolés. Le même plat pour tout le monde, et pour chaque bouche
+          l’instruction de service qui va avec.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#">Commencer</a>
+          <a class="btn btn-secondary" href="#">Voir comment se compose une semaine</a>
+        </div>
+        <p class="terms"><b>12,99 €</b> par mois pour le foyer, <b>2 €</b> par profil.
+          Les enfants comptent comme des bouches, pas comme des comptes.</p>
+        <p class="reserve">L’inscription ouvre quand le programme du coach maison est publié.</p>
+      </div>
+
+      <div class="fig-slot fig-scroll">
+        <!--FIG:concept-->
+      </div>
+    </div>
+
+    <div class="facts">
+      <ul>
+        <li>
+          <p class="label eq">L’unité</p>
+          <h3>La session de cuisine</h3>
+          <p>Vous ne planifiez pas sept dîners. Vous planifiez les fois où
+             la cuisine s’allume, et ce qu’elles couvrent.</p>
+        </li>
+        <li>
+          <p class="label eq">Les courses</p>
+          <h3>En vagues, selon ce qui se garde</h3>
+          <p>Le frais qui ne tient pas trois jours n’est pas acheté le
+             même jour que le reste.</p>
+        </li>
+        <li>
+          <p class="label eq">La table</p>
+          <h3>Une allergie gouverne toute la casserole</h3>
+          <p>Elle ne retire pas une assiette : elle retire l’ingrédient du
+             plat. Et si la contrainte n’est pas lisible, rien n’est composé.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ══ MÊME MARQUE, AUTRE TEMPÉRATURE ═══════════════════════════════════
+       Palette, typo, équerre, primitives : identiques. Ce qui change est la
+       PROPORTION — le foyer donne à la figure la matière vue de dessus et
+       de grands aplats ; le pro donne le document vu de face et des filets. -->
+  <section class="pro" id="pro">
+    <div class="wrap pro-grid">
+      <div>
+        <p class="label eq">Le pro</p>
+        <h2>Votre méthode écrite une fois, relue avant chaque envoi.</h2>
+        <p class="lede">
+          Vos convictions entrent dans le chat, dans chaque semaine et dans chaque
+          repas que Sophia rédige. Et ce qu’elle écrit dans le chat est relu contre
+          vos lignes rouges avant d’être envoyé — sans modèle dans cette boucle.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#">Écrire votre doctrine</a>
+        </div>
+      </div>
+      <div class="fig-slot fig-scroll">
+        <!--FIG:maquette-->
+      </div>
+    </div>
+  </section>
+  <!-- ══ LE BLOC SOMBRE ══════════════════════════════════════════════════
+       Un par page. Il ne vend pas : il dit ce que le produit ne sait pas.
+       La phrase est celle de l’audit B31 — « la meilleure ligne des trois
+       pages », à conserver mot pour mot. C’est le seul endroit du site où la
+       marque parle d’elle-même, et elle en profite pour se retirer quelque
+       chose. Aucune figure ici : il n’y a rien à dessiner. ═══════════════ -->
+  <section class="dark">
+    <div class="wrap">
+      <p class="label eq">Ce que nous ne mesurons pas</p>
+      <p class="say">Nous n’avons pas de chiffre de rétention à vous vendre,
+        et nous n’allons pas en inventer un.</p>
+      <p class="say-note">Les chiffres que vous lisez ailleurs sur ce site
+        viennent tous d’une source que nous pouvons vous montrer.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p>Maquette de direction — Sophia. Aucune photographie sur ce site : chaque
+     figure est dessinée, parce que nous ne montrons pas une assiette que nous
+     n’avons pas cuisinée.</p>
+</footer>
+
+</body>
+</html>

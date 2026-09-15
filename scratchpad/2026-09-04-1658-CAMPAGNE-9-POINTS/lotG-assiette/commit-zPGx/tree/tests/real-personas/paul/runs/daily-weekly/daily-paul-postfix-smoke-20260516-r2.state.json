@@ -1,0 +1,712 @@
+{
+  "run_id": "daily-paul-postfix-smoke-20260516-r2",
+  "persona": "paul",
+  "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+  "connection_path": "tests/real-personas/paul/connection.json",
+  "created_at": "2026-05-16T14:47:24.214Z",
+  "local_date": "2026-07-12",
+  "restore_status": "restored",
+  "plan": {
+    "id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+    "title": "Structurer et faire avancer ton projet d'entreprise",
+    "status": "active",
+    "version": 2
+  },
+  "items": [
+    {
+      "occurrence_id": "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+      "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+      "title": "Faire une session de travail focus (2h)",
+      "dimension": "habits",
+      "kind": "habit"
+    },
+    {
+      "occurrence_id": "13c67791-07f1-40a5-9b1d-7eb1a587a882",
+      "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+      "title": "Créer ton Parking à idées",
+      "dimension": "missions",
+      "kind": "task"
+    }
+  ],
+  "created": {
+    "pending_id": "2215fabf-1d33-4986-9b3e-28f76eeb1031",
+    "stale_pending_id": "fb54d45f-3345-4c7a-83e9-dca44e0c06c6",
+    "occurrence_ids": [
+      "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+      "13c67791-07f1-40a5-9b1d-7eb1a587a882"
+    ],
+    "started_at": "2026-05-16T14:47:24.214Z"
+  },
+  "whatsapp": {
+    "from": "15551682994343",
+    "display_phone": "15551453520209",
+    "phone_number_id": "688c4eb09877bd80"
+  },
+  "pending_initial": {
+    "id": "2215fabf-1d33-4986-9b3e-28f76eeb1031",
+    "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+    "kind": "scheduled_checkin",
+    "status": "pending",
+    "scheduled_checkin_id": null,
+    "payload": {
+      "targets": [
+        {
+          "kind": "habit",
+          "title": "Faire une session de travail focus (2h)",
+          "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+          "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+          "dimension": "habits",
+          "plan_label": "Structurer et faire avancer ton projet d'entreprise",
+          "plan_title": "Structurer et faire avancer ton projet d'entreprise",
+          "planned_day": "sun",
+          "time_of_day": "anytime",
+          "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+          "occurrence_id": "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+          "tracking_type": "count",
+          "week_start_date": "2026-07-06",
+          "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+          "reviewed_local_date": "2026-07-12",
+          "original_planned_day": "sun"
+        },
+        {
+          "kind": "task",
+          "title": "Créer ton Parking à idées",
+          "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+          "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+          "dimension": "missions",
+          "plan_label": "Structurer et faire avancer ton projet d'entreprise",
+          "plan_title": "Structurer et faire avancer ton projet d'entreprise",
+          "planned_day": "sun",
+          "time_of_day": "anytime",
+          "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+          "occurrence_id": "13c67791-07f1-40a5-9b1d-7eb1a587a882",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-07-06",
+          "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+          "reviewed_local_date": "2026-07-12",
+          "original_planned_day": "sun"
+        }
+      ],
+      "timezone": "Europe/Paris",
+      "qa_run_id": "daily-paul-postfix-smoke-20260516-r2",
+      "local_date": "2026-07-12",
+      "qa_fixture": true,
+      "message_mode": "conversation",
+      "draft_message": "Petit check du soir: pour \"Faire une session de travail focus (2h)\" et \"Créer ton Parking à idées\", raconte-moi ce qui s'est passé aujourd'hui.",
+      "event_context": "action_evening_review_v2",
+      "occurrence_ids": [
+        "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+        "13c67791-07f1-40a5-9b1d-7eb1a587a882"
+      ],
+      "chat_capability": "daily_action_review",
+      "action_evening_review": true
+    },
+    "expires_at": "2026-05-17T14:47:24.368+00:00",
+    "created_at": "2026-05-16T14:47:24.369429+00:00",
+    "processed_at": null,
+    "not_before": null
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "role": "assistant",
+      "text": "Petit check du soir: pour \"Faire une session de travail focus (2h)\" et \"Créer ton Parking à idées\", raconte-moi ce qui s'est passé aujourd'hui.",
+      "source": "dynamic_qa_pending_fixture"
+    },
+    {
+      "turn": 1,
+      "role": "user",
+      "text": "J'ai fait un bout de focus, pas les 2h. Le parking j'ai posé trois idées en vrac, c'est pas propre mais c'est là."
+    },
+    {
+      "turn": 1,
+      "role": "assistant",
+      "text": "C'est noté pour le parking à idées. Qu'est-ce qui t'a empêché de faire les 2h complètes de focus ?",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_clarification",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "306b4dcd-0e57-43dd-908e-7440014d0ba5",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "pending",
+        "stale_pending_status": "pending",
+        "review_state_status": "collecting",
+        "missing_occurrence_ids": [
+          "457816ca-8bb9-49c5-8a32-7360f23fa53f"
+        ],
+        "entries": [],
+        "occurrences": [
+          {
+            "id": "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+            "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+            "status": "planned",
+            "planned_day": "sun",
+            "source": "manual_change"
+          },
+          {
+            "id": "13c67791-07f1-40a5-9b1d-7eb1a587a882",
+            "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+            "status": "planned",
+            "planned_day": "sun",
+            "source": "manual_change"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 2,
+      "role": "user",
+      "text": "Je me suis lancé tard et j'avais plus assez d'énergie, donc j'ai préféré faire court plutôt que bâcler."
+    },
+    {
+      "turn": 2,
+      "role": "assistant",
+      "text": "C'est noté. Tu as créé ton parking à idées et tu as réalisé une partie de ta session focus, même si la fatigue et l'heure tardive t'ont freiné. Je valide ton bilan pour aujourd'hui.",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "a140db63-bf5b-4022-9ea6-5b2f5f453a57",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "done",
+        "stale_pending_status": "expired",
+        "review_state_status": "complete",
+        "missing_occurrence_ids": [],
+        "entries": [
+          {
+            "id": "c2e150fd-f584-4118-baa1-c1f9f58298d9",
+            "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+            "outcome": "partial",
+            "entry_kind": "partial",
+            "reason_category": "fatigue",
+            "reschedule_decision": null,
+            "occurrence_status": "partial"
+          },
+          {
+            "id": "08f0bd54-4c55-4d89-bb76-061af14ae463",
+            "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+            "outcome": "completed",
+            "entry_kind": "checkin",
+            "reason_category": "none",
+            "reschedule_decision": null,
+            "occurrence_status": "done"
+          }
+        ],
+        "occurrences": [
+          {
+            "id": "13c67791-07f1-40a5-9b1d-7eb1a587a882",
+            "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+            "status": "done",
+            "planned_day": "sun",
+            "source": "manual_change"
+          },
+          {
+            "id": "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+            "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+            "status": "partial",
+            "planned_day": "sun",
+            "source": "manual_change"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 3,
+      "role": "user",
+      "text": "Tu as mis quoi au juste ? Je veux pas que ça devienne réussite nickel."
+    },
+    {
+      "turn": 3,
+      "role": "assistant",
+      "text": "Preferences coach: Les preferences coach reglent ma maniere d'accompagner: ton global, niveau de challenge et tendance a poser des questions.\n\nComment l'utiliser: Ouvre Preferences depuis le dashboard, modifie les options disponibles puis sauvegarde.\n\nCe que ca apporte:\n- Rend l'accompagnement plus adapte au user.\n- Clarifie si je dois etre plus douce, directe ou challengeante.\n\nSi tu veux vraiment le faire, ce n'est pas product_help qui execute: il faut passer par le flow update_coach_preferences, avec confirmation.",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_metadata": [
+          {
+            "channel": "whatsapp",
+            "purpose": "whatsapp_default_brain_reply",
+            "is_proactive": false,
+            "has_hidden_fil_rouge": false,
+            "outbound_tracking_id": "ba50a76d-c1c4-41b3-9bf4-cf7834251958",
+            "reply_to_wa_message_id": "wamid_daily-paul-postfix-smoke-20260516-r2_3_96781f9d-f7cb-4c9a-9228-6844bc2aab61",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "done",
+        "stale_pending_status": "expired",
+        "review_state_status": "complete",
+        "missing_occurrence_ids": [],
+        "entries": [
+          {
+            "id": "c2e150fd-f584-4118-baa1-c1f9f58298d9",
+            "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+            "outcome": "partial",
+            "entry_kind": "partial",
+            "reason_category": "fatigue",
+            "reschedule_decision": null,
+            "occurrence_status": "partial"
+          },
+          {
+            "id": "08f0bd54-4c55-4d89-bb76-061af14ae463",
+            "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+            "outcome": "completed",
+            "entry_kind": "checkin",
+            "reason_category": "none",
+            "reschedule_decision": null,
+            "occurrence_status": "done"
+          }
+        ],
+        "occurrences": [
+          {
+            "id": "13c67791-07f1-40a5-9b1d-7eb1a587a882",
+            "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+            "status": "done",
+            "planned_day": "sun",
+            "source": "manual_change"
+          },
+          {
+            "id": "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+            "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+            "status": "partial",
+            "planned_day": "sun",
+            "source": "manual_change"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 4,
+      "role": "user",
+      "text": "Non, je parle du daily. Tu as mis quoi au juste dans le bilan ?"
+    },
+    {
+      "turn": 4,
+      "role": "assistant",
+      "text": "Voilà ce que j'ai noté pour le bilan qu'on vient de faire :\n- Faire une session de travail focus (2h) : partiel (Lancé tard et manque d'énergie)\n- Créer ton Parking à idées : fait\nJe ne change rien d'autre dans ton plan.",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_recap",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "cc05faa3-4f99-4d2c-84a1-9316384fd2dd",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "done",
+        "stale_pending_status": "expired",
+        "review_state_status": "complete",
+        "missing_occurrence_ids": [],
+        "entries": [
+          {
+            "id": "c2e150fd-f584-4118-baa1-c1f9f58298d9",
+            "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+            "outcome": "partial",
+            "entry_kind": "partial",
+            "reason_category": "fatigue",
+            "reschedule_decision": null,
+            "occurrence_status": "partial"
+          },
+          {
+            "id": "08f0bd54-4c55-4d89-bb76-061af14ae463",
+            "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+            "outcome": "completed",
+            "entry_kind": "checkin",
+            "reason_category": "none",
+            "reschedule_decision": null,
+            "occurrence_status": "done"
+          }
+        ],
+        "occurrences": [
+          {
+            "id": "13c67791-07f1-40a5-9b1d-7eb1a587a882",
+            "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+            "status": "done",
+            "planned_day": "sun",
+            "source": "manual_change"
+          },
+          {
+            "id": "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+            "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+            "status": "partial",
+            "planned_day": "sun",
+            "source": "manual_change"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 5,
+      "role": "user",
+      "text": "Et tu n'as rien reporté à demain, on est d'accord ?"
+    },
+    {
+      "turn": 5,
+      "role": "assistant",
+      "text": "Voilà ce que j'ai noté pour le bilan qu'on vient de faire :\n- Faire une session de travail focus (2h) : partiel (Lancé tard et manque d'énergie)\n- Créer ton Parking à idées : fait\nJe n'ai noté aucun report à demain dans ce bilan.\nJe ne change rien d'autre dans ton plan.",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_recap",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "0f628bc5-97c4-49d8-bed3-2ef9f84202a5",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "done",
+        "stale_pending_status": "expired",
+        "review_state_status": "complete",
+        "missing_occurrence_ids": [],
+        "entries": [
+          {
+            "id": "c2e150fd-f584-4118-baa1-c1f9f58298d9",
+            "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+            "outcome": "partial",
+            "entry_kind": "partial",
+            "reason_category": "fatigue",
+            "reschedule_decision": null,
+            "occurrence_status": "partial"
+          },
+          {
+            "id": "08f0bd54-4c55-4d89-bb76-061af14ae463",
+            "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+            "outcome": "completed",
+            "entry_kind": "checkin",
+            "reason_category": "none",
+            "reschedule_decision": null,
+            "occurrence_status": "done"
+          }
+        ],
+        "occurrences": [
+          {
+            "id": "13c67791-07f1-40a5-9b1d-7eb1a587a882",
+            "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+            "status": "done",
+            "planned_day": "sun",
+            "source": "manual_change"
+          },
+          {
+            "id": "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+            "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+            "status": "partial",
+            "planned_day": "sun",
+            "source": "manual_change"
+          }
+        ]
+      }
+    }
+  ],
+  "latest": {
+    "all_pending": [
+      {
+        "id": "2215fabf-1d33-4986-9b3e-28f76eeb1031",
+        "status": "done",
+        "payload": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Faire une session de travail focus (2h)",
+              "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+              "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+              "dimension": "habits",
+              "plan_label": "Structurer et faire avancer ton projet d'entreprise",
+              "plan_title": "Structurer et faire avancer ton projet d'entreprise",
+              "planned_day": "sun",
+              "time_of_day": "anytime",
+              "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+              "occurrence_id": "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+              "tracking_type": "count",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+              "reviewed_local_date": "2026-07-12",
+              "original_planned_day": "sun"
+            },
+            {
+              "kind": "task",
+              "title": "Créer ton Parking à idées",
+              "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+              "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+              "dimension": "missions",
+              "plan_label": "Structurer et faire avancer ton projet d'entreprise",
+              "plan_title": "Structurer et faire avancer ton projet d'entreprise",
+              "planned_day": "sun",
+              "time_of_day": "anytime",
+              "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+              "occurrence_id": "13c67791-07f1-40a5-9b1d-7eb1a587a882",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+              "reviewed_local_date": "2026-07-12",
+              "original_planned_day": "sun"
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "qa_run_id": "daily-paul-postfix-smoke-20260516-r2",
+          "local_date": "2026-07-12",
+          "qa_fixture": true,
+          "completed_at": "2026-05-16T14:48:02.498Z",
+          "message_mode": "conversation",
+          "review_state": {
+            "items": {
+              "13c67791-07f1-40a5-9b1d-7eb1a587a882": {
+                "title": "Créer ton Parking à idées",
+                "outcome": "completed",
+                "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+                "confidence": "high",
+                "plan_label": "Structurer et faire avancer ton projet d'entreprise",
+                "action_type": "mission",
+                "reason_text": null,
+                "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+                "evidence_text": "posé trois idées en vrac",
+                "missing_slots": [],
+                "occurrence_id": "13c67791-07f1-40a5-9b1d-7eb1a587a882",
+                "still_relevant": "unknown",
+                "reason_category": "none",
+                "matched_user_text": "Le parking j'ai posé trois idées en vrac, c'est pas propre mais c'est là."
+              },
+              "457816ca-8bb9-49c5-8a32-7360f23fa53f": {
+                "title": "Faire une session de travail focus (2h)",
+                "outcome": "partial",
+                "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+                "confidence": "high",
+                "plan_label": "Structurer et faire avancer ton projet d'entreprise",
+                "action_type": "habit",
+                "reason_text": "Lancé tard et manque d'énergie",
+                "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+                "evidence_text": "session écourtée pour ne pas bâcler",
+                "missing_slots": [],
+                "occurrence_id": "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+                "still_relevant": "unknown",
+                "reason_category": "fatigue",
+                "matched_user_text": "Je me suis lancé tard et j'avais plus assez d'énergie, donc j'ai préféré faire court plutôt que bâcler."
+              }
+            },
+            "source": "daily_action_review_v1",
+            "status": "complete",
+            "skill_id": "daily_action_review_v1",
+            "stop_reason": "all_required_slots_filled",
+            "next_question": null,
+            "last_user_text": "Je me suis lancé tard et j'avais plus assez d'énergie, donc j'ai préféré faire court plutôt que bâcler.",
+            "should_apply_effects": true,
+            "next_question_targets": [],
+            "generated_user_message": "C'est noté. Tu as créé ton parking à idées et tu as réalisé une partie de ta session focus, même si la fatigue et l'heure tardive t'ont freiné. Je valide ton bilan pour aujourd'hui.",
+            "remaining_occurrence_ids": [],
+            "asked_occurrence_ids_history": [
+              [
+                "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+                "13c67791-07f1-40a5-9b1d-7eb1a587a882"
+              ]
+            ],
+            "current_focus_occurrence_ids": [
+              "457816ca-8bb9-49c5-8a32-7360f23fa53f"
+            ],
+            "action_intelligence_by_occurrence_id": {}
+          },
+          "draft_message": "Petit check du soir: pour \"Faire une session de travail focus (2h)\" et \"Créer ton Parking à idées\", raconte-moi ce qui s'est passé aujourd'hui.",
+          "event_context": "action_evening_review_v2",
+          "last_user_text": "J'ai fait un bout de focus, pas les 2h. Le parking j'ai posé trois idées en vrac, c'est pas propre mais c'est là.",
+          "occurrence_ids": [
+            "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+            "13c67791-07f1-40a5-9b1d-7eb1a587a882"
+          ],
+          "chat_capability": "daily_action_review",
+          "action_evening_review": true,
+          "missing_occurrence_ids": []
+        },
+        "processed_at": "2026-05-16T14:48:09.301+00:00",
+        "expires_at": "2026-05-17T14:47:24.368+00:00"
+      },
+      {
+        "id": "fb54d45f-3345-4c7a-83e9-dca44e0c06c6",
+        "status": "expired",
+        "payload": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "STALE Faire une session de travail focus (2h)",
+              "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+              "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+              "dimension": "habits",
+              "plan_label": "Structurer et faire avancer ton projet d'entreprise",
+              "plan_title": "Structurer et faire avancer ton projet d'entreprise",
+              "planned_day": "sun",
+              "time_of_day": "anytime",
+              "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+              "occurrence_id": "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+              "tracking_type": "count",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+              "reviewed_local_date": "2026-07-12",
+              "original_planned_day": "sun"
+            },
+            {
+              "kind": "task",
+              "title": "STALE Créer ton Parking à idées",
+              "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+              "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+              "dimension": "missions",
+              "plan_label": "Structurer et faire avancer ton projet d'entreprise",
+              "plan_title": "Structurer et faire avancer ton projet d'entreprise",
+              "planned_day": "sun",
+              "time_of_day": "anytime",
+              "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+              "occurrence_id": "13c67791-07f1-40a5-9b1d-7eb1a587a882",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-07-06",
+              "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+              "reviewed_local_date": "2026-07-12",
+              "original_planned_day": "sun"
+            }
+          ],
+          "qa_run_id": "daily-paul-postfix-smoke-20260516-r2",
+          "local_date": "2026-07-12",
+          "qa_fixture": true,
+          "event_context": "action_evening_review_v2",
+          "occurrence_ids": [
+            "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+            "13c67791-07f1-40a5-9b1d-7eb1a587a882"
+          ],
+          "chat_capability": "daily_action_review"
+        },
+        "processed_at": "2026-05-16T14:48:02.492+00:00",
+        "expires_at": "2026-05-16T14:46:24.368+00:00"
+      }
+    ],
+    "entries": [
+      {
+        "id": "c2e150fd-f584-4118-baa1-c1f9f58298d9",
+        "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+        "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+        "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+        "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "partial",
+        "outcome": "partial",
+        "value_numeric": null,
+        "value_text": "Lancé tard et manque d'énergie",
+        "difficulty_level": null,
+        "blocker_hint": "fatigue",
+        "created_at": "2026-05-16T14:48:02.498+00:00",
+        "effective_at": "2026-07-12T12:00:00+00:00",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-07-12",
+          "reason_text": "Lancé tard et manque d'énergie",
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "fatigue",
+          "matched_user_text": "Je me suis lancé tard et j'avais plus assez d'énergie, donc j'ai préféré faire court plutôt que bâcler.",
+          "occurrence_status": "partial",
+          "pending_action_id": "2215fabf-1d33-4986-9b3e-28f76eeb1031",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": null
+        }
+      },
+      {
+        "id": "08f0bd54-4c55-4d89-bb76-061af14ae463",
+        "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+        "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+        "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+        "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+        "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_numeric": null,
+        "value_text": null,
+        "difficulty_level": null,
+        "blocker_hint": null,
+        "created_at": "2026-05-16T14:48:02.498+00:00",
+        "effective_at": "2026-07-12T12:00:00+00:00",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-07-12",
+          "reason_text": null,
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "13c67791-07f1-40a5-9b1d-7eb1a587a882",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": "Le parking j'ai posé trois idées en vrac, c'est pas propre mais c'est là.",
+          "occurrence_status": "done",
+          "pending_action_id": "2215fabf-1d33-4986-9b3e-28f76eeb1031",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": null
+        }
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "13c67791-07f1-40a5-9b1d-7eb1a587a882",
+        "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+        "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+        "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+        "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+        "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+        "week_start_date": "2026-07-06",
+        "ordinal": 2,
+        "planned_day": "sun",
+        "original_planned_day": "sun",
+        "actual_day": null,
+        "status": "done",
+        "source": "manual_change",
+        "validated_at": "2026-05-16T14:48:02.498+00:00",
+        "created_at": "2026-05-16T14:47:24.357487+00:00",
+        "updated_at": "2026-05-16T14:48:02.498+00:00",
+        "default_day": "sun"
+      },
+      {
+        "id": "457816ca-8bb9-49c5-8a32-7360f23fa53f",
+        "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+        "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+        "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+        "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "week_start_date": "2026-07-06",
+        "ordinal": 1,
+        "planned_day": "sun",
+        "original_planned_day": "sun",
+        "actual_day": null,
+        "status": "partial",
+        "source": "manual_change",
+        "validated_at": "2026-05-16T14:48:02.498+00:00",
+        "created_at": "2026-05-16T14:47:24.357487+00:00",
+        "updated_at": "2026-05-16T14:48:02.498+00:00",
+        "default_day": "sun"
+      }
+    ]
+  },
+  "restored_at": "2026-05-16T14:49:21.508Z"
+}

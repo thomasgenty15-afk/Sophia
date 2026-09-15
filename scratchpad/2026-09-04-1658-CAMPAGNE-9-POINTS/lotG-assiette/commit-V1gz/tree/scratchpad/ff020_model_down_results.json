@@ -1,0 +1,344 @@
+{
+  "runs": [
+    {
+      "label": "MD1-FR-student",
+      "ms": 94,
+      "reply": "Une chose d'abord : est-ce que tu es en danger immédiat, là, maintenant ?",
+      "reply_len": 73,
+      "reply_empty": false,
+      "visible_agent_ok": false,
+      "visible_fallback_used": true,
+      "visible_generation_failed": true,
+      "visible_failure_reason": "OPENAI_API_KEY missing",
+      "kind": "immediate_risk_check",
+      "phase": "immediate_risk_check",
+      "local_dispatcher_ok": false,
+      "safety_resources": {
+        "emergency_numbers": "15 ou 112",
+        "suicide_prevention_number": "3114",
+        "must_include_emergency_numbers": false,
+        "must_prioritize_human_support": false
+      }
+    },
+    {
+      "label": "MD2-US-student",
+      "ms": 67,
+      "reply": "Une chose d'abord : est-ce que tu es en danger immédiat, là, maintenant ?",
+      "reply_len": 73,
+      "reply_empty": false,
+      "visible_agent_ok": false,
+      "visible_fallback_used": true,
+      "visible_generation_failed": true,
+      "visible_failure_reason": "OPENAI_API_KEY missing",
+      "kind": "immediate_risk_check",
+      "phase": "immediate_risk_check",
+      "local_dispatcher_ok": false,
+      "safety_resources": {
+        "emergency_numbers": "911",
+        "suicide_prevention_number": "988",
+        "must_include_emergency_numbers": false,
+        "must_prioritize_human_support": false
+      }
+    },
+    {
+      "label": "MD3-country-null-de",
+      "ms": 28,
+      "reply": "Une chose d'abord : est-ce que tu es en danger immédiat, là, maintenant ?",
+      "reply_len": 73,
+      "reply_empty": false,
+      "visible_agent_ok": false,
+      "visible_fallback_used": true,
+      "visible_generation_failed": true,
+      "visible_failure_reason": "OPENAI_API_KEY missing",
+      "kind": "immediate_risk_check",
+      "phase": "immediate_risk_check",
+      "local_dispatcher_ok": false,
+      "safety_resources": {
+        "emergency_numbers": "112",
+        "suicide_prevention_number": "https://findahelpline.com",
+        "must_include_emergency_numbers": false,
+        "must_prioritize_human_support": false
+      }
+    },
+    {
+      "label": "MD4-FR-locale-fr-forced",
+      "ms": 6,
+      "reply": "Une chose d'abord : est-ce que tu es en danger immédiat, là, maintenant ?",
+      "reply_len": 73,
+      "reply_empty": false,
+      "visible_agent_ok": false,
+      "visible_fallback_used": true,
+      "visible_generation_failed": true,
+      "visible_failure_reason": "OPENAI_API_KEY missing",
+      "kind": "immediate_risk_check",
+      "phase": "immediate_risk_check",
+      "local_dispatcher_ok": false,
+      "safety_resources": {
+        "emergency_numbers": "15 ou 112",
+        "suicide_prevention_number": "3114",
+        "must_include_emergency_numbers": false,
+        "must_prioritize_human_support": false
+      }
+    }
+  ],
+  "deterministic": [
+    {
+      "country": "FR",
+      "kind": "immediate_risk_check",
+      "message": "Une chose d'abord : est-ce que tu es en danger immédiat, là, maintenant ?",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "FR",
+      "kind": "acute_grounding",
+      "message": "Là, tout de suite : éloigne ce qui pourrait te blesser et rapproche-toi d'une personne. Si le danger est immédiat, appelle le 15 ou 112 ; le 3114 répond aussi 24h/24.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "FR",
+      "kind": "support_contact",
+      "message": "Le plus utile maintenant : garder le lien avec une personne de confiance. Tu as quelqu'un que tu peux joindre là ?",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "FR",
+      "kind": "stabilizing",
+      "message": "On reste sur l'essentiel : reste où tu es, garde le lien avec la personne qui te soutient, et respire calmement (4 secondes d'inspiration, 6 d'expiration).",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "FR",
+      "kind": "exit_check",
+      "message": "Avant de reprendre : il n'y a bien aucun danger immédiat pour toi, là, maintenant ?",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "FR",
+      "kind": "resolved_exit",
+      "message": "D'accord. L'immédiat est stabilisé, on peut reprendre là où tu veux.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "FR",
+      "kind": "repeat_current_step",
+      "message": "On reste sur le pas en cours, à ton rythme. Dis-moi où tu en es.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "FR",
+      "kind": "product_tool_boundary",
+      "message": "Je garde ta demande de côté pour après. Pour l'instant, on reste sur ta sécurité, une chose à la fois.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "FR",
+      "kind": "stop_or_cancel",
+      "message": "D'accord, on s'arrête là. Si besoin, le 3114 répond 24h/24.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "FR",
+      "kind": "safety_transition",
+      "message": "On met le reste de côté un instant. Est-ce que tu es en sécurité, là, maintenant ?",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "FR",
+      "kind": "safety_escalation",
+      "message": "Appelle maintenant le 15 ou 112. Si c'est lié à des idées suicidaires, le 3114 répond 24h/24. Si tu peux, rapproche-toi d'une personne tout de suite.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "US",
+      "kind": "immediate_risk_check",
+      "message": "Une chose d'abord : est-ce que tu es en danger immédiat, là, maintenant ?",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "US",
+      "kind": "acute_grounding",
+      "message": "Là, tout de suite : éloigne ce qui pourrait te blesser et rapproche-toi d'une personne. Si le danger est immédiat, appelle le 911 ; le 988 répond aussi 24h/24.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "US",
+      "kind": "support_contact",
+      "message": "Le plus utile maintenant : garder le lien avec une personne de confiance. Tu as quelqu'un que tu peux joindre là ?",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "US",
+      "kind": "stabilizing",
+      "message": "On reste sur l'essentiel : reste où tu es, garde le lien avec la personne qui te soutient, et respire calmement (4 secondes d'inspiration, 6 d'expiration).",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "US",
+      "kind": "exit_check",
+      "message": "Avant de reprendre : il n'y a bien aucun danger immédiat pour toi, là, maintenant ?",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "US",
+      "kind": "resolved_exit",
+      "message": "D'accord. L'immédiat est stabilisé, on peut reprendre là où tu veux.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "US",
+      "kind": "repeat_current_step",
+      "message": "On reste sur le pas en cours, à ton rythme. Dis-moi où tu en es.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "US",
+      "kind": "product_tool_boundary",
+      "message": "Je garde ta demande de côté pour après. Pour l'instant, on reste sur ta sécurité, une chose à la fois.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "US",
+      "kind": "stop_or_cancel",
+      "message": "D'accord, on s'arrête là. Si besoin, le 988 répond 24h/24.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "US",
+      "kind": "safety_transition",
+      "message": "On met le reste de côté un instant. Est-ce que tu es en sécurité, là, maintenant ?",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": "US",
+      "kind": "safety_escalation",
+      "message": "Appelle maintenant le 911. Si c'est lié à des idées suicidaires, le 988 répond 24h/24. Si tu peux, rapproche-toi d'une personne tout de suite.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": null,
+      "kind": "immediate_risk_check",
+      "message": "Une chose d'abord : est-ce que tu es en danger immédiat, là, maintenant ?",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": null,
+      "kind": "acute_grounding",
+      "message": "Là, tout de suite : éloigne ce qui pourrait te blesser et rapproche-toi d'une personne. Si le danger est immédiat, appelle le 112 ; le https://findahelpline.com répond aussi 24h/24.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": null,
+      "kind": "support_contact",
+      "message": "Le plus utile maintenant : garder le lien avec une personne de confiance. Tu as quelqu'un que tu peux joindre là ?",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": null,
+      "kind": "stabilizing",
+      "message": "On reste sur l'essentiel : reste où tu es, garde le lien avec la personne qui te soutient, et respire calmement (4 secondes d'inspiration, 6 d'expiration).",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": null,
+      "kind": "exit_check",
+      "message": "Avant de reprendre : il n'y a bien aucun danger immédiat pour toi, là, maintenant ?",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": null,
+      "kind": "resolved_exit",
+      "message": "D'accord. L'immédiat est stabilisé, on peut reprendre là où tu veux.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": null,
+      "kind": "repeat_current_step",
+      "message": "On reste sur le pas en cours, à ton rythme. Dis-moi où tu en es.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": null,
+      "kind": "product_tool_boundary",
+      "message": "Je garde ta demande de côté pour après. Pour l'instant, on reste sur ta sécurité, une chose à la fois.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": null,
+      "kind": "stop_or_cancel",
+      "message": "D'accord, on s'arrête là. Si besoin, le https://findahelpline.com répond 24h/24.",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": null,
+      "kind": "safety_transition",
+      "message": "On met le reste de côté un instant. Est-ce que tu es en sécurité, là, maintenant ?",
+      "empty": false,
+      "looks_french": true
+    },
+    {
+      "country": null,
+      "kind": "safety_escalation",
+      "message": "Appelle maintenant le 112. Si c'est lié à des idées suicidaires, le https://findahelpline.com répond 24h/24. Si tu peux, rapproche-toi d'une personne tout de suite.",
+      "empty": false,
+      "looks_french": true
+    }
+  ],
+  "emptyResources": "Appelle maintenant le 112. Si c'est lié à des idées suicidaires, le https://findahelpline.com répond 24h/24. Si tu peux, rapproche-toi d'une personne tout de suite.",
+  "emptyShapes": [
+    [
+      "empty string",
+      ""
+    ],
+    [
+      "whitespace",
+      "   \n  "
+    ],
+    [
+      "json empty message",
+      "{\"message\":\"\"}"
+    ],
+    [
+      "json whitespace message",
+      "{\"message\":\"   \"}"
+    ],
+    [
+      "json null message",
+      "{\"message\":null}"
+    ],
+    [
+      "json no message key",
+      "{\"text\":\"appelle le 15\"}"
+    ]
+  ]
+}

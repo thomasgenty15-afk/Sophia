@@ -1,0 +1,11 @@
+{
+  "run_id": "2026-06-17-safety-crisis-local-real-r1",
+  "user_id": "480b8944-0643-4ec1-b5ea-2c9fd94537a1",
+  "scope": "qa-safety-crisis-2026-06-17-safety-crisis-local-real-r1",
+  "deleted": {
+    "chat_messages": 204,
+    "user_chat_states": 204
+  },
+  "connection_cleanup": "cleanup complete for qa-skill connection=safety_crisis_local_2026-06-17-safety-crisis-local-real-r1 (480b8944-0643-4ec1-b5ea-2c9fd94537a1)",
+  "errors": []
+}

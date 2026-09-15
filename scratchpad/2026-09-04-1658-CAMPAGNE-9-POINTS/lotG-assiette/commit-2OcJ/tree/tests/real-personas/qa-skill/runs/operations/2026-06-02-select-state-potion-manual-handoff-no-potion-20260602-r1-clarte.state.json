@@ -1,0 +1,1875 @@
+{
+  "run_id": "handoff-no-potion-20260602-r1",
+  "date": "2026-06-02",
+  "potion": "clarte",
+  "persona": "qa-skill",
+  "scope": "manual-state-potion-handoff-no-potion-20260602-r1-clarte",
+  "connection_name": "manual_state_potion_handoff-no-potion-20260602-r1_clarte",
+  "connection_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/connections/manual_state_potion_handoff-no-potion-20260602-r1_clarte.json",
+  "auth": {
+    "user_id": "fd018a11-b309-4730-95ae-f8cd4fe16462",
+    "email": "qa-handoff-no-potion-20260602-r1-clarte-4ec77dcb@example.com",
+    "password": "Qa1!decbe20a-54ac-4f6b-86cc-a0368fa07d17",
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJmZDAxOGExMS1iMzA5LTQ3MzAtOTVhZS1mOGNkNGZlMTY0NjIiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgwNDE5NjY0LCJpYXQiOjE3ODA0MTYwNjQsImVtYWlsIjoicWEtaGFuZG9mZi1uby1wb3Rpb24tMjAyNjA2MDItcjEtY2xhcnRlLTRlYzc3ZGNiQGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsiY3JlYXRlZF9ieSI6Im1hbnVhbF9zdGF0ZV9wb3Rpb25fcWEiLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBlcnNvbmEiOiJxYS1za2lsbCIsInBvdGlvbl90eXBlIjoiY2xhcnRlIiwicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdLCJydW5faWQiOiJoYW5kb2ZmLW5vLXBvdGlvbi0yMDI2MDYwMi1yMSIsInRlbXBvcmFyeV9xYV9jb25uZWN0aW9uIjp0cnVlfSwidXNlcl9tZXRhZGF0YSI6eyJjcmVhdGVkX2J5IjoibWFudWFsX3N0YXRlX3BvdGlvbl9xYSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBlcnNvbmEiOiJxYS1za2lsbCIsInBvdGlvbl90eXBlIjoiY2xhcnRlIiwicnVuX2lkIjoiaGFuZG9mZi1uby1wb3Rpb24tMjAyNjA2MDItcjEiLCJ0ZW1wb3JhcnlfcWFfY29ubmVjdGlvbiI6dHJ1ZX0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODA0MTYwNjR9XSwic2Vzc2lvbl9pZCI6IjU5YmMyOWQ2LWVmNDctNDk0ZC1hMjA0LWIyMWY0YzEzYWIxOCIsImlzX2Fub255bW91cyI6ZmFsc2V9.ievjmbB8WKkqUYVc6IVsIpVL_UgX-PXvaPUqRKZ_lyM",
+    "refresh_token": "p3tgy7ti64g2"
+  },
+  "fixture": {
+    "cycle": {
+      "id": "f3fed121-09a2-4fd7-b193-9fad718a35cb",
+      "user_id": "fd018a11-b309-4730-95ae-f8cd4fe16462",
+      "status": "active",
+      "raw_intake_text": "QA manuelle potion: contexte local temporaire pour tester le flow complet.",
+      "intake_language": "fr",
+      "duration_months": 1,
+      "birth_date_snapshot": null,
+      "gender_snapshot": null,
+      "active_transformation_id": null,
+      "version": 1,
+      "created_at": "2026-06-02T16:01:04.756071+00:00",
+      "updated_at": "2026-06-02T16:01:04.756071+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "validated_structure": null,
+      "requested_pace": null
+    },
+    "transformation": {
+      "id": "d04521a5-2ff1-4721-b75d-73a5b396450d",
+      "cycle_id": "f3fed121-09a2-4fd7-b193-9fad718a35cb",
+      "priority_order": 1,
+      "status": "active",
+      "title": "Retrouver une priorite simple",
+      "internal_summary": "Fixture QA manuelle pour tester la potion clarte.",
+      "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+      "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+      "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+      "questionnaire_schema": null,
+      "questionnaire_answers": {
+        "potion_qa": "clarte",
+        "ton_prefere": "doux et direct",
+        "rythme_prefere": "matin"
+      },
+      "completion_summary": null,
+      "handoff_payload": {
+        "phase_1": {
+          "deep_why": {
+            "answers": [
+              {
+                "answer": "Je veux proteger mon energie et ma confiance.",
+                "question_id": "why_1"
+              },
+              {
+                "answer": "Je veux rester present au geste juste au lieu de me crisper.",
+                "question_id": "why_2"
+              }
+            ]
+          }
+        }
+      },
+      "created_at": "2026-06-02T16:01:04.760025+00:00",
+      "updated_at": "2026-06-02T16:01:04.760025+00:00",
+      "activated_at": "2026-06-02T16:01:04.677+00:00",
+      "completed_at": null,
+      "ordering_rationale": null,
+      "unlocked_principles": {
+        "kaizen": true
+      },
+      "base_de_vie_payload": null
+    },
+    "plan": {
+      "id": "e3b8a411-2524-415e-b48f-7df84b6d77f3",
+      "user_id": "fd018a11-b309-4730-95ae-f8cd4fe16462",
+      "cycle_id": "f3fed121-09a2-4fd7-b193-9fad718a35cb",
+      "transformation_id": "d04521a5-2ff1-4721-b75d-73a5b396450d",
+      "status": "active",
+      "version": 1,
+      "title": "Plan QA manuel clarte",
+      "content": {
+        "source": "manual_state_potion_qa",
+        "strategy": {
+          "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+          "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+          "main_constraint": "La surcharge transforme les petits pas en montagne.",
+          "success_definition": "Revenir a un geste simple au bon moment."
+        }
+      },
+      "generation_attempts": 0,
+      "last_generation_reason": null,
+      "activated_at": "2026-06-02T16:01:04.677+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "created_at": "2026-06-02T16:01:04.767507+00:00",
+      "updated_at": "2026-06-02T16:01:04.767507+00:00",
+      "generation_feedback": null,
+      "generation_input_snapshot": null
+    },
+    "item": {
+      "id": "8a713f3d-4bb9-4b08-85ae-4597c9cea7ce",
+      "user_id": "fd018a11-b309-4730-95ae-f8cd4fe16462",
+      "cycle_id": "f3fed121-09a2-4fd7-b193-9fad718a35cb",
+      "transformation_id": "d04521a5-2ff1-4721-b75d-73a5b396450d",
+      "plan_id": "e3b8a411-2524-415e-b48f-7df84b6d77f3",
+      "dimension": "habits",
+      "kind": "habit",
+      "status": "active",
+      "title": "Choisir la priorite du matin",
+      "description": "Action QA active visible par le skill potion.",
+      "tracking_type": "boolean",
+      "activation_order": 1,
+      "activation_condition": null,
+      "current_habit_state": "active_building",
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": 1,
+      "current_reps": 0,
+      "cadence_label": "quotidien",
+      "scheduled_days": [
+        "tue"
+      ],
+      "time_of_day": "09:00",
+      "start_after_item_id": null,
+      "payload": {
+        "run_id": "handoff-no-potion-20260602-r1",
+        "source": "manual_state_potion_qa",
+        "potion_type": "clarte"
+      },
+      "created_at": "2026-06-02T16:01:04.771131+00:00",
+      "updated_at": "2026-06-02T16:01:04.771131+00:00",
+      "activated_at": "2026-06-02T16:01:04.677+00:00",
+      "completed_at": null,
+      "phase_id": null,
+      "phase_order": null,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_required",
+      "cards_generated_at": null
+    }
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "attempt": 1,
+      "request_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t01-a1",
+      "user": "Je suis en vrac, j'hésite entre être rassuré et une potion de clarté. Je veux la reprendre dans la plateforme, sans suivi.",
+      "assistant": "Est-ce que tu veux prendre une potion de clarté ou est-ce que tu as besoin d'un soutien émotionnel ? 🙂",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "request_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t01-a1",
+        "user_id": "fd018a11-b309-4730-95ae-f8cd4fe16462",
+        "channel": "web",
+        "scope": "manual-state-potion-handoff-no-potion-20260602-r1-clarte",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Est-ce que tu veux prendre une potion de clarté ou est-ce que tu as besoin d'un soutien émotionnel ? 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t01-a1",
+              "source_message_id": "5eeb0f26-dfd8-474e-8999-aadc5c90352d",
+              "user_id": "fd018a11-b309-4730-95ae-f8cd4fe16462",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "detected": false,
+                    "weight": 3.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "detected": false,
+                    "weight": 2.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "detected": false,
+                    "weight": 2,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "detected": false,
+                    "weight": 1.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "detected": false,
+                    "weight": 0.7,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "detected": false,
+                    "weight": 1,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "detected": false,
+                    "weight": 10,
+                    "contribution": 0,
+                    "evidence": null
+                  }
+                ],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "confidence_band": "low",
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {
+                  "emotional_repair": {
+                    "detected": true,
+                    "confidence_band": "medium",
+                    "reason": "user_mentions_being_in_shambles_and_needing_reassurance"
+                  }
+                },
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "topic",
+                    "key": "psychologie.emotions",
+                    "query_hint": "besoin de réassurance ou clarté",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first",
+                    "priority": "medium",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "orientation_clarification",
+              "selected_handler": "orientation_clarification",
+              "blocked_paths": [
+                {
+                  "path": "tool_skill_router",
+                  "reason_code": "clarification_required"
+                },
+                {
+                  "path": "product_help",
+                  "reason_code": "clarification_required"
+                },
+                {
+                  "path": "operation_runtime_pipeline",
+                  "reason_code": "clarification_required"
+                },
+                {
+                  "path": "direct_effects",
+                  "reason_code": "clarification_required"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "clarification_required",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "turn_agenda_summary": {
+              "task_count": 1,
+              "owners": [
+                "dispatcher"
+              ],
+              "operation_types": [],
+              "constraints": {},
+              "tasks": [
+                {
+                  "task_id": "clarification:dispatcher",
+                  "kind": "clarification",
+                  "owner": "dispatcher",
+                  "operation_type": null,
+                  "intent": "clarify",
+                  "source": "dispatcher",
+                  "status": "asked",
+                  "reason_code": "clarification_required"
+                }
+              ]
+            },
+            "effect_ledger": {
+              "turn_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t01-a1",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 1,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t01-a1:agenda:asked:clarification:dispatcher",
+                  "kind": "clarification",
+                  "effect_type": "clarification.target",
+                  "operation_type": null,
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "dispatcher",
+                  "status": "asked",
+                  "reason_code": "clarification_required",
+                  "source": "dispatcher",
+                  "payload_summary": {
+                    "task_id": "clarification:dispatcher",
+                    "source": "dispatcher",
+                    "evidence": [
+                      "select_state_potion",
+                      "emotional_repair"
+                    ]
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": null,
+                  "no_chat_mutation": true,
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": "dispatcher",
+                  "ambiguity_kind": "target",
+                  "candidate_ids": [
+                    "select_state_potion",
+                    "emotional_repair"
+                  ],
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "orientation_clarification"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t01-a1",
+            "source_message_id": "5eeb0f26-dfd8-474e-8999-aadc5c90352d",
+            "user_id": "fd018a11-b309-4730-95ae-f8cd4fe16462",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "emotional_repair": {
+                  "detected": true,
+                  "confidence_band": "medium",
+                  "reason": "user_mentions_being_in_shambles_and_needing_reassurance"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "topic",
+                  "key": "psychologie.emotions",
+                  "query_hint": "besoin de réassurance ou clarté",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "orientation_clarification",
+            "selected_handler": "orientation_clarification",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_router",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "product_help",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "operation_runtime_pipeline",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "direct_effects",
+                "reason_code": "clarification_required"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "clarification_required",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "dispatcher"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "clarification:dispatcher",
+                "kind": "clarification",
+                "owner": "dispatcher",
+                "operation_type": null,
+                "intent": "clarify",
+                "source": "dispatcher",
+                "status": "asked",
+                "reason_code": "clarification_required"
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t01-a1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 1,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t01-a1:agenda:asked:clarification:dispatcher",
+                "kind": "clarification",
+                "effect_type": "clarification.target",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "dispatcher",
+                "status": "asked",
+                "reason_code": "clarification_required",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "clarification:dispatcher",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "select_state_potion",
+                    "emotional_repair"
+                  ]
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": "dispatcher",
+                "ambiguity_kind": "target",
+                "candidate_ids": [
+                  "select_state_potion",
+                  "emotional_repair"
+                ],
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "orientation_clarification"
+        },
+        "trace_error": null,
+        "__http_status": 200
+      },
+      "trace": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "orientation_clarification",
+        "selected_handler": "orientation_clarification",
+        "route_reason": "clarification_required",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "executed_tools": [],
+        "tool_execution": "none",
+        "trace_id": null
+      },
+      "durable_after": {
+        "sessions": [],
+        "reminders": [],
+        "checkins": []
+      }
+    },
+    {
+      "turn": 2,
+      "attempt": 1,
+      "request_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t02-a1",
+      "user": "Potion de clarté. Je veux surtout voir quoi faire en premier, et repartir avec une priorité nette, sans rappel ni suivi.",
+      "assistant": "Ce que je comprends : Potion de clarté Je veux surtout voir quoi faire en premier\n\nJe te conseille de choisir une potion de clarté. Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre.\n\nPourquoi cette potion : Tu veux voir quoi faire en premier et retrouver une priorité nette, dans un moment où tout se mélange un peu. Cette potion aide à remettre un peu d’ordre sans t’en demander plus.\nPetit pas immédiat : Tu n’as pas besoin de tout remettre d’aplomb d’un coup. Là, on cherche juste le prochain geste simple, sans te rajouter de pression.\n\nÀ mettre dans la plateforme :\nPotion : Potion de clarte\n- Qu'est-ce qui est flou pour toi en ce moment ? Je suis en vrac\n- Tu as surtout besoin de comprendre quoi ? Quoi faire\n- Tu veux ressortir avec quoi ? Quelque chose de simple\n- Si tu veux, ajoute le point qui te brouille le plus. Tu n’as pas besoin de tout remettre d’aplomb d’un coup. Là, on cherche juste le prochain geste simple, sans te rajouter de pression.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "request_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t02-a1",
+        "user_id": "fd018a11-b309-4730-95ae-f8cd4fe16462",
+        "channel": "web",
+        "scope": "manual-state-potion-handoff-no-potion-20260602-r1-clarte",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ce que je comprends : Potion de clarté Je veux surtout voir quoi faire en premier\n\nJe te conseille de choisir une potion de clarté. Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre.\n\nPourquoi cette potion : Tu veux voir quoi faire en premier et retrouver une priorité nette, dans un moment où tout se mélange un peu. Cette potion aide à remettre un peu d’ordre sans t’en demander plus.\nPetit pas immédiat : Tu n’as pas besoin de tout remettre d’aplomb d’un coup. Là, on cherche juste le prochain geste simple, sans te rajouter de pression.\n\nÀ mettre dans la plateforme :\nPotion : Potion de clarte\n- Qu'est-ce qui est flou pour toi en ce moment ? Je suis en vrac\n- Tu as surtout besoin de comprendre quoi ? Quoi faire\n- Tu veux ressortir avec quoi ? Quelque chose de simple\n- Si tu veux, ajoute le point qui te brouille le plus. Tu n’as pas besoin de tout remettre d’aplomb d’un coup. Là, on cherche juste le prochain geste simple, sans te rajouter de pression.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "platform_handoff",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t02-a1",
+              "source_message_id": "e27c4a24-9227-4d56-a824-5b6933634e9c",
+              "user_id": "fd018a11-b309-4730-95ae-f8cd4fe16462",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "detected": false,
+                    "weight": 3.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "detected": false,
+                    "weight": 2.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "detected": false,
+                    "weight": 2,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "detected": false,
+                    "weight": 1.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "detected": false,
+                    "weight": 0.7,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "detected": false,
+                    "weight": 1,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "detected": false,
+                    "weight": 10,
+                    "contribution": 0,
+                    "evidence": "0;decay=0.55;recovery=0"
+                  }
+                ],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "confidence_band": "low",
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "action",
+                    "key": "8a713f3d-4bb9-4b08-85ae-4597c9cea7ce",
+                    "query_hint": "Choisir la priorite du matin",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first",
+                    "priority": "high",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "direct_effects",
+                  "reason_code": "orientation_clarification_resolved_tool_skill"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "orientation_clarification_resolved_tool_skill",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "selected_handler": "select_state_potion"
+            },
+            "turn_agenda_summary": {
+              "task_count": 1,
+              "owners": [
+                "select_state_potion"
+              ],
+              "operation_types": [],
+              "constraints": {},
+              "tasks": [
+                {
+                  "task_id": "reply:fallback",
+                  "kind": "reply",
+                  "owner": "select_state_potion",
+                  "operation_type": null,
+                  "intent": "reply",
+                  "source": "route_decision",
+                  "status": "pending",
+                  "reason_code": "orientation_clarification_resolved_tool_skill"
+                }
+              ]
+            },
+            "tool_skill_run": {
+              "selected_handler": "select_state_potion",
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "status": "handoff_delivered",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "constraints": [
+                {
+                  "kind": "no_followup",
+                  "evidence": [
+                    "Potion de clarté. Je veux surtout voir quoi faire en premier, et repartir avec une priorité nette, sans rappel ni suivi."
+                  ]
+                }
+              ],
+              "handoff": null,
+              "platform_handoff": {
+                "operation_type": "select_state_potion",
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_platform_handoff_delivered",
+                "no_chat_mutation": true,
+                "draft": {
+                  "operation_type": "select_state_potion",
+                  "mode": "platform_handoff",
+                  "no_chat_mutation": true,
+                  "executable_from_chat": false,
+                  "user_state_summary": "Potion de clarté Je veux surtout voir quoi faire en premier",
+                  "desired_shift_summary": "Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre.",
+                  "recommendation": {
+                    "potion_label": "une potion de clarté",
+                    "why_this_potion": "Tu veux voir quoi faire en premier et retrouver une priorité nette, dans un moment où tout se mélange un peu. Cette potion aide à remettre un peu d’ordre sans t’en demander plus.",
+                    "immediate_step": "Tu n’as pas besoin de tout remettre d’aplomb d’un coup. Là, on cherche juste le prochain geste simple, sans te rajouter de pression.",
+                    "preserve": [],
+                    "avoid": [],
+                    "platform_destination": "dans la section État / Potions",
+                    "platform_steps": [
+                      "ouvre la section État / Potions",
+                      "choisis la potion recommandée",
+                      "active-la depuis la plateforme si elle te convient"
+                    ],
+                    "platform_inputs": {
+                      "potion_type": "clarte",
+                      "potion_title": "Potion de clarte",
+                      "answers": [
+                        {
+                          "question_id": "clarity_problem",
+                          "question_label": "Qu'est-ce qui est flou pour toi en ce moment ?",
+                          "value": "Je suis en vrac",
+                          "option_value": null,
+                          "option_label": null
+                        },
+                        {
+                          "question_id": "clarity_need",
+                          "question_label": "Tu as surtout besoin de comprendre quoi ?",
+                          "value": "Quoi faire",
+                          "option_value": "quoi_faire",
+                          "option_label": "Quoi faire"
+                        },
+                        {
+                          "question_id": "output_style",
+                          "question_label": "Tu veux ressortir avec quoi ?",
+                          "value": "Quelque chose de simple",
+                          "option_value": "simple",
+                          "option_label": "Quelque chose de simple"
+                        }
+                      ],
+                      "optional_free_text": {
+                        "label": "Si tu veux, ajoute le point qui te brouille le plus.",
+                        "value": "Tu n’as pas besoin de tout remettre d’aplomb d’un coup. Là, on cherche juste le prochain geste simple, sans te rajouter de pression."
+                      }
+                    }
+                  },
+                  "missing_decisions": []
+                }
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t02-a1",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 1,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t02-a1:platform_handoff:delivered:select_state_potion:runtime",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.select_state_potion",
+                  "operation_type": "select_state_potion",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "select_state_potion",
+                  "status": "delivered",
+                  "reason_code": "state_potion_platform_handoff_delivered",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "no_chat_mutation": true,
+                    "status": "handoff_delivered",
+                    "surface_id": "state_potions"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "state_potions",
+                  "no_chat_mutation": true,
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t02-a1",
+            "source_message_id": "e27c4a24-9227-4d56-a824-5b6933634e9c",
+            "user_id": "fd018a11-b309-4730-95ae-f8cd4fe16462",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "8a713f3d-4bb9-4b08-85ae-4597c9cea7ce",
+                  "query_hint": "Choisir la priorite du matin",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [
+              {
+                "path": "direct_effects",
+                "reason_code": "orientation_clarification_resolved_tool_skill"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "orientation_clarification_resolved_tool_skill",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "select_state_potion"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "select_state_potion"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "select_state_potion",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "orientation_clarification_resolved_tool_skill"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion",
+            "reason_code": "state_potion_platform_handoff_delivered",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "handoff_delivered",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [
+              {
+                "kind": "no_followup",
+                "evidence": [
+                  "Potion de clarté. Je veux surtout voir quoi faire en premier, et repartir avec une priorité nette, sans rappel ni suivi."
+                ]
+              }
+            ],
+            "handoff": null,
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "no_chat_mutation": true,
+              "draft": {
+                "operation_type": "select_state_potion",
+                "mode": "platform_handoff",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "user_state_summary": "Potion de clarté Je veux surtout voir quoi faire en premier",
+                "desired_shift_summary": "Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre.",
+                "recommendation": {
+                  "potion_label": "une potion de clarté",
+                  "why_this_potion": "Tu veux voir quoi faire en premier et retrouver une priorité nette, dans un moment où tout se mélange un peu. Cette potion aide à remettre un peu d’ordre sans t’en demander plus.",
+                  "immediate_step": "Tu n’as pas besoin de tout remettre d’aplomb d’un coup. Là, on cherche juste le prochain geste simple, sans te rajouter de pression.",
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "dans la section État / Potions",
+                  "platform_steps": [
+                    "ouvre la section État / Potions",
+                    "choisis la potion recommandée",
+                    "active-la depuis la plateforme si elle te convient"
+                  ],
+                  "platform_inputs": {
+                    "potion_type": "clarte",
+                    "potion_title": "Potion de clarte",
+                    "answers": [
+                      {
+                        "question_id": "clarity_problem",
+                        "question_label": "Qu'est-ce qui est flou pour toi en ce moment ?",
+                        "value": "Je suis en vrac",
+                        "option_value": null,
+                        "option_label": null
+                      },
+                      {
+                        "question_id": "clarity_need",
+                        "question_label": "Tu as surtout besoin de comprendre quoi ?",
+                        "value": "Quoi faire",
+                        "option_value": "quoi_faire",
+                        "option_label": "Quoi faire"
+                      },
+                      {
+                        "question_id": "output_style",
+                        "question_label": "Tu veux ressortir avec quoi ?",
+                        "value": "Quelque chose de simple",
+                        "option_value": "simple",
+                        "option_label": "Quelque chose de simple"
+                      }
+                    ],
+                    "optional_free_text": {
+                      "label": "Si tu veux, ajoute le point qui te brouille le plus.",
+                      "value": "Tu n’as pas besoin de tout remettre d’aplomb d’un coup. Là, on cherche juste le prochain geste simple, sans te rajouter de pression."
+                    }
+                  }
+                },
+                "missing_decisions": []
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t02-a1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t02-a1:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion",
+                "status": "delivered",
+                "reason_code": "state_potion_platform_handoff_delivered",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "handoff_delivered",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null,
+        "__http_status": 200
+      },
+      "trace": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "select_state_potion",
+        "route_reason": "orientation_clarification_resolved_tool_skill",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "executed_tools": [],
+        "tool_execution": "platform_handoff",
+        "trace_id": null
+      },
+      "durable_after": {
+        "sessions": [],
+        "reminders": [],
+        "checkins": []
+      }
+    },
+    {
+      "turn": 3,
+      "attempt": 1,
+      "request_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t03-a1",
+      "user": "Non pas de potion, juste une phrase.",
+      "assistant": "Ok, une phrase : Choisis juste la priorité la plus simple à faire maintenant, et fais-la jusqu’à ce qu’elle soit “terminée” 🙂",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "request_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t03-a1",
+        "user_id": "fd018a11-b309-4730-95ae-f8cd4fe16462",
+        "channel": "web",
+        "scope": "manual-state-potion-handoff-no-potion-20260602-r1-clarte",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ok, une phrase : Choisis juste la priorité la plus simple à faire maintenant, et fais-la jusqu’à ce qu’elle soit “terminée” 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t03-a1",
+              "source_message_id": "ee572c62-289d-4ae5-afee-3f6990500783",
+              "user_id": "fd018a11-b309-4730-95ae-f8cd4fe16462",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 2.5,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [
+                  "repetition_or_correction",
+                  "active_flow_pressure"
+                ],
+                "previous_scores": [
+                  0,
+                  0
+                ],
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "detected": false,
+                    "weight": 3.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "detected": false,
+                    "weight": 2.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "detected": false,
+                    "weight": 2,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "detected": true,
+                    "weight": 1.5,
+                    "contribution": 1.5,
+                    "evidence": "non pas"
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "detected": false,
+                    "weight": 0.7,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "detected": true,
+                    "weight": 1,
+                    "contribution": 1,
+                    "evidence": "active_skill_or_operation_state"
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "detected": false,
+                    "weight": 10,
+                    "contribution": 0,
+                    "evidence": "0,0;decay=0.55;recovery=0"
+                  }
+                ],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "confidence_band": "low",
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {
+                  "select_state_potion": {
+                    "detected": true,
+                    "reason": "user_explicitly_declines_potion_after_handoff_delivery"
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "active_handoff_action": {
+                "type": "cancel_handoff",
+                "confidence": "high",
+                "evidence": [
+                  "Non pas de potion",
+                  "juste une phrase"
+                ],
+                "target_skill_id": "select_state_potion"
+              },
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [
+                {
+                  "path": "tool_skill.select_state_potion",
+                  "reason_code": "central_arbitrator_structured_active_tool_exit"
+                },
+                {
+                  "path": "tool_skill_flow",
+                  "reason_code": "central_arbitrator_structured_active_tool_exit"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "central_arbitrator_structured_active_tool_exit",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              }
+            },
+            "turn_agenda_summary": {
+              "task_count": 1,
+              "owners": [
+                "normal_reply"
+              ],
+              "operation_types": [],
+              "constraints": {},
+              "tasks": [
+                {
+                  "task_id": "reply:fallback",
+                  "kind": "reply",
+                  "owner": "normal_reply",
+                  "operation_type": null,
+                  "intent": "reply",
+                  "source": "route_decision",
+                  "status": "pending",
+                  "reason_code": "central_arbitrator_structured_active_tool_exit"
+                }
+              ]
+            },
+            "effect_ledger": {
+              "turn_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t03-a1",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t03-a1",
+            "source_message_id": "ee572c62-289d-4ae5-afee-3f6990500783",
+            "user_id": "fd018a11-b309-4730-95ae-f8cd4fe16462",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 2.5,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "repetition_or_correction",
+                "active_flow_pressure"
+              ],
+              "previous_scores": [
+                0,
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": true,
+                  "weight": 1.5,
+                  "contribution": 1.5,
+                  "evidence": "non pas"
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": true,
+                  "weight": 1,
+                  "contribution": 1,
+                  "evidence": "active_skill_or_operation_state"
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0,0;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {
+                "select_state_potion": {
+                  "detected": true,
+                  "reason": "user_explicitly_declines_potion_after_handoff_delivery"
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": {
+              "type": "cancel_handoff",
+              "confidence": "high",
+              "evidence": [
+                "Non pas de potion",
+                "juste une phrase"
+              ],
+              "target_skill_id": "select_state_potion"
+            },
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [
+              {
+                "path": "tool_skill.select_state_potion",
+                "reason_code": "central_arbitrator_structured_active_tool_exit"
+              },
+              {
+                "path": "tool_skill_flow",
+                "reason_code": "central_arbitrator_structured_active_tool_exit"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "central_arbitrator_structured_active_tool_exit",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            }
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "normal_reply"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "normal_reply",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "central_arbitrator_structured_active_tool_exit"
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-manual-potion-handoff-no-potion-20260602-r1-clarte-t03-a1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        },
+        "trace_error": null,
+        "__http_status": 200
+      },
+      "trace": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "central_arbitrator_structured_active_tool_exit",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "executed_tools": [],
+        "tool_execution": "none",
+        "trace_id": null
+      },
+      "durable_after": {
+        "sessions": [],
+        "reminders": [],
+        "checkins": []
+      }
+    }
+  ],
+  "created_at": "2026-06-02T16:01:04.703Z",
+  "cleanup": {
+    "completed": true,
+    "deleted": [
+      {
+        "table": "scheduled_checkins",
+        "count": 0
+      },
+      {
+        "table": "user_recurring_reminders",
+        "count": 0
+      },
+      {
+        "table": "user_potion_sessions",
+        "count": 0
+      },
+      {
+        "table": "chat_messages",
+        "count": 0
+      },
+      {
+        "table": "conversation_turn_traces",
+        "count": 0
+      },
+      {
+        "table": "user_chat_states",
+        "count": 0
+      },
+      {
+        "table": "user_plan_items",
+        "count": 0
+      },
+      {
+        "table": "user_plans_v2",
+        "count": 0
+      },
+      {
+        "table": "user_transformations",
+        "count": 0
+      },
+      {
+        "table": "user_cycles",
+        "count": 0
+      },
+      {
+        "table": "profiles",
+        "count": 0
+      },
+      {
+        "table": "auth.users",
+        "count": 1
+      }
+    ],
+    "cleanup_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/operations/2026-06-02-select-state-potion-manual-handoff-no-potion-20260602-r1-clarte.cleanup.json",
+    "at": "2026-06-02T16:03:58.003Z"
+  },
+  "updated_at": "2026-06-02T16:03:19.127Z"
+}

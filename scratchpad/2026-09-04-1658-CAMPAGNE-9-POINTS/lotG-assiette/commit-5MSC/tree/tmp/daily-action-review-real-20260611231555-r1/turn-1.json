@@ -1,0 +1,279 @@
+{
+  "http_status": 200,
+  "response": {
+    "ok": true,
+    "request_id": "daily-action-review-real-20260611231555-r1-t01"
+  },
+  "user": "Le sas, je l'ai fait environ 25 minutes sans fumer. Le plan anti-ennui, je l'ai seulement commencé : j'ai listé deux idées, mais je n'ai pas encore choisi quoi faire quand l'envie monte.",
+  "assistant": [],
+  "pendingAfter": [
+    {
+      "id": "18d3e70e-dee6-4be2-be72-200105e7acd5",
+      "status": "pending",
+      "payload": {
+        "targets": [
+          {
+            "kind": "habit",
+            "title": "Faire un sas de décompression (sans fumer)",
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+            "dimension": "habits",
+            "plan_label": null,
+            "planned_day": "tue",
+            "time_of_day": "evening",
+            "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+            "occurrence_id": "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+            "tracking_type": "boolean",
+            "week_start_date": "2026-06-08",
+            "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+            "reviewed_local_date": "2026-06-12",
+            "original_planned_day": null
+          },
+          {
+            "kind": "task",
+            "title": "Préparer un plan anti-ennui",
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+            "dimension": "missions",
+            "plan_label": null,
+            "planned_day": "mon",
+            "time_of_day": "anytime",
+            "plan_item_id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+            "occurrence_id": "91831b6e-782b-489b-88a3-6bc44a00fa67",
+            "tracking_type": "boolean",
+            "week_start_date": "2026-06-08",
+            "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+            "reviewed_local_date": "2026-06-12",
+            "original_planned_day": null
+          }
+        ],
+        "timezone": "Europe/Paris",
+        "qa_run_id": "daily-action-review-real-20260611231555-r1",
+        "local_date": "2026-06-12",
+        "message_mode": "conversation",
+        "review_state": {
+          "items": {
+            "3be65289-e810-4a73-b48a-26e0fc8b45ac": {
+              "title": "Faire un sas de décompression (sans fumer)",
+              "outcome": null,
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "medium",
+              "plan_label": null,
+              "action_type": "habit",
+              "reason_text": null,
+              "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+              "evidence_text": null,
+              "missing_slots": [
+                "outcome"
+              ],
+              "occurrence_id": "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            },
+            "91831b6e-782b-489b-88a3-6bc44a00fa67": {
+              "title": "Préparer un plan anti-ennui",
+              "outcome": null,
+              "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+              "confidence": "medium",
+              "plan_label": null,
+              "action_type": "task",
+              "reason_text": null,
+              "plan_item_id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+              "evidence_text": null,
+              "missing_slots": [
+                "outcome"
+              ],
+              "occurrence_id": "91831b6e-782b-489b-88a3-6bc44a00fa67",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            }
+          },
+          "intent": "open_review",
+          "source": "daily_action_review_v1",
+          "status": "collecting",
+          "skill_id": "daily_action_review_v1",
+          "constraints": [
+            "one_question_max",
+            "no_solution_first",
+            "no_tool_suggestion",
+            "no_plan_adjustment",
+            "no_potion",
+            "no_guilt",
+            "respect_user_stopped",
+            "do_not_mark_without_evidence",
+            "do_not_apply_without_complete_slots"
+          ],
+          "effect_plan": {
+            "allowed": false,
+            "effects": []
+          },
+          "stop_reason": null,
+          "next_question": null,
+          "should_apply_effects": false,
+          "next_question_targets": [
+            "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+            "91831b6e-782b-489b-88a3-6bc44a00fa67"
+          ],
+          "generated_user_message": null,
+          "remaining_occurrence_ids": [],
+          "asked_occurrence_ids_history": [
+            [
+              "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+              "91831b6e-782b-489b-88a3-6bc44a00fa67"
+            ]
+          ],
+          "current_focus_occurrence_ids": [
+            "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+            "91831b6e-782b-489b-88a3-6bc44a00fa67"
+          ],
+          "action_intelligence_by_occurrence_id": {
+            "3be65289-e810-4a73-b48a-26e0fc8b45ac": {
+              "suggested_tone": "neutral",
+              "freshness_summary": "limited_data",
+              "recurring_patterns": [],
+              "recent_observations": [],
+              "risk_of_overcoaching": "low",
+              "source_memory_item_ids": [],
+              "last_weekly_interpretation": null
+            },
+            "91831b6e-782b-489b-88a3-6bc44a00fa67": {
+              "suggested_tone": "neutral",
+              "freshness_summary": "limited_data",
+              "recurring_patterns": [],
+              "recent_observations": [],
+              "risk_of_overcoaching": "low",
+              "source_memory_item_ids": [],
+              "last_weekly_interpretation": null
+            }
+          }
+        },
+        "draft_message": "Petit point daily : pour Faire un sas de décompression (sans fumer) et Préparer un plan anti-ennui, qu'est-ce qui s'est passe aujourd'hui ?",
+        "event_context": "action_evening_review_v2",
+        "occurrence_ids": [
+          "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+          "91831b6e-782b-489b-88a3-6bc44a00fa67"
+        ],
+        "chat_capability": "daily_action_review",
+        "grouping_reason": "same_plan",
+        "week_start_date": "2026-06-08",
+        "asked_occurrence_ids": [
+          "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+          "91831b6e-782b-489b-88a3-6bc44a00fa67"
+        ],
+        "action_evening_review": true,
+        "already_resolved_targets": [],
+        "initial_note_information": {
+          "evidence": [
+            "dynamic QA fixture from current DB targets"
+          ],
+          "confidence": "high",
+          "risk_score": 0,
+          "source_flow": "process_checkins",
+          "handoff_reason": "bridge",
+          "source_flow_id": "process_checkins.action_evening_review_v2",
+          "collected_state": {
+            "timezone": "Europe/Paris",
+            "qa_run_id": "daily-action-review-real-20260611231555-r1",
+            "local_date": "2026-06-12",
+            "event_context": "action_evening_review_v2",
+            "target_titles": [
+              "Faire un sas de décompression (sans fumer)",
+              "Préparer un plan anti-ennui"
+            ],
+            "week_start_date": "2026-06-08",
+            "scheduled_checkin_id": "0b458951-5b3c-4389-87ee-5a823ba9368b",
+            "target_occurrence_ids": [
+              "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+              "91831b6e-782b-489b-88a3-6bc44a00fa67"
+            ]
+          },
+          "no_chat_mutation": {
+            "db_write_committed": false,
+            "potion_session_created": false,
+            "scheduled_checkin_created": false,
+            "recurring_reminder_created": false,
+            "executable_confirmation_generated": false
+          },
+          "target_dispatcher": "daily_action_review_v1",
+          "structured_context": {
+            "targets": [
+              {
+                "kind": "habit",
+                "title": "Faire un sas de décompression (sans fumer)",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                "dimension": "habits",
+                "plan_label": null,
+                "planned_day": "tue",
+                "time_of_day": "evening",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "occurrence_id": "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+                "tracking_type": "boolean",
+                "week_start_date": "2026-06-08",
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "reviewed_local_date": "2026-06-12",
+                "original_planned_day": null
+              },
+              {
+                "kind": "task",
+                "title": "Préparer un plan anti-ennui",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                "dimension": "missions",
+                "plan_label": null,
+                "planned_day": "mon",
+                "time_of_day": "anytime",
+                "plan_item_id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+                "occurrence_id": "91831b6e-782b-489b-88a3-6bc44a00fa67",
+                "tracking_type": "boolean",
+                "week_start_date": "2026-06-08",
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "reviewed_local_date": "2026-06-12",
+                "original_planned_day": null
+              }
+            ],
+            "source_flow": "process_checkins",
+            "event_context": "action_evening_review_v2",
+            "chat_capability": "daily_action_review",
+            "pending_action_kind": "scheduled_checkin"
+          },
+          "active_flow_summary": "System opened daily review for selected action targets.",
+          "unresolved_questions": [
+            "Which selected actions were completed, partial, or missed today."
+          ],
+          "user_message_summary": null,
+          "recommended_next_focus": "Classify the user reply against selected daily review targets.",
+          "source_flow_presentation": "Evening system event opened the daily action review for selected planned actions.",
+          "source_flow_state_summary": "Daily action review pending action is active and waiting for outcome evidence.",
+          "target_local_dispatcher_hint": "daily_action_review_v1",
+          "handoff_context_for_next_dispatcher": "Consume the user reply as the first active daily review turn. Do not call global unless local dispatcher exits."
+        },
+        "not_yet_asked_occurrence_ids": []
+      },
+      "processed_at": null
+    }
+  ],
+  "entries": [],
+  "occ": [
+    {
+      "id": "91831b6e-782b-489b-88a3-6bc44a00fa67",
+      "plan_item_id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+      "planned_day": "mon",
+      "status": "planned",
+      "source": "default_generated",
+      "validated_at": null,
+      "updated_at": "2026-06-02T16:06:21.241+00:00"
+    },
+    {
+      "id": "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+      "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+      "planned_day": "tue",
+      "status": "planned",
+      "source": "default_generated",
+      "validated_at": null,
+      "updated_at": "2026-06-02T16:06:21.241+00:00"
+    }
+  ]
+}

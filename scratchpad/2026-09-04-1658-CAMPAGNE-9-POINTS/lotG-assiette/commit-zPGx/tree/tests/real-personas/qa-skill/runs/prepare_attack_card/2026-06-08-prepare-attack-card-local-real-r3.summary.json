@@ -1,0 +1,139 @@
+[
+  {
+    "turn": 1,
+    "requestId": "prepare-attack-card-local-real-r3-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'ai besoin d'une carte d'attaque pour ne pas repousser mes dix minutes de rangement le soir. Le piège, c'est que je me dis que ce n'est pas urgent et que je le ferai demain.",
+    "assistant": "C'est un piège classique de se dire que ça peut attendre le lendemain. Pour briser ce cycle et recadrer tes pensées au moment où tu hésites, je te propose d'utiliser Le texte magique. Est-ce que cette technique te semble pertinente pour tes dix minutes de rangement ? 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "tool_skill_intent_start",
+    "safety": {
+      "risk_band": "low",
+      "reason_codes": [],
+      "evidence": []
+    },
+    "tool_execution": "blocked",
+    "executed_tools": [],
+    "durable_effect": {
+      "committed_effects": [],
+      "platform_handoff": null
+    },
+    "tool_skill_run": {
+      "reason_code": "prepare_attack_card_local_ask_or_confirm_technique",
+      "status": "clarifying",
+      "runtime_trace": [
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher start",
+          "flow_action": null,
+          "stage": null,
+          "visible_task_kind": null,
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "proposed",
+          "blocker_status": "missing",
+          "missing_fields": [],
+          "risk_assessment": null,
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher decision",
+          "flow_action": "choose_technique",
+          "stage": "ask_target",
+          "visible_task_kind": "ask_target",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "reducer reduced",
+          "flow_action": "choose_technique",
+          "stage": "ask_or_confirm_technique",
+          "visible_task_kind": "ask_or_confirm_technique",
+          "current_field_id": "negotiated_action",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "negotiated_action",
+            "recurring_excuse",
+            "desired_reframe_state"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage start",
+          "flow_action": "choose_technique",
+          "stage": "ask_or_confirm_technique",
+          "visible_task_kind": "ask_or_confirm_technique",
+          "current_field_id": "negotiated_action",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "negotiated_action",
+            "recurring_excuse",
+            "desired_reframe_state"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "ask_or_confirm_technique",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage complete",
+          "flow_action": "choose_technique",
+          "stage": "ask_or_confirm_technique",
+          "visible_task_kind": "ask_or_confirm_technique",
+          "current_field_id": "negotiated_action",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "negotiated_action",
+            "recurring_excuse",
+            "desired_reframe_state"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,619 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-update-coach-preferences-2026-05-17-prefmatrix-tone-soft-r2-t01",
+    "user": "Quand je suis déjà tendu, j'aimerais que tu mettes un peu plus de douceur dans ta manière de me répondre, sans partir dans le coaching produit.",
+    "assistant": "Je peux régler ma façon de répondre: j'utiliserai un ton plus doux. Tu veux que je l'applique ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-tone-soft-r2-t01",
+      "user_id": "3262a21d-8378-4096-84ae-1c675c46bd56",
+      "channel": "web",
+      "scope": "qa-update-coach-preferences-2026-05-17-prefmatrix-tone-soft-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux régler ma façon de répondre: j'utiliserai un ton plus doux. Tu veux que je l'applique ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-tone-soft-r2-t01",
+        "user_id": "3262a21d-8378-4096-84ae-1c675c46bd56",
+        "source_message_id": "922af2ab-9e05-40ba-8cf9-e1342251233e",
+        "ts": "2026-05-17T18:02:31.35+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6550,
+          "latency_ms": 2923,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 672,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "coach_preferences",
+                "type": "topic",
+                "priority": null,
+                "query_hint": "style de communication et ton de Sophia",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-tone-soft-r2-t01",
+          "user_id": "3262a21d-8378-4096-84ae-1c675c46bd56",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "coach_preferences",
+                "type": "topic",
+                "priority": null,
+                "query_hint": "style de communication et ton de Sophia",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "922af2ab-9e05-40ba-8cf9-e1342251233e",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "douceur dans la manière de répondre quand tendu",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "update_coach_preferences",
+              "confidence_band": "high",
+              "operation_input": {
+                "value": "soft/gentle",
+                "condition": "when_tense",
+                "preference_type": "tone",
+                "negative_constraint": "no_product_coaching"
+              }
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "update_coach_preferences",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "coach.tone": "soft"
+              },
+              "reason": "Quand je suis déjà tendu, j'aimerais que tu mettes un peu plus de douceur dans ta manière de me répondre, sans partir dans le coaching produit.",
+              "summary": "j'utiliserai un ton plus doux."
+            },
+            "output_schema": "coach_preferences_patch_draft_v1",
+            "operation_type": "update_coach_preferences",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je peux régler ma façon de répondre: j'utiliserai un ton plus doux. Tu veux que je l'applique ?"
+          },
+          "status": "pending_confirmation",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "af83b2ad-9e36-41b2-98a3-6d923f806ace",
+          "selected_handler": "update_coach_preferences"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 8792,
+        "created_at": "2026-05-17T18:02:31.352339+00:00"
+      },
+      "trace_error": null,
+      "__http_status": 200
+    },
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_selected_handler": "update_coach_preferences",
+      "route_reason": "tool_skill_intent_start",
+      "safety": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "direct_effects": [],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "tool_execution": "blocked",
+      "trace_error": null,
+      "trace_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-tone-soft-r2-t01"
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-update-coach-preferences-2026-05-17-prefmatrix-tone-soft-r2-t02",
+    "user": "Oui, applique cette préférence.",
+    "assistant": "C'est fait. J'ai appliqué cette préférence : j'utiliserai un ton plus doux.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-tone-soft-r2-t02",
+      "user_id": "3262a21d-8378-4096-84ae-1c675c46bd56",
+      "channel": "web",
+      "scope": "qa-update-coach-preferences-2026-05-17-prefmatrix-tone-soft-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est fait. J'ai appliqué cette préférence : j'utiliserai un ton plus doux.",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "update_coach_preferences"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-tone-soft-r2-t02",
+        "user_id": "3262a21d-8378-4096-84ae-1c675c46bd56",
+        "source_message_id": "47d2e2d9-c36a-402e-8be8-0d6a22298bcd",
+        "ts": "2026-05-17T18:02:40.486+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6597,
+          "latency_ms": 2569,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 644,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "coach_preferences",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "préférences de ton et style de communication",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-tone-soft-r2-t02",
+          "user_id": "3262a21d-8378-4096-84ae-1c675c46bd56",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "coach_preferences",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "préférences de ton et style de communication",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "47d2e2d9-c36a-402e-8be8-0d6a22298bcd",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "ton plus doux quand tendu",
+              "user_intent": "update",
+              "explicitness": "explicit",
+              "operation_type": "update_coach_preferences",
+              "confidence_band": "high",
+              "operation_input": {
+                "preference_key": "tone",
+                "context_trigger": "tension",
+                "preference_value": "soft"
+              }
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "update_coach_preferences",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "update_coach_preferences"
+          }
+        ],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "executed",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "af83b2ad-9e36-41b2-98a3-6d923f806ace",
+          "selected_handler": "update_coach_preferences",
+          "draft_review_decision": {
+            "decision": "approve",
+            "evidence": [
+              "L'utilisateur répond par l'affirmative avec 'Oui'",
+              "L'utilisateur demande explicitement l'exécution avec 'applique cette préférence'"
+            ],
+            "confidence": "high",
+            "generated_user_message": null
+          },
+          "preferences_update_id": "coach.tone"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 9082,
+        "created_at": "2026-05-17T18:02:40.487681+00:00"
+      },
+      "trace_error": null,
+      "__http_status": 200
+    },
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_selected_handler": "update_coach_preferences",
+      "route_reason": "tool_skill_intent_start",
+      "safety": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "direct_effects": [
+        {
+          "outcome": "success",
+          "tool_id": "update_coach_preferences"
+        }
+      ],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [
+        "update_coach_preferences"
+      ],
+      "tool_execution": "success",
+      "trace_error": null,
+      "trace_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-tone-soft-r2-t02"
+    }
+  }
+]

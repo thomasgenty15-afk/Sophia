@@ -1,0 +1,554 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-demotivation-repair-2026-06-13-exitfix_real_r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je suis devant le dossier là, et je sens que je décroche déjà. J’ai peur de perdre l’énergie dans deux minutes et de partir ailleurs. Tu peux me préparer une carte pour tenir le moment sans déraper ?",
+    "assistant": "Je vois que c'est difficile de rester sur ce dossier en ce moment. Quelle petite action concrète pourrais-tu faire là, tout de suite, pour t'aider à tenir sans décrocher ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason": "tool_skill_intent_start",
+    "active_flow_arbitration": null,
+    "local_flow_action": null,
+    "local_visible_task_kind": null,
+    "note_information": null,
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "blocked",
+    "trace_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1-t01",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "prepare_defense_card",
+      "reason_code": "prepare_defense_card_local_collecting",
+      "operation_type": "prepare_defense_card",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "collecting",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "pending_confirmation": null,
+      "handoff_state": {
+        "skill_id": "prepare_defense_card",
+        "mode": "platform_handoff",
+        "status": "collecting",
+        "draft": null,
+        "local_state": {
+          "flow_id": "prepare_defense_card",
+          "route_kind": "free_card",
+          "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+          "tool_fit_state": {
+            "status": "defense",
+            "reason": "Le user décrit un risque imminent de décrochage et de distraction face à une tâche.",
+            "needs_user_confirmation": false,
+            "why_status": "Situation de protection contre une impulsion ou un évitement."
+          },
+          "attachment_state": {
+            "status": "proposed",
+            "kind": "free_risk_context",
+            "plan_item_id": null,
+            "candidate_value": "travail sur le dossier en cours",
+            "locked_value": null,
+            "candidate_options": [],
+            "needs_user_confirmation": true,
+            "why_status": "Déduit du message 'devant le dossier'."
+          },
+          "risk_state": {
+            "status": "proposed",
+            "label": "décrochage et perte d'énergie devant le dossier",
+            "description": "Sensation de décrochage imminent et peur de partir ailleurs.",
+            "timing_hint": "maintenant",
+            "context_hint": "devant le dossier",
+            "needs_user_confirmation": true,
+            "why_status": "Formulation basée sur les mots du user."
+          },
+          "trigger_state": {
+            "status": "proposed",
+            "type": null,
+            "candidate_value": "sensation de décrochage et baisse d'énergie",
+            "locked_value": null,
+            "needs_user_confirmation": true,
+            "why_status": "Signal interne identifié."
+          },
+          "defense_goal_state": {
+            "status": "proposed",
+            "value": null,
+            "candidate_value": "tenir le moment sans déraper",
+            "locked_value": null,
+            "needs_user_confirmation": true,
+            "why_status": "Objectif explicite du user."
+          },
+          "defense_response_hint_state": {
+            "status": "missing",
+            "strategy_hint": null,
+            "candidate_value": null,
+            "locked_value": null,
+            "needs_user_confirmation": false,
+            "why_status": "Besoin d'identifier l'action de parade concrète."
+          },
+          "support_need_state": {
+            "field_id": "support_need",
+            "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+            "status": "missing",
+            "candidate_value": null,
+            "locked_value": null,
+            "previous_value": null,
+            "needs_user_confirmation": false,
+            "why_status": "Champ support_need manquant."
+          },
+          "last_visible_task": "ask_defense_goal_or_response",
+          "last_handoff_delivered": false,
+          "subskill_history": []
+        },
+        "turn_count": 1,
+        "max_turns": 8,
+        "created_at": "2026-06-13T13:12:03.001Z",
+        "updated_at": "2026-06-13T13:12:03.001Z",
+        "no_chat_mutation": true
+      },
+      "risk_assessment": {
+        "risk_score": 1,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "active flow entry",
+          "flow_action": null,
+          "visible_task_kind": null,
+          "tool_fit": "ambiguous",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 0,
+          "risk_assessment": null,
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "local_dispatcher called",
+          "flow_action": null,
+          "visible_task_kind": null,
+          "tool_fit": "ambiguous",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 0,
+          "risk_assessment": null,
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "note_information_consumed",
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "prepare_defense_card",
+            "handoff_context_for_next_dispatcher": "User is currently facing a risk of 'derailing' or losing focus while in front of a task. They explicitly asked for a card to 'hold the moment'. This is a defense card scenario (immediate risk/temptation to leave).",
+            "user_words": [
+              "devant le dossier",
+              "décroche déjà",
+              "peur de perdre l’énergie"
+            ],
+            "structured_context": {
+              "primary_signal_path": "tool_skill_intents[0]",
+              "target_kind": "tool_skill",
+              "target_flow": "prepare_defense_card",
+              "confidence_band": "high",
+              "evidence": [
+                "préparer une carte pour tenir le moment sans déraper"
+              ],
+              "recommended_next_focus": "Run the defense card local dispatcher to identify the specific trigger and provide immediate protection/grounding."
+            },
+            "confidence": "high"
+          },
+          "source_flow_id": "global_dispatcher",
+          "target_dispatcher": "prepare_defense_card",
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "local_dispatcher decision",
+          "flow_action": "answer_current_field",
+          "visible_task_kind": "ask_defense_goal_or_response",
+          "tool_fit": "defense",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 1,
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "reducer reduced",
+          "flow_action": "answer_current_field",
+          "visible_task_kind": "ask_defense_goal_or_response",
+          "tool_fit": "defense",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [
+            "tool_fit",
+            "attachment",
+            "risk_situation",
+            "trigger",
+            "defense_goal",
+            "defense_response_hint"
+          ],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 1,
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "visible_prompt called",
+          "flow_action": "answer_current_field",
+          "visible_task_kind": "ask_defense_goal_or_response",
+          "tool_fit": "defense",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [
+            "tool_fit",
+            "attachment",
+            "risk_situation",
+            "trigger",
+            "defense_goal",
+            "defense_response_hint"
+          ],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 1,
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.visible_agent",
+          "stage": "ask_defense_goal_or_response",
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "visible_prompt complete",
+          "flow_action": "answer_current_field",
+          "visible_task_kind": "ask_defense_goal_or_response",
+          "tool_fit": "defense",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [
+            "tool_fit",
+            "attachment",
+            "risk_situation",
+            "trigger",
+            "defense_goal",
+            "defense_response_hint"
+          ],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 2,
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_defense_card"
+        }
+      ],
+      "ai_call_count": 2
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-demotivation-repair-2026-06-13-exitfix_real_r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "L’action minuscule ce serait d’ouvrir le document et d’écrire juste le titre du paragraphe, mais le piège c’est que je vais ouvrir un onglet à côté dès que ça pique.",
+    "assistant": "Pour le champ « Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? », est-ce que cette formulation te convient : « quand je suis devant mon dossier et que j'ai l'impulsion d'ouvrir un onglet dès que l'effort devient difficile » ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason": "active_prepare_defense_card_local_dispatcher",
+    "active_flow_arbitration": null,
+    "local_flow_action": null,
+    "local_visible_task_kind": null,
+    "note_information": null,
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "blocked",
+    "trace_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1-t02",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "prepare_defense_card",
+      "reason_code": "prepare_defense_card_local_collecting",
+      "operation_type": "prepare_defense_card",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "collecting",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "pending_confirmation": null,
+      "handoff_state": {
+        "skill_id": "prepare_defense_card",
+        "mode": "platform_handoff",
+        "status": "collecting",
+        "draft": null,
+        "local_state": {
+          "flow_id": "prepare_defense_card",
+          "risk_state": {
+            "label": "décrochage devant le dossier",
+            "status": "locked",
+            "why_status": "Risque et moment précis décrits par le user.",
+            "description": "Ouvrir un onglet à côté dès que l'effort devient inconfortable ('dès que ça pique').",
+            "timing_hint": "pendant la rédaction",
+            "context_hint": "devant le document",
+            "needs_user_confirmation": false
+          },
+          "route_kind": "free_card",
+          "trigger_state": {
+            "type": null,
+            "status": "locked",
+            "why_status": "Signal interne explicite identifié.",
+            "locked_value": "quand ça pique (inconfort de l'effort)",
+            "candidate_value": null,
+            "needs_user_confirmation": false
+          },
+          "tool_fit_state": {
+            "reason": "Le user décrit un moment de risque (décrochage) et un signal (quand ça pique) nécessitant une protection.",
+            "status": "defense",
+            "why_status": "Défense confirmée par la description du piège et de l'impulsion d'évitement.",
+            "needs_user_confirmation": false
+          },
+          "attachment_state": {
+            "kind": "free_risk_context",
+            "status": "locked",
+            "why_status": "Contexte de travail clairement identifié.",
+            "locked_value": "travail sur le dossier en cours",
+            "plan_item_id": null,
+            "candidate_value": null,
+            "candidate_options": [],
+            "needs_user_confirmation": false
+          },
+          "subskill_history": [],
+          "last_visible_task": "confirm_support_need_proposal",
+          "defense_goal_state": {
+            "value": "interrupt_impulse",
+            "status": "locked",
+            "why_status": "Objectif de protection contre la distraction.",
+            "locked_value": "ne pas ouvrir d'onglet parasite et rester sur le titre",
+            "candidate_value": null,
+            "needs_user_confirmation": false
+          },
+          "support_need_state": {
+            "status": "proposed",
+            "field_id": "support_need",
+            "why_status": "Synthèse de la situation prête pour le champ plateforme.",
+            "locked_value": null,
+            "previous_value": null,
+            "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+            "candidate_value": "quand je suis devant mon dossier et que j'ai l'impulsion d'ouvrir un onglet dès que l'effort devient difficile",
+            "needs_user_confirmation": true
+          },
+          "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+          "last_handoff_delivered": false,
+          "defense_response_hint_state": {
+            "status": "proposed",
+            "why_status": "Action minuscule identifiée comme parade.",
+            "locked_value": null,
+            "strategy_hint": null,
+            "candidate_value": "ouvrir le document et écrire juste le titre du paragraphe",
+            "needs_user_confirmation": true
+          }
+        },
+        "turn_count": 2,
+        "max_turns": 8,
+        "created_at": "2026-06-13T13:12:03.001Z",
+        "updated_at": "2026-06-13T13:12:26.312Z",
+        "no_chat_mutation": true
+      },
+      "risk_assessment": {
+        "risk_score": 0,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "active flow entry",
+          "flow_action": null,
+          "visible_task_kind": null,
+          "tool_fit": "defense",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 0,
+          "risk_assessment": null,
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "local_dispatcher called",
+          "flow_action": null,
+          "visible_task_kind": null,
+          "tool_fit": "defense",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 0,
+          "risk_assessment": null,
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "local_dispatcher decision",
+          "flow_action": "answer_current_field",
+          "visible_task_kind": "confirm_support_need_proposal",
+          "tool_fit": "defense",
+          "support_need_status": "proposed",
+          "handoff_ready": false,
+          "slots_modified": [],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 1,
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "reducer reduced",
+          "flow_action": "answer_current_field",
+          "visible_task_kind": "confirm_support_need_proposal",
+          "tool_fit": "defense",
+          "support_need_status": "proposed",
+          "handoff_ready": false,
+          "slots_modified": [
+            "tool_fit",
+            "attachment",
+            "risk_situation",
+            "trigger",
+            "defense_goal",
+            "defense_response_hint",
+            "support_need"
+          ],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 1,
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "visible_prompt called",
+          "flow_action": "answer_current_field",
+          "visible_task_kind": "confirm_support_need_proposal",
+          "tool_fit": "defense",
+          "support_need_status": "proposed",
+          "handoff_ready": false,
+          "slots_modified": [
+            "tool_fit",
+            "attachment",
+            "risk_situation",
+            "trigger",
+            "defense_goal",
+            "defense_response_hint",
+            "support_need"
+          ],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 1,
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.visible_agent",
+          "stage": "confirm_support_need_proposal",
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "visible_prompt complete",
+          "flow_action": "answer_current_field",
+          "visible_task_kind": "confirm_support_need_proposal",
+          "tool_fit": "defense",
+          "support_need_status": "proposed",
+          "handoff_ready": false,
+          "slots_modified": [
+            "tool_fit",
+            "attachment",
+            "risk_situation",
+            "trigger",
+            "defense_goal",
+            "defense_response_hint",
+            "support_need"
+          ],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 2,
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_defense_card"
+        }
+      ],
+      "ai_call_count": 2
+    }
+  }
+]

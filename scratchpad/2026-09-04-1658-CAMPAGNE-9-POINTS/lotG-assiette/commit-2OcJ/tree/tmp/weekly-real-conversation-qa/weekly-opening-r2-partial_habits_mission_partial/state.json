@@ -1,0 +1,2492 @@
+{
+  "run_id": "weekly-opening-r2-partial_habits_mission_partial",
+  "variant": "partial_habits_mission_partial",
+  "persona": "paul",
+  "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+  "email": "qa-weekly-deep-weekly-opening-r2-partial_habits_mission_partial@example.com",
+  "scope": "weekly-deep-partial_habits_mission_partial-weekly-opening-r2",
+  "created_at": "2026-06-12T01:00:55.182Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-06-12T01:00:55.183Z",
+      "user": "Je l'ai vecue en deux temps: debut de semaine encourageant, puis fatigue forte jeudi-vendredi. Par rapport a mon objectif global, j'ai quand meme l'impression d'avancer un peu, mais ca reste fragile. Je veux surtout comprendre ce qu'il faut alleger.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Tu as fait de beaux efforts cette semaine, même si la fatigue a pesé sur les derniers jours. Pour la suite, je te propose de passer sur un rythme plus léger en réduisant le nombre d'actions prévues. Cela te permettrait de garder ta dynamique sans t'épuiser. Est-ce que cette direction te semble plus adaptée à ton énergie actuelle ?",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-opening-r2-partial_habits_mission_partial-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-opening-r2-partial_habits_mission_partial-t01",
+        "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-opening-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Tu as fait de beaux efforts cette semaine, même si la fatigue a pesé sur les derniers jours. Pour la suite, je te propose de passer sur un rythme plus léger en réduisant le nombre d'actions prévues. Cela te permettrait de garder ta dynamique sans t'épuiser. Est-ce que cette direction te semble plus adaptée à ton énergie actuelle ?",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "weekly-opening-r2-partial_habits_mission_partial-t01",
+              "source_message_id": "c8d4d9b3-a7f9-4b8f-843b-4151efb74a99",
+              "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {},
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "weekly_adaptive_review_v1",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_weekly_review_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_weekly_review_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "weekly_adaptive_review_v1",
+              "reason_code": "weekly_review_local_answer_weekly_question",
+              "operation_type": "weekly_adaptive_review_v1",
+              "status": "answered",
+              "flow_action": "answer_weekly_question",
+              "visible_task": "weekly_reading",
+              "confidence": "high",
+              "risk_score": 0,
+              "weekly_intent": {
+                "kind": "weekly_answer",
+                "summary": "Le user confirme la fatigue comme blocage majeur en fin de semaine et demande des précisions sur l'allègement du plan."
+              },
+              "handoff_updates": {
+                "status": "none",
+                "requested_adjustment_summary": null,
+                "revision_summary": null,
+                "platform_destination": null,
+                "scope": {
+                  "kind": "none",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "plan_item_ids": [],
+                  "scope_summary": null,
+                  "needs_scope_clarification": false
+                }
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null
+              },
+              "local_flow_state": {
+                "stage": "strategy_ready",
+                "proposal_status": "none",
+                "validation_unlock_status": "locked_until_weekly_complete",
+                "human_signals": {
+                  "objective_delta": "slight_progress",
+                  "felt_state": "tired_but_ok"
+                },
+                "felt_progress": "encouraged",
+                "last_user_signal": "Début de semaine encourageant, fatigue forte jeudi-vendredi, avancée réelle mais fragile.",
+                "last_visible_summary": "Le user confirme la fatigue comme blocage majeur en fin de semaine et demande des précisions sur l'allègement du plan.",
+                "last_handoff_summary": null,
+                "child_flow": {
+                  "status": "none",
+                  "flow_id": null,
+                  "reason": null,
+                  "expected_return_focus": null,
+                  "result_summary": null
+                },
+                "turn_count": 1,
+                "max_turns": 6,
+                "updated_at": "2026-06-12T01:01:06.354Z"
+              },
+              "target_dispatcher": "none",
+              "note_information": null,
+              "conversation_context": {
+                "state_summary": "Le user confirme la fatigue comme blocage majeur en fin de semaine et demande des précisions sur l'allègement du plan.",
+                "user_words": [],
+                "week_window": {
+                  "start_date": "2026-06-01",
+                  "end_date": "2026-06-07"
+                },
+                "field_or_stage": "weekly_reading",
+                "known_values": {
+                  "human_signals": {
+                    "objective_delta": "slight_progress",
+                    "felt_state": "tired_but_ok"
+                  },
+                  "felt_progress": "encouraged",
+                  "validation_unlock_status": "locked_until_weekly_complete",
+                  "proposal_status": "none",
+                  "child_flow": {
+                    "status": "none",
+                    "flow_id": null,
+                    "reason": null,
+                    "expected_return_focus": null,
+                    "result_summary": null
+                  },
+                  "dominant_blocker_confirmation": "confirmed"
+                },
+                "missing_or_weak_values": [],
+                "weekly_reading": {
+                  "strategy_label_human": "semaine plus legere",
+                  "reason_human": "La traction existe, mais les blocages indiquent une charge a alleger.",
+                  "confidence": "high"
+                },
+                "plan_contexts": [
+                  {
+                    "transformation_id": "f7439fcb-8cd1-46cd-95a6-4feac80c3697",
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "action_count": 6
+                  }
+                ],
+                "item_summaries": [
+                  {
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "c7356182-acc4-47e8-9003-b67e7cfee43d",
+                    "occurrence_id": "84ff85df-6cb9-457e-b9ec-57d06bcbe501",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "on_plan",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "fait comme prevu",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "none",
+                      "matched_user_text": "fait comme prevu",
+                      "occurrence_status": "done",
+                      "reschedule_decision": "none"
+                    }
+                  },
+                  {
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "c7356182-acc4-47e8-9003-b67e7cfee43d",
+                    "occurrence_id": "240d2163-c32b-43f0-81d4-c3a44f5f0143",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "partial",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "j'ai commence mais trop fatigue",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "fatigue",
+                      "matched_user_text": "j'ai commence mais trop fatigue",
+                      "occurrence_status": "planned",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "c7356182-acc4-47e8-9003-b67e7cfee43d",
+                    "occurrence_id": "1b44620e-dc8f-409f-937b-ed6bd2f126dc",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "missed",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "trop lourd en fin de semaine",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "too_hard",
+                      "matched_user_text": "trop lourd en fin de semaine",
+                      "occurrence_status": "missed",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2",
+                    "occurrence_id": "d4332524-0160-44b4-8eae-8722dce434c7",
+                    "title": "Respiration de pause",
+                    "family": null,
+                    "status": "on_plan",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "fait comme prevu",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "none",
+                      "matched_user_text": "fait comme prevu",
+                      "occurrence_status": "done",
+                      "reschedule_decision": "none"
+                    }
+                  },
+                  {
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2",
+                    "occurrence_id": "57bf5b07-4fd7-4440-82b8-10bf7fead014",
+                    "title": "Respiration de pause",
+                    "family": null,
+                    "status": "missed",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "j'ai zappe en rentrant tard",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "fatigue",
+                      "matched_user_text": "j'ai zappe en rentrant tard",
+                      "occurrence_status": "missed",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "050cad5c-8670-4232-89f6-d3b11b6845b8",
+                    "occurrence_id": "ee2c0d61-699c-4d00-88a1-0a4f0d2f944d",
+                    "title": "Convenir d'un signal de pause",
+                    "family": null,
+                    "status": "partial",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "message brouillon fait mais pas envoye",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "context",
+                      "matched_user_text": "message brouillon fait mais pas envoye",
+                      "occurrence_status": "planned",
+                      "reschedule_decision": "carry_over"
+                    }
+                  }
+                ],
+                "handoff_data": {
+                  "summary": null,
+                  "platform_destination": null,
+                  "scope": {
+                    "kind": "none",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "plan_item_ids": [],
+                    "scope_summary": null,
+                    "needs_scope_clarification": false
+                  },
+                  "requested_adjustment_summary": null,
+                  "revision_summary": null,
+                  "no_chat_mutation": true
+                },
+                "forgotten_progress": {
+                  "status": "none",
+                  "target_hint": null,
+                  "outcome_hint": null,
+                  "evidence": null,
+                  "no_plan_adjustment": true
+                },
+                "inline_result": {},
+                "tone_constraints": [
+                  "compact",
+                  "one_question_max_when_asking",
+                  "human_language"
+                ],
+                "do_not_say": [
+                  "bridge_week",
+                  "carry_over",
+                  "repeat_week",
+                  "level_review",
+                  "plan_patch",
+                  "item_decision",
+                  "dominant_blocker",
+                  "applique",
+                  "modifie le plan",
+                  "valide le plan",
+                  "enregistre le plan"
+                ],
+                "context_summary": "Le user confirme la fatigue comme blocage majeur en fin de semaine et demande des précisions sur l'allègement du plan.",
+                "evidence_used": [
+                  "fatigue forte jeudi-vendredi",
+                  "impression d'avancer un peu",
+                  "comprendre ce qu'il faut alleger",
+                  "fatigue",
+                  "too_hard",
+                  "context"
+                ]
+              },
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "visible_fallback_used": false,
+              "qa_green_eligible": true,
+              "no_chat_mutation": true,
+              "no_durable_plan_mutation": true,
+              "evidence": [
+                "fatigue forte jeudi-vendredi",
+                "impression d'avancer un peu",
+                "comprendre ce qu'il faut alleger"
+              ],
+              "toolExecution": "none",
+              "executedTools": []
+            },
+            "effect_ledger": {
+              "turn_id": "weekly-opening-r2-partial_habits_mission_partial-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "weekly-opening-r2-partial_habits_mission_partial-t01",
+            "source_message_id": "c8d4d9b3-a7f9-4b8f-843b-4151efb74a99",
+            "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_weekly_review_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_weekly_review_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_local_answer_weekly_question",
+            "operation_type": "weekly_adaptive_review_v1",
+            "status": "answered",
+            "flow_action": "answer_weekly_question",
+            "visible_task": "weekly_reading",
+            "confidence": "high",
+            "risk_score": 0,
+            "weekly_intent": {
+              "kind": "weekly_answer",
+              "summary": "Le user confirme la fatigue comme blocage majeur en fin de semaine et demande des précisions sur l'allègement du plan."
+            },
+            "handoff_updates": {
+              "status": "none",
+              "requested_adjustment_summary": null,
+              "revision_summary": null,
+              "platform_destination": null,
+              "scope": {
+                "kind": "none",
+                "plan_id": null,
+                "plan_title": null,
+                "plan_item_ids": [],
+                "scope_summary": null,
+                "needs_scope_clarification": false
+              }
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null
+            },
+            "local_flow_state": {
+              "stage": "strategy_ready",
+              "proposal_status": "none",
+              "validation_unlock_status": "locked_until_weekly_complete",
+              "human_signals": {
+                "objective_delta": "slight_progress",
+                "felt_state": "tired_but_ok"
+              },
+              "felt_progress": "encouraged",
+              "last_user_signal": "Début de semaine encourageant, fatigue forte jeudi-vendredi, avancée réelle mais fragile.",
+              "last_visible_summary": "Le user confirme la fatigue comme blocage majeur en fin de semaine et demande des précisions sur l'allègement du plan.",
+              "last_handoff_summary": null,
+              "child_flow": {
+                "status": "none",
+                "flow_id": null,
+                "reason": null,
+                "expected_return_focus": null,
+                "result_summary": null
+              },
+              "turn_count": 1,
+              "max_turns": 6,
+              "updated_at": "2026-06-12T01:01:06.354Z"
+            },
+            "target_dispatcher": "none",
+            "note_information": null,
+            "conversation_context": {
+              "state_summary": "Le user confirme la fatigue comme blocage majeur en fin de semaine et demande des précisions sur l'allègement du plan.",
+              "user_words": [],
+              "week_window": {
+                "start_date": "2026-06-01",
+                "end_date": "2026-06-07"
+              },
+              "field_or_stage": "weekly_reading",
+              "known_values": {
+                "human_signals": {
+                  "objective_delta": "slight_progress",
+                  "felt_state": "tired_but_ok"
+                },
+                "felt_progress": "encouraged",
+                "validation_unlock_status": "locked_until_weekly_complete",
+                "proposal_status": "none",
+                "child_flow": {
+                  "status": "none",
+                  "flow_id": null,
+                  "reason": null,
+                  "expected_return_focus": null,
+                  "result_summary": null
+                },
+                "dominant_blocker_confirmation": "confirmed"
+              },
+              "missing_or_weak_values": [],
+              "weekly_reading": {
+                "strategy_label_human": "semaine plus legere",
+                "reason_human": "La traction existe, mais les blocages indiquent une charge a alleger.",
+                "confidence": "high"
+              },
+              "plan_contexts": [
+                {
+                  "transformation_id": "f7439fcb-8cd1-46cd-95a6-4feac80c3697",
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "action_count": 6
+                }
+              ],
+              "item_summaries": [
+                {
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "c7356182-acc4-47e8-9003-b67e7cfee43d",
+                  "occurrence_id": "84ff85df-6cb9-457e-b9ec-57d06bcbe501",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "on_plan",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "fait comme prevu",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "matched_user_text": "fait comme prevu",
+                    "occurrence_status": "done",
+                    "reschedule_decision": "none"
+                  }
+                },
+                {
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "c7356182-acc4-47e8-9003-b67e7cfee43d",
+                  "occurrence_id": "240d2163-c32b-43f0-81d4-c3a44f5f0143",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "j'ai commence mais trop fatigue",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "matched_user_text": "j'ai commence mais trop fatigue",
+                    "occurrence_status": "planned",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "c7356182-acc4-47e8-9003-b67e7cfee43d",
+                  "occurrence_id": "1b44620e-dc8f-409f-937b-ed6bd2f126dc",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "trop lourd en fin de semaine",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "too_hard",
+                    "matched_user_text": "trop lourd en fin de semaine",
+                    "occurrence_status": "missed",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2",
+                  "occurrence_id": "d4332524-0160-44b4-8eae-8722dce434c7",
+                  "title": "Respiration de pause",
+                  "family": null,
+                  "status": "on_plan",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "fait comme prevu",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "matched_user_text": "fait comme prevu",
+                    "occurrence_status": "done",
+                    "reschedule_decision": "none"
+                  }
+                },
+                {
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2",
+                  "occurrence_id": "57bf5b07-4fd7-4440-82b8-10bf7fead014",
+                  "title": "Respiration de pause",
+                  "family": null,
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "j'ai zappe en rentrant tard",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "matched_user_text": "j'ai zappe en rentrant tard",
+                    "occurrence_status": "missed",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "050cad5c-8670-4232-89f6-d3b11b6845b8",
+                  "occurrence_id": "ee2c0d61-699c-4d00-88a1-0a4f0d2f944d",
+                  "title": "Convenir d'un signal de pause",
+                  "family": null,
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "message brouillon fait mais pas envoye",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "context",
+                    "matched_user_text": "message brouillon fait mais pas envoye",
+                    "occurrence_status": "planned",
+                    "reschedule_decision": "carry_over"
+                  }
+                }
+              ],
+              "handoff_data": {
+                "summary": null,
+                "platform_destination": null,
+                "scope": {
+                  "kind": "none",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "plan_item_ids": [],
+                  "scope_summary": null,
+                  "needs_scope_clarification": false
+                },
+                "requested_adjustment_summary": null,
+                "revision_summary": null,
+                "no_chat_mutation": true
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null,
+                "no_plan_adjustment": true
+              },
+              "inline_result": {},
+              "tone_constraints": [
+                "compact",
+                "one_question_max_when_asking",
+                "human_language"
+              ],
+              "do_not_say": [
+                "bridge_week",
+                "carry_over",
+                "repeat_week",
+                "level_review",
+                "plan_patch",
+                "item_decision",
+                "dominant_blocker",
+                "applique",
+                "modifie le plan",
+                "valide le plan",
+                "enregistre le plan"
+              ],
+              "context_summary": "Le user confirme la fatigue comme blocage majeur en fin de semaine et demande des précisions sur l'allègement du plan.",
+              "evidence_used": [
+                "fatigue forte jeudi-vendredi",
+                "impression d'avancer un peu",
+                "comprendre ce qu'il faut alleger",
+                "fatigue",
+                "too_hard",
+                "context"
+              ]
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "visible_fallback_used": false,
+            "qa_green_eligible": true,
+            "no_chat_mutation": true,
+            "no_durable_plan_mutation": true,
+            "evidence": [
+              "fatigue forte jeudi-vendredi",
+              "impression d'avancer un peu",
+              "comprendre ce qu'il faut alleger"
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "weekly-opening-r2-partial_habits_mission_partial-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-06-12T01:02:58.307Z",
+      "user": "Oui, cette direction colle. Pour la semaine prochaine, ajuste surtout Respiration de pause: je veux la garder seulement mardi, pas mardi et jeudi, et que ca reste tres leger. Ensuite on revient au bilan weekly.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "C'est tout à fait compréhensible de vouloir alléger ton programme avec cette fatigue de fin de semaine. Pour ton activité 'Respiration de pause', l'idée est donc de réduire sa fréquence et son intensité. Pour effectuer ce changement, rends-toi dans ton Plan : juste en dessous de ton niveau actif, tu trouveras l'option 'Ajuster mon plan'. Tu pourras y saisir cette proposition : Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-opening-r2-partial_habits_mission_partial-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-opening-r2-partial_habits_mission_partial-t02",
+        "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-opening-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est tout à fait compréhensible de vouloir alléger ton programme avec cette fatigue de fin de semaine. Pour ton activité 'Respiration de pause', l'idée est donc de réduire sa fréquence et son intensité. Pour effectuer ce changement, rends-toi dans ton Plan : juste en dessous de ton niveau actif, tu trouveras l'option 'Ajuster mon plan'. Tu pourras y saisir cette proposition : Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "platform_handoff",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "weekly-opening-r2-partial_habits_mission_partial-t02",
+              "source_message_id": "04c78d93-b76f-4942-82c9-2da7a76bb9f4",
+              "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [
+                {
+                  "operation_type": "adjust_plan_item",
+                  "explicitness": "explicit",
+                  "operation_input": {
+                    "source_flow_id": "weekly_adaptive_review_v1",
+                    "source_flow_summary": "weekly review parent remains active",
+                    "handoff_reason": "bridge",
+                    "handoff_context_for_next_dispatcher": "The user is in the middle of a weekly review. They confirmed the 'bridge week' strategy but want to specifically adjust 'Respiration de pause' to be Tuesday only and very light. Perform this adjustment as a child flow, then return to the weekly review for final synthesis.",
+                    "structured_context": {
+                      "user_message_summary": "Demande d'ajustement spécifique sur une action comme détour au bilan.",
+                      "active_flow_summary": "weekly review parent remains active",
+                      "collected_state": {
+                        "return_to_weekly": true,
+                        "weekly_stage": "plan_handoff",
+                        "target_plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                      },
+                      "unresolved_questions": [],
+                      "recommended_next_focus": "adjust specific item then return to weekly"
+                    },
+                    "note_information": {
+                      "source_flow_id": "weekly_adaptive_review_v1",
+                      "handoff_reason": "bridge",
+                      "target_dispatcher": "adjust_plan_item",
+                      "handoff_context_for_next_dispatcher": "The user is in the middle of a weekly review. They confirmed the 'bridge week' strategy but want to specifically adjust 'Respiration de pause' to be Tuesday only and very light. Perform this adjustment as a child flow, then return to the weekly review for final synthesis.",
+                      "user_words": [
+                        "ajuste surtout Respiration de pause",
+                        "seulement mardi",
+                        "tres leger"
+                      ],
+                      "structured_context": {
+                        "user_message_summary": "Demande d'ajustement spécifique sur une action comme détour au bilan.",
+                        "active_flow_summary": "weekly review parent remains active",
+                        "collected_state": {
+                          "return_to_weekly": true,
+                          "weekly_stage": "plan_handoff",
+                          "target_plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                        },
+                        "unresolved_questions": [],
+                        "recommended_next_focus": "adjust specific item then return to weekly"
+                      },
+                      "confidence": "high"
+                    }
+                  },
+                  "payload_hint": {
+                    "source_flow_id": "weekly_adaptive_review_v1",
+                    "note_information": {
+                      "source_flow_id": "weekly_adaptive_review_v1",
+                      "handoff_reason": "bridge",
+                      "target_dispatcher": "adjust_plan_item",
+                      "handoff_context_for_next_dispatcher": "The user is in the middle of a weekly review. They confirmed the 'bridge week' strategy but want to specifically adjust 'Respiration de pause' to be Tuesday only and very light. Perform this adjustment as a child flow, then return to the weekly review for final synthesis.",
+                      "user_words": [
+                        "ajuste surtout Respiration de pause",
+                        "seulement mardi",
+                        "tres leger"
+                      ],
+                      "structured_context": {
+                        "user_message_summary": "Demande d'ajustement spécifique sur une action comme détour au bilan.",
+                        "active_flow_summary": "weekly review parent remains active",
+                        "collected_state": {
+                          "return_to_weekly": true,
+                          "weekly_stage": "plan_handoff",
+                          "target_plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                        },
+                        "unresolved_questions": [],
+                        "recommended_next_focus": "adjust specific item then return to weekly"
+                      },
+                      "confidence": "high"
+                    }
+                  },
+                  "confidence_band": "high",
+                  "ambiguity": "target_ambiguous",
+                  "user_intent": "adjust"
+                }
+              ],
+              "note_information": {
+                "source_flow_id": "weekly_adaptive_review_v1",
+                "handoff_reason": "bridge",
+                "target_dispatcher": "adjust_plan_item",
+                "handoff_context_for_next_dispatcher": "The user is in the middle of a weekly review. They confirmed the 'bridge week' strategy but want to specifically adjust 'Respiration de pause' to be Tuesday only and very light. Perform this adjustment as a child flow, then return to the weekly review for final synthesis.",
+                "user_words": [
+                  "ajuste surtout Respiration de pause",
+                  "seulement mardi",
+                  "tres leger"
+                ],
+                "structured_context": {
+                  "user_message_summary": "Demande d'ajustement spécifique sur une action comme détour au bilan.",
+                  "active_flow_summary": "weekly review parent remains active",
+                  "collected_state": {
+                    "return_to_weekly": true,
+                    "weekly_stage": "plan_handoff",
+                    "target_plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                  },
+                  "unresolved_questions": [],
+                  "recommended_next_focus": "adjust specific item then return to weekly"
+                },
+                "confidence": "high"
+              },
+              "skill_signals": {
+                "entry": {
+                  "adjust_plan_item": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "weekly_adaptive_review_v1_handoff"
+                  }
+                }
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "adjust_plan_item",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "weekly_adaptive_review_v1_handoff_to_adjust_plan_item_skips_global_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "weekly_adaptive_review_v1_handoff_to_adjust_plan_item",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "adjust_plan_item",
+              "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+              "operation_type": "adjust_plan_item",
+              "mode": "platform_handoff",
+              "status": "draft_delivered",
+              "operation_id": null,
+              "input_draft": {
+                "operation_type": "adjust_plan_item",
+                "mode": "platform_handoff",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "user_blocker_summary": "fatigue forte en fin de semaine, besoin d'alléger",
+                "suggested_platform_input": "Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+                "preserve": [],
+                "avoid": [
+                  "jeudi"
+                ],
+                "destination": {
+                  "product_area": "Plan",
+                  "instruction": "Reprendre cette proposition dans la surface Plan."
+                },
+                "missing_clarity": []
+              },
+              "requested_effects": [],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "platform_handoff": {
+                "operation_type": "adjust_plan_item",
+                "status": "delivered",
+                "surface_id": "plan",
+                "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "draft": {
+                  "operation_type": "adjust_plan_item",
+                  "mode": "platform_handoff",
+                  "no_chat_mutation": true,
+                  "executable_from_chat": false,
+                  "user_blocker_summary": "fatigue forte en fin de semaine, besoin d'alléger",
+                  "suggested_platform_input": "Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+                  "preserve": [],
+                  "avoid": [
+                    "jeudi"
+                  ],
+                  "destination": {
+                    "product_area": "Plan",
+                    "instruction": "Reprendre cette proposition dans la surface Plan."
+                  },
+                  "missing_clarity": []
+                }
+              },
+              "skill_result": {
+                "handled": true,
+                "status": "handoff_delivered",
+                "user_intent": "start",
+                "reply": "C'est tout à fait compréhensible de vouloir alléger ton programme avec cette fatigue de fin de semaine. Pour ton activité 'Respiration de pause', l'idée est donc de réduire sa fréquence et son intensité. Pour effectuer ce changement, rends-toi dans ton Plan : juste en dessous de ton niveau actif, tu trouveras l'option 'Ajuster mon plan'. Tu pourras y saisir cette proposition : Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+                "requested_effects": [],
+                "allowed_effects": [],
+                "blocked_effects": [],
+                "committed_effects": [],
+                "pending_confirmation": null,
+                "debug": {
+                  "reason_code": "adjust_plan_item_local_plan_handoff_ready"
+                }
+              },
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "pending_confirmation": null,
+              "flow_action": "prepare_plan_handoff",
+              "local_flow_state": {
+                "skill_id": "adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "mode": "platform_handoff",
+                "status": "handoff_delivered",
+                "stage": "handoff",
+                "scope": {
+                  "kind": "specific_plan_item",
+                  "confidence": "high",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "level_id": null,
+                  "level_title": null,
+                  "plan_item_ids": [
+                    "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                  ],
+                  "target_summary": "Respiration de pause",
+                  "needs_scope_clarification": false
+                },
+                "adjustment_need": {
+                  "reason_change": "fatigue forte en fin de semaine, besoin d'alléger",
+                  "requested_change": "garder seulement le mardi (supprimer le jeudi) et rendre l'exercice très léger",
+                  "change_kind": "reduce",
+                  "constraints": [
+                    "semaine prochaine",
+                    "mardi uniquement"
+                  ],
+                  "preserve": [],
+                  "avoid": [
+                    "jeudi"
+                  ],
+                  "missing": []
+                },
+                "platform_handoff": {
+                  "status": "delivered",
+                  "destination": "Plan",
+                  "suggested_platform_input": "Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+                  "grouped_by_plan": [],
+                  "previous_value": null,
+                  "revised_value": null
+                },
+                "last_visible_task": "plan_handoff_ready",
+                "last_handoff_summary": "Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+                "turn_count": 1,
+                "subskill_history": []
+              },
+              "visible_task": {
+                "kind": "plan_handoff_ready"
+              },
+              "conversation_context": {
+                "state_summary": "Le user veut réduire la fréquence et l'intensité de 'Respiration de pause' pour la semaine prochaine.",
+                "user_words": [
+                  "seulement mardi",
+                  "pas mardi et jeudi",
+                  "tres leger"
+                ],
+                "field_or_stage": "handoff",
+                "known_values": {
+                  "scope": {
+                    "kind": "specific_plan_item",
+                    "confidence": "high",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "level_id": null,
+                    "level_title": null,
+                    "plan_item_ids": [
+                      "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                    ],
+                    "target_summary": "Respiration de pause",
+                    "needs_scope_clarification": false
+                  },
+                  "adjustment_need": {
+                    "reason_change": "fatigue forte en fin de semaine, besoin d'alléger",
+                    "requested_change": "garder seulement le mardi (supprimer le jeudi) et rendre l'exercice très léger",
+                    "change_kind": "reduce",
+                    "constraints": [
+                      "semaine prochaine",
+                      "mardi uniquement"
+                    ],
+                    "preserve": [],
+                    "avoid": [
+                      "jeudi"
+                    ],
+                    "missing": []
+                  },
+                  "constraints": [
+                    "semaine prochaine",
+                    "mardi uniquement"
+                  ],
+                  "preserve": [],
+                  "avoid": [
+                    "jeudi"
+                  ]
+                },
+                "missing_or_weak_values": [],
+                "selected_candidate": {
+                  "plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2",
+                  "title": "Respiration de pause",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "level_id": null,
+                  "level_title": null,
+                  "plan_item_ids": [
+                    "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                  ],
+                  "target_summary": "Respiration de pause",
+                  "scope_kind": "specific_plan_item",
+                  "scope_confidence": "high"
+                },
+                "handoff_data": {
+                  "destination": "Plan",
+                  "suggested_platform_input": "Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+                  "grouped_by_plan": [],
+                  "previous_value": null,
+                  "revised_value": null
+                },
+                "tone_constraints": [
+                  "bienveillant",
+                  "concis"
+                ],
+                "do_not_say": [
+                  "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+                  "Ne mentionne pas les labels internes du dispatcher.",
+                  "Ne dis pas que le plan est déjà modifié ou enregistré.",
+                  "Ne dis pas que c'est appliqué."
+                ],
+                "context_summary": "Le user fait un détour par l'ajustement d'une action spécifique pendant son bilan hebdomadaire.",
+                "evidence_used": [
+                  "ajuste surtout Respiration de pause",
+                  "seulement mardi",
+                  "pas mardi et jeudi",
+                  "tres leger",
+                  "Respiration de pause",
+                  "seulement mardi",
+                  "tres leger"
+                ]
+              },
+              "handoff_core": {
+                "target_to_modify": "Respiration de pause",
+                "reason_change": "fatigue forte en fin de semaine, besoin d'alléger",
+                "requested_change": "garder seulement le mardi (supprimer le jeudi) et rendre l'exercice très léger",
+                "change_kind": "reduce",
+                "has_core_triptych": true,
+                "missing_or_weak_values": []
+              },
+              "risk_score": 0,
+              "runtime_trace": [
+                {
+                  "component": "adjust_plan_item.visible_agent",
+                  "stage": "plan_handoff_ready",
+                  "accepted": true,
+                  "issues": []
+                }
+              ]
+            },
+            "effect_ledger": {
+              "turn_id": "weekly-opening-r2-partial_habits_mission_partial-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 1,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "weekly-opening-r2-partial_habits_mission_partial-t02:platform_handoff:delivered:adjust_plan_item:runtime",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.adjust_plan_item",
+                  "operation_type": "adjust_plan_item",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "adjust_plan_item",
+                  "status": "delivered",
+                  "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "no_chat_mutation": true,
+                    "status": "draft_delivered",
+                    "surface_id": "plan"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "plan",
+                  "no_chat_mutation": true,
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "weekly-opening-r2-partial_habits_mission_partial-t02",
+            "source_message_id": "04c78d93-b76f-4942-82c9-2da7a76bb9f4",
+            "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "adjust_plan_item",
+                "explicitness": "explicit",
+                "operation_input": {
+                  "source_flow_id": "weekly_adaptive_review_v1",
+                  "source_flow_summary": "weekly review parent remains active",
+                  "handoff_reason": "bridge",
+                  "handoff_context_for_next_dispatcher": "The user is in the middle of a weekly review. They confirmed the 'bridge week' strategy but want to specifically adjust 'Respiration de pause' to be Tuesday only and very light. Perform this adjustment as a child flow, then return to the weekly review for final synthesis.",
+                  "structured_context": {
+                    "user_message_summary": "Demande d'ajustement spécifique sur une action comme détour au bilan.",
+                    "active_flow_summary": "weekly review parent remains active",
+                    "collected_state": {
+                      "return_to_weekly": true,
+                      "weekly_stage": "plan_handoff",
+                      "target_plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                    },
+                    "unresolved_questions": [],
+                    "recommended_next_focus": "adjust specific item then return to weekly"
+                  },
+                  "note_information": {
+                    "source_flow_id": "weekly_adaptive_review_v1",
+                    "handoff_reason": "bridge",
+                    "target_dispatcher": "adjust_plan_item",
+                    "handoff_context_for_next_dispatcher": "The user is in the middle of a weekly review. They confirmed the 'bridge week' strategy but want to specifically adjust 'Respiration de pause' to be Tuesday only and very light. Perform this adjustment as a child flow, then return to the weekly review for final synthesis.",
+                    "user_words": [
+                      "ajuste surtout Respiration de pause",
+                      "seulement mardi",
+                      "tres leger"
+                    ],
+                    "structured_context": {
+                      "user_message_summary": "Demande d'ajustement spécifique sur une action comme détour au bilan.",
+                      "active_flow_summary": "weekly review parent remains active",
+                      "collected_state": {
+                        "return_to_weekly": true,
+                        "weekly_stage": "plan_handoff",
+                        "target_plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                      },
+                      "unresolved_questions": [],
+                      "recommended_next_focus": "adjust specific item then return to weekly"
+                    },
+                    "confidence": "high"
+                  }
+                },
+                "payload_hint": {
+                  "source_flow_id": "weekly_adaptive_review_v1",
+                  "note_information": {
+                    "source_flow_id": "weekly_adaptive_review_v1",
+                    "handoff_reason": "bridge",
+                    "target_dispatcher": "adjust_plan_item",
+                    "handoff_context_for_next_dispatcher": "The user is in the middle of a weekly review. They confirmed the 'bridge week' strategy but want to specifically adjust 'Respiration de pause' to be Tuesday only and very light. Perform this adjustment as a child flow, then return to the weekly review for final synthesis.",
+                    "user_words": [
+                      "ajuste surtout Respiration de pause",
+                      "seulement mardi",
+                      "tres leger"
+                    ],
+                    "structured_context": {
+                      "user_message_summary": "Demande d'ajustement spécifique sur une action comme détour au bilan.",
+                      "active_flow_summary": "weekly review parent remains active",
+                      "collected_state": {
+                        "return_to_weekly": true,
+                        "weekly_stage": "plan_handoff",
+                        "target_plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                      },
+                      "unresolved_questions": [],
+                      "recommended_next_focus": "adjust specific item then return to weekly"
+                    },
+                    "confidence": "high"
+                  }
+                },
+                "confidence_band": "high",
+                "ambiguity": "target_ambiguous",
+                "user_intent": "adjust"
+              }
+            ],
+            "note_information": {
+              "source_flow_id": "weekly_adaptive_review_v1",
+              "handoff_reason": "bridge",
+              "target_dispatcher": "adjust_plan_item",
+              "handoff_context_for_next_dispatcher": "The user is in the middle of a weekly review. They confirmed the 'bridge week' strategy but want to specifically adjust 'Respiration de pause' to be Tuesday only and very light. Perform this adjustment as a child flow, then return to the weekly review for final synthesis.",
+              "user_words": [
+                "ajuste surtout Respiration de pause",
+                "seulement mardi",
+                "tres leger"
+              ],
+              "structured_context": {
+                "user_message_summary": "Demande d'ajustement spécifique sur une action comme détour au bilan.",
+                "active_flow_summary": "weekly review parent remains active",
+                "collected_state": {
+                  "return_to_weekly": true,
+                  "weekly_stage": "plan_handoff",
+                  "target_plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                },
+                "unresolved_questions": [],
+                "recommended_next_focus": "adjust specific item then return to weekly"
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {
+                "adjust_plan_item": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "weekly_adaptive_review_v1_handoff"
+                }
+              }
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "adjust_plan_item",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "weekly_adaptive_review_v1_handoff_to_adjust_plan_item_skips_global_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "weekly_adaptive_review_v1_handoff_to_adjust_plan_item",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "adjust_plan_item",
+            "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_handoff",
+            "status": "draft_delivered",
+            "operation_id": null,
+            "input_draft": {
+              "operation_type": "adjust_plan_item",
+              "mode": "platform_handoff",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_blocker_summary": "fatigue forte en fin de semaine, besoin d'alléger",
+              "suggested_platform_input": "Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+              "preserve": [],
+              "avoid": [
+                "jeudi"
+              ],
+              "destination": {
+                "product_area": "Plan",
+                "instruction": "Reprendre cette proposition dans la surface Plan."
+              },
+              "missing_clarity": []
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "committed_effects": [],
+            "platform_handoff": {
+              "operation_type": "adjust_plan_item",
+              "status": "delivered",
+              "surface_id": "plan",
+              "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "draft": {
+                "operation_type": "adjust_plan_item",
+                "mode": "platform_handoff",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "user_blocker_summary": "fatigue forte en fin de semaine, besoin d'alléger",
+                "suggested_platform_input": "Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+                "preserve": [],
+                "avoid": [
+                  "jeudi"
+                ],
+                "destination": {
+                  "product_area": "Plan",
+                  "instruction": "Reprendre cette proposition dans la surface Plan."
+                },
+                "missing_clarity": []
+              }
+            },
+            "skill_result": {
+              "handled": true,
+              "status": "handoff_delivered",
+              "user_intent": "start",
+              "reply": "C'est tout à fait compréhensible de vouloir alléger ton programme avec cette fatigue de fin de semaine. Pour ton activité 'Respiration de pause', l'idée est donc de réduire sa fréquence et son intensité. Pour effectuer ce changement, rends-toi dans ton Plan : juste en dessous de ton niveau actif, tu trouveras l'option 'Ajuster mon plan'. Tu pourras y saisir cette proposition : Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "pending_confirmation": null,
+              "debug": {
+                "reason_code": "adjust_plan_item_local_plan_handoff_ready"
+              }
+            },
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "pending_confirmation": null,
+            "flow_action": "prepare_plan_handoff",
+            "local_flow_state": {
+              "skill_id": "adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "stage": "handoff",
+              "scope": {
+                "kind": "specific_plan_item",
+                "confidence": "high",
+                "plan_id": null,
+                "plan_title": null,
+                "level_id": null,
+                "level_title": null,
+                "plan_item_ids": [
+                  "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                ],
+                "target_summary": "Respiration de pause",
+                "needs_scope_clarification": false
+              },
+              "adjustment_need": {
+                "reason_change": "fatigue forte en fin de semaine, besoin d'alléger",
+                "requested_change": "garder seulement le mardi (supprimer le jeudi) et rendre l'exercice très léger",
+                "change_kind": "reduce",
+                "constraints": [
+                  "semaine prochaine",
+                  "mardi uniquement"
+                ],
+                "preserve": [],
+                "avoid": [
+                  "jeudi"
+                ],
+                "missing": []
+              },
+              "platform_handoff": {
+                "status": "delivered",
+                "destination": "Plan",
+                "suggested_platform_input": "Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+                "grouped_by_plan": [],
+                "previous_value": null,
+                "revised_value": null
+              },
+              "last_visible_task": "plan_handoff_ready",
+              "last_handoff_summary": "Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+              "turn_count": 1,
+              "subskill_history": []
+            },
+            "visible_task": {
+              "kind": "plan_handoff_ready"
+            },
+            "conversation_context": {
+              "state_summary": "Le user veut réduire la fréquence et l'intensité de 'Respiration de pause' pour la semaine prochaine.",
+              "user_words": [
+                "seulement mardi",
+                "pas mardi et jeudi",
+                "tres leger"
+              ],
+              "field_or_stage": "handoff",
+              "known_values": {
+                "scope": {
+                  "kind": "specific_plan_item",
+                  "confidence": "high",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "level_id": null,
+                  "level_title": null,
+                  "plan_item_ids": [
+                    "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                  ],
+                  "target_summary": "Respiration de pause",
+                  "needs_scope_clarification": false
+                },
+                "adjustment_need": {
+                  "reason_change": "fatigue forte en fin de semaine, besoin d'alléger",
+                  "requested_change": "garder seulement le mardi (supprimer le jeudi) et rendre l'exercice très léger",
+                  "change_kind": "reduce",
+                  "constraints": [
+                    "semaine prochaine",
+                    "mardi uniquement"
+                  ],
+                  "preserve": [],
+                  "avoid": [
+                    "jeudi"
+                  ],
+                  "missing": []
+                },
+                "constraints": [
+                  "semaine prochaine",
+                  "mardi uniquement"
+                ],
+                "preserve": [],
+                "avoid": [
+                  "jeudi"
+                ]
+              },
+              "missing_or_weak_values": [],
+              "selected_candidate": {
+                "plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2",
+                "title": "Respiration de pause",
+                "plan_id": null,
+                "plan_title": null,
+                "level_id": null,
+                "level_title": null,
+                "plan_item_ids": [
+                  "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                ],
+                "target_summary": "Respiration de pause",
+                "scope_kind": "specific_plan_item",
+                "scope_confidence": "high"
+              },
+              "handoff_data": {
+                "destination": "Plan",
+                "suggested_platform_input": "Pour la semaine prochaine, réduire 'Respiration de pause' : la programmer uniquement le mardi (supprimer le jeudi) et passer sur un format très léger.",
+                "grouped_by_plan": [],
+                "previous_value": null,
+                "revised_value": null
+              },
+              "tone_constraints": [
+                "bienveillant",
+                "concis"
+              ],
+              "do_not_say": [
+                "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+                "Ne mentionne pas les labels internes du dispatcher.",
+                "Ne dis pas que le plan est déjà modifié ou enregistré.",
+                "Ne dis pas que c'est appliqué."
+              ],
+              "context_summary": "Le user fait un détour par l'ajustement d'une action spécifique pendant son bilan hebdomadaire.",
+              "evidence_used": [
+                "ajuste surtout Respiration de pause",
+                "seulement mardi",
+                "pas mardi et jeudi",
+                "tres leger",
+                "Respiration de pause",
+                "seulement mardi",
+                "tres leger"
+              ]
+            },
+            "handoff_core": {
+              "target_to_modify": "Respiration de pause",
+              "reason_change": "fatigue forte en fin de semaine, besoin d'alléger",
+              "requested_change": "garder seulement le mardi (supprimer le jeudi) et rendre l'exercice très léger",
+              "change_kind": "reduce",
+              "has_core_triptych": true,
+              "missing_or_weak_values": []
+            },
+            "risk_score": 0,
+            "runtime_trace": [
+              {
+                "component": "adjust_plan_item.visible_agent",
+                "stage": "plan_handoff_ready",
+                "accepted": true,
+                "issues": []
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "weekly-opening-r2-partial_habits_mission_partial-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "weekly-opening-r2-partial_habits_mission_partial-t02:platform_handoff:delivered:adjust_plan_item:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "adjust_plan_item",
+                "status": "delivered",
+                "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "draft_delivered",
+                  "surface_id": "plan"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "started_at": "2026-06-12T01:03:53.836Z",
+      "user": "Ok, on revient au weekly. Cette version plus legere me rassure, et je pense que ca suffit pour conclure le bilan: je garde l'objectif, mais je veux moins me cramer.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "C'est noté pour cette approche plus douce. On a bien pris en compte le besoin d'alléger le rythme pour mieux gérer ta fatigue. Ton bilan est terminé. Pour mettre en place les ajustements discutés, je t'invite à te rendre directement dans ton onglet Plan, car rien n'est modifié depuis notre échange. Prêt à passer à la suite ?",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-opening-r2-partial_habits_mission_partial-t03",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-opening-r2-partial_habits_mission_partial-t03",
+        "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-opening-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est noté pour cette approche plus douce. On a bien pris en compte le besoin d'alléger le rythme pour mieux gérer ta fatigue. Ton bilan est terminé. Pour mettre en place les ajustements discutés, je t'invite à te rendre directement dans ton onglet Plan, car rien n'est modifié depuis notre échange. Prêt à passer à la suite ?",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "weekly-opening-r2-partial_habits_mission_partial-t03",
+              "source_message_id": "f9836d46-fc29-47db-aec5-590c7fa85555",
+              "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {},
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "weekly_adaptive_review_v1",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_weekly_review_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_weekly_review_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "weekly_adaptive_review_v1",
+              "reason_code": "weekly_review_local_complete_flow",
+              "operation_type": "weekly_adaptive_review_v1",
+              "status": "closed",
+              "flow_action": "complete_flow",
+              "visible_task": "complete_no_change",
+              "confidence": "high",
+              "risk_score": 0,
+              "weekly_intent": {
+                "kind": "weekly_confirmation",
+                "summary": "Le user valide la stratégie d'allègement et souhaite conclure le bilan."
+              },
+              "handoff_updates": {
+                "status": "delivered",
+                "requested_adjustment_summary": null,
+                "revision_summary": null,
+                "platform_destination": "Plan",
+                "scope": {
+                  "kind": "specific_item",
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_ids": [
+                    "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                  ],
+                  "scope_summary": "Respiration de pause",
+                  "needs_scope_clarification": false
+                }
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null
+              },
+              "local_flow_state": {
+                "stage": "closing",
+                "proposal_status": "handoff_delivered",
+                "validation_unlock_status": "available",
+                "human_signals": {
+                  "objective_delta": "slight_progress",
+                  "felt_state": "tired_but_ok"
+                },
+                "felt_progress": "encouraged",
+                "last_user_signal": "Rassuré par l'allègement, garde l'objectif sans s'épuiser.",
+                "last_visible_summary": "Le user valide la stratégie d'allègement et souhaite conclure le bilan.",
+                "last_handoff_summary": "Respiration de pause",
+                "child_flow": {
+                  "status": "completed",
+                  "flow_id": "adjust_plan_item",
+                  "reason": "Le user valide la stratégie d'allègement et demande un ajustement spécifique sur 'Respiration de pause' (mardi uniquement, léger) avant de conclure le bilan.",
+                  "expected_return_focus": "weekly_synthesis_and_closure",
+                  "result_summary": "adjust_plan_item_local_plan_handoff_ready"
+                },
+                "turn_count": 3,
+                "max_turns": 6,
+                "updated_at": "2026-06-12T01:04:06.679Z"
+              },
+              "target_dispatcher": "none",
+              "note_information": null,
+              "conversation_context": {
+                "state_summary": "Le user valide la stratégie d'allègement et souhaite conclure le bilan.",
+                "user_words": [],
+                "week_window": {
+                  "start_date": "2026-06-01",
+                  "end_date": "2026-06-07"
+                },
+                "field_or_stage": "complete_no_change",
+                "known_values": {
+                  "human_signals": {
+                    "objective_delta": "slight_progress",
+                    "felt_state": "tired_but_ok"
+                  },
+                  "felt_progress": "encouraged",
+                  "validation_unlock_status": "available",
+                  "proposal_status": "handoff_delivered",
+                  "child_flow": {
+                    "status": "completed",
+                    "flow_id": "adjust_plan_item",
+                    "reason": "Le user valide la stratégie d'allègement et demande un ajustement spécifique sur 'Respiration de pause' (mardi uniquement, léger) avant de conclure le bilan.",
+                    "expected_return_focus": "weekly_synthesis_and_closure",
+                    "result_summary": "adjust_plan_item_local_plan_handoff_ready"
+                  },
+                  "dominant_blocker_confirmation": "confirmed"
+                },
+                "missing_or_weak_values": [],
+                "weekly_reading": {
+                  "strategy_label_human": "semaine plus legere",
+                  "reason_human": "La traction existe, mais les blocages indiquent une charge a alleger.",
+                  "confidence": "high"
+                },
+                "plan_contexts": [
+                  {
+                    "transformation_id": "f7439fcb-8cd1-46cd-95a6-4feac80c3697",
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "action_count": 6
+                  }
+                ],
+                "item_summaries": [
+                  {
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "c7356182-acc4-47e8-9003-b67e7cfee43d",
+                    "occurrence_id": "84ff85df-6cb9-457e-b9ec-57d06bcbe501",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "on_plan",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "fait comme prevu",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "none",
+                      "matched_user_text": "fait comme prevu",
+                      "occurrence_status": "done",
+                      "reschedule_decision": "none"
+                    }
+                  },
+                  {
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "c7356182-acc4-47e8-9003-b67e7cfee43d",
+                    "occurrence_id": "240d2163-c32b-43f0-81d4-c3a44f5f0143",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "partial",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "j'ai commence mais trop fatigue",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "fatigue",
+                      "matched_user_text": "j'ai commence mais trop fatigue",
+                      "occurrence_status": "planned",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "c7356182-acc4-47e8-9003-b67e7cfee43d",
+                    "occurrence_id": "1b44620e-dc8f-409f-937b-ed6bd2f126dc",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "missed",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "trop lourd en fin de semaine",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "too_hard",
+                      "matched_user_text": "trop lourd en fin de semaine",
+                      "occurrence_status": "missed",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2",
+                    "occurrence_id": "d4332524-0160-44b4-8eae-8722dce434c7",
+                    "title": "Respiration de pause",
+                    "family": null,
+                    "status": "on_plan",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "fait comme prevu",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "none",
+                      "matched_user_text": "fait comme prevu",
+                      "occurrence_status": "done",
+                      "reschedule_decision": "none"
+                    }
+                  },
+                  {
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2",
+                    "occurrence_id": "57bf5b07-4fd7-4440-82b8-10bf7fead014",
+                    "title": "Respiration de pause",
+                    "family": null,
+                    "status": "missed",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "j'ai zappe en rentrant tard",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "fatigue",
+                      "matched_user_text": "j'ai zappe en rentrant tard",
+                      "occurrence_status": "missed",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "050cad5c-8670-4232-89f6-d3b11b6845b8",
+                    "occurrence_id": "ee2c0d61-699c-4d00-88a1-0a4f0d2f944d",
+                    "title": "Convenir d'un signal de pause",
+                    "family": null,
+                    "status": "partial",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "message brouillon fait mais pas envoye",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "context",
+                      "matched_user_text": "message brouillon fait mais pas envoye",
+                      "occurrence_status": "planned",
+                      "reschedule_decision": "carry_over"
+                    }
+                  }
+                ],
+                "handoff_data": {
+                  "summary": "Respiration de pause",
+                  "platform_destination": "Plan",
+                  "scope": {
+                    "kind": "specific_item",
+                    "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_ids": [
+                      "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                    ],
+                    "scope_summary": "Respiration de pause",
+                    "needs_scope_clarification": false
+                  },
+                  "requested_adjustment_summary": null,
+                  "revision_summary": null,
+                  "no_chat_mutation": true
+                },
+                "forgotten_progress": {
+                  "status": "none",
+                  "target_hint": null,
+                  "outcome_hint": null,
+                  "evidence": null,
+                  "no_plan_adjustment": true
+                },
+                "inline_result": {},
+                "tone_constraints": [
+                  "compact",
+                  "one_question_max_when_asking",
+                  "human_language"
+                ],
+                "do_not_say": [
+                  "bridge_week",
+                  "carry_over",
+                  "repeat_week",
+                  "level_review",
+                  "plan_patch",
+                  "item_decision",
+                  "dominant_blocker",
+                  "applique",
+                  "modifie le plan",
+                  "valide le plan",
+                  "enregistre le plan"
+                ],
+                "context_summary": "Le user valide la stratégie d'allègement et souhaite conclure le bilan.",
+                "evidence_used": [
+                  "revient au weekly",
+                  "version plus legere me rassure",
+                  "conclure le bilan",
+                  "garde l'objectif",
+                  "moins me cramer",
+                  "fatigue",
+                  "too_hard",
+                  "context"
+                ]
+              },
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "visible_fallback_used": false,
+              "qa_green_eligible": true,
+              "no_chat_mutation": true,
+              "no_durable_plan_mutation": true,
+              "evidence": [
+                "revient au weekly",
+                "version plus legere me rassure",
+                "conclure le bilan",
+                "garde l'objectif",
+                "moins me cramer"
+              ],
+              "toolExecution": "none",
+              "executedTools": []
+            },
+            "effect_ledger": {
+              "turn_id": "weekly-opening-r2-partial_habits_mission_partial-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "weekly-opening-r2-partial_habits_mission_partial-t03",
+            "source_message_id": "f9836d46-fc29-47db-aec5-590c7fa85555",
+            "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_weekly_review_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_weekly_review_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_local_complete_flow",
+            "operation_type": "weekly_adaptive_review_v1",
+            "status": "closed",
+            "flow_action": "complete_flow",
+            "visible_task": "complete_no_change",
+            "confidence": "high",
+            "risk_score": 0,
+            "weekly_intent": {
+              "kind": "weekly_confirmation",
+              "summary": "Le user valide la stratégie d'allègement et souhaite conclure le bilan."
+            },
+            "handoff_updates": {
+              "status": "delivered",
+              "requested_adjustment_summary": null,
+              "revision_summary": null,
+              "platform_destination": "Plan",
+              "scope": {
+                "kind": "specific_item",
+                "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                "plan_title": "Semaine 1 - rythme simple",
+                "plan_item_ids": [
+                  "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                ],
+                "scope_summary": "Respiration de pause",
+                "needs_scope_clarification": false
+              }
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null
+            },
+            "local_flow_state": {
+              "stage": "closing",
+              "proposal_status": "handoff_delivered",
+              "validation_unlock_status": "available",
+              "human_signals": {
+                "objective_delta": "slight_progress",
+                "felt_state": "tired_but_ok"
+              },
+              "felt_progress": "encouraged",
+              "last_user_signal": "Rassuré par l'allègement, garde l'objectif sans s'épuiser.",
+              "last_visible_summary": "Le user valide la stratégie d'allègement et souhaite conclure le bilan.",
+              "last_handoff_summary": "Respiration de pause",
+              "child_flow": {
+                "status": "completed",
+                "flow_id": "adjust_plan_item",
+                "reason": "Le user valide la stratégie d'allègement et demande un ajustement spécifique sur 'Respiration de pause' (mardi uniquement, léger) avant de conclure le bilan.",
+                "expected_return_focus": "weekly_synthesis_and_closure",
+                "result_summary": "adjust_plan_item_local_plan_handoff_ready"
+              },
+              "turn_count": 3,
+              "max_turns": 6,
+              "updated_at": "2026-06-12T01:04:06.679Z"
+            },
+            "target_dispatcher": "none",
+            "note_information": null,
+            "conversation_context": {
+              "state_summary": "Le user valide la stratégie d'allègement et souhaite conclure le bilan.",
+              "user_words": [],
+              "week_window": {
+                "start_date": "2026-06-01",
+                "end_date": "2026-06-07"
+              },
+              "field_or_stage": "complete_no_change",
+              "known_values": {
+                "human_signals": {
+                  "objective_delta": "slight_progress",
+                  "felt_state": "tired_but_ok"
+                },
+                "felt_progress": "encouraged",
+                "validation_unlock_status": "available",
+                "proposal_status": "handoff_delivered",
+                "child_flow": {
+                  "status": "completed",
+                  "flow_id": "adjust_plan_item",
+                  "reason": "Le user valide la stratégie d'allègement et demande un ajustement spécifique sur 'Respiration de pause' (mardi uniquement, léger) avant de conclure le bilan.",
+                  "expected_return_focus": "weekly_synthesis_and_closure",
+                  "result_summary": "adjust_plan_item_local_plan_handoff_ready"
+                },
+                "dominant_blocker_confirmation": "confirmed"
+              },
+              "missing_or_weak_values": [],
+              "weekly_reading": {
+                "strategy_label_human": "semaine plus legere",
+                "reason_human": "La traction existe, mais les blocages indiquent une charge a alleger.",
+                "confidence": "high"
+              },
+              "plan_contexts": [
+                {
+                  "transformation_id": "f7439fcb-8cd1-46cd-95a6-4feac80c3697",
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "action_count": 6
+                }
+              ],
+              "item_summaries": [
+                {
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "c7356182-acc4-47e8-9003-b67e7cfee43d",
+                  "occurrence_id": "84ff85df-6cb9-457e-b9ec-57d06bcbe501",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "on_plan",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "fait comme prevu",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "matched_user_text": "fait comme prevu",
+                    "occurrence_status": "done",
+                    "reschedule_decision": "none"
+                  }
+                },
+                {
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "c7356182-acc4-47e8-9003-b67e7cfee43d",
+                  "occurrence_id": "240d2163-c32b-43f0-81d4-c3a44f5f0143",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "j'ai commence mais trop fatigue",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "matched_user_text": "j'ai commence mais trop fatigue",
+                    "occurrence_status": "planned",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "c7356182-acc4-47e8-9003-b67e7cfee43d",
+                  "occurrence_id": "1b44620e-dc8f-409f-937b-ed6bd2f126dc",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "trop lourd en fin de semaine",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "too_hard",
+                    "matched_user_text": "trop lourd en fin de semaine",
+                    "occurrence_status": "missed",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2",
+                  "occurrence_id": "d4332524-0160-44b4-8eae-8722dce434c7",
+                  "title": "Respiration de pause",
+                  "family": null,
+                  "status": "on_plan",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "fait comme prevu",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "matched_user_text": "fait comme prevu",
+                    "occurrence_status": "done",
+                    "reschedule_decision": "none"
+                  }
+                },
+                {
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2",
+                  "occurrence_id": "57bf5b07-4fd7-4440-82b8-10bf7fead014",
+                  "title": "Respiration de pause",
+                  "family": null,
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "j'ai zappe en rentrant tard",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "matched_user_text": "j'ai zappe en rentrant tard",
+                    "occurrence_status": "missed",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "050cad5c-8670-4232-89f6-d3b11b6845b8",
+                  "occurrence_id": "ee2c0d61-699c-4d00-88a1-0a4f0d2f944d",
+                  "title": "Convenir d'un signal de pause",
+                  "family": null,
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "message brouillon fait mais pas envoye",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "context",
+                    "matched_user_text": "message brouillon fait mais pas envoye",
+                    "occurrence_status": "planned",
+                    "reschedule_decision": "carry_over"
+                  }
+                }
+              ],
+              "handoff_data": {
+                "summary": "Respiration de pause",
+                "platform_destination": "Plan",
+                "scope": {
+                  "kind": "specific_item",
+                  "plan_id": "a170e908-c8ed-4531-8284-f12d1d62ec05",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_ids": [
+                    "b5debe79-bd5e-4e56-93aa-0d0bb2121fe2"
+                  ],
+                  "scope_summary": "Respiration de pause",
+                  "needs_scope_clarification": false
+                },
+                "requested_adjustment_summary": null,
+                "revision_summary": null,
+                "no_chat_mutation": true
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null,
+                "no_plan_adjustment": true
+              },
+              "inline_result": {},
+              "tone_constraints": [
+                "compact",
+                "one_question_max_when_asking",
+                "human_language"
+              ],
+              "do_not_say": [
+                "bridge_week",
+                "carry_over",
+                "repeat_week",
+                "level_review",
+                "plan_patch",
+                "item_decision",
+                "dominant_blocker",
+                "applique",
+                "modifie le plan",
+                "valide le plan",
+                "enregistre le plan"
+              ],
+              "context_summary": "Le user valide la stratégie d'allègement et souhaite conclure le bilan.",
+              "evidence_used": [
+                "revient au weekly",
+                "version plus legere me rassure",
+                "conclure le bilan",
+                "garde l'objectif",
+                "moins me cramer",
+                "fatigue",
+                "too_hard",
+                "context"
+              ]
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "visible_fallback_used": false,
+            "qa_green_eligible": true,
+            "no_chat_mutation": true,
+            "no_durable_plan_mutation": true,
+            "evidence": [
+              "revient au weekly",
+              "version plus legere me rassure",
+              "conclure le bilan",
+              "garde l'objectif",
+              "moins me cramer"
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "weekly-opening-r2-partial_habits_mission_partial-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-12T01:04:10.550Z"
+}

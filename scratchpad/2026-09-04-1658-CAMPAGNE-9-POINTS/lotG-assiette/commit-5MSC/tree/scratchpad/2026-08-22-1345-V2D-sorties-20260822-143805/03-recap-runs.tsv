@@ -1,0 +1,11 @@
+idx	lane	locale	intent	replaces	http	secondes	plan_id	gen_cumul
+01	foyer	fr-FR	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	200	67.250920	3eae73ac-373d-41c4-af3a-9e6c895ee86c	1
+02	foyer	fr-FR	replace_current	3eae73ac-373d-41c4-af3a-9e6c895ee86c	200	50.826307	09240cb5-7ca3-4080-a028-e364974e5b91	2
+03	foyer	fr-FR	replace_current	09240cb5-7ca3-4080-a028-e364974e5b91	200	90.861460	8f498609-48b5-4faf-8349-a8d7be262006	3
+04	foyer	fr-FR	replace_current	8f498609-48b5-4faf-8349-a8d7be262006	200	97.276028	d46c4dad-ec3b-4bc1-af5e-8660b0c22b41	4
+05	foyer	fr-FR	replace_current	d46c4dad-ec3b-4bc1-af5e-8660b0c22b41	200	60.543153	4ef89334-81c0-40ec-895a-73b550de30da	5
+06	foyer	en-GB	replace_current	4ef89334-81c0-40ec-895a-73b550de30da	200	87.449090	9ec54e51-4bf2-42b3-aa30-038e38e598ce	6
+07	foyer	en-GB	replace_current	9ec54e51-4bf2-42b3-aa30-038e38e598ce	200	87.431033	5058be6a-3728-47f3-8685-9334519ad41f	7
+08	foyer	en-GB	replace_current	5058be6a-3728-47f3-8685-9334519ad41f	200	88.777457	612ac898-cfe0-45b7-b538-2152719f08b8	8
+09	foyer	en-GB	replace_current	612ac898-cfe0-45b7-b538-2152719f08b8	200	72.080220	a5b2a817-fd34-4f22-8632-8f47cb985146	9
+10	foyer	en-GB	replace_current	a5b2a817-fd34-4f22-8632-8f47cb985146	200	95.716981	9f02838a-7fc4-4e48-9653-6d226f6bfa64	10

@@ -54,7 +54,7 @@ Deno.test("⛔ LA CELLULE RÉPARÉE EST PRISE, LA CELLULE CASSÉE EST LAISSÉE �
   const before = mealsDelivered(view(b), MOUTHS), after = mealsDelivered(view(r), MOUTHS);
   assertEquals(before.missing, 1, "le plan de base devait manquer Léa samedi soir");
   assertEquals(after.missing, 1, "la relance devait manquer Zoé dimanche midi: tout-ou-rien la rejetterait");
-  const out = mergeRetryByCell({ base: b, retry: r, before, after });
+  const out = mergeRetryByCell({ base: b, retry: r, before, after , index: null });
   assertEquals(out.cells, ["sat/dinner"]);
   const merged = mealsDelivered(view(out.meal), MOUTHS);
   assertEquals(merged.missing, 0, JSON.stringify(merged.mouths));
@@ -67,7 +67,7 @@ Deno.test("⛔ LA CELLULE RÉPARÉE EST PRISE, LA CELLULE CASSÉE EST LAISSÉE �
 
 Deno.test("⛔ LA CASSEROLE IMPORTÉE A UNE SESSION, ET SES COURSES SUIVENT", () => {
   const b = base(), r = retry();
-  const out = mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS) });
+  const out = mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS) , index: null });
   assertEquals(out.importedPreparations, ["prep_tofu"]);
   assert(out.meal.preparations.some((p) => p.id === "prep_tofu"), "la casserole de tofu n'est pas dans le plan fusionné");
   const sat = out.meal.cooking_sessions.find((s) => s.day === "sat")!;
@@ -83,7 +83,7 @@ Deno.test("⛔ UN ID DÉJÀ PRIS AVEC UN AUTRE CONTENU EST RENOMMÉ, et les plat
   const b = base(), r = retry();
   // La relance a réécrit `prep_chicken` (autre méthode): elle ne doit pas écraser celle de base, que dimanche cite.
   r.preparations[0].method = "Rôtir au four, autrement.";
-  const out = mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS) });
+  const out = mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS) , index: null });
   assertEquals(out.renamed, { prep_chicken: "prep_chicken__r" });
   const sat = out.meal.dishes.find((d) => d.day === "sat")!;
   assertEquals(sat.uses.map((u) => u.preparationId), ["prep_chicken__r", "prep_tofu"]);
@@ -98,19 +98,19 @@ Deno.test("rien à prendre → le plan de base, tel quel (même objet), et `cell
   const b = base(), r = retry();
   const before = mealsDelivered(view(b), MOUTHS);
   // Une relance qui n'a rien réparé.
-  const out = mergeRetryByCell({ base: b, retry: b, before, after: before });
+  const out = mergeRetryByCell({ base: b, retry: b, before, after: before , index: null });
   assertEquals(out.cells, []);
   assert(out.meal === b);
   // Une relance qui répare une cellule ABSENTE de ses plats ne peut rien donner.
   const r2 = retry(); r2.dishes = r2.dishes.filter((d) => d.day !== "sat");
-  const out2 = mergeRetryByCell({ base: b, retry: r2, before, after: mealsDelivered(view(r2), MOUTHS) });
+  const out2 = mergeRetryByCell({ base: b, retry: r2, before, after: mealsDelivered(view(r2), MOUTHS) , index: null });
   assertEquals(out2.cells, []);
 });
 
 Deno.test("⛔ PUR: ni le plan de base ni la relance ne sont mutés", () => {
   const b = base(), r = retry();
   const snapB = JSON.stringify(b), snapR = JSON.stringify(r);
-  mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS) });
+  mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS) , index: null });
   assertEquals(JSON.stringify(b), snapB);
   assertEquals(JSON.stringify(r), snapR);
 });
@@ -119,29 +119,11 @@ Deno.test("une casserole importée sans session ce jour-là reçoit la session d
   const b = base(), r = retry();
   r.preparations[1] = { ...r.preparations[1], cookOn: "fri" } as never;
   r.cooking_sessions.push({ day: "fri", preparationIds: ["prep_tofu"], runThrough: "Vendredi soir.", totalMinutes: 20 } as never);
-  const out = mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS) });
+  const out = mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS) , index: null });
   assertEquals(out.sessionsImported, 1);
   const fri = out.meal.cooking_sessions.find((s) => s.day === "fri")!;
   assertEquals(fri.preparationIds, ["prep_tofu"]);
   assertEquals(fri.runThrough, "Vendredi soir.");
-});
-
-Deno.test("CÂBLAGE — la fusion par cellule est la SECONDE voie d'acceptation, après le tout-ou-rien, et se compte sur les deux surfaces", async () => {
-  const src = await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
-  const whole = src.indexOf("after.missing < delivered.missing");
-  const merge = src.indexOf("mergeRetryByCell({ base: meal, retry: retried, before: delivered, after })");
-  assert(whole > 0 && merge > whole, "la fusion ne vient pas APRÈS l'acceptation entière: une relance meilleure en entier doit remplacer, pas fusionner");
-  // ⟳ 2026-09-05 (R2, mutation W2): la CONDITION du tout-ou-rien, pas sa
-  // seule présence dans le fichier — un `false &&` devant restait vert.
-  assert(
-    /if \(\s*retried\.dishes\.length >= meal\.dishes\.length &&\s*after\.missing < delivered\.missing\s*\) \{/.test(src),
-    "le tout-ou-rien n'est plus la condition telle quelle: une relance meilleure en entier ne remplacerait plus",
-  );
-  const branch = src.slice(merge, src.indexOf("unfedRetryMergedCells += merge.cells.length"));
-  assert(!/mealSourceText = /.test(branch), "la fusion remplace le texte source: les portions par bouche liraient un autre plan");
-  assert(/const merged = mealsDelivered\(deliveredViewOf\(merge\.meal\), mouthCells\);/.test(src), "le plan fusionné n'est pas recompté");
-  assert(/if \(!\(merged\.missing < delivered\.missing\)\) \{\n\s*rejected\("merge_no_gain"\);\n\s*break;/.test(src), "une fusion qui n'améliore pas serait acceptée, ou ne se journalise plus");
-  assertEquals((src.match(/retry_merged_cells: unfedRetryMergedCells,/g) || []).length, 2, "les cellules fusionnées ne se comptent pas sur le journal ET l'archive");
 });
 
 // ⟳ 2026-09-05 — CE QUE LA FUSION DÉFAIT (relecture R2). Le plat de samedi
@@ -159,8 +141,36 @@ function retryReplacing(tofuCookOn = "sat") {
   });
 }
 const merge = (b: GeneratedMeal, r: GeneratedMeal) =>
-  mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS) });
+  mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS), index: null });
 
+Deno.test("CÂBLAGE — la fusion par cellule N'A PLUS D'APPELANT, et ce qui la remplace est plus strict", async () => {
+  const src = await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — CE QUE CE TEST ÉPINGLAIT A ÉTÉ REMPLACÉ
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // La fusion par cellule était la SECONDE voie d'acceptation d'une relance
+  // rendue EN ENTIER : on prenait les cellules réparées et on laissait le
+  // reste. Elle existait parce que le modèle renvoyait tout le plan.
+  //
+  // ⛔ IL NE LE RENVOIE PLUS. Une réparation rend un PATCH — les seules unités
+  // autorisées, sous leur `unit_id` — et `applyRepairPatch` est plus strict que
+  // la fusion sur trois points: une unité hors périmètre rejette la réponse
+  // ENTIÈRE au lieu d'être ignorée; l'identité (jour, moment, porteur) est
+  // injectée et non lue; et l'application est atomique — pas de demi-patch.
+  assert(
+    !src.includes("mergeRetryByCell({"),
+    "la fusion par cellule est revenue: elle suppose un plan entier en réponse",
+  );
+  assert(
+    src.includes("c4Fusion = applyRepairPatch({"),
+    "l'application de patch a disparu: plus rien ne réparerait",
+  );
+  // ⛔ ET LE TEXTE SOURCE SUIT LE PLAN FUSIONNÉ, jamais la réponse brute.
+  const at = src.indexOf("meal = c4Fusion.plan;");
+  assert(at > 0 && src.slice(at, at + 200).includes("mealSourceText = c4FusedText;"),
+    "le plan retenu et son texte source ne sont plus la même version");
+});
 Deno.test("⛔ R2-A — LA CASSEROLE DU PLAT REMPLACÉ SORT: du plan, de sa session, et des courses", () => {
   const out = merge(base(), retryReplacing());
   assertEquals(out.cells, ["sat/dinner"]);
@@ -265,7 +275,7 @@ Deno.test("⛔ UNE CELLULE VIDE POUR QUATRE, RENDUE NOURRIE POUR TROIS, EST PRIS
   });
   const before = mealsDelivered(view(b), MOUTHS), after = mealsDelivered(view(r), MOUTHS);
   assertEquals(before.missing, 3, "prémisse: samedi soir manque aux trois");
-  const out = mergeRetryByCell({ base: b, retry: r, before, after });
+  const out = mergeRetryByCell({ base: b, retry: r, before, after , index: null });
   assertEquals(out.cells, ["sat/dinner"], "la cellule passée de trois manquants à un n'est pas prise");
   const merged = mealsDelivered(view(out.meal), MOUTHS);
   assertEquals(merged.missing, 1, JSON.stringify(merged.mouths));
@@ -274,7 +284,7 @@ Deno.test("⛔ UNE CELLULE VIDE POUR QUATRE, RENDUE NOURRIE POUR TROIS, EST PRIS
 Deno.test("une cellule où AUTANT de bouches manquent n'est pas prise", () => {
   const b = meal({ dishes: [dish("sat", "dinner", "Poulet, riz", [{ id: "b_sat", memberIds: [CLAIRE, ZOE], items: [{ term: "poulet", grams: 300, preparationId: null }] }], [], [{ memberId: LEA, boxId: "b_sat" }])] });
   const r = meal({ dishes: [dish("sat", "dinner", "Dinde, riz", [{ id: "b_sat2", memberIds: [CLAIRE, ZOE], items: [{ term: "dinde", grams: 300, preparationId: null }] }], [], [{ memberId: LEA, boxId: "b_sat2" }])] });
-  const out = mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS) });
+  const out = mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS) , index: null });
   assertEquals(out.cells, []);
 });
 
@@ -308,39 +318,6 @@ Deno.test("une cellule où AUTANT de bouches manquent n'est pas prise", () => {
 // merge.meal` et la suite. Un test de comportement demanderait de monter une
 // fonction edge entière pour trois lignes.
 // ===========================================================================
-
-Deno.test("les deux lanes retirent d'`empty_slots` les cases que la relance a reprises", async () => {
-  for (
-    const fn of ["generate-household-meal-v1"]
-  ) {
-    const src = (await Deno.readTextFile(
-      new URL(`../../${fn}/index.ts`, import.meta.url),
-    ))
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
-
-    // LE CAS QUI PASSE, et il est obligatoire: sans lui, une lane qui aurait
-    // perdu la relance ENTIÈRE serait verte — plus de fusion, donc plus de
-    // trou périmé, donc plus rien à retirer.
-    const at = src.indexOf("meal = merge.meal;");
-    assert(
-      at >= 0,
-      `${fn}: la fusion de relance a disparu — test à réviser, pas à contourner.`,
-    );
-
-    // Le retrait DANS LA FOULÉE de la fusion, pas ailleurs dans le fichier: un
-    // filtre posé plus haut porterait sur un plan que la fusion n'a pas encore
-    // touché.
-    const tail = src.slice(at, at + 600);
-    assert(
-      /meal\.empty_slots = slotsStillEmpty\(meal\.empty_slots, merge\.cells\)/
-        .test(tail),
-      `${fn}: le plan garde ses trous d'AVANT la relance. L'explication ` +
-        `annoncera « n repas n'ont pas été composés » sur des cases qui ` +
-        `portent un plat — le défaut mesuré le 2026-09-06.`,
-    );
-  }
-});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LA FOURCHE DE LA CASSEROLE PARTAGÉE — mesurée, jamais comptée (2026-09-08)
@@ -376,6 +353,33 @@ function relanceRiz() {
   return m;
 }
 
+Deno.test("la lane foyer n'a plus de fusion de relance, donc plus de trou périmé à retirer", async () => {
+  const src = (await Deno.readTextFile(
+    new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
+  ))
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+  // ⟳ 2026-09-12 · FERMETURE LOT 1 — `slotsStillEmpty` corrigeait `empty_slots`
+  // après une fusion de relance: les cases reprises n'étaient plus vides. Il
+  // n'y a plus de fusion de relance.
+  //
+  // ⛔ ET LA PROPRIÉTÉ QUI COMPTAIT TIENT AUTREMENT, plus fort: une case vide
+  // est désormais une UNITÉ RÉSERVÉE (`plan_repair_unit.ts`). Quand un patch la
+  // remplit, elle cesse d'être réservée au tour suivant — parce que la table
+  // des unités est RECONSTRUITE sur le plan courant, et non corrigée à la main.
+  assert(
+    !src.includes("meal = merge.meal;"),
+    "la fusion de relance est revenue: elle suppose un plan entier en réponse",
+  );
+  assert(
+    src.includes("const c4Units = buildRepairUnits({"),
+    "la table des unités a disparu: une case vide n'aurait plus d'adresse",
+  );
+  assert(
+    src.includes("complements: c4DedicatedAsks().map((a) => ({"),
+    "les unités de complément ne sont plus construites",
+  );
+});
 Deno.test("⛔ LA FOURCHE EXISTE, ET ELLE EST MESURÉE — deux riz cuits pour une personne", () => {
   // ⛔ CE TEST DÉCRIT LE COMPORTEMENT AVANT DÉFOURCHAGE, ET IL DOIT RESTER
   // VERT. `mergeRetryCells` a raison de renommer: le dîner, qui n'a pas été
@@ -386,7 +390,7 @@ Deno.test("⛔ LA FOURCHE EXISTE, ET ELLE EST MESURÉE — deux riz cuits pour u
     base: planRiz(),
     retry: relanceRiz(),
     cells: ["mon/lunch"],
-  });
+   index: null });
   assertEquals(out.renamed, { prep_rice: "prep_rice__r" });
   assertEquals(out.meal.preparations.map((p) => p.id).sort(), ["prep_rice", "prep_rice__r"]);
   const session = out.meal.cooking_sessions.find((s) => s.day === "mon")!;
@@ -401,7 +405,7 @@ Deno.test("⛔ DÉFOURCHAGE — une casserole RÉÉCRIVABLE retrouve son nom, et
     base: planRiz(),
     retry: relanceRiz(),
     cells: ["mon/lunch"],
-  });
+   index: null });
   const { meal: fusionne, unforked, forked } = unforkReworkedPots(out, new Set(["prep_rice"]));
   assertEquals(unforked, ["prep_rice"]);
   assertEquals(forked, []);
@@ -431,7 +435,7 @@ Deno.test("⛔ DÉFOURCHAGE — une casserole GELÉE reste fourchée, et se COMP
     base: planRiz(),
     retry: relanceRiz(),
     cells: ["mon/lunch"],
-  });
+   index: null });
   const { meal: fusionne, unforked, forked } = unforkReworkedPots(out, new Set());
   assertEquals(unforked, []);
   assertEquals(forked, ["prep_rice"], "le modèle a touché une casserole gelée");
@@ -442,7 +446,7 @@ Deno.test("DÉFOURCHAGE — sans renommage, rien ne bouge", () => {
   // Le cas nominal: la relance n'a pas réécrit la casserole, il n'y a rien à
   // défourcher. Une fonction qui « répare » quand il n'y a rien à réparer est
   // une fonction qui déplacera un jour ce qu'on ne lui a pas demandé.
-  const out = mergeRetryCells({ base: planRiz(), retry: planRiz(), cells: ["mon/lunch"] });
+  const out = mergeRetryCells({ base: planRiz(), retry: planRiz(), cells: ["mon/lunch"] , index: null });
   assertEquals(out.renamed, {});
   const { unforked, forked, meal: m } = unforkReworkedPots(out, new Set(["prep_rice"]));
   assertEquals([unforked, forked], [[], []]);
@@ -475,7 +479,7 @@ Deno.test("⛔ appendDedicatedDishes — n'importe QUE les plats des porteurs aj
     plat("wed", "lunch", "Pain et cacahuètes", "leo"),       // ajouté : PRIS
     plat("wed", "dinner", "Autre chose", "paul"),            // hors case demandée : IGNORÉ
   ]);
-  const r = appendDedicatedDishes({ base, retry, asks: [{ cell: "wed/lunch", memberId: "paul" }, { cell: "wed/lunch", memberId: "leo" }] });
+  const r = appendDedicatedDishes({ base, retry, asks: [{ cell: "wed/lunch", memberId: "paul" }, { cell: "wed/lunch", memberId: "leo" }] , index: null });
   assertEquals(r.added.map((a) => a.memberId).sort(), ["leo", "paul"]);
   assertEquals(r.missing, []);
   const titres = r.meal.dishes.map((d) => `${d.memberId ?? "table"}:${d.title}`).sort();
@@ -493,7 +497,7 @@ Deno.test("⛔ appendDedicatedDishes — un plat ajouté qui CITE une casserole 
     plat("wed", "lunch", "Riz au poulet", "paul", ["prep_rice"]),
     plat("wed", "lunch", "Noix et fromage", "leo"),
   ]);
-  const r = appendDedicatedDishes({ base, retry, asks: [{ cell: "wed/lunch", memberId: "paul" }, { cell: "wed/lunch", memberId: "leo" }] });
+  const r = appendDedicatedDishes({ base, retry, asks: [{ cell: "wed/lunch", memberId: "paul" }, { cell: "wed/lunch", memberId: "leo" }] , index: null });
   assertEquals(r.rejected_citing_pot, 1);
   assertEquals(r.added.map((a) => a.memberId), ["leo"]);
   assertEquals(r.missing, [{ cell: "wed/lunch", memberId: "paul" }]);
@@ -502,7 +506,7 @@ Deno.test("⛔ appendDedicatedDishes — un plat ajouté qui CITE une casserole 
 Deno.test("⛔ appendDedicatedDishes — un porteur non rendu est NOMMÉ manquant, et un doublon n'entre qu'une fois", () => {
   const base = repas([plat("wed", "lunch", "Couscous", null)]);
   const retry = repas([plat("wed", "lunch", "Noix", "leo"), plat("wed", "lunch", "Noix encore", "leo")]);
-  const r = appendDedicatedDishes({ base, retry, asks: [{ cell: "wed/lunch", memberId: "paul" }, { cell: "wed/lunch", memberId: "leo" }] });
+  const r = appendDedicatedDishes({ base, retry, asks: [{ cell: "wed/lunch", memberId: "paul" }, { cell: "wed/lunch", memberId: "leo" }] , index: null });
   assertEquals(r.added.length, 1);
   assertEquals(r.missing, [{ cell: "wed/lunch", memberId: "paul" }]);
 });
@@ -514,7 +518,7 @@ Deno.test("⛔ appendDedicatedDishes — `missing` compte les PAIRES demandées,
   // Léo au dîner ; ni l'un ni l'autre n'est « manquant » dans l'autre case.
   const base = repas([plat("wed", "lunch", "Couscous", null), plat("wed", "dinner", "Soupe", null)]);
   const retry = repas([plat("wed", "lunch", "Noix", "paul"), plat("wed", "lunch", "Noix", "leo")]);
-  const r = appendDedicatedDishes({ base, retry, asks: [{ cell: "wed/lunch", memberId: "paul" }, { cell: "wed/dinner", memberId: "leo" }] });
+  const r = appendDedicatedDishes({ base, retry, asks: [{ cell: "wed/lunch", memberId: "paul" }, { cell: "wed/dinner", memberId: "leo" }] , index: null });
   assertEquals(r.added, [{ cell: "wed/lunch", memberId: "paul" }]);
   // Léo au déjeuner n'était pas demandé : ignoré, pas ajouté.
   assertEquals(r.missing, [{ cell: "wed/dinner", memberId: "leo" }]);
@@ -545,7 +549,7 @@ Deno.test("⛔ ÉPISSAGE — le frais autorisé et la casserole autorisée sont 
     [sPot("prep_rice", [sIng("riz", "200 g"), sIng("beurre", "40 g")], 9), sPot("prep_chicken", [sIng("poulet", "900 g"), sIng("crème", "200 ml")])],
     [{ term: "parmesan", quantity: "40 g" }, { term: "beurre", quantity: "40 g" }, { term: "crème", quantity: "200 ml" }, { term: "tahini", quantity: "30 g" }],
   );
-  const r = spliceReworkableUnits({ base, retry, asks: [{ dishIndex: 0, freshReworkable: true, reworkablePotIds: ["prep_chicken"] }] });
+  const r = spliceReworkableUnits({ base, retry, asks: [{ dishIndex: 0, freshReworkable: true, reworkablePotIds: ["prep_chicken"] }] , index: null });
   // frais du plat demandé : remplacé (et son titre suit)
   assertEquals(r.meal.dishes[0].ingredients.map((i) => i.term), ["huile", "parmesan"]);
   assertEquals(r.meal.dishes[0].title, "Riz poulet crémeux");
@@ -563,7 +567,7 @@ Deno.test("⛔ ÉPISSAGE — le frais autorisé et la casserole autorisée sont 
   // ⟳ 2026-09-11 · LOT E — DEUX COMPTEURS DE PLUS, ET TOUS DEUX À ZÉRO ICI:
   // la relance rend le MÊME ensemble de casseroles (`uses_mismatch: 0`), et les
   // plats de cette fixture ne portent aucun `densityCheck` à invalider.
-  assertEquals(r.counts, { fresh_spliced: 1, pots_spliced: 1, dish_missing: 0, pot_missing: 0, shopping_added: 2, shopping_pruned: 0, uses_mismatch: 0, density_checks_cleared: 0 });
+  assertEquals(r.counts, { fresh_spliced: 1, pots_spliced: 1, dish_missing: 0, pot_missing: 0, shopping_added: 2, shopping_pruned: 0, shopping_unattributed: 0, uses_mismatch: 0, density_checks_cleared: 0 });
   assertEquals(r.dishesSpliced, [0]);
   // ⛔ la base n'est pas mutée
   assertEquals(base.dishes[0].ingredients.map((i) => i.term), ["huile"]);
@@ -572,7 +576,7 @@ Deno.test("⛔ ÉPISSAGE — le frais autorisé et la casserole autorisée sont 
 Deno.test("⛔ ÉPISSAGE — un plat ou une casserole autorisés ABSENTS de la relance sont NOMMÉS, et la base reste", () => {
   const base = sMeal([sDish("wed", "lunch", "Riz poulet", null, [sIng("huile", "1")], ["prep_rice"])], [sPot("prep_rice", [sIng("riz", "200 g")])]);
   const retry = sMeal([sDish("wed", "dinner", "Autre", null, [sIng("x", "1")])], []);
-  const r = spliceReworkableUnits({ base, retry, asks: [{ dishIndex: 0, freshReworkable: true, reworkablePotIds: ["prep_rice"] }] });
+  const r = spliceReworkableUnits({ base, retry, asks: [{ dishIndex: 0, freshReworkable: true, reworkablePotIds: ["prep_rice"] }] , index: null });
   assertEquals(r.counts.dish_missing, 1);
   assertEquals(r.counts.pot_missing, 1);
   assertEquals(r.dishesSpliced, []);
@@ -587,7 +591,7 @@ Deno.test("⛔ ÉPISSAGE — le plat est apparié par la case ET son porteur", (
   // prendrait le premier plat de la case — celui de la table — et donnerait
   // le parmesan à Nora. C'est le défaut mesuré au tir BASCULE.
   const retry = sMeal([sDish("wed", "lunch", "Riz poulet", null, [sIng("parmesan", "40 g")]), sDish("wed", "lunch", "Riz tofu", "nora", [sIng("tahini", "30 g")])], []);
-  const r = spliceReworkableUnits({ base, retry, asks: [{ dishIndex: 1, freshReworkable: true, reworkablePotIds: [] }] });
+  const r = spliceReworkableUnits({ base, retry, asks: [{ dishIndex: 1, freshReworkable: true, reworkablePotIds: [] }] , index: null });
   assertEquals(r.meal.dishes[1].ingredients.map((i) => i.term), ["tahini"]);
   assertEquals(r.meal.dishes[0].ingredients.map((i) => i.term), ["huile"]);
 });
@@ -605,7 +609,7 @@ Deno.test("⟳ appendDedicatedDishes — le plat ajouté est un COMPLÉMENT, et 
       { term: "salmon", quantity: "400 g" }, // réclamé par personne : IGNORÉ
     ],
   } as unknown as Parameters<typeof appendDedicatedDishes>[0]["retry"];
-  const r = appendDedicatedDishes({ base, retry, asks: [{ cell: "wed/lunch", memberId: "paul" }] });
+  const r = appendDedicatedDishes({ base, retry, asks: [{ cell: "wed/lunch", memberId: "paul" }] , index: null });
   assertEquals(r.added, [{ cell: "wed/lunch", memberId: "paul" }]);
   const added = r.meal.dishes.find((d) => d.memberId === "paul")!;
   assertEquals(added.complementsShared, true, "le plat ajouté n'est pas marqué complément");

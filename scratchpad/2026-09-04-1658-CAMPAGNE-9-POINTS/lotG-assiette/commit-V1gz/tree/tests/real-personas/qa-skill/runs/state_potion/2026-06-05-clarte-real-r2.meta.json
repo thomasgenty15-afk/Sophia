@@ -1,0 +1,26 @@
+{
+  "run_id": "clarte-real-r2",
+  "date": "2026-06-05",
+  "persona": "temporary local qa-skill auth user",
+  "email": "qa-clarte-real-1780668380642@example.com",
+  "user_id": "42abcf49-0926-4ac6-a2b1-8f10dea5b90d",
+  "auth_verification_status": 200,
+  "endpoint": "http://127.0.0.1:54321/functions/v1/test-send-message",
+  "force_full_ai": true,
+  "cleanup_status": "done",
+  "cleanup": {
+    "auth_delete_status": 200,
+    "deletions": [
+      {
+        "table": "chat_messages",
+        "status": 204,
+        "ok": true
+      },
+      {
+        "table": "user_chat_states",
+        "status": 204,
+        "ok": true
+      }
+    ]
+  }
+}

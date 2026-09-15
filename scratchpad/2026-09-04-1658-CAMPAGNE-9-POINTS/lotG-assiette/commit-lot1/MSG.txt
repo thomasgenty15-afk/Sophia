@@ -1,0 +1,26 @@
+le plafond de masse suit la densité mesurée de l'assiette, borné par un plancher de densité — plus 1,35 kcal/g fixe, et jamais le kilo
+
+Arbitrage produit n° 1 du 2026-09-05 : « une assiette peut peser plus si elle est dense ;
+le plafond se calcule sur la densité réelle du plat, pas sur un chiffre fixe ». Mesuré
+avant : sur C03, la boîte de Paul pesait exactement 880 / 1,35 = 652 g et portait 386 kcal
+— le plafond créait le manque qu'il rapportait (`clamped` 12/12, `unmet gte_200` 12/12).
+
+Règle (`mealMassCapFor`, `mouth_anchor.ts`) : le plafond du plus gros repas = kcal du
+repas / densité RETENUE, où la densité retenue est celle que les boîtes à un nom de la
+bouche ont livré (kcal / grammes, par grammes tirés depuis le lot 0), bornée entre
+`MEAL_KCAL_PER_G_FLOOR` (1,0) et `MEAL_KCAL_PER_G_COMPOSED` (1,35). Moins dense qu'un
+plat ordinaire ⇒ plus de grammes, jusqu'au plancher ; sous le plancher (soupe, légumes à
+l'eau) c'est le plancher qui borne — la réparation est de densifier, jamais de servir un
+seau ; plus dense que 1,35 n'est jamais borné plus serré qu'hier (garde de VOLUME, pas
+dosage) ; sans grammes lisibles, 1,35 reste et se nomme. Pas de retour au kilo : les
+deux tests du 2026-09-04 (« le 1,2 kg est mort », « une enfant de 36 kg ») tiennent,
+réécrits sur la règle. Le plafond du BAC (`pot_demand.ts`) suit la même fonction, à la
+densité mesurée du bac.
+
+Compteur obligatoire `capBit` sur `AnchorFactor` et `PotFactor` — `none`, `density`,
+`density_floor`, `assumed_density`, `factor_bound` — histogrammes `anchor_cap` et
+`pot_cap` dans `box_sizing` (journal et archive) : c'est l'avant/après demandé par
+l'arbitrage. Tests : cinq cas ARBITRAGE 1 + épinglage du plancher ; mutation « retour à
+1,35 fixe » : 7 rouges. Suite keel : 5 552 verts sur l'arbre matérialisé.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

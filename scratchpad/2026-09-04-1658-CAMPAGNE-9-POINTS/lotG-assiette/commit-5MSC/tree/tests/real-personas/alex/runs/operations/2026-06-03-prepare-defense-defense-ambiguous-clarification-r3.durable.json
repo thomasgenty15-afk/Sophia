@@ -1,0 +1,303 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "30102e47-83bf-417c-a874-0b7ee02c5078",
+        "role": "user",
+        "content": "Je ne sais pas si je dois préparer une carte d'attaque ou une carte de défense. Ce soir j'ai mes mails client à traiter et j'ai peur de finir sur YouTube après. Tu m'aides à choisir ?",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-ambiguous-clarification-r3",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-ambiguous-clarification-r3-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:39:38.710676+00:00"
+      },
+      {
+        "id": "626ffa3d-3a68-412f-9d73-64e995a39add",
+        "role": "assistant",
+        "content": "Tu veux préparer une carte d'attaque pour t'aider à traiter tes mails ou une carte de défense pour éviter de finir sur YouTube ? 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-ambiguous-clarification-r3",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-ambiguous-clarification-r3-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-03T18:39:47.276164+00:00"
+      },
+      {
+        "id": "410efa95-f549-4563-80de-387d6cf73e57",
+        "role": "user",
+        "content": "Défense plutôt : je veux surtout éviter le décrochage YouTube juste après les mails.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-ambiguous-clarification-r3",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-ambiguous-clarification-r3-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:39:55.940621+00:00"
+      },
+      {
+        "id": "d4fb5cf5-8cc0-49e5-adb8-cd0d838e014d",
+        "role": "assistant",
+        "content": "Où aller : dans Ressources / Défense / Cartes de défense libres / Ajouter une carte\nDans la plateforme, le champ à préparer est :\n« Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? »\nJe te proposerais d'écrire :\n« éviter le décrochage YouTube juste après les mails »\nJe ne crée pas la carte depuis le chat. 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-ambiguous-clarification-r3",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-ambiguous-clarification-r3-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": null,
+              "reason": "platform_handoff_delivered",
+              "status": "handoff_delivered",
+              "reason_code": "platform_handoff_delivered",
+              "user_intent": "create",
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "platform_fields": {
+                "fields": [
+                  {
+                    "status": "locked",
+                    "evidence": [
+                      "risk_situation.label",
+                      "risk_situation.description"
+                    ],
+                    "field_id": "support_need",
+                    "required": true,
+                    "locked_value": "éviter le décrochage YouTube juste après les mails",
+                    "user_evidence": [
+                      "éviter le décrochage YouTube juste après les mails"
+                    ],
+                    "proposed_value": null,
+                    "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "complete",
+                "route_kind": "free_card",
+                "missing_field_ids": []
+              },
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "Décrochage YouTube",
+                  "platform_flow": {
+                    "entry_need": {
+                      "value": "éviter le décrochage YouTube juste après les mails",
+                      "status": "locked",
+                      "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                    },
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": []
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "Ouvre Ressources / Défense.",
+                      "Dans Cartes de défense libres, clique sur Ajouter une carte.",
+                      "Renseigne les réponses ci-dessous dans les champs de la plateforme."
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres / Ajouter une carte"
+                  },
+                  "target_summary": "éviter le décrochage YouTube juste après les mails",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "risk_situation.label",
+                          "risk_situation.description"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "éviter le décrochage YouTube juste après les mails",
+                        "user_evidence": [
+                          "éviter le décrochage YouTube juste après les mails"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "handoff_delivered",
+                "surface_id": "defense_cards",
+                "operation_type": "prepare_defense_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T18:40:12.666883+00:00"
+      },
+      {
+        "id": "0b11daa3-b616-4754-b503-ccc8194e829c",
+        "role": "user",
+        "content": "Ok crée-la.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-ambiguous-clarification-r3",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-ambiguous-clarification-r3-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:40:21.282099+00:00"
+      },
+      {
+        "id": "a4516d19-0bd2-45ff-ba0b-d7411202d46e",
+        "role": "assistant",
+        "content": "Je ne crée pas la carte depuis le chat.\nVa dans Ressources / Défense / Cartes de défense libres / Ajouter une carte; reprends la phrase préparée juste au-dessus dans la plateforme. 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-ambiguous-clarification-r3",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-ambiguous-clarification-r3-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "reason": "chat_apply_attempt_redirected_to_platform",
+              "status": "apply_attempt",
+              "reason_code": "chat_apply_attempt_redirected_to_platform",
+              "user_intent": "create",
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "Décrochage YouTube",
+                  "platform_flow": {
+                    "entry_need": {
+                      "value": "éviter le décrochage YouTube juste après les mails",
+                      "status": "locked",
+                      "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                    },
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": []
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "Ouvre Ressources / Défense.",
+                      "Dans Cartes de défense libres, clique sur Ajouter une carte.",
+                      "Renseigne les réponses ci-dessous dans les champs de la plateforme."
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres / Ajouter une carte"
+                  },
+                  "target_summary": "éviter le décrochage YouTube juste après les mails",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "risk_situation.label",
+                          "risk_situation.description"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "éviter le décrochage YouTube juste après les mails",
+                        "user_evidence": [
+                          "éviter le décrochage YouTube juste après les mails"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "apply_attempt",
+                "surface_id": "defense_cards",
+                "operation_type": "prepare_defense_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T18:40:26.009905+00:00"
+      }
+    ]
+  }
+}

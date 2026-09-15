@@ -1,0 +1,222 @@
+{
+  "run_id": "feature-opportunity-local-real-20260623-r1",
+  "persona": "qa-skill",
+  "connection_name": "feature_opportunity_feature-opportunity-local-real-20260623-r1",
+  "user_id": "c42424c9-42a5-4b3b-a18a-c2e95b62b7a7",
+  "email": "qa-qa-skill-feature-opportunity-feature-opportunity-local-real-20260623-r1@example.com",
+  "scope": "qa-feature-opportunity-local-real-20260623-r1",
+  "updated_at": "2026-06-22T22:49:40.038Z",
+  "raw_path": "tests/real-personas/qa-skill/runs/feature_opportunity/feature-opportunity-local-real-20260623-r1.raw.json",
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r1-t01",
+      "user_message": "Tous les soirs, après avoir fermé mon ordi, je perds le fil du rituel de préparation du lendemain. Je sens qu’il faudrait que Sophia me soutienne sur ce moment qui revient souvent, mais je ne sais pas comment le poser.",
+      "http_status": 200,
+      "assistant_message": "Tu veux te débloquer par rapport à quoi exactement, dans ce rituel du soir ?",
+      "short_trace": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "coaching_recommendation_signal",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "coaching_recommendation",
+          "started_at": "2026-06-22T22:48:57.212Z",
+          "turn_count": 1,
+          "updated_at": "2026-06-22T22:48:57.212Z",
+          "working_state": {
+            "coaching_recommendation_local_state": {
+              "stage": "understand_need",
+              "max_turns": 4,
+              "difficulty": {
+                "summary": "Le user décrit un moment de rituel récurrent après avoir fermé l'ordinateur, mais ne précise pas si Sophia doit aider sur une action concrète du plan, une action hors plan, ou un état émotionnel.",
+                "target_kind": "unclear",
+                "action_title": null,
+                "action_source": "ambiguous"
+              },
+              "turn_count": 1,
+              "coaching_type": "unclear",
+              "cause_analysis": {
+                "confidence": "medium",
+                "missing_info": [],
+                "primary_cause": "unclear",
+                "why_it_exists": "User describes a repeated ritual moment and says Sophia should help, but does not specify whether the need is about a concrete action or an internal state; the frame is unclear."
+              },
+              "parent_flow_id": null,
+              "user_need_summary": "Le user décrit un moment de rituel récurrent après avoir fermé l'ordinateur, mais ne précise pas si Sophia doit aider sur une action concrète du plan, une action hors plan, ou un état émotionnel.",
+              "candidate_features": [],
+              "last_answer_summary": "Le user décrit un moment de rituel récurrent après avoir fermé l'ordinateur, mais ne précise pas si Sophia doit aider sur une action concrète du plan, une action hors plan, ou un état émotionnel.",
+              "parent_return_focus": null,
+              "pending_type_change": {
+                "reason": "User describes a repeated ritual moment and says Sophia should help, but does not specify whether the need is about a concrete action or an internal state; the frame is unclear.",
+                "candidate_coaching_type": "unclear"
+              },
+              "unresolved_question": null,
+              "parent_state_summary": null,
+              "parent_action_context": null,
+              "coaching_type_evidence": [
+                "User describes a repeated ritual moment and says Sophia should help, but does not specify whether the need is about a concrete action or an internal state; the frame is unclear."
+              ],
+              "current_recommendation": null,
+              "last_visible_task_kind": "change_confirm_coaching_type",
+              "recommendation_decision": {
+                "why_primary": null,
+                "why_not_others": {},
+                "primary_feature": null,
+                "secondary_feature": null,
+                "platform_destination": {
+                  "label": null,
+                  "surface_hint": null,
+                  "user_facing_destination": null
+                },
+                "user_facing_next_step": null
+              },
+              "coaching_type_confidence": "high",
+              "secondary_recommendation": null,
+              "dispatcher_signal_context": {
+                "reason": "User describes a repeated ritual moment and says Sophia should help, but does not specify whether the need is about a concrete action or an internal state; the frame is unclear.",
+                "confidence": 0.84,
+                "coaching_type": "ambiguous",
+                "action_context": {
+                  "source": "ambiguous",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "action_type": "other",
+                  "action_title": null,
+                  "plan_item_id": null
+                },
+                "activation_checks": {
+                  "is_coaching_need": true,
+                  "is_about_plan_action": false,
+                  "needs_type_confirmation": true,
+                  "has_concrete_plan_action": false,
+                  "is_about_emotional_state": false,
+                  "is_about_non_plan_action": false
+                },
+                "emotional_state_context": {
+                  "intensity": "medium",
+                  "state_hint": null
+                }
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 2
+    },
+    {
+      "turn": 2,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r1-t02",
+      "user_message": "Pas vraiment me débloquer. Je veux surtout savoir quelle fonctionnalité de Sophia est faite pour suivre ce genre de rituel qui revient tous les soirs, sans créer juste un rappel ponctuel.",
+      "http_status": 200,
+      "assistant_message": "Pour t’orienter proprement, tu veux qu’on regarde quel moment précis du rituel du soir te bloque ?",
+      "short_trace": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "active_coaching_recommendation",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "coaching_recommendation",
+          "started_at": "2026-06-22T22:48:57.212Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-22T22:49:40.006Z",
+          "working_state": {
+            "coaching_recommendation_local_state": {
+              "stage": "understand_need",
+              "max_turns": 4,
+              "difficulty": {
+                "summary": "Le user décrit un moment de rituel récurrent après avoir fermé l'ordinateur, mais ne précise pas si Sophia doit aider sur une action concrète du plan, une action hors plan, ou un état émotionnel.",
+                "target_kind": "unclear",
+                "action_title": null,
+                "action_source": "ambiguous"
+              },
+              "turn_count": 2,
+              "coaching_type": "unclear",
+              "cause_analysis": {
+                "confidence": "medium",
+                "missing_info": [],
+                "primary_cause": "unclear",
+                "why_it_exists": "User describes a repeated ritual moment and says Sophia should help, but does not specify whether the need is about a concrete action or an internal state; the frame is unclear."
+              },
+              "parent_flow_id": null,
+              "user_need_summary": "Le user cherche la fonctionnalité Sophia adaptée à un rituel récurrent du soir, mais ne précise pas encore si l'aide doit porter sur une action de plan, une action libre hors plan, ou un état émotionnel.",
+              "candidate_features": [],
+              "last_answer_summary": "Le user cherche la fonctionnalité Sophia adaptée à un rituel récurrent du soir, mais ne précise pas encore si l'aide doit porter sur une action de plan, une action libre hors plan, ou un état émotionnel.",
+              "parent_return_focus": null,
+              "pending_type_change": {
+                "reason": "User describes a repeated ritual moment and says Sophia should help, but does not specify whether the need is about a concrete action or an internal state; the frame is unclear.",
+                "candidate_coaching_type": "unclear"
+              },
+              "unresolved_question": null,
+              "parent_state_summary": null,
+              "parent_action_context": null,
+              "coaching_type_evidence": [
+                "User describes a repeated ritual moment and says Sophia should help, but does not specify whether the need is about a concrete action or an internal state; the "
+              ],
+              "current_recommendation": null,
+              "last_visible_task_kind": "change_confirm_coaching_type",
+              "recommendation_decision": {
+                "why_primary": null,
+                "why_not_others": {},
+                "primary_feature": null,
+                "secondary_feature": null,
+                "platform_destination": {
+                  "label": null,
+                  "surface_hint": null,
+                  "user_facing_destination": null
+                },
+                "user_facing_next_step": null
+              },
+              "coaching_type_confidence": "high",
+              "secondary_recommendation": null,
+              "dispatcher_signal_context": {
+                "reason": "User describes a repeated ritual moment and says Sophia should help, but does not specify whether the need is about a concrete action or an internal state; the frame is unclear.",
+                "confidence": 0.84,
+                "coaching_type": "ambiguous",
+                "action_context": {
+                  "source": "ambiguous",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "action_type": "other",
+                  "action_title": null,
+                  "plan_item_id": null
+                },
+                "activation_checks": {
+                  "is_coaching_need": true,
+                  "is_about_plan_action": false,
+                  "needs_type_confirmation": true,
+                  "has_concrete_plan_action": false,
+                  "is_about_emotional_state": false,
+                  "is_about_non_plan_action": false
+                },
+                "emotional_state_context": {
+                  "intensity": "medium",
+                  "state_hint": null
+                }
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 4
+    }
+  ]
+}

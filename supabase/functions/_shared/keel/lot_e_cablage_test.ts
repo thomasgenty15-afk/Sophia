@@ -211,5 +211,14 @@ Deno.test("⛔ LOT E / P0-b — LE CONTRÔLE FINAL PÈSE LES GRAMMES ÉCRITS, `s
     ecritures >= 2,
     `les bornes ne sont écrites que ${ecritures} fois: un des deux chemins de dimensionnement ne les retient pas`,
   );
-  assert(SRC.includes("plateFor: (box) =>"), "le contrôle final ne reçoit plus de bornes");
+  // ⟳ 2026-09-13 · LOT 2 § 2.4 — L'ARGUMENT S'APPELLE `meal`, PAS `box`, ET LE
+  // RENOMMAGE EST LE LOT. Les bornes n'appartiennent pas à un contenant: une
+  // assiette partagée entre un plat commun et un complément en porte deux, et
+  // c'est leur SOMME qui se compare au plancher. Ce qui est épinglé ici reste
+  // le même fait — le contrôle final reçoit bien des bornes.
+  assert(SRC.includes("plateFor: (meal) =>"), "le contrôle final ne reçoit plus de bornes");
+  assert(
+    SRC.includes("plateBoundsKey(meal.memberIds[0], meal.day, meal.slot)"),
+    "le contrôle final ne lit plus les bornes par (bouche, jour, moment)",
+  );
 });

@@ -1,0 +1,688 @@
+/**
+ * FF-056 — LE CONTRAT DU SOUS-FLOW DE DIVERGENCE.
+ *
+ * Fiche: `docs/fonctionnalites/conversation/FF-056-la-divergence-constatee.md`
+ * Patron: `skills/safety_crisis/` et `skills/disordered_eating_guard/`.
+ *
+ * ── CE QUE CE FICHIER EST ───────────────────────────────────────────────────
+ * Des listes FERMÉES et rien d'autre. Aucune décision, aucune I/O, aucun
+ * modèle. Trois d'entre elles portent une garantie de la fiche, et chacune la
+ * porte PAR CONSTRUCTION plutôt que par consigne:
+ *
+ *   `WEIGHT_DIVERGENCE_CATEGORIES` — R4. Le classifieur ne peut rendre qu'un
+ *      élément de cet ensemble; tout le reste devient `other`. `other` n'est
+ *      pas un défaut de classement, c'est la SOUPAPE: « un classifieur qui
+ *      force les cases produit des actions à côté, et une personne mal lue ne
+ *      répond plus » (§9).
+ *
+ *   `WEIGHT_DIVERGENCE_MAX_TURNS` — R6. La borne est structurelle: le reducer
+ *      la lit, il ne la « respecte » pas.
+ *
+ *   `FORBIDDEN_*` — R11 et le rabbit hole du soupçon. Ce qui entre dans un
+ *      prompt finit par sortir; ces listes sont ce qui l'attrape à la sortie.
+ *
+ * ── L'OUVERTURE N'EST PAS ICI, ET C'EST LE POINT LE PLUS IMPORTANT ─────────
+ * La question d'ouverture est un LITTÉRAL GELÉ du moteur du soir
+ * (`_shared/keel/weight_divergence_engine.ts`), pas une tâche de ce flow. R2 et
+ * R3 portent sur le SUJET DE LA PHRASE et sur son ouverture — deux propriétés
+ * qu'un tirage ne peut pas garantir. Ce flow ne commence qu'au tour SUIVANT,
+ * quand il y a une réponse à lire.
+ */
+
+export const WEIGHT_DIVERGENCE_SKILL_ID = "weight_divergence";
+
+// ---------------------------------------------------------------------------
+// LES NEUF CATÉGORIES — §3, tableau. FERMÉES.
+// ---------------------------------------------------------------------------
+
+export const WEIGHT_DIVERGENCE_CATEGORIES = [
+  /** nomme un moment ou un aliment: « le matin je grignote », « je me ressers ». */
+  "named_spot",
+  /** ne suit pas le plan: cuisine autre chose, mange dehors. */
+  "plan_mismatch",
+  /** l'activité a chuté: arrêt du sport, blessure. */
+  "activity_drop",
+  /** cause médicale: traitement, thyroïde. */
+  "medical",
+  /** sommeil, stress. */
+  "life_factor",
+  /** conteste ou relativise: muscle, eau, mauvaise pesée. */
+  "not_a_divergence",
+  /** ne sait pas. */
+  "unknown",
+  /** ne veut pas en parler. */
+  "declined",
+  /** tout le reste. OBLIGATOIRE. */
+  "other",
+] as const;
+export type WeightDivergenceCategory =
+  (typeof WEIGHT_DIVERGENCE_CATEGORIES)[number];
+
+export function isWeightDivergenceCategory(
+  value: unknown,
+): value is WeightDivergenceCategory {
+  return (WEIGHT_DIVERGENCE_CATEGORIES as readonly string[])
+    .includes(String(value ?? ""));
+}
+
+// ---------------------------------------------------------------------------
+// LE MOMENT NOMMÉ — l'autre moitié de `named_spot`
+// ---------------------------------------------------------------------------
+
+/**
+ * LE MOMENT DE LA JOURNÉE QUE LA PERSONNE A NOMMÉ. Liste FERMÉE.
+ *
+ * ── POURQUOI CETTE LISTE EXISTE, ET CE QU'ELLE A COÛTÉ DE NE PAS L'AVOIR ───
+ * Sans elle, `named_spot` prenait la première action DISPONIBLE de l'espace
+ * FF-028. Mesuré en run réel sur « le matin je grignote en me levant »: le
+ * rythme par défaut contient déjà un petit-déjeuner, donc `add_breakfast`
+ * n'était pas dans l'espace, et le flow a répondu
+ *
+ *   « Le plan peut ajouter une collation l'après-midi pour calmer ça. »
+ *
+ * C'est-à-dire EXACTEMENT le mode de défaillance que §1 de la fiche décrit en
+ * toutes lettres: « proposer une collation du soir à quelqu'un dont le problème
+ * est le matin — c'est se tromper deux fois et perdre sa confiance ».
+ *
+ * ── CE QUE ÇA N'EST PAS ────────────────────────────────────────────────────
+ * Ce n'est pas de la spéculation: le moment est celui que LA PERSONNE a nommé,
+ * lu dans ses mots, dans un ensemble fermé. Le flow ne devine rien — il refuse
+ * simplement d'agir ailleurs qu'à l'endroit nommé. Quand le moment ne
+ * correspond à aucune action pré-calculée, il le DIT et n'invente rien.
+ */
+export const WEIGHT_DIVERGENCE_SLOTS = [
+  "morning",
+  "midday",
+  "afternoon",
+  "evening",
+  "night",
+  /** Nommé un aliment ou une habitude, sans moment. */
+  "unspecified",
+] as const;
+export type WeightDivergenceSlot = (typeof WEIGHT_DIVERGENCE_SLOTS)[number];
+
+export function isWeightDivergenceSlot(
+  value: unknown,
+): value is WeightDivergenceSlot {
+  return (WEIGHT_DIVERGENCE_SLOTS as readonly string[])
+    .includes(String(value ?? ""));
+}
+
+/**
+ * LE MOMENT → L'ACTION FF-028 QUI TOMBE DESSUS. Table explicite et TROUÉE.
+ *
+ * Les trous sont le sujet: l'espace de FF-028 ne contient que deux actions
+ * (`add_breakfast` sur `breakfast`, `add_afternoon_snack` sur `snack_pm`).
+ * `midday`, `evening`, `night` et `unspecified` n'ont donc AUCUNE action, et
+ * c'est correct — le plan ne sait pas encore absorber une reprise à table le
+ * soir. Un `else` qui retomberait sur l'action disponible la plus proche
+ * refabriquerait le défaut du run réel.
+ */
+export const SLOT_TO_RECOMMENDATION_ACTION: Readonly<
+  Record<WeightDivergenceSlot, string | null>
+> = Object.freeze({
+  morning: "add_breakfast",
+  afternoon: "add_afternoon_snack",
+  midday: null,
+  evening: null,
+  night: null,
+  unspecified: null,
+});
+
+// ---------------------------------------------------------------------------
+// LES BORNES
+// ---------------------------------------------------------------------------
+
+/**
+ * LE PLAFOND DE TOURS (R6). 3, le précédent est le flow de précision de repas
+ * (`MEAL_PRECISION_MAX_TURNS = 2`) + un, parce que celui-ci a une marche de
+ * plus: approfondir UNE fois avant d'agir.
+ *
+ * « Chaque tour au-delà de trois transforme l'échange en séance » (§9). Le
+ * plafond n'est pas une consigne de prompt: `reduceWeightDivergence` le lit et
+ * sort, quoi que le modèle ait répondu.
+ */
+export const WEIGHT_DIVERGENCE_MAX_TURNS = 3;
+
+/**
+ * COMBIEN DE JOURS UNE QUESTION SANS RÉPONSE RESTE VIVANTE.
+ *
+ * 2. « La personne ignore la question ⇒ expiration silencieuse, cooldown
+ * normal, aucune relance » (§7). Deux jours plutôt qu'un: quelqu'un qui ouvre
+ * l'app le surlendemain répond encore à une question qu'il vient de lire. Au
+ * delà, la question est un reproche différé.
+ */
+export const WEIGHT_DIVERGENCE_OPEN_FOR_DAYS = 2;
+
+/**
+ * LE DÉLAI D'EXPIRATION D'UN ÉCHANGE EN COURS, EN MINUTES.
+ *
+ * 30 — exactement le flow de précision de repas. Passé ce délai, « oui » ne
+ * répond plus à une question posée ce matin: il répond à autre chose, et
+ * l'amender comme une réponse au flow ferait dire à quelqu'un ce qu'il n'a pas
+ * dit.
+ */
+export const WEIGHT_DIVERGENCE_TURN_TIMEOUT_MINUTES = 30;
+
+/**
+ * LA FENÊTRE D'OBSERVATION, EN JOURS. 3, et le chiffre est dans la fiche.
+ *
+ * « Bornée, demandée, finie d'avance. La prolonger parce que ça marchait bien
+ * recrée exactement la collecte que le produit a tuée » (§9).
+ */
+export const WEIGHT_DIVERGENCE_OBSERVATION_DAYS = 3;
+
+// ---------------------------------------------------------------------------
+// LES PHASES ET LES TÂCHES VISIBLES
+// ---------------------------------------------------------------------------
+
+export const WEIGHT_DIVERGENCE_PHASES = [
+  /** la question est partie, on attend. */
+  "opened",
+  /** une réponse inclassable a été reformulée UNE fois. */
+  "deepening",
+  /** fini. */
+  "closed",
+] as const;
+export type WeightDivergencePhase =
+  (typeof WEIGHT_DIVERGENCE_PHASES)[number];
+
+/**
+ * CE QUE LE TOUR DOIT FAIRE. Un par chemin de §3, plus les deux sorties.
+ *
+ * ⚠️ AUCUNE TÂCHE NE « CREUSE ». Il n'existe pas de `ask_for_more_detail`, pas
+ * de `confirm_what_they_said`, pas de `check_the_other_meals`. La seule
+ * relance possible est `reformulate_once`, et elle n'arrive que sur `other`.
+ * C'est la forme que prend « 2-3 tours max » quand on la met dans le type.
+ */
+export const WEIGHT_DIVERGENCE_VISIBLE_TASKS = [
+  /** `named_spot` → la proposition d'action durable, portée par le canal FF-028. */
+  "propose_named_spot_action",
+  /** `named_spot` sans action disponible → on le dit, on ne bricole pas. */
+  "acknowledge_named_spot_without_action",
+  /** `plan_mismatch` → contraintes pratiques et fenêtre de plan. */
+  "point_to_plan_fit",
+  /** `activity_drop` → consigné. JAMAIS une prescription d'exercice. */
+  "acknowledge_activity_drop",
+  /** `medical` → enregistré, zéro interprétation, orientation médecin. */
+  "acknowledge_medical",
+  /** `life_factor` → accusé honnête, AUCUNE promesse de levier qu'on n'a pas. */
+  "acknowledge_life_factor",
+  /** `not_a_divergence` → « il n'y a rien à changer ». Une BONNE fin (R5). */
+  "close_nothing_to_change",
+  /** `unknown` → la fenêtre d'observation, bornée et annoncée. */
+  "offer_observation_window",
+  /** `declined` → une phrase, et c'est fini. */
+  "respect_decline",
+  /** `other` → reformuler UNE fois. */
+  "reformulate_once",
+  /** le plafond de tours, ou une seconde réponse inclassable. */
+  "close_out",
+] as const;
+export type WeightDivergenceVisibleTaskKind =
+  (typeof WEIGHT_DIVERGENCE_VISIBLE_TASKS)[number];
+
+// ---------------------------------------------------------------------------
+// L'ÉTAT DE TOUR EN TOUR
+// ---------------------------------------------------------------------------
+
+export interface WeightDivergenceWorkingState {
+  episode_id?: string;
+  phase?: string;
+  turn_count?: number;
+  /** La catégorie retenue au dernier tour classé. */
+  last_category?: string;
+  /** Le moment nommé au dernier tour classé. */
+  last_named_slot?: string;
+  /** Une seule reformulation par épisode. */
+  reformulated?: boolean;
+  last_visible_task?: string;
+}
+
+// ---------------------------------------------------------------------------
+// LA TÂCHE VISIBLE, TELLE QUE LE MODÈLE LA REÇOIT
+// ---------------------------------------------------------------------------
+
+export interface WeightDivergenceVisibleTask {
+  kind: WeightDivergenceVisibleTaskKind;
+  conversation_context: {
+    phase: WeightDivergencePhase;
+    /**
+     * Les mots de la personne, tels quels.
+     *
+     * ⚠️ C'est LA SEULE chose que le prompt sait de sa réponse. Aucune
+     * catégorie n'y entre en toutes lettres: dire au modèle « catégorie:
+     * named_spot » l'inviterait à nommer un moment que la personne n'a
+     * peut-être pas nommé, et « le flow ne spécule jamais » est le premier des
+     * deux points qui gouvernent le dessin (§4).
+     */
+    user_words: string[];
+    /**
+     * L'action pré-calculée, quand il y en a une. Son texte EXACT vient du
+     * canal FF-028: le modèle l'enrobe, il ne la réécrit pas.
+     */
+    proposed_action_text: string | null;
+    next_focus: string;
+    tone_constraints: readonly string[];
+    do_not_say: readonly string[];
+    max_questions: number;
+  };
+}
+
+export interface WeightDivergenceReduction {
+  phase: WeightDivergencePhase;
+  visibleTask: WeightDivergenceVisibleTask;
+  statePatch: WeightDivergenceWorkingState;
+  status: "continue" | "exit";
+  /** L'état à écrire sur l'épisode. `null` = ne rien changer ce tour-ci. */
+  episodeState:
+    | "in_flow"
+    | "acted"
+    | "nothing_to_change"
+    | "declined"
+    | "expired"
+    | null;
+  /** La catégorie à écrire sur l'épisode. `null` = ne rien changer. */
+  episodeCategory: WeightDivergenceCategory | null;
+  /** Ouvrir la fenêtre d'observation à la fin de ce tour ? */
+  opensObservationWindow: boolean;
+  /** L'action durable à proposer par le canal FF-028, s'il y en a une. */
+  proposedActionId: string | null;
+  reasonCode: string;
+}
+
+// ---------------------------------------------------------------------------
+// LES INTERDITS DE SORTIE — R11 et le rabbit hole du soupçon
+// ---------------------------------------------------------------------------
+
+/**
+ * L'ÉNERGIE, EN CHIFFRES ET EN TOUTES LETTRES, FR ET EN.
+ *
+ * La forme en toutes lettres est là parce qu'elle a DÉJÀ traversé le filtre de
+ * FF-018 (« environ trois cents calories »). Un filtre qui ne connaît que les
+ * chiffres laisse passer la phrase que les gens écrivent vraiment.
+ */
+export const FORBIDDEN_ENERGY_TERMS: readonly string[] = Object.freeze([
+  "calorie",
+  "calories",
+  "kcal",
+  "kilocalorie",
+  "kilocalories",
+  "cal",
+  "deficit calorique",
+  "caloric deficit",
+  "calorie deficit",
+  "surplus calorique",
+  "caloric surplus",
+  "apport energetique",
+  "energy intake",
+  "depense energetique",
+  "energy expenditure",
+  "macros",
+  "macronutriments",
+  "macronutrients",
+]);
+
+/**
+ * LE FRAMING « IL MENT ». Le rabbit hole nommé §9, attrapé à la sortie.
+ *
+ * ⚠️ CE SONT DES LOCUTIONS, PAS DES MOTS. « sûr » tout seul est un mot normal
+ * (« bien sûr »); « tu es sûr » est une mise en doute. Le dépôt a la cicatrice
+ * inverse (`never-hand-roll-a-matcher-here`: « laitue » ≠ « lait »), et c'est
+ * pour ça que le matcher est celui du dépôt, pas un `includes` maison.
+ *
+ * ⚠️ LA NÉGATION NE BLANCHIT RIEN ICI, et l'option est passée explicitement au
+ * matcher. « Je ne dis pas que tu mens » dit quand même « tu mens ». C'est le
+ * seul appelant du dépôt à demander le mode absolu, et c'est justifié: ailleurs
+ * on cherche un aliment cité, ici on cherche une INSINUATION.
+ */
+export const FORBIDDEN_SUSPICION_PHRASES: readonly string[] = Object.freeze([
+  // --- FR ---
+  "tu es sur",
+  "t es sur",
+  "es tu sur",
+  "vous etes sur",
+  "tu es certain",
+  "sincerement",
+  "honnetement",
+  // ⚠️ LA LOCUTION, PAS LE MOT. « honnête » tout seul est un mot normal — le
+  // repli de ce flow écrit lui-même « c'est une réponse honnête ». Ce qui est
+  // interdit, c'est l'INJONCTION à l'honnêteté, qui présuppose son absence.
+  "sois honnete",
+  "soyez honnete",
+  "honnete avec moi",
+  "avoue",
+  "avouer",
+  "tu mens",
+  "mensonge",
+  "tricher",
+  "triche",
+  "en cachette",
+  "vraiment tout",
+  "tes coches disent",
+  "tes coches",
+  "pourtant tu",
+  "pourtant tes",
+  "les chiffres disent",
+  "ca ne colle pas",
+  "ca colle pas",
+  // --- EN ---
+  "are you sure",
+  "you sure",
+  "be honest",
+  "honestly",
+  "admit it",
+  "own up",
+  "you are lying",
+  "you re lying",
+  "lying",
+  "cheating",
+  "cheat",
+  "in secret",
+  "secretly",
+  "everything you ate",
+  "your ticks say",
+  "your check ins say",
+  "but your",
+  "the numbers say",
+  "that does not add up",
+  "that doesn t add up",
+  "does not add up",
+]);
+
+/**
+ * LE REPROCHE. Distinct du soupçon: le soupçon met en doute, le reproche juge.
+ *
+ * `discipline`, `volonte`, `serieux`, `effort` — le vocabulaire de la faute
+ * morale. Il n'a rien à faire dans une conversation sur un résultat qui ne
+ * suit pas, et c'est exactement ce vers quoi un modèle glisse quand on lui
+ * demande de parler d'un plan qui ne marche pas.
+ */
+export const FORBIDDEN_BLAME_TERMS: readonly string[] = Object.freeze([
+  // --- FR ---
+  "discipline",
+  "volonte",
+  "manque de serieux",
+  "pas serieux",
+  "laisser aller",
+  "laisse aller",
+  "faute",
+  "coupable",
+  "culpabilite",
+  "ecart de conduite",
+  "tu aurais du",
+  "il faut que tu",
+  // --- EN ---
+  "willpower",
+  "discipline",
+  "self control",
+  "slacking",
+  "slipping",
+  "your fault",
+  "guilty",
+  "you should have",
+  "you need to try",
+  "lack of effort",
+]);
+
+/**
+ * CE QUI LIERAIT LA QUESTION À LA PESÉE — LE RED MAJEUR DE §10.
+ *
+ * « Puisque tu t'es pesé… » est interdit, et pas pour le ton: c'est la phrase
+ * qui APPREND à ne plus se peser. Si les gens cessent de monter sur la balance
+ * pour éviter la question, ce flow détruit sa propre entrée ET la série que lit
+ * la ceinture TCA.
+ *
+ * On ne peut pas mesurer la fréquence de pesée en local. On peut garantir que
+ * rien dans les textes ne fait ce lien, et c'est ce que cette liste fait.
+ */
+export const FORBIDDEN_WEIGH_IN_LINK_PHRASES: readonly string[] = Object
+  .freeze([
+    // --- FR ---
+    // Les apostrophes sont converties en espaces AVANT le scan (voir
+    // `validateWeightDivergenceMessage`): « tu t'es pesé » arrive donc comme
+    // « tu t es pese » et ces locutions mordent.
+    "puisque tu t es pese",
+    "puisque tu te peses",
+    "comme tu t es pese",
+    "vu que tu t es pese",
+    "tu t es pese",
+    "tu te peses",
+    "ta pesee",
+    "tes pesees",
+    "sur la balance",
+    "monte sur la balance",
+    "ton poids de ce matin",
+    "chaque fois que tu te peses",
+    // --- EN ---
+    "since you weighed",
+    "because you weighed",
+    "now that you weighed",
+    "your weigh in",
+    "your weigh ins",
+    "on the scale",
+    "step on the scale",
+    "this morning s weight",
+    "every time you weigh",
+  ]);
+
+/**
+ * PERSONNE NE PRÉPARE LE PLAN DE L'ÉLÈVE — ET C'EST LA RÈGLE MÈRE DU PRODUIT.
+ *
+ * `CLAUDE.md` l'écrit en tête de fichier: le coach ne produit RIEN de personnel
+ * pour un élève, il n'existe AUCUN canal 1:1, et « ton coach prépare ton plan »
+ * est faux. C'est **l'élève** qui compose sa semaine (`student_goals` →
+ * `generate-week-plan-v1` → `student_week_plans`). Une copie qui annonce une
+ * semaine « préparée » ou « construite » pour lui le fait attendre une livraison
+ * qui n'arrivera jamais.
+ *
+ * MESURÉ EN RUN RÉEL (QA FF-056, 2026-08-11), sur le chemin NOMINAL de ce flow —
+ * deux sorties de l'agent visible sur cinq:
+ *   « ça va orienter la semaine prochaine QUE JE TE PRÉPARE »
+ *   « ça guidera la semaine prochaine QU'IL CONSTRUIT »
+ * Les quatre familles précédentes ne mordaient pas: aucune ne parle de qui
+ * fabrique le plan.
+ *
+ * ⚠️ ON VISE LA CONSTRUCTION, PAS LE VERBE. « prépare-toi un petit-déjeuner »
+ * (l'élève prépare) doit passer — c'est même ce que ce flow propose. Ce qui est
+ * interdit, c'est un TIERS (Sophia, le plan, le coach, « on ») qui prépare POUR
+ * l'élève. D'où des locutions complètes, jamais « preparer » seul.
+ *
+ * Les apostrophes sont converties en espaces AVANT le scan: « qu'il construit »
+ * arrive comme « qu il construit ».
+ */
+export const FORBIDDEN_PLAN_DELIVERY_PHRASES: readonly string[] = Object
+  .freeze([
+    // --- FR : Sophia prépare ---
+    "je te prepare",
+    "je te la prepare",
+    "je te le prepare",
+    "que je te prepare",
+    "je vais te preparer",
+    "je prepare ta semaine",
+    "je prepare ton plan",
+    "je te prepare ta semaine",
+    "je construis ta semaine",
+    "je construis ton plan",
+    "je vais te construire",
+    // ── MESURÉ LE 2026-08-12, LOT « BOUTONS », SUR LE CHEMIN NOMINAL ───────
+    // Trois réponses réelles à « le matin je grignote en me levant », trois
+    // personas identiques. Les trois ont passé le validateur; deux disaient:
+    //
+    //   « ça guidera la prochaine semaine QU'ON CONSTRUIT »
+    //   « ce point comptera dans CE QUE JE PRÉPARE pour la semaine prochaine »
+    //
+    // Les locutions au-dessus ne mordaient sur AUCUNE des deux: elles exigent
+    // un pronom objet (« je TE prépare ») ou un possessif (« ta semaine »).
+    // Sans lui, la même promesse passe — et c'est la formulation naturelle du
+    // modèle, pas un cas tordu. La règle mère du produit reste la même: il
+    // n'existe aucun canal 1:1, personne ne prépare le plan de l'élève.
+    //
+    // ⚠️ « je construirai autour » (repli gelé de `point_to_plan_fit`) DOIT
+    // survivre: Sophia construit le PLAN à partir de ce que l'élève lui dit,
+    // au moment où l'élève compose. Ce qui est interdit, c'est la semaine
+    // livrée. D'où « ce que je prépare » et non « je prépare ».
+    "ce que je prepare",
+    "que je prepare",
+    "qu on construit",
+    "que l on construit",
+    "on construit pour toi",
+    // --- FR : le plan ou le coach préparent ---
+    "qu il construit",
+    "qu il te prepare",
+    "il te prepare",
+    "il construit ta semaine",
+    "ton coach prepare",
+    "ton coach te prepare",
+    "ton coach prepare ton plan",
+    "on te prepare",
+    "on prepare ta semaine",
+    "sera prepare pour toi",
+    // --- EN ---
+    "i m preparing your",
+    "i am preparing your",
+    "i ll prepare your",
+    "i will prepare your",
+    "i m building your",
+    "i am building your",
+    "i ll build your",
+    "i will build your",
+    "that i prepare",
+    "what i m preparing",
+    "what i am preparing",
+    "that i m preparing",
+    "that we build",
+    "that we re building",
+    "your coach is preparing",
+    "your coach will prepare",
+    "we re preparing your",
+    "we are preparing your",
+    "will be prepared for you",
+  ]);
+
+/**
+ * SIXIÈME FAMILLE — ON N'ANNONCE PAS UN EFFET SUR LA COMPOSITION À VENIR.
+ *
+ * ⚠️ MESURÉE EN RUN RÉEL LE 2026-08-12 (run `ff056-boutons-run1`, `BF-LEDGER-01`).
+ * Après un créneau nommé, les deux lanes disaient à l'élève:
+ *
+ *   « C'est noté, et la prochaine semaine que tu composeras EN TIENDRA COMPTE. »
+ *   « Le plan A BIEN PRIS EN COMPTE ce point, et IL GUIDERA la prochaine semaine. »
+ *
+ * Or `student_weight_divergence_episodes` n'est lu par PERSONNE côté composition:
+ * ni `week_plan_generation.ts`, ni `meal_generation.ts`, ni
+ * `generate-week-plan-v1`. La seule écriture durable du tour est la ligne
+ * d'épisode elle-même. Et la tâche s'appelle
+ * `acknowledge_named_spot_without_action` — « accuser réception SANS action »
+ * produisait une phrase qui annonçait une action.
+ *
+ * C'est la famille que ce dépôt paie le plus cher: l'accusé fantôme
+ * (« c'est noté » sans effet en base). Le jour où un lecteur existera côté
+ * composition, cette famille se retire — et pas avant.
+ *
+ * ⚠️ CE QUI DOIT SURVIVRE, et c'est la raison de la forme de cette liste:
+ * - « je construirai autour » / « i ll build around that » (`point_to_plan_fit`)
+ *   est VRAI: la personne parle AU MOMENT où elle compose, et sa parole entre
+ *   bien dans le plan. Ce qui est interdit, c'est l'effet AUTOMATIQUE d'un fait
+ *   noté aujourd'hui sur une composition future que personne ne relit.
+ * - « il n'y a rien à changer dans le plan » est un CONSTAT, pas une promesse.
+ *
+ * Les locutions sont normalisées comme partout ici (sans diacritique, les
+ * apostrophes remplacées par des espaces avant le scan).
+ */
+export const FORBIDDEN_COMPOSITION_EFFECT_PHRASES: readonly string[] = Object
+  .freeze([
+    // --- FR : « pris en compte », toutes les personnes et toutes les voix ---
+    // La forme PASSIVE et la forme SANS PRONOM sont là exprès: la cicatrice de
+    // `plan_delivery` (même fichier, même jour) était d'exiger un pronom objet,
+    // et deux confabulations mesurées passaient à travers pour cette raison.
+    "en tiendra compte",
+    "en tiendront compte",
+    "en tiendrai compte",
+    "tiendra compte",
+    "tiendront compte",
+    "a bien pris en compte",
+    "a pris en compte",
+    "est pris en compte",
+    "sera pris en compte",
+    "sera prise en compte",
+    "seront pris en compte",
+    "seront prises en compte",
+    // --- FR : « ça guidera la suite » ---
+    //
+    // ⚠️ LE VERBE NU, ET PAS UNE LISTE D'ORDRES DE MOTS. La première version
+    // portait « guidera la prochaine » — et le modèle a écrit, en run réel le
+    // 2026-08-12, « il guidera LA SEMAINE PROCHAINE ». Même promesse, deux mots
+    // permutés, garde muette. C'est la cicatrice
+    // `forbidden-matcher-explanation-word-order`, et l'énumération des
+    // permutations est une course qu'on perd.
+    //
+    // Bloquer le verbe est sûr ici et vérifié: aucun repli de ce flow n'emploie
+    // « guider » légitimement — le test des replis le prouve à chaque exécution.
+    // Ce que le produit peut dire reste disponible: « il n'y a rien à changer »
+    // (constat) et « dis-moi ce qui rentre et je construirai autour »
+    // (invitation au moment où l'élève compose).
+    "guidera",
+    "guideront",
+    "guiderait",
+    // --- FR : l'affirmation que les semaines se construisent là-dessus ---
+    "semaines sont construites",
+    "semaine sera construite",
+    // --- EN : « into account », actif et passif ---
+    "will take it into account",
+    "will take that into account",
+    "will take this into account",
+    "takes it into account",
+    "takes that into account",
+    "took it into account",
+    "has taken it into account",
+    "will be taken into account",
+    "is taken into account",
+    // --- EN : « factor in » ---
+    "will factor it in",
+    "will factor that in",
+    "will factor this in",
+    // --- EN : « it will guide » — le verbe nu, même raison qu'en FR ---
+    "will guide",
+    "would guide",
+    // ⚠️ LES CONTRACTIONS, ET C'EST LE MÊME TROU QUE `plan_delivery` AVAIT.
+    // « I'll factor that in » est passé au travers de la première version de
+    // cette liste, qui ne portait que la forme pleine `will factor`. Le matcher
+    // remplace l'apostrophe par une ESPACE avant de scanner, donc la forme
+    // utile commence par `ll` — et `ll take…` couvre d'un coup « I'll »,
+    // « it'll » et « we'll ». Trouvé par le test de cette famille, pas en
+    // production, et c'est bien pour ça qu'il liste des contractions.
+    "ll take it into account",
+    "ll take that into account",
+    "ll take this into account",
+    "ll factor it in",
+    "ll factor that in",
+    "ll factor this in",
+    "ll guide",
+    // --- EN : les semaines construites là-dessus ---
+    "weeks are built",
+    "week will be built",
+  ]);
+
+/**
+ * LE MAXIMUM DE QUESTIONS PAR TÂCHE.
+ *
+ * Zéro partout sauf trois endroits, et c'est ce qui empêche le flow de
+ * s'allonger tout seul: une tâche qui ne peut pas poser de question ne peut
+ * pas prolonger l'échange, quelle que soit l'envie du modèle.
+ */
+export const WEIGHT_DIVERGENCE_MAX_QUESTIONS: Readonly<
+  Record<WeightDivergenceVisibleTaskKind, number>
+> = Object.freeze({
+  propose_named_spot_action: 1,
+  acknowledge_named_spot_without_action: 0,
+  point_to_plan_fit: 0,
+  acknowledge_activity_drop: 0,
+  acknowledge_medical: 0,
+  acknowledge_life_factor: 0,
+  close_nothing_to_change: 0,
+  offer_observation_window: 1,
+  respect_decline: 0,
+  reformulate_once: 1,
+  close_out: 0,
+});

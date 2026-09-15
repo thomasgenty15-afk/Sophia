@@ -243,6 +243,7 @@ Deno.test("corps illisible: best-effort, la bouche reste servie", async () => {
     habits: [],
     habitNote: null,
     requiredDensity: null,
+    proteinBrief: null,
   }));
   const brief = buildPortionBrief(members, "one_dish", 0, 1, "legacy_measure");
   assertEquals(brief.split("\n").filter((l) => l.startsWith("- ")).length, 3);
@@ -391,6 +392,7 @@ Deno.test("⛔ et ce corps ATTEINT le brief de portions", async () => {
       habits: [],
       habitNote: null,
       requiredDensity: null,
+      proteinBrief: null,
     },
     {
       memberId: ANA_MEMBER,
@@ -403,6 +405,7 @@ Deno.test("⛔ et ce corps ATTEINT le brief de portions", async () => {
       habits: [],
       habitNote: null,
       requiredDensity: null,
+      proteinBrief: null,
     },
   ];
   const brief = buildPortionBrief(members, "one_dish", 0, 1, "legacy_measure");

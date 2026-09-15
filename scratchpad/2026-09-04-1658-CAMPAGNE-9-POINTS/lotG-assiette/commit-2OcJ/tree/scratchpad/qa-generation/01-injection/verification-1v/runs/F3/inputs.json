@@ -1,0 +1,249 @@
+{
+    "envy": [
+        "the house is dreaming of a lemon and poppy seed traybake on Sunday"
+    ],
+    "members": [
+        {
+            "body": {
+                "gender": "male",
+                "height_cm": 183.0,
+                "weight_kg": 79.0,
+                "updated_at": "2026-08-18T22:09:24.920782+00:00",
+                "recorded_at": "2026-08-18T22:09:24.920782+00:00",
+                "recorded_by": "1e000000-0000-4000-8000-000000000002",
+                "household_id": "aeceffed-dad1-4f1f-9087-424109642f1f",
+                "activity_level": "on_feet"
+            },
+            "goal": null,
+            "habits": {
+                "note": "eats standing at the window",
+                "slots": [
+                    {
+                        "kind": "own_usual",
+                        "slot": "breakfast",
+                        "usual": "a spoonful of blackcurrant jam on toast"
+                    }
+                ]
+            },
+            "age_state": "adult",
+            "allergies": [
+                "celeriac"
+            ],
+            "away_days": [
+            ],
+            "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+            "birth_date": "1988-04-03",
+            "first_name": "Odalric",
+            "has_account": true,
+            "target_pace": null,
+            "restrictions": null,
+            "eating_rhythm": null,
+            "target_weight_kg": null
+        },
+        {
+            "body": {
+                "gender": "female",
+                "height_cm": 152.0,
+                "weight_kg": 47.0,
+                "updated_at": "2026-08-18T22:09:24.920782+00:00",
+                "recorded_at": "2026-08-18T22:09:24.920782+00:00",
+                "recorded_by": "1e000000-0000-4000-8000-000000000002",
+                "household_id": "aeceffed-dad1-4f1f-9087-424109642f1f",
+                "activity_level": "sedentary"
+            },
+            "goal": "muscle_gain",
+            "habits": {
+                "note": "will not eat anything the colour of a carrot",
+                "slots": [
+                ]
+            },
+            "age_state": "adult",
+            "allergies": [
+                "pistachio"
+            ],
+            "away_days": [
+            ],
+            "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+            "birth_date": "1992-06-17",
+            "first_name": "Peregrine",
+            "has_account": false,
+            "target_pace": null,
+            "restrictions": [
+                "fennel"
+            ],
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "breakfast"
+                },
+                {
+                    "size": "large",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ],
+            "target_weight_kg": null
+        },
+        {
+            "body": {
+                "gender": "male",
+                "height_cm": 122.0,
+                "weight_kg": 23.0,
+                "updated_at": "2026-08-18T22:24:41.004221+00:00",
+                "recorded_at": "2026-08-18T22:09:24.920782+00:00",
+                "recorded_by": "1e000000-0000-4000-8000-000000000002",
+                "household_id": "aeceffed-dad1-4f1f-9087-424109642f1f",
+                "activity_level": "on_feet"
+            },
+            "goal": null,
+            "habits": {
+                "note": "only eats bread with the crust cut off",
+                "slots": [
+                ]
+            },
+            "age_state": "minor",
+            "allergies": null,
+            "away_days": [
+                {
+                    "day": "sat",
+                    "kind": "away",
+                    "slots": [
+                        "dinner"
+                    ]
+                }
+            ],
+            "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+            "birth_date": "2019-03-04",
+            "first_name": "Wilfrid",
+            "has_account": false,
+            "target_pace": null,
+            "restrictions": null,
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "breakfast"
+                },
+                {
+                    "size": "large",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ],
+            "target_weight_kg": null
+        },
+        {
+            "body": {
+                "gender": "male",
+                "height_cm": 178.0,
+                "weight_kg": 70.0,
+                "updated_at": "2026-08-18T22:24:40.983591+00:00",
+                "recorded_at": "2026-08-18T22:24:40.983591+00:00",
+                "recorded_by": "1e000000-0000-4000-8000-000000000002",
+                "household_id": "aeceffed-dad1-4f1f-9087-424109642f1f",
+                "activity_level": "on_feet"
+            },
+            "goal": null,
+            "habits": {
+                "note": "puts hot sauce on everything",
+                "slots": [
+                ]
+            },
+            "age_state": "minor",
+            "allergies": null,
+            "away_days": [
+            ],
+            "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+            "birth_date": "2010-02-11",
+            "first_name": "Casimir",
+            "has_account": false,
+            "target_pace": null,
+            "restrictions": null,
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "breakfast"
+                },
+                {
+                    "size": "large",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ],
+            "target_weight_kg": null
+        }
+    ],
+    "owner_goals": {
+        "id": "23dcdba6-b0f2-4e90-a194-c8e34c4e97cc",
+        "goal": "muscle_gain",
+        "user_id": "1e000000-0000-4000-8000-000000000002",
+        "situation": "I share this kitchen with a lodger on Thursdays",
+        "aspiration": "Get back on the tandem with my father",
+        "created_at": "2026-08-18T22:09:24.959148+00:00",
+        "focus_axis": null,
+        "updated_at": "2026-08-18T22:09:24.959148+00:00",
+        "content_locale": "en-GB",
+        "target_waist_cm": null,
+        "target_weight_kg": 86,
+        "practical_constraints": {
+            "variety": "varied",
+            "cook_days": [
+                "tue",
+                "sat"
+            ],
+            "diet_asked": true,
+            "budget_amount": 152,
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "breakfast"
+                },
+                {
+                    "size": "large",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ],
+            "cooking_time_min": 55,
+            "kitchen_equipment": [
+                "oven",
+                "stovetop",
+                "freezer",
+                "air_fryer",
+                "blender"
+            ],
+            "recipe_difficulty": "keen"
+        },
+        "target_pace_kg_per_week": 0.35
+    },
+    "owner_safety": [
+        {
+            "kind": "allergy",
+            "severity": "medical",
+            "allergen_ref": "celeriac"
+        }
+    ],
+    "owner_profile": {
+        "gender": "male",
+        "locale": "en-GB",
+        "country": "GB",
+        "timezone": "Europe/London",
+        "full_name": "Quenneville",
+        "height_cm": 183,
+        "birth_date": "1988-04-03",
+        "activity_level": "on_feet"
+    },
+    "owner_body_measures": [
+    ]
+}

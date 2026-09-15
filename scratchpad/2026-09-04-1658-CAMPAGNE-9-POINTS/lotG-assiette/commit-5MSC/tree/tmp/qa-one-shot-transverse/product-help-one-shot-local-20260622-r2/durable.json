@@ -1,0 +1,76 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "88f21651-9ff0-4c23-9a2c-152b8c441417",
+      "status": "pending",
+      "scheduled_for": "2026-06-22T19:54:43.754+00:00",
+      "event_context": "one_shot_reminder:relire_cette_explication",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: relire cette explication.",
+        "parse_source": "payload",
+        "request_text": "Rappelle-moi dans 45 minutes de relire cette explication",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: relire cette explication.",
+        "source_message_id": null,
+        "reminder_instruction": "relire cette explication"
+      },
+      "created_at": "2026-06-22T19:09:43.757469+00:00"
+    }
+  ],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je suis un peu perdu dans Sophia : a quoi sert exactement une carte d attaque par rapport a une carte de defense ?",
+      "created_at": "2026-06-22T19:08:48.345805+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-local-20260622-r2-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Une carte d’attaque t’aide à entrer dans l’action : elle simplifie le premier pas et enlève de la friction. Une carte de défense sert à te protéger au moment où ça peut déraper : elle anticipe un risque et prépare une réponse simple.\n\nEn bref : attaque = comment je m’y mets ; défense = comment je tiens si ça coince.",
+      "created_at": "2026-06-22T19:09:30.089102+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-local-20260622-r2-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Ok, et si je veux retrouver ce type de carte plus tard, c est ou dans l app ? Rappelle-moi dans 45 minutes de relire cette explication.",
+      "created_at": "2026-06-22T19:09:41.19514+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-local-20260622-r2-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C'est programmé pour lundi 22 juin à 21:54: je te ferai un rappel pour relire cette explication.\n\nC’est programmé pour lundi 22 juin à 21:54 : je te ferai un rappel pour relire cette explication.\n\nPour retrouver ce type de carte, va dans Dashboard > Ressources. Si elle est liée à une mission ou une habitude, tu peux aussi la voir depuis Dashboard > Plan, puis retrouver la carte dans Ressources.",
+      "created_at": "2026-06-22T19:09:48.520916+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-local-20260622-r2-t02",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "7eb2dfba-0b3a-4bdb-bda5-f4e32c4442a6",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-22T19:09:48.518884+00:00"
+  }
+}

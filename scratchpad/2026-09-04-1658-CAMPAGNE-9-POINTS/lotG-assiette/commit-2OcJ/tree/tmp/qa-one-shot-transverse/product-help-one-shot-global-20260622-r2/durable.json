@@ -1,0 +1,54 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "e65a76c6-c113-437d-92f9-660f64667eb3",
+      "status": "pending",
+      "scheduled_for": "2026-06-23T07:00:00+00:00",
+      "event_context": "one_shot_reminder:relire_ta_reponse",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: relire ta reponse.",
+        "parse_source": "payload",
+        "request_text": "rappelle-moi demain a 9h de relire ta reponse",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: relire ta reponse.",
+        "source_message_id": null,
+        "reminder_instruction": "relire ta reponse"
+      },
+      "created_at": "2026-06-22T19:08:32.41603+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Dans Sophia, est-ce qu une carte d attaque sert plutot a demarrer une action ou a eviter un craquage ? Et rappelle-moi demain a 9h de relire ta reponse.",
+      "created_at": "2026-06-22T19:08:29.50575+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-global-20260622-r2-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C'est programmé pour mardi 23 juin à 09:00: je te ferai un rappel pour relire ta reponse.\n\nOui : une carte d’attaque sert surtout à démarrer ou préparer l’action. Pour éviter un craquage, c’est plutôt une carte de défense. C'est programmé pour mardi 23 juin à 09:00 : je te ferai un rappel pour relire ta réponse.",
+      "created_at": "2026-06-22T19:08:36.67783+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-global-20260622-r2-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "9c13b211-0ebb-492e-a540-2276386d1379",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-22T19:08:36.671607+00:00"
+  }
+}

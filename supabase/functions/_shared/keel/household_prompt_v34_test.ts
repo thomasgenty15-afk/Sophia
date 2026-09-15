@@ -35,7 +35,7 @@ import {
   LIGHT_DISH_MIN_KCAL_PER_100G,
   NORMAL_DISH_MIN_KCAL_PER_100G,
 } from "./household_meal_generation.ts";
-import type { PortionMember } from "./household_portions.ts";
+import type { PortionMember, ServingAxisDemands } from "./household_portions.ts";
 import type { HouseholdCell } from "./household_cells.ts";
 import { householdCells } from "./household_cells.ts";
 import { resolveWindowPresence } from "./household_presence.ts";
@@ -67,6 +67,7 @@ function member(over: Partial<PortionMember> & { memberId: string; displayName: 
     habits: [],
     habitNote: null,
     requiredDensity: null,
+    proteinBrief: null,
     ...over,
   } as PortionMember;
 }
@@ -75,8 +76,16 @@ const JULIE = member({ memberId: "m-a", displayName: "Julie" });
 const MARC = member({ memberId: "m-b", displayName: "Marc", goal: "fat_loss" });
 
 function gridFor(
-  mouths: { memberId: string; diet?: "vegan" | "vegetarian" | null; lightSlots?: string[] }[],
+  mouths: {
+    memberId: string;
+    diet?: "vegan" | "vegetarian" | null;
+    lightSlots?: string[];
+    /** ⟳ 2026-09-14 (§ 2.2) — ce que sa direction réclame à la casserole. */
+    demands?: ServingAxisDemands;
+  }[],
   gridSlots = ["breakfast", "lunch", "dinner"],
+  /** La ligne que la base partagée suit (R4), celle que le prompt déclare. */
+  baseRegime: "vegan" | "vegetarian" | null = null,
 ): HouseholdCell[] {
   return householdCells({
     mouths: mouths.map((m) => ({
@@ -85,8 +94,10 @@ function gridFor(
       away: [],
       lightSlots: m.lightSlots ?? [],
       diet: m.diet ?? null,
+      demands: m.demands ?? { protein: null, starch: null, vegetables: null },
       ownMealSlots: [],
     })),
+    baseRegime,
     houseRhythm: RYTHME3,
     windowDays: ["mon"],
     gridSlots,
@@ -285,12 +296,22 @@ Deno.test("une case LÉGÈRE est marquée, et seulement si tous l'ont demandé",
 });
 
 Deno.test("le calendrier COMMANDE le plat à part, et nomme sa bouche", () => {
+  // ⟳ 2026-09-14 (§ 2.2) — LA BASE SUIT LA LIGNE VÉGANE, ET C'EST NORA QUI NE
+  // PEUT PAS EN TIRER SA PART (prise de masse). La règle d'avant commandait le
+  // plat à la VÉGANE, c'est-à-dire à la seule personne que cette base sert.
   const { userSuffix } = build({
-    cells: gridFor([
-      { memberId: "m-a" },
-      { memberId: "m-b" },
-      { memberId: "m-c", diet: "vegan" },
-    ]),
+    cells: gridFor(
+      [
+        { memberId: "m-a", diet: "vegan" },
+        { memberId: "m-b" },
+        {
+          memberId: "m-c",
+          demands: { protein: "larger", starch: null, vegetables: null },
+        },
+      ],
+      ["breakfast", "lunch", "dinner"],
+      "vegan",
+    ),
     members: [JULIE, MARC, member({ memberId: "m-c", displayName: "Nora" })],
   });
   assert(
@@ -418,18 +439,20 @@ Deno.test("la borne de bouches est une CONSTANTE épinglée", () => {
 // ⑦ LE CÂBLAGE — un brief servi à personne est un document
 // ---------------------------------------------------------------------------
 
-Deno.test("CÂBLAGE — v34 est servi sur le chemin armé, et les porteurs viennent de la GRILLE", async () => {
+Deno.test("CÂBLAGE — v34 est servi sur le chemin armé, et UNE SEULE liste de porteurs", async () => {
   const src = await Deno.readTextFile(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   const verdictAt = src.indexOf("const useV34 = sizing.path === \"portion_v1\" &&");
-  const bearersAt = src.indexOf("const v34DishBearers = platedMembers");
+  const bearersAt = src.indexOf("const dishBearingMembers = merge !== null");
+  const promptListAt = src.indexOf("const promptDishBearers");
   const inputAt = src.indexOf("const householdPromptInput = {");
   const buildAt = src.indexOf("const household = useV34");
 
   assert(verdictAt > 0, "le verdict v34 n'est pas calculé");
-  assert(bearersAt > verdictAt, "les porteurs sont décidés avant le verdict");
-  assert(inputAt > bearersAt, "les porteurs sont décidés APRÈS l'objet d'entrée");
+  assert(bearersAt > 0, "la décision commune n'est plus projetée de la grille");
+  assert(promptListAt > bearersAt, "la liste du prompt précède la décision");
+  assert(inputAt > promptListAt, "les porteurs sont décidés APRÈS l'objet d'entrée");
   assert(buildAt > inputAt, "le constructeur est choisi avant son entrée");
 
   // ⛔ UN SEUL VERDICT. Deux critères feraient un prompt et un parseur qui ne
@@ -441,23 +464,37 @@ Deno.test("CÂBLAGE — v34 est servi sur le chemin armé, et les porteurs vienn
   );
 
   // ══════════════════════════════════════════════════════════════════════
-  // ⛔ MESURÉ AU PREMIER TIR v34 (2026-09-08, foyer `quatre`)
+  // ⟳ 2026-09-14 (§ 2.2) — LE VERDICT DU BRIEF NE DÉCIDE PLUS QUI PORTE
   // ══════════════════════════════════════════════════════════════════════
-  // Le calendrier disait « A dish of their own is ordered for Nora » et le
-  // modèle n'a écrit AUCUN plat dédié: `dishBearers` venait encore de
-  // `dishBearingMembers` (règle R4/R5), qui ne nomme personne sur ce foyer,
-  // donc ni la consigne `A DISH OF THEIR OWN` ni la clé `for_member_id`
-  // n'étaient servies. Le calendrier commandait un plat dont rien ne disait la
-  // forme.
+  //
+  // ⛔ MESURÉ SUR LES PROMPTS RÉELLEMENT TRANSMIS LE 2026-09-13. `dishBearers`
+  // lisait la grille sous v34 et la règle R4/R5 ailleurs, pendant que le bloc
+  // de régime lisait TOUJOURS R4/R5. Le même message promettait donc un plat à
+  // des bouches et en enseignait la forme à d'autres — N=4: section émise pour
+  // Lea, phrase voisine nommant Nils et Iris; N=2: phrase pour Max, aucune
+  // section, `for_member_id` jamais nommé.
+  // ⚠️ SUR LA DÉCLARATION, PAS SUR LE MOT. Les pavés au-dessus des deux sites
+  // NOMMENT `v34DishBearers` pour dire ce qu'il a coûté; un `includes` nu
+  // rougirait sur le commentaire qui explique le correctif.
   assert(
-    src.includes("        ? v34DishBearers"),
-    "les porteurs de v34 ne viennent pas de la grille: le calendrier commande " +
-      "un plat que rien n'explique",
+    !src.includes("const v34DishBearers"),
+    "une seconde liste de porteurs est rouverte: c'est le défaut du 2026-09-13",
   );
-  // ⚠️ ET LA LANE LEGACY GARDE LA SIENNE, octet pour octet.
   assert(
-    src.includes("        : dishBearingMembers.map((m) => ({"),
-    "la règle d'aujourd'hui a disparu du chemin legacy",
+    src.includes("      dishBearers: promptDishBearers,"),
+    "le champ du prompt ne lit plus la liste unique",
+  );
+  assert(
+    src.includes("        divergingNames: promptDishBearers.map((m) => m.displayName),"),
+    "le bloc de régime nomme d'autres bouches que celles qu'on enseigne",
+  );
+  assert(
+    src.includes("        dedicatedSectionSent: promptDishBearers.length > 0,"),
+    "le renvoi `A DISH OF THEIR OWN` ne suit plus la liste qui l'émet",
+  );
+  assert(
+    src.includes("        dishBearerIds: dishBearingMembers.map((m) => m.memberId),"),
+    "la liste fermée du parseur ne vient plus de la décision commune",
   );
 });
 

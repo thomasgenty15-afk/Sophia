@@ -269,10 +269,10 @@ Deno.test("③ ce que TOUS les plats tirent fait EXACTEMENT la casserole", () =>
   const out = applySizingForEaters({
     meal,
     rows: [
-      { dishIndex: 0, memberId: "a", factor: 1, sized: true },
-      { dishIndex: 1, memberId: "a", factor: 1, sized: true },
-      { dishIndex: 1, memberId: "b", factor: 1, sized: true },
-      { dishIndex: 1, memberId: "c", factor: 1, sized: true },
+      { dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 1, memberId: "a", factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 1, memberId: "b", factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 1, memberId: "c", factor: 1, sized: true, recipeShare: null },
     ],
     weighed: new Set<string>(),
     index: INDEX,
@@ -380,6 +380,7 @@ function planPourN(n: number) {
       memberId: `m${i}`,
       factor: 1,
       sized: true,
+      recipeShare: null,
     })),
   };
 }
@@ -489,7 +490,7 @@ Deno.test("⑥ les grammes écrits sont ENTIERS, et ils somment la masse remesur
     const out = applySizing({
       meal: planSimple(),
       memberId: "m",
-      rows: [{ dishIndex: 0, factor: f, sized: true }],
+      rows: [{ dishIndex: 0, factor: f, sized: true, recipeShare: null }],
       index: INDEX,
     });
     const items = (out.dishes[0].boxes[0] as Box).items;
@@ -536,7 +537,7 @@ Deno.test("⑥ ⛔ DÉFAUT ÉPINGLÉ — un FRAIS arrondi à zéro sort de la bo
   const petit = applySizing({
     meal: fresh,
     memberId: "m",
-    rows: [{ dishIndex: 0, factor: 0.2, sized: true }],
+    rows: [{ dishIndex: 0, factor: 0.2, sized: true, recipeShare: null }],
     index: INDEX,
   });
   const items = (petit.dishes[0].boxes[0] as Box).items;
@@ -554,7 +555,7 @@ Deno.test("⑥ ⛔ DÉFAUT ÉPINGLÉ — un FRAIS arrondi à zéro sort de la bo
   const petitPot = applySizing({
     meal: pot,
     memberId: "m",
-    rows: [{ dishIndex: 0, factor: 0.2, sized: true }],
+    rows: [{ dishIndex: 0, factor: 0.2, sized: true, recipeShare: null }],
     index: INDEX,
   });
   assertEquals((petitPot.dishes[0].boxes[0] as Box).items.map((i) => i.term), ["rice"]);
@@ -566,8 +567,8 @@ Deno.test("⑥ ⛔ DÉFAUT ÉPINGLÉ — un FRAIS arrondi à zéro sort de la bo
   const aTable = applySizingForEaters({
     meal: fresh,
     rows: [
-      { dishIndex: 0, memberId: "a", factor: 0.1, sized: true },
-      { dishIndex: 0, memberId: "b", factor: 0.1, sized: true },
+      { dishIndex: 0, memberId: "a", factor: 0.1, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "b", factor: 0.1, sized: true, recipeShare: null },
     ],
     weighed: new Set<string>(),
     index: INDEX,
@@ -643,7 +644,7 @@ Deno.test("⑦ mesurer → appliquer → remesurer: la boucle se ferme", () => {
     const out = applySizing({
       meal: planSimple(),
       memberId: "m",
-      rows: [{ dishIndex: 0, factor: f, sized: true }],
+      rows: [{ dishIndex: 0, factor: f, sized: true, recipeShare: null }],
       index: INDEX,
     });
     const apres = remesure({ dishes: out.dishes, preparations: out.preparations });
@@ -676,7 +677,7 @@ Deno.test("⑦ ⛔ une mutation NON PROPORTIONNELLE rend FAUX le verdict d'avant
   const out = applySizing({
     meal: planSimple(),
     memberId: "m",
-    rows: [{ dishIndex: 0, factor: 2, sized: true }],
+    rows: [{ dishIndex: 0, factor: 2, sized: true, recipeShare: null }],
     index: INDEX,
   });
   const sansPlafond = remesure({ dishes: out.dishes, preparations: out.preparations });
@@ -706,7 +707,7 @@ Deno.test("⑦ appliquer n'ABÎME PAS le plan d'entrée — la remesure porte su
   applySizing({
     meal: entree,
     memberId: "m",
-    rows: [{ dishIndex: 0, factor: 3, sized: true }],
+    rows: [{ dishIndex: 0, factor: 3, sized: true, recipeShare: null }],
     index: INDEX,
   });
   assertEquals(JSON.stringify(entree), avant, "le plan d'entrée a été muté");

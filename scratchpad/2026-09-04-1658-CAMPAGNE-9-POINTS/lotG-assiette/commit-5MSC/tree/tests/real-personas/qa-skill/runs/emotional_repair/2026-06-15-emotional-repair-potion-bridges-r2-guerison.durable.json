@@ -1,0 +1,192 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "656b2bcb-4d72-4f7b-962c-4b2e572ba4e6",
+        "role": "user",
+        "content": "J'ai blessé quelqu'un hier avec une phrase sèche, et depuis je tourne en boucle avec une culpabilité lourde. Je ne veux pas me punir, mais j'ai du mal à me réparer intérieurement.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-guerison",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-guerison-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T15:23:33.852595+00:00"
+      },
+      {
+        "id": "d2de35f4-8a5d-43f3-b8aa-f3d3b91e6dfa",
+        "role": "assistant",
+        "content": "Je sens à quel point cette culpabilité est lourde pour toi. C’est un réflexe fréquent de vouloir se punir quand on regrette ses paroles, mais l’auto-attaque ne répare jamais vraiment les choses. \n\nIl est essentiel de bien distinguer ce que tu as fait — avoir été sec à un moment précis — de ce que tu es. Ce comportement est un acte que tu regrettes, mais il ne définit pas ton identité tout entière. Tu as le droit de reconnaître ton erreur et de chercher une réparation intérieure sans pour autant te condamner.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-guerison",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-guerison-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T15:24:01.141581+00:00"
+      },
+      {
+        "id": "db6dac6e-03c5-4c17-90fd-af115f20c0aa",
+        "role": "user",
+        "content": "Oui, c'est exactement ça. La crise retombe un peu, mais j'aimerais garder quelque chose pour cicatriser cette culpabilité sur plusieurs jours, sans me flageller à chaque fois que j'y repense.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-guerison",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-guerison-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T15:24:15.080837+00:00"
+      },
+      {
+        "id": "2f9ea3a3-3101-46db-93bd-a7cbfc678f08",
+        "role": "assistant",
+        "content": "Je suis soulagée de sentir que la pression redescende enfin. C'est une étape essentielle pour commencer à cicatriser. Ce que tu ressens comme une faute est un moment précis, mais cela ne définit pas qui tu es. Tu as le droit de retrouver de l'apaisement sans que ce souvenir ne devienne une arme contre toi-même. Je reste là, à tes côtés, pendant que ce calme s'installe.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-guerison",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-guerison-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "conversation_skill_local_flow",
+              "status": "continue",
+              "skill_id": "emotional_repair",
+              "flow_action": "regulation_without_potion",
+              "reason_code": "emotional_repair_local_continue",
+              "visible_task": "de_shame",
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_turn",
+                  "component": "emotional_repair",
+                  "safety_handoff": false,
+                  "global_dispatcher_skipped": true
+                }
+              ],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "response_intent": "de_shame",
+              "committed_effects": [],
+              "requested_effects": [],
+              "source_dispatcher_local": "emotional_repair.local_dispatcher",
+              "global_dispatcher_skipped": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-15T15:25:15.682151+00:00"
+      },
+      {
+        "id": "84ccde52-d899-4043-b56a-b6fb872151de",
+        "role": "user",
+        "content": "Dans ce cas je veux bien passer sur une potion de guérison. Je voudrais qu'elle m'aide à réparer ce souvenir sans le transformer en punition contre moi.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-guerison",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-guerison-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T15:25:36.414951+00:00"
+      },
+      {
+        "id": "bcc1b37d-4bab-4c5a-8907-333d6100d1a9",
+        "role": "assistant",
+        "content": "C'est une intention très douce que tu as là : vouloir soigner ce souvenir sans te punir. Il est essentiel de faire la part des choses entre ce que tu as fait et la personne que tu es. Cette culpabilité que tu ressens montre simplement ton envie de bien faire, mais elle ne définit pas ton identité. Je reste à tes côtés pour t'accompagner vers cette réparation apaisée, à ton rythme.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-guerison",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-guerison-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "conversation_skill_local_flow",
+              "status": "continue",
+              "skill_id": "emotional_repair",
+              "flow_action": "regulation_without_potion",
+              "reason_code": "emotional_repair_local_continue",
+              "visible_task": "de_shame",
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_turn",
+                  "component": "emotional_repair",
+                  "safety_handoff": false,
+                  "global_dispatcher_skipped": true
+                }
+              ],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "response_intent": "de_shame",
+              "committed_effects": [],
+              "requested_effects": [],
+              "source_dispatcher_local": "emotional_repair.local_dispatcher",
+              "global_dispatcher_skipped": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-15T15:26:35.107779+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

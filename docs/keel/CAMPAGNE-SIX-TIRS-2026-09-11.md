@@ -1,4 +1,13 @@
-# Lot F — prouver les branchements et mesurer le résultat
+# Campagne de six tirs réels — mesure du 11 septembre 2026, 20 h
+
+> Rapport de mesure du **lot F** du chantier « Fiabiliser les portions et préserver les
+> recettes ». Preuves brutes : `scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/`
+> (journal, réponse brute et ligne écrite des 11 lancements) et `mesure-lot-*.txt`.
+>
+> À lire avec : [la grille](mesure.md) · [l'enquête](ENQUETE-DEUX-DIRECTIONS-2026-09-11.md) ·
+> [la revue](REVUE-CAMPAGNE-ET-SAVEUR-2026-09-11.md) ·
+> [la campagne précédente et ses deux correctifs](CAMPAGNE-DEUX-SOLO-2026-09-11.md).
+
 
 Chantier : `docs/keel/PLAN-FIABILITE-ET-EQUILIBRE-RECETTES-2026-09-11.md`, section « Lot F »
 et « Critère de fin ». Socle : `scratchpad/2026-09-11-FIABILITE-RECETTES/SOCLE.md`.
@@ -665,3 +674,276 @@ Deux choses restent à la main de l'humain, et ce ne sont pas des commandes bloq
   n° 6, et aucun compteur de ce run ne montre qu'elle a été **armée**.
 - Il ne mesure **pas** un taux de réussite : six tirs disent ce qui s'est passé six fois.
 - Il ne compare **aucune** durée à un avant : il n'existe pas de témoin à charge égale.
+
+---
+
+# ADDENDUM DU 2026-09-11, 23 h — RECTIFICATION DE MESURE (étape C0)
+
+> **Ce bloc corrige des erreurs de MESURE, pas des résultats.** Rien au-dessus
+> n'est effacé : le plan de clôture l'exige (« Corriger cette dernière par un
+> addendum daté pour les erreurs de mesure, sans effacer les résultats
+> historiques »). Aucun tir n'a été rejoué, aucun appel modèle n'a été passé.
+> Les six réponses du 2026-09-11 sont **les mêmes** ; c'est l'instrument qui a
+> changé.
+>
+> Chantier : [PLAN-CLOTURE-APRES-SIX-TIRS-2026-09-11.md](PLAN-CLOTURE-APRES-SIX-TIRS-2026-09-11.md),
+> étape **C0 — un banc fidèle à la demande et à chaque personne**.
+
+## A1. Ce qui était faux, et pourquoi c'était faux dans le sens rassurant
+
+`analyse-lot-F.ts` — l'instrument qui a produit les nombres du § 5 et du § 6 —
+portait quatre défauts :
+
+| n° | défaut de l'instrument | ce qu'il faisait croire |
+|---|---|---|
+| ① | il construisait la grille des cases attendues **en bouclant sur les plats retournés** | un plat manquant sortait du dénominateur, donc n'était jamais compté absent |
+| ② | il forçait `appetite: "average"`, `gender: "male"`, et ne reconstruisait **qu'une bouche** | le grand appétit était mesuré contre le couloir d'un appétit moyen ; un foyer de deux se publiait sur une seule personne |
+| ③ | il posait `eating_rhythm: null`, `light_slots: []` et `fixedKcalBySlot: null` | un apport fixe déclaré n'entrait dans aucune cible |
+| ④ | il comptait `ref` sur le **payload persisté** | les identifiants écrits par la réparation étaient attribués au premier jet |
+
+## A2. La rectification annoncée par le plan, vérifiée et confirmée
+
+> Le § 6.1 ci-dessus écrit : « sur 36 cases de densité mesurées, **34 sont dans
+> leur couloir** ; les deux qui n'y sont pas sont des **petits-déjeuners du tir 3
+> à 94 et 99** pour un **plancher de 100** ».
+
+**Cette phrase est fausse, et de trois façons.**
+
+1. **Le plancher n'était pas 100.** Le tir 3 déclarait `appetite: "large"`.
+   Avec l'appétit réel, `plateBoundsFor` rend `Gmin 275 · Gpréf 475 · Gmax 675`
+   pour 613,50 kcal, puis `densityCorridorFor` rend **[91–223], visée 100**. Les
+   deux petits-déjeuners à 94 et 99 sont **DANS leur couloir**. Le plafond aussi
+   avait bougé et le rapport ne le disait pas : **245 → 223**.
+2. **Ce n'est pas un calcul de plus, c'est la consigne réellement envoyée.** La
+   phrase reconstruite est présente **caractère pour caractère** dans
+   `llm_raw_response_events.user_message` du tir 3 :
+
+   ```
+   - Paul: … dishes served here: up to 223 kcal per 100 g at breakfast
+     (aim 100, not 129), 141 to 250 at lunch (aim 154, not 188),
+     123 to 250 at dinner (aim 135, not 164)
+   ```
+
+   Le moteur lui-même était d'accord : `proportion_adjust` du tir 3 rend
+   `consumers_off_before: 0` — **il n'a vu aucun défaut de densité**. C'est
+   l'instrument qui contredisait le moteur, pas l'inverse.
+3. **Le dénominateur n'était pas 36.** Le tir 6 sert **deux bouches** ; ses 12
+   parts étaient indexées par `jour/moment` seul, donc le contenant de Lea
+   écrasait celui de Paul et six parts n'entraient dans aucun compteur.
+
+### Les deux lectures, côte à côte
+
+| | ancienne lecture (rejouée) | lecture C0 |
+|---|---|---|
+| cases de densité | **36** (6 tirs × 6, une bouche) | **42** (le tir 6 en porte 12) |
+| dans leur couloir | **33** | **41** |
+| hors couloir | **2** (tir 3, petits-déj. 94 et 99 contre [100–245]) | **0** |
+| non mesurables | **1** (tir 2, `sun/dinner`, aucune portion) | **1**, la même |
+
+> ⚠️ **Le rapport publiait « 34 »**, l'ancienne règle rejouée en rend **33**. Le
+> quatrième nombre n'est retrouvable par aucune lecture ; il est nommé ici sans
+> être expliqué.
+
+⛔ **Conséquence directe : ne pas « réparer » les petits-déjeuners du tir 3.**
+Le seuil de 100 qu'ils auraient violé n'a jamais été le leur.
+
+## A3. Les trois colonnes que le plan exige, séparées
+
+**Conformité calorique** = la case a une cible et sa portion tombe dedans à
+±10 %. **Conformité complète** = plat **et** portion **et** calories **et**
+masse **et** densité, sans une seule abstention. **Contrôles incomplets** = ce
+que l'instrument n'a **pas pu** juger. Les trois ne se fondent jamais.
+
+| tir | cas | cases attendues | conformité CALORIQUE | conformité COMPLÈTE | contrôles INCOMPLETS |
+|---|---|---|---|---|---|
+| 1 | PERTE, appétit moyen | 6 | 6 / 6 | **6 / 6** | 0 |
+| 2 | GAIN, appétit moyen | 6 | 5 / 5 | **5 / 6** | 6 |
+| 3 | PERTE, **grand appétit** | 6 | 6 / 6 | **6 / 6** | 0 |
+| 4 | GAIN, petit appétit | 6 | 6 / 6 | **6 / 6** | 0 |
+| 5 | PERTE, rythme + apport fixe | 6 | 6 / 6 | **6 / 6** | 0 |
+| 6 | **Foyer de deux** | **12** | 12 / 12 | **12 / 12** | 2 |
+| — | *banc, fenêtre d'après-midi (hors campagne)* | 7 | 7 / 7 | **4 / 7** | 0 |
+
+- **Tir 2** : « 5 / 5 » de conformité calorique et « 5 / 6 » de conformité
+  complète sont deux faits différents. La sixième case — `sun/dinner` — a un
+  plat, **aucune portion**, donc aucune des cinq questions n'a de réponse. Elle
+  reste **attendue** et se compte **absente**.
+- **Tir 6** : les deux bouches ont **chacune** leurs six cases, leurs propres
+  cibles (petit-déjeuner **613,50** pour Paul, **456,50** pour Lea) et leurs
+  propres contenants. Les deux contrôles incomplets sont les protéines de Lea.
+
+## A4. Chaque nombre qui bouge, et pourquoi
+
+| nombre | avant | après | la raison, et elle est unique |
+|---|---|---|---|
+| cases de densité mesurées | 36 | **42** | le tir 6 sert 2 bouches ; ses 6 cases valent 12 parts |
+| cases hors couloir | 2 | **0** | l'appétit réel `large` du tir 3 : couloir [91–223] et non [100–245] |
+| parts mesurées au tir 6 | 6 | **12** | une portion est filtrée par `member_ids` ; deux contenants d'une même case ne s'écrasent plus |
+| plancher protéique de Lea | *jamais calculé* | **aucun, et c'est dit** | Lea n'a aucun objectif ; `envelopeFor("")` rendait `NaN`, et le rendu imprimait « ❌ SOUS LE PLANCHER (−NaN %) » |
+| allergies déclarées, tir 6 | « 0 » | **1 : arachide** | la ligne « allergies déclarées 0 » était écrite **en dur** dans le rendu |
+| `ref` du tir 2 | « 20 / 43 » | **premier jet et final publiés séparément** | 20/43 était le payload **après** deux réparations archivées |
+| cas « fenêtre d'après-midi » | *non mesuré* | **7 cases, premier jour à 1 case** | horloge injectée au harnais à 15 h 07 (§ A6) |
+
+⚠️ **L'instrument est devenu plus optimiste sur un point et plus sévère sur
+trois.** Plus optimiste : zéro violation de densité au lieu de deux. Plus
+sévère : six parts de plus à mesurer, une bouche dont les protéines deviennent
+« non jugeables » au lieu de « en échec », et une conformité **complète** qui
+descend là où la conformité **calorique** ne bougeait pas.
+
+## A5. Ce que le § 5 et le § 8 disaient de vrai, et qui ne bouge pas
+
+- **Les durées.** 104 221 · 106 733 · 134 101 · 175 023 · 206 261 · 207 357 ms.
+  Trois tirs sur six dépasseraient les 150 000 ms de l'hébergé. Aucun
+  pourcentage de gain n'est publié, ici pas davantage.
+- **Le déficit protéique**, mesuré à nouveau case par case :
+  tir 1 **−42 %** et **−43 %** ; tir 3 **−24 %** et **−18 %** ; tir 5 **−39 %**
+  et **−30 %** ; tir 6 (Paul) **−32 %** puis conforme. Les tirs 2 et 4 sont
+  au-dessus de leur plancher.
+- **Le tir 2 est bien parti avec une case sans portion**, et la porte finale
+  l'a vue (`cell_without_portion: 1`) sans bloquer.
+- **La ceinture d'allergie n'est toujours pas prouvée armée.** L'allergie est
+  maintenant *lue* par l'instrument ; aucun compteur du run n'atteste son
+  armement.
+- **Aucune recette n'a été cuisinée ni goûtée.** C0 n'a rien changé à ça.
+
+## A6. Le cas n° 1 du plan, enfin mesuré — par une horloge, pas par un humain
+
+Le § 5 écrivait : « Le tir n° 1 du plan demandait une fenêtre commençant
+l'après-midi. Ce n'est pas ce qui a été mesuré. Rejouer une fenêtre
+d'après-midi demande de tirer entre 12 h et ~17 h. »
+
+**Ce n'est plus vrai.** `transport-lot-F.ts::installerHorloge` remplace `Date`
+**dans le processus du banc**, avant l'import du handler — la même garde que
+l'adaptateur de transport : rien n'est ajouté sous `supabase/functions/**`,
+aucune requête HTTP ne peut atteindre ce chemin. Un passage complet dans le vrai
+handler, horloge posée au **2026-09-11 15 h 07**, rend :
+
+```
+fenêtre demandée 3 jours · premier jour PARTIEL : breakfast et lunch retirés
+cases attendues 7   ({fri:[dinner], sat:[3], sun:[3]})   annoncées AVANT l'appel
+moteur          cells 9 · non_empty 7 · spent_cells 2 · fed 7/7
+fenêtre servie  2026-09-11 → 2026-09-13   ✅ identique à la fenêtre annoncée
+conformité      calorique 7/7 · complète 4/7 · incomplets 0
+                (3 dîners hors couloir : la réponse rejouée date de la consigne à 250)
+```
+
+⛔ **Et ce cas ne coûte rien** : la réponse est servie par le transport contrôlé,
+0 sortie réseau refusée, 0 appel modèle facturé.
+
+## A7. Ce que C0 a trouvé en plus, et qui appartient aux étapes suivantes
+
+| # | fait mesuré | fichier |
+|---|---|---|
+| A | **Un apport fixe du titulaire est écrit dans une colonne que le moteur ne lit pas.** Tir 5 : `household_members.fixed_intakes = [{slot: breakfast, amount: 200, food_ref: greek_yogurt}]`, `student_goals.practical_constraints.fixed_intakes = []`. La cible du petit-déjeuner reste **613,50** — celle d'un tir sans apport. La contre-épreuve est écrite : la **même** déclaration dans la source canonique fait **baisser** la cible. | `_shared/keel/household_fixed_intakes.ts` ~243 · **C1** |
+| B | **La consigne de densité et le couloir mesuré divergent quand `minPer100G` passe sous le plancher du bloc.** Tir 3 : le couloir de la case vaut 91 ; `redundantMin` est alors vrai et le minimum **n'est pas imprimé**, si bien que le modèle ne lit que « a normal dish carries at least 100 kcal per 100 g ». Le commentaire de `NORMAL_DISH_MIN_KCAL_PER_100G` annonce pourtant : « les deux planchers sont interpolés… une consigne qui promet 100 et une garde qui accepte 90 laisseraient passer un plat ». Ici c'est l'inverse : la consigne promet 100 et la garde accepte 91. | `slot_nutrition_contract.ts:683` · `household_portions.ts:1308` · **C4** |
+| C | **Le run ne persiste aucun contrat par case.** Les contrats sont reconstruits à la relecture, et leur seule preuve est l'égalité caractère pour caractère avec le prompt archivé. Une purge de `llm_raw_response_events` rendrait toute mesure de densité invérifiable. | **C5** (contrat de réponse/persistance) |
+| D | **Le journal du moteur ne vit que dans `/tmp/keel-serve.log`.** `turn_summary_logs` ne porte pas ces lignes. C0 les recopie dans ses fixtures ; sans ça, un ménage de `/tmp` emporte les compteurs de la campagne. | **C6** |
+
+## A8. Où sont les preuves
+
+| | |
+|---|---|
+| demandes figées, prompts, premiers jets, réparations, journaux, lignes écrites | `scratchpad/2026-09-11-CLOTURE/fixtures/c0-tir{1..6}.json`, `c0-apresmidi.json` |
+| le script qui les fige | `scratchpad/2026-09-11-CLOTURE/figer-demande.ts` |
+| le banc de mesure | `scratchpad/2026-09-11-FIABILITE-RECETTES/analyse-lot-F.ts` |
+| l'horloge injectable | `scratchpad/2026-09-11-FIABILITE-RECETTES/transport-lot-F.ts::installerHorloge` |
+| les gardes, avec leur cas qui mord | `scripts/2026-09-11-mesure-grille_test.ts` (12 épreuves C0) |
+
+```bash
+deno test --allow-read scripts/2026-09-11-mesure-grille_test.ts
+deno run --allow-read scratchpad/2026-09-11-FIABILITE-RECETTES/analyse-lot-F.ts \
+  scratchpad/2026-09-11-CLOTURE/fixtures/c0-tir3.json
+```
+
+---
+
+# ADDENDUM DU 2026-09-12 — SECONDE RECTIFICATION DE MESURE (étape C6)
+
+> **Ce bloc corrige des erreurs de MESURE, pas des résultats.** Rien au-dessus n'est effacé —
+> ni le corps du rapport, ni l'addendum C0 qui le précède. Les six réponses du 2026-09-11 sont
+> **les mêmes** ; aucun tir n'a été rejoué pour écrire ce bloc.
+>
+> La campagne **neuve** du 2026-09-12, avec ses six réponses différentes, est un autre document :
+> [CLOTURE-C6-2026-09-12.md](CLOTURE-C6-2026-09-12.md).
+
+## B1. « Les douze causes valent zéro sur dix sorties sur onze » — le dénominateur était faux
+
+Le § 8 et `NON-BRANCHE.md` ① justifiaient l'armement de `FINAL_GATE_POLICY_LOT_4` ainsi : « les
+faux positifs ont été mesurés avant l'armement, sur les **onze** sorties de `sorties-lot-F/` : les
+douze causes armées en `refuse` valent zéro sur **dix** d'entre elles. »
+
+⛔ **Les onze sorties rejouaient DEUX réponses de modèle.** Le banc du transport contrôlé sert la
+réponse en conserve du tir PERTE ou celle du tir GAIN ; les onze lancements en sont des variantes
+(retaillage, comptes, drapeaux). Le `n` effectif de cette étude de faux positifs vaut **2**, pas
+**11**.
+
+**Ce que six réponses NEUVES ont donné**, avec la même politique, le 2026-09-12 :
+
+| | |
+|---|---|
+| plans livrés | **4 / 6** |
+| refusés `422 plan_not_deliverable` | **2 / 6**, les deux sur `ingredient_not_bought` |
+
+⚠️ **Le nombre n'invalide pas la décision d'armer** — un plan qui demande de cuisiner un aliment
+que rien n'achète n'est pas livrable, et les deux refus se sont produits **avant** toute écriture.
+Il invalide la **phrase qui la justifiait** : « zéro faux positif sur dix » décrivait deux
+réponses, pas dix.
+
+## B2. Un des deux refus était un faux positif du DÉPÔT, et il est corrigé
+
+Le premier tir du 2026-09-12 a été refusé sur `ingredient_not_bought « champignons de Paris »`
+alors que la ligne était **sur la liste de courses, écrite au caractère près, 200 g pour 200 g**.
+
+Cause : `final_plan_audit.ts` ne franchissait son pont d'identité (`identityByTerm`, égalité
+exacte de termes normalisés) que si la ligne de courses n'avait **aucun** `ref` — or l'étape C3 lui
+en a donné un **dans le même lot**, tiré du **libellé** et non du modèle. Deux identités pour le
+même aliment, un besoin sans achat, un refus.
+
+Corrigé le 2026-09-12 : le pont applique désormais la règle exacte de
+`rebuildShoppingQuantities` — « il ne sert que lorsque la ligne n'atteint aucun besoin ». La
+**même réponse réelle**, rejouée dans le vrai handler à coût nul, passe de **422** à **200**.
+Détail et épreuves : [CLOTURE-C6-2026-09-12.md](CLOTURE-C6-2026-09-12.md) § 4.
+
+⚠️ **Conséquence pour la lecture de CE rapport** : son § 10 et ses colonnes d'achats ont été
+produits par un audit qui portait ce défaut. Les nombres d'achats manquants publiés ici peuvent
+donc être **trop hauts**. Le rejeu du 2026-09-12 sur les mêmes six réponses, avec l'audit
+corrigé, donne **7 achats réellement manquants et 5 sous-achetés** sur les six archives.
+
+## B3. « État de livraison » était l'état de l'INSTRUMENT, pas celui du run
+
+`scripts/2026-09-11-mesure-grille.ts` imprimait une ligne « état de livraison : … ». Elle vient de
+`finalGateDelivery(gate)` où `gate` est la porte **rejouée hors ligne par l'instrument**, avec
+`energy: null` et `boxContract: null`. Deux familles de causes lui sont donc structurellement
+invisibles : `cell_energy_off` et `protein_floor_short`.
+
+Mesuré le 2026-09-12 sur un plan écrit par le banc (`0a8c5445`) :
+
+| | |
+|---|---|
+| instrument | **conforme** |
+| moteur (`keel.household_meal.final_gate`) | **deliverable_with_gaps** — 3 refus, 2 × `cell_energy_off`, 1 × `protein_floor_short` |
+| base (`generated_from.validation.state`) | **livrable_avec_ecarts** |
+
+La ligne s'appelle désormais « état de livraison **REJOUÉ PAR L'INSTRUMENT** » et nomme sa limite
+à chaque impression. L'état du run reste celui du bloc « PORTE FINALE (journal du tir) » et de la
+colonne persistée.
+
+## B4. Ce que le § 12 disait de vrai, et qui ne bouge pas
+
+- **« La ceinture d'allergie n'est pas prouvée armée »** — c'était vrai le 2026-09-11 et ça l'est
+  resté jusqu'au 2026-09-12. Elle est prouvée **depuis** : injectée dans une génération elle rend
+  `422`, injectée dans une réparation elle fait jeter la candidate, et une réponse saine passe
+  avec la ceinture armée. Aucune de ces trois preuves n'existe dans le présent rapport.
+- **Aucune recette n'a été cuisinée ni goûtée.** Ni le 2026-09-11, ni le 2026-09-12.
+- **Les durées du § 5 ne bougent pas** : 104 221 · 106 733 · 134 101 · 175 023 · 206 261 ·
+  207 357 ms, 3 sur 6 au-dessus des 150 000 ms de l'hébergé. ⚠️ Elles ne se comparent pas à celles
+  du 2026-09-12 : **6 cases contre 9**, autre heure, autre charge.
+
+## B5. Où sont les preuves de cet addendum
+
+| | |
+|---|---|
+| les six réponses du 2026-09-11, rejouées sur le code du 2026-09-12 | `scratchpad/2026-09-11-CLOTURE/c6/rejeu-tir{1..6}.txt` |
+| le refus réel, reproduit hors ligne puis corrigé | `scratchpad/2026-09-11-CLOTURE/c6/repro-tir1.txt` et `repro-tir1-apres.txt` |
+| la divergence instrument / moteur / base | `scratchpad/2026-09-11-CLOTURE/c6/mesure-temoin.txt` et `allergene-temoin.txt` |
+| les régressions qui l'épinglent | `supabase/functions/_shared/keel/shopping_c3_test.ts` § ⑩ |

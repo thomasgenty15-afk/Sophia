@@ -1,0 +1,1904 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-15-adjust-plan-whole-plan-taxonomy-state-owned-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Mon plan est trop charge cette semaine, surtout l'action du soir. Je voudrais la rendre plus legere sans abandonner l'objectif, mais je ne sais pas quoi mettre dans Ajuster mon plan.",
+    "assistant": "Je comprends, tu veux garder ton sas de décompression tout en l'allégeant pour cette semaine chargée. Pour que ce soit plus simple à gérer, préfères-tu réduire la durée de tes séances ou plutôt diminuer leur fréquence ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_local_clarify_adjustment_need",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "clarifying",
+      "operation_id": null,
+      "input_draft": null,
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "skill_result": {
+        "handled": true,
+        "status": "ask_question",
+        "user_intent": "clarify",
+        "reply": "Je comprends, tu veux garder ton sas de décompression tout en l'allégeant pour cette semaine chargée. Pour que ce soit plus simple à gérer, préfères-tu réduire la durée de tes séances ou plutôt diminuer leur fréquence ?",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_local_clarify_adjustment_need"
+        }
+      },
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "clarify_adjustment_need",
+      "local_flow_state": {
+        "skill_id": "adjust_plan_item",
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "status": "clarifying",
+        "stage": "adjustment_need",
+        "scope": {
+          "kind": "specific_plan_item",
+          "confidence": "high",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Faire un sas de décompression (sans fumer)",
+          "needs_scope_clarification": false
+        },
+        "adjustment_need": {
+          "reason_change": "Plan trop chargé cette semaine",
+          "requested_change": "Rendre l'action du soir plus légère sans abandonner l'objectif",
+          "change_kind": "reduce",
+          "constraints": [
+            "cette semaine"
+          ],
+          "preserve": [
+            "l'objectif global"
+          ],
+          "avoid": [
+            "abandonner l'action"
+          ],
+          "missing": [
+            "modalité d'allègement (réduire la durée de 45-60 min ou réduire la fréquence de 3 soirs/semaine)"
+          ]
+        },
+        "platform_handoff": {
+          "status": "none",
+          "destination": null,
+          "suggested_platform_input": null,
+          "grouped_by_plan": [],
+          "previous_value": null,
+          "revised_value": null
+        },
+        "last_visible_task": "clarify_adjustment_need",
+        "last_handoff_summary": null,
+        "local_state_summary": "Le user veut alléger l'action du soir (sas de décompression) car sa semaine est trop chargée, mais il ne sait pas comment formuler l'ajustement.",
+        "previous_flow_summary": null,
+        "turn_count": 1,
+        "subskill_history": []
+      },
+      "visible_task": {
+        "kind": "clarify_adjustment_need"
+      },
+      "conversation_context": {
+        "state_summary": "Le user veut alléger l'action du soir (sas de décompression) car sa semaine est trop chargée, mais il ne sait pas comment formuler l'ajustement.",
+        "user_words": [
+          "rendre plus légère sans abandonner l'objectif",
+          "ne sais pas quoi mettre dans Ajuster mon plan"
+        ],
+        "field_or_stage": "adjustment_need",
+        "known_values": {
+          "scope": {
+            "kind": "specific_plan_item",
+            "confidence": "high",
+            "plan_id": null,
+            "plan_title": null,
+            "level_id": "phase-1",
+            "level_title": "Casser l'automatisme du soir",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Faire un sas de décompression (sans fumer)",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "reason_change": "Plan trop chargé cette semaine",
+            "requested_change": "Rendre l'action du soir plus légère sans abandonner l'objectif",
+            "change_kind": "reduce",
+            "constraints": [
+              "cette semaine"
+            ],
+            "preserve": [
+              "l'objectif global"
+            ],
+            "avoid": [
+              "abandonner l'action"
+            ],
+            "missing": [
+              "modalité d'allègement (réduire la durée de 45-60 min ou réduire la fréquence de 3 soirs/semaine)"
+            ]
+          },
+          "constraints": [
+            "cette semaine"
+          ],
+          "preserve": [
+            "l'objectif global"
+          ],
+          "avoid": [
+            "abandonner l'action"
+          ]
+        },
+        "missing_or_weak_values": [
+          "choix entre réduire la durée ou réduire le nombre de répétitions",
+          "modalité d'allègement (réduire la durée de 45-60 min ou réduire la fréquence de 3 soirs/semaine)"
+        ],
+        "selected_candidate": {
+          "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+          "title": "Faire un sas de décompression (sans fumer)",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Faire un sas de décompression (sans fumer)",
+          "scope_kind": "specific_plan_item",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": null,
+          "suggested_platform_input": null,
+          "grouped_by_plan": [],
+          "previous_value": null,
+          "revised_value": null
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le plan est déjà modifié.",
+          "Ne dis pas que l'ajustement est enregistré."
+        ],
+        "context_summary": "Clarification de la modalité de réduction pour l'action du soir.",
+        "evidence_used": [
+          "User wants to lighten 'action du soir'",
+          "Identified habit: 3db6278b-bd59-4401-bbdf-80b575ee14bb",
+          "Reason: week too heavy",
+          "Intent: reduce",
+          "Mon plan est trop charge cette semaine",
+          "surtout l'action du soir",
+          "rendre plus legere sans abandonner l'objectif"
+        ]
+      },
+      "handoff_core": {
+        "target_to_modify": "Faire un sas de décompression (sans fumer)",
+        "reason_change": "Plan trop chargé cette semaine",
+        "requested_change": "Rendre l'action du soir plus légère sans abandonner l'objectif",
+        "change_kind": "reduce",
+        "has_core_triptych": true,
+        "missing_or_weak_values": [
+          "choix entre réduire la durée ou réduire le nombre de répétitions",
+          "modalité d'allègement (réduire la durée de 45-60 min ou réduire la fréquence de 3 soirs/semaine)"
+        ]
+      },
+      "diagnosis": {
+        "flow_action": "clarify_adjustment_need",
+        "visible_task": "clarify_adjustment_need",
+        "selected_target": "Faire un sas de décompression (sans fumer)",
+        "pending_state_present": false,
+        "direct_handoff_flag_present": false,
+        "candidate_list_summary": [
+          {
+            "plan_id": null,
+            "level_id": "phase-1",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Faire un sas de décompression (sans fumer)"
+          }
+        ],
+        "constraints": [
+          "cette semaine"
+        ],
+        "stabilization": {
+          "has_core_triptych": true,
+          "missing_or_weak_values": [
+            "choix entre réduire la durée ou réduire le nombre de répétitions",
+            "modalité d'allègement (réduire la durée de 45-60 min ou réduire la fréquence de 3 soirs/semaine)"
+          ]
+        },
+        "blocked_effects": [],
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "scope",
+            "adjustment_need",
+            "platform_handoff",
+            "last_visible_task",
+            "last_handoff_summary",
+            "local_state_summary",
+            "previous_flow_summary",
+            "subskill_history",
+            "exit_memo",
+            "note_information"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "scope",
+            "adjustment_need",
+            "last_visible_task",
+            "last_handoff_summary",
+            "local_state_summary"
+          ],
+          "preserved_fields": [
+            "previous_flow_summary",
+            "subskill_history",
+            "exit_memo",
+            "note_information"
+          ],
+          "restored_fields": [
+            "platform_handoff"
+          ],
+          "cleared_fields": [],
+          "rejected_changes": [
+            {
+              "field": "platform_handoff",
+              "reason_code": "modify_not_allowed_for_transition"
+            }
+          ]
+        }
+      },
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "scope",
+          "adjustment_need",
+          "platform_handoff",
+          "last_visible_task",
+          "last_handoff_summary",
+          "local_state_summary",
+          "previous_flow_summary",
+          "subskill_history",
+          "exit_memo",
+          "note_information"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "scope",
+          "adjustment_need",
+          "last_visible_task",
+          "last_handoff_summary",
+          "local_state_summary"
+        ],
+        "preserved_fields": [
+          "previous_flow_summary",
+          "subskill_history",
+          "exit_memo",
+          "note_information"
+        ],
+        "restored_fields": [
+          "platform_handoff"
+        ],
+        "cleared_fields": [],
+        "rejected_changes": [
+          {
+            "field": "platform_handoff",
+            "reason_code": "modify_not_allowed_for_transition"
+          }
+        ]
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "clarify_adjustment_need",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-15-adjust-plan-whole-plan-taxonomy-state-owned-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-15-adjust-plan-whole-plan-taxonomy-state-owned-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Plutot reduire la duree: cette semaine je veux passer sur une version 5 minutes, en gardant le meme signal de pause et sans ajouter de nouvelle action.",
+    "assistant": "Je suis prête à t'aider pour cet ajustement. Comme ta semaine est très chargée, l'idée est de réduire la durée de ton action « Faire un sas de décompression (sans fumer) » pour la passer à 5 minutes seulement, sans rien changer d'autre à ton organisation.\n\nPour finaliser cela, rends-toi dans ton Plan sur la plateforme. Sous ton niveau actif, tu trouveras l'option Ajuster mon plan où tu pourras saisir cette proposition :\n\n« Réduire la durée du sas de décompression à 5 minutes pour cette semaine, en gardant le signal de pause et sans ajouter d'autre action. »",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_item_local_dispatcher",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "draft_delivered",
+      "operation_id": null,
+      "input_draft": {
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "executable_from_chat": false,
+        "user_blocker_summary": "Plan trop chargé cette semaine",
+        "suggested_platform_input": "Réduire la durée du sas de décompression à 5 minutes pour cette semaine, en gardant le signal de pause et sans ajouter d'autre action.",
+        "preserve": [
+          "l'objectif global",
+          "signal de pause",
+          "objectif global"
+        ],
+        "avoid": [
+          "abandonner l'action",
+          "ajouter de nouvelle action"
+        ],
+        "destination": {
+          "product_area": "Plan",
+          "instruction": "Reprendre cette proposition dans la surface Plan."
+        },
+        "missing_clarity": []
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+        "executable_from_chat": false,
+        "draft": {
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_handoff",
+          "executable_from_chat": false,
+          "user_blocker_summary": "Plan trop chargé cette semaine",
+          "suggested_platform_input": "Réduire la durée du sas de décompression à 5 minutes pour cette semaine, en gardant le signal de pause et sans ajouter d'autre action.",
+          "preserve": [
+            "l'objectif global",
+            "signal de pause",
+            "objectif global"
+          ],
+          "avoid": [
+            "abandonner l'action",
+            "ajouter de nouvelle action"
+          ],
+          "destination": {
+            "product_area": "Plan",
+            "instruction": "Reprendre cette proposition dans la surface Plan."
+          },
+          "missing_clarity": []
+        }
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "start",
+        "reply": "Je suis prête à t'aider pour cet ajustement. Comme ta semaine est très chargée, l'idée est de réduire la durée de ton action « Faire un sas de décompression (sans fumer) » pour la passer à 5 minutes seulement, sans rien changer d'autre à ton organisation.\n\nPour finaliser cela, rends-toi dans ton Plan sur la plateforme. Sous ton niveau actif, tu trouveras l'option Ajuster mon plan où tu pourras saisir cette proposition :\n\n« Réduire la durée du sas de décompression à 5 minutes pour cette semaine, en gardant le signal de pause et sans ajouter d'autre action. »",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_local_plan_handoff_ready"
+        }
+      },
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "prepare_plan_handoff",
+      "local_flow_state": {
+        "skill_id": "adjust_plan_item",
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "status": "handoff_delivered",
+        "stage": "handoff",
+        "scope": {
+          "kind": "specific_plan_item",
+          "confidence": "high",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Faire un sas de décompression (sans fumer)",
+          "needs_scope_clarification": false
+        },
+        "adjustment_need": {
+          "reason_change": "Plan trop chargé cette semaine",
+          "requested_change": "Passer à une version de 5 minutes pour le sas de décompression",
+          "change_kind": "reduce",
+          "constraints": [
+            "cette semaine"
+          ],
+          "preserve": [
+            "l'objectif global",
+            "signal de pause",
+            "objectif global"
+          ],
+          "avoid": [
+            "abandonner l'action",
+            "ajouter de nouvelle action"
+          ],
+          "missing": []
+        },
+        "platform_handoff": {
+          "status": "delivered",
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la durée du sas de décompression à 5 minutes pour cette semaine, en gardant le signal de pause et sans ajouter d'autre action.",
+          "grouped_by_plan": [],
+          "previous_value": null,
+          "revised_value": null
+        },
+        "last_visible_task": "plan_handoff_ready",
+        "last_handoff_summary": "Réduire la durée du sas de décompression à 5 minutes pour cette semaine, en gardant le signal de pause et sans ajouter d'autre action.",
+        "local_state_summary": "Le user précise vouloir réduire la durée du sas de décompression à 5 minutes pour cette semaine.",
+        "previous_flow_summary": null,
+        "turn_count": 2,
+        "subskill_history": []
+      },
+      "visible_task": {
+        "kind": "plan_handoff_ready"
+      },
+      "conversation_context": {
+        "state_summary": "Le user précise vouloir réduire la durée du sas de décompression à 5 minutes pour cette semaine.",
+        "user_words": [
+          "reduire la duree",
+          "version 5 minutes",
+          "gardant le meme signal de pause",
+          "sans ajouter de nouvelle action"
+        ],
+        "field_or_stage": "handoff",
+        "known_values": {
+          "scope": {
+            "kind": "specific_plan_item",
+            "confidence": "high",
+            "plan_id": null,
+            "plan_title": null,
+            "level_id": "phase-1",
+            "level_title": "Casser l'automatisme du soir",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Faire un sas de décompression (sans fumer)",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "reason_change": "Plan trop chargé cette semaine",
+            "requested_change": "Passer à une version de 5 minutes pour le sas de décompression",
+            "change_kind": "reduce",
+            "constraints": [
+              "cette semaine"
+            ],
+            "preserve": [
+              "l'objectif global",
+              "signal de pause",
+              "objectif global"
+            ],
+            "avoid": [
+              "abandonner l'action",
+              "ajouter de nouvelle action"
+            ],
+            "missing": []
+          },
+          "constraints": [
+            "cette semaine"
+          ],
+          "preserve": [
+            "l'objectif global",
+            "signal de pause",
+            "objectif global"
+          ],
+          "avoid": [
+            "abandonner l'action",
+            "ajouter de nouvelle action"
+          ]
+        },
+        "missing_or_weak_values": [],
+        "selected_candidate": {
+          "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+          "title": "Faire un sas de décompression (sans fumer)",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Faire un sas de décompression (sans fumer)",
+          "scope_kind": "specific_plan_item",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la durée du sas de décompression à 5 minutes pour cette semaine, en gardant le signal de pause et sans ajouter d'autre action.",
+          "grouped_by_plan": [],
+          "previous_value": null,
+          "revised_value": null
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le Plan est appliqué, modifié ou sauvegardé."
+        ],
+        "context_summary": "Proposition d'ajustement stabilisée prête pour la surface Plan.",
+        "evidence_used": [
+          "reduire la duree",
+          "version 5 minutes",
+          "gardant le meme signal de pause",
+          "sans ajouter de nouvelle action",
+          "reduire la duree",
+          "version 5 minutes",
+          "gardant le meme signal de pause"
+        ]
+      },
+      "handoff_core": {
+        "target_to_modify": "Faire un sas de décompression (sans fumer)",
+        "reason_change": "Plan trop chargé cette semaine",
+        "requested_change": "Passer à une version de 5 minutes pour le sas de décompression",
+        "change_kind": "reduce",
+        "has_core_triptych": true,
+        "missing_or_weak_values": []
+      },
+      "diagnosis": {
+        "flow_action": "prepare_plan_handoff",
+        "visible_task": "plan_handoff_ready",
+        "selected_target": "Faire un sas de décompression (sans fumer)",
+        "pending_state_present": true,
+        "direct_handoff_flag_present": false,
+        "candidate_list_summary": [
+          {
+            "plan_id": null,
+            "level_id": "phase-1",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Faire un sas de décompression (sans fumer)"
+          }
+        ],
+        "constraints": [
+          "cette semaine"
+        ],
+        "stabilization": {
+          "has_core_triptych": true,
+          "missing_or_weak_values": []
+        },
+        "blocked_effects": [],
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "scope",
+            "adjustment_need",
+            "platform_handoff",
+            "last_visible_task",
+            "last_handoff_summary",
+            "local_state_summary",
+            "previous_flow_summary",
+            "subskill_history",
+            "exit_memo",
+            "note_information"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "scope",
+            "adjustment_need",
+            "platform_handoff",
+            "last_visible_task",
+            "last_handoff_summary",
+            "local_state_summary"
+          ],
+          "preserved_fields": [
+            "previous_flow_summary",
+            "subskill_history",
+            "exit_memo",
+            "note_information"
+          ],
+          "restored_fields": [],
+          "cleared_fields": [],
+          "rejected_changes": []
+        }
+      },
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "scope",
+          "adjustment_need",
+          "platform_handoff",
+          "last_visible_task",
+          "last_handoff_summary",
+          "local_state_summary",
+          "previous_flow_summary",
+          "subskill_history",
+          "exit_memo",
+          "note_information"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "scope",
+          "adjustment_need",
+          "platform_handoff",
+          "last_visible_task",
+          "last_handoff_summary",
+          "local_state_summary"
+        ],
+        "preserved_fields": [
+          "previous_flow_summary",
+          "subskill_history",
+          "exit_memo",
+          "note_information"
+        ],
+        "restored_fields": [],
+        "cleared_fields": [],
+        "rejected_changes": []
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "plan_handoff_ready",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-15-adjust-plan-whole-plan-taxonomy-state-owned-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-06-15-adjust-plan-whole-plan-taxonomy-state-owned-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Finalement mets plutot 3 minutes, et precise que c'est seulement pour cette semaine. Le reste garde pareil.",
+    "assistant": "C'est entendu, je prends en compte les 3 minutes pour ton sas de décompression afin d'alléger ta semaine. Voici la formulation corrigée que tu peux maintenant saisir dans 'Ajuster mon plan', dans l'onglet Plan sous ton niveau actif : \"Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.\"",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_item_local_dispatcher",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_local_revise_plan_handoff",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "draft_delivered",
+      "operation_id": null,
+      "input_draft": {
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "executable_from_chat": false,
+        "user_blocker_summary": "Plan trop chargé cette semaine",
+        "suggested_platform_input": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+        "preserve": [
+          "l'objectif global",
+          "signal de pause",
+          "objectif global",
+          "sans ajouter d'autre action"
+        ],
+        "avoid": [
+          "abandonner l'action",
+          "ajouter de nouvelle action"
+        ],
+        "destination": {
+          "product_area": "Plan",
+          "instruction": "Reprendre cette proposition dans la surface Plan."
+        },
+        "missing_clarity": []
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "adjust_plan_item_local_revise_plan_handoff",
+        "executable_from_chat": false,
+        "draft": {
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_handoff",
+          "executable_from_chat": false,
+          "user_blocker_summary": "Plan trop chargé cette semaine",
+          "suggested_platform_input": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+          "preserve": [
+            "l'objectif global",
+            "signal de pause",
+            "objectif global",
+            "sans ajouter d'autre action"
+          ],
+          "avoid": [
+            "abandonner l'action",
+            "ajouter de nouvelle action"
+          ],
+          "destination": {
+            "product_area": "Plan",
+            "instruction": "Reprendre cette proposition dans la surface Plan."
+          },
+          "missing_clarity": []
+        }
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "revise",
+        "reply": "C'est entendu, je prends en compte les 3 minutes pour ton sas de décompression afin d'alléger ta semaine. Voici la formulation corrigée que tu peux maintenant saisir dans 'Ajuster mon plan', dans l'onglet Plan sous ton niveau actif : \"Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.\"",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_local_revise_plan_handoff"
+        }
+      },
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "revise_plan_handoff",
+      "local_flow_state": {
+        "skill_id": "adjust_plan_item",
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "status": "revising",
+        "stage": "handoff",
+        "scope": {
+          "kind": "specific_plan_item",
+          "confidence": "high",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Faire un sas de décompression (sans fumer)",
+          "needs_scope_clarification": false
+        },
+        "adjustment_need": {
+          "reason_change": "Plan trop chargé cette semaine",
+          "requested_change": "Passer à une version de 3 minutes pour le sas de décompression",
+          "change_kind": "reduce",
+          "constraints": [
+            "cette semaine",
+            "seulement cette semaine"
+          ],
+          "preserve": [
+            "l'objectif global",
+            "signal de pause",
+            "objectif global",
+            "sans ajouter d'autre action"
+          ],
+          "avoid": [
+            "abandonner l'action",
+            "ajouter de nouvelle action"
+          ],
+          "missing": []
+        },
+        "platform_handoff": {
+          "status": "revised",
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+          "grouped_by_plan": [],
+          "previous_value": "Réduire la durée du sas de décompression à 5 minutes pour cette semaine, en gardant le signal de pause et sans ajouter d'autre action.",
+          "revised_value": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action."
+        },
+        "last_visible_task": "revise_plan_handoff",
+        "last_handoff_summary": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+        "local_state_summary": "Le user corrige la durée de l'ajustement de 5 à 3 minutes pour cette semaine.",
+        "previous_flow_summary": null,
+        "turn_count": 3,
+        "subskill_history": []
+      },
+      "visible_task": {
+        "kind": "revise_plan_handoff"
+      },
+      "conversation_context": {
+        "state_summary": "Le user corrige la durée de l'ajustement de 5 à 3 minutes pour cette semaine.",
+        "user_words": [
+          "3 minutes",
+          "seulement pour cette semaine"
+        ],
+        "field_or_stage": "handoff",
+        "known_values": {
+          "scope": {
+            "kind": "specific_plan_item",
+            "confidence": "high",
+            "plan_id": null,
+            "plan_title": null,
+            "level_id": "phase-1",
+            "level_title": "Casser l'automatisme du soir",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Faire un sas de décompression (sans fumer)",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "reason_change": "Plan trop chargé cette semaine",
+            "requested_change": "Passer à une version de 3 minutes pour le sas de décompression",
+            "change_kind": "reduce",
+            "constraints": [
+              "cette semaine",
+              "seulement cette semaine"
+            ],
+            "preserve": [
+              "l'objectif global",
+              "signal de pause",
+              "objectif global",
+              "sans ajouter d'autre action"
+            ],
+            "avoid": [
+              "abandonner l'action",
+              "ajouter de nouvelle action"
+            ],
+            "missing": []
+          },
+          "constraints": [
+            "cette semaine",
+            "seulement cette semaine"
+          ],
+          "preserve": [
+            "l'objectif global",
+            "signal de pause",
+            "objectif global",
+            "sans ajouter d'autre action"
+          ],
+          "avoid": [
+            "abandonner l'action",
+            "ajouter de nouvelle action"
+          ]
+        },
+        "missing_or_weak_values": [],
+        "selected_candidate": {
+          "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Faire un sas de décompression (sans fumer)",
+          "scope_kind": "specific_plan_item",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+          "grouped_by_plan": [],
+          "previous_value": "Réduire la durée du sas de décompression à 5 minutes pour cette semaine, en gardant le signal de pause et sans ajouter d'autre action.",
+          "revised_value": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action."
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le Plan est appliqué, modifié ou sauvegardé."
+        ],
+        "context_summary": "Le user a demandé une correction précise sur la durée.",
+        "evidence_used": [
+          "3 minutes",
+          "seulement pour cette semaine",
+          "3 minutes",
+          "seulement pour cette semaine"
+        ]
+      },
+      "handoff_core": {
+        "target_to_modify": "Faire un sas de décompression (sans fumer)",
+        "reason_change": "Plan trop chargé cette semaine",
+        "requested_change": "Passer à une version de 3 minutes pour le sas de décompression",
+        "change_kind": "reduce",
+        "has_core_triptych": true,
+        "missing_or_weak_values": []
+      },
+      "diagnosis": {
+        "flow_action": "revise_plan_handoff",
+        "visible_task": "revise_plan_handoff",
+        "selected_target": "Faire un sas de décompression (sans fumer)",
+        "pending_state_present": true,
+        "direct_handoff_flag_present": false,
+        "candidate_list_summary": [
+          {
+            "plan_id": null,
+            "level_id": "phase-1",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Faire un sas de décompression (sans fumer)"
+          }
+        ],
+        "constraints": [
+          "cette semaine",
+          "seulement cette semaine"
+        ],
+        "stabilization": {
+          "has_core_triptych": true,
+          "missing_or_weak_values": []
+        },
+        "blocked_effects": [],
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "scope",
+            "adjustment_need",
+            "platform_handoff",
+            "last_visible_task",
+            "last_handoff_summary",
+            "local_state_summary",
+            "previous_flow_summary",
+            "subskill_history",
+            "exit_memo",
+            "note_information"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "scope",
+            "adjustment_need",
+            "platform_handoff",
+            "last_visible_task",
+            "last_handoff_summary",
+            "local_state_summary"
+          ],
+          "preserved_fields": [
+            "previous_flow_summary",
+            "subskill_history",
+            "exit_memo",
+            "note_information"
+          ],
+          "restored_fields": [],
+          "cleared_fields": [],
+          "rejected_changes": []
+        }
+      },
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "scope",
+          "adjustment_need",
+          "platform_handoff",
+          "last_visible_task",
+          "last_handoff_summary",
+          "local_state_summary",
+          "previous_flow_summary",
+          "subskill_history",
+          "exit_memo",
+          "note_information"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "scope",
+          "adjustment_need",
+          "platform_handoff",
+          "last_visible_task",
+          "last_handoff_summary",
+          "local_state_summary"
+        ],
+        "preserved_fields": [
+          "previous_flow_summary",
+          "subskill_history",
+          "exit_memo",
+          "note_information"
+        ],
+        "restored_fields": [],
+        "cleared_fields": [],
+        "rejected_changes": []
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "revise_plan_handoff",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-15-adjust-plan-whole-plan-taxonomy-state-owned-r1-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-06-15-adjust-plan-whole-plan-taxonomy-state-owned-r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Ok, mais du coup tu l'as deja modifie dans mon plan ou je dois encore le faire moi-meme ?",
+    "assistant": "Je ne peux pas modifier ton plan directement d'ici, je t'aide simplement à préparer l'ajustement. Comme ta semaine est très chargée, nous avons convenu de réduire la durée de ton sas de décompression à 3 minutes pour que ce soit plus léger, tout en gardant ton signal de pause. Pour valider cela, rends-toi dans ton Plan : tu trouveras l'option 'Ajuster mon plan' juste sous ton niveau actuel pour y saisir cette modification.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_item_local_dispatcher",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_local_explain_handoff",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "draft_delivered",
+      "operation_id": null,
+      "input_draft": {
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "executable_from_chat": false,
+        "user_blocker_summary": "Plan trop chargé cette semaine",
+        "suggested_platform_input": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+        "preserve": [
+          "l'objectif global",
+          "signal de pause",
+          "objectif global",
+          "sans ajouter d'autre action"
+        ],
+        "avoid": [
+          "abandonner l'action",
+          "ajouter de nouvelle action"
+        ],
+        "destination": {
+          "product_area": "Plan",
+          "instruction": "Reprendre cette proposition dans la surface Plan."
+        },
+        "missing_clarity": []
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "adjust_plan_item_local_explain_handoff",
+        "executable_from_chat": false,
+        "draft": {
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_handoff",
+          "executable_from_chat": false,
+          "user_blocker_summary": "Plan trop chargé cette semaine",
+          "suggested_platform_input": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+          "preserve": [
+            "l'objectif global",
+            "signal de pause",
+            "objectif global",
+            "sans ajouter d'autre action"
+          ],
+          "avoid": [
+            "abandonner l'action",
+            "ajouter de nouvelle action"
+          ],
+          "destination": {
+            "product_area": "Plan",
+            "instruction": "Reprendre cette proposition dans la surface Plan."
+          },
+          "missing_clarity": []
+        }
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "explain",
+        "reply": "Je ne peux pas modifier ton plan directement d'ici, je t'aide simplement à préparer l'ajustement. Comme ta semaine est très chargée, nous avons convenu de réduire la durée de ton sas de décompression à 3 minutes pour que ce soit plus léger, tout en gardant ton signal de pause. Pour valider cela, rends-toi dans ton Plan : tu trouveras l'option 'Ajuster mon plan' juste sous ton niveau actuel pour y saisir cette modification.",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_local_explain_handoff"
+        }
+      },
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "explain_handoff",
+      "local_flow_state": {
+        "skill_id": "adjust_plan_item",
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "status": "handoff_delivered",
+        "stage": "handoff",
+        "scope": {
+          "kind": "specific_plan_item",
+          "confidence": "high",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Faire un sas de décompression (sans fumer)",
+          "needs_scope_clarification": false
+        },
+        "adjustment_need": {
+          "reason_change": "Plan trop chargé cette semaine",
+          "requested_change": "Passer à une version de 3 minutes pour le sas de décompression",
+          "change_kind": "reduce",
+          "constraints": [
+            "cette semaine",
+            "seulement cette semaine"
+          ],
+          "preserve": [
+            "l'objectif global",
+            "signal de pause",
+            "objectif global",
+            "sans ajouter d'autre action"
+          ],
+          "avoid": [
+            "abandonner l'action",
+            "ajouter de nouvelle action"
+          ],
+          "missing": []
+        },
+        "platform_handoff": {
+          "status": "revised",
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+          "grouped_by_plan": [],
+          "previous_value": "Réduire la durée du sas de décompression à 5 minutes pour cette semaine, en gardant le signal de pause et sans ajouter d'autre action.",
+          "revised_value": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action."
+        },
+        "last_visible_task": "explain_handoff",
+        "last_handoff_summary": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+        "local_state_summary": "Le user demande si la modification est déjà effective ou s'il doit la faire lui-même.",
+        "previous_flow_summary": null,
+        "turn_count": 4,
+        "subskill_history": []
+      },
+      "visible_task": {
+        "kind": "explain_handoff"
+      },
+      "conversation_context": {
+        "state_summary": "Le user demande si la modification est déjà effective ou s'il doit la faire lui-même.",
+        "user_words": [
+          "tu l'as deja modifie",
+          "je dois encore le faire moi-meme"
+        ],
+        "field_or_stage": "handoff",
+        "known_values": {
+          "scope": {
+            "kind": "specific_plan_item",
+            "confidence": "high",
+            "plan_id": null,
+            "plan_title": null,
+            "level_id": "phase-1",
+            "level_title": "Casser l'automatisme du soir",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Faire un sas de décompression (sans fumer)",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "reason_change": "Plan trop chargé cette semaine",
+            "requested_change": "Passer à une version de 3 minutes pour le sas de décompression",
+            "change_kind": "reduce",
+            "constraints": [
+              "cette semaine",
+              "seulement cette semaine"
+            ],
+            "preserve": [
+              "l'objectif global",
+              "signal de pause",
+              "objectif global",
+              "sans ajouter d'autre action"
+            ],
+            "avoid": [
+              "abandonner l'action",
+              "ajouter de nouvelle action"
+            ],
+            "missing": []
+          },
+          "constraints": [
+            "cette semaine",
+            "seulement cette semaine"
+          ],
+          "preserve": [
+            "l'objectif global",
+            "signal de pause",
+            "objectif global",
+            "sans ajouter d'autre action"
+          ],
+          "avoid": [
+            "abandonner l'action",
+            "ajouter de nouvelle action"
+          ]
+        },
+        "missing_or_weak_values": [],
+        "selected_candidate": {
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "target_summary": "Faire un sas de décompression (sans fumer)",
+          "scope_kind": "specific_plan_item",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+          "grouped_by_plan": [],
+          "previous_value": "Réduire la durée du sas de décompression à 5 minutes pour cette semaine, en gardant le signal de pause et sans ajouter d'autre action.",
+          "revised_value": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action."
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le Plan est déjà modifié.",
+          "Ne dis pas que tu as sauvegardé les changements."
+        ],
+        "context_summary": "Le user a besoin de comprendre que le chat est un espace de préparation et non de mutation directe du Plan.",
+        "evidence_used": [
+          "tu l'as deja modifie",
+          "je dois encore le faire moi-meme",
+          "tu l'as deja modifie",
+          "je dois encore le faire moi-meme"
+        ]
+      },
+      "handoff_core": {
+        "target_to_modify": "Faire un sas de décompression (sans fumer)",
+        "reason_change": "Plan trop chargé cette semaine",
+        "requested_change": "Passer à une version de 3 minutes pour le sas de décompression",
+        "change_kind": "reduce",
+        "has_core_triptych": true,
+        "missing_or_weak_values": []
+      },
+      "diagnosis": {
+        "flow_action": "explain_handoff",
+        "visible_task": "explain_handoff",
+        "selected_target": "Faire un sas de décompression (sans fumer)",
+        "pending_state_present": true,
+        "direct_handoff_flag_present": false,
+        "candidate_list_summary": [
+          {
+            "plan_id": null,
+            "level_id": "phase-1",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Faire un sas de décompression (sans fumer)"
+          }
+        ],
+        "constraints": [
+          "cette semaine",
+          "seulement cette semaine"
+        ],
+        "stabilization": {
+          "has_core_triptych": true,
+          "missing_or_weak_values": []
+        },
+        "blocked_effects": [],
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "scope",
+            "adjustment_need",
+            "platform_handoff",
+            "last_visible_task",
+            "last_handoff_summary",
+            "local_state_summary",
+            "previous_flow_summary",
+            "subskill_history",
+            "exit_memo",
+            "note_information"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "last_visible_task",
+            "last_handoff_summary",
+            "local_state_summary"
+          ],
+          "preserved_fields": [
+            "previous_flow_summary",
+            "subskill_history",
+            "exit_memo",
+            "note_information"
+          ],
+          "restored_fields": [
+            "scope",
+            "adjustment_need",
+            "platform_handoff"
+          ],
+          "cleared_fields": [],
+          "rejected_changes": [
+            {
+              "field": "scope",
+              "reason_code": "modify_not_allowed_for_transition"
+            },
+            {
+              "field": "adjustment_need",
+              "reason_code": "modify_not_allowed_for_transition"
+            },
+            {
+              "field": "platform_handoff",
+              "reason_code": "modify_not_allowed_for_transition"
+            }
+          ]
+        }
+      },
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "scope",
+          "adjustment_need",
+          "platform_handoff",
+          "last_visible_task",
+          "last_handoff_summary",
+          "local_state_summary",
+          "previous_flow_summary",
+          "subskill_history",
+          "exit_memo",
+          "note_information"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "last_visible_task",
+          "last_handoff_summary",
+          "local_state_summary"
+        ],
+        "preserved_fields": [
+          "previous_flow_summary",
+          "subskill_history",
+          "exit_memo",
+          "note_information"
+        ],
+        "restored_fields": [
+          "scope",
+          "adjustment_need",
+          "platform_handoff"
+        ],
+        "cleared_fields": [],
+        "rejected_changes": [
+          {
+            "field": "scope",
+            "reason_code": "modify_not_allowed_for_transition"
+          },
+          {
+            "field": "adjustment_need",
+            "reason_code": "modify_not_allowed_for_transition"
+          },
+          {
+            "field": "platform_handoff",
+            "reason_code": "modify_not_allowed_for_transition"
+          }
+        ]
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "explain_handoff",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-15-adjust-plan-whole-plan-taxonomy-state-owned-r1-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-06-15-adjust-plan-whole-plan-taxonomy-state-owned-r1-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Vas-y applique-le quand meme depuis le chat, je valide.",
+    "assistant": "Je ne peux pas appliquer cette modification directement depuis notre échange. Comme ton plan est trop chargé cette semaine, l'idée est de réduire la durée de ton sas de décompression à 3 minutes pour l'alléger un peu. Pour que ce soit effectif, tu dois le faire toi-même sur la plateforme : va dans ton Plan, et sous ton niveau actif, utilise l'outil Ajuster mon plan en saisissant : 'Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action'.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_item_local_dispatcher",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_apply_attempt_not_executable_from_chat",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "apply_attempt",
+      "operation_id": null,
+      "input_draft": {
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "executable_from_chat": false,
+        "user_blocker_summary": "Plan trop chargé cette semaine",
+        "suggested_platform_input": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+        "preserve": [
+          "l'objectif global",
+          "signal de pause",
+          "objectif global",
+          "sans ajouter d'autre action"
+        ],
+        "avoid": [
+          "abandonner l'action",
+          "ajouter de nouvelle action"
+        ],
+        "destination": {
+          "product_area": "Plan",
+          "instruction": "Reprendre cette proposition dans la surface Plan."
+        },
+        "missing_clarity": []
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [
+        {
+          "type": "adjust_plan_item",
+          "reason_code": "chat_plan_mutation_disabled_platform_handoff"
+        }
+      ],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "adjust_plan_item_apply_attempt_not_executable_from_chat",
+        "executable_from_chat": false,
+        "draft": {
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_handoff",
+          "executable_from_chat": false,
+          "user_blocker_summary": "Plan trop chargé cette semaine",
+          "suggested_platform_input": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+          "preserve": [
+            "l'objectif global",
+            "signal de pause",
+            "objectif global",
+            "sans ajouter d'autre action"
+          ],
+          "avoid": [
+            "abandonner l'action",
+            "ajouter de nouvelle action"
+          ],
+          "destination": {
+            "product_area": "Plan",
+            "instruction": "Reprendre cette proposition dans la surface Plan."
+          },
+          "missing_clarity": []
+        }
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "approve",
+        "reply": "Je ne peux pas appliquer cette modification directement depuis notre échange. Comme ton plan est trop chargé cette semaine, l'idée est de réduire la durée de ton sas de décompression à 3 minutes pour l'alléger un peu. Pour que ce soit effectif, tu dois le faire toi-même sur la plateforme : va dans ton Plan, et sous ton niveau actif, utilise l'outil Ajuster mon plan en saisissant : 'Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action'.",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_apply_attempt_not_executable_from_chat"
+        }
+      },
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "apply_attempt",
+      "local_flow_state": {
+        "skill_id": "adjust_plan_item",
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "status": "apply_attempt",
+        "stage": "handoff",
+        "scope": {
+          "kind": "specific_plan_item",
+          "confidence": "high",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Faire un sas de décompression (sans fumer)",
+          "needs_scope_clarification": false
+        },
+        "adjustment_need": {
+          "reason_change": "Plan trop chargé cette semaine",
+          "requested_change": "Passer à une version de 3 minutes pour le sas de décompression",
+          "change_kind": "reduce",
+          "constraints": [
+            "cette semaine",
+            "seulement cette semaine"
+          ],
+          "preserve": [
+            "l'objectif global",
+            "signal de pause",
+            "objectif global",
+            "sans ajouter d'autre action"
+          ],
+          "avoid": [
+            "abandonner l'action",
+            "ajouter de nouvelle action"
+          ],
+          "missing": []
+        },
+        "platform_handoff": {
+          "status": "apply_attempt",
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+          "grouped_by_plan": [],
+          "previous_value": "Réduire la durée du sas de décompression à 5 minutes pour cette semaine, en gardant le signal de pause et sans ajouter d'autre action.",
+          "revised_value": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action."
+        },
+        "last_visible_task": "apply_attempt",
+        "last_handoff_summary": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+        "local_state_summary": "Le user veut valider et appliquer l'ajustement de 3 minutes directement depuis le chat.",
+        "previous_flow_summary": null,
+        "turn_count": 5,
+        "subskill_history": []
+      },
+      "visible_task": {
+        "kind": "apply_attempt"
+      },
+      "conversation_context": {
+        "state_summary": "Le user veut valider et appliquer l'ajustement de 3 minutes directement depuis le chat.",
+        "user_words": [
+          "applique-le quand meme depuis le chat",
+          "je valide"
+        ],
+        "field_or_stage": "handoff",
+        "known_values": {
+          "scope": {
+            "kind": "specific_plan_item",
+            "confidence": "high",
+            "plan_id": null,
+            "plan_title": null,
+            "level_id": "phase-1",
+            "level_title": "Casser l'automatisme du soir",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Faire un sas de décompression (sans fumer)",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "reason_change": "Plan trop chargé cette semaine",
+            "requested_change": "Passer à une version de 3 minutes pour le sas de décompression",
+            "change_kind": "reduce",
+            "constraints": [
+              "cette semaine",
+              "seulement cette semaine"
+            ],
+            "preserve": [
+              "l'objectif global",
+              "signal de pause",
+              "objectif global",
+              "sans ajouter d'autre action"
+            ],
+            "avoid": [
+              "abandonner l'action",
+              "ajouter de nouvelle action"
+            ],
+            "missing": []
+          },
+          "constraints": [
+            "cette semaine",
+            "seulement cette semaine"
+          ],
+          "preserve": [
+            "l'objectif global",
+            "signal de pause",
+            "objectif global",
+            "sans ajouter d'autre action"
+          ],
+          "avoid": [
+            "abandonner l'action",
+            "ajouter de nouvelle action"
+          ]
+        },
+        "missing_or_weak_values": [],
+        "selected_candidate": {
+          "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Faire un sas de décompression (sans fumer)",
+          "scope_kind": "specific_plan_item",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action.",
+          "grouped_by_plan": [],
+          "previous_value": "Réduire la durée du sas de décompression à 5 minutes pour cette semaine, en gardant le signal de pause et sans ajouter d'autre action.",
+          "revised_value": "Réduire la durée du sas de décompression à 3 minutes pour cette semaine uniquement, en gardant le signal de pause et sans ajouter d'autre action."
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le Plan est appliqué, modifié ou sauvegardé.",
+          "Ne dis pas que c'est fait.",
+          "Ne dis pas que tu as mis à jour la base de données."
+        ],
+        "context_summary": "Le user tente de valider l'ajustement depuis le chat malgré l'impossibilité technique de mutation directe.",
+        "evidence_used": [
+          "applique-le quand meme depuis le chat",
+          "je valide",
+          "applique-le quand meme depuis le chat",
+          "je valide"
+        ]
+      },
+      "handoff_core": {
+        "target_to_modify": "Faire un sas de décompression (sans fumer)",
+        "reason_change": "Plan trop chargé cette semaine",
+        "requested_change": "Passer à une version de 3 minutes pour le sas de décompression",
+        "change_kind": "reduce",
+        "has_core_triptych": true,
+        "missing_or_weak_values": []
+      },
+      "diagnosis": {
+        "flow_action": "apply_attempt",
+        "visible_task": "apply_attempt",
+        "selected_target": "Faire un sas de décompression (sans fumer)",
+        "pending_state_present": true,
+        "direct_handoff_flag_present": false,
+        "candidate_list_summary": [
+          {
+            "plan_id": null,
+            "level_id": "phase-1",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Faire un sas de décompression (sans fumer)"
+          }
+        ],
+        "constraints": [
+          "cette semaine",
+          "seulement cette semaine"
+        ],
+        "stabilization": {
+          "has_core_triptych": true,
+          "missing_or_weak_values": []
+        },
+        "blocked_effects": [
+          {
+            "type": "adjust_plan_item",
+            "reason_code": "chat_plan_mutation_disabled_platform_handoff"
+          }
+        ],
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "scope",
+            "adjustment_need",
+            "platform_handoff",
+            "last_visible_task",
+            "last_handoff_summary",
+            "local_state_summary",
+            "previous_flow_summary",
+            "subskill_history",
+            "exit_memo",
+            "note_information"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "last_visible_task",
+            "last_handoff_summary",
+            "local_state_summary"
+          ],
+          "preserved_fields": [
+            "previous_flow_summary",
+            "subskill_history",
+            "exit_memo",
+            "note_information"
+          ],
+          "restored_fields": [
+            "scope",
+            "adjustment_need",
+            "platform_handoff"
+          ],
+          "cleared_fields": [],
+          "rejected_changes": [
+            {
+              "field": "scope",
+              "reason_code": "modify_not_allowed_for_transition"
+            },
+            {
+              "field": "adjustment_need",
+              "reason_code": "modify_not_allowed_for_transition"
+            },
+            {
+              "field": "platform_handoff",
+              "reason_code": "modify_not_allowed_for_transition"
+            }
+          ]
+        }
+      },
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "scope",
+          "adjustment_need",
+          "platform_handoff",
+          "last_visible_task",
+          "last_handoff_summary",
+          "local_state_summary",
+          "previous_flow_summary",
+          "subskill_history",
+          "exit_memo",
+          "note_information"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "last_visible_task",
+          "last_handoff_summary",
+          "local_state_summary"
+        ],
+        "preserved_fields": [
+          "previous_flow_summary",
+          "subskill_history",
+          "exit_memo",
+          "note_information"
+        ],
+        "restored_fields": [
+          "scope",
+          "adjustment_need",
+          "platform_handoff"
+        ],
+        "cleared_fields": [],
+        "rejected_changes": [
+          {
+            "field": "scope",
+            "reason_code": "modify_not_allowed_for_transition"
+          },
+          {
+            "field": "adjustment_need",
+            "reason_code": "modify_not_allowed_for_transition"
+          },
+          {
+            "field": "platform_handoff",
+            "reason_code": "modify_not_allowed_for_transition"
+          }
+        ]
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "apply_attempt",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-15-adjust-plan-whole-plan-taxonomy-state-owned-r1-t05",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-06-15-adjust-plan-whole-plan-taxonomy-state-owned-r1-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Ok laisse tomber l'ajustement pour l'instant. A la place, rappelle-moi demain matin de regarder mon plan.",
+    "assistant": "Il me manque le moment exact pour programmer ce rappel.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "create_one_shot_reminder",
+    "route_reason_code": "central_arbitrator_one_shot_reminder_structured_effect",
+    "operation_intents": [],
+    "direct_effects": [
+      {
+        "effect_type": "create_one_shot_reminder",
+        "explicitness": "explicit",
+        "target_status": "identified",
+        "confidence_band": "high",
+        "payload_hint": {
+          "raw_text": "rappelle-moi demain matin de regarder mon plan",
+          "when_hint": "demain matin",
+          "instruction_hint": "regarder mon plan"
+        }
+      }
+    ],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "create_one_shot_reminder",
+      "reason_code": "central_arbitrator_one_shot_reminder_structured_effect",
+      "status": "needs_clarify",
+      "reason": "needs_clarify",
+      "requested_effects": [
+        {
+          "type": "create_one_shot_reminder",
+          "reason_code": "needs_clarify"
+        }
+      ],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [
+        {
+          "type": "create_one_shot_reminder",
+          "reason_code": "missing_time"
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-15-adjust-plan-whole-plan-taxonomy-state-owned-r1-t06",
+    "trace_error": null
+  }
+]

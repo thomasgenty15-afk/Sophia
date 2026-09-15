@@ -1,0 +1,250 @@
+{
+  "ok": true,
+  "request_id": "5984dd8a-6a66-471a-ad0f-a45086445023",
+  "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "channel": "web",
+  "scope": "web",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Je partirais sur une carte d’attaque libre, technique texte magique : elle t’aide à recadrer la pensée qui te fait tourner en rond et à lancer le premier geste sur ta présentation.",
+    "mode": "companion",
+    "delivery": null,
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "5984dd8a-6a66-471a-ad0f-a45086445023",
+        "source_message_id": "34c755d9-e225-4f6d-b92f-a85c2844cb94",
+        "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "direct_effect_time_context": {
+          "now_utc": "2026-07-02T12:49:19.008Z",
+          "user_timezone": "Europe/Paris",
+          "user_locale": "fr-FR",
+          "user_local_datetime": "2026-07-02T14:49:19",
+          "user_local_human": "jeudi 2 juillet 2026 à 14:49"
+        },
+        "note_information": null,
+        "skill_signals": {
+          "coaching_recommendation": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "free_action_coaching_need",
+            "context": {
+              "coaching_type": "no_plan_action",
+              "confidence": 0.86,
+              "reason": "User is blocked and stressed on a concrete work presentation; the action is not identified as part of an active plan.",
+              "action_context": {
+                "source": "free",
+                "plan_item_id": null,
+                "action_title": "présentation de boulot"
+              }
+            }
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "coaching_recommendation for blocked work presentation",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "semantic_only",
+          "plan_confidence": 0.7
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "coaching_recommendation",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "coaching_recommendation_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "selected_handler": "coaching_recommendation"
+      },
+      "effect_ledger": {
+        "turn_id": "5984dd8a-6a66-471a-ad0f-a45086445023",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "coaching_recommendation",
+      "skill_run": {
+        "selected_skill_id": "coaching_recommendation",
+        "reason_code": "coaching_recommendation_signal",
+        "status": "continue",
+        "latency_ms": 17140
+      }
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "5984dd8a-6a66-471a-ad0f-a45086445023",
+      "source_message_id": "34c755d9-e225-4f6d-b92f-a85c2844cb94",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "direct_effect_time_context": {
+        "now_utc": "2026-07-02T12:49:19.008Z",
+        "user_timezone": "Europe/Paris",
+        "user_locale": "fr-FR",
+        "user_local_datetime": "2026-07-02T14:49:19",
+        "user_local_human": "jeudi 2 juillet 2026 à 14:49"
+      },
+      "note_information": null,
+      "skill_signals": {
+        "coaching_recommendation": {
+          "detected": true,
+          "confidence_band": "high",
+          "reason": "free_action_coaching_need",
+          "context": {
+            "coaching_type": "no_plan_action",
+            "confidence": 0.86,
+            "reason": "User is blocked and stressed on a concrete work presentation; the action is not identified as part of an active plan.",
+            "action_context": {
+              "source": "free",
+              "plan_item_id": null,
+              "action_title": "présentation de boulot"
+            }
+          }
+        }
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "coaching_recommendation for blocked work presentation",
+        "reasoning_complexity": "low",
+        "context_need": "minimal",
+        "memory_mode": "none",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "tiny",
+        "targets": [],
+        "retrieval_policy": "semantic_only",
+        "plan_confidence": 0.7
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "coaching_recommendation",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "coaching_recommendation_signal",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "selected_handler": "coaching_recommendation"
+    },
+    "effect_ledger": {
+      "turn_id": "5984dd8a-6a66-471a-ad0f-a45086445023",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "coaching_recommendation",
+    "skill_run": {
+      "selected_skill_id": "coaching_recommendation",
+      "reason_code": "coaching_recommendation_signal",
+      "status": "continue",
+      "latency_ms": 17140
+    }
+  },
+  "trace_error": null
+}

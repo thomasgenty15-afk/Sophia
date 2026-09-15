@@ -1,0 +1,19 @@
+
+==============================================================================
+▌ X4 — VRAIE photo au milieu — élève f0d11166-d5f7-4817-a5c2-763f0dce6bba
+==============================================================================
+T1 SOPHIA : That’s a real pressure point: first solo presentation, and it lands on Friday. The stress makes sense.
+
+Keep the task small in your head: one clear opening, three main points, one clean close. If you want, I can help you turn that into a tight run-through.
+PHOTO     : HTTP 200 — {"ok":true,"idempotent":false,"chat_message_id":"43ae3071-f806-4dc5-99bf-54cebbcb13a8","event":{"id":"fcc60cce-765b-4410-85d5-823bc7d70178","user_id":"f0d11166-d5f7-4817-a5c2-763f0dce6bba","occurred_at":"2026-08-08T03:21
+T3 SOPHIA : Yes: keep it simple and controlled. You’re dealing with a first solo presentation on Friday, so I’d aim for one clear opening, three main points, and a short close you can repeat without thinking. If you want, I can help you tighten the opening.
+
+FIL EN BASE :
+  user      | I've been stressed about a work presentation on Friday, it's the first one I run alone.
+  assistant | That’s a real pressure point: first solo presentation, and it lands on Friday. The stress 
+  user      | [photo]
+  assistant | I see grilled chicken breast, brown rice, broccoli. I can see "Protein at lunch" and "Vege
+  user      | and so, about the presentation — any thoughts?
+  assistant | Yes: keep it simple and controlled. You’re dealing with a first solo presentation on Frida
+
+VERDICT X4 : GREEN (ancrage: [presentation, friday])

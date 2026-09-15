@@ -1,0 +1,10 @@
+── DEMANDE FIGÉE ─────────────────────────────────────────────
+   tir            5 · PERTE · repas léger déclaré et apport fixe · sans réintroduire d'extra
+   requête        ee5ba802-aa00-4e8a-bb5a-70c232ffd1ba
+   bouches        1
+     · Paul   8ce75e52-b1d7-4890-9a6e-8d9a52d75cdc · 178 cm · 88 kg · male · appétit average · objectif fat_loss · léger [] · apports [{"slot":"breakfast","unit":"g","amount":200,"food_ref":"greek_yogurt"}]
+   jours          ["sat","sun","mon"]
+   cases attendues 9 ({"8ce75e52-b1d7-4890-9a6e-8d9a52d75cdc":9}) · FIGÉE AVANT L'APPEL
+   étapes         premier jet oui · réparations 3 · prompt oui · journal 30 ligne(s)
+
+   écrit : /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-CLOTURE/fixtures/campagne-tir5-c6-2026-09-12T01-59-05-393Z-c0.json

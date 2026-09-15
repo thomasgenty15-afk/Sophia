@@ -1,0 +1,255 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "68a5ff3a-9143-420b-a954-5d82dd7ecb9f",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T06:40:00+00:00",
+      "event_context": "one_shot_reminder:commencer_par_cinq_minutes_sans_telephone",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: commencer par cinq minutes sans téléphone.",
+        "parse_source": "payload_when_hint",
+        "request_text": "Rappelle-moi demain à 08h40 de commencer par cinq minutes sans téléphone.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: commencer par cinq minutes sans téléphone.",
+        "source_message_id": null,
+        "reminder_instruction": "commencer par cinq minutes sans téléphone"
+      },
+      "created_at": "2026-06-24T13:56:35.2609+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "J'ai besoin d'un conseil concret pour ne pas repousser mon bloc administratif demain matin. Rappelle-moi demain à 08h40 de commencer par cinq minutes sans téléphone.",
+      "created_at": "2026-06-24T13:56:32.262808+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r3b-coaching-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C'est programmé pour demain à 08h40 : je te ferai un rappel pour commencer par cinq minutes sans téléphone.\n\nJe partirais sur une carte d’attaque, technique Préparer le terrain : mets ton téléphone hors de portée et ouvre déjà le premier dossier ou document, pour que le démarrage demande le moins d’effort possible.",
+      "created_at": "2026-06-24T13:57:06.547728+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r3b-coaching-t01",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "0bd67a32-0a6c-4980-bd7d-4d5d98bd06da",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T13:57:06.535Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T13:57:06.535Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "followup",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Le user demande un conseil concret pour démarrer un bloc administratif planifié demain matin et signale un besoin de soutien pour ne pas le repousser.",
+              "target_kind": "plan_action",
+              "action_title": "bloc administratif",
+              "action_source": "plan"
+            },
+            "turn_count": 1,
+            "coaching_type": "plan_action",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "L'action est concrète, dans le plan, et le risque principal est le démarrage repoussé. Une carte d'attaque aide à préparer l'entrée dans l'action en amont."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user demande un conseil concret pour démarrer un bloc administratif planifié demain matin et signale un besoin de soutien pour ne pas le repousser.",
+            "candidate_features": [
+              {
+                "fit": "high",
+                "why": "L'action est concrète et le blocage principal est le démarrage repoussé; préparer le terrain réduit la friction du premier geste, surtout avec la contrainte sans téléphone.",
+                "feature": "attack_card",
+                "destination_hint": "Dashboard > Plan"
+              }
+            ],
+            "last_answer_summary": "L'action est concrète et le blocage principal est le démarrage repoussé; préparer le terrain réduit la friction du premier geste, surtout avec la contrainte sans téléphone.",
+            "parent_return_focus": null,
+            "pending_type_change": null,
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "last_visible_decision": {
+              "lever": "attack_card",
+              "reason": "L'action est concrète et le blocage principal est le démarrage repoussé; préparer le terrain réduit la friction du premier geste, surtout avec la contrainte sans téléphone.",
+              "variant": "preparer_terrain",
+              "confidence": "high",
+              "potion_type": null
+            },
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks for concrete coaching help on a specific upcoming administrative block linked to a concrete action."
+            ],
+            "current_recommendation": {
+              "fit": "high",
+              "why": "L'action est concrète et le blocage principal est le démarrage repoussé; préparer le terrain réduit la friction du premier geste, surtout avec la contrainte sans téléphone.",
+              "feature": "attack_card",
+              "destination_hint": "Dashboard > Plan"
+            },
+            "last_visible_task_kind": "action_plan_coaching",
+            "recommendation_decision": {
+              "why_primary": "L'action est concrète et le blocage principal est le démarrage repoussé; préparer le terrain réduit la friction du premier geste, surtout avec la contrainte sans téléphone.",
+              "why_not_others": {},
+              "primary_feature": "attack_card",
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": "carte d'attaque",
+                "surface_hint": "Dashboard > Plan",
+                "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+              },
+              "user_facing_next_step": "Préparer une carte d'attaque pour faciliter le démarrage de ton bloc administratif demain matin, par exemple avec un mot de bascule ou un rituel de 5 minutes sans téléphone."
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks for concrete coaching help on a specific upcoming administrative block linked to a concrete action.",
+              "category": "plan_action_coaching",
+              "confidence": 0.84,
+              "failure_mode": "unclear",
+              "coaching_type": "plan_action",
+              "action_context": {
+                "source": "plan",
+                "plan_id": null,
+                "plan_title": null,
+                "action_type": "other",
+                "action_title": "bloc administratif",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": true,
+                "needs_type_confirmation": false,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": false
+              },
+              "priority_features": [],
+              "emotional_state_context": null
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T13:57:06.535Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T13:57:06.535Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "followup",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Le user demande un conseil concret pour démarrer un bloc administratif planifié demain matin et signale un besoin de soutien pour ne pas le repousser.",
+              "target_kind": "plan_action",
+              "action_title": "bloc administratif",
+              "action_source": "plan"
+            },
+            "turn_count": 1,
+            "coaching_type": "plan_action",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "L'action est concrète, dans le plan, et le risque principal est le démarrage repoussé. Une carte d'attaque aide à préparer l'entrée dans l'action en amont."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user demande un conseil concret pour démarrer un bloc administratif planifié demain matin et signale un besoin de soutien pour ne pas le repousser.",
+            "candidate_features": [
+              {
+                "fit": "high",
+                "why": "L'action est concrète et le blocage principal est le démarrage repoussé; préparer le terrain réduit la friction du premier geste, surtout avec la contrainte sans téléphone.",
+                "feature": "attack_card",
+                "destination_hint": "Dashboard > Plan"
+              }
+            ],
+            "last_answer_summary": "L'action est concrète et le blocage principal est le démarrage repoussé; préparer le terrain réduit la friction du premier geste, surtout avec la contrainte sans téléphone.",
+            "parent_return_focus": null,
+            "pending_type_change": null,
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "last_visible_decision": {
+              "lever": "attack_card",
+              "reason": "L'action est concrète et le blocage principal est le démarrage repoussé; préparer le terrain réduit la friction du premier geste, surtout avec la contrainte sans téléphone.",
+              "variant": "preparer_terrain",
+              "confidence": "high",
+              "potion_type": null
+            },
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks for concrete coaching help on a specific upcoming administrative block linked to a concrete action."
+            ],
+            "current_recommendation": {
+              "fit": "high",
+              "why": "L'action est concrète et le blocage principal est le démarrage repoussé; préparer le terrain réduit la friction du premier geste, surtout avec la contrainte sans téléphone.",
+              "feature": "attack_card",
+              "destination_hint": "Dashboard > Plan"
+            },
+            "last_visible_task_kind": "action_plan_coaching",
+            "recommendation_decision": {
+              "why_primary": "L'action est concrète et le blocage principal est le démarrage repoussé; préparer le terrain réduit la friction du premier geste, surtout avec la contrainte sans téléphone.",
+              "why_not_others": {},
+              "primary_feature": "attack_card",
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": "carte d'attaque",
+                "surface_hint": "Dashboard > Plan",
+                "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+              },
+              "user_facing_next_step": "Préparer une carte d'attaque pour faciliter le démarrage de ton bloc administratif demain matin, par exemple avec un mot de bascule ou un rituel de 5 minutes sans téléphone."
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks for concrete coaching help on a specific upcoming administrative block linked to a concrete action.",
+              "category": "plan_action_coaching",
+              "confidence": 0.84,
+              "failure_mode": "unclear",
+              "coaching_type": "plan_action",
+              "action_context": {
+                "source": "plan",
+                "plan_id": null,
+                "plan_title": null,
+                "action_type": "other",
+                "action_title": "bloc administratif",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": true,
+                "needs_type_confirmation": false,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": false
+              },
+              "priority_features": [],
+              "emotional_state_context": null
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T13:57:06.54122+00:00"
+  }
+}

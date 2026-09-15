@@ -1,0 +1,39 @@
+le plan proposait des cuissons sans savoir si ce foyer a un four
+
+Verifie le 2026-08-18 sur tout le moteur: zero occurrence de four, de
+micro-ondes ou de congelateur. Le generateur composait 50 minutes de four
+chez qui n'en a pas, et « je congele le reste » chez qui n'a qu'un bac a
+glacons. Ce lot COLLECTE la reponse; il ne la fait rien faire.
+
+Sept jetons fermes dans `student_goals.practical_constraints.kitchen_equipment`
+— oven, stovetop, microwave, freezer, air_fryer, pressure_cooker, blender —
+au niveau du FOYER, parce qu'une cuisine est partagee. Trois d'entre eux
+changent vraiment un plan: sans congelateur « une seule course, je congele »
+est impossible; sans micro-ondes « a rechauffer » veut dire poele ou four, et
+le temps du jour J change; sans four le batch cooking n'a plus de raison
+d'etre.
+
+LA GARDE DU LOT, ET C'EST LA SEULE QUI COMPTE: absence de cle != tableau vide.
+Tous les comptes qui existent aujourd'hui n'ont jamais vu la question. Si
+l'absence se lisait « ni four ni congelateur », le premier plan genere apres
+ce lot retirerait le batch cooking et la congelation a TOUT LE MONDE — un lot
+de collecte qui degrade le produit pour ceux a qui il n'a rien demande. D'ou
+une lecture a trois valeurs (`hasKitchenTool` rend `true`/`false`/`null`, et
+le type force a nommer le troisieme cas), et `[]` refuse a l'ecriture comme a
+la lecture: un foyer sans aucun des sept ne cuisine pas.
+
+Rien n'est pre-coche. La maquette dessine deux cases cochees: c'est un
+formulaire rempli, pas un defaut. Pre-cocher ecrirait un four que personne n'a
+declare — la doctrine de l'etape `table`, deja ecrite pour le regime, les
+moments et la taille.
+
+Le module ne parle PAS au modele, et un test le tient: la consigne est groupee
+dans le lot du prompt, en un seul bump de version.
+
+15 mutations, 15 mordent. La 14e etait verte au premier coup (le test cherchait
+la MENTION de `mergePracticalConstraints`, que l'import laisse en place) —
+durcie sur l'APPEL, puis rouge.
+
+Rapport: scratchpad/2026-08-18-1055-L2A-moyens-de-cuisson.md
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>

@@ -1,0 +1,15 @@
+<svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg" font-family="Public Sans, sans-serif" role="img" aria-labelledby="cpl-chat-t cpl-chat-d">
+      <title id="cpl-chat-t">Les quatre réponses quand la soirée tombe</title>
+      <desc id="cpl-chat-d">Dans le chat, une soirée qui tombe a exactement quatre réponses : décaler ce plat, décaler la session, personne ne cuisine ce soir, ou rien à changer. Aucune ne refait la semaine.</desc>
+      <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+      <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft, #6A5A64)">CE SOIR NE SE PASSE PAS COMME PRÉVU</text>
+      <rect x="24" y="52" width="432" height="64" rx="12" fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1" />
+      <path d="M 24 66 L 24 102" fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round" />
+      <text x="44" y="76" font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">DANS LE CHAT</text>
+      <text x="44" y="100" font-size="13" fill="var(--ill-ink, #23191F)">Le dîner de ce soir ne se fera pas.</text>
+      <g><rect x="24" y="134" width="210" height="30" rx="4" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/><text x="38" y="154" font-size="11" fill="var(--ill-ink, #23191F)">décaler ce plat</text></g>
+      <g><rect x="246" y="134" width="210" height="30" rx="4" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/><text x="260" y="154" font-size="11" fill="var(--ill-ink, #23191F)">décaler la session</text></g>
+      <g><rect x="24" y="172" width="210" height="30" rx="4" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/><text x="38" y="192" font-size="11" fill="var(--ill-ink, #23191F)">personne ne cuisine ce soir</text></g>
+      <g><rect x="246" y="172" width="210" height="30" rx="4" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/><text x="260" y="192" font-size="11" fill="var(--ill-ink, #23191F)">rien à changer</text></g>
+      <text x="24" y="226" font-size="13" fill="var(--ill-ink-soft, #6A5A64)">la semaine n’est pas refaite</text>
+    </svg>

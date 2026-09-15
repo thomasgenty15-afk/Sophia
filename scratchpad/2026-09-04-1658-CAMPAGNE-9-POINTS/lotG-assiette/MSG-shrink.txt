@@ -1,0 +1,24 @@
+une casserole que plus aucune boîte ne tire ne se cuit ni ne s'achète : le rétrécissement symétrique après un retrait, et les courses qui suivent la demande par terme
+
+Banc « un retour et les calories » (0f, 2026-09-06, FC4) : après une exclusion de table
+(poulet + saumon + thon), 21 boîtes avaient sauté ; `prep_chicken` (1 100 g, 6 parts) et
+`prep_salmon` n'étaient plus tirés par AUCUNE boîte et restaient cuits et achetés pour quatre.
+La croissance des casseroles (`neededPotFactor`) ne connaissait que le sens « plus », et les
+courses ne suivaient que si un pot avait grossi, au facteur MOYEN des pots grossis. « Les
+courses et casseroles ne rétrécissent jamais après un retrait » était vrai, et c'était un défaut.
+
+`potShrinkPlan` (pot_demand.ts, pur, testé) décide par casserole, après la croissance et avant
+le dimensionnement : un plat SANS boîte qui la cite (mangé à table) la protège
+(`unboxed_use`) ; 0 tirage ⇒ retirée — avec ses citations dans les plats et sa place en
+session, une session vidée disparaît et se compte ; tirage × marge sous (1 − 0,15) de la masse
+prête ⇒ rétrécie ; sinon gardée. L'index applique et regramme.
+
+Les courses suivent désormais la DEMANDE PAR TERME (Σ grammes des casseroles et du frais des
+plats, avant / après), ligne à ligne, dans les deux sens — le facteur moyen des pots grossis
+est remplacé : une ligne dont la demande tombe à zéro est retirée, une ligne qu'aucun plat ni
+casserole ne porte reste telle quelle et se compte (`lines_unattributed`). Compteur `pot_shrink`
+{pots, removed, kept, unboxed_use, unreadable, sessions_emptied, lines_scaled, lines_dropped,
+lines_unattributed, lines_unrewritable} au journal et à l'archive ; `pot_growth` entre aussi
+dans l'archive (il n'était qu'au journal).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

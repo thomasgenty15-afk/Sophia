@@ -1,0 +1,71 @@
+{
+  "before-cook-today": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Today’s dishes are roast chicken, brown rice and green beans for dinner, and tomato and white bean salad for lunch.\n\nTo cook: lentils, cod marinade, and chicken thighs.",
+      "fullChars": 22473,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "fd9ec8c3-3d59-47b8-94f2-33b1b397cbe8"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Today’s dishes are roast chicken, brown rice and green beans for dinner, and tomato and white bean salad for lunch.\n\nTo cook: the lentils, the cod marinade, and the chicken thighs.",
+      "fullChars": 22473,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "b18ba010-4521-4fcb-8dec-20b645aef9c5"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "You need to cook lentils, marinate the cod, and roast the chicken thighs.",
+      "fullChars": 22473,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "1e49ee9e-d089-4dd1-9c59-f50304d1418d"
+    }
+  ],
+  "before-dinner": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "fullChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "5d2ebe18-f958-4347-be2b-df258ddd6a99"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "fullChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "b51bfc59-af76-469a-9db6-072ac2532170"
+    }
+  ],
+  "before-shopping": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "For today’s house meals, the ingredients shown here are roast chicken, brown rice, green beans, tomato, white beans, lentils, cod, and chicken thighs.\n\nIf you mean the coach’s line for lunch, it’s protein and vegetables.",
+      "fullChars": 23706,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "a8086543-3a2b-430f-98bc-65d0c984c44d"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "For today’s lunch line, you need protein and vegetables. If you’re asking about the household dishes too, the listed items are roast chicken, brown rice, green beans, tomato and white bean salad, lentils, cod, and chicken thighs.",
+      "fullChars": 23706,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "d4eec171-4db7-4b21-b98f-ee67ccd8a6cd"
+    }
+  ]
+}

@@ -1,0 +1,1170 @@
+{
+  "request_id": "3a020001-0000-4000-8000-000000030001",
+  "resolved_by": "--request-id",
+  "user_id": "3a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T02:13:42.618Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "5a134e63-c6d6-4ed8-b76e-6abe585fa2a9",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T02:07:24.701096+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16183,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16183,
+    "user_message_chars": 17574,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17574,
+    "independent_counters": {
+      "system_prompt_chars": 16183,
+      "prompt_chars": 17574
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "25c86d03-86a4-46b6-ab42-c08c82580ddc",
+    "created_at": "2026-08-19T02:13:41.970194+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 5,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Sweet Potato Harvest Hash\",\n      \"title\": \"Smoky black beans with roasted sweet potatoes and peppers\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Combine the roasted sweet potatoes, peppers, and smoky black beans in a large pan. Heat over a medium flame for 5-8 minutes until piping hot throughout, stirring gently to avoid breaking the potatoes. Serve in a bowl with all components mixed together.\",\n      \"why\": \"This vegan dish anchors the table with a loud vegetable profile and smoky, slow-cooked depth from the black beans.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Chicken and Root Roast\",\n      \"title\": \"Smoky pan-seared chicken with roasted sweet potatoes and peppers\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"In a wide pan, reheat the roasted vegetables and the chicken thighs together for 8 minutes until hot. Squeeze the lemon over the chicken before serving. Arrange the vegetables first, then the chicken, then the sweet potatoes.\",\n      \"why\": \"A protein-focused version of the harvest hash using pan-seared chicken to bypass the single-tray oven limit.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Chicken and Root Roast\",\n      \"title\": \"Smoky pan-seared chicken with roasted sweet potatoes and peppers\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the vegetables and chicken in a pan for 8 minutes. Serve the chicken and sweet potatoes first, followed by the roasted peppers. Avoid any fennel-based seasonings.\",\n      \"why\": \"A warm, satisfying lunch that respects the no-fennel house rule while providing a hearty protein anchor.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Chicken and Root Roast\",\n      \"title\": \"Smoky pan-seared chicken with roasted sweet potatoes and peppers\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss the chicken and vegetables in a pan over medium heat for 8 minutes. Serve the chicken and potatoes first, then the peppers. Ensure no sesame products are used in the preparation.\",\n      \"why\": \"This dish provides a safe, sesame-free lunch with a warm, smoky profile that fits the house theme.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Deep Smoke Bean & Greens Braise\",\n      \"title\": \"Smoky black beans with wilted spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Heat the smoky beans in a pan. Once bubbling, stir in the spinach until it wilts into the sauce (about 2 minutes). Serve hot in a deep bowl.\",\n      \"why\": \"A warm, slow-cooked bean dish that provides a comforting vegan dinner with a loud green vegetable presence.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared Chicken & Wilted Greens\",\n      \"title\": \"Smoky chicken thighs with garlic spinach\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove, sliced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté the garlic and spinach in a pan for 2 minutes until wilted. Add the chicken thighs to the pan to reheat for 5 minutes. Serve the spinach first, followed by the chicken.\",\n      \"why\": \"A protein-rich dinner that uses fresh greens to provide a loud vegetable element alongside the smoky chicken.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared Chicken & Wilted Greens\",\n      \"title\": \"Smoky chicken thighs with garlic spinach\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove, sliced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Wilt the spinach with garlic in a pan, then add the chicken to reheat. Serve the chicken and any starch first, then the spinach. Ensure no fennel is present.\",\n      \"why\": \"A simple, warm dinner that avoids the household's forbidden ingredients while maintaining the smoky theme.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared Chicken & Wilted Greens\",\n      \"title\": \"Smoky chicken thighs with garlic spinach\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove, sliced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Quickly cook the spinach and garlic, then reheat the chicken in the same pan. Serve the protein first. Double-check that no sesame oil or seeds were used.\",\n      \"why\": \"A safe and nutritious dinner that provides a warm element as required by the coach's method.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_veg\",\n      \"title\": \"Smoky Roasted Sweet Potatoes and Peppers\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"sweet potatoes, cubed\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red bell peppers, sliced\",\n          \"quantity\": \"4 unit\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onions, wedged\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss the potatoes, peppers, and onions with oil, paprika, salt, and pepper. Spread on a single large baking tray. Roast at 200°C for 30-35 minutes until the potatoes are tender and the peppers are charred at the edges.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beans\",\n      \"title\": \"Deep Smoke Black Bean Braise\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans, drained\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic, minced\",\n          \"quantity\": \"3 unit\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"liquid smoke (or extra smoked paprika)\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"In a pot, combine beans, tomatoes, garlic, and smoke flavouring. Simmer on low heat for 20 minutes until the sauce has thickened and the flavours have melded. Season with salt and pepper.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 175\n        },\n        {\n          \"id\": \"box_beans_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 175\n        },\n        {\n          \"id\": \"box_beans_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 175\n        },\n        {\n          \"id\": \"box_beans_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 175\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Smoky Pan-Seared Chicken Thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"boneless chicken thighs\",\n          \"quantity\": \"1.2 kg\",\n          \"amount\": 1200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rub the chicken with oil, paprika, salt, and pepper. Sear in a hot pan for 6-8 minutes per side until deeply browned and cooked through. Allow to rest before portioning.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_veg\",\n        \"prep_beans\",\n        \"prep_chicken\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Preheat the oven and prep the sweet potatoes and peppers. Get the veg tray in the oven immediately. While they roast, start the black bean braise in a pot and let it simmer. Sear the chicken thighs in a large pan on the stovetop. By the time the chicken is rested and the beans are thick, the roasted vegetables will be ready. Box everything into the named portions.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"sweet potatoes\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red bell peppers\",\n      \"quantity\": \"4 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onions\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh spinach\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic bulb\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"boneless chicken thighs\",\n      \"quantity\": \"1.2 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"2 tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"100 ml\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Serve the roasted peppers and onions first, then the chicken thighs, followed by the sweet potatoes.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"note\": \"A full share of roasted roots and peppers.\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"A full share of pan-seared chicken.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Serve the chicken and sweet potatoes first, with the peppers on the side. Ensure no fennel is used.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"note\": \"A full share of roasted roots and peppers.\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"A full share of pan-seared chicken.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve the chicken and sweet potatoes first, then the peppers. Absolutely no sesame products.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"note\": \"A full share of roasted roots and peppers.\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"A full share of pan-seared chicken.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Mix the smoky beans, sweet potatoes, and peppers together in a bowl.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"note\": \"A full share of roasted roots and peppers.\"\n        },\n        {\n          \"preparation_id\": \"prep_beans\",\n          \"note\": \"A full share of smoky black beans.\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Smoky Sweet Potato Harvest Hash",
+          "title": "Smoky black beans with roasted sweet potatoes and peppers",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Combine the roasted sweet potatoes, peppers, and smoky black beans in a large pan. Heat over a medium flame for 5-8 minutes until piping hot throughout, stirring gently to avoid breaking the potatoes. Serve in a bowl with all components mixed together.",
+          "why": "This vegan dish anchors the table with a loud vegetable profile and smoky, slow-cooked depth from the black beans.",
+          "uses": [
+            {
+              "preparation_id": "prep_veg",
+              "servings": 1,
+              "box_id": "box_veg_theodule"
+            },
+            {
+              "preparation_id": "prep_beans",
+              "servings": 1,
+              "box_id": "box_beans_theodule"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Zesty Chicken and Root Roast",
+          "title": "Smoky pan-seared chicken with roasted sweet potatoes and peppers",
+          "for_member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon wedge",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "In a wide pan, reheat the roasted vegetables and the chicken thighs together for 8 minutes until hot. Squeeze the lemon over the chicken before serving. Arrange the vegetables first, then the chicken, then the sweet potatoes.",
+          "why": "A protein-focused version of the harvest hash using pan-seared chicken to bypass the single-tray oven limit.",
+          "uses": [
+            {
+              "preparation_id": "prep_veg",
+              "servings": 1,
+              "box_id": "box_veg_aurele"
+            },
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Zesty Chicken and Root Roast",
+          "title": "Smoky pan-seared chicken with roasted sweet potatoes and peppers",
+          "for_member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon wedge",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the vegetables and chicken in a pan for 8 minutes. Serve the chicken and sweet potatoes first, followed by the roasted peppers. Avoid any fennel-based seasonings.",
+          "why": "A warm, satisfying lunch that respects the no-fennel house rule while providing a hearty protein anchor.",
+          "uses": [
+            {
+              "preparation_id": "prep_veg",
+              "servings": 1,
+              "box_id": "box_veg_marceline"
+            },
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_marceline"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Zesty Chicken and Root Roast",
+          "title": "Smoky pan-seared chicken with roasted sweet potatoes and peppers",
+          "for_member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon wedge",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Toss the chicken and vegetables in a pan over medium heat for 8 minutes. Serve the chicken and potatoes first, then the peppers. Ensure no sesame products are used in the preparation.",
+          "why": "This dish provides a safe, sesame-free lunch with a warm, smoky profile that fits the house theme.",
+          "uses": [
+            {
+              "preparation_id": "prep_veg",
+              "servings": 1,
+              "box_id": "box_veg_solveig"
+            },
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_solveig"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Deep Smoke Bean & Greens Braise",
+          "title": "Smoky black beans with wilted spinach",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "fresh spinach",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Heat the smoky beans in a pan. Once bubbling, stir in the spinach until it wilts into the sauce (about 2 minutes). Serve hot in a deep bowl.",
+          "why": "A warm, slow-cooked bean dish that provides a comforting vegan dinner with a loud green vegetable presence.",
+          "uses": [
+            {
+              "preparation_id": "prep_beans",
+              "servings": 1,
+              "box_id": "box_beans_theodule"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Pan-Seared Chicken & Wilted Greens",
+          "title": "Smoky chicken thighs with garlic spinach",
+          "for_member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "fresh spinach",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "garlic clove, sliced",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Sauté the garlic and spinach in a pan for 2 minutes until wilted. Add the chicken thighs to the pan to reheat for 5 minutes. Serve the spinach first, followed by the chicken.",
+          "why": "A protein-rich dinner that uses fresh greens to provide a loud vegetable element alongside the smoky chicken.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Pan-Seared Chicken & Wilted Greens",
+          "title": "Smoky chicken thighs with garlic spinach",
+          "for_member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "fresh spinach",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "garlic clove, sliced",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Wilt the spinach with garlic in a pan, then add the chicken to reheat. Serve the chicken and any starch first, then the spinach. Ensure no fennel is present.",
+          "why": "A simple, warm dinner that avoids the household's forbidden ingredients while maintaining the smoky theme.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_marceline"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Pan-Seared Chicken & Wilted Greens",
+          "title": "Smoky chicken thighs with garlic spinach",
+          "for_member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "fresh spinach",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "garlic clove, sliced",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Quickly cook the spinach and garlic, then reheat the chicken in the same pan. Serve the protein first. Double-check that no sesame oil or seeds were used.",
+          "why": "A safe and nutritious dinner that provides a warm element as required by the coach's method.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_solveig"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_veg",
+          "title": "Smoky Roasted Sweet Potatoes and Peppers",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "sweet potatoes, cubed",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red bell peppers, sliced",
+              "quantity": "4 unit",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red onions, wedged",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Toss the potatoes, peppers, and onions with oil, paprika, salt, and pepper. Spread on a single large baking tray. Roast at 200°C for 30-35 minutes until the potatoes are tender and the peppers are charred at the edges.",
+          "active_minutes": 10,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_veg_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_veg_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_veg_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_veg_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_beans",
+          "title": "Deep Smoke Black Bean Braise",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "black beans, drained",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "garlic, minced",
+              "quantity": "3 unit",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "liquid smoke (or extra smoked paprika)",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "In a pot, combine beans, tomatoes, garlic, and smoke flavouring. Simmer on low heat for 20 minutes until the sauce has thickened and the flavours have melded. Season with salt and pepper.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beans_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 175
+            },
+            {
+              "id": "box_beans_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 175
+            },
+            {
+              "id": "box_beans_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 175
+            },
+            {
+              "id": "box_beans_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 175
+            }
+          ]
+        },
+        {
+          "id": "prep_chicken",
+          "title": "Smoky Pan-Seared Chicken Thighs",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "boneless chicken thighs",
+              "quantity": "1.2 kg",
+              "amount": 1200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Rub the chicken with oil, paprika, salt, and pepper. Sear in a hot pan for 6-8 minutes per side until deeply browned and cooked through. Allow to rest before portioning.",
+          "active_minutes": 10,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_chicken_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_chicken_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_chicken_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 200
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_veg",
+            "prep_beans",
+            "prep_chicken"
+          ],
+          "total_minutes": 50,
+          "run_through": "Preheat the oven and prep the sweet potatoes and peppers. Get the veg tray in the oven immediately. While they roast, start the black bean braise in a pot and let it simmer. Sear the chicken thighs in a large pan on the stovetop. By the time the chicken is rested and the beans are thick, the roasted vegetables will be ready. Box everything into the named portions."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "sweet potatoes",
+          "quantity": "800 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "red bell peppers",
+          "quantity": "4 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "red onions",
+          "quantity": "2 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh spinach",
+          "quantity": "400 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic bulb",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemon",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "boneless chicken thighs",
+          "quantity": "1.2 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "black beans",
+          "quantity": "2 tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chopped tomatoes",
+          "quantity": "400 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "100 ml",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "portion_note": "Serve the roasted peppers and onions first, then the chicken thighs, followed by the sweet potatoes.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_veg",
+              "note": "A full share of roasted roots and peppers."
+            },
+            {
+              "preparation_id": "prep_chicken",
+              "note": "A full share of pan-seared chicken."
+            }
+          ]
+        },
+        {
+          "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "portion_note": "Serve the chicken and sweet potatoes first, with the peppers on the side. Ensure no fennel is used.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_veg",
+              "note": "A full share of roasted roots and peppers."
+            },
+            {
+              "preparation_id": "prep_chicken",
+              "note": "A full share of pan-seared chicken."
+            }
+          ]
+        },
+        {
+          "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "portion_note": "Serve the chicken and sweet potatoes first, then the peppers. Absolutely no sesame products.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_veg",
+              "note": "A full share of roasted roots and peppers."
+            },
+            {
+              "preparation_id": "prep_chicken",
+              "note": "A full share of pan-seared chicken."
+            }
+          ]
+        },
+        {
+          "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+          "portion_note": "Mix the smoky beans, sweet potatoes, and peppers together in a bowl.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_veg",
+              "note": "A full share of roasted roots and peppers."
+            },
+            {
+              "preparation_id": "prep_beans",
+              "note": "A full share of smoky black beans."
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Sweet Potato Harvest Hash\",\n      \"title\": \"Smoky black beans with roasted sweet potatoes and peppers\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Combine the roasted sweet potatoes, peppers, and smoky black beans in a large pan. Heat over a medium flame for 5-8 minutes until piping hot throughout, stirring gently to avoid breaking the potatoes. Serve in a bowl with all components mixed together.\",\n      \"why\": \"This vegan dish anchors the table with a loud vegetable profile and smoky, slow-cooked depth from the black beans.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Chicken and Root Roast\",\n      \"title\": \"Smoky pan-seared chicken with roasted sweet potatoes and peppers\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"In a wide pan, reheat the roasted vegetables and the chicken thighs together for 8 minutes until hot. Squeeze the lemon over the chicken before serving. Arrange the vegetables first, then the chicken, then the sweet potatoes.\",\n      \"why\": \"A protein-focused version of the harvest hash using pan-seared chicken to bypass the single-tray oven limit.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Chicken and Root Roast\",\n      \"title\": \"Smoky pan-seared chicken with roasted sweet potatoes and peppers\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the vegetables and chicken in a pan for 8 minutes. Serve the chicken and sweet potatoes first, followed by the roasted peppers. Avoid any fennel-based seasonings.\",\n      \"why\": \"A warm, satisfying lunch that respects the no-fennel house rule while providing a hearty protein anchor.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Chicken and Root Roast\",\n      \"title\": \"Smoky pan-seared chicken with roasted sweet potatoes and peppers\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss the chicken and vegetables in a pan over medium heat for 8 minutes. Serve the chicken and potatoes first, then the peppers. Ensure no sesame products are used in the preparation.\",\n      \"why\": \"This dish provides a safe, sesame-free lunch with a warm, smoky profile that fits the house theme.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Deep Smoke Bean & Greens Braise\",\n      \"title\": \"Smoky black beans with wilted spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Heat the smoky beans in a pan. Once bubbling, stir in the spinach until it wilts into the sauce (about 2 minutes). Serve hot in a deep bowl.\",\n      \"why\": \"A warm, slow-cooked bean dish that provides a comforting vegan dinner with a loud green vegetable presence.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared Chicken & Wilted Greens\",\n      \"title\": \"Smoky chicken thighs with garlic spinach\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove, sliced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté the garlic and spinach in a pan for 2 minutes until wilted. Add the chicken thighs to the pan to reheat for 5 minutes. Serve the spinach first, followed by the chicken.\",\n      \"why\": \"A protein-rich dinner that uses fresh greens to provide a loud vegetable element alongside the smoky chicken.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared Chicken & Wilted Greens\",\n      \"title\": \"Smoky chicken thighs with garlic spinach\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove, sliced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Wilt the spinach with garlic in a pan, then add the chicken to reheat. Serve the chicken and any starch first, then the spinach. Ensure no fennel is present.\",\n      \"why\": \"A simple, warm dinner that avoids the household's forbidden ingredients while maintaining the smoky theme.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared Chicken & Wilted Greens\",\n      \"title\": \"Smoky chicken thighs with garlic spinach\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove, sliced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Quickly cook the spinach and garlic, then reheat the chicken in the same pan. Serve the protein first. Double-check that no sesame oil or seeds were used.\",\n      \"why\": \"A safe and nutritious dinner that provides a warm element as required by the coach's method.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_veg\",\n      \"title\": \"Smoky Roasted Sweet Potatoes and Peppers\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"sweet potatoes, cubed\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red bell peppers, sliced\",\n          \"quantity\": \"4 unit\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onions, wedged\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss the potatoes, peppers, and onions with oil, paprika, salt, and pepper. Spread on a single large baking tray. Roast at 200°C for 30-35 minutes until the potatoes are tender and the peppers are charred at the edges.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beans\",\n      \"title\": \"Deep Smoke Black Bean Braise\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans, drained\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic, minced\",\n          \"quantity\": \"3 unit\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"liquid smoke (or extra smoked paprika)\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"In a pot, combine beans, tomatoes, garlic, and smoke flavouring. Simmer on low heat for 20 minutes until the sauce has thickened and the flavours have melded. Season with salt and pepper.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 175\n        },\n        {\n          \"id\": \"box_beans_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 175\n        },\n        {\n          \"id\": \"box_beans_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 175\n        },\n        {\n          \"id\": \"box_beans_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 175\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Smoky Pan-Seared Chicken Thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"boneless chicken thighs\",\n          \"quantity\": \"1.2 kg\",\n          \"amount\": 1200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rub the chicken with oil, paprika, salt, and pepper. Sear in a hot pan for 6-8 minutes per side until deeply browned and cooked through. Allow to rest before portioning.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_veg\",\n        \"prep_beans\",\n        \"prep_chicken\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Preheat the oven and prep the sweet potatoes and peppers. Get the veg tray in the oven immediately. While they roast, start the black bean braise in a pot and let it simmer. Sear the chicken thighs in a large pan on the stovetop. By the time the chicken is rested and the beans are thick, the roasted vegetables will be ready. Box everything into the named portions.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"sweet potatoes\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red bell peppers\",\n      \"quantity\": \"4 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onions\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh spinach\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic bulb\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"boneless chicken thighs\",\n      \"quantity\": \"1.2 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"2 tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"100 ml\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Serve the roasted peppers and onions first, then the chicken thighs, followed by the sweet potatoes.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"note\": \"A full share of roasted roots and peppers.\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"A full share of pan-seared chicken.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Serve the chicken and sweet potatoes first, with the peppers on the side. Ensure no fennel is used.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"note\": \"A full share of roasted roots and peppers.\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"A full share of pan-seared chicken.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve the chicken and sweet potatoes first, then the peppers. Absolutely no sesame products.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"note\": \"A full share of roasted roots and peppers.\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"A full share of pan-seared chicken.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Mix the smoky beans, sweet potatoes, and peppers together in a bowl.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"note\": \"A full share of roasted roots and peppers.\"\n        },\n        {\n          \"preparation_id\": \"prep_beans\",\n          \"note\": \"A full share of smoky black beans.\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "HhGFav2LMKSZkdUPmtHUoAY",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 21007,
+        "promptTokenCount": 8815,
+        "thoughtsTokenCount": 6174,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8815
+          }
+        ],
+        "candidatesTokenCount": 6018
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T02:07:24.701096+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T02:07:25.24085+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:07:28.980568+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:07:28.99126+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:07:29.000049+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:08:29.027372+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:08:29.045186+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:08:29.777085+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:08:34.791623+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:08:35.294234+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:08:40.277358+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:08:40.29971+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:08:40.31534+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:09:40.359057+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:09:40.384052+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:09:41.654796+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:09:47.520851+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:09:48.127003+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:09:54.0484+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:09:54.065574+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:09:54.081518+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:10:54.117966+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:10:54.143395+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 3,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:10:54.679125+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 3,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:11:04.071848+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 4,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:11:04.602602+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 4,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:11:13.927071+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:11:13.937627+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:11:13.945153+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:12:13.984546+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:12:14.001518+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 4,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:12:14.751125+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 4,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:12:30.141778+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 5,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:12:30.680481+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 5,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:12:46.62943+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 5,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:12:46.633907+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 5,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:12:46.637508+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 5,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:13:41.970194+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 5,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

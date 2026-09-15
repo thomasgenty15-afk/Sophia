@@ -1,0 +1,38 @@
+[
+  {
+    "id": "E1-anaphore-EN",
+    "run": 1,
+    "verdict": "GREEN",
+    "proof": "2 tours de contexte · fil 4 lignes · reply=\"It sounds like you’ve got the practical weight of the move on you, not just the packing.  My take: that’s a real load, and it makes sense if\""
+  },
+  {
+    "id": "E1-anaphore-EN",
+    "run": 2,
+    "verdict": "GREEN",
+    "proof": "2 tours de contexte · fil 4 lignes · reply=\"It sounds like you’re being pulled into the role of organizer, not just helper. That usually means the stress is less about packing itself a\""
+  },
+  {
+    "id": "E1-anaphore-EN",
+    "run": 3,
+    "verdict": "GREEN",
+    "proof": "2 tours de contexte · fil 4 lignes · reply=\"It sounds like a pretty heavy lift, but a sensible one if you keep it concrete: room by room, and one first-day box so nothing vital gets lo\""
+  },
+  {
+    "id": "E2-anaphore-FR",
+    "run": 1,
+    "verdict": "GREEN",
+    "proof": "2 tours de contexte · fil 4 lignes · reply=\"It’s a real load, and the practical burden is landing on you. I’d keep it simple: make the boxes by category, not by room chaos.\""
+  },
+  {
+    "id": "E2-anaphore-FR",
+    "run": 2,
+    "verdict": "GREEN",
+    "proof": "2 tours de contexte · fil 4 lignes · reply=\"It’s a practical way to help him, and the big win is reducing chaos later. Group by room, mark the heavy boxes clearly, and keep fragile stu\""
+  },
+  {
+    "id": "E2-anaphore-FR",
+    "run": 3,
+    "verdict": "GREEN",
+    "proof": "2 tours de contexte · fil 4 lignes · reply=\"It sounds like a real commitment, and a fairly practical one: helping with a move usually means you’re not just “giving a hand,” you’re taki\""
+  }
+]

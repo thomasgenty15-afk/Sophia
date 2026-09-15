@@ -1,0 +1,13 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-rose-2026-05-15-run-b-free-context-rose-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je remarque un truc en dehors de mon plan officiel : quand je rentre le soir, si je garde mon téléphone près du canapé, je me fais aspirer par le scroll et ça finit par une envie de snack. Le mettre à charger dans l’entrée serait peut-être une bonne protection.",
+    "status": 403,
+    "body": {
+      "error": "Forbidden: user is not marked is_test_persona",
+      "request_id": "qa-prepare-defense-card-rose-2026-05-15-run-b-free-context-rose-r1-t01"
+    }
+  }
+]

@@ -1,0 +1,383 @@
+ M docs/SOCLE.md
+RM scratchpad/2026-09-11-FIABILITE-RECETTES/RAPPORT-LOT-F-2026-09-11.md -> docs/keel/CAMPAGNE-SIX-TIRS-2026-09-11.md
+ M docs/keel/mesure.md
+ M frontend/src/keel/api/chat.ts
+ M frontend/src/keel/api/groceryWaves.int.test.ts
+ M frontend/src/keel/api/mealGeneration.ts
+ M frontend/src/keel/api/mouthProfile.int.test.ts
+ M frontend/src/keel/api/planDraft.ts
+ M frontend/src/keel/components/MealBuilder.tsx
+ M frontend/src/keel/components/ShoppingListPanel.tsx
+ M frontend/src/keel/components/freezeBlock.int.test.ts
+ M frontend/src/keel/components/mealBoxes.int.test.ts
+ M frontend/src/keel/components/plan/PlanDraftDialog.tsx
+ M frontend/src/keel/copy/planRefusals.ts
+ M frontend/src/keel/i18n/catalog.ts
+ M frontend/src/keel/i18n/en.ts
+ M frontend/src/keel/i18n/fr.ts
+ M frontend/src/keel/i18n/parity.int.test.ts
+ M frontend/src/keel/lib/__fixtures__/lot-f-plans.json
+ M frontend/src/keel/lib/ingredientQuantity.int.test.ts
+ M frontend/src/keel/lib/planDayView.int.test.ts
+ M frontend/src/keel/lib/relectureLotF.int.test.ts
+ M frontend/src/keel/lib/shoppingAisles.int.test.ts
+ M frontend/src/keel/pages/ChatPage.tsx
+ M frontend/src/keel/pages/SetupPage.tsx
+ M frontend/src/keel/pages/StartPage.tsx
+ M frontend/src/keel/pages/setupDraftWiring.int.test.ts
+ M scratchpad/2026-09-11-CHANTIER-PREMIER-JET/RESTE-A-FAIRE.md
+ M scratchpad/2026-09-11-FIABILITE-RECETTES/NON-BRANCHE.md
+ M scratchpad/2026-09-11-FIABILITE-RECETTES/analyse-lot-F.ts
+ M scratchpad/2026-09-11-FIABILITE-RECETTES/banc-lot-F.ts
+ M scratchpad/2026-09-11-FIABILITE-RECETTES/campagne-lot-F.ts
+ M scratchpad/2026-09-11-FIABILITE-RECETTES/fiches-lot-F.ts
+ M scratchpad/2026-09-11-FIABILITE-RECETTES/transport-lot-F.ts
+ M scripts/2026-09-11-mesure-grille.ts
+ M scripts/2026-09-11-mesure-grille_test.ts
+ M supabase/functions/_shared/keel/accident.ts
+ M supabase/functions/_shared/keel/cell_edit.ts
+ M supabase/functions/_shared/keel/cell_edit_test.ts
+ M supabase/functions/_shared/keel/composition_contract.ts
+ M supabase/functions/_shared/keel/composition_contract_test.ts
+ M supabase/functions/_shared/keel/condition_energy_gate_portions_test.ts
+ M supabase/functions/_shared/keel/constant_pins_test.ts
+ M supabase/functions/_shared/keel/cook_the_day_before_test.ts
+ M supabase/functions/_shared/keel/draft_adopt.ts
+ M supabase/functions/_shared/keel/eating_rhythm_test.ts
+ M supabase/functions/_shared/keel/evening_strip_io.ts
+ M supabase/functions/_shared/keel/evening_strip_test.ts
+ M supabase/functions/_shared/keel/final_plan_audit.ts
+ M supabase/functions/_shared/keel/final_plan_audit_test.ts
+ M supabase/functions/_shared/keel/final_plan_gate.ts
+ M supabase/functions/_shared/keel/final_plan_gate_test.ts
+ M supabase/functions/_shared/keel/first_draft_contract_test.ts
+ M supabase/functions/_shared/keel/food_composition.ts
+ M supabase/functions/_shared/keel/food_exclusion_belt.ts
+ M supabase/functions/_shared/keel/food_exclusion_belt_test.ts
+ M supabase/functions/_shared/keel/food_group_write.ts
+ M supabase/functions/_shared/keel/food_group_write_test.ts
+ M supabase/functions/_shared/keel/generation_context_test.ts
+ M supabase/functions/_shared/keel/generation_context_wiring_test.ts
+ M supabase/functions/_shared/keel/grocery_waves.ts
+ M supabase/functions/_shared/keel/grocery_waves_test.ts
+ M supabase/functions/_shared/keel/household_bodies_test.ts
+ M supabase/functions/_shared/keel/household_body_share_test.ts
+ M supabase/functions/_shared/keel/household_composition_test.ts
+ M supabase/functions/_shared/keel/household_fixed_intakes.ts
+ M supabase/functions/_shared/keel/household_fixed_intakes_test.ts
+ M supabase/functions/_shared/keel/household_habits_test.ts
+ M supabase/functions/_shared/keel/household_meal_generation_test.ts
+ M supabase/functions/_shared/keel/household_merge_test.ts
+ M supabase/functions/_shared/keel/household_portions.ts
+ M supabase/functions/_shared/keel/household_portions_test.ts
+ M supabase/functions/_shared/keel/household_prompt_v34.ts
+ M supabase/functions/_shared/keel/household_prompt_v34_test.ts
+ M supabase/functions/_shared/keel/household_regime_belt_test.ts
+ M supabase/functions/_shared/keel/household_safety_wiring_behaviour_test.ts
+ M supabase/functions/_shared/keel/lot8_densite_test.ts
+ M supabase/functions/_shared/keel/lot_e_reparation_test.ts
+ M supabase/functions/_shared/keel/meal_boxes_test.ts
+ M supabase/functions/_shared/keel/meal_frozen_portion_test.ts
+ M supabase/functions/_shared/keel/meal_generation.ts
+ M supabase/functions/_shared/keel/meal_generation_test.ts
+ M supabase/functions/_shared/keel/meal_pdf_locale_test.ts
+ M supabase/functions/_shared/keel/meal_precedence_test.ts
+ M supabase/functions/_shared/keel/meal_same_day_test.ts
+ M supabase/functions/_shared/keel/meals_delivered.ts
+ M supabase/functions/_shared/keel/meals_delivered_test.ts
+ M supabase/functions/_shared/keel/missed_wave_reader_test.ts
+ M supabase/functions/_shared/keel/one_cooking_session_test.ts
+ M supabase/functions/_shared/keel/plan_budget.ts
+ M supabase/functions/_shared/keel/plan_budget_test.ts
+ M supabase/functions/_shared/keel/plan_call_wiring_test.ts
+ M supabase/functions/_shared/keel/plan_explanation_test.ts
+ M supabase/functions/_shared/keel/plan_repair_loop.ts
+ M supabase/functions/_shared/keel/plan_repair_loop_test.ts
+ M supabase/functions/_shared/keel/portion_sizing.ts
+ M supabase/functions/_shared/keel/portion_sizing_test.ts
+ M supabase/functions/_shared/keel/portion_sizing_wiring_test.ts
+ M supabase/functions/_shared/keel/pot_demand.ts
+ M supabase/functions/_shared/keel/pot_demand_test.ts
+ M supabase/functions/_shared/keel/preference_split_retry.ts
+ M supabase/functions/_shared/keel/preference_split_retry_test.ts
+ M supabase/functions/_shared/keel/protein_anchor.ts
+ M supabase/functions/_shared/keel/quantity_final_wiring_test.ts
+ M supabase/functions/_shared/keel/quantity_render.ts
+ M supabase/functions/_shared/keel/quantity_render_test.ts
+ M supabase/functions/_shared/keel/raw_keeping_test.ts
+ M supabase/functions/_shared/keel/retry_merge.ts
+ M supabase/functions/_shared/keel/retry_merge_test.ts
+ M supabase/functions/_shared/keel/slot_fixed_kcal.ts
+ M supabase/functions/_shared/keel/slot_fixed_kcal_test.ts
+ M supabase/functions/_shared/keel/slot_nutrition_contract.ts
+ M supabase/functions/_shared/keel/slot_nutrition_contract_test.ts
+ M supabase/functions/_shared/keel/standard_recipe_prompt_test.ts
+ M supabase/functions/_shared/keel/swap_presence.ts
+ M supabase/functions/_shared/keel/swap_presence_test.ts
+ M supabase/functions/_shared/keel/table_scope_test.ts
+ M supabase/functions/_shared/keel/target_grams_test.ts
+ M supabase/functions/chat-inbound-v1/chat_inbound_int_test.ts
+ M supabase/functions/generate-household-meal-v1/index.ts
+?? docs/keel/CHANTIER-TROIS-LOTS-2026-09-12.md
+?? docs/keel/CLOTURE-C6-2026-09-12.md
+?? docs/keel/FERMETURE-TROIS-LOTS-2026-09-12.md
+?? docs/keel/PLAN-CLOTURE-APRES-SIX-TIRS-2026-09-11.md
+?? docs/keel/PLAN-CORRECTIFS-PROMPTS-ET-VALIDATION-FOYER-2026-09-13.md
+?? docs/keel/PLAN-CORRECTIFS-TROIS-LOTS-2026-09-12.md
+?? docs/keel/PLAN-FERMETURE-REPARATIONS-FOYER-2026-09-13.md
+?? docs/keel/PLAN-RESTE-A-FERMER-FOYER-2026-09-13.md
+?? docs/keel/RAPPORT-CIBLES-ET-VALIDATION-FOYER-2026-09-13.md
+?? docs/keel/RAPPORT-FERMETURE-REPARATIONS-FOYER-2026-09-13.md
+?? docs/keel/REVUE-CLOTURE-C6-2026-09-12.md
+?? docs/keel/REVUE-FERMETURE-TROIS-LOTS-2026-09-12.md
+?? docs/keel/REVUE-RESULTAT-REPARATIONS-FOYER-2026-09-13.md
+?? docs/keel/REVUE-TROIS-LOTS-2026-09-12.md
+?? frontend/e2e/app-chat.e2e.spec.ts
+?? frontend/src/keel/api/planValidation.ts
+?? frontend/src/keel/components/plan/PlanValidationNotice.tsx
+?? frontend/src/keel/components/plan/planValidation.int.test.ts
+?? scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/lotG-assiette/
+?? scratchpad/2026-09-11-CLOTURE/
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/RAPPORT-LOT-F-2026-09-11.md
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir1-c6-2026-09-12T01-35-07-251Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir1-lot3-2026-09-12T04-40-52-437Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir1-lot3c-2026-09-12T05-17-13-840Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir2-c6-2026-09-12T01-48-43-163Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir2-lot3-2026-09-12T04-44-58-022Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir2-lot3c-2026-09-12T05-19-05-516Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir2-lot3c-2026-09-12T14-19-00-067Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir3-c6-2026-09-12T01-50-23-146Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir3-lot3-2026-09-12T04-50-12-184Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir3-lot3b-2026-09-12T05-02-36-905Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir3-lot3c-2026-09-12T14-22-12-689Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir3-lot3f-2026-09-12T17-55-42-078Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir4-c6-2026-09-12T01-54-40-983Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir4-lot3b-2026-09-12T05-04-21-900Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir4-lot3c-2026-09-12T14-24-03-128Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir5-c6-2026-09-12T01-59-05-393Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir5-lot3c-2026-09-12T14-26-22-270Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir5-lot3f-2026-09-12T17-51-46-212Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir6-c6-2026-09-12T02-04-14-549Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir6-lot3c-2026-09-12T14-28-14-786Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir6-lot3f-2026-09-12T17-53-44-214Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-c2e-2026-09-11T21-00-01-668Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-c2f-2026-09-11T21-00-01-757Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-c2g-2026-09-11T21-00-01-593Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-c3a-2026-09-11T23-19-40-916Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-c3b-2026-09-11T17-42-01-540Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-c3c-2026-09-11T17-42-01-757Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-lot2h2-2026-09-13T17-00-02-035Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-lot2h2-2026-09-13T17-00-02-035Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-lot2r2b-2026-09-13T17-00-02-482Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-lot2r2b-2026-09-13T17-00-02-482Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-lot2r2c-2026-09-13T17-00-01-926Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-lot2r2d-2026-09-13T17-00-01-680Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-lot3r2-2026-09-13T17-00-02-464Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-lot3r2-2026-09-13T17-02-19-343Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/gain-lot3r2-2026-09-13T17-02-19-343Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c0aprem-2026-09-11T13-07-01-562Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c1-2026-09-11T21-57-23-584Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c1sansref-2026-09-11T21-58-07-134Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c1temoin-2026-09-11T21-58-27-754Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c2a-2026-09-11T22-30-56-357Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c2b-2026-09-11T17-45-01-568Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c2c-2026-09-11T21-00-01-540Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c2d-2026-09-11T21-00-01-575Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c40912020156-2026-09-12T00-01-58-992Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c4b020229-2026-09-11T17-42-02-552Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c4c020248-2026-09-11T17-42-02-700Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c4d020502-2026-09-11T17-42-02-782Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c4d020502-2026-09-11T17-42-02-782Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c4e020921-2026-09-11T17-42-02-678Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c4e020921-2026-09-11T17-42-02-678Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c4p021052-2026-09-11T17-42-02-828Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c4q021200-2026-09-11T17-42-02-666Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c4r021420-2026-09-11T17-42-02-685Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c4s021509-2026-09-11T17-42-02-724Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c4t022209-2026-09-11T17-42-02-878Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c4u022607-2026-09-11T17-42-02-710Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c5a-2026-09-11T17-42-02-445Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c5a-2026-09-11T17-42-02-626Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c5b-2026-09-11T17-42-02-482Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c5b-2026-09-11T17-42-02-779Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c6apports-2026-09-11T17-42-02-660Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c6aprem-2026-09-11T13-07-01-717Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c6genmed-2026-09-11T17-42-02-362Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c6grand-2026-09-11T17-42-02-584Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c6leger-2026-09-11T17-42-02-533Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c6petit-2026-09-11T17-42-02-557Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c6repbelt-2026-09-11T17-42-02-619Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c6repmed-2026-09-11T17-42-02-612Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c6repro1-2026-09-12T01-44-22-275Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c6repro2-2026-09-12T01-48-20-580Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c6sansref-2026-09-11T17-42-02-981Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c6secondaire-2026-09-11T17-42-03-275Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-c6temoin-2026-09-11T17-42-02-791Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-f2a-2026-09-12T17-33-09-665Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-f2b-2026-09-12T17-33-34-099Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-f2c-2026-09-12T07-00-01-250Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-f2d-2026-09-12T07-00-01-834Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-f2e-2026-09-12T07-00-01-726Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-f2f-2026-09-12T07-00-01-756Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-f2g-2026-09-12T07-00-01-730Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-f2g-2026-09-12T07-00-01-730Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-f2h-2026-09-12T07-00-01-721Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-f2i-2026-09-12T07-00-01-560Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-f2j-2026-09-12T07-00-01-936Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-gall0-2026-09-12T07-00-01-515Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-gall0b-2026-09-12T07-00-01-518Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-gall0c-2026-09-12T07-00-01-524Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-gall0d-2026-09-12T07-00-01-609Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-gall0e-2026-09-12T07-00-01-556Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-gall0f-2026-09-12T07-00-01-780Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-gall0g-2026-09-12T07-00-01-552Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-gall2-2026-09-12T07-00-01-609Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-gall3-2026-09-12T07-00-01-621Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-gallerg-2026-09-12T07-00-01-613Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-gprot-2026-09-12T07-00-01-780Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-h1-2026-09-12T07-00-01-633Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-h1n1-2026-09-11T12-31-32-721Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-h1n1-2026-09-11T12-31-32-721Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-h1n1b-2026-09-11T12-31-56-592Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-h1n1b-2026-09-11T12-31-56-592Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-h1n1c-2026-09-11T12-31-36-341Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-h1n1c-2026-09-11T12-31-36-341Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-h2-2026-09-12T07-00-01-690Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-h2n2-2026-09-11T12-31-41-778Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-h2n2-2026-09-11T12-31-41-778Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-h4n4-2026-09-11T12-30-45-131Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-h4n4-2026-09-11T12-30-45-131Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3a01-2026-09-12T07-00-02-093Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3b01-2026-09-11T07-00-01-666Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3c01-2026-09-11T07-00-01-754Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3c02-2026-09-11T12-30-01-660Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3c03-2026-09-11T12-30-01-937Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3c03-2026-09-11T12-30-01-937Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3c04-2026-09-11T12-30-01-651Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3c05-2026-09-11T12-30-01-934Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3c06-2026-09-11T12-30-01-997Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3c07-2026-09-11T12-30-02-006Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3c08-2026-09-11T12-30-01-819Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3c09-2026-09-11T12-30-01-810Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3d01-2026-09-11T12-30-01-961Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3d02-2026-09-11T12-30-01-774Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3d04-2026-09-11T12-30-01-888Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3d05-2026-09-11T12-30-01-660Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3e02-2026-09-11T12-30-01-879Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3e04-2026-09-11T12-30-01-856Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3f01-2026-09-11T12-30-02-116Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3s01-2026-09-12T07-00-01-870Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3s02-2026-09-12T07-00-01-939Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l3s03-2026-09-12T07-00-01-805Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l4a01-2026-09-11T12-30-02-016Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l4b01-2026-09-11T12-30-02-104Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l4c00-2026-09-11T12-30-01-983Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l5a01-2026-09-11T12-30-01-878Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l5a02-2026-09-11T12-30-01-734Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l5b01-2026-09-11T12-30-02-213Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l5b02-2026-09-11T12-30-01-895Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l5b03-2026-09-11T12-30-01-749Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l5b04-2026-09-11T12-30-01-683Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-l6a01-2026-09-11T12-30-02-003Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2d1-2026-09-13T17-00-02-121Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2d2-2026-09-13T17-00-01-994Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2d2-2026-09-13T17-00-02-164Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2d2-2026-09-13T17-00-02-164Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2d2-2026-09-13T17-00-02-645Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2d3-2026-09-13T17-00-01-970Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2d3-2026-09-13T17-00-02-658Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2d4-2026-09-13T17-00-01-957Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2d4-2026-09-13T17-00-02-486Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2d5-2026-09-13T17-00-01-735Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2d5-2026-09-13T17-00-02-606Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2d6-2026-09-13T17-00-02-011Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2d6-2026-09-13T17-00-02-443Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2r1b-2026-09-13T17-00-01-746Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2r2a-2026-09-13T17-00-02-427Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2r2a-2026-09-13T17-00-02-427Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2r4a-2026-09-13T17-00-01-638Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2r4a-2026-09-13T17-00-02-389Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2r4a-2026-09-13T17-00-02-389Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2r4b-2026-09-13T17-00-02-018Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2ref1-2026-09-13T17-00-01-491Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2ref1-2026-09-13T17-00-01-808Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2ref1-2026-09-13T17-00-01-844Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2v1-2026-09-13T17-00-02-102Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2v1-2026-09-13T17-00-02-407Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2v1-2026-09-13T17-00-02-407Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2v1-2026-09-13T17-00-02-467Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2v1-2026-09-13T17-00-02-702Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2v1-2026-09-13T17-00-02-702Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2v2-2026-09-13T17-00-01-544Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot2v2-2026-09-13T17-00-02-653Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3a-2026-09-12T04-35-22-110Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3b-2026-09-12T04-35-54-990Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3c-2026-09-12T04-37-52-302Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r1-2026-09-13T17-00-01-425Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r1-2026-09-13T17-00-01-829Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r1-2026-09-13T17-01-58-043Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r1-2026-09-13T17-01-58-043Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r4-2026-09-13T17-00-00-753Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r4-2026-09-13T17-00-00-753Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r4-2026-09-13T17-00-02-127Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r4-2026-09-13T17-00-02-557Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r4-2026-09-13T17-02-13-451Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r4-2026-09-13T17-02-13-451Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r4-2026-09-13T17-02-25-931Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r4-2026-09-13T17-02-25-931Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r4-2026-09-13T17-05-51-127Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3r4-2026-09-13T17-05-51-127Z.prompts.txt
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-lot3seed-2026-09-12T05-16-06-504Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-rjtir3-2026-09-11T12-30-01-826Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-rjtir5-2026-09-11T12-30-01-649Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-rjtir6-2026-09-11T12-30-01-696Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-rktir3-2026-09-12T17-55-01-489Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-rktir5-2026-09-12T17-55-01-380Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-rktir6-2026-09-12T17-55-01-415Z.json
+?? scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-rl3c2-2026-09-12T14-19-01-958Z.json
+?? scratchpad/2026-09-13-CIBLES-PAR-PERSONNE/
+?? scratchpad/2026-09-13-RESTE-A-FERMER/
+?? sites/
+?? supabase/functions/_shared/keel/food_group_ref_precedence_test.ts
+?? supabase/functions/_shared/keel/food_keeping.ts
+?? supabase/functions/_shared/keel/food_keeping_test.ts
+?? supabase/functions/_shared/keel/lot1_wiring_test.ts
+?? supabase/functions/_shared/keel/meal_prompt_sections_test.ts
+?? supabase/functions/_shared/keel/output_contract_c1_test.ts
+?? supabase/functions/_shared/keel/output_contract_wiring_test.ts
+?? supabase/functions/_shared/keel/output_lock_wiring_test.ts
+?? supabase/functions/_shared/keel/output_surfaces.ts
+?? supabase/functions/_shared/keel/output_surfaces_test.ts
+?? supabase/functions/_shared/keel/plan_defect_pass.ts
+?? supabase/functions/_shared/keel/plan_defect_pass_test.ts
+?? supabase/functions/_shared/keel/plan_protein_brief.ts
+?? supabase/functions/_shared/keel/plan_protein_brief_test.ts
+?? supabase/functions/_shared/keel/plan_repair_attribution_test.ts
+?? supabase/functions/_shared/keel/plan_repair_context.ts
+?? supabase/functions/_shared/keel/plan_repair_context_test.ts
+?? supabase/functions/_shared/keel/plan_repair_decision_test.ts
+?? supabase/functions/_shared/keel/plan_repair_messages_test.ts
+?? supabase/functions/_shared/keel/plan_repair_patch.ts
+?? supabase/functions/_shared/keel/plan_repair_patch_test.ts
+?? supabase/functions/_shared/keel/plan_repair_prompt.ts
+?? supabase/functions/_shared/keel/plan_repair_prompt_test.ts
+?? supabase/functions/_shared/keel/plan_repair_prompt_wiring_test.ts
+?? supabase/functions/_shared/keel/plan_repair_unit.ts
+?? supabase/functions/_shared/keel/plan_repair_unit_test.ts
+?? supabase/functions/_shared/keel/plan_repair_wiring_test.ts
+?? supabase/functions/_shared/keel/plan_validation.ts
+?? supabase/functions/_shared/keel/plan_validation_test.ts
+?? supabase/functions/_shared/keel/plan_validation_wiring_test.ts
+?? supabase/functions/_shared/keel/portion_boundary.ts
+?? supabase/functions/_shared/keel/quantity_rounding_wiring_test.ts
+?? supabase/functions/_shared/keel/shopping_c3_test.ts
+?? supabase/functions/_shared/keel/shopping_c3_wiring_test.ts
+?? supabase/functions/_shared/keel/shopping_identity.ts
+?? supabase/functions/_shared/keel/shopping_lot1_test.ts
+?? supabase/functions/_shared/keel/shopping_purchases.ts
+?? supabase/functions/_shared/keel/shopping_purchases_test.ts
+?? supabase/functions/_shared/keel/shopping_rebuild.ts
+?? supabase/functions/_shared/keel/shopping_shelf_stable_test.ts
+?? supabase/functions/_shared/keel/slot_contract_brief.ts
+?? supabase/functions/_shared/keel/slot_contract_brief_test.ts
+?? supabase/migrations/20260912090000_l_apport_fixe_du_titulaire_va_dans_sa_source.sql

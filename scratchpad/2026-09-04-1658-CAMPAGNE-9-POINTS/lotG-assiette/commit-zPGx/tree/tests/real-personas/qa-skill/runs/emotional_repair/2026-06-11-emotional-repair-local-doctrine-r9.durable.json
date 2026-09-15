@@ -1,0 +1,187 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "5bfd33cb-569e-436d-9f7f-4364fbccf7b6",
+        "role": "user",
+        "content": "J'ai raté une réponse pendant un échange avec mon manager et je suis en train d'en faire une preuve que je ne mérite pas ma place. Aide-moi à remettre ça à sa taille réelle, calmement.",
+        "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r9",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r9-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T19:19:19.86692+00:00"
+      },
+      {
+        "id": "b40a8cfe-1fcb-4744-ac0d-ae9f0b34f373",
+        "role": "assistant",
+        "content": "C'est souvent le piège : transformer un moment de flottement en un verdict définitif sur ta valeur. Le fait, c'est que tu n'as pas eu la réponse à un instant T face à ton manager. C'est un événement précis, pas une preuve que tu es illégitime. Ta place et tes compétences ne se résument pas à cette seule interaction.",
+        "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r9",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r9-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T19:19:39.289696+00:00"
+      },
+      {
+        "id": "31560e09-06d6-4e55-a3ce-bc28019f5071",
+        "role": "user",
+        "content": "Oui. Fais-moi une phrase courte à garder en tête, pas de méthode, pas de plan, et pas de question.",
+        "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r9",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r9-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T19:19:52.909275+00:00"
+      },
+      {
+        "id": "2db81f01-07f3-4b09-a105-cbcd56c75b5c",
+        "role": "assistant",
+        "content": "Ce que tu as dit à ton manager est un événement isolé, pas le reflet de ta valeur.",
+        "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r9",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r9-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "conversation_skill_local_flow",
+              "status": "continue",
+              "skill_id": "emotional_repair",
+              "flow_action": "provide_concrete_phrase",
+              "reason_code": "emotional_repair_local_continue",
+              "visible_task": "concrete_phrase",
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_turn",
+                  "component": "emotional_repair",
+                  "safety_handoff": false,
+                  "global_dispatcher_skipped": true
+                }
+              ],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "response_intent": "separate_fact_from_identity",
+              "committed_effects": [],
+              "requested_effects": [],
+              "source_dispatcher_local": "emotional_repair.local_dispatcher",
+              "global_dispatcher_skipped": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-11T19:20:05.285147+00:00"
+      },
+      {
+        "id": "e8a9cae2-1981-4611-930a-07571b06cadc",
+        "role": "user",
+        "content": "Je change de sujet : dans Sophia, où puis-je retrouver mes cartes d'attaque déjà créées ?",
+        "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r9",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r9-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T19:20:33.916175+00:00"
+      },
+      {
+        "id": "704a2b5a-2c95-404d-bcec-574f34974d30",
+        "role": "assistant",
+        "content": "Tu trouveras tes cartes d'attaque dans l'onglet **Ressources** de ton dashboard, elles y sont classées par niveau. Tu peux aussi voir un aperçu directement sur la mission ou l'habitude correspondante dans ton **Plan**.",
+        "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r9",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r9-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T19:21:45.84444+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

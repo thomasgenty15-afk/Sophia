@@ -1,0 +1,112 @@
+{
+  "run_id": "daily-paul-done-plus-open-20260516-r1",
+  "persona": "paul",
+  "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+  "run_started_at": "2026-05-16T17:12:53.849Z",
+  "local_date": "2026-05-16",
+  "week_start_date": "2026-05-11",
+  "planned_day": "sat",
+  "ids": {
+    "scheduled_checkin_id": "ce3c693f-8662-44a6-8782-5d30c323cf76",
+    "already_occurrence_id": "b6587c3e-fd12-49a6-a7b8-0789e8106d8a",
+    "open_occurrence_id": "9d490e32-9971-4a89-9387-6ce1a8362985",
+    "pre_entry_id": "fba58587-5280-4b84-938e-459d30161237",
+    "pending_id": "5d18d514-34f9-4c4b-8588-b45b8cab7ead"
+  },
+  "original_profile": {
+    "whatsapp_opted_in": false,
+    "whatsapp_opted_out_at": "2026-05-16T14:45:20.628+00:00",
+    "whatsapp_optout_reason": "stop_inbound",
+    "whatsapp_optout_confirmed_at": "2026-05-16T14:25:42.811+00:00",
+    "whatsapp_last_inbound_at": "2026-05-16T14:49:15.276+00:00",
+    "whatsapp_last_outbound_at": "2026-05-15T13:43:29.973+00:00",
+    "phone_invalid": false
+  },
+  "plan": {
+    "id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+    "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+    "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+    "title": "Structurer et faire avancer ton projet d'entreprise",
+    "status": "active"
+  },
+  "already_done_item": {
+    "id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+    "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+    "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+    "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+    "dimension": "missions",
+    "kind": "task",
+    "status": "active",
+    "title": "Créer ton Parking à idées",
+    "tracking_type": "boolean",
+    "time_of_day": "anytime",
+    "scheduled_days": null,
+    "activation_order": 1,
+    "phase_id": "phase-1",
+    "phase_order": 1,
+    "defense_card_id": null,
+    "attack_card_id": null,
+    "cards_status": "not_started"
+  },
+  "open_item": {
+    "id": "89a1ccf2-2751-463e-97c0-94213551631d",
+    "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+    "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+    "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+    "dimension": "missions",
+    "kind": "task",
+    "status": "active",
+    "title": "Bloquer tes créneaux de la semaine",
+    "tracking_type": "boolean",
+    "time_of_day": "anytime",
+    "scheduled_days": null,
+    "activation_order": 3,
+    "phase_id": "phase-1",
+    "phase_order": 1,
+    "defense_card_id": null,
+    "attack_card_id": null,
+    "cards_status": "not_started"
+  },
+  "created_plan_item_ids": [
+    "84437c9a-930a-4993-9431-19bf6109a130"
+  ],
+  "created_occurrence_ids": [
+    "b6587c3e-fd12-49a6-a7b8-0789e8106d8a",
+    "9d490e32-9971-4a89-9387-6ce1a8362985"
+  ],
+  "created_entry_ids": [
+    "fba58587-5280-4b84-938e-459d30161237"
+  ],
+  "created_pending_ids": [
+    "5d18d514-34f9-4c4b-8588-b45b8cab7ead"
+  ],
+  "created_scheduled_checkin_ids": [
+    "ce3c693f-8662-44a6-8782-5d30c323cf76"
+  ],
+  "created_chat_message_ids": [
+    "96f12a70-225b-4894-a08d-f59481fab50b"
+  ],
+  "process_response": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "processed": 1,
+      "flushed_deferred": 0,
+      "delivered_rendez_vous": 0,
+      "processed_access_notifications": 0,
+      "processed_proactive_candidates": 0,
+      "request_id": "daily-paul-done-plus-open-20260516-r1-process-checkins"
+    }
+  },
+  "cleanup": {
+    "restored_at": "2026-05-16T17:15:30.155Z",
+    "remaining": {
+      "pending": [],
+      "scheduled": [],
+      "entries": [],
+      "occurrences": [],
+      "plan_items": [],
+      "messages": []
+    }
+  }
+}

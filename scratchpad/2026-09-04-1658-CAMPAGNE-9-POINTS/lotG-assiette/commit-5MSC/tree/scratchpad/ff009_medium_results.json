@@ -1,0 +1,242 @@
+[
+  {
+    "id": "M1",
+    "level": "medium",
+    "run": 1,
+    "text": "on a mangé au resto hier",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "That’s just the kind of data you can use to judge the lunch protein and vegetables.  If you want, I can help you map that meal to what was actually covered.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M2",
+    "level": "medium",
+    "run": 1,
+    "text": "I ordered takeout last night",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Got it. Takeout last night is fine context — if you’re checking against lunch today, the only two things on your list are protein and vegetables.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M3",
+    "level": "medium",
+    "run": 1,
+    "text": "j'ai commandé une pizza margherita",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "A margherita pizza is mostly bread, cheese, and tomato, so it gives you carbs, some protein, and fat, but not much fiber or vegetables beyond the sauce.  If you want, I can also help you judge how it fits a lunch or dinner without making it a big thing.  What ",
+    "judgment": []
+  },
+  {
+    "id": "M3b",
+    "level": "medium",
+    "run": 1,
+    "text": "j'ai commandé du poulet et du riz",
+    "ok": true,
+    "detail": "off_plan | poultry | - | chat | evw=0.8 | dq=- ;; off_plan | refined_grain | - | chat | evw=0.8 | dq=-",
+    "reply": "You’ve got protein and starch covered there. If you want to make that lunch line up better with the plan, the missing piece is vegetables.  And what did you have with it?",
+    "judgment": []
+  },
+  {
+    "id": "M4",
+    "level": "medium",
+    "run": 1,
+    "text": "j'ai mangé chez ma mère hier soir",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Got it — last night’s meal was at your mother’s place.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M5",
+    "level": "medium",
+    "run": 1,
+    "text": "we ate out at a restaurant yesterday",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Noted. Since you ate out yesterday, I’d keep today simple: protein and vegetables at lunch are the two lunch anchors in your plan.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M6",
+    "level": "medium",
+    "run": 1,
+    "text": "on s'est fait livrer",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Got it. The lunch protein and vegetables are still the only listed lunch items, and delivery doesn’t change that.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M7",
+    "level": "medium",
+    "run": 1,
+    "text": "I had a takeaway last night",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Thanks for telling me. A takeaway last night can fit fine; the useful question is whether today’s lunch still gives you protein and vegetables.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M1",
+    "level": "medium",
+    "run": 2,
+    "text": "on a mangé au resto hier",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Got it — yesterday you ate at a restaurant.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M2",
+    "level": "medium",
+    "run": 2,
+    "text": "I ordered takeout last night",
+    "ok": false,
+    "detail": "R3: food_group_ref inventé [other_added_fat] || BASE: off_plan | other_added_fat | - | chat | evw=0.8 | dq=-",
+    "reply": "Got it — takeout last night. If you want, I can help you fit that into today’s lunch without overthinking it.  And what did you have with it?",
+    "judgment": []
+  },
+  {
+    "id": "M3",
+    "level": "medium",
+    "run": 2,
+    "text": "j'ai commandé une pizza margherita",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "A margherita pizza is a plain tomato-and-mozzarella base, so it doesn’t count as the lunch protein or vegetables item on your plan.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M3b",
+    "level": "medium",
+    "run": 2,
+    "text": "j'ai commandé du poulet et du riz",
+    "ok": true,
+    "detail": "off_plan | poultry | - | chat | evw=0.8 | dq=- ;; off_plan | refined_grain | - | chat | evw=0.8 | dq=-",
+    "reply": "Two concrete things there: chicken and rice.  For lunch, that gives you protein from the chicken. The rice covers your starch, but there’s still no vegetable reported yet.  And what did you have with it?",
+    "judgment": []
+  },
+  {
+    "id": "M4",
+    "level": "medium",
+    "run": 2,
+    "text": "j'ai mangé chez ma mère hier soir",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Got it. You ate at your mother’s place last night.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M5",
+    "level": "medium",
+    "run": 2,
+    "text": "we ate out at a restaurant yesterday",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Noted. For lunch today, the two things still on the table are protein and vegetables.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M6",
+    "level": "medium",
+    "run": 2,
+    "text": "on s'est fait livrer",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "For lunch, protein and vegetables are the two things still unreported in your plan.  If the delivery included either one, say which and I’ll match it to the right item.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M7",
+    "level": "medium",
+    "run": 2,
+    "text": "I had a takeaway last night",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Got it — that gives you a concrete meal to anchor the day. For lunch, the two things still sitting there are protein and vegetables.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M1",
+    "level": "medium",
+    "run": 3,
+    "text": "on a mangé au resto hier",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "At lunch today, the only things on the plan are protein and vegetables.  If you’re talking about yesterday’s restaurant meal, that doesn’t change what’s written for today.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M2",
+    "level": "medium",
+    "run": 3,
+    "text": "I ordered takeout last night",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Got it. Takeout last night is a useful data point, and it fits with the lunch protein/vegetables lines being still unknown today.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M3",
+    "level": "medium",
+    "run": 3,
+    "text": "j'ai commandé une pizza margherita",
+    "ok": true,
+    "detail": "off_plan | other_fruit | - | chat | evw=0.8 | dq=- ;; off_plan | refined_grain | - | chat | evw=0.8 | dq=- ;; off_plan | dairy_cheese | - | chat | evw=0.8 | dq=- ;; off_plan | sauce_dressing | - | chat | evw=0.8 | dq=-",
+    "reply": "Noted. A margherita pizza is a simple, pretty balanced choice if that’s what you wanted.  And what did you have with it?",
+    "judgment": []
+  },
+  {
+    "id": "M3b",
+    "level": "medium",
+    "run": 3,
+    "text": "j'ai commandé du poulet et du riz",
+    "ok": true,
+    "detail": "off_plan | lean_protein | - | chat | evw=0.8 | dq=- ;; off_plan | refined_grain | - | chat | evw=0.8 | dq=-",
+    "reply": "Chicken and rice can fit the lunch protein line, but the rice doesn’t cover the vegetables line.  If you want, I can help you judge whether the meal was still solid overall.  And what did you have with it?",
+    "judgment": []
+  },
+  {
+    "id": "M4",
+    "level": "medium",
+    "run": 3,
+    "text": "j'ai mangé chez ma mère hier soir",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Thanks — if you want, I can help you use that in the lunch context, but I’m not making any assumption from it on its own.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M5",
+    "level": "medium",
+    "run": 3,
+    "text": "we ate out at a restaurant yesterday",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Okay — restaurant meals often make it harder to judge portions and ingredients exactly. If you want, I can help you think through what that meal likely covered from a nutrition point of view.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M6",
+    "level": "medium",
+    "run": 3,
+    "text": "on s'est fait livrer",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Protein at lunch and vegetables at lunch are still the two lunch items for today; “we got delivery” doesn’t tell me whether they were in it.  What was in it?",
+    "judgment": []
+  },
+  {
+    "id": "M7",
+    "level": "medium",
+    "run": 3,
+    "text": "I had a takeaway last night",
+    "ok": true,
+    "detail": "off_plan | - | - | chat | evw=0.8 | dq=-",
+    "reply": "Thanks for letting me know. A takeaway last night doesn’t tell me enough on its own to judge the day’s pattern, so I’d treat it as context, not a verdict.  What was in it?",
+    "judgment": []
+  }
+]

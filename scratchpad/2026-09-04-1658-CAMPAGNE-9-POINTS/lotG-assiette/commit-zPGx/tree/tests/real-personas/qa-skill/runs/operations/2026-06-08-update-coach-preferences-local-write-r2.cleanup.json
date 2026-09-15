@@ -1,0 +1,39 @@
+{
+  "restored_question_tendency": true,
+  "deleted_created_question_tendency": false,
+  "before_question_tendency": {
+    "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+    "scope": "global",
+    "key": "coach.question_tendency",
+    "value": {
+      "label": "Normale",
+      "value": "normal"
+    },
+    "status": "active",
+    "confidence": 1,
+    "source_type": "system_default",
+    "last_source_message_id": null,
+    "reason": "Default coach preferences (v4 canonical)",
+    "updated_at": "2026-06-02T14:43:29.482761+00:00",
+    "last_confirmed_at": null,
+    "created_at": "2026-06-02T14:43:29.482761+00:00"
+  },
+  "after_question_tendency": {
+    "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+    "scope": "global",
+    "key": "coach.question_tendency",
+    "value": {
+      "label": "Normale",
+      "value": "normal"
+    },
+    "status": "active",
+    "confidence": 1,
+    "source_type": "system_default",
+    "last_source_message_id": null,
+    "reason": "Default coach preferences (v4 canonical)",
+    "updated_at": "2026-06-02T14:43:29.482761+00:00",
+    "last_confirmed_at": null,
+    "created_at": "2026-06-02T14:43:29.482761+00:00"
+  },
+  "errors": []
+}

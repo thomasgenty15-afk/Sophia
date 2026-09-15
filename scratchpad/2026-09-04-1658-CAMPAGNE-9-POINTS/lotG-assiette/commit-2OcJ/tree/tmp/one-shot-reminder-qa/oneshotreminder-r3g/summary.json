@@ -1,0 +1,46 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-one-shot-reminder-oneshotreminder-r3g-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Dis-moi demain à 6h30 qu'il faut que je me bouge les fesses.",
+    "assistant": "C’est programmé pour mercredi 20 mai à 06:30 : me bouger les fesses. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "create_one_shot_reminder"
+    ],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "demain"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tomorrow"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "create_one_shot_reminder"
+      }
+    ],
+    "pending_tool_skill_confirmation": null,
+    "tool_skill_run": null,
+    "memory_write_candidates_emitted": 0,
+    "trace_error": null
+  }
+]

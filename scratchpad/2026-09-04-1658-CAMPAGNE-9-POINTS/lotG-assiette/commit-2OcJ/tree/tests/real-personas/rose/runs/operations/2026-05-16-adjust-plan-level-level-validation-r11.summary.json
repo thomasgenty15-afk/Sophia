@@ -1,0 +1,136 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r11-t01",
+    "user": "Le niveau sécurité du couple est trop lourd pour moi cette semaine. Je veux alléger seulement ce niveau, pas tout le plan : Partager un point positif passe à 2 jours / semaine, avec une phrase neutre et sans créneau fixe ; Convenir d'un signal de pause devient une mission de 5 minutes pour choisir ensemble un mot ou un geste simple. La cartographie des déclencheurs et Faire le point restent inchangés.",
+    "status": 200,
+    "sophia": "C'est noté, je vais alléger ton niveau actuel : l'habitude de partage positif passe à 2 jours par semaine sans horaire fixe avec une phrase neutre, et la mission du signal de pause est simplifiée à 5 minutes. Je ne touche pas à la cartographie ni au point hebdomadaire. Rien n'est encore appliqué, est-ce que je peux te préparer le brouillon de ces changements ?",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r11-t02",
+    "user": "Oui, prépare le brouillon pour que je le relise avant application.",
+    "status": 200,
+    "sophia": "Je te propose d'ajuster ton niveau actuel pour réduire la charge cette semaine, comme tu l'as demandé. Rien n'est encore appliqué, c'est une proposition pour que nous puissions valider ensemble. Voici les deux changements concrets : d'abord, l'habitude 'Partager un point positif' passe à 2 jours par semaine pour une durée de 5 minutes avec une consigne de phrase neutre. Ensuite, la mission 'Convenir d'un signal de pause' est simplifiée pour se concentrer sur un mot ou un geste simple à un moment libre, sans horaire fixe. L'action 'Cartographier les déclencheurs' reste inchangée pour préserver le cœur de ton travail. Est-ce que cela te semble plus gérable ?",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r11-t03",
+    "user": "Presque, mais corrige un point avant validation : les 5 minutes concernent Convenir d'un signal de pause, pas Partager un point positif. Pour le point positif, garde seulement 2 jours / semaine, phrase neutre, sans horaire fixe.",
+    "status": 200,
+    "sophia": "Je te propose d'ajuster ton niveau actuel pour qu'il soit plus léger cette semaine, sans rien changer au reste de ton plan. Rien n'est encore appliqué, j'attends ton feu vert.\n\nVoici ce que je prévois de modifier :\n- Pour l'action 'Convenir d'un signal de pause', je fixe une durée de 5 minutes pour trouver un mot ou un geste simple.\n- Pour l'habitude 'Partager un point positif', je réduis la fréquence à 2 jours par semaine, avec une phrase neutre et sans horaire fixe pour t'enlever toute pression.\n\nLes actions 'Cartographier les déclencheurs' et 'Faire le point' restent inchangées pour préserver l'essentiel de ta progression. Est-ce que cela te convient ?",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 4,
+    "request_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r11-t04",
+    "user": "Avant que je valide, confirme-moi juste que ça ne change ni la cartographie, ni Faire le point, ni l'objectif global du couple.",
+    "status": 200,
+    "sophia": "Je n'ai encore rien appliqué. Le brouillon actuel prévoit:\n\n1. Partager un point positif: avant, 3 jours / semaine; maintenant, 2 jours / semaine, phrase neutre, sans horaire fixe. Pourquoi: Réduction de la fréquence et de la charge mentale pour s'adapter à ta fatigue cette semaine.\n2. Convenir d'un signal de pause: avant, Action ponctuelle sans durée spécifiée; maintenant, Session de 5 minutes pour convenir d'un mot ou geste simple. Pourquoi: Cadrage temporel strict pour limiter l'effort requis tout en assurant la mise en place du signal. Ce qui ne change pas: Cartographier les déclencheurs.\n\nSi ça te va, dis-moi clairement de l'appliquer. Sinon, dis-moi ce que tu veux modifier dans ce brouillon.",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "none",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 5,
+    "request_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r11-t05",
+    "user": "Oui, applique ce brouillon corrigé maintenant.",
+    "status": 200,
+    "sophia": "C'est fait, j'ai allégé ton niveau actuel comme tu l'as demandé. J'ai réduit la fréquence de 'Partager un point positif' à 2 jours par semaine avec une approche plus souple (phrase neutre, moment libre). J'ai aussi limité 'Convenir d'un signal de pause' à une session rapide de 5 minutes. Ces ajustements vous permettent de maintenir la sécurité dans votre couple sans que tu te sentes submergé cette semaine. Le reste de ton plan et tes objectifs globaux ne bougent pas. Je suis confiante sur le fait que ce format sera plus digeste pour toi.",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "success",
+      "executed_tools": [
+        "adjust_plan_item"
+      ]
+    }
+  },
+  {
+    "turn": 6,
+    "request_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r11-t06",
+    "user": "Merci. Pour être sûre, résume-moi ce qui a été modifié et ce qui est resté inchangé.",
+    "status": 200,
+    "sophia": "Avec plaisir 🙂 Voilà le résumé clair :\n\nModifié (pour alléger la semaine)\n- “Partager un point positif” : passe à 2 jours par semaine, avec une phrase neutre, sans créneau fixe.\n- “Convenir d’un signal de pause” : devient une mission de 5 minutes, pour choisir ensemble un mot ou un geste simple.\n\nResté inchangé\n- La cartographie des déclencheurs.\n- “Faire le point” hebdomadaire.\n- Le reste du plan n’a pas été touché.\n\nTu veux que je te reformule ça en version “check-list” ultra rapide à relire avant application ?",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "product_help",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "none",
+      "executed_tools": []
+    }
+  }
+]

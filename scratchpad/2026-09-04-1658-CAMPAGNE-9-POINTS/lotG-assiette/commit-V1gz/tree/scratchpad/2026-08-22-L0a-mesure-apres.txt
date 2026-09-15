@@ -1,0 +1,39 @@
+L0-a — MESURE APRÈS, rejeu du corpus. 2026-08-22 01:59:50 CEST
+commande: deno run --allow-read scratchpad/2026-08-22-L0a-rejeu-conservation.ts <dir>
+
+{
+  "plans": 181,
+  "dishes": 1857,
+  "fridge_window": {
+    "violations": 102,
+    "within": 1179,
+    "not_evaluated": 83
+  },
+  "before_cooking_autre_regle": 102,
+  "plans_touches": 36,
+  "plats_jetes": 83,
+  "violations_RESIDUELLES_apres_refus": 0,
+  "plans_entierement_vides_par_le_refus": 0,
+  "raw_window": {
+    "routed": 4826,
+    "unknown_group": 189
+  },
+  "raw_window_pct_routed": 96.2,
+  "vagues": {
+    "plans_avec_vagues": 161,
+    "avant": 179,
+    "apres": 187,
+    "plans_avec_PLUS_de_vagues": 10,
+    "plans_avec_MOINS_de_vagues": 3
+  },
+  "groupes_les_plus_frequents": [
+    "non_starchy_veg:1115 (fenêtre 7 j)",
+    "sauce_dressing:447 (fenêtre 21 j)",
+    "leafy_greens:398 (fenêtre 3 j)",
+    "refined_grain:330 (fenêtre 21 j)",
+    "whole_grain:262 (fenêtre 21 j)",
+    "dairy_yogurt:250 (fenêtre 7 j)",
+    "legumes:243 (fenêtre 21 j)",
+    "other_fruit:212 (fenêtre 7 j)"
+  ]
+}

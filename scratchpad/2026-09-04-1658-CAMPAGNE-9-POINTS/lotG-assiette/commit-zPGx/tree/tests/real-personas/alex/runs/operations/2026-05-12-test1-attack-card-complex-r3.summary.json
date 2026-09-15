@@ -1,0 +1,155 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'ai besoin que tu me fasses une carte d'attaque pour ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+    "assistant": "Il me manque l'action à viser. Donne-moi l'action ou décris-la en une phrase.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "target",
+        "needed": true,
+        "reason": "target_missing",
+        "status": "missing"
+      },
+      "reason_code": "operation_intent_start",
+      "missing_slots": [
+        "target"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je parle du sas de dechargement. C'est le moment ou j'ouvre le carnet. Je veux une carte tres petite: deux minutes, poser le telephone loin, ouvrir le carnet, ecrire une ligne.",
+    "assistant": "Je te propose de creer une carte d'attaque courte pour Faire le sas de déchargement: Fais la version 4 minutes de \"Faire le sas de déchargement\", assez petite pour ne pas negocier. Tu veux que je la cree ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Faire le sas de déchargement",
+          "technique": "minimum_version",
+          "instruction": "Fais la version 4 minutes de \"Faire le sas de déchargement\", assez petite pour ne pas negocier.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose de creer une carte d'attaque courte pour Faire le sas de déchargement: Fais la version 4 minutes de \"Faire le sas de déchargement\", assez petite pour ne pas negocier. Tu veux que je la cree ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "3d6b1988-1342-48ec-a708-f85ce681e2ae",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui vas-y, cree cette carte d'attaque dans Sophia.",
+    "assistant": "C'est fait. J'ai créé la carte d'attaque \"Carte d'attaque - Faire le sas de déchargement\" : Fais la version 4 minutes de \"Faire le sas de déchargement\", assez petite pour ne pas negocier.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_attack_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "prepare_attack_card"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "3d6b1988-1342-48ec-a708-f85ce681e2ae",
+      "attack_card_id": "3603063e-712e-4c41-a70c-6a9367534703",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

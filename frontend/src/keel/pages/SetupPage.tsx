@@ -52,6 +52,8 @@ import {
   editCells,
   type PlanDraft,
   readNote,
+  recoverLatestDraft,
+  waitForDraft,
   writeFromDraft,
 } from "../api/planDraft";
 import CookingStyleField from "../components/CookingStyleField";
@@ -874,9 +876,38 @@ export default function SetupPage() {
    * phrase c'est L'APPLIQUER (un cran d'appétit, un réglage, un goût); la
    * retenir et la relire à l'adoption appliquait le même cran DEUX fois. La
    * phrase fait son effet à la reprise, depuis le dialogue (`readNote`), et
-   * l'adoption recompose depuis le magasin, qui le porte déjà.
+   * l'adoption relit le magasin, qui porte déjà le plan final.
    */
   const [draftOpen, setDraftOpen] = React.useState(false);
+  const recoveredDraftFor = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!userId || recoveredDraftFor.current === userId) return;
+    recoveredDraftFor.current = userId;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const recoverable = await recoverLatestDraft();
+        if (cancelled || recoverable === null) return;
+        setBusy(true);
+        const recovered = recoverable.state === "done"
+          ? recoverable.draft
+          : await waitForDraft(recoverable.draftId);
+        if (cancelled) return;
+        setDraft(recovered);
+        setDraftOpen(true);
+        setComposeFailure(null);
+      } catch (error) {
+        if (!cancelled) {
+          setComposeFailure(refusalMessage(error));
+        }
+      } finally {
+        if (!cancelled) setBusy(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
   /**
    * LOT B — COMMENT ON CUISINE CETTE SEMAINE. `null` = « laisse décider », et
    * c'est le DÉFAUT: le calcul du moteur gouverne alors seul, exactement comme
@@ -1179,8 +1210,39 @@ export default function SetupPage() {
             // `readSetupDraft` l'a déjà ramené à `true`/`false` par `=== true`.
             setOneCookingSession(kept.draft.oneCookingSession);
           } else {
+            // ── LA REPRISE QUI TOMBAIT SUR UN MUR ────────────────────────
+            //
+            // ⟳ 2026-09-11 — SIGNALÉ SUR UN COMPTE RÉEL: « j'ai voulu faire un
+            // test en mettant une seule personne, ça m'a bloqué en me disant
+            // qu'il fallait en ajouter une autre », et « je suis tombé direct
+            // sur l'étape 2 ».
+            //
+            // Le chemin, mesuré: l'étape 1 ne peut pas écrire sa réponse tout
+            // de suite (`household_size` vit dans `student_goals`, qui n'existe
+            // pas avant l'objectif de l'étape 2), donc « juste moi » ne vit
+            // qu'en mémoire. Un rechargement le perd, `funnelMouths` applique
+            // son repli `max(2, membres)` — donc « à deux » — et la reprise
+            // ouvre à l'étape 2 en exigeant une bouche qui n'existera jamais.
+            //
+            // ⛔ LA SEULE ÉTAPE QUI LÈVE CE REFUS EST LA PREMIÈRE, et c'est
+            // pour ça qu'on y retourne. Une branche qui attend des bouches
+            // alors qu'AUCUNE n'est saisie est soit une réponse perdue, soit
+            // une réponse qu'on veut changer: dans les deux cas la question à
+            // reposer est « pour combien de personnes cuisinez-vous », pas
+            // « ajoutez les autres personnes ». On ne peut pas répondre à la
+            // première depuis l'écran de la seconde.
+            //
+            // ⚠️ ET SEULEMENT DANS CE CAS: dès qu'une bouche est saisie, la
+            // reprise reste celle de `nextIncomplete` — un foyer à moitié
+            // rempli se termine, il ne recommence pas.
+            const stuckBeforeAnyMouth = branch !== null && branch !== "solo" &&
+              read.mouths.length === 0;
             setStepIndex(
-              step ? Math.max(0, steps.findIndex((s) => s.id === step.id)) : Math.max(0, steps.length - 1),
+              stuckBeforeAnyMouth
+                ? 0
+                : step
+                ? Math.max(0, steps.findIndex((s) => s.id === step.id))
+                : Math.max(0, steps.length - 1),
             );
           }
         }
@@ -1920,10 +1982,21 @@ export default function SetupPage() {
         // enfin rejoindre `practical_constraints`, dans l'ordre imposé par le
         // schéma. Le second terme récupère aussi les comptes restés entre les
         // deux étapes après l'ancienne version défectueuse.
-        const sizeToPersist = pendingHouseholdSize ??
-          (declaredHouseholdSize(facts!.practicalConstraints) === null
-            ? facts!.state.mouths
-            : null);
+        // ⛔ ON N'ÉCRIT QUE CE QUI A ÉTÉ RÉPONDU — ⟳ 2026-09-11.
+        //
+        // Le second terme lisait `facts.state.mouths`, qui n'est PAS une
+        // réponse: sur un foyer d'une bouche sans taille déclarée, c'est le
+        // repli `max(2, membres)` de `funnelMouths`, donc 2. Il gravait donc
+        // « à deux » au nom de quelqu'un qui avait cliqué « juste moi » et dont
+        // la réponse s'était perdue à un rechargement — et une fois gravée,
+        // elle ne se devinait plus: elle se lisait. Le compte restait bloqué
+        // sur « ajoutez les autres personnes qui mangent ici », et recliquer
+        // « juste moi » lui proposait de dissoudre son foyer.
+        //
+        // Sans réponse en mémoire, on n'écrit rien: la reprise ci-dessus
+        // ramène à l'étape 1, qui est le seul endroit où cette question se
+        // pose. Un clic de plus vaut mieux qu'un fait faux indémentable.
+        const sizeToPersist = pendingHouseholdSize;
         if (sizeToPersist !== null) {
           await declareHouseholdSize(sizeToPersist);
           setPendingHouseholdSize(null);
@@ -3893,11 +3966,8 @@ export default function SetupPage() {
           }}
           edit={draft?.envelope.edit ?? null}
           onAdopt={async () => {
-            // ⚠️ CECI RECOMPOSE, ET C'EST DIT DANS LA FENÊTRE AVANT LE CLIC.
-            // Aucun chemin ne permet d'écrire l'aperçu tel quel:
-            // `write_student_meal_plan` est révoquée à `authenticated`, et
-            // aucune fonction edge n'accepte un plan déjà composé. Voir
-            // `writeFromDraft`.
+            // Le serveur relit et revalide ce brouillon par son identifiant,
+            // puis l'écrit et le marque adopté dans une transaction unique.
             //
             // `prepare_next` et `replaces: null`: un compte qui sort de
             // l'entonnoir n'a aucun plan vivant, donc rien à remplacer — et
@@ -3907,8 +3977,11 @@ export default function SetupPage() {
             // et la relire ici l'appliquerait une seconde fois.
             let written: { ok: boolean; mealId: string | null };
             try {
+              const reviewedDraftId = draft?.envelope.draftId ?? null;
+              if (reviewedDraftId === null) throw new Error("draft_not_ready");
               written = await writeFromDraft(
                 draftInput(),
+                reviewedDraftId,
                 "prepare_next",
                 null,
               );

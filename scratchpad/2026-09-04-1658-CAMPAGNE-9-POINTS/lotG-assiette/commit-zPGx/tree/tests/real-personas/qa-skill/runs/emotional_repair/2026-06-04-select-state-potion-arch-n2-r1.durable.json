@@ -1,0 +1,239 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "39e6e16b-e191-40df-b978-54b82aa148b5",
+        "role": "user",
+        "content": "Je crois que j'ai besoin d'une potion, mais je ne sais pas laquelle. Je suis tendu et découragé, j'hésite entre me calmer et retrouver assez d'élan pour ne pas lâcher mon rythme.",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n2-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n2-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-04T14:21:00.076797+00:00"
+      },
+      {
+        "id": "567b6057-e41c-4cf0-aeb1-4dda6fa460cb",
+        "role": "assistant",
+        "content": "Laquelle de ces deux potions te parle le plus : la Potion anti-décrochage ou la Potion d'apaisement ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n2-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n2-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_clarifying",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_clarifying",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-04T14:21:15.999667+00:00"
+      },
+      {
+        "id": "b9e1fb35-d3a9-43a2-9cdb-bb40b631708c",
+        "role": "user",
+        "content": "Là c'est surtout la pression qui me serre. Je veux redescendre avant de penser à repartir.",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n2-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n2-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-04T14:21:30.9467+00:00"
+      },
+      {
+        "id": "a88fa177-4131-4125-b80b-d20db84cd2c2",
+        "role": "assistant",
+        "content": "Tu te sens plutôt comment ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n2-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n2-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_clarifying",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_clarifying",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-04T14:21:45.570206+00:00"
+      },
+      {
+        "id": "5dfdde26-c173-412e-9043-0c8a168aa1bf",
+        "role": "user",
+        "content": "Je suis à cran, comme si tout mon corps restait en alerte.",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n2-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n2-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-04T14:22:00.321603+00:00"
+      },
+      {
+        "id": "0bf00ea2-8f6d-4e26-82fb-1b1aef80745c",
+        "role": "assistant",
+        "content": "Ce que je comprends : la pression ; a_cran\n\nJe te conseille de choisir Potion d'apaisement. Le shift recommandé est de redescendre la pression avant de reprendre.\n\nPourquoi cette potion : Tu te sens à cran, comme si tout ton corps restait en alerte, et c'est surtout la pression qui te serre.\nPetit pas immédiat : Je comprends que tu te sentes à cran et sous pression. Prends une grande inspiration, même petite. Je suis là pour t'aider à retrouver un peu d'espace.\n\nÀ mettre dans la plateforme :\nPotion : Potion d'apaisement\n- Qu'est-ce qui te met le plus sous pression la ? la pression\n- Tu te sens plutot comment ? A cran\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n2-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n2-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion d'apaisement",
+                    "immediate_step": "Je comprends que tu te sentes à cran et sous pression. Prends une grande inspiration, même petite. Je suis là pour t'aider à retrouver un peu d'espace.",
+                    "platform_steps": [
+                      "ouvre la section État / Potions",
+                      "choisis la potion recommandée",
+                      "active-la depuis la plateforme si elle te convient"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "la pression",
+                          "question_id": "pressure_source",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Qu'est-ce qui te met le plus sous pression la ?"
+                        },
+                        {
+                          "value": "A cran",
+                          "question_id": "pressure_state",
+                          "option_label": "A cran",
+                          "option_value": "a_cran",
+                          "question_label": "Tu te sens plutot comment ?"
+                        }
+                      ],
+                      "potion_type": "apaisement",
+                      "potion_title": "Potion d'apaisement",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Tu te sens à cran, comme si tout ton corps restait en alerte, et c'est surtout la pression qui te serre.",
+                    "platform_destination": "dans la section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "la pression ; a_cran",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "Le shift recommandé est de redescendre la pression avant de reprendre."
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_platform_handoff_delivered",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-04T14:22:23.420831+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

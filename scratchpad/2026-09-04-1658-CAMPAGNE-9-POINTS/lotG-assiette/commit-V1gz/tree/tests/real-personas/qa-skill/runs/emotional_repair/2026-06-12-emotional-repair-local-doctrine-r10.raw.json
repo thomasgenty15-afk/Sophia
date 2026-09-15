@@ -1,0 +1,1941 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t01",
+    "auth_method": "refresh_token",
+    "user": "Je viens de sortir d'une reunion avec mon associe et je me sens vraiment nul. Il a repris une de mes idees devant tout le monde comme si j'avais rien compris, et depuis j'ai une boule au ventre.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t01",
+      "user_id": "840bf020-b7dc-4e6b-9762-adf2c171851d",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C’est vraiment douloureux de ressentir cette boule au ventre après ce qui s'est passé. Ce sentiment d'être « nul » est une réaction très forte à l'attitude de ton associé, mais ce moment de tension ne définit pas qui tu es. Ce qu'il a fait appartient à son comportement, cela ne retire rien à ta propre valeur.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t01",
+            "source_message_id": "22ffa998-2e16-4af7-8f57-1e2dc0ff8308",
+            "user_id": "840bf020-b7dc-4e6b-9762-adf2c171851d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "emotional_repair",
+              "handoff_context_for_next_dispatcher": "User reports a professional setback (idea taken by associate) leading to strong self-judgment ('je me sens vraiment nul') and physical anxiety ('boule au ventre'). Priority is emotional regulation and repair before any action-oriented coaching.",
+              "user_words": [
+                "je me sens vraiment nul",
+                "boule au ventre",
+                "repris une de mes idees"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.emotional_repair",
+                "target_kind": "skill",
+                "target_flow": "emotional_repair",
+                "confidence_band": "high",
+                "evidence": [
+                  "je me sens vraiment nul",
+                  "boule au ventre"
+                ],
+                "recommended_next_focus": "Validate the emotion, address the self-attack, and provide immediate emotional support."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {
+                "emotional_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_expresses_shame_and_self_attack_after_professional_setback"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.estime_de_soi",
+                  "query_hint": "estime de soi et sentiment de nullité",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "travail.conflits",
+                  "query_hint": "conflits avec associé ou collègues",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "emotional_repair",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "skill_entry_signal",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "skill_run": {
+            "selected_skill_id": "emotional_repair",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "emotional_repair",
+              "status": "continue",
+              "response_intent": "de_shame",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "C’est vraiment douloureux de ressentir cette boule au ventre après ce qui s'est passé. Ce sentiment d'être « nul » est une réaction très forte à l'attitude de ton associé, mais ce moment de tension ne définit pas qui tu es. Ce qu'il a fait appartient à son comportement, cela ne retire rien à ta propre valeur.",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "answer_repair",
+                "visible_task": "de_shame",
+                "potion_bridge_status": "blocked",
+                "selected_potion": null,
+                "reason_code": "emotional_repair_local_continue",
+                "evidence": [
+                  "'je me sens vraiment nul'",
+                  "'boule au ventre'",
+                  "'repris une de mes idees'"
+                ]
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_chat_mutation",
+                  "no_potion",
+                  "no_tool",
+                  "no_plan",
+                  "no_protocol",
+                  "no_technique",
+                  "no_questions",
+                  "short_reply",
+                  "relationship_context",
+                  "do_not_persist_identity_attack"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "emotional_repair_local_state": {
+                  "skill_id": "emotional_repair",
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "repair_state": {
+                    "intent": "shame_or_guilt",
+                    "phase": "de_shame",
+                    "emotional_dominance": "high",
+                    "context_domain": "relationship",
+                    "summary": "Le message courant décrit une atteinte pro avec auto-devalorisation forte après une reunion: l'associe a repris une idee devant tout le monde, et le user se sent nul avec une tension physique ('boule au ventre').",
+                    "user_words": [
+                      "je me sens vraiment nul",
+                      "boule au ventre",
+                      "repris une de mes idees"
+                    ],
+                    "identity_freeze_risk": true,
+                    "emotion_stabilized_enough_for_tool": false
+                  },
+                  "last_visible_task": "de_shame",
+                  "last_potion_bridge_offer": null,
+                  "previous_repair_summary": "Le message courant décrit une atteinte pro avec auto-devalorisation forte après une reunion: l'associe a repris une idee devant tout le monde, et le user se sent nul avec une tension physique ('boule au ventre').",
+                  "turn_count": 1,
+                  "max_turns": 6,
+                  "created_at": "2026-06-11T22:31:55.297Z",
+                  "updated_at": "2026-06-11T22:31:55.297Z"
+                },
+                "emotional_repair_visible_task": {
+                  "kind": "de_shame",
+                  "conversation_context": {
+                    "state_summary": "Le message courant décrit une atteinte pro avec auto-devalorisation forte après une reunion: l'associe a repris une idee devant tout le monde, et le user se sent nul avec une tension physique ('boule au ventre').",
+                    "user_words": [
+                      "je me sens vraiment nul",
+                      "boule au ventre",
+                      "repris une de mes idees"
+                    ],
+                    "field_or_stage": "de_shame",
+                    "known_values": {
+                      "intent": "shame_or_guilt",
+                      "phase": "de_shame",
+                      "emotional_dominance": "high",
+                      "context_domain": "relationship",
+                      "identity_freeze_risk": true,
+                      "emotion_stabilized_enough_for_tool": false
+                    },
+                    "missing_or_weak_values": [
+                      "emotion_stabilized_enough_for_tool",
+                      "consent_possible_only_after_stabilization"
+                    ],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": "pressure_relief",
+                      "durable_need_summary": "Besoin de faire redescendre la pression et d'eviter que l'episode soit fusionne avec l'identite."
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null,
+                      "no_chat_mutation": true
+                    },
+                    "tone_constraints": [
+                      "soft",
+                      "no_potion",
+                      "no_tool",
+                      "no_plan",
+                      "no_protocol",
+                      "no_technique",
+                      "no_questions",
+                      "short_reply",
+                      "relationship_context",
+                      "do_not_persist_identity_attack"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne propose pas de potion dans ce message.",
+                      "Ne propose pas de protocole.",
+                      "Ne propose pas de technique ou exercice.",
+                      "Ne propose pas de potion."
+                    ],
+                    "context_summary": "Le message courant décrit une atteinte pro avec auto-devalorisation forte après une reunion: l'associe a repris une idee devant tout le monde, et le user se sent nul avec une tension physique ('boule au ventre').",
+                    "evidence_used": [
+                      "'je me sens vraiment nul'",
+                      "'boule au ventre'",
+                      "'repris une de mes idees'"
+                    ],
+                    "max_questions": 0
+                  }
+                },
+                "emotional_repair_potion_handoff": null,
+                "summary": "Le message courant décrit une atteinte pro avec auto-devalorisation forte après une reunion: l'associe a repris une idee devant tout le monde, et le user se sent nul avec une tension physique ('boule au ventre')."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t01",
+          "source_message_id": "22ffa998-2e16-4af7-8f57-1e2dc0ff8308",
+          "user_id": "840bf020-b7dc-4e6b-9762-adf2c171851d",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "emotional_repair",
+            "handoff_context_for_next_dispatcher": "User reports a professional setback (idea taken by associate) leading to strong self-judgment ('je me sens vraiment nul') and physical anxiety ('boule au ventre'). Priority is emotional regulation and repair before any action-oriented coaching.",
+            "user_words": [
+              "je me sens vraiment nul",
+              "boule au ventre",
+              "repris une de mes idees"
+            ],
+            "structured_context": {
+              "primary_signal_path": "skill_signals.entry.emotional_repair",
+              "target_kind": "skill",
+              "target_flow": "emotional_repair",
+              "confidence_band": "high",
+              "evidence": [
+                "je me sens vraiment nul",
+                "boule au ventre"
+              ],
+              "recommended_next_focus": "Validate the emotion, address the self-attack, and provide immediate emotional support."
+            },
+            "confidence": "high"
+          },
+          "skill_signals": {
+            "entry": {
+              "emotional_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_expresses_shame_and_self_attack_after_professional_setback"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.estime_de_soi",
+                "query_hint": "estime de soi et sentiment de nullité",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "travail.conflits",
+                "query_hint": "conflits avec associé ou collègues",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "skill_entry_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "emotional_repair",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 0,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "skill_entry_signal",
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          }
+        },
+        "skill_run": {
+          "selected_skill_id": "emotional_repair",
+          "reason_code": "skill_entry_signal",
+          "output": {
+            "skill_id": "emotional_repair",
+            "status": "continue",
+            "response_intent": "de_shame",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "C’est vraiment douloureux de ressentir cette boule au ventre après ce qui s'est passé. Ce sentiment d'être « nul » est une réaction très forte à l'attitude de ton associé, mais ce moment de tension ne définit pas qui tu es. Ce qu'il a fait appartient à son comportement, cela ne retire rien à ta propre valeur.",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "answer_repair",
+              "visible_task": "de_shame",
+              "potion_bridge_status": "blocked",
+              "selected_potion": null,
+              "reason_code": "emotional_repair_local_continue",
+              "evidence": [
+                "'je me sens vraiment nul'",
+                "'boule au ventre'",
+                "'repris une de mes idees'"
+              ]
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_chat_mutation",
+                "no_potion",
+                "no_tool",
+                "no_plan",
+                "no_protocol",
+                "no_technique",
+                "no_questions",
+                "short_reply",
+                "relationship_context",
+                "do_not_persist_identity_attack"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "emotional_repair_local_state": {
+                "skill_id": "emotional_repair",
+                "mode": "local_repair_flow",
+                "status": "active",
+                "repair_state": {
+                  "intent": "shame_or_guilt",
+                  "phase": "de_shame",
+                  "emotional_dominance": "high",
+                  "context_domain": "relationship",
+                  "summary": "Le message courant décrit une atteinte pro avec auto-devalorisation forte après une reunion: l'associe a repris une idee devant tout le monde, et le user se sent nul avec une tension physique ('boule au ventre').",
+                  "user_words": [
+                    "je me sens vraiment nul",
+                    "boule au ventre",
+                    "repris une de mes idees"
+                  ],
+                  "identity_freeze_risk": true,
+                  "emotion_stabilized_enough_for_tool": false
+                },
+                "last_visible_task": "de_shame",
+                "last_potion_bridge_offer": null,
+                "previous_repair_summary": "Le message courant décrit une atteinte pro avec auto-devalorisation forte après une reunion: l'associe a repris une idee devant tout le monde, et le user se sent nul avec une tension physique ('boule au ventre').",
+                "turn_count": 1,
+                "max_turns": 6,
+                "created_at": "2026-06-11T22:31:55.297Z",
+                "updated_at": "2026-06-11T22:31:55.297Z"
+              },
+              "emotional_repair_visible_task": {
+                "kind": "de_shame",
+                "conversation_context": {
+                  "state_summary": "Le message courant décrit une atteinte pro avec auto-devalorisation forte après une reunion: l'associe a repris une idee devant tout le monde, et le user se sent nul avec une tension physique ('boule au ventre').",
+                  "user_words": [
+                    "je me sens vraiment nul",
+                    "boule au ventre",
+                    "repris une de mes idees"
+                  ],
+                  "field_or_stage": "de_shame",
+                  "known_values": {
+                    "intent": "shame_or_guilt",
+                    "phase": "de_shame",
+                    "emotional_dominance": "high",
+                    "context_domain": "relationship",
+                    "identity_freeze_risk": true,
+                    "emotion_stabilized_enough_for_tool": false
+                  },
+                  "missing_or_weak_values": [
+                    "emotion_stabilized_enough_for_tool",
+                    "consent_possible_only_after_stabilization"
+                  ],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": "pressure_relief",
+                    "durable_need_summary": "Besoin de faire redescendre la pression et d'eviter que l'episode soit fusionne avec l'identite."
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null,
+                    "no_chat_mutation": true
+                  },
+                  "tone_constraints": [
+                    "soft",
+                    "no_potion",
+                    "no_tool",
+                    "no_plan",
+                    "no_protocol",
+                    "no_technique",
+                    "no_questions",
+                    "short_reply",
+                    "relationship_context",
+                    "do_not_persist_identity_attack"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne propose pas de potion dans ce message.",
+                    "Ne propose pas de protocole.",
+                    "Ne propose pas de technique ou exercice.",
+                    "Ne propose pas de potion."
+                  ],
+                  "context_summary": "Le message courant décrit une atteinte pro avec auto-devalorisation forte après une reunion: l'associe a repris une idee devant tout le monde, et le user se sent nul avec une tension physique ('boule au ventre').",
+                  "evidence_used": [
+                    "'je me sens vraiment nul'",
+                    "'boule au ventre'",
+                    "'repris une de mes idees'"
+                  ],
+                  "max_questions": 0
+                }
+              },
+              "emotional_repair_potion_handoff": null,
+              "summary": "Le message courant décrit une atteinte pro avec auto-devalorisation forte après une reunion: l'associe a repris une idee devant tout le monde, et le user se sent nul avec une tension physique ('boule au ventre')."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t01",
+    "auth_method": "refresh_token",
+    "user": "J’ai reçu un retour froid ce matin et je me parle comme si j’étais vraiment nulle. Je sens la honte monter, je veux juste arrêter de me taper dessus.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t01",
+      "user_id": "840bf020-b7dc-4e6b-9762-adf2c171851d",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est vraiment douloureux de recevoir un retour froid, et je comprends que la honte s'installe si vite. Mais ce qui s'est passé ce matin est un événement extérieur, une interaction difficile, et non un verdict sur ta valeur. Ce sentiment d'être « nulle » est une réaction de ton esprit face au choc, mais cela ne définit absolument pas qui tu es. Tu as le droit de dissocier ce moment pénible de ton identité.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t01",
+            "source_message_id": "436fb237-33cd-4fe0-81a5-430d95c6cea3",
+            "user_id": "840bf020-b7dc-4e6b-9762-adf2c171851d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [
+                "self_criticism"
+              ],
+              "evidence": [
+                "je me parle comme si j’étais vraiment nulle",
+                "arrêter de me taper dessus"
+              ]
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "emotional_repair",
+              "handoff_context_for_next_dispatcher": "User is experiencing shame and self-attack following a cold feedback. Focus on emotional regulation and stopping the self-criticism loop.",
+              "user_words": [
+                "je me parle comme si j’étais vraiment nulle",
+                "honte",
+                "arrêter de me taper dessus"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.emotional_repair",
+                "target_kind": "skill",
+                "target_flow": "emotional_repair",
+                "confidence_band": "high",
+                "evidence": [
+                  "honte",
+                  "se taper dessus",
+                  "vraiment nulle"
+                ],
+                "recommended_next_focus": "Acknowledge the shame and provide immediate emotional support to break the self-attack cycle."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {
+                "emotional_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_reports_shame_and_self_attack"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "event",
+                  "key": "retour_froid_matin",
+                  "query_hint": "retour froid ce matin",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": null,
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.estime_de_soi",
+                  "query_hint": "estime de soi et honte",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": null,
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "gestion de la honte",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": null,
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "emotional_repair",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "skill_entry_signal",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "skill_run": {
+            "selected_skill_id": "emotional_repair",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "emotional_repair",
+              "status": "continue",
+              "response_intent": "de_shame",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "C'est vraiment douloureux de recevoir un retour froid, et je comprends que la honte s'installe si vite. Mais ce qui s'est passé ce matin est un événement extérieur, une interaction difficile, et non un verdict sur ta valeur. Ce sentiment d'être « nulle » est une réaction de ton esprit face au choc, mais cela ne définit absolument pas qui tu es. Tu as le droit de dissocier ce moment pénible de ton identité.",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "regulation_without_potion",
+                "visible_task": "de_shame",
+                "potion_bridge_status": "blocked",
+                "selected_potion": null,
+                "reason_code": "emotional_repair_local_continue",
+                "evidence": [
+                  "honte",
+                  "vraiment nulle",
+                  "arrêter de me taper dessus"
+                ]
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_chat_mutation",
+                  "no_potion",
+                  "no_tool",
+                  "no_plan",
+                  "no_protocol",
+                  "no_technique",
+                  "no_questions",
+                  "soft_support_only",
+                  "short_reply",
+                  "relationship_context",
+                  "do_not_persist_identity_attack"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "emotional_repair_local_state": {
+                  "skill_id": "emotional_repair",
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "repair_state": {
+                    "intent": "shame_or_guilt",
+                    "phase": "de_shame",
+                    "emotional_dominance": "high",
+                    "context_domain": "work",
+                    "summary": "Retour froid ce matin, la honte monte, auto-attaque active, besoin d'arrêter de se dénigrer.",
+                    "user_words": [
+                      "retour froid ce matin",
+                      "vraiment nulle",
+                      "honte",
+                      "arrêter de me taper dessus"
+                    ],
+                    "identity_freeze_risk": true,
+                    "emotion_stabilized_enough_for_tool": false
+                  },
+                  "last_visible_task": "de_shame",
+                  "last_potion_bridge_offer": null,
+                  "previous_repair_summary": "Retour froid ce matin, la honte monte, auto-attaque active, besoin d'arrêter de se dénigrer.",
+                  "turn_count": 1,
+                  "max_turns": 6,
+                  "created_at": "2026-06-11T22:32:00.467Z",
+                  "updated_at": "2026-06-11T22:32:00.467Z"
+                },
+                "emotional_repair_visible_task": {
+                  "kind": "de_shame",
+                  "conversation_context": {
+                    "state_summary": "Retour froid ce matin, la honte monte, auto-attaque active, besoin d'arrêter de se dénigrer.",
+                    "user_words": [
+                      "retour froid ce matin",
+                      "vraiment nulle",
+                      "honte",
+                      "arrêter de me taper dessus"
+                    ],
+                    "field_or_stage": "de_shame",
+                    "known_values": {
+                      "intent": "shame_or_guilt",
+                      "phase": "de_shame",
+                      "emotional_dominance": "high",
+                      "context_domain": "work",
+                      "identity_freeze_risk": true,
+                      "emotion_stabilized_enough_for_tool": false
+                    },
+                    "missing_or_weak_values": [
+                      "stabilisation émotionnelle suffisante"
+                    ],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": "self_kindness",
+                      "durable_need_summary": "auto-attaque et honte à apaiser avant tout bridge"
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null,
+                      "no_chat_mutation": true
+                    },
+                    "tone_constraints": [
+                      "soft",
+                      "no_potion",
+                      "no_tool",
+                      "no_plan",
+                      "no_protocol",
+                      "no_technique",
+                      "no_questions",
+                      "soft_support_only",
+                      "short_reply",
+                      "relationship_context",
+                      "do_not_persist_identity_attack"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne propose pas de potion dans ce message.",
+                      "Ne propose pas de protocole.",
+                      "Ne propose pas de technique ou exercice.",
+                      "Ne propose pas de potion."
+                    ],
+                    "context_summary": "Retour froid ce matin, la honte monte, auto-attaque active, besoin d'arrêter de se dénigrer.",
+                    "evidence_used": [
+                      "honte",
+                      "vraiment nulle",
+                      "arrêter de me taper dessus"
+                    ],
+                    "max_questions": 0
+                  }
+                },
+                "emotional_repair_potion_handoff": null,
+                "summary": "Retour froid ce matin, la honte monte, auto-attaque active, besoin d'arrêter de se dénigrer."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t01",
+          "source_message_id": "436fb237-33cd-4fe0-81a5-430d95c6cea3",
+          "user_id": "840bf020-b7dc-4e6b-9762-adf2c171851d",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [
+              "self_criticism"
+            ],
+            "evidence": [
+              "je me parle comme si j’étais vraiment nulle",
+              "arrêter de me taper dessus"
+            ]
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "emotional_repair",
+            "handoff_context_for_next_dispatcher": "User is experiencing shame and self-attack following a cold feedback. Focus on emotional regulation and stopping the self-criticism loop.",
+            "user_words": [
+              "je me parle comme si j’étais vraiment nulle",
+              "honte",
+              "arrêter de me taper dessus"
+            ],
+            "structured_context": {
+              "primary_signal_path": "skill_signals.entry.emotional_repair",
+              "target_kind": "skill",
+              "target_flow": "emotional_repair",
+              "confidence_band": "high",
+              "evidence": [
+                "honte",
+                "se taper dessus",
+                "vraiment nulle"
+              ],
+              "recommended_next_focus": "Acknowledge the shame and provide immediate emotional support to break the self-attack cycle."
+            },
+            "confidence": "high"
+          },
+          "skill_signals": {
+            "entry": {
+              "emotional_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_reports_shame_and_self_attack"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "event",
+                "key": "retour_froid_matin",
+                "query_hint": "retour froid ce matin",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": null,
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "psychologie.estime_de_soi",
+                "query_hint": "estime de soi et honte",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": null,
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "psychologie.emotions",
+                "query_hint": "gestion de la honte",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": null,
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "skill_entry_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "emotional_repair",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 0,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "skill_entry_signal",
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          }
+        },
+        "skill_run": {
+          "selected_skill_id": "emotional_repair",
+          "reason_code": "skill_entry_signal",
+          "output": {
+            "skill_id": "emotional_repair",
+            "status": "continue",
+            "response_intent": "de_shame",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "C'est vraiment douloureux de recevoir un retour froid, et je comprends que la honte s'installe si vite. Mais ce qui s'est passé ce matin est un événement extérieur, une interaction difficile, et non un verdict sur ta valeur. Ce sentiment d'être « nulle » est une réaction de ton esprit face au choc, mais cela ne définit absolument pas qui tu es. Tu as le droit de dissocier ce moment pénible de ton identité.",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "regulation_without_potion",
+              "visible_task": "de_shame",
+              "potion_bridge_status": "blocked",
+              "selected_potion": null,
+              "reason_code": "emotional_repair_local_continue",
+              "evidence": [
+                "honte",
+                "vraiment nulle",
+                "arrêter de me taper dessus"
+              ]
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_chat_mutation",
+                "no_potion",
+                "no_tool",
+                "no_plan",
+                "no_protocol",
+                "no_technique",
+                "no_questions",
+                "soft_support_only",
+                "short_reply",
+                "relationship_context",
+                "do_not_persist_identity_attack"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "emotional_repair_local_state": {
+                "skill_id": "emotional_repair",
+                "mode": "local_repair_flow",
+                "status": "active",
+                "repair_state": {
+                  "intent": "shame_or_guilt",
+                  "phase": "de_shame",
+                  "emotional_dominance": "high",
+                  "context_domain": "work",
+                  "summary": "Retour froid ce matin, la honte monte, auto-attaque active, besoin d'arrêter de se dénigrer.",
+                  "user_words": [
+                    "retour froid ce matin",
+                    "vraiment nulle",
+                    "honte",
+                    "arrêter de me taper dessus"
+                  ],
+                  "identity_freeze_risk": true,
+                  "emotion_stabilized_enough_for_tool": false
+                },
+                "last_visible_task": "de_shame",
+                "last_potion_bridge_offer": null,
+                "previous_repair_summary": "Retour froid ce matin, la honte monte, auto-attaque active, besoin d'arrêter de se dénigrer.",
+                "turn_count": 1,
+                "max_turns": 6,
+                "created_at": "2026-06-11T22:32:00.467Z",
+                "updated_at": "2026-06-11T22:32:00.467Z"
+              },
+              "emotional_repair_visible_task": {
+                "kind": "de_shame",
+                "conversation_context": {
+                  "state_summary": "Retour froid ce matin, la honte monte, auto-attaque active, besoin d'arrêter de se dénigrer.",
+                  "user_words": [
+                    "retour froid ce matin",
+                    "vraiment nulle",
+                    "honte",
+                    "arrêter de me taper dessus"
+                  ],
+                  "field_or_stage": "de_shame",
+                  "known_values": {
+                    "intent": "shame_or_guilt",
+                    "phase": "de_shame",
+                    "emotional_dominance": "high",
+                    "context_domain": "work",
+                    "identity_freeze_risk": true,
+                    "emotion_stabilized_enough_for_tool": false
+                  },
+                  "missing_or_weak_values": [
+                    "stabilisation émotionnelle suffisante"
+                  ],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": "self_kindness",
+                    "durable_need_summary": "auto-attaque et honte à apaiser avant tout bridge"
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null,
+                    "no_chat_mutation": true
+                  },
+                  "tone_constraints": [
+                    "soft",
+                    "no_potion",
+                    "no_tool",
+                    "no_plan",
+                    "no_protocol",
+                    "no_technique",
+                    "no_questions",
+                    "soft_support_only",
+                    "short_reply",
+                    "relationship_context",
+                    "do_not_persist_identity_attack"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne propose pas de potion dans ce message.",
+                    "Ne propose pas de protocole.",
+                    "Ne propose pas de technique ou exercice.",
+                    "Ne propose pas de potion."
+                  ],
+                  "context_summary": "Retour froid ce matin, la honte monte, auto-attaque active, besoin d'arrêter de se dénigrer.",
+                  "evidence_used": [
+                    "honte",
+                    "vraiment nulle",
+                    "arrêter de me taper dessus"
+                  ],
+                  "max_questions": 0
+                }
+              },
+              "emotional_repair_potion_handoff": null,
+              "summary": "Retour froid ce matin, la honte monte, auto-attaque active, besoin d'arrêter de se dénigrer."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t02",
+    "auth_method": "refresh_token",
+    "user": "Oui, c’est exactement ça : je prends ce retour comme une preuve que je suis le problème. J’ai pas envie qu’on me propose une solution tout de suite, j’ai juste besoin que ça redescende un peu.",
+    "status": 500,
+    "body": {
+      "error": "chat_messages_insert_failed role=assistant scope=qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10 error=insert or update on table \"chat_messages\" violates foreign key constraint \"chat_messages_user_id_fkey\"",
+      "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r10-t02",
+      "qa_diagnostic": {
+        "source": "test-send-message",
+        "category": "router_or_app",
+        "reason": "unknown",
+        "provider": "unknown",
+        "retryable": false,
+        "note": "Unhandled application/router failure while running QA endpoint."
+      }
+    }
+  }
+]

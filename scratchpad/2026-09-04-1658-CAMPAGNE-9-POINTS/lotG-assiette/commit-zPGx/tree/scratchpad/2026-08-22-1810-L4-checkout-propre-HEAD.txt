@@ -1,0 +1,16 @@
+  14 keel/food_group_write_test.ts
+   8 keel/quantity_from_prose_test.ts
+   8 keel/household_safety_test.ts
+   6 keel/activity_population.ts
+   5 keel/mouth_anchor.ts
+   5 keel/meal_envelope.ts
+   5 keel/composition_fill_test.ts
+   5 keel/composition_fill.ts
+   4 keel/activity_population_test.ts
+   2 keel/composition_fill_rescue_group_test.ts
+   1 keel/tokens.ts
+   1 keel/mouth_delivery_cause_test.ts
+   1 keel/food_items_test.ts
+   1 keel/declared_food_group_test.ts
+   1 keel/condition_energy_gate_test.ts
+--- 60 erreurs de type sur un checkout propre de HEAD (git archive HEAD | tar -x), mesure du 2026-08-22 18:10 CEST ---

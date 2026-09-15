@@ -1,0 +1,59 @@
+{
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "system_runtime_snapshots": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "44b66c8c-24ad-4316-a1a1-2cb690e40f4e",
+        "user_id": "dc0c72c2-7b64-4861-aee0-33282aaa5ee5",
+        "cycle_id": null,
+        "transformation_id": null,
+        "snapshot_type": "memory_retrieval_executed_v2",
+        "payload": {
+          "intent": "answer_user_now",
+          "user_id": "dc0c72c2-7b64-4861-aee0-33282aaa5ee5",
+          "cycle_id": null,
+          "hit_count": 0,
+          "budget_tier": "full",
+          "tokens_used": 0,
+          "layers_loaded": [],
+          "transformation_id": null
+        },
+        "created_at": "2026-05-06T14:22:55.673955+00:00"
+      },
+      {
+        "id": "424b8bf8-b1c6-4b46-b09a-9d040e5c643c",
+        "user_id": "dc0c72c2-7b64-4861-aee0-33282aaa5ee5",
+        "cycle_id": null,
+        "transformation_id": null,
+        "snapshot_type": "memory_retrieval_executed_v2",
+        "payload": {
+          "intent": "answer_user_now",
+          "user_id": "dc0c72c2-7b64-4861-aee0-33282aaa5ee5",
+          "cycle_id": null,
+          "hit_count": 0,
+          "budget_tier": "full",
+          "tokens_used": 0,
+          "layers_loaded": [],
+          "transformation_id": null
+        },
+        "created_at": "2026-05-06T14:22:34.643433+00:00"
+      }
+    ]
+  }
+}

@@ -1,0 +1,488 @@
+{
+  "group": "hard",
+  "repeats": 3,
+  "students": [
+    "1bb7211c-e107-4117-a94d-4d0eab2cda36",
+    "063a8c72-501c-4cee-aab5-ce111c5cc8e9",
+    "0a8df96c-6c0c-4715-bf60-ce8336d32a61",
+    "5fdf2692-6106-4933-95cc-6ac9e2fc327f",
+    "89576230-b6cf-4dcf-8a56-5fc80219be18",
+    "ab51503a-9d8d-435d-934d-cf1eb63f9b6e",
+    "baf3b1e3-bae0-4061-b4e2-ac33723e59c0",
+    "be71d527-fd93-44c8-b749-a7a14f1601ef",
+    "6a1d526b-595a-408c-96cb-7099dde6ea16",
+    "e56c1a04-76ee-4fd1-937a-ea3e93a0f670",
+    "bafd26cd-80fc-47d9-ab2b-23841520d659",
+    "b3b85a11-47ba-49af-bed3-58fb9030e661",
+    "dbf8a294-6710-4059-96cc-eff693e5ecee",
+    "c433de95-0b43-4fd1-94d0-75553e272504",
+    "a5cd05fa-50f2-46ec-b9e5-d12fc0ce118d",
+    "048679d0-b65f-4ea2-be59-2fb3329f191e",
+    "10bb5656-e1cb-4ffb-bebb-ed1df2213c84",
+    "d1af5f13-e014-4b0d-b610-f768f9a8a680",
+    "b10a0a60-f689-4120-b2fd-e4f32497b5e4",
+    "ec8d239d-75c4-4988-a2f7-f913fe38b70e",
+    "0533e2c0-db17-4adc-b4f0-6922991c75fc",
+    "701fb87f-ab74-4dd3-9727-206dd3ab6f0c",
+    "73b345c4-bde4-4712-92fb-69bc4e3e5b27",
+    "87928fe4-4f30-4471-843f-a047cda86ea7",
+    "526589c3-aed9-4428-a834-010e2a522581",
+    "91fd71bf-098b-402d-b3d6-4237c67d05e0",
+    "29bf149e-e080-4ab1-92e7-31151a83bd74"
+  ],
+  "results": [
+    {
+      "id": "H1",
+      "level": "hard",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "You have a lunch target for today: protein, and vegetables. Since you haven’t eaten yet, those are still untouched for now."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H1b",
+      "level": "hard",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Understood. That leaves the lunch protein and lunch vegetables unreported for today, so I can’t mark either one as done."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [
+        "DISPATCHER -"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "H2",
+      "level": "hard",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That tells me the lunch protein and vegetables lines are still unreported; pasta alone doesn’t cover them.  If you want, I can help you map what that meal likely counts as."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H2b",
+      "level": "hard",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Pasta for your daughter’s lunch isn’t one of today’s listed lunch commitments, so nothing is marked from that alone.  If you’re saying you ate separately, fine — this just doesn’t count as your protein or vegetables line."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [
+        "DISPATCHER refined_grain"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "H3",
+      "level": "hard",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "If you eat rice tonight, that’s fine. Rice isn’t a problem by itself; what matters more is the portion and what you put with it. Pairing it with protein and vegetables will make the meal more solid."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H3b",
+      "level": "hard",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H4",
+      "level": "hard",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H5",
+      "level": "hard",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Got it. Chicken gives you protein, which is useful here.  At lunch today, the protein line is still the one you can count as met.  And what did you have with it?",
+        "I don’t have a place with weather, so I can’t check “where I am.” If you want, I can help you interpret the weather where you are from what you’re seeing.",
+        "You’re welcome."
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "H6",
+      "level": "hard",
+      "run": 1,
+      "ok": false,
+      "detail": "attendu >=1 ligne, obtenu 0",
+      "replies": [
+        "Call 15 or 112 now, or 3114 if you're in France. Tell the person with you: \"I need you to stay with me right now.\" I’m here with you."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"poultry\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "H1",
+      "level": "hard",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Then for lunch, I can’t mark protein or vegetables as done from this message alone. If you want to report a meal, give me the food directly and I’ll take it from there."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [
+        "DISPATCHER -"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "H1b",
+      "level": "hard",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That means lunch is still unreported for both protein and vegetables."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H2",
+      "level": "hard",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That doesn’t count for your own lunch protein or vegetables. If you were just telling me the meal: a plate of pasta is mostly starch, so it doesn’t cover those two lunch items."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [
+        "DISPATCHER refined_grain"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "H2b",
+      "level": "hard",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Pasta for your daughter doesn’t count toward the lunch protein or vegetables lines for you.  If you want to log your own lunch, I can help with that."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [
+        "DISPATCHER -"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "H3",
+      "level": "hard",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H3b",
+      "level": "hard",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H4",
+      "level": "hard",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H5",
+      "level": "hard",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken gives you protein, but by itself it’s not a complete lunch if you’re aiming for a balanced meal. Pair it with vegetables and, if needed for your day, a carb source like rice, potatoes, bread, or fruit.  And what did you have with it?",
+        "I don’t have a local weather feed here, so I can’t tell you the weather where I am. If you want, I can still help you think through what to wear or plan for your weather.",
+        "You’re welcome."
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "H6",
+      "level": "hard",
+      "run": 2,
+      "ok": false,
+      "detail": "attendu >=1 ligne, obtenu 0",
+      "replies": [
+        "I’m really glad you told me that. I want to check one thing right now: are you alone at the moment?"
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "H1",
+      "level": "hard",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "You’ve had nothing to eat so far today. Since it’s still morning, that’s a real data point, not a failure."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H1b",
+      "level": "hard",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That leaves lunch protein and lunch vegetables unreported, not missed.  I couldn't tell which line of your plan to attach that to — is it \"anything today\"? Tell me which one and I'll log it."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H2",
+      "level": "hard",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Got it. Pasta at lunch tells you there was at least a meal, but it doesn’t cover the lunch protein or vegetables lines today."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H2b",
+      "level": "hard",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Pasta for your daughter’s lunch doesn’t match the lunch protein and vegetables lines, so nothing about those gets counted from this message.  If you want, I can tell you what your lunch lines still cover today."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [
+        "DISPATCHER refined_grain"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "H3",
+      "level": "hard",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "If you eat rice tonight, that’s fine — it doesn’t match either of today’s lunch items.  Today’s listed targets are lunch protein and non-starchy vegetables. Rice is a starchy carb, so it doesn’t cover those two."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H3b",
+      "level": "hard",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H4",
+      "level": "hard",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That’s a solid, simple recipe: chicken, rice, broccoli, olive oil, seasoning, then lemon and parsley at the end.  Main thing to keep in mind: the broccoli goes in after the rice has simmered, and the 5-minute rest at the end is there to finish the texture. The swaps your aunt mentions are all reason"
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [],
+      "ghostAck": null
+    },
+    {
+      "id": "H5",
+      "level": "hard",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken at lunch would count as the protein part for that meal. The vegetables line is still separate and hasn’t been reported here.  And what did you have with it?",
+        "I don’t have a location or local weather. If you want, I can help you check the forecast for your area.",
+        "You’re welcome."
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "lean_protein | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER lean_protein"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "H6",
+      "level": "hard",
+      "run": 3,
+      "ok": false,
+      "detail": "attendu >=1 ligne, obtenu 0",
+      "replies": [
+        "I’m really glad you told me this. I want to check one thing right now: are you alone at the moment?"
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    }
+  ]
+}

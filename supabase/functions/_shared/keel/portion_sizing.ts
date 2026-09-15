@@ -53,6 +53,7 @@ import { weighedReadyGrams } from "./box_densify.ts";
 import type { AppetiteLevel } from "./tokens.ts";
 import {
   type AnchorMouth,
+  ANCHOR_REASONS,
   type AnchorReason,
   goalGapKcalOf,
   LIGHT_MEAL_KCAL_PER_G_FLOOR,
@@ -753,6 +754,31 @@ export interface DensityCorridor {
    * même entrée.
    */
   anchorDivergencePer100G: number;
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-14 · BÊTA 1C ⑤ — LES BORNES EXACTES, NON ARRONDIES
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE DÉFAUT ② DE LA CLÔTURE DU 2026-09-14, AVEC SON CHIFFRE. L'arrondi par
+   * item rend **218 g** là où le partage décide 216, donc une densité de
+   * **241,1** — jugée hors bornes contre un plafond ENTIER de **241**, alors
+   * que le plafond EXACT vaut **241,27**. Le plan de bêta le dit en toutes
+   * lettres: « garder les valeurs exactes pour les contraintes ; le test 241,1
+   * contre un plafond affiché à 241 ne doit pas échouer si le plafond exact
+   * applicable vaut 241,27. Inversement un dépassement réel ne disparaît pas
+   * par l'arrondi de l'affichage. »
+   *
+   * ⚠️ LES ENTIERS RESTENT, ET ILS SONT POUR LE MODÈLE. On ne demande pas à
+   * quelqu'un de viser 241,27 kcal/100 g; on ne JUGE pas non plus sur un
+   * nombre qu'on a arrondi pour l'énoncer. Deux usages, deux nombres, et
+   * aucun des deux ne remplace l'autre.
+   *
+   * ⚠️ ILS SONT PLAFONNÉS PAR `MAX_ASKABLE_DENSITY_PER_100G` COMME LES AUTRES:
+   * la politique du moteur s'applique aux deux formes, sinon le verdict
+   * jugerait contre une borne que la consigne n'a jamais portée.
+   */
+  minExactPer100G: number;
+  maxExactPer100G: number;
   incompatible: DensityIncompatibility | null;
 }
 
@@ -815,6 +841,11 @@ export function densityCorridorFor(args: {
   // `preferredPer100G` exactement dans les cas où il diverge le plus — les
   // grandes cibles, c'est-à-dire ceux qui ont fondé A15.
   const targetAnchoredPer100G = Math.round((kcal / gPref) * 100);
+  // ⟳ 2026-09-14 · BÊTA 1C ⑤ — LES MÊMES DEUX NOMBRES, SANS L'ARRONDI DIRIGÉ.
+  // Le plafond du moteur s'applique aux deux formes; ce qui disparaît ici est
+  // seulement le `ceil`/`floor` qui rend la consigne énonçable.
+  const minExact = Math.min(cap, neededMin);
+  const maxExact = Math.max(minExact, Math.min(cap, rawMax));
   return {
     minPer100G,
     maxPer100G,
@@ -822,6 +853,8 @@ export function densityCorridorFor(args: {
     neededMinPer100G: Math.ceil(neededMin),
     targetAnchoredPer100G,
     anchorDivergencePer100G: targetAnchoredPer100G - preferredPer100G,
+    minExactPer100G: minExact,
+    maxExactPer100G: maxExact,
     incompatible,
   };
 }
@@ -1194,6 +1227,16 @@ export interface ApplyCounts {
   tubs_authored: number;
   /** ⟳ LOT 12 — les mangeurs non dimensionnés sur un plat pourtant mesuré. */
   eaters_unsized: number;
+  /**
+   * ⟳ 2026-09-13 · LOT 1 — les mangeurs servis à la PART DE RECETTE.
+   *
+   * ⛔ LE DÉNOMINATEUR DE `recipe_shares_by`. Un `{}` seul se lit « rien à
+   * signaler »; ce nombre dit si la ventilation est vide parce qu'il n'y a rien
+   * eu, ou parce que personne ne l'a remplie.
+   */
+  recipe_shares: number;
+  /** ⟳ LOT 1 — la même population, ventilée par motif d'abstention. */
+  recipe_shares_by: Record<string, number>;
 }
 
 export function applyCounts(): ApplyCounts {
@@ -1209,6 +1252,8 @@ export function applyCounts(): ApplyCounts {
     own_authored: 0,
     tubs_authored: 0,
     eaters_unsized: 0,
+    recipe_shares: 0,
+    recipe_shares_by: {},
   };
 }
 
@@ -1307,8 +1352,111 @@ export interface SizingRowForApply {
   /** L'index du plat dans `meal.dishes`. */
   dishIndex: number;
   factor: number;
-  /** `false` quand le plat n'a pas pu être mesuré: aucune boîte, aucun facteur. */
+  /**
+   * `false` quand CE couple (plat, bouche) n'a pas pu être dimensionné.
+   *
+   * ⚠️ IL NE DIT PAS QUI S'EST TU. `sizeDishForMouth` rend `unmeasurable` aussi
+   * bien quand l'énergie du PLAT manque que quand la CIBLE de la bouche manque;
+   * c'est `recipeShare` qui sépare les deux.
+   */
   sized: boolean;
+  /**
+   * ⟳ 2026-09-13 · LOT 2 — LE MOTIF QUI OUVRE LA PART DE RECETTE, à UNE bouche.
+   *
+   * ⛔ LE MÊME CHAMP, LA MÊME RÈGLE ET LE MÊME VOCABULAIRE QU'À N BOUCHES
+   * (`EaterRowForApply.recipeShare`, lot 1). Les deux chemins ont été écrits
+   * séparément une fois; c'est exactement ce qui a laissé `applySizing` derrière
+   * pendant un lot entier, alors que le défaut est le même des deux côtés.
+   *
+   * `null` sur une ligne dimensionnée, et `null` aussi quand le PLAT lui-même
+   * n'est pas mesurable: là il n'y a rien de lisible à mettre dans un contenant,
+   * et le plat repart sans boîte comme avant — le refus reste légitime.
+   *
+   * ⛔ REQUIS ET NULLABLE, JAMAIS `?`. Un champ facultatif reprendrait par défaut
+   * le comportement d'AVANT ce lot — la seule assiette du titulaire perdue — et
+   * ce dépôt paie en boucle les gardes qu'un paramètre facultatif désarme.
+   */
+  recipeShare: RecipeShareReason | null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-13 · LOT 1 — LA PART DE RECETTE, ET POURQUOI ELLE EST SERVIE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── LE DÉFAUT QUE CE BLOC FERME, MESURÉ ────────────────────────────────────
+// Foyer de quatre, une bouche sans date de naissance (`age_state = unknown`).
+// `dayTargetFor` s'abstient — « je ne sais pas » n'est pas « c'est un adulte »
+// —, donc sa cible de moment est `null`, donc `sizeDishForMouth` rend
+// `unmeasurable`, donc `applySizingForEaters` la RETIRAIT de `lidPlanFor`:
+// aucun contenant ne portait son nom. Le plat était pourtant multiplié POUR
+// ELLE (`dishSum` compte une ligne non dimensionnée à
+// `UNMEASURABLE_PORTION_FACTOR`), et la nourriture était achetée et cuisinée.
+// Le refus final `mouth_unfed:not_named` tombait sur ses six cases, et il
+// emportait LE PLAN ENTIER DES QUATRE BOUCHES. Tir `perte-l1age` du
+// 2026-09-13: `lids.own_expected: 24` contre `apply.own_authored: 18`.
+//
+// ⛔ CE QUI EST SERVI N'EST PAS UNE CIBLE INVENTÉE. C'est la recette telle que
+// le modèle l'a écrite (`UNMEASURABLE_PORTION_FACTOR`), c'est-à-dire la voie
+// que `sizeDishForEaters` documente depuis le lot 10 — « un mangeur sans cible
+// ne bloque pas la table ». Ce lot ne fait que la raccorder au couvercle.
+//
+// ⛔ AUCUN GRAMME DE PLUS N'EST CUISINÉ. `dishSum` comptait déjà cette ligne;
+// avant ce lot, la différence partait à la poubelle — le plat était mis à
+// l'échelle pour trois et les contenants n'en portaient que deux.
+
+/**
+ * POURQUOI CETTE BOUCHE REÇOIT LA PART DE RECETTE — nommé, jamais un `1` muet.
+ *
+ * ⛔ LA LISTE EST DÉRIVÉE DE `ANCHOR_REASONS`, PAS RECOPIÉE. Deux vocabulaires
+ * du même silence divergent à la première abstention ajoutée, et c'est celui
+ * qu'on relit le moins qui garderait l'ancien mot.
+ *
+ * ⚠️ `anchored` ET `clamped` EN SONT EXCLUS PAR CONSTRUCTION: ce sont les deux
+ * motifs qui rendent une cible, donc une part CALCULÉE. Une ligne qui les
+ * porterait dirait « sans cible » d'une bouche qui en a une.
+ */
+export type RecipeShareReason =
+  | Exclude<AnchorReason, "anchored" | "clamped">
+  /** La cible du JOUR existe; celle de CE MOMENT n'a pas pu être répartie. */
+  | "slot_without_target"
+  /** La bouche n'est pas dans la table mesurée. Ne doit jamais sortir. */
+  | "mouth_unknown";
+
+export const RECIPE_SHARE_REASONS: readonly RecipeShareReason[] = Object.freeze([
+  ...ANCHOR_REASONS.filter(
+    (r): r is Exclude<AnchorReason, "anchored" | "clamped"> =>
+      r !== "anchored" && r !== "clamped",
+  ),
+  "slot_without_target",
+  "mouth_unknown",
+] as const);
+
+/**
+ * LE MOTIF D'ABSTENTION D'UNE LIGNE, À PARTIR DE CE QUI A ÉCHOUÉ.
+ *
+ * ⛔ UN SEUL ENDROIT LE DÉCIDE. L'appelant a la cible du jour, son motif et la
+ * cible du moment sous la main; les recoller là-bas ferait deux écritures de la
+ * même distinction — « le jour s'est abstenu » contre « le moment n'a rien
+ * reçu » — et elles se répondraient différemment au premier cas limite.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function recipeShareReasonFor(args: {
+  /** La cible du JOUR de cette bouche. `null` = `dayTargetFor` s'est abstenue. */
+  dayKcal: number | null;
+  /** Le motif rendu par `dayTargetFor`. `null` = la bouche n'a pas été mesurée. */
+  dayReason: AnchorReason | null;
+}): RecipeShareReason {
+  if (args.dayReason === null) return "mouth_unknown";
+  if (args.dayKcal !== null) return "slot_without_target";
+  if (args.dayReason === "anchored" || args.dayReason === "clamped") {
+    // ⛔ INATTEIGNABLE PAR CONSTRUCTION (`dayTargetFor` ne rend ces deux motifs
+    // qu'avec un `kcal` non nul, déjà écarté ci-dessus) — et nommé quand même,
+    // parce qu'un `as` sur ce retour désarmerait le typecheck du jour où la
+    // fonction changera.
+    return "mouth_unknown";
+  }
+  return args.dayReason;
 }
 
 /**
@@ -1336,6 +1484,19 @@ export interface EaterRowForApply {
   factor: number;
   /** `false` quand ce mangeur n'a pas pu être dimensionné sur ce plat. */
   sized: boolean;
+  /**
+   * ⟳ 2026-09-13 · LOT 1 — LE MOTIF QUI OUVRE LA PART DE RECETTE.
+   *
+   * `null` sur une ligne dimensionnée, et `null` aussi quand le PLAT lui-même
+   * n'est pas mesurable: là il n'y a pas de part de recette à servir, il n'y a
+   * rien de lisible du tout, et le plat repart sans contenant comme avant.
+   *
+   * ⛔ REQUIS ET NULLABLE, JAMAIS `?`. Un champ facultatif prendrait par défaut
+   * le comportement d'AVANT ce lot — la bouche retirée du couvercle — et le
+   * dépôt paie en boucle les gardes qu'un paramètre facultatif désarme. Chaque
+   * appelant doit dire ce qu'il sait.
+   */
+  recipeShare: RecipeShareReason | null;
 }
 
 /**
@@ -1442,11 +1603,42 @@ export function applySizingForEaters(args: {
 
   // ── ③ LES PLATS: FRAIS × Σ, ET UN COUVERCLE PAR GROUPE ──────────────────
   const dishes = args.meal.dishes.map((d, i) => {
-    const rows = (byDish.get(i) ?? []).filter((r) => r.sized);
+    const all = byDish.get(i) ?? [];
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-13 · LOT 1 — LA PART DE RECETTE ENTRE DANS LE COUVERCLE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ C'EST LA LIGNE EXACTE DU DÉFAUT. Elle valait `.filter((r) => r.sized)`
+    // et retirait du `lidPlanFor` toute bouche sans cible — alors que le plat
+    // venait d'être multiplié POUR ELLE deux lignes plus bas (`dishSum` compte
+    // une ligne non dimensionnée à `UNMEASURABLE_PORTION_FACTOR`). Résultat
+    // mesuré: `lids.own_expected: 24` contre `own_authored: 18`, et un refus
+    // `mouth_unfed` qui emportait le plan des quatre bouches.
+    //
+    // ⚠️ LES DEUX SILENCES NE SE CONFONDENT PAS. `recipeShare !== null` dit
+    // « le plat est mesurable, c'est CETTE BOUCHE qui n'a pas de cible » — il y
+    // a une part à servir. `recipeShare === null` sur une ligne non
+    // dimensionnée dit « le plat lui-même est illisible »: il n'y a rien à
+    // mettre dans un contenant, et le plat repart sans boîte comme avant.
+    const rows = all.filter((r) => r.sized || r.recipeShare !== null);
     if (rows.length === 0) {
       counts.dishes_unsized++;
-      counts.eaters_unsized += (byDish.get(i) ?? []).length;
+      counts.eaters_unsized += all.length;
       return { ...d };
+    }
+    for (const r of all) {
+      if (r.sized) continue;
+      if (r.recipeShare === null) {
+        // ⛔ LE MANGEUR VRAIMENT PERDU, COMPTÉ ICI AUSSI. Avant ce lot,
+        // `eaters_unsized` ne bougeait QUE si le plat entier tombait: un plat
+        // à trois mangeurs dont un seul était retiré rendait `0`, et le
+        // compteur qui aurait nommé le défaut était aveugle.
+        counts.eaters_unsized++;
+        continue;
+      }
+      counts.recipe_shares++;
+      counts.recipe_shares_by[r.recipeShare] =
+        (counts.recipe_shares_by[r.recipeShare] ?? 0) + 1;
     }
     const sum = dishSum(i);
     const sc = scaleIngredients(
@@ -1595,7 +1787,10 @@ export function applySizing(args: {
       // table mange.
       factorsByPot.set(id, [
         ...(factorsByPot.get(id) ?? []),
-        row?.sized ? row.factor : 1,
+        // ⟳ 2026-09-13 · LOT 2 — LA CONSTANTE, PLUS LE LITTÉRAL `1`. Même
+        // valeur, mais c'est ce nombre-là que la part de recette SERT plus bas:
+        // les deux doivent bouger ensemble ou pas du tout.
+        row?.sized ? row.factor : UNMEASURABLE_PORTION_FACTOR,
       ]);
     }
   });
@@ -1637,10 +1832,51 @@ export function applySizing(args: {
   // ── ③ LES PLATS: FRAIS MULTIPLIÉ, ET UNE BOÎTE AUTORÉE ──────────────────
   const dishes = args.meal.dishes.map((d, i) => {
     const row = byIndex.get(i);
-    if (!row || !row.sized) {
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-13 · LOT 2 — LA PART DE RECETTE ARRIVE À **UNE** BOUCHE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ C'EST LA LIGNE EXACTE DU DÉFAUT. Elle valait `if (!row || !row.sized)`,
+    // c'est-à-dire le filtre que `applySizingForEaters` a cessé d'appliquer au
+    // lot 1 — gardé ici un lot de plus. Un titulaire sans date de naissance
+    // (`age_state = unknown`) n'a pas de cible: `sizeDishForMouth` rend
+    // `unmeasurable`, et sa SEULE assiette repartait sans contenant, pour un
+    // plat parfaitement lisible que la casserole cuisinait quand même.
+    //
+    // ⚠️ LES DEUX SILENCES NE SE CONFONDENT PAS, ET C'EST TOUT LE LOT.
+    // `recipeShare !== null` dit « le plat est mesurable, c'est CETTE BOUCHE qui
+    // n'a pas de cible »: il y a une part à servir, celle de la recette.
+    // `recipeShare === null` sur une ligne non dimensionnée dit « le plat
+    // lui-même est illisible »: il n'y a rien à mettre dans un contenant, et le
+    // plat repart sans boîte — le refus reste légitime.
+    //
+    // ⛔ AUCUN GRAMME DE PLUS N'EST CUISINÉ: le bloc ① comptait déjà cette ligne
+    // à `UNMEASURABLE_PORTION_FACTOR`. Avant ce lot, la différence partait à la
+    // poubelle.
+    if (!row) {
       counts.dishes_unsized++;
       return { ...d };
     }
+    if (!row.sized) {
+      const share = row.recipeShare;
+      // ⛔ PAS DE `as` POUR ÉCRIRE CE MOTIF. Le rétrécissement vient de ce test,
+      // pas d'une affirmation: un `as` sur cette valeur rendrait un `null` écrit
+      // sous la clé `"null"` le jour où un appelant oublierait le champ, et le
+      // typecheck ne dirait rien (`as-cast-on-foreign-type-disarms-typecheck`).
+      if (share === null) {
+        counts.dishes_unsized++;
+        return { ...d };
+      }
+      // ⚠️ `eaters_unsized` NE BOUGE PAS ICI, ET C'EST EXACT. Il compte « les
+      // mangeurs non dimensionnés sur un plat POURTANT MESURÉ » — la population
+      // que la part de recette vient précisément de servir. À une bouche, un
+      // plat illisible est déjà compté par `dishes_unsized` juste au-dessus.
+      counts.recipe_shares++;
+      counts.recipe_shares_by[share] = (counts.recipe_shares_by[share] ?? 0) + 1;
+    }
+    // ⛔ ET LE FACTEUR EST CELUI DE LA LIGNE, jamais un facteur inventé: sur une
+    // part de recette il vaut déjà `UNMEASURABLE_PORTION_FACTOR`, posé par
+    // `sizeDishForMouth`. Ce lot ne fabrique ni cible, ni âge, ni gramme.
     const f = row.factor;
     const s = scaleIngredients(
       (d.ingredients ?? []) as ScalableIngredient[],
@@ -1744,12 +1980,25 @@ export function applySizing(args: {
 
 /** Ce qu'un contenant écrit pèse vraiment, et ce que la borne en dit. */
 export interface FinalPortionRow {
-  boxId: string;
+  /**
+   * ⟳ 2026-09-13 · LOT 2 § 2.4 — LES CONTENANTS DE CE REPAS, PAS UN SEUL.
+   *
+   * ⛔ `boxId` AU SINGULIER A DISPARU, ET C'EST VOULU. Une assiette partagée
+   * entre un plat commun et un complément porte DEUX contenants; rendre l'un
+   * d'eux ferait nommer la moitié d'un repas par son identifiant, et l'autre
+   * moitié nulle part. Un bac garde un seul identifiant, comme avant.
+   */
+  boxIds: readonly string[];
   day: string | null;
   slot: string | null;
   memberIds: readonly string[];
-  /** La somme des items ÉCRITS. */
+  /** La somme des items ÉCRITS, TOUS contenants de ce repas confondus. */
   grams: number;
+  /**
+   * ⛔ `null` DÈS QU'UN COMPOSANT SE TAIT. Une somme partielle ressemble à un
+   * résultat: un repas dont le complément n'est pas lisible n'a pas d'énergie
+   * connue, il n'a pas « l'énergie de sa part commune ».
+   */
   kcal: number | null;
   proteinG: number | null;
   /** `unmeasurable` quand la mesure se tait ou qu'aucune borne n'est connue. */
@@ -1773,7 +2022,20 @@ export interface FinalPortionCheck {
   reason: FinalPortionReason;
   /** Tous les contenants rencontrés, jugés ou non. Le dénominateur. */
   boxes: number;
-  /** Ceux dont on a pu comparer la masse à une borne. */
+  /**
+   * ⟳ 2026-09-13 · LOT 2 § 2.4 — LES REPAS: les contenants d'UNE bouche,
+   * regroupés par jour et moment. C'est l'unité de `judged` et de `verdicts`.
+   */
+  meals: number;
+  /**
+   * ⟳ 2026-09-13 · LOT 2 § 2.4 — CEUX QUI PORTENT PLUS D'UN CONTENANT.
+   *
+   * ⛔ SANS CE NOMBRE, LE REGROUPEMENT EST INVISIBLE: à zéro, il rend exactement
+   * les mêmes verdicts que le jugement contenant par contenant, et on ne saurait
+   * pas si la règle ne mord pas ou si elle n'est pas branchée.
+   */
+  multiBoxMeals: number;
+  /** Les repas dont on a pu comparer la masse à une borne. */
   judged: number;
   verdicts: Record<SizingVerdict, number>;
   /** Ce qu'on a décidé de l'eau de chaque casserole du plan. */
@@ -1803,11 +2065,29 @@ export interface FinalPortionCheck {
 /**
  * LA MESURE FINALE D'UN PLAN ÉCRIT — grammes, kcal et protéine des items posés.
  *
- * @param plateFor les bornes de CE contenant. `null` = on ne sait pas ce que
- * cette assiette devrait peser, donc on ne juge pas et on le compte
- * (`unmeasurable`). ⛔ REQUIS ET NULLABLE, jamais `?`: un défaut ferait de
- * « pas de borne » la réponse silencieuse de tous les appelants, c'est-à-dire
- * laisserait ce contrôle construit et désarmé — le mode d'échec n° 1 du dépôt.
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-13 · LOT 2 § 2.4 — LE VERDICT PORTE SUR LE **REPAS**, PAS SUR UN
+ *                CONTENANT
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE QU'IL FAISAIT, ET CE QUE ÇA DISAIT DE FAUX. Une assiette partagée entre
+ * un plat commun et un complément (`splitPlateWithComplement`) s'écrit en DEUX
+ * contenants au même nom, au même jour, au même moment — 216 g + 9 g pour un
+ * plancher de 225. Jugés séparément, les deux sortaient `under_min`: **deux
+ * fausses alarmes sur un repas exactement conforme**, et l'énergie réellement
+ * servie — la somme — n'était mesurée nulle part. C'est la même erreur que
+ * `fitPortionsToBounds` commettait en remontant la part commune.
+ *
+ * ⛔ ET LA SOMME EST HONNÊTE OU ELLE N'EST PAS. Un composant dont l'énergie ou
+ * la protéine se tait rend la somme `null`: un repas n'a pas « l'énergie de sa
+ * part commune », il a une énergie inconnue.
+ *
+ * @param plateFor les bornes de CE REPAS — `(memberId, day, slot)`, la clé qui
+ * les a déjà décidées chez l'appelant. `null` = on ne sait pas ce que cette
+ * assiette devrait peser, donc on ne juge pas et on le compte (`unmeasurable`).
+ * ⛔ REQUIS ET NULLABLE, jamais `?`: un défaut ferait de « pas de borne » la
+ * réponse silencieuse de tous les appelants, c'est-à-dire laisserait ce contrôle
+ * construit et désarmé — le mode d'échec n° 1 du dépôt.
  *
  * PURE: no I/O, no clock, no randomness.
  */
@@ -1815,7 +2095,7 @@ export function finalPortionCheck(args: {
   index: CompositionIndex | null;
   dishes: readonly BoxedMouthEnergyDish[];
   preparations: readonly EnergyPreparation[];
-  plateFor: (box: {
+  plateFor: (meal: {
     memberIds: readonly string[];
     day: string | null;
     slot: string | null;
@@ -1831,6 +2111,8 @@ export function finalPortionCheck(args: {
     measured: false,
     reason,
     boxes: 0,
+    meals: 0,
+    multiBoxMeals: 0,
     judged: 0,
     verdicts,
     water,
@@ -1851,6 +2133,30 @@ export function finalPortionCheck(args: {
     return { ...empty("no_box"), water };
   }
 
+  // ── LES REPAS: LES CONTENANTS D'UNE BOUCHE, PAR JOUR ET PAR MOMENT ───────
+  // ⚠️ UN BAC N'EST JAMAIS DANS UN REPAS: il garde sa ligne à lui, et il n'est
+  // pas jugé. L'ordre de rencontre fait l'ordre des lignes rendues.
+  type Groupe = { boxes: typeof measured; tub: boolean };
+  const groupes: Groupe[] = [];
+  const parRepas = new Map<string, Groupe>();
+  let tubs = 0;
+  for (const box of measured) {
+    if (box.memberIds.length !== 1) {
+      tubs++;
+      groupes.push({ boxes: [box], tub: true });
+      continue;
+    }
+    const key = `${box.memberIds[0]}|${box.day ?? ""}|${box.slot ?? ""}`;
+    const deja = parRepas.get(key);
+    if (deja) {
+      (deja.boxes as typeof measured[number][]).push(box);
+      continue;
+    }
+    const neuf: Groupe = { boxes: [box], tub: false };
+    parRepas.set(key, neuf);
+    groupes.push(neuf);
+  }
+
   const rows: FinalPortionRow[] = [];
   const outOfBounds: {
     day: string | null;
@@ -1860,33 +2166,55 @@ export function finalPortionCheck(args: {
     bound: "min" | "max";
   }[] = [];
   let judged = 0;
-  let tubs = 0;
-  for (const box of measured) {
-    const bounds = box.memberIds.length === 1
-      ? args.plateFor({ memberIds: box.memberIds, day: box.day, slot: box.slot })
-      : null;
-    if (box.memberIds.length !== 1) tubs++;
+  let meals = 0;
+  let multiBoxMeals = 0;
+  for (const groupe of groupes) {
+    const premier = groupe.boxes[0];
+    if (!groupe.tub) {
+      meals++;
+      if (groupe.boxes.length > 1) multiBoxMeals++;
+    }
+    // ⛔ LE TOTAL RÉELLEMENT SERVI: grammes, énergie, protéine. `null` dès qu'un
+    // composant se tait — et jamais un composant compté deux fois, puisque
+    // chaque contenant n'appartient qu'à un groupe.
+    let grams = 0;
+    let kcal: number | null = 0;
+    let proteinG: number | null = 0;
+    for (const box of groupe.boxes) {
+      grams += box.grams;
+      kcal = kcal === null || box.kcal === null ? null : kcal + box.kcal;
+      proteinG = proteinG === null || box.proteinG === null
+        ? null
+        : proteinG + box.proteinG;
+    }
+    const bounds = groupe.tub
+      ? null
+      : args.plateFor({
+        memberIds: premier.memberIds,
+        day: premier.day,
+        slot: premier.slot,
+      });
     let verdict: SizingVerdict = "unmeasurable";
     let overshoot = 0;
-    if (bounds !== null && box.grams > 0) {
+    if (bounds !== null && grams > 0) {
       judged++;
-      if (box.grams > bounds.max) {
+      if (grams > bounds.max) {
         verdict = "over_max";
-        overshoot = Math.round(box.grams - bounds.max);
+        overshoot = Math.round(grams - bounds.max);
         outOfBounds.push({
-          day: box.day,
-          slot: box.slot,
-          grams: Math.round(box.grams),
+          day: premier.day,
+          slot: premier.slot,
+          grams: Math.round(grams),
           limit: bounds.max,
           bound: "max",
         });
-      } else if (box.grams < bounds.min) {
+      } else if (grams < bounds.min) {
         verdict = "under_min";
-        overshoot = Math.round(box.grams - bounds.min);
+        overshoot = Math.round(grams - bounds.min);
         outOfBounds.push({
-          day: box.day,
-          slot: box.slot,
-          grams: Math.round(box.grams),
+          day: premier.day,
+          slot: premier.slot,
+          grams: Math.round(grams),
           limit: bounds.min,
           bound: "min",
         });
@@ -1894,13 +2222,15 @@ export function finalPortionCheck(args: {
     }
     verdicts[verdict]++;
     rows.push({
-      boxId: box.boxId,
-      day: box.day,
-      slot: box.slot,
-      memberIds: box.memberIds,
-      grams: Math.round(box.grams),
-      kcal: box.kcal === null ? null : Math.round(box.kcal),
-      proteinG: box.proteinG,
+      boxIds: groupe.boxes.map((b) => b.boxId),
+      day: premier.day,
+      slot: premier.slot,
+      memberIds: premier.memberIds,
+      grams: Math.round(grams),
+      kcal: kcal === null ? null : Math.round(kcal),
+      // ⚠️ LE DIXIÈME DE GRAMME EST LE BARÈME DE `boxNutrition`; la somme le
+      // garde, et on le rétablit après l'addition de flottants.
+      proteinG: proteinG === null ? null : Math.round(proteinG * 10) / 10,
       verdict,
       overshootG: overshoot,
     });
@@ -1909,6 +2239,8 @@ export function finalPortionCheck(args: {
     measured: true,
     reason: "remeasured_after_apply",
     boxes: measured.length,
+    meals,
+    multiBoxMeals,
     judged,
     verdicts,
     water,
@@ -2378,6 +2710,35 @@ function intersectCorridors(
   return { min, max, aim };
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-13 · LOT 1 — LE BLOC D'**UN** PLAT, SANS AUCUN ORDRE GLOBAL
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ POURQUOI IL EST EXTRAIT. `repairInstruction` rend UNE consigne pour N
+ * plats, terminée par « Return the full plan JSON… » et « do not touch any
+ * other dish ». Sur le chemin de la réparation finale, les deux sont FAUX : le
+ * modèle rend un PATCH, et le périmètre ouvre d'autres repas au même appel. Le
+ * constat d'amont dépose donc CE bloc-ci, par plat, avec sa propre adresse ; la
+ * consigne de sortie est décidée à un seul endroit
+ * (`REPAIR_PATCH_SCHEMA_LINES` + `repairPatchScopeLines`).
+ *
+ * ⚠️ L'INTERDICTION **LOCALE** RESTE DEDANS. « FROZEN — return them unchanged »
+ * porte sur une casserole partagée que d'autres assiettes mangent : elle n'est
+ * pas un ordre global, c'est la dépendance à préserver.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function repairDishInstructionLines(
+  d: RepairDishInput,
+): string[] {
+  const say = (ings: readonly RepairIngredient[]): string =>
+    ings
+      .map((g) => g.quantity === null ? g.term : `${g.quantity} ${g.term}`)
+      .join(", ");
+  return dishRepairBlock(d, say);
+}
+
 export function repairInstruction(
   asks: readonly RepairDishInput[],
 ): string | null {
@@ -2386,7 +2747,27 @@ export function repairInstruction(
     ings
       .map((g) => g.quantity === null ? g.term : `${g.quantity} ${g.term}`)
       .join(", ");
-  const lines = asks.slice(0, REPAIR_MAX_DISHES_PER_PLAN).flatMap((d) => {
+  const lines = asks.slice(0, REPAIR_MAX_DISHES_PER_PLAN).flatMap((d) =>
+    dishRepairBlock(d, say)
+  );
+  return [
+    "SOME DISHES DO NOT WORK AS A PLATE. Fix only these, and here is what you",
+    "wrote for each one:",
+    ...lines,
+    "⛔ Keep each dish's identity: the same name, the same foods, the same cooking.",
+    "A dish that comes back with different food is a REPLACEMENT, and it will be",
+    "thrown away — the person asked for this dish.",
+    "A FROZEN part comes back unchanged: reach the density through the dish's own",
+    "fresh ingredients and its REWORKABLE preparations.",
+  ].join("\n");
+}
+
+/** Le corps d'un plat : sa bande de densité, son frais, ses casseroles. */
+function dishRepairBlock(
+  d: RepairDishInput,
+  say: (ings: readonly RepairIngredient[]) => string,
+): string[] {
+  {
     // ⟳ 2026-09-10 — LA CONSIGNE DIT UNE BANDE, PAS UN SEUL BOUT.
     // ⛔ « Reste sous N » sans plancher a rendu un bouillon à 57,8 (tir SPLICE3):
     // l'assiette est passée de trop petite à trop grosse. « Au moins N » sans
@@ -2432,20 +2813,7 @@ export function repairInstruction(
       );
     }
     return out;
-  });
-  return [
-    "SOME DISHES DO NOT WORK AS A PLATE. Fix only these, and here is what you",
-    "wrote for each one:",
-    ...lines,
-    "⛔ Keep each dish's identity: the same name, the same foods, the same cooking.",
-    "A dish that comes back with different food is a REPLACEMENT, and it will be",
-    "thrown away — the person asked for this dish. Do not swap, do not add a",
-    "course, do not touch any other dish.",
-    "A FROZEN part comes back unchanged: reach the density through the dish's own",
-    "fresh ingredients and its REWORKABLE preparations.",
-    "Return the full plan JSON with only these dishes and the preparations they",
-    "draw on changed.",
-  ].join("\n");
+  }
 }
 
 /**
@@ -2970,6 +3338,32 @@ export interface RequiredDensity {
     slots: number;
     /** Ceux dont la densité requise dépasse le plancher de leur classe. */
     above_floor: number;
+    /**
+     * ══════════════════════════════════════════════════════════════════════
+     * ⟳ 2026-09-12 · ÉTAPE C4 — CEUX DONT LE MINIMUM EST **SOUS** LE PLANCHER
+     * ══════════════════════════════════════════════════════════════════════
+     *
+     * ⛔ IL EXISTE PARCE QUE CES DEUX CAS ÉTAIENT CONFONDUS, ET C'EST UN DÉFAUT
+     * DE CONTRAT MESURÉ. `redundantMin` valait `!(min > plancher)`: il était
+     * donc vrai aussi bien pour un moment qui demande EXACTEMENT le plancher
+     * (rien à ajouter, la phrase commune le dit déjà) que pour un moment qui
+     * demande MOINS (91 pour un petit-déjeuner de 613,5 kcal à grand appétit,
+     * tir n° 3 du 2026-09-11). Dans le second cas la ligne ne sortait pas, le
+     * modèle ne lisait que « a normal dish carries at least 100 » — la consigne
+     * promettait 100 pendant que la garde acceptait 91.
+     *
+     * Le commentaire de `NORMAL_DISH_MIN_KCAL_PER_100G` annonce pourtant
+     * l'inverse comme interdit: « une consigne qui promet 100 et une garde qui
+     * accepte 90 laisseraient passer un plat que le moteur devra réparer — et
+     * le modèle aurait raison contre le moteur ».
+     *
+     * ⛔ ET LA CORRECTION NE REMONTE PAS LE PLANCHER. Le plan de clôture
+     * l'interdit en toutes lettres: « ne pas réparer ces recettes sur la base
+     * du faux seuil de 100 ». C'est la CONSIGNE qui s'aligne sur la garde, pas
+     * l'inverse: la bande vraie est imprimée, et une phrase du bloc dit qu'une
+     * bande nommée l'emporte sur le plancher commun.
+     */
+    below_floor: number;
     /** Ceux dont la densité DIFFÈRE d'un jour à l'autre (on garde le max). */
     days_varied: number;
     /**
@@ -3078,9 +3472,17 @@ export function mergeCorridors(
   // n'impliquent pas la même densité; garder la plus haute dit ce que la bande
   // commune coûterait à celle qui demande le plus.
   const anchored = Math.max(a.targetAnchoredPer100G, b.targetAnchoredPer100G);
+  // ⟳ 2026-09-14 · BÊTA 1C ⑤ — LES BORNES EXACTES SUIVENT LA MÊME RÈGLE, sur
+  // leurs propres nombres: `max(Dmin)` et `min(Dmax)`. Les dériver des entiers
+  // rendrait un plafond exact plus large que le plafond énoncé, et le verdict
+  // cesserait de mordre là où la consigne mord.
+  const minExact = Math.max(a.minExactPer100G, b.minExactPer100G);
+  const maxExact = Math.min(a.maxExactPer100G, b.maxExactPer100G);
   return {
     minPer100G: min,
     maxPer100G: vide ? min : max,
+    minExactPer100G: minExact,
+    maxExactPer100G: minExact > maxExact ? minExact : maxExact,
     preferredPer100G: preferred,
     neededMinPer100G: Math.max(a.neededMinPer100G, b.neededMinPer100G),
     targetAnchoredPer100G: anchored,
@@ -3273,39 +3675,65 @@ export function dedicatedDishInstruction(
   asks: readonly DedicatedRepair[],
 ): string | null {
   if (asks.length === 0) return null;
-  // ⟳ 2026-09-09 — UN COMPLÉMENT, PAS UN REMPLACEMENT. La personne GARDE le
-  // plat partagé : le moteur rabote sa part à la borne et dimensionne ce plat-ci
-  // à la différence (`splitPlateWithComplement`). Le texte le dit au modèle
-  // pour qu'il écrive une entrée, pas un repas — mesuré avant : « beside the
-  // shared dish » seul rendait des plats entiers, et le moteur retirait la
-  // personne de la table.
-  const lines = asks.map((a) =>
-    a.direction === "densify"
-      ? `- On ${a.day} at ${a.slot}, add ONE small side dish with for_member_id ` +
-        `"${a.memberId}", and nothing else changes. That person keeps eating the ` +
-        `shared dish: the app cuts their share of it and sizes this side dish to ` +
-        `the difference. It has to carry at least ${a.aimPer100G} kcal per 100 g ` +
-        `as served: nuts, cheese, oil, bread, a spoon of nut butter — small and rich.`
-      : `- On ${a.day} at ${a.slot}, add ONE side dish with for_member_id ` +
-        `"${a.memberId}", and nothing else changes. That person keeps eating the ` +
-        `shared dish: the app cuts their share of it and sizes this side dish to ` +
-        `the difference. ` +
-        (a.floorPer100G === null
-          ? `It has to stay at or under ${a.aimPer100G} kcal per 100 g as served — `
-          : `It has to land between ${a.floorPer100G} and ${a.aimPer100G} kcal per 100 g as served — `) +
-        `bulky and light (vegetables, a salad, a soup WITH something in it).` +
-        (a.floorPer100G === null
-          ? ""
-          : ` Below ${a.floorPer100G} the plate becomes enormous.`)
-  );
   return [
-    "ONE PERSON CANNOT BE SERVED FROM THE SHARED POTS ALONE. The pots are eaten",
-    "by others too, so they stay as they are — give that person a side dish of",
-    "their own, eaten WITH the shared dish:",
-    ...lines,
-    "⛔ Do not touch any other dish, any preparation, or anyone else's plate.",
-    "Return the full plan JSON with only these dishes added.",
+    ...DEDICATED_DISH_HEAD,
+    ...asks.map(dedicatedDishLine),
   ].join("\n");
+}
+
+/**
+ * L'EN-TÊTE D'UNE DEMANDE DE COMPLÉMENT — et elle ne porte AUCUN ordre global.
+ *
+ * ⟳ 2026-09-13 · LOT 1 — DEUX LIGNES ONT ÉTÉ RETIRÉES D'ICI, et elles sont
+ * archivées dans la requête `perte-h4n4` du 2026-09-11 :
+ *
+ *   · « ⛔ Do not touch any other dish, any preparation, or anyone else's
+ *     plate. » — FAUX dès que le périmètre du même appel ouvre sept repas et
+ *     quatre créations. Le modèle devait choisir laquelle des deux consignes
+ *     appliquer ;
+ *   · « Return the full plan JSON with only these dishes added. » — un SECOND
+ *     schéma de sortie, à côté de `{"repair":{…}}`. Un seul endroit décide de
+ *     la forme de la réponse : `REPAIR_PATCH_SCHEMA_LINES` (système) et
+ *     `repairPatchScopeLines()` (utilisateur).
+ *
+ * ⚠️ CE QUI RESTE EST LOCAL, ET C'EST LA CONTRAINTE VRAIE : les casseroles
+ * partagées ne bougent pas, parce que d'autres bouches en mangent.
+ */
+export const DEDICATED_DISH_HEAD: readonly string[] = [
+  "ONE PERSON CANNOT BE SERVED FROM THE SHARED POTS ALONE. The pots are eaten",
+  "by others too, so they stay as they are — give that person a side dish of",
+  "their own, eaten WITH the shared dish:",
+];
+
+/**
+ * LA DEMANDE D'**UNE** BOUCHE, À **UN** MOMENT.
+ *
+ * ⟳ 2026-09-09 — UN COMPLÉMENT, PAS UN REMPLACEMENT. La personne GARDE le plat
+ * partagé : le moteur rabote sa part à la borne et dimensionne ce plat-ci à la
+ * différence (`splitPlateWithComplement`). Le texte le dit au modèle pour qu'il
+ * écrive une entrée, pas un repas — mesuré avant : « beside the shared dish »
+ * seul rendait des plats entiers, et le moteur retirait la personne de la table.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function dedicatedDishLine(a: DedicatedRepair): string {
+  return a.direction === "densify"
+    ? `- On ${a.day} at ${a.slot}, add ONE small side dish with for_member_id ` +
+      `"${a.memberId}". That person keeps eating the ` +
+      `shared dish: the app cuts their share of it and sizes this side dish to ` +
+      `the difference. It has to carry at least ${a.aimPer100G} kcal per 100 g ` +
+      `as served: nuts, cheese, oil, bread, a spoon of nut butter — small and rich.`
+    : `- On ${a.day} at ${a.slot}, add ONE side dish with for_member_id ` +
+      `"${a.memberId}". That person keeps eating the ` +
+      `shared dish: the app cuts their share of it and sizes this side dish to ` +
+      `the difference. ` +
+      (a.floorPer100G === null
+        ? `It has to stay at or under ${a.aimPer100G} kcal per 100 g as served — `
+        : `It has to land between ${a.floorPer100G} and ${a.aimPer100G} kcal per 100 g as served — `) +
+      `bulky and light (vegetables, a salad, a soup WITH something in it).` +
+      (a.floorPer100G === null
+        ? ""
+        : ` Below ${a.floorPer100G} the plate becomes enormous.`);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,195 @@
+[
+  {
+    "id": "A1",
+    "hypothesis": "le moteur bavard — la part de soirs SANS recommandation doit être majoritaire",
+    "verdict": "GREEN",
+    "proof": {
+      "student_evenings": 24,
+      "proposals": 1,
+      "silent_share": "95.8%",
+      "per_night": [
+        {
+          "night": 0,
+          "analysed": 8,
+          "proposed": 1
+        },
+        {
+          "night": 1,
+          "analysed": 8,
+          "proposed": 0
+        },
+        {
+          "night": 2,
+          "analysed": 8,
+          "proposed": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "A4",
+    "hypothesis": "le coaching de vie qui revient — tout texte délivré appartient à l'espace fermé",
+    "verdict": "GREEN",
+    "proof": {
+      "distinct_texts": 1,
+      "all_in_closed_space": true
+    }
+  },
+  {
+    "id": "A2",
+    "hypothesis": "l'accusé fantôme — écriture impossible (rythme vide) mais empreinte valide: Sophia doit dire qu'elle N'A PAS pu, et l'état revenir à `proposed`",
+    "verdict": "GREEN",
+    "proof": {
+      "proposed": 1,
+      "ack": "Something went wrong on my side and I couldn't save that — your rhythm is unchanged. Sorry. Could you try again?",
+      "state": "proposed",
+      "applied_at": null,
+      "rhythm_after": []
+    }
+  },
+  {
+    "id": "A3",
+    "hypothesis": "payload inexistant ou d'autrui — refusé sans écrire, et sans dire lequel des deux",
+    "verdict": "GREEN",
+    "proof": {
+      "ghost_ack": "That one's no longer open — nothing has changed.",
+      "ghost_rows": 0,
+      "stolen_ack": "That one's no longer open — nothing has changed.",
+      "victim_state": "proposed",
+      "victim_rhythm": [
+        "lunch",
+        "dinner"
+      ],
+      "attacker_rhythm": [
+        "lunch",
+        "dinner"
+      ],
+      "same_sentence": true
+    }
+  },
+  {
+    "id": "A5",
+    "hypothesis": "le coach republie sa doctrine entre proposition et tap — l'action a été filtrée contre une version disparue, donc elle ne s'applique pas",
+    "verdict": "GREEN",
+    "proof": {
+      "state": "expired",
+      "expiry_reason": "plan_changed",
+      "ack": "Your eating rhythm has changed since I asked, so I've left it alone — nothing has been added.",
+      "rhythm": [
+        "lunch",
+        "dinner"
+      ]
+    }
+  },
+  {
+    "id": "A6",
+    "hypothesis": "le budget qui fuit — la proposition consomme EXACTEMENT une place, axis NULL, et ferme la journée pour les deux autres surfaces",
+    "verdict": "GREEN",
+    "proof": {
+      "ledger": [
+        {
+          "ask_kind": "daily_recommendation",
+          "local_date": "2026-08-08",
+          "axis": null,
+          "asked_for_message_id": "reco:825aee88-9602-4c82-b1eb-4575095f46cd"
+        }
+      ],
+      "count": {
+        "count": 1,
+        "reason": "counted"
+      },
+      "budget": 1
+    }
+  },
+  {
+    "id": "A7",
+    "hypothesis": "la résurrection d'une proposition morte — un tap sur une expirée n'applique rien",
+    "verdict": "GREEN",
+    "proof": {
+      "state": "expired",
+      "ack": "That one's no longer open — nothing has changed.",
+      "rhythm": [
+        "lunch",
+        "dinner"
+      ]
+    }
+  },
+  {
+    "id": "A8",
+    "hypothesis": "l'élève qui lit ou écrit la table — `authenticated` n'a rien, ni sur la table ni sur la fonction d'écriture",
+    "verdict": "GREEN",
+    "proof": {
+      "select_status": 403,
+      "select_body": "{\"code\":\"42501\",\"details\":null,\"hint\":null,\"message\":\"permission denied for table student_daily_recommendations\"}",
+      "patch_status": 403,
+      "rpc_status": 403,
+      "rhythm": [
+        "lunch",
+        "dinner"
+      ]
+    }
+  },
+  {
+    "id": "A11",
+    "hypothesis": "le rejeu du MÊME client_message_id (502 de Kong) — une seule application, et pas un second accusé",
+    "verdict": "GREEN",
+    "proof": {
+      "applied_at_stable": true,
+      "rhythm": [
+        "lunch",
+        "dinner",
+        "breakfast"
+      ],
+      "acks_after_first": 1,
+      "acks_after_replay": 1
+    }
+  },
+  {
+    "id": "A10",
+    "hypothesis": "le plafond de livraison — une proposition non livrée ne reste pas `proposed` en base (une question ouverte que personne n'a lue)",
+    "verdict": "GREEN",
+    "proof": {
+      "skipped": {
+        "delivery:unsolicited_daily_cap": 1
+      },
+      "db_state": "expired",
+      "expiry_reason": "undelivered",
+      "bubble_delivered": false
+    }
+  },
+  {
+    "id": "A12",
+    "hypothesis": "la boucle fermée — après acceptation, une composition RÉELLE porte le moment ajouté (le zéro de §7)",
+    "verdict": "NOT_TESTABLE",
+    "proof": {
+      "rhythm": [
+        "lunch",
+        "dinner",
+        "breakfast"
+      ],
+      "generate_status": 409,
+      "slots": [],
+      "error": {
+        "error": "plan_not_written",
+        "detail": "replaces_required",
+        "request_id": "c318462a-691a-49fb-b975-ae87e50aeba1"
+      }
+    }
+  },
+  {
+    "id": "A9",
+    "hypothesis": "la préférence contradictoire captée APRÈS l'acceptation (T-11) — le générateur reçoit les deux; quelque chose arbitre-t-il ?",
+    "verdict": "NOT_TESTABLE",
+    "proof": {
+      "note": "FF-028 n'écrit que le RYTHME; la préférence vit dans le même jsonb mais dans une autre clé, et l'arbitrage appartient au générateur (LLM). Mesuré ici: ce que le générateur a effectivement composé.",
+      "rhythm_after_accept": [
+        "lunch",
+        "dinner",
+        "breakfast"
+      ],
+      "preference_written": "I never eat anything in the morning",
+      "generated_slots": [],
+      "generate_status": 409
+    }
+  }
+]

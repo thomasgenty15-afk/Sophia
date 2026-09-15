@@ -1,0 +1,49 @@
+[Veilleur] Triggered for user aac76fd6-a688-4027-951a-fa79c628fac5 scope=qa-pulse-v2-real-1781201255
+{"tag":"watcher_main_prompt_cache_ready","request_id":"pulse-v2-real-1781201255-watcher","stable_hash":"1e08072d","semi_stable_hash":"cf36f552","stable_chars":7303,"semi_stable_chars":949,"volatile_chars":920,"full_chars":9176}
+{"tag":"gemini_result","request_id":"pulse-v2-real-1781201255-watcher","source":"trigger-watcher-batch","model":"gemini-3-flash-preview","json_mode":true,"tool_choice":"auto","has_tools":false,"outcome":"text"}
+[Veilleur] scheduled_checkins_inserted=1 user=aac76fd6-a688-4027-951a-fa79c628fac5 scope=qa-pulse-v2-real-1781201255
+{"tag":"watcher_momentum_state_updated","user_id":"aac76fd6-a688-4027-951a-fa79c628fac5","scope":"qa-pulse-v2-real-1781201255","momentum":{"state":"friction_legere","state_reason":"engaged_but_not_clearly_progressing","engagement":"high","progression":"unknown","emotional_load":"low","consent":"open","pending_transition_target":null,"pending_transition_confirmations":null,"stable_since_at":"2026-06-11T18:08:20.900Z","active_blockers_count":0,"chronic_blockers_count":0,"top_blocker_action":null,"top_blocker_category":null,"top_blocker_stage":null,"updated_at":"2026-06-11T18:26:33.048Z"}}
+{"tag":"gemini_result","request_id":"pulse-v2-real-1781201255-watcher","source":"watcher_conversation_pulse_v2","model":"gemini-3-flash-preview","json_mode":true,"tool_choice":"auto","has_tools":false,"outcome":"text"}
+{"tag":"watcher_conversation_pulse_v2_generated","user_id":"aac76fd6-a688-4027-951a-fa79c628fac5","scope":"qa-pulse-v2-real-1781201255","snapshot_id":"00e1c9dd-5897-4d60-a418-d30ac342151e","pulse_kind":"watcher_4h","likely_need":"support","proactive_risk":"low"}
+{
+  "run_id": "pulse-v2-real-1781201255",
+  "scope": "qa-pulse-v2-real-1781201255",
+  "watcher_snapshots": 1,
+  "daily_snapshot_id": "b7044829-c245-4cd1-b123-2c1ed25580a4",
+  "daily_generated": true,
+  "legacy_conversation_pulse_snapshots": 0,
+  "snapshots": [
+    {
+      "id": "00e1c9dd-5897-4d60-a418-d30ac342151e",
+      "snapshot_type": "watcher_conversation_pulse_v2",
+      "pulse_kind": "watcher_4h",
+      "version": 2,
+      "tone": {
+        "dominant": "strained",
+        "emotional_load": "medium",
+        "relational_openness": "open"
+      },
+      "likely_need": "support",
+      "proactive_risk": "low",
+      "emotional_anchors_count": 1,
+      "source_pulse_ids": []
+    },
+    {
+      "id": "b7044829-c245-4cd1-b123-2c1ed25580a4",
+      "snapshot_type": "daily_conversation_pulse_v2",
+      "pulse_kind": "daily",
+      "version": 2,
+      "tone": {
+        "dominant": "strained",
+        "emotional_load": "medium",
+        "relational_openness": "open"
+      },
+      "likely_need": "support",
+      "proactive_risk": "low",
+      "emotional_anchors_count": 1,
+      "source_pulse_ids": [
+        "00e1c9dd-5897-4d60-a418-d30ac342151e"
+      ]
+    }
+  ]
+}

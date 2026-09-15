@@ -1,0 +1,52 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-real-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Le niveau actuel de mon plan est trop chargé, je veux alléger ce bloc.",
+    "assistant": "Ah, je vois le genre 😅 Quand c’est trop chargé, ton cerveau panique et tu fais moins… donc l’objectif c’est de réduire sans casser l’élan.\n\nFais simple et efficace :\n1) On garde 1 seule “mission” principale pour aujourd’hui / cette semaine.\n2) Le reste passe en mode “minimum viable” (juste ce qui est indispensable, le reste en pause ou dépriorisé).\n3) On vise une liste courte: 1–3 actions max à exécuter concrètement.\n\nTu veux alléger plutôt côté Missions ou plutôt côté Habitudes ? ✅",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "plan",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-real-r1-t01",
+    "trace_error": null
+  }
+]

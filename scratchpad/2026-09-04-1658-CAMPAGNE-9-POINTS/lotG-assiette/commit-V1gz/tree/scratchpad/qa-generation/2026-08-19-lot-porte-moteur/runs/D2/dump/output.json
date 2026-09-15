@@ -1,0 +1,1029 @@
+{
+  "request_id": "d020000b-0000-4000-8000-000000000006",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000002",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-18T23:57:30.268Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "b82116d0-6605-4134-acca-b562e0785068",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:55:30.951333+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 14538,
+    "user_message_truncated": false,
+    "user_message_written_chars": 14538,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 14538
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "65cfabc1-5dcf-4358-acdf-a4c31ab4fb44",
+    "created_at": "2026-08-18T23:57:29.631115+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 2,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Poppy Seed Yogurt\",\n      \"title\": \"Greek yogurt with honey, lemon and poppy seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"200 g\", \"amount\": 200, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Honey\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Poppy seeds\", \"quantity\": \"1 tsp\", \"amount\": 1, \"unit\": \"tsp\", \"state\": \"raw\" },\n        { \"term\": \"Lemon zest\", \"quantity\": \"half a lemon\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Sunflower seeds\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Stir the lemon zest, honey, and poppy seeds into the yogurt. Top with sunflower seeds.\",\n      \"why\": \"A nod to the traybake the house is dreaming of, providing protein and healthy fats without nuts.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Savoury Beef and Rice Bowl\",\n      \"title\": \"Minced beef with green beans and herby lemon rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Fresh parsley\", \"quantity\": \"a pinch\", \"amount\": null, \"unit\": null, \"state\": \"raw\" }\n      ],\n      \"method\": \"Combine a portion of the beef and green bean mix with the lemon rice in a bowl. Reheat in a pan until steaming and top with parsley.\",\n      \"why\": \"A protein-rich bowl using the loud green beans and starch to fuel the afternoon.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_beef_veg\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\", \"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Golden Roast Chicken and Broccoli\",\n      \"title\": \"Roast chicken thighs and potatoes with steamed broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Broccoli head\", \"quantity\": \"0.25 unit\", \"amount\": 0.25, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Reheat the chicken and potatoes in the oven. Steam the broccoli for 5 minutes and serve alongside.\",\n      \"why\": \"A classic warm dinner with a loud vegetable and roasted starch.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken_potatoes\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 15 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\", \"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Soft Boiled Eggs and Soldiers\",\n      \"title\": \"Soft boiled eggs with buttered toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Eggs\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Bread\", \"quantity\": \"2 slices\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Boil the eggs for 6 minutes. Toast the bread, butter it, and cut into strips for dipping.\",\n      \"why\": \"A warm, simple breakfast that can be eaten easily while the kitchen is being painted.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Cold Roast Chicken Bowl\",\n      \"title\": \"Sliced roast chicken and potato salad with greens\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Mixed salad leaves\", \"quantity\": \"1 handful\", \"amount\": null, \"unit\": null, \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Slice the cold chicken and potatoes. Toss with salad leaves and olive oil in a bowl.\",\n      \"why\": \"Easy to eat standing up or away from the dust-sheeted table.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken_potatoes\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Warm Beef and Rice Bowl\",\n      \"title\": \"Beef, peppers and green beans over lemon rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Hot sauce\", \"quantity\": \"1 tsp\", \"amount\": 1, \"unit\": \"tsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Reheat the beef and rice together in a pan. Serve in a bowl with hot sauce to taste.\",\n      \"why\": \"A warm, comforting bowl that requires no table space and minimal cleanup.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_beef_veg\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Summer Berry Yogurt Bowl\",\n      \"title\": \"Greek yogurt with fresh berries and seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"200 g\", \"amount\": 200, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Mixed berries\", \"quantity\": \"1 handful\", \"amount\": null, \"unit\": null, \"state\": \"raw\" },\n        { \"term\": \"Sunflower seeds\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Top the yogurt with berries and seeds.\",\n      \"why\": \"Fresh and light for a summer morning, packed with protein.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Beef and Green Bean Stir-fry\",\n      \"title\": \"Savoury beef and peppers with lemon rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Lemon juice\", \"quantity\": \"1 tsp\", \"amount\": 1, \"unit\": \"tsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Flash-heat the beef and rice in a hot pan. Finish with a squeeze of lemon juice.\",\n      \"why\": \"Using the final portions of the batch for a quick, high-protein lunch.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_beef_veg\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 8 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\", \"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Crispy Salmon and Herby Rice\",\n      \"title\": \"Pan-seared salmon with warm lemon rice and salad\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Salmon fillet\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Mixed salad leaves\", \"quantity\": \"1 handful\", \"amount\": null, \"unit\": null, \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Sear the salmon in a pan for 4 minutes per side. Reheat the remaining rice in a separate pan. Serve with salad.\",\n      \"why\": \"A fresh fish dinner to end the stretch, with the rice providing the mandatory warm element.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_lemon_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 15 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_potatoes\",\n      \"title\": \"Roast chicken thighs and new potatoes\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"Chicken thighs, bone-in\", \"quantity\": \"12 units\", \"amount\": 12, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"New potatoes\", \"quantity\": \"1.2 kg\", \"amount\": 1.2, \"unit\": \"kg\", \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"3 tbsp\", \"amount\": 3, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Dried oregano\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Halve the potatoes. Toss chicken and potatoes with oil, oregano, salt, and pepper. Roast at 200°C for 45 minutes until golden.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 60,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 700 },\n        { \"id\": \"box_chicken_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 400 },\n        { \"id\": \"box_chicken_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 700 },\n        { \"id\": \"box_chicken_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 400 }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_veg\",\n      \"title\": \"Savoury beef with peppers and green beans\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        { \"term\": \"Beef mince\", \"quantity\": \"1.2 kg\", \"amount\": 1.2, \"unit\": \"kg\", \"state\": \"raw\" },\n        { \"term\": \"Green beans\", \"quantity\": \"400 g\", \"amount\": 400, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Green peppers\", \"quantity\": \"3 units\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Garlic\", \"quantity\": \"4 cloves\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Brown the beef in a large pan. Add sliced peppers, green beans, and minced garlic. Cook until vegetables are tender-crisp.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_beef_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 450 },\n        { \"id\": \"box_beef_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 300 },\n        { \"id\": \"box_beef_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 450 },\n        { \"id\": \"box_beef_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 300 }\n      ]\n    },\n    {\n      \"id\": \"prep_lemon_rice\",\n      \"title\": \"Herby lemon rice\",\n      \"servings_made\": 16,\n      \"ingredients\": [\n        { \"term\": \"White rice\", \"quantity\": \"800 g\", \"amount\": 800, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Lemon juice\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Fresh parsley\", \"quantity\": \"1 bunch\", \"amount\": null, \"unit\": null, \"state\": \"raw\" }\n      ],\n      \"method\": \"Boil the rice until tender. Drain and stir in lemon juice and chopped parsley.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_rice_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 550 },\n        { \"id\": \"box_rice_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 350 },\n        { \"id\": \"box_rice_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 550 },\n        { \"id\": \"box_rice_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 350 }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\"prep_chicken_potatoes\", \"prep_beef_veg\", \"prep_lemon_rice\"],\n      \"total_minutes\": 55,\n      \"run_through\": \"Preheat oven. Prep chicken and potatoes, get them roasting. Start the rice boiling. While they cook, brown the beef and sauté with the peppers and beans. Chop the parsley and zest the lemons. Drain the rice and season. Once the chicken is done, box everything according to the weights.\"\n    }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"Chicken thighs, bone-in\", \"quantity\": \"2.5 kg\", \"aisle\": \"protein\" },\n    { \"term\": \"Beef mince\", \"quantity\": \"1.2 kg\", \"aisle\": \"protein\" },\n    { \"term\": \"Salmon fillets\", \"quantity\": \"4 units\", \"aisle\": \"protein\" },\n    { \"term\": \"Eggs\", \"quantity\": \"6 pack\", \"aisle\": \"dairy\" },\n    { \"term\": \"Greek yogurt\", \"quantity\": \"1 kg\", \"aisle\": \"dairy\" },\n    { \"term\": \"Butter\", \"quantity\": \"250 g\", \"aisle\": \"dairy\" },\n    { \"term\": \"New potatoes\", \"quantity\": \"1.5 kg\", \"aisle\": \"produce\" },\n    { \"term\": \"Green beans\", \"quantity\": \"400 g\", \"aisle\": \"produce\" },\n    { \"term\": \"Green peppers\", \"quantity\": \"3 units\", \"aisle\": \"produce\" },\n    { \"term\": \"Broccoli head\", \"quantity\": \"1 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"Lemons\", \"quantity\": \"4 units\", \"aisle\": \"produce\" },\n    { \"term\": \"Garlic\", \"quantity\": \"1 bulb\", \"aisle\": \"produce\" },\n    { \"term\": \"Fresh parsley\", \"quantity\": \"1 bunch\", \"aisle\": \"produce\" },\n    { \"term\": \"Mixed salad leaves\", \"quantity\": \"200 g\", \"aisle\": \"produce\" },\n    { \"term\": \"Mixed berries\", \"quantity\": \"250 g\", \"aisle\": \"produce\" },\n    { \"term\": \"White rice\", \"quantity\": \"1 kg\", \"aisle\": \"grains\" },\n    { \"term\": \"Bread\", \"quantity\": \"1 loaf\", \"aisle\": \"grains\" },\n    { \"term\": \"Honey\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"Sunflower seeds\", \"quantity\": \"100 g\", \"aisle\": \"pantry\" },\n    { \"term\": \"Poppy seeds\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"Olive oil\", \"quantity\": \"250 ml\", \"aisle\": \"pantry\" },\n    { \"term\": \"Dried oregano\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"Hot sauce\", \"quantity\": \"1 bottle\", \"aisle\": \"pantry\" },\n    { \"term\": \"Blackcurrant jam\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"A larger share of protein and starch; serve your toast with blackcurrant jam at breakfast.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_potatoes\", \"note\": \"Two chicken thighs and a generous scoop of potatoes.\" },\n        { \"preparation_id\": \"prep_beef_veg\", \"note\": \"A large scoop of the beef and vegetable mix.\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"note\": \"A large scoop of rice.\" }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"A child-size portion of the main dish; ensure any bread served has the crusts removed.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_potatoes\", \"note\": \"One chicken thigh and a small scoop of potatoes.\" },\n        { \"preparation_id\": \"prep_beef_veg\", \"note\": \"A small scoop of the beef and vegetable mix.\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"note\": \"A small scoop of rice.\" }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"A larger share of protein and starch; strictly no fennel or orange-coloured vegetables.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_potatoes\", \"note\": \"Two chicken thighs and a generous scoop of potatoes.\" },\n        { \"preparation_id\": \"prep_beef_veg\", \"note\": \"A large scoop of the beef and vegetable mix.\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"note\": \"A large scoop of rice.\" }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"A child-size portion of the main dish; serve with hot sauce on the side.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_potatoes\", \"note\": \"One chicken thigh and a small scoop of potatoes.\" },\n        { \"preparation_id\": \"prep_beef_veg\", \"note\": \"A small scoop of the beef and vegetable mix.\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"note\": \"A small scoop of rice.\" }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Zesty Poppy Seed Yogurt",
+          "title": "Greek yogurt with honey, lemon and poppy seeds",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Honey",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "Poppy seeds",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "Lemon zest",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Sunflower seeds",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Stir the lemon zest, honey, and poppy seeds into the yogurt. Top with sunflower seeds.",
+          "why": "A nod to the traybake the house is dreaming of, providing protein and healthy fats without nuts.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Savoury Beef and Rice Bowl",
+          "title": "Minced beef with green beans and herby lemon rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Fresh parsley",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Combine a portion of the beef and green bean mix with the lemon rice in a bowl. Reheat in a pan until steaming and top with parsley.",
+          "why": "A protein-rich bowl using the loud green beans and starch to fuel the afternoon.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_veg",
+              "servings": 1,
+              "box_id": "box_beef_odalric"
+            },
+            {
+              "preparation_id": "prep_lemon_rice",
+              "servings": 1,
+              "box_id": "box_rice_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Golden Roast Chicken and Broccoli",
+          "title": "Roast chicken thighs and potatoes with steamed broccoli",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Broccoli head",
+              "quantity": "0.25 unit",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the chicken and potatoes in the oven. Steam the broccoli for 5 minutes and serve alongside.",
+          "why": "A classic warm dinner with a loud vegetable and roasted starch.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_potatoes",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Soft Boiled Eggs and Soldiers",
+          "title": "Soft boiled eggs with buttered toast",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Eggs",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Boil the eggs for 6 minutes. Toast the bread, butter it, and cut into strips for dipping.",
+          "why": "A warm, simple breakfast that can be eaten easily while the kitchen is being painted.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Cold Roast Chicken Bowl",
+          "title": "Sliced roast chicken and potato salad with greens",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Mixed salad leaves",
+              "quantity": "1 handful",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Slice the cold chicken and potatoes. Toss with salad leaves and olive oil in a bowl.",
+          "why": "Easy to eat standing up or away from the dust-sheeted table.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_potatoes",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Warm Beef and Rice Bowl",
+          "title": "Beef, peppers and green beans over lemon rice",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Hot sauce",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the beef and rice together in a pan. Serve in a bowl with hot sauce to taste.",
+          "why": "A warm, comforting bowl that requires no table space and minimal cleanup.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_veg",
+              "servings": 1,
+              "box_id": "box_beef_odalric"
+            },
+            {
+              "preparation_id": "prep_lemon_rice",
+              "servings": 1,
+              "box_id": "box_rice_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Summer Berry Yogurt Bowl",
+          "title": "Greek yogurt with fresh berries and seeds",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Mixed berries",
+              "quantity": "1 handful",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            },
+            {
+              "term": "Sunflower seeds",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Top the yogurt with berries and seeds.",
+          "why": "Fresh and light for a summer morning, packed with protein.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Beef and Green Bean Stir-fry",
+          "title": "Savoury beef and peppers with lemon rice",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Lemon juice",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Flash-heat the beef and rice in a hot pan. Finish with a squeeze of lemon juice.",
+          "why": "Using the final portions of the batch for a quick, high-protein lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_veg",
+              "servings": 1,
+              "box_id": "box_beef_odalric"
+            },
+            {
+              "preparation_id": "prep_lemon_rice",
+              "servings": 1,
+              "box_id": "box_rice_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Crispy Salmon and Herby Rice",
+          "title": "Pan-seared salmon with warm lemon rice and salad",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Salmon fillet",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Mixed salad leaves",
+              "quantity": "1 handful",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Sear the salmon in a pan for 4 minutes per side. Reheat the remaining rice in a separate pan. Serve with salad.",
+          "why": "A fresh fish dinner to end the stretch, with the rice providing the mandatory warm element.",
+          "uses": [
+            {
+              "preparation_id": "prep_lemon_rice",
+              "servings": 1,
+              "box_id": "box_rice_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken_potatoes",
+          "title": "Roast chicken thighs and new potatoes",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "Chicken thighs, bone-in",
+              "quantity": "12 units",
+              "amount": 12,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "New potatoes",
+              "quantity": "1.2 kg",
+              "amount": 1.2,
+              "unit": "kg",
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "3 tbsp",
+              "amount": 3,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "Dried oregano",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Halve the potatoes. Toss chicken and potatoes with oil, oregano, salt, and pepper. Roast at 200°C for 45 minutes until golden.",
+          "active_minutes": 15,
+          "total_minutes": 60,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 700
+            },
+            {
+              "id": "box_chicken_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_chicken_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 700
+            },
+            {
+              "id": "box_chicken_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 400
+            }
+          ]
+        },
+        {
+          "id": "prep_beef_veg",
+          "title": "Savoury beef with peppers and green beans",
+          "servings_made": 12,
+          "ingredients": [
+            {
+              "term": "Beef mince",
+              "quantity": "1.2 kg",
+              "amount": 1.2,
+              "unit": "kg",
+              "state": "raw"
+            },
+            {
+              "term": "Green beans",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Green peppers",
+              "quantity": "3 units",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Garlic",
+              "quantity": "4 cloves",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Brown the beef in a large pan. Add sliced peppers, green beans, and minced garlic. Cook until vegetables are tender-crisp.",
+          "active_minutes": 15,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beef_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 450
+            },
+            {
+              "id": "box_beef_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_beef_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 450
+            },
+            {
+              "id": "box_beef_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_lemon_rice",
+          "title": "Herby lemon rice",
+          "servings_made": 16,
+          "ingredients": [
+            {
+              "term": "White rice",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Lemon juice",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Fresh parsley",
+              "quantity": "1 bunch",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Boil the rice until tender. Drain and stir in lemon juice and chopped parsley.",
+          "active_minutes": 10,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 550
+            },
+            {
+              "id": "box_rice_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 350
+            },
+            {
+              "id": "box_rice_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 550
+            },
+            {
+              "id": "box_rice_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 350
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken_potatoes",
+            "prep_beef_veg",
+            "prep_lemon_rice"
+          ],
+          "total_minutes": 55,
+          "run_through": "Preheat oven. Prep chicken and potatoes, get them roasting. Start the rice boiling. While they cook, brown the beef and sauté with the peppers and beans. Chop the parsley and zest the lemons. Drain the rice and season. Once the chicken is done, box everything according to the weights."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "Chicken thighs, bone-in",
+          "quantity": "2.5 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "Beef mince",
+          "quantity": "1.2 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "Salmon fillets",
+          "quantity": "4 units",
+          "aisle": "protein"
+        },
+        {
+          "term": "Eggs",
+          "quantity": "6 pack",
+          "aisle": "dairy"
+        },
+        {
+          "term": "Greek yogurt",
+          "quantity": "1 kg",
+          "aisle": "dairy"
+        },
+        {
+          "term": "Butter",
+          "quantity": "250 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "New potatoes",
+          "quantity": "1.5 kg",
+          "aisle": "produce"
+        },
+        {
+          "term": "Green beans",
+          "quantity": "400 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Green peppers",
+          "quantity": "3 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "Broccoli head",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "Lemons",
+          "quantity": "4 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "Garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "Fresh parsley",
+          "quantity": "1 bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "Mixed salad leaves",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Mixed berries",
+          "quantity": "250 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "White rice",
+          "quantity": "1 kg",
+          "aisle": "grains"
+        },
+        {
+          "term": "Bread",
+          "quantity": "1 loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "Honey",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Sunflower seeds",
+          "quantity": "100 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Poppy seeds",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Olive oil",
+          "quantity": "250 ml",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Dried oregano",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Hot sauce",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Blackcurrant jam",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+          "portion_note": "A larger share of protein and starch; serve your toast with blackcurrant jam at breakfast.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_potatoes",
+              "note": "Two chicken thighs and a generous scoop of potatoes."
+            },
+            {
+              "preparation_id": "prep_beef_veg",
+              "note": "A large scoop of the beef and vegetable mix."
+            },
+            {
+              "preparation_id": "prep_lemon_rice",
+              "note": "A large scoop of rice."
+            }
+          ]
+        },
+        {
+          "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+          "portion_note": "A child-size portion of the main dish; ensure any bread served has the crusts removed.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_potatoes",
+              "note": "One chicken thigh and a small scoop of potatoes."
+            },
+            {
+              "preparation_id": "prep_beef_veg",
+              "note": "A small scoop of the beef and vegetable mix."
+            },
+            {
+              "preparation_id": "prep_lemon_rice",
+              "note": "A small scoop of rice."
+            }
+          ]
+        },
+        {
+          "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+          "portion_note": "A larger share of protein and starch; strictly no fennel or orange-coloured vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_potatoes",
+              "note": "Two chicken thighs and a generous scoop of potatoes."
+            },
+            {
+              "preparation_id": "prep_beef_veg",
+              "note": "A large scoop of the beef and vegetable mix."
+            },
+            {
+              "preparation_id": "prep_lemon_rice",
+              "note": "A large scoop of rice."
+            }
+          ]
+        },
+        {
+          "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+          "portion_note": "A child-size portion of the main dish; serve with hot sauce on the side.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_potatoes",
+              "note": "One chicken thigh and a small scoop of potatoes."
+            },
+            {
+              "preparation_id": "prep_beef_veg",
+              "note": "A small scoop of the beef and vegetable mix."
+            },
+            {
+              "preparation_id": "prep_lemon_rice",
+              "note": "A small scoop of rice."
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Poppy Seed Yogurt\",\n      \"title\": \"Greek yogurt with honey, lemon and poppy seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"200 g\", \"amount\": 200, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Honey\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Poppy seeds\", \"quantity\": \"1 tsp\", \"amount\": 1, \"unit\": \"tsp\", \"state\": \"raw\" },\n        { \"term\": \"Lemon zest\", \"quantity\": \"half a lemon\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Sunflower seeds\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Stir the lemon zest, honey, and poppy seeds into the yogurt. Top with sunflower seeds.\",\n      \"why\": \"A nod to the traybake the house is dreaming of, providing protein and healthy fats without nuts.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Savoury Beef and Rice Bowl\",\n      \"title\": \"Minced beef with green beans and herby lemon rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Fresh parsley\", \"quantity\": \"a pinch\", \"amount\": null, \"unit\": null, \"state\": \"raw\" }\n      ],\n      \"method\": \"Combine a portion of the beef and green bean mix with the lemon rice in a bowl. Reheat in a pan until steaming and top with parsley.\",\n      \"why\": \"A protein-rich bowl using the loud green beans and starch to fuel the afternoon.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_beef_veg\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\", \"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Golden Roast Chicken and Broccoli\",\n      \"title\": \"Roast chicken thighs and potatoes with steamed broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"Broccoli head\", \"quantity\": \"0.25 unit\", \"amount\": 0.25, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Reheat the chicken and potatoes in the oven. Steam the broccoli for 5 minutes and serve alongside.\",\n      \"why\": \"A classic warm dinner with a loud vegetable and roasted starch.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken_potatoes\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 15 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\", \"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Soft Boiled Eggs and Soldiers\",\n      \"title\": \"Soft boiled eggs with buttered toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Eggs\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Bread\", \"quantity\": \"2 slices\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Boil the eggs for 6 minutes. Toast the bread, butter it, and cut into strips for dipping.\",\n      \"why\": \"A warm, simple breakfast that can be eaten easily while the kitchen is being painted.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Cold Roast Chicken Bowl\",\n      \"title\": \"Sliced roast chicken and potato salad with greens\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Mixed salad leaves\", \"quantity\": \"1 handful\", \"amount\": null, \"unit\": null, \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Slice the cold chicken and potatoes. Toss with salad leaves and olive oil in a bowl.\",\n      \"why\": \"Easy to eat standing up or away from the dust-sheeted table.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken_potatoes\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Warm Beef and Rice Bowl\",\n      \"title\": \"Beef, peppers and green beans over lemon rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Hot sauce\", \"quantity\": \"1 tsp\", \"amount\": 1, \"unit\": \"tsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Reheat the beef and rice together in a pan. Serve in a bowl with hot sauce to taste.\",\n      \"why\": \"A warm, comforting bowl that requires no table space and minimal cleanup.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_beef_veg\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Summer Berry Yogurt Bowl\",\n      \"title\": \"Greek yogurt with fresh berries and seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"200 g\", \"amount\": 200, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Mixed berries\", \"quantity\": \"1 handful\", \"amount\": null, \"unit\": null, \"state\": \"raw\" },\n        { \"term\": \"Sunflower seeds\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Top the yogurt with berries and seeds.\",\n      \"why\": \"Fresh and light for a summer morning, packed with protein.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Beef and Green Bean Stir-fry\",\n      \"title\": \"Savoury beef and peppers with lemon rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Lemon juice\", \"quantity\": \"1 tsp\", \"amount\": 1, \"unit\": \"tsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Flash-heat the beef and rice in a hot pan. Finish with a squeeze of lemon juice.\",\n      \"why\": \"Using the final portions of the batch for a quick, high-protein lunch.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_beef_veg\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 8 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\", \"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Crispy Salmon and Herby Rice\",\n      \"title\": \"Pan-seared salmon with warm lemon rice and salad\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Salmon fillet\", \"quantity\": \"1 unit\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Mixed salad leaves\", \"quantity\": \"1 handful\", \"amount\": null, \"unit\": null, \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Sear the salmon in a pan for 4 minutes per side. Reheat the remaining rice in a separate pan. Serve with salad.\",\n      \"why\": \"A fresh fish dinner to end the stretch, with the rice providing the mandatory warm element.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_lemon_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 15 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_potatoes\",\n      \"title\": \"Roast chicken thighs and new potatoes\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"Chicken thighs, bone-in\", \"quantity\": \"12 units\", \"amount\": 12, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"New potatoes\", \"quantity\": \"1.2 kg\", \"amount\": 1.2, \"unit\": \"kg\", \"state\": \"raw\" },\n        { \"term\": \"Olive oil\", \"quantity\": \"3 tbsp\", \"amount\": 3, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"Dried oregano\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Halve the potatoes. Toss chicken and potatoes with oil, oregano, salt, and pepper. Roast at 200°C for 45 minutes until golden.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 60,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 700 },\n        { \"id\": \"box_chicken_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 400 },\n        { \"id\": \"box_chicken_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 700 },\n        { \"id\": \"box_chicken_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 400 }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_veg\",\n      \"title\": \"Savoury beef with peppers and green beans\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        { \"term\": \"Beef mince\", \"quantity\": \"1.2 kg\", \"amount\": 1.2, \"unit\": \"kg\", \"state\": \"raw\" },\n        { \"term\": \"Green beans\", \"quantity\": \"400 g\", \"amount\": 400, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Green peppers\", \"quantity\": \"3 units\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Garlic\", \"quantity\": \"4 cloves\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Brown the beef in a large pan. Add sliced peppers, green beans, and minced garlic. Cook until vegetables are tender-crisp.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_beef_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 450 },\n        { \"id\": \"box_beef_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 300 },\n        { \"id\": \"box_beef_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 450 },\n        { \"id\": \"box_beef_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 300 }\n      ]\n    },\n    {\n      \"id\": \"prep_lemon_rice\",\n      \"title\": \"Herby lemon rice\",\n      \"servings_made\": 16,\n      \"ingredients\": [\n        { \"term\": \"White rice\", \"quantity\": \"800 g\", \"amount\": 800, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"Lemon juice\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"Fresh parsley\", \"quantity\": \"1 bunch\", \"amount\": null, \"unit\": null, \"state\": \"raw\" }\n      ],\n      \"method\": \"Boil the rice until tender. Drain and stir in lemon juice and chopped parsley.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_rice_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 550 },\n        { \"id\": \"box_rice_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 350 },\n        { \"id\": \"box_rice_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 550 },\n        { \"id\": \"box_rice_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 350 }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\"prep_chicken_potatoes\", \"prep_beef_veg\", \"prep_lemon_rice\"],\n      \"total_minutes\": 55,\n      \"run_through\": \"Preheat oven. Prep chicken and potatoes, get them roasting. Start the rice boiling. While they cook, brown the beef and sauté with the peppers and beans. Chop the parsley and zest the lemons. Drain the rice and season. Once the chicken is done, box everything according to the weights.\"\n    }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"Chicken thighs, bone-in\", \"quantity\": \"2.5 kg\", \"aisle\": \"protein\" },\n    { \"term\": \"Beef mince\", \"quantity\": \"1.2 kg\", \"aisle\": \"protein\" },\n    { \"term\": \"Salmon fillets\", \"quantity\": \"4 units\", \"aisle\": \"protein\" },\n    { \"term\": \"Eggs\", \"quantity\": \"6 pack\", \"aisle\": \"dairy\" },\n    { \"term\": \"Greek yogurt\", \"quantity\": \"1 kg\", \"aisle\": \"dairy\" },\n    { \"term\": \"Butter\", \"quantity\": \"250 g\", \"aisle\": \"dairy\" },\n    { \"term\": \"New potatoes\", \"quantity\": \"1.5 kg\", \"aisle\": \"produce\" },\n    { \"term\": \"Green beans\", \"quantity\": \"400 g\", \"aisle\": \"produce\" },\n    { \"term\": \"Green peppers\", \"quantity\": \"3 units\", \"aisle\": \"produce\" },\n    { \"term\": \"Broccoli head\", \"quantity\": \"1 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"Lemons\", \"quantity\": \"4 units\", \"aisle\": \"produce\" },\n    { \"term\": \"Garlic\", \"quantity\": \"1 bulb\", \"aisle\": \"produce\" },\n    { \"term\": \"Fresh parsley\", \"quantity\": \"1 bunch\", \"aisle\": \"produce\" },\n    { \"term\": \"Mixed salad leaves\", \"quantity\": \"200 g\", \"aisle\": \"produce\" },\n    { \"term\": \"Mixed berries\", \"quantity\": \"250 g\", \"aisle\": \"produce\" },\n    { \"term\": \"White rice\", \"quantity\": \"1 kg\", \"aisle\": \"grains\" },\n    { \"term\": \"Bread\", \"quantity\": \"1 loaf\", \"aisle\": \"grains\" },\n    { \"term\": \"Honey\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"Sunflower seeds\", \"quantity\": \"100 g\", \"aisle\": \"pantry\" },\n    { \"term\": \"Poppy seeds\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"Olive oil\", \"quantity\": \"250 ml\", \"aisle\": \"pantry\" },\n    { \"term\": \"Dried oregano\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"Hot sauce\", \"quantity\": \"1 bottle\", \"aisle\": \"pantry\" },\n    { \"term\": \"Blackcurrant jam\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"A larger share of protein and starch; serve your toast with blackcurrant jam at breakfast.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_potatoes\", \"note\": \"Two chicken thighs and a generous scoop of potatoes.\" },\n        { \"preparation_id\": \"prep_beef_veg\", \"note\": \"A large scoop of the beef and vegetable mix.\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"note\": \"A large scoop of rice.\" }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"A child-size portion of the main dish; ensure any bread served has the crusts removed.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_potatoes\", \"note\": \"One chicken thigh and a small scoop of potatoes.\" },\n        { \"preparation_id\": \"prep_beef_veg\", \"note\": \"A small scoop of the beef and vegetable mix.\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"note\": \"A small scoop of rice.\" }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"A larger share of protein and starch; strictly no fennel or orange-coloured vegetables.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_potatoes\", \"note\": \"Two chicken thighs and a generous scoop of potatoes.\" },\n        { \"preparation_id\": \"prep_beef_veg\", \"note\": \"A large scoop of the beef and vegetable mix.\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"note\": \"A large scoop of rice.\" }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"A child-size portion of the main dish; serve with hot sauce on the side.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_potatoes\", \"note\": \"One chicken thigh and a small scoop of potatoes.\" },\n        { \"preparation_id\": \"prep_beef_veg\", \"note\": \"A small scoop of the beef and vegetable mix.\" },\n        { \"preparation_id\": \"prep_lemon_rice\", \"note\": \"A small scoop of rice.\" }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "PvGEao3-JqulnsEPsISiyQs",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 18848,
+        "promptTokenCount": 7699,
+        "cacheTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4047
+          }
+        ],
+        "thoughtsTokenCount": 5598,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 7699
+          }
+        ],
+        "candidatesTokenCount": 5551,
+        "cachedContentTokenCount": 4047
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:55:30.951333+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:55:31.542731+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:55:35.542616+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:55:35.554877+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:55:35.560723+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:35.615956+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:35.641814+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:36.35091+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:41.22526+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:41.980555+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:46.412157+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:46.419999+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:56:46.424931+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:57:29.631115+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

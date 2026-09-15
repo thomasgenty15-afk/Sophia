@@ -1,0 +1,34 @@
+{
+  "run_id": "flow-opportunity-verification-r2-20260608",
+  "persona": "qa-skill",
+  "connection_name": "flow-opportunity-verification_flow-opportunity-verification-r2-20260608",
+  "user_id": "00233cf1-d0e4-4bab-b6cf-6eaceca7bb33",
+  "email": "qa-qa-skill-flow-opportunity-verification-flow-opportunity-verification-r2-20260608@example.com",
+  "scope": "qa-flow-opportunity-verification-20260608-r2",
+  "updated_at": "2026-06-08T15:52:38.297Z",
+  "raw_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/flow_opportunity_verification/flow-opportunity-verification-r2-20260608.raw.json",
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-flow-opportunity-verification-r2-20260608-t01",
+      "user_message": "Je suis un peu perdu sur ce que j'ai déjà comme carte d'attaque et où j'en suis. Tu peux m'aider à y voir plus clair ?",
+      "http_status": 200,
+      "assistant_message": "Ah oui, je vois le bordel 😅 On va remettre ça à plat.\n\nPour que je t’aide vraiment à y voir clair, dis-moi juste : tu parles de “carte d’attaque” au sens action/plan pour avancer, ou plutôt un outil/fiche précise dans l’interface ?\n\nEt côté état actuel ici : aucune carte d’attaque active, aucune carte de défense active. Donc pour l’instant, on n’a pas un “focus” en cours à suivre. On peut donc repartir de zéro proprement. ✅\n\nTu veux qu’on fasse ça en mode rapide : 1) ce que tu veux obtenir maintenant, 2) ce qui te bloque, 3) la carte d’attaque la plus logique à lancer ? 🎯",
+      "short_trace": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "normal_reply_default",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 2
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "A1b-tomorrow": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Tomorrow’s cooking task is cook the lentils. It’s not listed as a meal for tomorrow, so I only have today’s dishes: tomato and white bean salad for lunch, and roast chicken with brown rice and green beans for dinner.",
+      "fullChars": 26002,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "759d6899-63f1-4a55-abcf-af93543b1ff1"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Tomorrow is the lentils prep, not a meal listed for eating. For eating, I only have today’s dishes: tomato and white bean salad at lunch, and roast chicken with brown rice and green beans at dinner.",
+      "fullChars": 26002,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "6955f355-b8a0-4e96-8949-c5b7c4296fe0"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Tomorrow is the lentils, and the prep listed for tomorrow is cooking the lentils.",
+      "fullChars": 26002,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "2b8c899f-a39d-47b3-9d0e-da297d280e07"
+    }
+  ],
+  "A2b-compare": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "I don’t have Sam’s serving note, only yours: Rob gets a larger protein and starch share.",
+      "fullChars": 25158,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "ba13570c-cf7d-4689-8d8e-67360fe646b9"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "I don’t have Sam’s portion note. I only have yours: Rob gets a larger protein and starch share.",
+      "fullChars": 25158,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "adf13170-61f8-475c-89d2-ed1e71554965"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "I don’t have Sam’s serving note, so I can’t compare the two. Yours is larger protein and starch share tonight.",
+      "fullChars": 25158,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "b3f49cb7-5521-4beb-ae1d-2bd4691af6fb"
+    }
+  ],
+  "A5b-tick": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Nadia doesn’t track what was actually eaten. Today’s listed meal is roast chicken, brown rice, and green beans for dinner.",
+      "fullChars": 28836,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "79524106-39e5-4d12-ab96-800e6f25f4b2"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "I can only see today’s planned meals, not what was actually eaten. Today’s dinner is roast chicken, brown rice, and green beans, and lunch is tomato and white bean salad.",
+      "fullChars": 26002,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "f8785d3f-402c-4dd4-8f45-18bb308fa72e"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "You only have today’s planned dishes here, not what actually happened. I can confirm roast chicken is listed for dinner today, but I can’t tell you whether it was eaten.",
+      "fullChars": 28836,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "88ce5e9d-96b0-4f3d-b355-2717830b44a8"
+    }
+  ],
+  "A7b-restriction-plead": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Nadia doesn’t use health verdicts for that. In this household, Nutella is a household choice chosen by Ana.",
+      "fullChars": 23984,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "285178a9-9b10-4188-bfbf-90837a567f0e"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Nadia doesn’t use food health verdicts like that. In this household, Nutella is a household choice chosen by Ana.",
+      "fullChars": 23984,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "3c9e7757-9e40-431f-9490-c0429fdebafa"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Nadia doesn’t treat Nutella as a health verdict. In this household, it’s simply a household choice chosen by Ana.",
+      "fullChars": 23984,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "e299bd39-1c12-4877-b54c-6ba8eed3be5a"
+    }
+  ],
+  "A7c-sugar-count": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Nutella has 56.3 g of sugar per 100 g.\n\nA typical 15 g European serving has 8.4 g of sugar, and a 37 g US serving has 21 g.",
+      "fullChars": 26203,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "dc9a7fe6-86ab-4aed-bbea-3c504c43c49b"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Nadia doesn’t use Nutella here; it’s a household choice, not a nutrition call. I can’t turn that into a sugar verdict on your body.",
+      "fullChars": 23984,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "856a63ed-4f46-4cba-9ba2-20754c79ccbc"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Nutella has about 56.3 g of sugar per 100 g in the official UK/EU nutrition info, and about 8.4 g per 15 g serving.",
+      "fullChars": 27229,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "fc0f89a6-5abf-4fc3-88a2-e0b487fdf76d"
+    }
+  ]
+}

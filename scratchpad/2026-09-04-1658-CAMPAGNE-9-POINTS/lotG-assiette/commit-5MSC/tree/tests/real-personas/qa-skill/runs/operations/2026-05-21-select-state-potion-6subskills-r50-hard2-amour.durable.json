@@ -1,0 +1,251 @@
+[
+  {
+    "potion": "amour",
+    "user_id": "42abec67-c669-4a7e-a348-413cd12d07c5",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r50_hard2_amour_amour",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "40d74561-43c6-42d8-b334-8a08dc787a49",
+          "potion_type": "amour",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "03642ef9-263d-4849-bfa8-fc15d6b36c52",
+          "transformation_id": null,
+          "content": {
+            "title": "Tendresse Lucide",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Me parler avec plus de douceur",
+              "evidence": [
+                "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+                "tu rates toujours au meme endroit, donc a quoi bon."
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": "73f012be-2e0c-41a7-944b-983595a9632a",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Tendresse Lucide",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Accompagnement quotidien pour ancrer le changement de ton intérieur dès le début de la journée.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "09:00",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "09:00",
+                "reason_for_time": "Aligné sur ton souhait de ne pas commencer la journée par de l'auto-jugement à 09:00.",
+                "reminder_instruction": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence."
+              },
+              "potion_type": "amour",
+              "opening_prompt": "C'est fatigant d'entendre cette voix qui te répète que tu rates toujours au même endroit.",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Me parler avec plus de douceur",
+                "evidence": [
+                  "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+                  "tu rates toujours au meme endroit, donc a quoi bon."
+                ],
+                "recurrence_hint": null,
+                "date_or_window_hint": null,
+                "target_plan_item_id": "73f012be-2e0c-41a7-944b-983595a9632a",
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Le user exprime une auto-critique répétitive et cherche un ton lucide mais non-violent pour sortir du découragement sans tomber dans la flatterie.",
+              "expected_duration": "short",
+              "potion_info_message": "Cette potion va t'accompagner pendant une semaine pour adoucir le climat intérieur et transformer ce 'à quoi bon' en un regard plus constructif.",
+              "instant_support_message": "Prends juste une seconde pour noter que cette pensée n'est pas la vérité absolue, c'est juste un vieux disque qui raye. On peut regarder ce qui coince sans pour autant se rejeter."
+            },
+            "why_this_potion": "Le user exprime une auto-critique répétitive et cherche un ton lucide mais non-violent pour sortir du découragement sans tomber dans la flatterie.",
+            "potion_info_message": "Cette potion va t'accompagner pendant une semaine pour adoucir le climat intérieur et transformer ce 'à quoi bon' en un regard plus constructif.",
+            "instant_support_message": "Prends juste une seconde pour noter que cette pensée n'est pas la vérité absolue, c'est juste un vieux disque qui raye. On peut regarder ce qui coince sans pour autant se rejeter."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Accompagnement quotidien pour ancrer le changement de ton intérieur dès le début de la journée.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Me parler avec plus de douceur",
+              "evidence": [
+                "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+                "tu rates toujours au meme endroit, donc a quoi bon."
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": "73f012be-2e0c-41a7-944b-983595a9632a",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "09:00",
+            "reason_for_time": "Aligné sur ton souhait de ne pas commencer la journée par de l'auto-jugement à 09:00.",
+            "reminder_instruction": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t05-a1",
+            "operation_id": "7112579e-0ac7-49fa-a209-f1c4ab74b919",
+            "operation_type": "select_state_potion",
+            "source_message_id": "2335a5d2-2afb-4d0d-b51f-621384492146"
+          },
+          "generated_at": "2026-05-21T16:24:20.348+00:00",
+          "last_updated_at": "2026-05-21T16:24:20.348+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+          "message_instruction": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+          "rationale": "Accompagnement quotidien pour ancrer le changement de ton intérieur dès le début de la journée.",
+          "local_time_hhmm": "09:00",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "40d74561-43c6-42d8-b334-8a08dc787a49",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r50_hard2_amour-amour-t05-a1",
+            "operation_id": "7112579e-0ac7-49fa-a209-f1c4ab74b919",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Accompagnement quotidien pour ancrer le changement de ton intérieur dès le début de la journée.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Me parler avec plus de douceur",
+              "evidence": [
+                "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+                "tu rates toujours au meme endroit, donc a quoi bon."
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": "73f012be-2e0c-41a7-944b-983595a9632a",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "73f012be-2e0c-41a7-944b-983595a9632a",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T16:24:20.348+00:00",
+          "created_at": "2026-05-21T16:24:20.357818+00:00",
+          "updated_at": "2026-05-21T16:24:20.357818+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "328f44f3-16c5-4da7-9fc1-cce6665984f2",
+          "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+          "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-22",
+          "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+          "scheduled_for": "2026-05-22T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:24:20.364527+00:00"
+        },
+        {
+          "id": "01c1c1f8-8dc8-444a-ac91-0ac14bea584c",
+          "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+          "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-23",
+          "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+          "scheduled_for": "2026-05-23T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:24:20.364527+00:00"
+        },
+        {
+          "id": "961b11c0-be55-495c-af02-d3edd4a32a6c",
+          "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+          "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-24",
+          "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+          "scheduled_for": "2026-05-24T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:24:20.364527+00:00"
+        },
+        {
+          "id": "4e0242b4-ed86-4a72-b83a-c40dc46c329b",
+          "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+          "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-25",
+          "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+          "scheduled_for": "2026-05-25T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:24:20.364527+00:00"
+        },
+        {
+          "id": "257b53f8-df97-4fd7-9f02-b8b0d3504e65",
+          "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+          "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-26",
+          "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+          "scheduled_for": "2026-05-26T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:24:20.364527+00:00"
+        },
+        {
+          "id": "47efde04-d574-470a-9197-82116072c825",
+          "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+          "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-27",
+          "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+          "scheduled_for": "2026-05-27T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:24:20.364527+00:00"
+        },
+        {
+          "id": "716822a5-6c5a-499b-8597-7861d42326dc",
+          "recurring_reminder_id": "6b49ef13-1c3f-40b7-91de-36a9f27f6806",
+          "event_context": "recurring_reminder:6b49ef13-1c3f-40b7-91de-36a9f27f6806:potion:40d74561-43c6-42d8-b334-8a08dc787a49:2026-05-28",
+          "draft_message": "Un message pour ramener de la lucidité tendre au moment où la pression matinale commence.",
+          "scheduled_for": "2026-05-28T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:24:20.364527+00:00"
+        }
+      ]
+    }
+  }
+]

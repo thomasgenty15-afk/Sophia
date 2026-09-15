@@ -1,0 +1,105 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "c39378ac-e890-41ac-896d-32457ba4b097",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T13:35:00+00:00",
+      "event_context": "one_shot_reminder:noter_un_exemple_de_rituel_qui_m_aiderait",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: noter un exemple de rituel qui m'aiderait.",
+        "parse_source": "payload_when_hint",
+        "request_text": "Rappelle-moi aussi demain à 15h35 de noter un exemple de rituel qui m'aiderait.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: noter un exemple de rituel qui m'aiderait.",
+        "source_message_id": null,
+        "reminder_instruction": "noter un exemple de rituel qui m'aiderait"
+      },
+      "created_at": "2026-06-24T14:07:30.730213+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "J'aimerais que Sophia me propose parfois un petit rituel récurrent quand elle voit que je décroche plusieurs soirs de suite. Rappelle-moi aussi demain à 15h35 de noter un exemple de rituel qui m'aiderait.",
+      "created_at": "2026-06-24T14:07:27.76637+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r3c-feature-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C’est programmé pour demain à 15h35 : je te ferai un rappel pour noter un exemple de rituel qui m’aiderait.\n\nPour ton besoin récurrent, la bonne surface c’est initiatives : elle sert bien à déclencher un petit rituel quand tu décroches plusieurs soirs de suite. Tu peux y décrire quoi dire, quand le dire, et à quel rythme.",
+      "created_at": "2026-06-24T14:07:41.215076+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r3c-feature-t01",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "adc66276-7b39-4a39-8962-51bfc6814b1b",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-24T14:07:41.207Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T14:07:41.207Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 1,
+            "trigger_context": "quand je décroche plusieurs soirs de suite",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "The user wants Sophia to sometimes propose a small recurring ritual when they start slipping several evenings in a row.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated evening context and request for recurring support fit initiatives.",
+              "trigger_context": "quand je décroche plusieurs soirs de suite",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "The user wants Sophia to sometimes propose a small recurring ritual when they start slipping several evenings in a row."
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-24T14:07:41.207Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T14:07:41.207Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 1,
+            "trigger_context": "quand je décroche plusieurs soirs de suite",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "The user wants Sophia to sometimes propose a small recurring ritual when they start slipping several evenings in a row.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated evening context and request for recurring support fit initiatives.",
+              "trigger_context": "quand je décroche plusieurs soirs de suite",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "The user wants Sophia to sometimes propose a small recurring ritual when they start slipping several evenings in a row."
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T14:07:41.211569+00:00"
+  }
+}

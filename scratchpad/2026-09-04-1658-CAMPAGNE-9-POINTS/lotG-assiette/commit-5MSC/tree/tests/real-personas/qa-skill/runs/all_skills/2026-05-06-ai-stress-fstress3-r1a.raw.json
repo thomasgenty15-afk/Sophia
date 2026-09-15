@@ -1,0 +1,1202 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t01",
+    "user": "Demain je fais la marche, note-le pas encore, je veux juste choisir un bon moment.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t01",
+      "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, on va choisir un bon moment pour ta marche demain 😄\n\nDis-moi juste: tu préfères plutôt matin, midi, ou soir (et plutôt 15-30 min ou 30-45 min) ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t01",
+        "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+        "source_message_id": "6be8aed5-9381-41e2-9bad-992d4a5dff82",
+        "ts": "2026-05-06T18:36:22.534+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "Demain"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_tomorrow"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 603,
+          "latency_ms": 6250,
+          "tokens_out": 313,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [
+              "Demain"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tomorrow"
+            ]
+          },
+          "channel": "web",
+          "routing": {
+            "reasoning": "L'utilisateur mentionne explicitement ne pas vouloir enregistrer l'information tout de suite ('note-le pas encore') mais souhaite une réflexion sur le timing, ce qui relève de la discussion stratégique (skill_human) liée à l'item existant 'marche'.",
+            "target_id": "839bb3e3-f514-49bd-ad50-94cddeaf1f29",
+            "target_skill": "skill_human",
+            "confidence_score": 0.95
+          },
+          "signals": [
+            {
+              "signal": "negative_constraint",
+              "evidence": "note-le pas encore"
+            },
+            {
+              "signal": "temporal_reference",
+              "evidence": "Demain"
+            }
+          ],
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t01",
+          "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "safety_assessment": {
+            "evidence": "L'utilisateur souhaite discuter de l'organisation d'une activité physique (marche) sans risque détecté.",
+            "risk_band": "low"
+          },
+          "source_message_id": "6be8aed5-9381-41e2-9bad-992d4a5dff82",
+          "intent_classification": {
+            "primary_intent": "skill_human",
+            "user_sentiment": "neutral",
+            "secondary_intent": "action_plan",
+            "is_operation_confirmation": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 7797,
+        "created_at": "2026-05-06T18:36:22.535776+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t02",
+    "user": "J'ai fait la marche mais franchement ça prouve surtout que je suis nul, je mérite même pas qu'on compte ça.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t02",
+      "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oh… là c’est surtout la honte qui parle, pas la réalité. Tu viens de marcher : ça prouve que tu peux te mettre en mouvement, même quand la tête te traite comme un moins-que-rien. Et “ne compte pas” c’est juste ton cerveau qui essaie de te rabaisser pour te faire abandonner. 😕🫶\n\nOn remet d’équerre une phrase : tu as fait la marche. Point. Sans valeur morale, sans jugement.\n\nPour que ça t’aide tout de suite : tu veux que je te propose un tout petit “comment on fait demain” (simple et sans pression), ou tu préfères qu’on ne parle que de rattraper la pensée “je suis nul” ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t02",
+        "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+        "source_message_id": "e444b4a7-ee22-49e5-bdcb-aeac470a288c",
+        "ts": "2026-05-06T18:36:46.598+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 683,
+          "latency_ms": 12105,
+          "tokens_out": 244,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "intent": "task_update",
+            "skill_id": "habit_tracker",
+            "target_id": "839bb3e3-f514-49bd-ad50-94cddeaf1f29",
+            "confidence": 0.95
+          },
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t02",
+          "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "safety_gate": {
+            "signals": [
+              {
+                "type": "negative_self_talk",
+                "evidence": "User expresses worthlessness and self-deprecation: 'je suis nul', 'je mérite même pas'"
+              }
+            ],
+            "risk_band": "low"
+          },
+          "flow_context": {
+            "whatsapp_mode": false,
+            "onboarding_active": false
+          },
+          "skill_signals": {
+            "entry": {
+              "emotional_repair": {
+                "reason": "self_attack_or_shame",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "source_message_id": "e444b4a7-ee22-49e5-bdcb-aeac470a288c",
+          "route_blocked_codes": [
+            "emotion_acute_blocks_direct_effects"
+          ],
+          "operation_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [
+            {
+              "path": "route",
+              "reason_code": "emotion_acute_blocks_direct_effects"
+            }
+          ],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "emotional_repair",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Ce que tu viens de dire ressemble plus a une attaque contre toi qu'a une information fiable. On peut garder le fait concret, sans transformer ca en verdict sur qui tu es.",
+            "status": "continue",
+            "skill_id": "emotional_repair",
+            "diagnosis": {
+              "pattern": "self_attack"
+            },
+            "state_patch": {
+              "summary": "Self-attack softened; keep concrete facts separate from identity."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "de_shame",
+            "recommendation_need": {
+              "type": "state_regulation",
+              "needed": true,
+              "urgency": "medium",
+              "constraints": [
+                "no_solution_pushing"
+              ]
+            },
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "J'ai fait la marche mais franchement ça prouve surtout que je suis nul, je mérite même pas qu'on compte ça.",
+                "confidence_band": "medium",
+                "sensitivity_level": 3,
+                "evidence_source_ids": [
+                  "e444b4a7-ee22-49e5-bdcb-aeac470a288c"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "emotional_repair"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 14614,
+        "created_at": "2026-05-06T18:36:46.600673+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t03",
+    "user": "Ok, sans le drame : j'ai fait la marche ce matin. Là tu peux le noter simplement.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t03",
+      "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui. C’est noté : tu as fait ta marche ce matin. 👌🙂\n\nTu préfères qu’on reste sur “marche” demain aussi, ou tu veux juste consolider un bon créneau pour que ça coule tout seul ?",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "track_progress_plan_item"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t03",
+        "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+        "source_message_id": "35813e8b-45c0-4d06-88fd-1b0888417bd2",
+        "ts": "2026-05-06T18:37:27.864+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 891,
+          "latency_ms": 5713,
+          "tokens_out": 377,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "action": "complete",
+            "skill_id": "habit_tracker",
+            "reasoning": "L'utilisateur confirme avoir effectué sa marche et demande explicitement de l'enregistrer dans son plan, tout en signalant la fin de la séquence de soutien émotionnel.",
+            "target_id": "839bb3e3-f514-49bd-ad50-94cddeaf1f29"
+          },
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t03",
+          "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [
+            {
+              "effect_type": "track_progress_plan_item",
+              "explicitness": "explicit",
+              "payload_hint": {
+                "status_hint": "completed",
+                "target_title": "marche",
+                "target_item_id": "839bb3e3-f514-49bd-ad50-94cddeaf1f29"
+              },
+              "target_status": "identified",
+              "confidence_band": "high"
+            }
+          ],
+          "intent_signals": [
+            {
+              "signal": "habit_completion",
+              "evidence": "j'ai fait la marche ce matin",
+              "confidence": 1
+            },
+            {
+              "signal": "action_request",
+              "evidence": "tu peux le noter simplement",
+              "confidence": 1
+            }
+          ],
+          "safety_signals": [
+            {
+              "signal": "self_deprecation_recovery",
+              "evidence": "L'utilisateur souhaite passer outre le sentiment de dévalorisation précédent pour se concentrer sur l'action.",
+              "risk_band": "low"
+            }
+          ],
+          "safety_risk_band": "low",
+          "tool_skill_intents": [],
+          "source_message_id": "35813e8b-45c0-4d06-88fd-1b0888417bd2",
+          "pending_tool_skill_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "emotional_repair",
+          "direct_effects_to_run": [
+            "track_progress_plan_item"
+          ],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "track_progress_plan_item"
+          }
+        ],
+        "skill_run": {
+          "output": {
+            "reply": "Ce que tu viens de dire ressemble plus a une attaque contre toi qu'a une information fiable. On peut garder le fait concret, sans transformer ca en verdict sur qui tu es.",
+            "status": "continue",
+            "skill_id": "emotional_repair",
+            "diagnosis": {
+              "pattern": "emotional_pain"
+            },
+            "state_patch": {
+              "summary": "Self-attack softened; keep concrete facts separate from identity."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "de_shame",
+            "recommendation_need": {
+              "type": "state_regulation",
+              "needed": false,
+              "urgency": "medium",
+              "constraints": [
+                "no_solution_pushing"
+              ]
+            },
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Ok, sans le drame : j'ai fait la marche ce matin. Là tu peux le noter simplement.",
+                "confidence_band": "medium",
+                "sensitivity_level": 2,
+                "evidence_source_ids": [
+                  "35813e8b-45c0-4d06-88fd-1b0888417bd2"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "emotional_repair"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 7572,
+        "created_at": "2026-05-06T18:37:27.866666+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t04",
+    "user": "Rappelle-moi demain à 09h de refaire juste dix minutes de marche, pas un truc récurrent.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t04",
+      "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C’est programmé pour jeudi 07 mai à 10:00 : refaire juste dix minutes de marche, pas un truc récurrent.",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "create_one_shot_reminder",
+          "create_one_shot_reminder"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t04",
+        "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+        "source_message_id": "b8fd6cb9-041b-46b1-9a73-e01d1a4eebee",
+        "ts": "2026-05-06T18:37:49.114+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "demain"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_tomorrow"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 974,
+          "latency_ms": 10621,
+          "tokens_out": 378,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [
+              "demain"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tomorrow"
+            ]
+          },
+          "channel": "web",
+          "routing": {
+            "skill_id": "task_management",
+            "target_id": null,
+            "confidence": 0.98
+          },
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t04",
+          "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "memory_update": {
+            "emotional_state": "Stable, orienté vers l'action concrète",
+            "user_preferences": "Préfère des rappels ponctuels et courts (10 min) pour la marche plutôt que des engagements récurrents en période de fragilité."
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [
+            {
+              "effect_type": "create_one_shot_reminder",
+              "explicitness": "explicit",
+              "payload_hint": {
+                "raw_text": "Rappelle-moi demain à 09h de refaire juste dix minutes de marche, pas un truc récurrent."
+              },
+              "target_status": "identified",
+              "confidence_band": "high"
+            }
+          ],
+          "safety_pregate": {
+            "evidence": "Demande de planification d'une activité physique courte et saine.",
+            "risk_band": "low"
+          },
+          "operation_intake": {
+            "parameters": {
+              "title": "Dix minutes de marche",
+              "due_at": "2026-05-07T09:00:00",
+              "is_recurring": false
+            },
+            "operation_type": "create_task"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "b8fd6cb9-041b-46b1-9a73-e01d1a4eebee",
+          "active_topic_state": null,
+          "intent_classification": {
+            "primary_intent": "task_management",
+            "secondary_intent": "scheduling"
+          },
+          "pending_tool_skill_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "emotional_repair",
+          "direct_effects_to_run": [
+            "create_one_shot_reminder"
+          ],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "create_one_shot_reminder"
+          },
+          {
+            "outcome": "success",
+            "tool_id": "create_one_shot_reminder"
+          }
+        ],
+        "skill_run": {
+          "output": {
+            "reply": "Ce que tu viens de dire ressemble plus a une attaque contre toi qu'a une information fiable. On peut garder le fait concret, sans transformer ca en verdict sur qui tu es.",
+            "status": "continue",
+            "skill_id": "emotional_repair",
+            "diagnosis": {
+              "pattern": "emotional_pain"
+            },
+            "state_patch": {
+              "summary": "Self-attack softened; keep concrete facts separate from identity."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "de_shame",
+            "recommendation_need": {
+              "type": "state_regulation",
+              "needed": false,
+              "urgency": "medium",
+              "constraints": [
+                "no_solution_pushing"
+              ]
+            },
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Rappelle-moi demain à 09h de refaire juste dix minutes de marche, pas un truc récurrent.",
+                "confidence_band": "medium",
+                "sensitivity_level": 2,
+                "evidence_source_ids": [
+                  "b8fd6cb9-041b-46b1-9a73-e01d1a4eebee"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "emotional_repair"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": {
+          "stats": {
+            "used_llm": false,
+            "latency_ms": 1,
+            "model_name": "gemini-3-flash-preview",
+            "prompt_version": "recommendation_tool_v1_2026_05"
+          },
+          "recommendation": {
+            "reason": "no_recommendation_opportunity",
+            "timing": "later",
+            "decision": "defer",
+            "cta_style": "none",
+            "confidence": 0.7,
+            "alternatives": [],
+            "do_not_recommend": [],
+            "requires_consent": false,
+            "recommendation_id": "rec_qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t04_1778092669086",
+            "presentation_level": 0
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 10710,
+        "created_at": "2026-05-06T18:37:49.115318+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t05",
+    "user": "Merci, je m'arrête là pour l'instant.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t05",
+      "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Avec plaisir 🙂 Tu as déjà fait le plus important aujourd’hui: tu as bougé, et tu t’es rattrapé quand la tête partait en mode “je vaux rien”.\n\nOn se laisse là pour ce soir, et demain on fera le mini-rappel pour tes 10 minutes. Tu veux que je laisse ça comme prévu, sans rien changer ? 😄",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t05",
+        "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+        "source_message_id": "e0499425-e700-4d01-96c4-33a3c4323224",
+        "ts": "2026-05-06T18:52:54.6+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 1024,
+          "latency_ms": 8754,
+          "tokens_out": 268,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "intent": "goodbye",
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t05",
+          "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "memory_update": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 1,
+            "response_intent": "acknowledgment",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "routing_logic": {
+            "target_id": null,
+            "target_skill_id": "smalltalk",
+            "operation_confirmation_type": null
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "intent_evidence": "Merci, je m'arrête là pour l'instant.",
+          "safety_evidence": "L'utilisateur souhaite mettre fin à la conversation de manière polie, aucun signe de détresse ou de risque détecté.",
+          "safety_risk_band": "low",
+          "tool_skill_intents": [],
+          "source_message_id": "e0499425-e700-4d01-96c4-33a3c4323224"
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "emotional_repair",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Ce que tu viens de dire ressemble plus a une attaque contre toi qu'a une information fiable. On peut garder le fait concret, sans transformer ca en verdict sur qui tu es.",
+            "status": "continue",
+            "skill_id": "emotional_repair",
+            "diagnosis": {
+              "pattern": "emotional_pain"
+            },
+            "state_patch": {
+              "summary": "Self-attack softened; keep concrete facts separate from identity."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "de_shame",
+            "recommendation_need": {
+              "type": "state_regulation",
+              "needed": false,
+              "urgency": "medium",
+              "constraints": [
+                "no_solution_pushing"
+              ]
+            },
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Merci, je m'arrête là pour l'instant.",
+                "confidence_band": "medium",
+                "sensitivity_level": 2,
+                "evidence_source_ids": [
+                  "e0499425-e700-4d01-96c4-33a3c4323224"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "emotional_repair"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 10424,
+        "created_at": "2026-05-06T18:52:54.602261+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t06",
+    "user": "Rappelle-moi après-demain à 11h de vérifier juste le créneau de marche.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t06",
+      "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C’est programmé pour vendredi 08 mai à 12:00 : vérifier juste le créneau de marche.",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t06",
+        "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+        "source_message_id": "d8c697c2-c757-4240-9501-444175dd2d96",
+        "ts": "2026-05-06T18:53:21.33+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "demain"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_tomorrow"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 1056,
+          "latency_ms": 7073,
+          "tokens_out": 339,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [
+              "demain"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tomorrow"
+            ]
+          },
+          "channel": "web",
+          "routing": {
+            "topic": "habits",
+            "intent": "action_request",
+            "urgency": "low",
+            "reasoning": "L'utilisateur demande de programmer un rappel spécifique pour le surlendemain à 11h lié à son habitude de marche identifiée dans le plan.",
+            "sentiment": "neutral",
+            "target_id": "839bb3e3-f514-49bd-ad50-94cddeaf1f29",
+            "target_skill_id": "task_management"
+          },
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t06",
+          "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [
+            {
+              "effect_type": "create_one_shot_reminder",
+              "explicitness": "explicit",
+              "payload_hint": {
+                "raw_text": "Rappelle-moi après-demain à 11h de vérifier juste le créneau de marche."
+              },
+              "target_status": "identified",
+              "confidence_band": "high"
+            }
+          ],
+          "memory_strategy": {
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite"
+          },
+          "safety_evidence": "Demande de programmation d'un rappel temporel neutre concernant une activité physique.",
+          "safety_risk_band": "low",
+          "tool_skill_intents": [],
+          "source_message_id": "d8c697c2-c757-4240-9501-444175dd2d96",
+          "user_response_to_pending": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "emotional_repair",
+          "direct_effects_to_run": [
+            "create_one_shot_reminder"
+          ],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "create_one_shot_reminder"
+          }
+        ],
+        "skill_run": {
+          "output": {
+            "reply": "Ce que tu viens de dire ressemble plus a une attaque contre toi qu'a une information fiable. On peut garder le fait concret, sans transformer ca en verdict sur qui tu es.",
+            "status": "continue",
+            "skill_id": "emotional_repair",
+            "diagnosis": {
+              "pattern": "emotional_pain"
+            },
+            "state_patch": {
+              "summary": "Self-attack softened; keep concrete facts separate from identity."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "de_shame",
+            "recommendation_need": {
+              "type": "state_regulation",
+              "needed": false,
+              "urgency": "medium",
+              "constraints": [
+                "no_solution_pushing"
+              ]
+            },
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Rappelle-moi après-demain à 11h de vérifier juste le créneau de marche.",
+                "confidence_band": "medium",
+                "sensitivity_level": 2,
+                "evidence_source_ids": [
+                  "d8c697c2-c757-4240-9501-444175dd2d96"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "emotional_repair"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 7178,
+        "created_at": "2026-05-06T18:53:21.331495+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t07",
+    "user": "Stop pour aujourd'hui, pas d'autre changement.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t07",
+      "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "OK, on stoppe pour aujourd’hui. ✅🙂\n\nTu confirmes qu’on ne touche à rien ni côté marche ni côté rappels d’ici demain ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t07",
+        "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+        "source_message_id": "4ff00be3-cafd-4f34-8f04-c4b3f15d9aa8",
+        "ts": "2026-05-06T18:54:09.366+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 916,
+          "latency_ms": 4476,
+          "tokens_out": 248,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "intent": "session_end",
+            "reasoning": "L'utilisateur exprime explicitement la fin de la session et confirme qu'il n'y a plus de modifications à effectuer sur son planning ou ses rappels.",
+            "target_id": null,
+            "target_skill_id": null
+          },
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r1a-t07",
+          "user_id": "90883b92-2259-43a2-8035-898af9e54ecc",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "emotional_repair": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "safety_pregate": {
+            "signals": [
+              {
+                "name": "session_end",
+                "evidence": "Stop pour aujourd'hui",
+                "confidence": 1
+              },
+              {
+                "name": "satisfaction",
+                "evidence": "pas d'autre changement",
+                "confidence": 0.9
+              }
+            ],
+            "risk_band": "low"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "4ff00be3-cafd-4f34-8f04-c4b3f15d9aa8",
+          "pending_tool_skill_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "emotional_repair",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Ce que tu viens de dire ressemble plus a une attaque contre toi qu'a une information fiable. On peut garder le fait concret, sans transformer ca en verdict sur qui tu es.",
+            "status": "continue",
+            "skill_id": "emotional_repair",
+            "diagnosis": {
+              "pattern": "emotional_pain"
+            },
+            "state_patch": {
+              "summary": "Self-attack softened; keep concrete facts separate from identity."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "de_shame",
+            "recommendation_need": {
+              "type": "state_regulation",
+              "needed": false,
+              "urgency": "medium",
+              "constraints": [
+                "no_solution_pushing"
+              ]
+            },
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Stop pour aujourd'hui, pas d'autre changement.",
+                "confidence_band": "medium",
+                "sensitivity_level": 2,
+                "evidence_source_ids": [
+                  "4ff00be3-cafd-4f34-8f04-c4b3f15d9aa8"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "emotional_repair"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 5715,
+        "created_at": "2026-05-06T18:54:09.368033+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

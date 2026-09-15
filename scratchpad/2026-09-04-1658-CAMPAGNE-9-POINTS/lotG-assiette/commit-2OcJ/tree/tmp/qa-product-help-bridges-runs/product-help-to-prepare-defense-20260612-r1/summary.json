@@ -1,0 +1,22 @@
+[
+  {
+    "turn": 1,
+    "requestId": "product-help-to-prepare-defense-20260612-r1-t01",
+    "status": 401,
+    "user": "Je confonds un peu : une carte de défense, ça sert à quoi dans Sophia ? Explique-moi juste, sans en créer une.",
+    "assistant": "",
+    "trace": {
+      "response_owner": null,
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": null,
+      "direct_effects": [],
+      "operation_status": null,
+      "operation_reason": null,
+      "flow_action": null,
+      "visible_task": null,
+      "executed_tools": [],
+      "tool_execution": null
+    }
+  }
+]

@@ -1,0 +1,225 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r22-t01-39c596ee-8bb7-400f-99da-e746ba057c75",
+    "status": 200,
+    "ok": true,
+    "user": "Je reviens sur le bloc grignotage. Ce n'est pas une action isolée qui coince, c'est plutôt le niveau en entier : le soir je me retrouve avec trop de petits choix à faire, et ça me donne envie de laisser tomber.",
+    "assistant": "Je comprends que le bloc \"grignotage\" te pèse le soir à cause de trop de décisions. Pour l'alléger, quelles actions te semblent générer le plus de petits choix et comment aimerais-tu les simplifier ? Par exemple, parmi : 'Nettoyer ton environnement direct', 'Préparer tes alternatives d'avance', 'Faire le choix du brut', 'Décoder ton envie de grignoter'.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "current_level.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "turn_frame_tool_skill_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "bloc grignotage",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high",
+        "operation_input": {
+          "scope": {
+            "kind": "current_level",
+            "label": "bloc grignotage",
+            "status": "identified",
+            "evidence": [
+              "bloc grignotage"
+            ]
+          },
+          "target_granularity": {
+            "value": "current_level",
+            "status": "identified",
+            "evidence": [
+              "ce n'est pas une action isolée qui coince, c'est plutôt le niveau en entier"
+            ],
+            "confidence": "high"
+          }
+        },
+        "adjust_plan_scope": "current_level"
+      }
+    ],
+    "trace_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r22-t01-39c596ee-8bb7-400f-99da-e746ba057c75",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r22-t02-92516c6d-4411-4ddd-9d9c-78ce459e9e10",
+    "status": 200,
+    "ok": true,
+    "user": "Les deux qui me chargent le plus sont Faire le choix du brut et Décoder ton envie de grignoter. Je veux garder le niveau, garder les actions, et surtout enlever les décisions du soir.",
+    "assistant": "D'accord, je comprends que vous souhaitez alléger la charge de décision le soir pour les actions \"Faire le choix du brut\" et \"Décoder ton envie de grignoter\", tout en gardant le niveau et les actions. Pour \"Faire le choix du brut\", souhaitez-vous réduire sa fréquence, la simplifier, ou la rendre automatique ? Et pour \"Décoder ton envie de grignoter\", comment aimeriez-vous la simplifier pour qu'elle ne demande plus de décision le soir ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "turn_frame_tool_skill_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "current_level",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high",
+        "operation_input": {
+          "scope": {
+            "kind": "current_level",
+            "label": "bloc grignotage",
+            "status": "identified",
+            "evidence": [
+              "bloc grignotage"
+            ]
+          },
+          "constraints": {
+            "status": "identified",
+            "values": [
+              "garder le niveau",
+              "garder les actions",
+              "enlever les décisions du soir"
+            ],
+            "evidence": [
+              "Je veux garder le niveau, garder les actions, et surtout enlever les décisions du soir"
+            ]
+          },
+          "affected_items": {
+            "status": "identified",
+            "values": [
+              "Faire le choix du brut",
+              "Décoder ton envie de grignoter"
+            ],
+            "evidence": [
+              "Les deux qui me chargent le plus sont Faire le choix du brut et Décoder ton envie de grignoter"
+            ]
+          },
+          "target_granularity": {
+            "value": "current_level",
+            "status": "identified",
+            "evidence": [
+              "Je veux garder le niveau, garder les actions",
+              "enlever les décisions du soir"
+            ],
+            "confidence": "high"
+          }
+        },
+        "adjust_plan_scope": "current_level"
+      }
+    ],
+    "trace_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r22-t02-92516c6d-4411-4ddd-9d9c-78ce459e9e10",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r22-t03-bbfebe8b-bdf7-4d47-a7c1-72e19eae5e1d",
+    "status": 200,
+    "ok": true,
+    "user": "Pour le choix du brut, je veux que ce soit décidé pendant la préparation du dimanche, comme ça le soir je n'ai plus à choisir. Pour le décodage, je veux une seule question courte au moment où l'envie arrive, pas un exercice long.",
+    "assistant": "J'ai bien noté tes précisions. Pour l'action \"Décoder ton envie de grignoter\", elle est déjà formulée comme une question courte. Pour \"Faire le choix du brut\", tu souhaites que la décision soit prise pendant la préparation du dimanche. Peux-tu me dire comment tu imagines concrètement cette décision du dimanche pour cette action ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "turn_frame_tool_skill_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "Reprendre le contrôle sur le grignotage",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high",
+        "operation_input": {
+          "scope": {
+            "kind": "current_level",
+            "label": "Reprendre le contrôle sur le grignotage",
+            "status": "identified",
+            "evidence": [
+              "Reprendre le contrôle sur le grignotage"
+            ]
+          },
+          "payload": {
+            "constraints": {
+              "status": "identified",
+              "values": [
+                "décidé pendant la préparation du dimanche",
+                "une seule question courte",
+                "pas un exercice long"
+              ],
+              "evidence": [
+                "décidé pendant la préparation du dimanche",
+                "une seule question courte au moment où l'envie arrive, pas un exercice long"
+              ]
+            },
+            "affected_items": {
+              "status": "identified",
+              "values": [
+                "Faire le choix du brut",
+                "Décoder ton envie de grignoter"
+              ],
+              "evidence": [
+                "Pour le choix du brut",
+                "Pour le décodage"
+              ]
+            }
+          },
+          "target_granularity": {
+            "value": "current_level",
+            "status": "identified",
+            "evidence": [
+              "Je veux garder le niveau, garder les actions",
+              "Pour le choix du brut, je veux que ce soit décidé pendant la préparation du dimanche",
+              "Pour le décodage, je veux une seule question courte"
+            ],
+            "confidence": "high"
+          }
+        },
+        "adjust_plan_scope": "current_level"
+      }
+    ],
+    "trace_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r22-t03-bbfebe8b-bdf7-4d47-a7c1-72e19eae5e1d",
+    "trace_error": null
+  }
+]

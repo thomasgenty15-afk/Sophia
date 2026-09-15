@@ -1,0 +1,1133 @@
+{
+  "request_id": "2a000000-2100-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "2a000000-0000-4000-8000-000000000002",
+  "source": "generate-meal-v1",
+  "exported_at": "2026-08-18T23:19:40.606Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "6f5467bf-124d-4ce4-bcf0-bdb9aa10b892",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:06:09.512662+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 14382,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 14382,
+    "user_message_chars": 5368,
+    "user_message_truncated": false,
+    "user_message_written_chars": 5368,
+    "independent_counters": {
+      "system_prompt_chars": 14382,
+      "prompt_chars": 5368
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "6f6a12c4-b4ae-417d-b49b-78147f4c2abc",
+    "created_at": "2026-08-18T23:14:46.044092+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-sol",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Summer berry oat square\",\n      \"title\": \"Warm berry baked oats\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Take one portion from the Wednesday cooking session and eat it warm.\",\n      \"why\": \"It gives the student a straightforward breakfast while the first cooking session is already under way.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_berry_baked_oats\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil bulgur bowl\",\n      \"title\": \"Lentils, bulgur and cucumber\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Cucumber\",\n          \"quantity\": \"100 g cucumber\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Plain yoghurt\",\n          \"quantity\": \"50 g plain yoghurt\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon one portion each of the warm lentils and bulgur into a bowl. Add the chopped cucumber and yoghurt.\",\n      \"why\": \"This turns two Wednesday preparations into a quick, fresh-edged lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_bulgur\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Lemon chicken summer bowl\",\n      \"title\": \"Chicken, roasted vegetables and bulgur\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Plate one warm portion each of chicken, roasted vegetables and bulgur directly from the cooking session. Squeeze over the lemon.\",\n      \"why\": \"Freshly roasted chicken and vegetables provide a warm anchor without making a heavy August dinner.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lemon_chicken\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roasted_summer_vegetables\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_bulgur\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Warm berry oat square\",\n      \"title\": \"Reheated berry baked oats\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion of baked oats until hot throughout.\",\n      \"why\": \"The second portion makes Thursday breakfast immediate without repeating a cooking job.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_berry_baked_oats\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Lemony chicken garden wrap\",\n      \"title\": \"Chicken, roasted vegetables and leaves in a wrap\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Wholemeal tortilla\",\n          \"quantity\": \"1 wholemeal tortilla\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Salad leaves\",\n          \"quantity\": \"40 g salad leaves\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Plain yoghurt\",\n          \"quantity\": \"40 g plain yoghurt\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spread the tortilla with yoghurt, then add the leaves and one cold portion each of sliced chicken and roasted vegetables. Roll firmly.\",\n      \"why\": \"Yesterday's roast becomes a portable lunch rather than another bowl of the same meal.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lemon_chicken\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roasted_summer_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil vegetable supper\",\n      \"title\": \"Warm lentils and roasted vegetables\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion each of the lentils and roasted vegetables together until piping hot.\",\n      \"why\": \"The hot lentils provide a warm anchor while using the final vegetable portion within a day of cooking.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roasted_summer_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Golden spinach frittata\",\n      \"title\": \"Warm spinach and Cheddar frittata\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [],\n      \"method\": \"Eat one warm wedge directly from the Friday cooking session.\",\n      \"why\": \"The second short cooking session starts with a warm egg breakfast and also prepares lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_spinach_frittata\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Frittata tomato sandwich\",\n      \"title\": \"Spinach frittata, tomato and wholemeal bread\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Wholemeal bread\",\n          \"quantity\": \"2 slices wholemeal bread\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Tomato\",\n          \"quantity\": \"100 g tomato\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Place the remaining frittata wedge and sliced tomato between the bread, then cut in half.\",\n      \"why\": \"The frittata changes jobs at lunch, keeping the two Friday meals distinct.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_spinach_frittata\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Herby bean tomato skillet\",\n      \"title\": \"Warm cannellini beans, tomatoes and courgette\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Wholemeal bread\",\n          \"quantity\": \"1 slice wholemeal bread\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon one hot portion of the bean skillet into a bowl and serve with the bread. Freeze the second skillet portion once cool on Friday.\",\n      \"why\": \"The beans are Friday evening's warm anchor, while the frozen spare prevents an inflated single plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_bean_tomato_skillet\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_berry_baked_oats\",\n      \"title\": \"Berry baked oats\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"Rolled oats\",\n          \"quantity\": \"100 g rolled oats\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Eggs\",\n          \"quantity\": \"2 eggs\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Milk\",\n          \"quantity\": \"200 ml milk\",\n          \"amount\": 200,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"British berries\",\n          \"quantity\": \"200 g British berries\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Ground cinnamon\",\n          \"quantity\": \"1 tsp ground cinnamon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Rapeseed oil\",\n          \"quantity\": \"1 tsp rapeseed oil\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Oil a small baking dish. Whisk the eggs, milk and cinnamon, stir in the oats and berries, and bake at 200°C until set and golden. Divide into two portions and refrigerate Thursday's portion once cool.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_lemon_chicken\",\n      \"title\": \"Lemon and thyme chicken\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"Boneless skinless chicken thighs\",\n          \"quantity\": \"300 g boneless skinless chicken thighs\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Rapeseed oil\",\n          \"quantity\": \"1 tsp rapeseed oil\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Dried thyme\",\n          \"quantity\": \"1 tsp dried thyme\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"Black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Coat the chicken with the oil, thyme, lemon juice, salt and pepper. Roast at 200°C until browned and cooked through, then divide into two portions. Refrigerate Thursday's portion promptly.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_roasted_summer_vegetables\",\n      \"title\": \"Roasted summer vegetables\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"Courgettes\",\n          \"quantity\": \"300 g courgettes\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Red peppers\",\n          \"quantity\": \"300 g red peppers\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Red onion\",\n          \"quantity\": \"150 g red onion\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Rapeseed oil\",\n          \"quantity\": \"1 tbsp rapeseed oil\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Dried thyme\",\n          \"quantity\": \"1 tsp dried thyme\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"Black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Cut the vegetables into bite-sized pieces, toss with the oil, thyme, salt and pepper, and spread on a tray. Roast at 200°C until tender and browned at the edges. Divide into three portions and refrigerate two once cool.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_bulgur\",\n      \"title\": \"Tender bulgur wheat\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"Bulgur wheat\",\n          \"quantity\": \"120 g dry bulgur wheat\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Water\",\n          \"quantity\": \"240 ml water\",\n          \"amount\": 240,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Put the bulgur, water and salt in a covered saucepan. Simmer gently until tender and the water is absorbed, then fluff and divide into two portions.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_smoky_lentils\",\n      \"title\": \"Smoky tomato lentils\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"Drained canned green lentils\",\n          \"quantity\": \"240 g drained canned green lentils\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"Chopped tomatoes\",\n          \"quantity\": \"400 g canned chopped tomatoes\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"Onion\",\n          \"quantity\": \"120 g onion\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Carrot\",\n          \"quantity\": \"150 g carrot\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Rapeseed oil\",\n          \"quantity\": \"1 tbsp rapeseed oil\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Smoked paprika\",\n          \"quantity\": \"1 tsp smoked paprika\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"Black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Finely chop the onion and carrot. Soften them in the oil, stir in the paprika, then add the tomatoes and lentils. Simmer until thickened, season, and divide into two portions. Refrigerate Thursday's portion once cool.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_spinach_frittata\",\n      \"title\": \"Spinach and Cheddar frittata\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"Eggs\",\n          \"quantity\": \"4 eggs\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Spinach\",\n          \"quantity\": \"100 g spinach\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Mature Cheddar\",\n          \"quantity\": \"60 g mature Cheddar\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Rapeseed oil\",\n          \"quantity\": \"1 tsp rapeseed oil\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Oil a small ovenproof dish. Wilt the spinach briefly, then add it to the dish. Beat the eggs with pepper, pour them over and scatter with grated Cheddar. Bake at 200°C until set, then cut into two wedges.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"fri\"\n    },\n    {\n      \"id\": \"prep_bean_tomato_skillet\",\n      \"title\": \"Herby bean and tomato skillet\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"Drained canned cannellini beans\",\n          \"quantity\": \"240 g drained canned cannellini beans\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"Chopped tomatoes\",\n          \"quantity\": \"400 g canned chopped tomatoes\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"Courgette\",\n          \"quantity\": \"200 g courgette\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Onion\",\n          \"quantity\": \"100 g onion\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Rapeseed oil\",\n          \"quantity\": \"1 tbsp rapeseed oil\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Dried thyme\",\n          \"quantity\": \"1 tsp dried thyme\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"Black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Chop the onion and courgette. Soften them in the oil, add the thyme and tomatoes, and simmer briefly. Stir in the beans and cook until hot and thick. Serve one portion and cool and freeze the second portion on Friday.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"fri\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_berry_baked_oats\",\n        \"prep_lemon_chicken\",\n        \"prep_roasted_summer_vegetables\",\n        \"prep_bulgur\",\n        \"prep_smoky_lentils\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Heat the oven to 200°C. Mix the baked oats and put them in first. Chop and season the roasting vegetables, then prepare the chicken and place both trays in the oven. Start the smoky lentils on the hob. Put the bulgur on while the lentils simmer. Remove each preparation as it finishes, eat the Wednesday portions, then cool and box the Thursday portions promptly.\"\n    },\n    {\n      \"day\": \"fri\",\n      \"preparation_ids\": [\n        \"prep_spinach_frittata\",\n        \"prep_bean_tomato_skillet\"\n      ],\n      \"total_minutes\": 30,\n      \"run_through\": \"Heat the oven to 200°C. Wilt the spinach, assemble the frittata and put it in the oven. While it bakes, chop the onion and courgette and cook the bean and tomato skillet on the hob. Cut the frittata into two wedges. Keep one skillet portion for dinner and cool and freeze the second portion on Friday.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"British berries\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Courgettes\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Red peppers\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Onions\",\n      \"quantity\": \"3 small onions, about 400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Carrot\",\n      \"quantity\": \"150 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Cucumber\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Salad leaves\",\n      \"quantity\": \"40 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Spinach\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Tomato\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Lemon\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Boneless skinless chicken thighs\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Eggs\",\n      \"quantity\": \"6\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Milk\",\n      \"quantity\": \"200 ml\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Plain yoghurt\",\n      \"quantity\": \"90 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Mature Cheddar\",\n      \"quantity\": \"60 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Rolled oats\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Bulgur wheat\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Wholemeal tortilla\",\n      \"quantity\": \"1\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Wholemeal bread\",\n      \"quantity\": \"3 slices\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Canned green lentils\",\n      \"quantity\": \"1 x 400 g tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Canned cannellini beans\",\n      \"quantity\": \"1 x 400 g tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Canned chopped tomatoes\",\n      \"quantity\": \"2 x 400 g tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Rapeseed oil\",\n      \"quantity\": \"3 tbsp and 3 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Ground cinnamon\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Smoked paprika\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Dried thyme\",\n      \"quantity\": \"3 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Salt\",\n      \"quantity\": \"1 pack if needed\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Black pepper\",\n      \"quantity\": \"1 pack if needed\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Summer berry oat square",
+          "title": "Warm berry baked oats",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Take one portion from the Wednesday cooking session and eat it warm.",
+          "why": "It gives the student a straightforward breakfast while the first cooking session is already under way.",
+          "uses": [
+            {
+              "preparation_id": "prep_berry_baked_oats",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "none",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Smoky lentil bulgur bowl",
+          "title": "Lentils, bulgur and cucumber",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Cucumber",
+              "quantity": "100 g cucumber",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Plain yoghurt",
+              "quantity": "50 g plain yoghurt",
+              "amount": 50,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Spoon one portion each of the warm lentils and bulgur into a bowl. Add the chopped cucumber and yoghurt.",
+          "why": "This turns two Wednesday preparations into a quick, fresh-edged lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_lentils",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_bulgur",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Lemon chicken summer bowl",
+          "title": "Chicken, roasted vegetables and bulgur",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Plate one warm portion each of chicken, roasted vegetables and bulgur directly from the cooking session. Squeeze over the lemon.",
+          "why": "Freshly roasted chicken and vegetables provide a warm anchor without making a heavy August dinner.",
+          "uses": [
+            {
+              "preparation_id": "prep_lemon_chicken",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_roasted_summer_vegetables",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_bulgur",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Warm berry oat square",
+          "title": "Reheated berry baked oats",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [],
+          "method": "Reheat one portion of baked oats until hot throughout.",
+          "why": "The second portion makes Thursday breakfast immediate without repeating a cooking job.",
+          "uses": [
+            {
+              "preparation_id": "prep_berry_baked_oats",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Lemony chicken garden wrap",
+          "title": "Chicken, roasted vegetables and leaves in a wrap",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Wholemeal tortilla",
+              "quantity": "1 wholemeal tortilla",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "Salad leaves",
+              "quantity": "40 g salad leaves",
+              "amount": 40,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Plain yoghurt",
+              "quantity": "40 g plain yoghurt",
+              "amount": 40,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Spread the tortilla with yoghurt, then add the leaves and one cold portion each of sliced chicken and roasted vegetables. Roll firmly.",
+          "why": "Yesterday's roast becomes a portable lunch rather than another bowl of the same meal.",
+          "uses": [
+            {
+              "preparation_id": "prep_lemon_chicken",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_roasted_summer_vegetables",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Smoky lentil vegetable supper",
+          "title": "Warm lentils and roasted vegetables",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [],
+          "method": "Reheat one portion each of the lentils and roasted vegetables together until piping hot.",
+          "why": "The hot lentils provide a warm anchor while using the final vegetable portion within a day of cooking.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_lentils",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_roasted_summer_vegetables",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 6
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Golden spinach frittata",
+          "title": "Warm spinach and Cheddar frittata",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [],
+          "method": "Eat one warm wedge directly from the Friday cooking session.",
+          "why": "The second short cooking session starts with a warm egg breakfast and also prepares lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_spinach_frittata",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "none",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Frittata tomato sandwich",
+          "title": "Spinach frittata, tomato and wholemeal bread",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Wholemeal bread",
+              "quantity": "2 slices wholemeal bread",
+              "amount": 2,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "Tomato",
+              "quantity": "100 g tomato",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Place the remaining frittata wedge and sliced tomato between the bread, then cut in half.",
+          "why": "The frittata changes jobs at lunch, keeping the two Friday meals distinct.",
+          "uses": [
+            {
+              "preparation_id": "prep_spinach_frittata",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 4
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Herby bean tomato skillet",
+          "title": "Warm cannellini beans, tomatoes and courgette",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Wholemeal bread",
+              "quantity": "1 slice wholemeal bread",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Spoon one hot portion of the bean skillet into a bowl and serve with the bread. Freeze the second skillet portion once cool on Friday.",
+          "why": "The beans are Friday evening's warm anchor, while the frozen spare prevents an inflated single plate.",
+          "uses": [
+            {
+              "preparation_id": "prep_bean_tomato_skillet",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_berry_baked_oats",
+          "title": "Berry baked oats",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "Rolled oats",
+              "quantity": "100 g rolled oats",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Eggs",
+              "quantity": "2 eggs",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Milk",
+              "quantity": "200 ml milk",
+              "amount": 200,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "British berries",
+              "quantity": "200 g British berries",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Ground cinnamon",
+              "quantity": "1 tsp ground cinnamon",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "Rapeseed oil",
+              "quantity": "1 tsp rapeseed oil",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Oil a small baking dish. Whisk the eggs, milk and cinnamon, stir in the oats and berries, and bake at 200°C until set and golden. Divide into two portions and refrigerate Thursday's portion once cool.",
+          "active_minutes": 5,
+          "total_minutes": 30,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_lemon_chicken",
+          "title": "Lemon and thyme chicken",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "Boneless skinless chicken thighs",
+              "quantity": "300 g boneless skinless chicken thighs",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Rapeseed oil",
+              "quantity": "1 tsp rapeseed oil",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "Dried thyme",
+              "quantity": "1 tsp dried thyme",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "Salt",
+              "quantity": "a pinch of salt",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "Black pepper",
+              "quantity": "a pinch of black pepper",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Coat the chicken with the oil, thyme, lemon juice, salt and pepper. Roast at 200°C until browned and cooked through, then divide into two portions. Refrigerate Thursday's portion promptly.",
+          "active_minutes": 5,
+          "total_minutes": 30,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_roasted_summer_vegetables",
+          "title": "Roasted summer vegetables",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "Courgettes",
+              "quantity": "300 g courgettes",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Red peppers",
+              "quantity": "300 g red peppers",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Red onion",
+              "quantity": "150 g red onion",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Rapeseed oil",
+              "quantity": "1 tbsp rapeseed oil",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "Dried thyme",
+              "quantity": "1 tsp dried thyme",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "Salt",
+              "quantity": "a pinch of salt",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "Black pepper",
+              "quantity": "a pinch of black pepper",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Cut the vegetables into bite-sized pieces, toss with the oil, thyme, salt and pepper, and spread on a tray. Roast at 200°C until tender and browned at the edges. Divide into three portions and refrigerate two once cool.",
+          "active_minutes": 10,
+          "total_minutes": 35,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_bulgur",
+          "title": "Tender bulgur wheat",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "Bulgur wheat",
+              "quantity": "120 g dry bulgur wheat",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Water",
+              "quantity": "240 ml water",
+              "amount": 240,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "Salt",
+              "quantity": "a pinch of salt",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Put the bulgur, water and salt in a covered saucepan. Simmer gently until tender and the water is absorbed, then fluff and divide into two portions.",
+          "active_minutes": 5,
+          "total_minutes": 15,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_smoky_lentils",
+          "title": "Smoky tomato lentils",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "Drained canned green lentils",
+              "quantity": "240 g drained canned green lentils",
+              "amount": 240,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "Chopped tomatoes",
+              "quantity": "400 g canned chopped tomatoes",
+              "amount": 400,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "Onion",
+              "quantity": "120 g onion",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Carrot",
+              "quantity": "150 g carrot",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Rapeseed oil",
+              "quantity": "1 tbsp rapeseed oil",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "Smoked paprika",
+              "quantity": "1 tsp smoked paprika",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "Salt",
+              "quantity": "a pinch of salt",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "Black pepper",
+              "quantity": "a pinch of black pepper",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Finely chop the onion and carrot. Soften them in the oil, stir in the paprika, then add the tomatoes and lentils. Simmer until thickened, season, and divide into two portions. Refrigerate Thursday's portion once cool.",
+          "active_minutes": 10,
+          "total_minutes": 25,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_spinach_frittata",
+          "title": "Spinach and Cheddar frittata",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "Eggs",
+              "quantity": "4 eggs",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Spinach",
+              "quantity": "100 g spinach",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Mature Cheddar",
+              "quantity": "60 g mature Cheddar",
+              "amount": 60,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "Rapeseed oil",
+              "quantity": "1 tsp rapeseed oil",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "Black pepper",
+              "quantity": "a pinch of black pepper",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Oil a small ovenproof dish. Wilt the spinach briefly, then add it to the dish. Beat the eggs with pepper, pour them over and scatter with grated Cheddar. Bake at 200°C until set, then cut into two wedges.",
+          "active_minutes": 10,
+          "total_minutes": 25,
+          "cook_on": "fri"
+        },
+        {
+          "id": "prep_bean_tomato_skillet",
+          "title": "Herby bean and tomato skillet",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "Drained canned cannellini beans",
+              "quantity": "240 g drained canned cannellini beans",
+              "amount": 240,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "Chopped tomatoes",
+              "quantity": "400 g canned chopped tomatoes",
+              "amount": 400,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "Courgette",
+              "quantity": "200 g courgette",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Onion",
+              "quantity": "100 g onion",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Rapeseed oil",
+              "quantity": "1 tbsp rapeseed oil",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "Dried thyme",
+              "quantity": "1 tsp dried thyme",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "Salt",
+              "quantity": "a pinch of salt",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "Black pepper",
+              "quantity": "a pinch of black pepper",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Chop the onion and courgette. Soften them in the oil, add the thyme and tomatoes, and simmer briefly. Stir in the beans and cook until hot and thick. Serve one portion and cool and freeze the second portion on Friday.",
+          "active_minutes": 10,
+          "total_minutes": 25,
+          "cook_on": "fri"
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_berry_baked_oats",
+            "prep_lemon_chicken",
+            "prep_roasted_summer_vegetables",
+            "prep_bulgur",
+            "prep_smoky_lentils"
+          ],
+          "total_minutes": 50,
+          "run_through": "Heat the oven to 200°C. Mix the baked oats and put them in first. Chop and season the roasting vegetables, then prepare the chicken and place both trays in the oven. Start the smoky lentils on the hob. Put the bulgur on while the lentils simmer. Remove each preparation as it finishes, eat the Wednesday portions, then cool and box the Thursday portions promptly."
+        },
+        {
+          "day": "fri",
+          "preparation_ids": [
+            "prep_spinach_frittata",
+            "prep_bean_tomato_skillet"
+          ],
+          "total_minutes": 30,
+          "run_through": "Heat the oven to 200°C. Wilt the spinach, assemble the frittata and put it in the oven. While it bakes, chop the onion and courgette and cook the bean and tomato skillet on the hob. Cut the frittata into two wedges. Keep one skillet portion for dinner and cool and freeze the second portion on Friday."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "British berries",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Courgettes",
+          "quantity": "500 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Red peppers",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Onions",
+          "quantity": "3 small onions, about 400 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Carrot",
+          "quantity": "150 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Cucumber",
+          "quantity": "100 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Salad leaves",
+          "quantity": "40 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Spinach",
+          "quantity": "100 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Tomato",
+          "quantity": "100 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Lemon",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "Boneless skinless chicken thighs",
+          "quantity": "300 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "Eggs",
+          "quantity": "6",
+          "aisle": "protein"
+        },
+        {
+          "term": "Milk",
+          "quantity": "200 ml",
+          "aisle": "dairy"
+        },
+        {
+          "term": "Plain yoghurt",
+          "quantity": "90 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "Mature Cheddar",
+          "quantity": "60 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "Rolled oats",
+          "quantity": "100 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "Bulgur wheat",
+          "quantity": "120 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "Wholemeal tortilla",
+          "quantity": "1",
+          "aisle": "grains"
+        },
+        {
+          "term": "Wholemeal bread",
+          "quantity": "3 slices",
+          "aisle": "grains"
+        },
+        {
+          "term": "Canned green lentils",
+          "quantity": "1 x 400 g tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Canned cannellini beans",
+          "quantity": "1 x 400 g tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Canned chopped tomatoes",
+          "quantity": "2 x 400 g tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Rapeseed oil",
+          "quantity": "3 tbsp and 3 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Ground cinnamon",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Smoked paprika",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Dried thyme",
+          "quantity": "3 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Salt",
+          "quantity": "1 pack if needed",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Black pepper",
+          "quantity": "1 pack if needed",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_07a9e3d618dda3b2006a84e6e6a8a487d293ef1f79941e61bd",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 4907,
+        "total_tokens": 13489,
+        "output_tokens": 8582,
+        "input_tokens_details": {
+          "cached_tokens": 4904,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 2580
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_07a9e3d618dda3b2006a84e6e73afc87d2af64b0c3c82df97d",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOdlHS1uWgzzLyigcCs7fc8ppU_rFc8YW_bfRFoZpYeoOoJLofTRpRuO6MaeGMa9sQXcW9cVgRWpaGtywKD7j8sE4z8SLLhHCKH7XkKIdusRgH3qxBuPhqETV3iMEUko-znnh3wpl0B9mdbdAfhn_hhN0ND_HuKtuT2ntTrDvz1Q-IKhe3Rhzh6MZ3lBgHCAM9tqX43-GPR07aKOcjODl-glJi9lTdb0rI2_FnjcoFArGoimevAqaU5FYlVsz4n7K13ozr2X-q1W_MAYL49_o6xKPhUuOO99RTW8UxtbGSOt8xSElFfJFKZ_ll7XwTuvnCKWanZY0D_uJn6h85F_3ik03DEgk1vPEMjGW4sTkOe9xWk9lMjAkJz2mk9Rrsr6Q4UxHTBEDsCLp_4VjchWo5i6ZgDztDxpqur1oWfgQOEfPR4bM73VeLK3q3xIIDVLGYkk6wWLaNzvgtrRx_SiO4l2q0Q_Rd-RTtHNBpzCZqG1LKr7zZ1ed7oEAuD4932UrCsaqdR9MFL9rezY89oZApxR__IQI4xHevxprwdF84_U-xALpFDuh7rQjXcoTErM2I0pV2Ga9Gv3aaEgNSa63STqe8Pw5dBCARm-HWgpx_BRxGnn0ZqSFe1bgA70lq5b8tUiEGHixSAzAIvUXAkL5CZGj5PNjoSPw8EocRgzgT1wBGMKJLpP8tPYbr6S9HnnTc7DdLPTAAELY3tRkz-iXlzay_bFJldJWPP4KvxFhIerJiNAcFrgx0wEEPnw1ZRVt3BX456JjMIbzkYIF7z2D0_pc7CWtapuwQ6f7qSaiI08ciaatJKqZLsX7kilpOGAGh-OFuyE8MNe5vZeFgXv_k0OSXyaK7g_AVHPA0vbd-G0sib3D5QEWGHzxwQB2dg9oEcnMqlYzqpFgNxKZxMUSfSqOlhxU_zvYCFR3FT6AynszrQxwKh-NisQ4xOjgVa_0MEvnn6OB1dYLYFdU9QmQ4aGTlVgGrJEzWlvGNEoAe-WIIaYCXzAZIucdpyoGIyo_0HdZsK5OGbCq2RZ8yDtWJXW0ejBJQzdqrUoNQshpv_vb9q0rWz1rTX3dGVk3pLnJJBJD2C3iqVaPBw4-TbfHpNjCNK8LeqqIlYC6SkP2mHu1y1rLkg2Rbmgp6I8gA3M-II_thUniKbK5HI2KTRtuEwaLUhyeJkWbVZ8KCIAUGxMXNPE13aoInhsc79wbQ4HDXjWHk2zFpFGhHxE057qZ7BWVyrCpTR4YewEXnyO9GRSyOHdz7N0hLf-8Kf8cKsoT78FPm4WVqKNZEk3TZqJhB4dvPdLLu2vd5f_EZOuG9SMMlqFySaz6p7eP8r_pQ_5UcwwmdIt8cz2LxEhktPialBTm1SmMbg_TJQ-N4PrHuhEIooUqFAhk6krdITF0lOmFLMmRAchNnMx0xg_-FYEBOfv8Bgpyt2qYDew4_EfEoSYgDrP6xjQhiRTcoScXCIRqELAWTdxZBEYV3qIIfNuCabFh6T0r-AuE7EKWyWwCb9JSusUCQTjp18rajepGy8P4z0ZzzyMwOoVwlQaFRe9w6ctOcdG3J1HQVG2CBUnPMbLP2M0gK_IKRJ5EzRrWdaLsU3RygY8yAd9WqyjDEK0tLb7l_VmnJRUbwI2SZvwMK1ELr1wNk-msBl1nDGCipqfSeaw1FjwG6rEGI9VoMPF1m5u7RE16bFOeTTCrdMTFRzGCz7GaluDXbVnwQA17wpJXQyPSch4-AKR56R3pkkHJ92jqSKgZrq_D_wRnA42za0rvsl3l51_XvUjp73J4h7RLV8Q08lT5fMkDIZBHJWoP5_vLFDYEzHhOABzF_iu97rm5X1cefEQDzv9guo71oQ4lookiEcBQIkARk9dGaLLCIfa6z3xlTXJ488MxqWK37SVDvDsL5O0FpGNB2OmyvMHMZrif4RKqoxzDAwdAGgTrvePpt5m4KeEbBuzZSHVGjn-oA2HhWgvlb_nv5SCE0xj-UP7cDSPxQhq8HXmpqcbNHIVHBrshMyr7YQwG9AAHMmBjhm650lfMbBIRWfXobPX3zdxtRknPN9CnJKr8Mfn3jLOOR9Dz2HXU-nCI2mqqzm_cSzXD9GAB_QFc9X5KJ69DNnSBFFgUKy3rwdMNqSWHJT0fnYBn8T-Qde6gsC0XorVs0TJGeWLapvSyb-9He5bQO73tSEIyQ_zW97NgybDvlTGjk-iWl1zlGk-Cz1knAG7oK_argTjWWgcXuxfiQA4_9UOypSQctyOZXwSbHZ_y7qsnS6QxsVg0gNY3Y6bGnjU30_0RCUUQF4CMBVQRasdoZ2R4QPFvTMx1-97BIhe4utrHSqhteQ7-ZEF6G3efuLEDFzSg0xwUxPzQELOJ9ONfVyTkYTbQ4bae0CynABtZxYNR1iwAre0l8hMhRj2LsMWyDGjmxeDURWknpNF4VE_uju9TTQN9uF4lGzmKh-pSa-wl4uLtET8PflJZD90MjwNyfU7TU1klLQAy1ANRZNFkPrQgM4ziRa4xP-orhXIhEsRucCDtFj-6g2VjzGY6953Kg_9A1egt02GMv1th-SznvAFtVMZ57B9ToN0pLHHDSms2uQ2R10NV6wD5zskcyrsd99SVccxidqNCnk7CvBvnTECyLUVCvnLABUtk7DJOdWsHAp02W_LDSv3A-__IrVUpNEs5OBBNRXfVCnWjq_YdrUZrbvK44GIUCmOjatldZ6zs9A89HFpvUcbEXi1J1TdH1uv295LB9VpjAWW_j2ymSBgsW7zrsHD5dxXl6A_QJnf8f-zlZv_AvFxEPzuM1Ro0xoEpPGjQCtWNblfZMg_pVP0i8yeOdxclAeXItMNLDMkQJ84oNRn8NdBYe9qbfy77iOT_K9Klt3QLqhR2TXi4UMKs6PpFqaPaLJ_MnVztwV7DZ3aBCxCoLrE64UTVxY97a-oF3UfRMooIEEtt8o8dhcmam8DUcDLfAaH3gOASXo5kjehA8C4m_pIK8oltZPMpQhLlfSsfUPZqMLoOBsmduxRIgATjmIpQ-quugCqsSjqzazvMRLWcG-i1CUfVZ37LlX3ycXTR-sFFXHVf3fv2AA47vmlKN3GWtuvuaXsS4f2MGOHqRyZFLF8VbiuxjqEXwufYOfQVQVt2AwbsbowplNsk_9pw2iMU8kZWYc2GW0ibImvZ2p8-bF9nIyQ5S2HKbgyc0Uei1HRdMLctIPU5nScw3IlY_CnvbVnF5AbgusB9XJZG7cFeX7iEO9zvFgRO7xgUYsqoZq7vrgLB8oFbo3ATjRLIgtvjvWNL2bhwKYIVC_nhvAWNUTwpGQzFWeiMm17GXj_wps3EumthkgnU9XiMeLkTn1b-UNzOxwzL7xRcJs0yEC_aJR2JRHtnboa4GWePSHYdoaatuyUGIQTAty9ia_gUECDmCAOvATvb8CbDhlma0n9LUrCm5EwUZVepWxQFPe5QyJDCdVgz-AB0n-cL0k_zKoG3uf-7lJbwx0bAqTcLbAA6794Ws-14_0IWJQq4ZYmx8SRjskzbnakQAcoqzJR2JrVUu1lcBU3F4EbbrCrGAmvSx4gri_NPRNdah78UUVOfbB2EJYdvMBInh2CRucHTSBmsoV6lxoEO6BUEWao4IDhCaMWI7krzVcJxwOlj7y1HkLdB0zmYj2PqBDXz_ZeHATD-U7Z7Idh_7D8gO3_g-T9tZRow6CEq5nq1sGNDw7KNT-LaxNc8nalR7aox2zKeOa0zuffAiWKODHP5yuxcHIV7y4YeZWHVDx-z7YfUlvehMDDTNoOX0KmVJFXajBq8dK8OAdkMCnO13e1gjm7noc9G38bGNzreVhufygXutZ9y6EE9MXBMIvCNqMTAXF2ZAGHV55aZQrFpWYNcS1mO25E3HER9ShQvMrkC1t9FI3hC9A6rOFxed4H2RG7-i3L-DN67K6drqK7R7n48oRnAVnlE17LGSFuGjTb6G_lDlUEPYoakOv1E5REuY3F5BkMKglUoPapajHxLlEwAWm5yCglY_6Uf7ah0IX3TxdbdP6nz-BXqydI0qB9gQHoWr8tWTluWgomY9igAJWRFwwfiXjo5DJf9wzIfvrglo8GA3nEi-zL4TMpaWvlwJoLa8dro7CH45t2dTPrlPsqYgiTpA5rR_JC8_kYRcEpTw0="
+        },
+        {
+          "id": "rs_07a9e3d618dda3b2006a84e6f37dd087d2ba1db6838c4e8d79",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOdlib2sU_elLmH_F2O6jcBTYbc15Sz9OuQXje_3R2yxMhxPz4OrWcGj5_D4bZmWk-SKL5w1GMMrqGEDFQkMMJ85jvHddvLUWsW5DxiFx4WWTyvUy46UXSkiSSsq4fpQ_IVdVZiVTmEnAnKGbH7Py2uQSBZekZePpN-iFK20vPkzA2KHhUK-Xf2PJ-PFOCGV4GEr8gxwizJwPClCRvVV-FexVY3MlAXgjq5SAIcjWO8Jj_Ljh9OwuGtePytx9LJJu7k5SzuaIwoLZRAA56pG76HkGz6kwEnerSkDjL3VCY7QZoGGwqGdSgrjl-GG0EH1m8TWIWzgGhtYYufdRdl9EylKaY-IluGYkvXHrWinJ50Ps2kx8DswjLfrlnf8Iiiioc2g-wjlWrpR8ZtFav3C4PygC3ns4FIOsEuXr0GRjrSTWTxaa5RVf5ZTGY_25nrx6q9WjbHP-EKpn5Rvnl3AmKFF5-KVETp2pcOQks2vrVdDRiTfFQBo0M_VPSJyOuBRcd_Nz0IsdT9SveO2J5D6COh0QOoLfSvv-lp_4Er0uMPKlchXBD9hCNiod10sKKbs0f-l46VrXSd5NpNMDxwpKAh9k9OUXPoCD8J3gGVN8_aH-AzJoIJDJ29BgyarCZMq-Touglv10-mmtKjIZvjL9EgG6WbxJkCW-2RIg9VDO4eJUTwam_UEQultGMfY_k7fgua-BX0G8U3sRdZi9OwO4YkYOoM-4U7c5VPqg37n8UD8smEhlxs5Esd7ihAbJQ7pGLQRvOfZTCTSqpo-OC1moaRmGOtzvvHBWLa8kIXg1HFwZqelas0op_rhqdmkMU-DPnYtApizjzjOYt12gm-MzqIDccUyHm4Zj-h8dg30fmqj30_J8IsGcfDWJaPAeG6v5sl30cpd4IEMEImpBTTZLIfJ2DE13V751lGSvDmGzMYgJLFuKzrnfV-e6-rcZyNF3ft1R1TzTQhw7me8MOkH9cMJuKEALScmURz9n1PXaSXIkkpT4wdIHgbXZmuYF7md250Srr6hYiK6b5gfmYWxHqtaeMMCi33da9NUpcFr4Y5b8xUAK1lDFx1YfTxkAu3CZ3bE3EubGDsakbg1aNBOfa72IxVXTYgZGowBMdsB661CqDMDlVi1FYYcfuHYVX1DECVXDfuQr3FAnCZndCJRbUsxzuCNtKAPxCtq4HnwJHeeM9ocQ2YLFVluUgw_piR9O7JMqNSemofHJCqu4_c_5dIfO5rQO5uHWGkA9mE9CaRQHz1Sb1i492Grf3EnqjKsM-NSMnMiTgLGiDSOgsjZeU6e2MkMKXYHp833zwInfb1TpTpuQAtL9ewb1_z0C5pNHoM9uvKywi8ZP38flIQ-si9OM6QeLgPVgPJPH325xwzEBbzCWmpaRfX4o3tcYn434Wv0H_Fa4jgMgjxc2v7Dn9gTbxuHHeZ_7LM95OoO3lgaVxhrfHk3FDbQgSCTe4Ud5cn2IIp9R9166ZwcerxiyAib3LSSN6yvv8jt064xBI5JwqhXS4l0jKk0BpvUM93kybYaHIdXHiTCnsbQCMPZDyMljRDIigt3i_hSEC60tw0jb3Aq9weLU_CRRG5_wyhA0yVkDdQufZanNM-BAQki0l5VyVNZTj_MVHDuvmoi335KcjP220ngkWwRV7TKb1hD0XiJAHVksN1G--jziY-B_JrqiIwHV2PxR_LEhJquF8Bn4DnNyKjmyn0KQS4HjCPG7FD7bplc6YMxUqAuuhsyZta3m39lnaOgSaNPfW4wIkJLDcpTPER_JB30jSNvpNH1V6I9XHYMa_eSkM0TKk5ySjAL4WOqWo2cHRordkS_3hxwh66Jl61jkMCMtPw2_5kBm7KDkjAJxb3vJlI-pjxoulRmDELfeW4A-_Rl8O5hZ4cmoyydHsiYShSCr7MmuXAO-ulozpdawtAXm7TECmJ0bACK4TEIYIoRrj-XIgYYwfROg7IVJIFYl43Gz_yvkOI5wfZ8ubfNGfMeAroentelWRAGy5EiW4xSuwuNSiMPNAXh1NiN2_8dGCISlA5aiVhkRdWG1Qgqjb9oSmjtkaIiPVi7-70cV49BcPHyYxIFIdiT0QZzQpwxzIYW-uCl3utPvn0Kd4HWKN4jFzcTXUIA9O6HXcmrhs76bsqtk4XILpwVTfRKExIlqj_MAjgKebxS3RfNmt9eKcanNjEQfsJ0AkVZFDBdOHNjXSnkSk7Z697AW4qxeeIrhOuX-WuwahoL2BEyevmGrz5ewq7VYn-t7i6aeKxd-r_cWicFaTUc1Ijn3qMM8liA0LONs9ymSUZ4rd0n0IdV8R_u6TJ7DqH3Hss05l6UabxfueJLeeVtSpbTroSxZNlHCsVCy6aIhe1PogGtggwBSUHOfcj_QNArw6KuZopbJwnyftu3bW4uaKuU6A030CvmCZkJW5wRDGYMsYvgCGR6jNZtGDXMSu9Iok2wlaezurzZBVcm0D4hNrYr1BZkQaTdGCl5CBl2Gg3IRYEg7ngjTg01Ng0hR7RLxxJWYZs6xhs5QjGt9MTEQtVB6a2MKTzv_P7zhye6RxvgyDZXOQGNyvyY-Zj9xzzqrd7QYHk1z8s24RruSaLAICSrAGZavKsahZIToZN3rhB79oKe29OrVVuaLezIzt-yGnYPzZR0hAXR-xQ5HsO8Mil5UDev7f2_LpF8bFPJrw3jI3F40n9-a9_YBjAyNM9-zhUOsbTYnRFknb2QuZhlEDX66dSpwyCi8Dn-GU3Gapueetpdawen2_6tFIPpJC65-1XXis8XjvKb_Bs1THrgmy2BHgbcoFAs1fGYLte8U75Ch_YkhcvmTBmeUXIOlsvRtNUdRB0bloTgpqjcc9YEpsYQxCdYyUBLPWKWEPIugJz1VSCVzmb4nUgPR1llbanvIEKdgLyCNxl8nDUfUuxXO235rCb-0C_-kRiH3RZfdSeP_FhxwD1aS4HEQgOnnfq0nHjVlQh7pInE_yGbMIgTe2YXphGEiRew8BS-qjSYSgTPjoMvGJacQOa0-OCw3H_VQMLDYcB09j_n0-CZW4IJp3Bjfh1iXV5-JfwNmP6m1U1GufZF9hjnbyWpnyYFXejJf6MAG6mmq4SLMd0rHON_og_koZkeq-V91k-qIhnrXcimfV6ria28PFxhqco4DoI1ne4sbKqmbjYzZqLJK7T6JXGQV4afQItT7cVz5I0UVy-lx4HeXeNYYvjJUhfiEBeDNA1HX5cXOcFftp6romD03ABF_MfWzDCpItr6Tt-_qAKha1lnaOIGDi4C8OVBvpVXN1_8SMk7USUtYFcGQRB1_Uxi-caQ4SZy4PYdAFAOYXdGaxyQM6EmQlNKaUHasfVM_ZijEcoByYNiZtaj1xHD5EpTV6FAkcqCj_NEIe5Tg0L1Qq5BfswKgVVCHFBTKzfFq_AD3P9IySNAi8ShRAuEZyLhliNSpWAT5mD60zmequMwRSlERhmAmdWwRsLwJMRKi_6otdfd2NBTD1L7QiAgsIHdnb-W7ScqXGhHQQ7OF1vrUMsHJ-u8fW8LfZSMi54URKY4mMdz3JMnedePNhM77-k5OrA7sQUznLEWh5IrirL4G44yEZ7eGC9a3USM2LZU1UMCKLDdnYb02_bWoTidyXy6I8n5fbhtJaGXMMn78xNJAlOBDZHnAUJuKfbUxCCmgBX26VuU3pijf_d84_E1sPNNdO2yBprqTiTpgGPzklh5bV6aHtEllLfJVamstU2QNPSG6dD27yKEkYQ42jbwUkt4dr4k41zXcgTaFhd7hfUHr8tpskp7TCIgfWU7eeeg_cDJ3zkHBS9qmkEh9olXFQbdeEsQ6QV3cIZNNOgHqbosIM1AjxCduS9IhG_2eGE-wE6Jngdw0Tx803u6S8LkX335ByESVoO2570p-OsHUfSPLsg3eqyJMXPscs4ScrEjgV4BVws5McReaoPQRPsFcf2eUuWjt0p2ruu4v9yGojO_Tr4dx2kcCNwz3vGVtRKP1SaUq93-8NoL1dbYnHcdFPPLf_Rs0rKX1ZaUYbCxMootocffBa7FvDlpQhMcHl0iPm6E8_azTOmXKrJmXjOdp42EF0MebboiRtlwVuLAx5mV3ECDIAB3sk6p6IflLWAZuVlV9pAhZVxC2Z1BGRCQM955LqR9dgVhE5lO5oMlp2wTLhvac6oT1FEdrOk7J_PVjqYjtg=="
+        },
+        {
+          "id": "rs_07a9e3d618dda3b2006a84e7007dc087d2b431853167b4cafa",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOdlnC4nHKfTZdKUuEdxB_b5AcS2S0nf7zXUiXD4FxzKYvmO6IxJeumQR1XWJkANpzEVkBPl7oqh15wdYcL1clGYx42nRhH41JLUGy8KmCeq5iKaPQcSg9-brInX7mGWtJEU1B2vAH8TrihGVjlMVCkSoSiLwrQ0FF2m6sD_yKVPZLZCE2sz8mWvjregaiuxUpKkV0Weyrnwkn6FEiKONr-GfvoqM0oGKsZ73j0edHlZdp7cAyItcQb3LRulTOCb9T0xPJBUU3rT23_4ooR4aTUat27D0YSBnwWQZgAw4RPRHNpx7CAc2mxF8Gwap1j7qTF8AJ6VT1npq8sS5s7u-q4k4HRzMvQyW-mQI-9A9_dkghmSWjKZJermMpmeU7Eg9v1ST9DgbjnqBYSJQijY1-CnJswG1bgOBUrDCN5CfMg2yHo6i-LP2TihjxX2ignjmWk66kMP8tYQKHyThvzQ85mxX91uKaAZCArVV7J-Ma875pSQBu6ndy9T2CJZv6O_vTXji8Ic9KXi7MJjpJeaC-BhJhTpo85ivZ4z1yZnsO18uQVrazat_IURp_BXP0I3F4CMui-DM4Q6y8TBTHS1m-Kofw4YRZa7QoVdnLMRWJx18o7qygnzSa_mu9atjylP9ZDar1gu2QDUT-ecSF3YbK_kEa2Kz-JGdETXxmfzYJGmqbDSn7gkwnynAxlwHyC9P3cUKAORju985kDNFSnjLeR57YCyJv1L5tBfqbB8KeiFh-uGt3sRflFrLM6DhjctL2oTQ1Owl_lzFpxs5eXwaE1dw0tTdE7y5e8Len8Tbk62YhaflSh5MN2A9Lo9P-H-LuJoRtGvAcKjzeJUSem5VoKappceuZfRWLTV-1wIJf2ubTM3drw29zaniF-u2QoXeHLW_5U-qmcd-fbX3fuxoEHnoEkbJYfypLWDSlo2YglrH2AZgqw7QxhM4Je1STg3f-endapGdrXnlqHPMEPQ3VJR17xNefuG8Qg-eiBrLl8P9TraXpdUasFo9gdhwIqBKw1XaelEgWnz0CWP0lTWb3IzDups8pB-CVAAxrx430q9zoBHcdom9Oy01QWi6cWRAQhZIM04CI2bFBf9AlWLjYzBlcNHx51YUFI_17x1yWHlAr_ou0wYTuzi0Gl8zXaqSYqAO2GgcUx240nN7dcZ0LJzPencu54BegDSpRJPzfQpiC6opzsuhLzDUTJKDINde0EFe0sFItxwWe1TbO-XG9yW4k8t_cSgUivFCfTF3AdL7xX_lOms470Y5qhHxjaXq5Qfec07QsbNiXmGQOH7ZcSvan0wDDUGV3-_iChMAnZSxabJKkGORnfidTLd65f44eOCsaKt5kcE_pdT7A5UmABKeuELtSe4Sc8CNTdGhMuQ3SZ2_ULO1TWUZV7jFgQTgl69O5sdYrKwHNSrSZVtj-Ar_DtBzGFyDp8JCNCQ_Cno09o3f1bFZzjqz7u1SkzNyspbs8hud8Prx_dmVDCaGHr7Gko-Sl3Son4xIfF6mVwisEZ1n5c__UVGCGAfK3S-tU88470O7hFy_8AUAv1QmR4GpXovKF5puDRvCMf0iHNymIJvhjrmjKIq4_kspM7oTGWIvablDQ6GnjhkS5LEoi-p0KI5ZM_6zkJHBsX3XJoRJigBqEiaZaj3NkS3HRnCVhoqBRRGCViqMcgnXd9uBBS_33-QlsJ9d5CiFFNUjPy8rfr5FIKE-UKyWx2ODWyxAB9uvfsxY1_PaLUvOuFMAP_Y0sRwUrhYqzsRMccIF9crBEjGe3Io6CE4cLE6T6E3smuyszzUqJMkC2Cz4ICMu4Pj9s-FZ0yyILWiMhSZdnTznC_KOu9E18DxHn8WdfOcA0gtP7bKWrOEevUUJwfPfqfQcBuLaoAoqalh0fQ-Q-DpDBvi4v-slt7HZIqF6M7pk8teIUc0xIc_6XV6myKpzsxEsO9ujzLhZWNHOwyz5NfBd4FIIbj_B3pOXYD34p8vXsDkFsCU09JNduqySwxQiZl6O79Ce27ChU4iXnLj1QswY_h-9AgEGcvgUnYcvbYFG-6mNc75A5sFTVfz9CTiYMyQcaD11JaX4OnuU2a6hBrYCd5Df6WRt0Uk05Klfut8qh4eZ4TYhUYl7nQCf1jcq_b-sVK6mZsWCzqjM3fLvnaaLKuQDl5_lGI_yuZF6HAwLy-L8ly5sWp4jkpxa49Zj1_hpv7HEOz5e7mZJgYQL_qyiyzHgDvjjWQHgyMvxArS0A0DpQ9Amk5gQG5U5SlrnYMLML_j5hb4NOgZp-h6DUDTcWEJKJvC5wfil7Pnkcpmwvx0-JCWVN1mA6GkGclD4k7eETEDbYir1qq3XWJXzec33xqd-KzNFxJ8vIl7er4PVpdVAFSr5WoX6fGjMKCqZV-xOmGNpm-JnbIdO1ZKHh6gIrZTs6rsWcu8sYKWOVXPD7KV2ia3FmkLQ6uvVd3IDFiDR1PShuxcxt1XkjA7M-noN_yonGEYiVvFN9WUVLYQmnx4MvJ6JllVfskX_BSydx3xLKKYHow21FDILCsl6MvrllQMs2f6ivetuTzQmI8dittMD4MOf6ph4FJpnlxOBn16fM_CUlREwOLf9Fh5kWYkiaiX-r5Z6tKkkTeoNZ5LgipSbyYYmMVYLg_kpVextIobdqlOfq_ERKTkMtRE1fQmmkshHS4lySFhbFe9rWA3Tvgmb6Q2ledZsJFrxPhO3qxB4mq3uiTBYlTQbOOOBCkbLF7oOwVJo7qmVyTgwZ8JYYRPyCzJEYAc6G7HmsUNKaqJr7NQoTeXU6XYdm1b_zYcC9t_kgKJ_bsdDxd7Wc1AiDb6dulhpRkHnf4hQ-8APswmILMb_ClzALYdgdmdUdNPoxrBy8b21hFhDPnGmXc0MuQFs-KOM4EzY68sEb2rONDfQGpj5RkkeXJE7UJh6gsweehxJMtR0PByF7NJeswMgqH0GrUpbG758zkX--1Mz2Fai99ZoQ3083cKjidBMi24qAtTEuftSgrvRkezfqyNuO4Xc1JK38nYI-vfU7I6yv5mgci1PolB_tU9OlzOHAC7rxwN7Hlgk8Zs8D5pupsepoI_2aEhgezaA-LMffvJtuHgKzwhuWlyZ7WxshmCvKezMCx9gN1w7eOU86OAhP7GmHwW2uO_RZLOB-m1-8XHJ0icMa8Y0xOe2r_bESvSssf2GEATpFEpxgP5OOq-pPp0d6mCsHyc6fr56hkRH8ZYjSRhDfWjoqCMCPKBD_V3HFKvHYMOJaRQUifdRuOGLFkmSCudwiBfpKR7iTkevIjwMBUmFVUOrt2FZa8L-JioieCtTQ2xPZ_lzWkHqBnRUQhq9hqlTBC8M2kZp-_AF7MttcOHrc_yMchNZ7mNbsQecnNESXkER11JXTjx6GsnAx_jzinFwjhw9-OgLM8yR_405Zp0AWkVw6FqA7LlxcF2IY2rgiAaB6ZBqZtm9DlOOlH2q2grLK66AnGw9iKUMaHJUqJPcTEeX66X7UiyUSNH0-SYp0JGz8DKtegBWdCY5JRqXT8uEYgmlCuFwvasLxhtZR1yUPQTGKY5j-Om2hSjmwA76VHL_kqNLEwicBVaqudupwHRs3YAk56-pRj8SsQ6ML8YYxeleIjsF9IjmIz4-lm4WA_mKUTWwDCse4yNVXJ2vtBX0lpv_ZAli8zl3mx2YkbqgqLXy1jLwDy84ZLLH0UyG8bBveKswSJWbEiyVIn9tT-rXxLX9G5oVBduJKMFvySkrTzfXpCxBssRf3zxa7x-tLNPyhTuzNfbosbCY4U1BTVaj6yzQREHgf9N5OkG8meOOnEkxk46zgDy5cN_SC00zZc3wSXLZN-q-UQhKM-tLtfBc88IjAdsp_gnGeX4wyWO7SbXoCbyvObgz_v5AtGt9FW-mhsAQbJxBZ_L4OgZnA_OKy97ClnQxVFIp4Rgpr1YIbUUZewKzVB863GuUAwhXk7vRf7Q_gTxhHdYIVwmNtYJ4TvLR2s4PqBCv6mQLGHwpe3w7cUHWGh5AwmBSDfnBbo1KSit_b-UFCbHuwC-byUv4ZQiVEQiSnD5KgKDFB7dJxJ1K56MyRlIMA6h3NK_KjfME5xXlJYLmAiIvumWZuYzwM8QhBLzoQQnDaf3eRXognK1v5Dix_wKK0tJBbJHRTEyX2rzNHZGZ50C7ODBepEKCKY4BKSKzve39GeVRIQ_2Ldx-Bpth0ZXpw0PMFKjYJMIZcWfitRbIugT-QFmfW_hwBdse-K7dddeEwVTrUNufR6BV_yx9-u3JSYR9HUfb5vRbjaF3TmyyYOOnrx9AXsvcS-lF_t0ZxskvVjQtpBwR6osApVuMoGrgRIt4olHSdrNyelmidM7K1yBll1TtmMVerh3EqEQR10q5Mace-CTXSPjKAEd_FYSKSjuhOLO6F10-nn06BminFdMSsyHFjisueVP7MQ2YjT5jJwgfBdWKIfizIrx65IH4s7NA87pzSkoni9pkOIAViBl2Ikgc7kdNOq9RLAScHant4RM66DuHg=="
+        },
+        {
+          "id": "rs_07a9e3d618dda3b2006a84e70c351887d296a5f6f43488b199",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOdlf2xc7fjp3TnCEsPzQptbShPRjfJ6o965y61bfU5v8ouioom7p7xD_vNEUR-9LJfoywG2wo_iT4OJEYMQfEAcUrz-Bbh3joemKeBGZ9mO2Zq1YKtchFLL0e7Kzw4tdSLtnFht9Kxj4fjjbpHBdJNhUNhZekwLJvX9pCCeznHpaJUrRWstOzD307ziyFNEMjQn18_ngE4Hq-cugyRFba6ZOnpzaPuEUxPo_UT-hXENidaVpkgSwCAO5RoL3AFTZHuiF8Ka1tVqVF14zeR7Rk9QM7Bj9rjs6KPKrH21laOx8omoEp2Bcx-14Qe2DRYtB4bf-djA3TkZEf17W4yjfE_aVgy2npHGYj1mLcI7Cmftok75PAhl2weMQTRF91Bx17_DkrOky6ujjO8GyPI6ghIZ2yLbA3pVLY6ec81e0sehHuWh4tQ1k6GuIqbN508N3Vke15vhvWJjT5OgknxIgUtOGTuHX8-k7korW4tUUdHtRbZzmqKeNKnekVQRRgguJKkWOI71ix_v2LcCApLQFycJUY3DIJYW1EPfM5lxX4PxJ1IOlcgo6QMl0bekiDhYGZoOettXbJtKZwYbOx-V9jDvN6LcE9lSF45vWFhFZYL0tw9VXk_7zq-9abXoIb41OwBr2JPPz-kRubciHjjy_52DFoPLkx0wg0gGejM-OxfuzlsSV9DYq_J9HeXjTvmY6zaCnXPkuprphHgI7HkWB1m1Uzh48qxPtBHwXOgmNFFy54BGmtAhlUcxzLN84QCPegk3IYcJukbxOpieWDqN5nhZAXJvoDQKTSh61N2kvZRbDtDfIhq3w5zzEivqb341Ferx8j5MFlMM5Lh7u7BYMRqYHecMuZmwANl2ruxxtQ53o1yIVbD459MtJwLRi8w9YIuSi0WFRtaFll8wWfxdmsq7fI1DQWBKEvMEoz2ecduW389iR4Pq7oa6sK6DCMlK2Qc5O-vdrF89sgt-zpfODNIHD0YWgRokEQwPZAeWrmyYp_SnQxFFc78gcsWmQ7dAka7W4v5Sk-j_mHr33SgMsvm3o0rFVa7a5ttEUK9y9NgF0M85D6pioJ4IBqQAK49rEKbGxle0qlxYz7DUmJpxNT_RjMs59e29LI7rC890ewPLRulj78seL_-ZGt-XGJRZcx2M3XwFsPbFYsSz3o9g4VNKPi4h1tAoFl-V_2h71LSUzt_cSrnsiLffx9O7ZOM_pfixUZyoYtRUUEzXy8DnrXrFDV0EaDOH6agVWrh3lTPxy7jkJa8ZYFH4IsQHTunuBu3r5YL6UNNRJaactVyK6u_H_hV8fiVtG3cqm8I51jkyT-6LaYgGF3dxuv7SfkHybMtFf-s3qqGWojLLYTfFGQan8dAHGs-9MyWosurUqNhysaubIFYqlD1gi4I7MMSRHxj1bzifb_TDzTEeCD_1UfculTkrv4Rvgy_k8drVnrdnhJfvGsEBxw-PwOM43aALbgdsnRIpJFR2Gy7DENvCP67-YNGDDf1FAnzcXjgLkxVFAFBrRsVdBXxkm4aOGqHFQNn_fsVAdiP2VfDogEXeAOukDWLIw5TGAP9QgvOFl6C9q3Ajrby48G9jgQy0IlmgmL5SnB5B4sEv6TjW38i6weI1H4ibMrwCW5qGnf9KUKFbI7kNytVkjsTimTfUZU9MaOQ1VWiWwh8d9HZ-d5cH9bV3zll2-fsEQRfVZ8quNZi3_oprxxM0BZU_06KfKURZki7gocYgNq-HjjiwArRT8BtyBQqfVa2yfTMJFursenhnUWAQSO016CP2Y-IIE2Fs0qPT8xBOfi_s1j9BeKL2ilMfFCZ0MaDfbCSCkans16zgNOgOaMTlso5WMVOJtmiDNLWvAg-PP_Oa24igDiHPGlyV2Xem1A5zskpuS42-k4kxc9HWLzyYsYiveyx7FtOgJqbdMvap0-4yPq5JgrEymBAWiWXkrqJpSK_aQvHDn0vkONpTC4vrlWgHSPm3maXGU7cCYWCLFZkbe-vse0dCuiSizlUmHt8rUWELeoBW1t9LkP4f-jPqeWZgMCANAWqN5JcgwVp1qLHj54a4p3lPpW5WHFz2VZIu3TdkS1Y0MqvAYB-YE54xzVRaroW_Nn3TyLwZoeilvlyDM-5_Ko5b3JaJa1LMnWRQZsb8gkjn0pf9eVLXKwnTvOjv0eBGcu2A4TQrH1_NfVoFJfqFubNCWCj-jM6WGqg_Y9BTUEcRTLhE2ka5kSBGBWE5wna6oht-J9HMBba_4rKoE7_wXMeWafy-qPFRJzFGIvp0WStS0bmI8Fec8HCvyKNhv4LYkjsVGivEFUQXhJDgwA4D5X-GMgST_aqf8_BH6uR8yLLevFxbBH6_Xh9V3knlwBm1EuYVroC1QeU33VHarroO65xmpsjiTD0xccV1KOfZVnq2N8Tf6ibxNCB90QK8Gf9zeh1lWOulbO4y0iFhRRMeXEu3XpzQb8Alo6Z8XT26Ab3_MmaqxGJxKqPs1200p60_QPJUXt-O07zT8zBW04PIRvqVmeXy4DtzRxmbKoM9p821TMrSvexnOYK72X0S0tdmsB9vXJBmlqWH3roUEPZI8Dzcxx2HjYWKOtWyB2xn_B5B1eYuKAyHVP-aHWCFOMupLnfkodO9-q_EmOwLsfka_LunAcFHby_n07vVxfbxGIFuLUZDCoGuUUkzPwtlV6L6_7z4eNL1V4_eJ6Mi37Nno4voeH_hylLrgLK0JUM2nNj6lg5Rj9ClRjMejWZlyhw33PX9zxkQNAQcOJ9Ml9-SY2nnpUPPyQ2MlXBHAdewt39AOd2AiIktf7JF-j_IVwBOJO-6tFOVTFHrih3zPRz_AeARQLnq0vQXijSFd64uVCSvhf4K5-WtsWtT2xBbvhMFiEcbZIh1Y-duba3IX_xNcxg4Fda47DYdklkG3u5QHRlvgvBlLYumOjsfpiFwn8iOesjrfWVcHdpJO_IW-ehCT9lZYLGALkGY8-FlyUoL99EKWIZQT24F1pnAXyyOIKp2UK3_aPvOdbQcdRL43WcbOO_uHZL-dzQnmvzWwMuTbnptHH4yyETqqC9S_XyAsXxGuk3FevO5HH0LXJuG_gYuz_oT1ZgYiTo9tpm4OlZ7ck85uoo8jqpxqKGulFFt_FPwmSW-dzBzZsdetWbGikhRkVdu63MGh7SzZ5FHOFo7Epidkpz11jQNangcqPFav4ACtBRnQB8Ggl_gbs4dDnduaXs06EtsiIAXksFhKO3AUaTOC4MDpq1_GooHxzBK5wxOP_5W4_vFOzKXr5ACbN4JdX_Ddwo2tbU2bwc9SZqQ0UlUrKVg-JP8L_XVRgiwxvxKoV_5Uah9_pOiEAj1tnTO4GONAdyULi9uXKpnN3wiGcREH6-8R8QsRQ12KvlnIQZbwydDgoHX-BCVZqhZ0JJHDezoBkMRUKKoXSUVBLSxutsNNXD2RswB7ZjiPdZhPXAI5Myte1T3Him1B0ZDsZf2ZmAOw06JzvyDZzWsaAFl8JUUg089CbtJonyx-TmhwtWeAciIXDS9xo62KSqe7nsirfdM9JYTWsn_vUjAKsFEJW0JotSOEDE="
+        },
+        {
+          "id": "rs_07a9e3d618dda3b2006a84e7184aa487d2800bfa1253a7ca00",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOdlo5Ov-IALlwjI24jOd8u52Tmo2ptFxDBK-oRdAFldon-LpxyLf3ZFUjV1Vqq_KiZyhLrXiiX2IBhUDdSE7ketf4aLVudFV3l198KqPD5JcM8UanJXzdPkq8BzkHyHg_xd1GRiTABq3DHH211voOCZpF-KYfvAAhckd2hw7p_9giJkrvV0Hv3BOb8OQ71jTtR7lsnC7JFG5aASCGAB56FECsmcZ5TPgpvTMPfpasZhMZqsIp05N8s51XKgIWKOXXqdgwFCsupUKvo8qVx0dIDTRy2vzAudHHBh6M9PdQuXi0C_HYknuxFPRdo0GhlZasiZ-EzlqtToXHON0_8X0A4EuQZt5G4ZXsfuwCZG-Dv5-RBLMw7Xbv0EbTkQA8mqCysbulMZ-ZdMxCHnyrliV8IHL8LMrIuNQoxtA1s5bpD7TFNHHS5YIkt1d9vnU3fKgB4ril_J3sQVFztFSz6CzZfJfTwPukord8PFva9YPGL1baTlLjHXHs7y3LIMexAi4lzCl-cLr5IqN6lI1MFZwOW5A6BzSYFaKdrMez9HTXBBNFZF8kvplOUtJ6RiFzThmVCD10cW_1pUMzClVXGEGeMsp6hNmcGmxjaOXpFgb1dthL2xzIsM4ZauBpGDYljW4DNV95PC0MmZTvwcYIVbzn8SlpAY2VTIQJhW8REIUSaiKezt1ayvrGIk-BSLvlIvOGJd4HyzNpLaDYCb8gnzO8k05nXdnQiyqtyCWiyvogD1GJxouJS-TXE7kjWC_HkCEwF1QTinX53nytxc_ALUG5LC-qyzSer2bRNzESV-ZRfzHU43znYzfr6zMpHE8aicvxJz1c69a8pm6RTgCxHaLOyDontzr2gx9rj5P3sUhnrUKWlDBgiK4tCTfgz22KdzdBR-OXiwAzoQ01An-Hrd6F5b8_cj1201OOI_dM9GSrxpiJpNfHVy7yl531vZ9RLH31e1mNDIVAwqeLYxhpL69poHblpZU3cx5X3y29w256Z_DR1wCArKLGiG3ZRBW5whqUOdD8kn1vroKQwwn_Pt_nM6_OIVXSTEHsO__iInuEqj_ZW9eBWz4dLHLCvHV52wwmg8B_z3sHjBxZUjWjUBu_xWKHOOCX7Blub3rmkqVLLUvEzGd0ihQ0pHfKFGp-Fbh6oNZtSxIJdko_23xmOqC4ciFyBNS3gm7kiKIoqkjTT3jcS_SBD8Q_jsHY3xTKowInVALVmwEslv_tLCEsP05t7agodW8cu8rhZ74Dvk8z-RFfRHAfl0tZh6YlbU7GM6hXemrjl8p8GGJbCcXSHfEOPAX4zy01zxtnb8r8jYQ11zfT7EJw3Pefspvmcm3akR1DEkU2eV9vRrwfEnhChI3E2MOGc2xuJZ17OrHlg3JUVNzWCWlyuMdo8mC0PEHhMx8s5YS6aWYZFIj84wzEYvzISKYwKvK-KMlRpu3_mzigAbHBDf-AA8TWIhBpjYMisFcs9_Gbjj7P7Esp8IwuxZ0cGNwmMJgrcd7d5rAVyvByQeIpzVpAj7WNACsdfaNltdNIbpnERb3Q0Kczd3x8-xhBS-stMPIxO4A4hQRegoJH8A9yMTpOlQTfEvc1CxQ27q-V6PUFuZV2fLeqlaGCbwLGgAE7dcwkujgLlvI3R8nrpM-KQ5Cya6PPkAo3kuC0fZlFDEpgd_OVUgLg_Rf-bLS0q3DDGg45gHPNaMettes8QM732ps1kuil5LC6JhArV-2g3_UmlmXDUPkBwhTcPCJnGDitnB73QiuAYCDmGtfmRXlK_Gs5T_6cLll5gklIw6teBpJT7a7dkW7h3Xn6yiRIM4nlukHxNw7icHsB7449HBJm_4fKNuoMssGeZCSmT63k1mKTL_5AJ_p_rhoI-tacuZKdTJ7Mee4QhEOJ4tON03ne9PQUYEUddZ6EVgVmOO5gedatuELYxzaKnsNkrYgqNbhpOgnU1OJyHAD-SNK8sIgiP38-A9ODRwp2_rRSpqQpdzsxAHw9l7juZ209G7jGDf1xmfOAvuoUb802jzAXF_4o4AeKPTewgt8zB4Wb08F6nDFYlhOe1x7Js3y6D5qq1E1fER6sXfTm6NtDSgh9hZmE7pQuCpsOxe-3MRVucWvMnbSwE8FOamQlqQJqwLaCmnr2sVLvFjW08kd6LU5cbHUu0bP44vzLOC5VlUtE4qjz0J48-_8hFAG9AphMP_Yw92bH3fgkY6QEPXFaFQkAPcHtfGCnLLX3qIi1IDU1_jNYhko2Lhj0F2zxykZgH7F3IEw2U64t3QUTFemXmuUSgVYBOLl5jFL-IRl-2qO-ut_1J2150LcD5k9iEwyPhz7SOYDpaRYkx3ybrhMSjM8sIETRSwRKRL3KgxRP76b-v5rLPkXoI4E3BUEU1xjXlbguzm8KFtQuzwZr1uXubyvl3JtGr0BF_xrm_kfdoXkl1T0m9rgvbcoF-14xon6syW8hns-4_xYMwBE1HJXyO2SA1P7aNieph2nt_dPqqPPw5HuJ7LGG4BUKLNpomBhLG8eufqOxtVCE8GCjU--WgiuLrY84J0Rc_P7I-PlxOUbMMeBjA3u9DGNLaYiqEPZuEtnpFIyPTJimZ87ei9wOEJbpmV2oCEpSKL2SnWi8F4FX-KmzzsPTVKgmIV-FnXmv7Ms8A_EnggZ3kqpMMdDCh_Vd7PK8XymC6sFx4Ev9kFMYOGTo8cGjUWiut-Atul7nUhOZtOD9ngjKVkodW97ftnbO73nNs4Y2JhXnKKq9Bh1_2ysblXB5jY9gAGZQGG-1r188SJ1HPYK9_ChcG443B6qUOHWSN5qJXjtFZ2hbimUQ5Z4zirrrCQoRgTojQUg2cd5L182o_gHGAlt86JGOwtM-88CKaZBYypznxwAZCbW_vZm1VAiYM5aw1Pa0gk-ULcNtslny8WDiQBAQ7GIbARqk8X9zCr2e_BkiRsKumq87mGU1d6fqeGFZIpLfYxN0D8YScsV38F3J5bqe2imwibjv8_xM-bV-0NwaJ6ZWNGF_SZsAC9LTQ-I84qOioxGzBjVjMGbUEhEf3ma7prKocrQ55G38DQwBykn08Ny_aedpk4vwzxRPCCK-cloq6rr7yxLIWUcfVy07Rg_tCUX9mMwyhC809z1a5EKnHP860X1aN9xU7gul4e7luOBY1NkyXY5q4Vrx-7SO7m9V1_e0yI8HdZ9xLOpBLRz8osgzhPhytJVeY8vyI8YtinqYzuSh9tridtAeNaxumBC2Y5YS3S0WakA6EiRkmbFc-3SuQVODZRHmAzEPz0QxgfCdXXgBUBDJiv09N0yBDjVMWgm3BmycS6Fqz7Y3Vv1u0RUOUSXrXmeRoCjcYBhhkwUocAPuTVhX8m23DG5sn4qxpSYl37SQN6eCYRQczM0ghil33_5dSc6AolvQF1UPJ0IqNyOqo8p_UiKLjGJB0jF6YGHLIMNgfOQpobCKgjkwTpmGBC-j-Cwu5IeST8w1QFu0Olb9Tl_QZLzrYkTXM6Id02UYAdy7H-B5OPSvS036knoHmD_pVO4KzqUCN7DHkgh76SVe3b6iq6Y1K-fokVM2NzxOmLJIl9BFJ_2jxKEt290v-UsnPDYJM1LYPrw237J2TAOuRU5omNzlGSGX4_o9n-dMU-gOb1yI_QK_S1SrTLpT5I31H2NoisItllRYGR1oqTAkrGv97VFSbMYEvBavBathLj_Y2A68bIuFOYqaWry6wKKy2gPDZdEjIqfld7CQryC34ZX7xpa3dDJuiTYC8-Oygbs-s7_Km-1KJI35gjviV-fHBuTeyinD0YrBgYFTnfkOZnEdW7zwrcGRB5-sIwhsi3GpaFRO9lMGvcF5GAsOVBfvw3phM-GF0rZpHMmkz7xTaz4OeAyw=="
+        },
+        {
+          "id": "msg_07a9e3d618dda3b2006a84e723b1a487d2a373ad737a851187",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Summer berry oat square\",\n      \"title\": \"Warm berry baked oats\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Take one portion from the Wednesday cooking session and eat it warm.\",\n      \"why\": \"It gives the student a straightforward breakfast while the first cooking session is already under way.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_berry_baked_oats\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil bulgur bowl\",\n      \"title\": \"Lentils, bulgur and cucumber\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Cucumber\",\n          \"quantity\": \"100 g cucumber\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Plain yoghurt\",\n          \"quantity\": \"50 g plain yoghurt\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon one portion each of the warm lentils and bulgur into a bowl. Add the chopped cucumber and yoghurt.\",\n      \"why\": \"This turns two Wednesday preparations into a quick, fresh-edged lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_bulgur\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Lemon chicken summer bowl\",\n      \"title\": \"Chicken, roasted vegetables and bulgur\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Plate one warm portion each of chicken, roasted vegetables and bulgur directly from the cooking session. Squeeze over the lemon.\",\n      \"why\": \"Freshly roasted chicken and vegetables provide a warm anchor without making a heavy August dinner.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lemon_chicken\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roasted_summer_vegetables\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_bulgur\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Warm berry oat square\",\n      \"title\": \"Reheated berry baked oats\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion of baked oats until hot throughout.\",\n      \"why\": \"The second portion makes Thursday breakfast immediate without repeating a cooking job.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_berry_baked_oats\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Lemony chicken garden wrap\",\n      \"title\": \"Chicken, roasted vegetables and leaves in a wrap\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Wholemeal tortilla\",\n          \"quantity\": \"1 wholemeal tortilla\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Salad leaves\",\n          \"quantity\": \"40 g salad leaves\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Plain yoghurt\",\n          \"quantity\": \"40 g plain yoghurt\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spread the tortilla with yoghurt, then add the leaves and one cold portion each of sliced chicken and roasted vegetables. Roll firmly.\",\n      \"why\": \"Yesterday's roast becomes a portable lunch rather than another bowl of the same meal.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lemon_chicken\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roasted_summer_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil vegetable supper\",\n      \"title\": \"Warm lentils and roasted vegetables\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion each of the lentils and roasted vegetables together until piping hot.\",\n      \"why\": \"The hot lentils provide a warm anchor while using the final vegetable portion within a day of cooking.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roasted_summer_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Golden spinach frittata\",\n      \"title\": \"Warm spinach and Cheddar frittata\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [],\n      \"method\": \"Eat one warm wedge directly from the Friday cooking session.\",\n      \"why\": \"The second short cooking session starts with a warm egg breakfast and also prepares lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_spinach_frittata\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Frittata tomato sandwich\",\n      \"title\": \"Spinach frittata, tomato and wholemeal bread\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Wholemeal bread\",\n          \"quantity\": \"2 slices wholemeal bread\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Tomato\",\n          \"quantity\": \"100 g tomato\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Place the remaining frittata wedge and sliced tomato between the bread, then cut in half.\",\n      \"why\": \"The frittata changes jobs at lunch, keeping the two Friday meals distinct.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_spinach_frittata\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Herby bean tomato skillet\",\n      \"title\": \"Warm cannellini beans, tomatoes and courgette\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Wholemeal bread\",\n          \"quantity\": \"1 slice wholemeal bread\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon one hot portion of the bean skillet into a bowl and serve with the bread. Freeze the second skillet portion once cool on Friday.\",\n      \"why\": \"The beans are Friday evening's warm anchor, while the frozen spare prevents an inflated single plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_bean_tomato_skillet\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_berry_baked_oats\",\n      \"title\": \"Berry baked oats\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"Rolled oats\",\n          \"quantity\": \"100 g rolled oats\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Eggs\",\n          \"quantity\": \"2 eggs\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Milk\",\n          \"quantity\": \"200 ml milk\",\n          \"amount\": 200,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"British berries\",\n          \"quantity\": \"200 g British berries\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Ground cinnamon\",\n          \"quantity\": \"1 tsp ground cinnamon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Rapeseed oil\",\n          \"quantity\": \"1 tsp rapeseed oil\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Oil a small baking dish. Whisk the eggs, milk and cinnamon, stir in the oats and berries, and bake at 200°C until set and golden. Divide into two portions and refrigerate Thursday's portion once cool.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_lemon_chicken\",\n      \"title\": \"Lemon and thyme chicken\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"Boneless skinless chicken thighs\",\n          \"quantity\": \"300 g boneless skinless chicken thighs\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Rapeseed oil\",\n          \"quantity\": \"1 tsp rapeseed oil\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Dried thyme\",\n          \"quantity\": \"1 tsp dried thyme\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"Black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Coat the chicken with the oil, thyme, lemon juice, salt and pepper. Roast at 200°C until browned and cooked through, then divide into two portions. Refrigerate Thursday's portion promptly.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_roasted_summer_vegetables\",\n      \"title\": \"Roasted summer vegetables\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"Courgettes\",\n          \"quantity\": \"300 g courgettes\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Red peppers\",\n          \"quantity\": \"300 g red peppers\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Red onion\",\n          \"quantity\": \"150 g red onion\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Rapeseed oil\",\n          \"quantity\": \"1 tbsp rapeseed oil\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Dried thyme\",\n          \"quantity\": \"1 tsp dried thyme\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"Black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Cut the vegetables into bite-sized pieces, toss with the oil, thyme, salt and pepper, and spread on a tray. Roast at 200°C until tender and browned at the edges. Divide into three portions and refrigerate two once cool.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_bulgur\",\n      \"title\": \"Tender bulgur wheat\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"Bulgur wheat\",\n          \"quantity\": \"120 g dry bulgur wheat\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Water\",\n          \"quantity\": \"240 ml water\",\n          \"amount\": 240,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Put the bulgur, water and salt in a covered saucepan. Simmer gently until tender and the water is absorbed, then fluff and divide into two portions.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_smoky_lentils\",\n      \"title\": \"Smoky tomato lentils\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"Drained canned green lentils\",\n          \"quantity\": \"240 g drained canned green lentils\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"Chopped tomatoes\",\n          \"quantity\": \"400 g canned chopped tomatoes\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"Onion\",\n          \"quantity\": \"120 g onion\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Carrot\",\n          \"quantity\": \"150 g carrot\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Rapeseed oil\",\n          \"quantity\": \"1 tbsp rapeseed oil\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Smoked paprika\",\n          \"quantity\": \"1 tsp smoked paprika\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"Black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Finely chop the onion and carrot. Soften them in the oil, stir in the paprika, then add the tomatoes and lentils. Simmer until thickened, season, and divide into two portions. Refrigerate Thursday's portion once cool.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_spinach_frittata\",\n      \"title\": \"Spinach and Cheddar frittata\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"Eggs\",\n          \"quantity\": \"4 eggs\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Spinach\",\n          \"quantity\": \"100 g spinach\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Mature Cheddar\",\n          \"quantity\": \"60 g mature Cheddar\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Rapeseed oil\",\n          \"quantity\": \"1 tsp rapeseed oil\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Oil a small ovenproof dish. Wilt the spinach briefly, then add it to the dish. Beat the eggs with pepper, pour them over and scatter with grated Cheddar. Bake at 200°C until set, then cut into two wedges.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"fri\"\n    },\n    {\n      \"id\": \"prep_bean_tomato_skillet\",\n      \"title\": \"Herby bean and tomato skillet\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"Drained canned cannellini beans\",\n          \"quantity\": \"240 g drained canned cannellini beans\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"Chopped tomatoes\",\n          \"quantity\": \"400 g canned chopped tomatoes\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"Courgette\",\n          \"quantity\": \"200 g courgette\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Onion\",\n          \"quantity\": \"100 g onion\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Rapeseed oil\",\n          \"quantity\": \"1 tbsp rapeseed oil\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Dried thyme\",\n          \"quantity\": \"1 tsp dried thyme\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"Black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Chop the onion and courgette. Soften them in the oil, add the thyme and tomatoes, and simmer briefly. Stir in the beans and cook until hot and thick. Serve one portion and cool and freeze the second portion on Friday.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"fri\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_berry_baked_oats\",\n        \"prep_lemon_chicken\",\n        \"prep_roasted_summer_vegetables\",\n        \"prep_bulgur\",\n        \"prep_smoky_lentils\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Heat the oven to 200°C. Mix the baked oats and put them in first. Chop and season the roasting vegetables, then prepare the chicken and place both trays in the oven. Start the smoky lentils on the hob. Put the bulgur on while the lentils simmer. Remove each preparation as it finishes, eat the Wednesday portions, then cool and box the Thursday portions promptly.\"\n    },\n    {\n      \"day\": \"fri\",\n      \"preparation_ids\": [\n        \"prep_spinach_frittata\",\n        \"prep_bean_tomato_skillet\"\n      ],\n      \"total_minutes\": 30,\n      \"run_through\": \"Heat the oven to 200°C. Wilt the spinach, assemble the frittata and put it in the oven. While it bakes, chop the onion and courgette and cook the bean and tomato skillet on the hob. Cut the frittata into two wedges. Keep one skillet portion for dinner and cool and freeze the second portion on Friday.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"British berries\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Courgettes\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Red peppers\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Onions\",\n      \"quantity\": \"3 small onions, about 400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Carrot\",\n      \"quantity\": \"150 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Cucumber\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Salad leaves\",\n      \"quantity\": \"40 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Spinach\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Tomato\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Lemon\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Boneless skinless chicken thighs\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Eggs\",\n      \"quantity\": \"6\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Milk\",\n      \"quantity\": \"200 ml\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Plain yoghurt\",\n      \"quantity\": \"90 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Mature Cheddar\",\n      \"quantity\": \"60 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Rolled oats\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Bulgur wheat\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Wholemeal tortilla\",\n      \"quantity\": \"1\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Wholemeal bread\",\n      \"quantity\": \"3 slices\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Canned green lentils\",\n      \"quantity\": \"1 x 400 g tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Canned cannellini beans\",\n      \"quantity\": \"1 x 400 g tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Canned chopped tomatoes\",\n      \"quantity\": \"2 x 400 g tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Rapeseed oil\",\n      \"quantity\": \"3 tbsp and 3 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Ground cinnamon\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Smoked paprika\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Dried thyme\",\n      \"quantity\": \"3 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Salt\",\n      \"quantity\": \"1 pack if needed\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Black pepper\",\n      \"quantity\": \"1 pack if needed\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-meal-v1",
+        "user_id": "2a000000-0000-4000-8000-000000000002",
+        "request_id": "2a000000-2100-4000-8000-000000000001"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787094758,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787094885,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:06:09.512662+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:07:16.230915+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:07:48.092225+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:08:38.92742+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:09:34.747913+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:10:04.256236+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:11:02.632516+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:12:38.325374+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:14:46.044092+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

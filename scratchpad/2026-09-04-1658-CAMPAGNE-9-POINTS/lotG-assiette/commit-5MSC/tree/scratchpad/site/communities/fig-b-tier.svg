@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-tier-t fig-tier-d">
+  <title id="fig-tier-t">Le palier se pose au-dessus, l’offre du dessous ne bouge pas</title>
+  <desc id="fig-tier-d">Deux fois la même offre, dessinée par le même élément appelé deux
+    fois. Celle du dessus porte une bande de plus : l’agent de chaque membre. Rien d’autre
+    ne change — ni la plateforme, ni le prix d’entrée, ni les publications.</desc>
+
+  <!-- FIGURE B de /communities — « vous ajoutez une ligne, vous ne refaites rien ».
+       LA GARDE EST DANS LA STRUCTURE DU FICHIER, pas dans la vigilance du
+       relecteur : les deux offres sont le MÊME <g id="offer">, appelé deux fois
+       par <use>. On ne peut donc pas dessiner « le palier est plus gros » — la
+       promesse « ce que vous vendez déjà ne bouge pas » est tenue par le SVG.
+       (Même geste que les deux assiettes de etalon-concept.svg. F9.)
+       Les hauteurs n’encodent AUCUN prix : la bande n’est pas 12/29e de la carte,
+       c’est une bande, et l’écart se lit dans les deux valeurs écrites.
+       Pièce chaude : l’équerre + la bande ajoutée. = 2. -->
+
+  <defs>
+    <!-- L’OFFRE. Un seul élément, appelé deux fois. C’est la garde. -->
+    <g id="offer">
+      <rect x="0" y="0" width="200" height="68" rx="12"
+            fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink, #23191F)" stroke-width="2"/>
+      <g fill="var(--ill-wash, #EFE0E9)">
+        <rect x="16" y="16" width="168" height="8" rx="4"/>
+        <rect x="16" y="32" width="140" height="8" rx="4"/>
+        <rect x="16" y="48" width="108" height="8" rx="4"/>
+      </g>
+    </g>
+  </defs>
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">THE SAME OFFER, PLUS ONE BAND</text>
+
+  <!-- La bande ajoutée : la seule pièce chaude du dessin, et la seule
+       différence entre les deux appels de #offer. -->
+  <g stroke="var(--ill-fig, #632C4C)">
+    <rect x="140" y="38" width="200" height="22" rx="4"
+          fill="var(--ill-wash, #EFE0E9)" stroke-width="1"/>
+  </g>
+  <use href="#offer" x="140" y="60"/>
+  <use href="#offer" x="140" y="152"/>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <text x="156" y="53" font-size="11" fill="var(--ill-ink, #23191F)">their own agent, every day</text>
+
+    <text x="24" y="52" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">THE COACHED TIER</text>
+    <text x="24" y="74" font-size="13" fill="var(--ill-ink, #23191F)">41 €</text>
+
+    <text x="24" y="166" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">YOUR COMMUNITY</text>
+    <text x="24" y="188" font-size="13" fill="var(--ill-ink, #23191F)">29 €</text>
+
+    <text x="352" y="52" font-size="9" font-weight="600" letter-spacing="1"
+          fill="var(--ill-ink-soft, #6A5A64)">YOUR COST</text>
+    <text x="352" y="74" font-size="13" fill="var(--ill-ink, #23191F)">7 €</text>
+  </g>
+</svg>

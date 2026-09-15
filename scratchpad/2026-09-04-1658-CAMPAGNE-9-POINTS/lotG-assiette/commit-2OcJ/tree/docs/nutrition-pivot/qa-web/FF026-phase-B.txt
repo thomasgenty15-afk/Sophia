@@ -1,0 +1,55 @@
+
+══════════════════════════════════════════════════════════════════════════════
+▌ PHASE B — R1 · ALLERGIE ≠ PRÉFÉRENCE (les deux langues)
+══════════════════════════════════════════════════════════════════════════════
+
+── passage 1/2 ──
+  → [FR] « je suis allergique aux noix »
+    Noted. I’ll treat that as important context.
+  ✅ [hard] [FR] « je suis allergique aux noix » → contrainte de SÉCURITÉ déclarée
+      preuve: student_safety_constraints: 6cbc6ceb kind=allergy allergen_ref=nut substance_ref=null sev=medical status=active
+  ── memory_items ──
+    (aucun souvenir)
+  ✅ [hard] [FR] « je suis allergique aux noix » → AUCUNE préférence promouvable
+      preuve: proposeFoodPreferences: 0 proposition(s), aucune sur l'allergène (items: aucun)
+  → [EN] « I'm allergic to peanuts »
+    Noted. I’ll treat peanuts as off-limits.
+  ✅ [hard] [EN] « I'm allergic to peanuts » → contrainte de SÉCURITÉ déclarée
+      preuve: student_safety_constraints: f2fc415f kind=allergy allergen_ref=peanut substance_ref=null sev=medical status=active
+  ── memory_items ──
+    (aucun souvenir)
+  ✅ [hard] [EN] « I'm allergic to peanuts » → AUCUNE préférence promouvable
+      preuve: proposeFoodPreferences: 0 proposition(s), aucune sur l'allergène (items: aucun)
+
+── passage 2/2 ──
+  → [FR] « je suis allergique aux noix »
+    Noted. I’ll treat nuts as off-limits.
+  ✅ [hard] [FR] « je suis allergique aux noix » → contrainte de SÉCURITÉ déclarée
+      preuve: student_safety_constraints: b6c30815 kind=allergy allergen_ref=nut substance_ref=null sev=medical status=active
+  ── memory_items ──
+    (aucun souvenir)
+  ✅ [hard] [FR] « je suis allergique aux noix » → AUCUNE préférence promouvable
+      preuve: proposeFoodPreferences: 0 proposition(s), aucune sur l'allergène (items: aucun)
+  → [EN] « I'm allergic to peanuts »
+    Noted. I’ll avoid peanuts.
+  ✅ [hard] [EN] « I'm allergic to peanuts » → contrainte de SÉCURITÉ déclarée
+      preuve: student_safety_constraints: 2b3a0a3a kind=allergy allergen_ref=peanut substance_ref=null sev=medical status=active
+  ── memory_items ──
+    (aucun souvenir)
+  ✅ [hard] [EN] « I'm allergic to peanuts » → AUCUNE préférence promouvable
+      preuve: proposeFoodPreferences: 0 proposition(s), aucune sur l'allergène (items: aucun)
+
+══════════════════════════════════════════════════════════════════════════════
+▌ SYNTHÈSE
+══════════════════════════════════════════════════════════════════════════════
+8/8 verdicts au vert
+  ✅ [hard] [FR] « je suis allergique aux noix » → contrainte de SÉCURITÉ déclarée
+  ✅ [hard] [FR] « je suis allergique aux noix » → AUCUNE préférence promouvable
+  ✅ [hard] [EN] « I'm allergic to peanuts » → contrainte de SÉCURITÉ déclarée
+  ✅ [hard] [EN] « I'm allergic to peanuts » → AUCUNE préférence promouvable
+  ✅ [hard] [FR] « je suis allergique aux noix » → contrainte de SÉCURITÉ déclarée
+  ✅ [hard] [FR] « je suis allergique aux noix » → AUCUNE préférence promouvable
+  ✅ [hard] [EN] « I'm allergic to peanuts » → contrainte de SÉCURITÉ déclarée
+  ✅ [hard] [EN] « I'm allergic to peanuts » → AUCUNE préférence promouvable
+
+nettoyage: 6 compte(s)

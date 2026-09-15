@@ -1,0 +1,15 @@
+═══ V5 — une SECONDE liste rouverte: le bloc de régime reprend son propre calcul ═══
+muté
+[0m[1m[37m[41m FAILURES [0m
+
+LOT B — les TROIS bouts qui promettent un plat lisent la forme SERVIE [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_merge_test.ts:3769:6[0m
+CÂBLAGE — v34 est servi sur le chemin armé, et UNE SEULE liste de porteurs [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_prompt_v34_test.ts:442:6[0m
+
+[0m[31mFAILED[0m | 144 passed | 2 failed [0m[38;5;245m(740ms)[0m
+
+[0m[1m[31merror[0m: Test failed
+--- restauré ---
+
+[0m[32mok[0m | 146 passed | 0 failed [0m[38;5;245m(713ms)[0m
+
+eef3ca5800b33facb511a37f18b63ffce43e3db2bf0548d1fcdda923ba9bb9b1  supabase/functions/generate-household-meal-v1/index.ts

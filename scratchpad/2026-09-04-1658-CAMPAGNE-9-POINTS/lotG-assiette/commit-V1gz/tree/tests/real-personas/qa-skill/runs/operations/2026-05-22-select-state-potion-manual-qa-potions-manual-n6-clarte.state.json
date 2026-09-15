@@ -1,0 +1,828 @@
+{
+  "run_id": "qa-potions-manual-n6",
+  "date": "2026-05-22",
+  "potion": "clarte",
+  "persona": "qa-skill",
+  "scope": "manual-state-potion-qa-potions-manual-n6-clarte",
+  "connection_name": "manual_state_potion_qa-potions-manual-n6_clarte",
+  "connection_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/connections/manual_state_potion_qa-potions-manual-n6_clarte.json",
+  "auth": {
+    "user_id": "7944faf4-8dae-4e50-a6f4-659247ce3889",
+    "email": "qa-qa-potions-manual-n6-clarte-e60a3035@example.com",
+    "password": "Qa1!67e16deb-f426-42ce-a3e7-fce487061814",
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiI3OTQ0ZmFmNC04ZGFlLTRlNTAtYTZmNC02NTkyNDdjZTM4ODkiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzc5NDUxNzg2LCJpYXQiOjE3Nzk0NDgxODYsImVtYWlsIjoicWEtcWEtcG90aW9ucy1tYW51YWwtbjYtY2xhcnRlLWU2MGEzMDM1QGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsiY3JlYXRlZF9ieSI6Im1hbnVhbF9zdGF0ZV9wb3Rpb25fcWEiLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBlcnNvbmEiOiJxYS1za2lsbCIsInBvdGlvbl90eXBlIjoiY2xhcnRlIiwicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdLCJydW5faWQiOiJxYS1wb3Rpb25zLW1hbnVhbC1uNiIsInRlbXBvcmFyeV9xYV9jb25uZWN0aW9uIjp0cnVlfSwidXNlcl9tZXRhZGF0YSI6eyJjcmVhdGVkX2J5IjoibWFudWFsX3N0YXRlX3BvdGlvbl9xYSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBlcnNvbmEiOiJxYS1za2lsbCIsInBvdGlvbl90eXBlIjoiY2xhcnRlIiwicnVuX2lkIjoicWEtcG90aW9ucy1tYW51YWwtbjYiLCJ0ZW1wb3JhcnlfcWFfY29ubmVjdGlvbiI6dHJ1ZX0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3Nzk0NDgxODZ9XSwic2Vzc2lvbl9pZCI6IjVjOTI4YjQ2LTBkYmQtNGI5Ni1hNTQwLTU0MTc1NzI4NjI1ZiIsImlzX2Fub255bW91cyI6ZmFsc2V9.Y5FRoH3lFOa1-yTtv1WVn1KJFSvaVuwf4NIDqa1xfhQ",
+    "refresh_token": "t7y2tzhewxmg"
+  },
+  "fixture": {
+    "cycle": {
+      "id": "bd36e25d-126c-44ca-999b-2df104a9020e",
+      "user_id": "7944faf4-8dae-4e50-a6f4-659247ce3889",
+      "status": "active",
+      "raw_intake_text": "QA manuelle potion: contexte local temporaire pour tester le flow complet.",
+      "intake_language": "fr",
+      "duration_months": 1,
+      "birth_date_snapshot": null,
+      "gender_snapshot": null,
+      "active_transformation_id": null,
+      "version": 1,
+      "created_at": "2026-05-22T11:09:46.675649+00:00",
+      "updated_at": "2026-05-22T11:09:46.675649+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "validated_structure": null,
+      "requested_pace": null
+    },
+    "transformation": {
+      "id": "d574cc84-a16f-4744-82a2-72edd83768ac",
+      "cycle_id": "bd36e25d-126c-44ca-999b-2df104a9020e",
+      "priority_order": 1,
+      "status": "active",
+      "title": "Retrouver une priorite simple",
+      "internal_summary": "Fixture QA manuelle pour tester la potion clarte.",
+      "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+      "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+      "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+      "questionnaire_schema": null,
+      "questionnaire_answers": {
+        "potion_qa": "clarte",
+        "ton_prefere": "doux et direct",
+        "rythme_prefere": "matin"
+      },
+      "completion_summary": null,
+      "handoff_payload": {
+        "phase_1": {
+          "deep_why": {
+            "answers": [
+              {
+                "answer": "Je veux proteger mon energie et ma confiance.",
+                "question_id": "why_1"
+              },
+              {
+                "answer": "Je veux rester present au geste juste au lieu de me crisper.",
+                "question_id": "why_2"
+              }
+            ]
+          }
+        }
+      },
+      "created_at": "2026-05-22T11:09:46.679976+00:00",
+      "updated_at": "2026-05-22T11:09:46.679976+00:00",
+      "activated_at": "2026-05-22T11:09:46.668+00:00",
+      "completed_at": null,
+      "ordering_rationale": null,
+      "unlocked_principles": {
+        "kaizen": true
+      },
+      "base_de_vie_payload": null
+    },
+    "plan": {
+      "id": "4c0c97a9-4a5d-4dd1-b641-ec7fa7d734a2",
+      "user_id": "7944faf4-8dae-4e50-a6f4-659247ce3889",
+      "cycle_id": "bd36e25d-126c-44ca-999b-2df104a9020e",
+      "transformation_id": "d574cc84-a16f-4744-82a2-72edd83768ac",
+      "status": "active",
+      "version": 1,
+      "title": "Plan QA manuel clarte",
+      "content": {
+        "source": "manual_state_potion_qa",
+        "strategy": {
+          "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+          "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+          "main_constraint": "La surcharge transforme les petits pas en montagne.",
+          "success_definition": "Revenir a un geste simple au bon moment."
+        }
+      },
+      "generation_attempts": 0,
+      "last_generation_reason": null,
+      "activated_at": "2026-05-22T11:09:46.668+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "created_at": "2026-05-22T11:09:46.691474+00:00",
+      "updated_at": "2026-05-22T11:09:46.691474+00:00",
+      "generation_feedback": null,
+      "generation_input_snapshot": null
+    },
+    "item": {
+      "id": "0bed06d2-6c7f-46e8-ae14-773b6b88c4ed",
+      "user_id": "7944faf4-8dae-4e50-a6f4-659247ce3889",
+      "cycle_id": "bd36e25d-126c-44ca-999b-2df104a9020e",
+      "transformation_id": "d574cc84-a16f-4744-82a2-72edd83768ac",
+      "plan_id": "4c0c97a9-4a5d-4dd1-b641-ec7fa7d734a2",
+      "dimension": "habits",
+      "kind": "habit",
+      "status": "active",
+      "title": "Choisir la priorite du matin",
+      "description": "Action QA active visible par le skill potion.",
+      "tracking_type": "boolean",
+      "activation_order": 1,
+      "activation_condition": null,
+      "current_habit_state": "active_building",
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": 1,
+      "current_reps": 0,
+      "cadence_label": "quotidien",
+      "scheduled_days": [
+        "fri"
+      ],
+      "time_of_day": "09:00",
+      "start_after_item_id": null,
+      "payload": {
+        "run_id": "qa-potions-manual-n6",
+        "source": "manual_state_potion_qa",
+        "potion_type": "clarte"
+      },
+      "created_at": "2026-05-22T11:09:46.696831+00:00",
+      "updated_at": "2026-05-22T11:09:46.696831+00:00",
+      "activated_at": "2026-05-22T11:09:46.668+00:00",
+      "completed_at": null,
+      "phase_id": null,
+      "phase_order": null,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_required",
+      "cards_generated_at": null
+    }
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "attempt": 3,
+      "request_id": "qa-manual-potion-qa-potions-manual-n6-clarte-t01-a3",
+      "user": "J'ai besoin d'une potion de clarte pour une decision demain matin: je dois choisir l'angle de ma reunion et tout se melange.",
+      "assistant": "Pour y voir plus clair dans ce mélange, tu as surtout besoin de comprendre quoi pour fixer cet angle ? 🙂",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "request_id": "qa-manual-potion-qa-potions-manual-n6-clarte-t01-a3",
+        "user_id": "7944faf4-8dae-4e50-a6f4-659247ce3889",
+        "channel": "web",
+        "scope": "manual-state-potion-qa-potions-manual-n6-clarte",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Pour y voir plus clair dans ce mélange, tu as surtout besoin de comprendre quoi pour fixer cet angle ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "qa-manual-potion-qa-potions-manual-n6-clarte-t01-a3",
+          "user_id": "7944faf4-8dae-4e50-a6f4-659247ce3889",
+          "source_message_id": "6b48720f-544f-4cc6-ae18-ec3cc163abe7",
+          "ts": "2026-05-22T11:11:02.816+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [
+              "demain"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tomorrow"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 8658,
+            "latency_ms": 4828,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 696,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "0bed06d2-6c7f-46e8-ae14-773b6b88c4ed",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "habitudes de clarte et priorisation",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                },
+                {
+                  "key": "travail.performance",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "reunions et prises de decision",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "qa-manual-potion-qa-potions-manual-n6-clarte-t01-a3",
+            "user_id": "7944faf4-8dae-4e50-a6f4-659247ce3889",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "0bed06d2-6c7f-46e8-ae14-773b6b88c4ed",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "habitudes de clarte et priorisation",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                },
+                {
+                  "key": "travail.performance",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "reunions et prises de decision",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {}
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 0,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "6b48720f-544f-4cc6-ae18-ec3cc163abe7",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "potion de clarte",
+                "user_intent": "create",
+                "explicitness": "explicit",
+                "operation_type": "select_state_potion",
+                "confidence_band": "high",
+                "operation_input": {
+                  "evidence": [
+                    "J'ai besoin d'une potion de clarte",
+                    "tout se melange"
+                  ],
+                  "potion_type": "clarte",
+                  "target_state": "clarte pour une decision"
+                }
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "tool_skill_intent_start",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "select_state_potion",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "ask_question",
+            "reason_code": "tool_skill_intent_start",
+            "missing_slots": [
+              "potion_detail:clarity_need"
+            ],
+            "selected_handler": "select_state_potion"
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 27370,
+          "created_at": "2026-05-22T11:11:02.81884+00:00"
+        },
+        "trace_error": null,
+        "__http_status": 200
+      },
+      "trace": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "select_state_potion",
+        "route_reason": "tool_skill_intent_start",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "executed_tools": [],
+        "tool_execution": "blocked",
+        "trace_id": "qa-manual-potion-qa-potions-manual-n6-clarte-t01-a3"
+      },
+      "durable_after": {
+        "sessions": [],
+        "reminders": [],
+        "checkins": []
+      }
+    },
+    {
+      "turn": 2,
+      "attempt": 1,
+      "request_id": "qa-manual-potion-qa-potions-manual-n6-clarte-t02-a1",
+      "user": "J'ai surtout besoin de savoir par ou commencer: quelle idee doit ouvrir la reunion, sans refaire toute la presentation.",
+      "assistant": "Pour ta réunion de demain matin, je garde une version simple: t’aider à retrouver l’idée qui ouvre, sans tout refaire. Le rappel sera envoyé à 09:00, juste avant le moment où tu en as besoin. Dis juste oui pour que je le mette en place. 🙂",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "request_id": "qa-manual-potion-qa-potions-manual-n6-clarte-t02-a1",
+        "user_id": "7944faf4-8dae-4e50-a6f4-659247ce3889",
+        "channel": "web",
+        "scope": "manual-state-potion-qa-potions-manual-n6-clarte",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Pour ta réunion de demain matin, je garde une version simple: t’aider à retrouver l’idée qui ouvre, sans tout refaire. Le rappel sera envoyé à 09:00, juste avant le moment où tu en as besoin. Dis juste oui pour que je le mette en place. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "qa-manual-potion-qa-potions-manual-n6-clarte-t02-a1",
+          "user_id": "7944faf4-8dae-4e50-a6f4-659247ce3889",
+          "source_message_id": "f7d3402b-c099-4a80-8a43-91ee356fc57d",
+          "ts": "2026-05-22T11:12:12.823+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 9916,
+            "latency_ms": 3566,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 653,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "reunion_angle",
+                  "type": "topic",
+                  "priority": "medium",
+                  "query_hint": "reunion angle decision",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "qa-manual-potion-qa-potions-manual-n6-clarte-t02-a1",
+            "user_id": "7944faf4-8dae-4e50-a6f4-659247ce3889",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "reunion_angle",
+                  "type": "topic",
+                  "priority": "medium",
+                  "query_hint": "reunion angle decision",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {}
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": "0;decay=0.55;recovery=0",
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                0
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "f7d3402b-c099-4a80-8a43-91ee356fc57d",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "portion",
+              "surface_id": "plan_item.clarify",
+              "prop_reason": "user_needs_smaller_or_clearer_first_step",
+              "source_span": "par ou commencer: quelle idee doit ouvrir la reunion, sans refaire toute la presentation.",
+              "target_hint": "J'ai surtout besoin de savoir par ou commencer: quelle idee doit ouvrir la reunion, sans refaire toute la presentation.",
+              "offer_timing": "after_current_pending",
+              "should_offer": false,
+              "target_status": "missing",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "medium",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_portion"
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_select_state_potion_kept_in_tool_skill",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_opportunity",
+                "reason_code": "active_flow_blocks_tool_opportunity"
+              },
+              {
+                "path": "conversation_or_other_tool_skill",
+                "reason_code": "active_select_state_potion_in_progress"
+              }
+            ],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "select_state_potion",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "defer_incoming",
+              "reason_code": "active_flow_defers_tool_skill_opportunity",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "title": "Retrouver l’idée qui ouvre la réunion",
+                "follow_up": {
+                  "duration_days": 1,
+                  "schedule_plan": {
+                    "mode": "single_before_event",
+                    "reason": "Ramener le point de départ au bon moment, juste avant la réunion de demain matin.",
+                    "local_dates": [
+                      "2026-05-23"
+                    ],
+                    "duration_days": null,
+                    "scheduled_days": [],
+                    "local_time_hhmm": "09:00",
+                    "timing_relation": "before"
+                  },
+                  "local_time_hhmm": "09:00",
+                  "reason_for_time": "Le soutien est demandé pour demain matin, avant le moment où tu dois choisir l’angle de la réunion.",
+                  "reminder_instruction": "Avant la réunion, rappelle-toi juste l’idée d’ouverture la plus simple."
+                },
+                "potion_type": "clarte",
+                "opening_prompt": "Quand tout se mélange, on peut juste remettre la première idée au centre. Qu’est-ce qui doit ouvrir ta réunion demain matin ?",
+                "target_binding": {
+                  "kind": "one_off_action",
+                  "label": "Réunion de demain matin",
+                  "evidence": [
+                    "Tout se mélange pour choisir l'angle de la réunion.",
+                    "Savoir par où commencer et quelle idée doit ouvrir la réunion sans tout refaire.",
+                    "support_timing: demain matin"
+                  ],
+                  "recurrence_hint": null,
+                  "date_or_window_hint": "demain matin",
+                  "target_plan_item_id": null,
+                  "related_plan_item_id": null,
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                },
+                "why_this_potion": "Tu cherches surtout à sortir du mélange et à voir plus clairement par où commencer. La clarté aide à retrouver l’idée d’ouverture sans te noyer dans tout le reste.",
+                "expected_duration": "short",
+                "potion_info_message": "Cette potion t’aide à clarifier l’angle de ta réunion sans repartir de zéro. Le soutien sera calé pour demain matin, au moment où tu en as besoin avant de t’y mettre.",
+                "instant_support_message": "Là, tu n’as pas besoin de tout remettre à plat. On peut juste faire retomber le flou et retrouver le point de départ le plus simple."
+              },
+              "output_schema": "potion_session_draft_v1",
+              "operation_type": "select_state_potion",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Pour ta réunion de demain matin, je garde une version simple: t’aider à retrouver l’idée qui ouvre, sans tout refaire. Le rappel sera envoyé à 09:00, juste avant le moment où tu en as besoin. Dis juste oui pour que je le mette en place."
+            },
+            "status": "pending_confirmation",
+            "reason_code": "active_select_state_potion_kept_in_tool_skill",
+            "operation_id": "2edb6582-ce03-4450-904e-bebe3c99e596",
+            "selected_handler": "select_state_potion"
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 58916,
+          "created_at": "2026-05-22T11:12:12.825323+00:00"
+        },
+        "trace_error": null,
+        "__http_status": 200
+      },
+      "trace": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "select_state_potion",
+        "route_reason": "active_select_state_potion_kept_in_tool_skill",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "executed_tools": [],
+        "tool_execution": "blocked",
+        "trace_id": "qa-manual-potion-qa-potions-manual-n6-clarte-t02-a1"
+      },
+      "durable_after": {
+        "sessions": [],
+        "reminders": [],
+        "checkins": []
+      }
+    }
+  ],
+  "created_at": "2026-05-22T11:09:46.703Z",
+  "cleanup": {
+    "completed": true,
+    "deleted": [
+      {
+        "table": "scheduled_checkins",
+        "count": 0
+      },
+      {
+        "table": "user_recurring_reminders",
+        "count": 0
+      },
+      {
+        "table": "user_potion_sessions",
+        "count": 0
+      },
+      {
+        "table": "chat_messages",
+        "count": 0
+      },
+      {
+        "table": "conversation_turn_traces",
+        "count": 0
+      },
+      {
+        "table": "user_chat_states",
+        "count": 0
+      },
+      {
+        "table": "user_plan_items",
+        "count": 0
+      },
+      {
+        "table": "user_plans_v2",
+        "count": 0
+      },
+      {
+        "table": "user_transformations",
+        "count": 0
+      },
+      {
+        "table": "user_cycles",
+        "count": 0
+      },
+      {
+        "table": "profiles",
+        "count": 0
+      },
+      {
+        "table": "auth.users",
+        "count": 1
+      }
+    ],
+    "cleanup_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/operations/2026-05-22-select-state-potion-manual-qa-potions-manual-n6-clarte.cleanup.json",
+    "at": "2026-05-22T11:14:03.105Z"
+  },
+  "updated_at": "2026-05-22T11:12:12.858Z"
+}

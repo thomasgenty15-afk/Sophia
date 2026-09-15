@@ -1,0 +1,478 @@
+{
+  "seed": {
+    "checkins": [
+      {
+        "id": "232aa5ff-f0b7-4755-a902-c9cbff44b68a",
+        "user_id": "c11517ab-6682-46dd-a9b5-35ccbb902fea",
+        "event_context": "one_shot_reminder:2026-06-12-status-recap-real-r5:pending",
+        "draft_message": null,
+        "scheduled_for": "2026-06-13T07:30:00+00:00",
+        "status": "pending",
+        "created_at": "2026-06-12T21:16:11.356646+00:00",
+        "processed_at": null,
+        "message_mode": "static",
+        "message_payload": {
+          "source": "2026-06-12-status-recap-real-r5",
+          "reminder_instruction": "relire le dossier budget"
+        },
+        "origin": "unknown",
+        "delivery_attempt_count": 0,
+        "delivery_last_error": null,
+        "delivery_last_error_at": null,
+        "delivery_last_request_id": null,
+        "recurring_reminder_id": null
+      },
+      {
+        "id": "fa06d9cd-527f-442f-a5e7-9644c2f1eee1",
+        "user_id": "c11517ab-6682-46dd-a9b5-35ccbb902fea",
+        "event_context": "one_shot_reminder:2026-06-12-status-recap-real-r5:cancelled",
+        "draft_message": null,
+        "scheduled_for": "2026-06-11T15:00:00+00:00",
+        "status": "cancelled",
+        "created_at": "2026-06-12T21:16:11.356646+00:00",
+        "processed_at": null,
+        "message_mode": "static",
+        "message_payload": {
+          "source": "2026-06-12-status-recap-real-r5",
+          "reminder_instruction": "ancien rappel annulé de devis"
+        },
+        "origin": "unknown",
+        "delivery_attempt_count": 0,
+        "delivery_last_error": null,
+        "delivery_last_error_at": null,
+        "delivery_last_request_id": null,
+        "recurring_reminder_id": null
+      }
+    ],
+    "recurring": [
+      {
+        "id": "9efdd80b-c7d9-4c59-aaf3-61d8d6874142",
+        "user_id": "c11517ab-6682-46dd-a9b5-35ccbb902fea",
+        "message_instruction": "faire le point hebdo",
+        "rationale": null,
+        "local_time_hhmm": "08:45",
+        "scheduled_days": [
+          "mon"
+        ],
+        "status": "active",
+        "deactivated_at": null,
+        "last_drafted_at": null,
+        "last_draft_message": null,
+        "created_at": "2026-06-12T08:00:00+00:00",
+        "updated_at": "2026-06-12T08:00:00+00:00",
+        "unanswered_probe_count": 0,
+        "probe_last_sent_at": null,
+        "probe_paused_at": null,
+        "personalization_level": 1,
+        "context_policy": {},
+        "classification_reason": null,
+        "last_classified_at": null,
+        "cycle_id": null,
+        "transformation_id": null,
+        "scope_kind": "out_of_plan",
+        "initiative_kind": "base_free",
+        "source_kind": "user_created",
+        "source_potion_session_id": null,
+        "starts_at": null,
+        "ends_at": null,
+        "ended_reason": null,
+        "archived_at": null,
+        "initiative_metadata": {},
+        "target_kind": "none",
+        "target_plan_item_id": null,
+        "target_action_family_key": null,
+        "target_generated_temp_id": null,
+        "target_binding_policy": "none",
+        "target_lifecycle_policy": "independent"
+      }
+    ],
+    "prefs": [
+      {
+        "user_id": "c11517ab-6682-46dd-a9b5-35ccbb902fea",
+        "scope": "global",
+        "key": "coach.tone",
+        "value": {
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 0.98,
+        "source_type": "explicit_user",
+        "last_source_message_id": null,
+        "reason": "QA fixture 2026-06-12-status-recap-real-r5",
+        "created_at": "2026-06-12T08:00:00+00:00",
+        "updated_at": "2026-06-12T08:00:00+00:00",
+        "last_confirmed_at": null,
+        "version": 1,
+        "previous_values": []
+      }
+    ]
+  },
+  "before_rows": {
+    "scheduled_checkins": [
+      {
+        "id": "fa06d9cd-527f-442f-a5e7-9644c2f1eee1",
+        "event_context": "one_shot_reminder:2026-06-12-status-recap-real-r5:cancelled",
+        "scheduled_for": "2026-06-11T15:00:00+00:00",
+        "status": "cancelled",
+        "message_payload": {
+          "source": "2026-06-12-status-recap-real-r5",
+          "reminder_instruction": "ancien rappel annulé de devis"
+        }
+      },
+      {
+        "id": "232aa5ff-f0b7-4755-a902-c9cbff44b68a",
+        "event_context": "one_shot_reminder:2026-06-12-status-recap-real-r5:pending",
+        "scheduled_for": "2026-06-13T07:30:00+00:00",
+        "status": "pending",
+        "message_payload": {
+          "source": "2026-06-12-status-recap-real-r5",
+          "reminder_instruction": "relire le dossier budget"
+        }
+      }
+    ],
+    "recurring": [
+      {
+        "id": "9efdd80b-c7d9-4c59-aaf3-61d8d6874142",
+        "status": "active",
+        "message_instruction": "faire le point hebdo",
+        "local_time_hhmm": "08:45",
+        "scheduled_days": [
+          "mon"
+        ],
+        "updated_at": "2026-06-12T08:00:00+00:00"
+      }
+    ],
+    "coach_preferences": [
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.feedback_style",
+        "value": {
+          "label": "Positif puis amélioration",
+          "value": "positive_then_fix"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.talk_propensity",
+        "value": {
+          "label": "Équilibrée",
+          "value": "balanced"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.message_length",
+        "value": {
+          "label": "Courte",
+          "value": "short"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.message_format",
+        "value": {
+          "label": "Mix adaptatif",
+          "value": "adaptive"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.primary_focus",
+        "value": {
+          "label": "Discipline / action",
+          "value": "discipline"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.emotional_personalization",
+        "value": {
+          "label": "Chaleureux",
+          "value": "warm"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.tone",
+        "value": {
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "reason": "QA fixture 2026-06-12-status-recap-real-r5",
+        "updated_at": "2026-06-12T08:00:00+00:00"
+      }
+    ],
+    "chat_state": []
+  },
+  "after_rows": {
+    "scheduled_checkins": [
+      {
+        "id": "fa06d9cd-527f-442f-a5e7-9644c2f1eee1",
+        "event_context": "one_shot_reminder:2026-06-12-status-recap-real-r5:cancelled",
+        "scheduled_for": "2026-06-11T15:00:00+00:00",
+        "status": "cancelled",
+        "message_payload": {
+          "source": "2026-06-12-status-recap-real-r5",
+          "reminder_instruction": "ancien rappel annulé de devis"
+        }
+      },
+      {
+        "id": "232aa5ff-f0b7-4755-a902-c9cbff44b68a",
+        "event_context": "one_shot_reminder:2026-06-12-status-recap-real-r5:pending",
+        "scheduled_for": "2026-06-13T07:30:00+00:00",
+        "status": "pending",
+        "message_payload": {
+          "source": "2026-06-12-status-recap-real-r5",
+          "reminder_instruction": "relire le dossier budget"
+        }
+      }
+    ],
+    "recurring": [
+      {
+        "id": "9efdd80b-c7d9-4c59-aaf3-61d8d6874142",
+        "status": "active",
+        "message_instruction": "faire le point hebdo",
+        "local_time_hhmm": "08:45",
+        "scheduled_days": [
+          "mon"
+        ],
+        "updated_at": "2026-06-12T08:00:00+00:00"
+      }
+    ],
+    "coach_preferences": [
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.feedback_style",
+        "value": {
+          "label": "Positif puis amélioration",
+          "value": "positive_then_fix"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.talk_propensity",
+        "value": {
+          "label": "Équilibrée",
+          "value": "balanced"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.message_length",
+        "value": {
+          "label": "Courte",
+          "value": "short"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.message_format",
+        "value": {
+          "label": "Mix adaptatif",
+          "value": "adaptive"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.primary_focus",
+        "value": {
+          "label": "Discipline / action",
+          "value": "discipline"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.emotional_personalization",
+        "value": {
+          "label": "Chaleureux",
+          "value": "warm"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-12T21:15:57.669549+00:00"
+      },
+      {
+        "key": "coach.tone",
+        "value": {
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "reason": "QA fixture 2026-06-12-status-recap-real-r5",
+        "updated_at": "2026-06-12T08:00:00+00:00"
+      }
+    ],
+    "chat_messages": [
+      {
+        "role": "user",
+        "content": "Tu peux me dire simplement ce qui est vraiment enregistré dans mon espace, sans rien changer ?",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r5",
+        "created_at": "2026-06-12T21:16:11.560763+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Voici l'état actuel de ton espace :\n\nCôté rappels, tu as un point hebdo chaque lundi à 08h45 et une relance pour le dossier budget le 13 juin à 09h30. Le rappel pour le devis est bien marqué comme annulé.\n\nPour ton coaching, tes préférences sont réglées sur un ton chaleureux et direct, avec des messages courts et un focus sur la discipline.\n\nEnfin, je ne vois aucune carte d'attaque ou de défense enregistrée pour le moment.",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r5",
+        "created_at": "2026-06-12T21:16:24.911205+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Oui, fais-moi le point maintenant, en restant juste factuel.",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r5",
+        "created_at": "2026-06-12T21:16:25.000563+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Voici le point factuel sur ton espace. Côté rappels, tu as celui pour relire le dossier budget prévu le 13 juin à 09h30, et ton point hebdo actif chaque lundi à 08h45. Un rappel concernant un devis est annulé. Pour nos échanges, tes préférences sont configurées sur un ton chaleureux et direct, avec une priorité à la discipline et des messages courts.",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r5",
+        "created_at": "2026-06-12T21:16:35.389934+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Et pour les rappels annulés, tu vois quelque chose ou pas ?",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r5",
+        "created_at": "2026-06-12T21:16:35.452035+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Oui, je vois effectivement un rappel annulé : il concernait l'ancien devis. C'est le seul qui apparaît comme supprimé dans ton historique récent.",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r5",
+        "created_at": "2026-06-12T21:16:43.168554+00:00"
+      },
+      {
+        "role": "user",
+        "content": "Sur quoi tu t'appuies pour ce récap ?",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r5",
+        "created_at": "2026-06-12T21:16:43.217421+00:00"
+      },
+      {
+        "role": "assistant",
+        "content": "Je n'arrive pas à formuler le status correctement, donc je préfère ne rien affirmer.",
+        "scope": "qa-status-recap-2026-06-12-status-recap-real-r5",
+        "created_at": "2026-06-12T21:16:52.980947+00:00"
+      }
+    ],
+    "chat_state": [
+      {
+        "temp_memory": {
+          "__conversation_risk_last": {
+            "at": "2026-06-12T21:16:15.614Z",
+            "score": 0,
+            "threshold": 8,
+            "reason_codes": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__conversation_risk_history": [
+            0
+          ],
+          "__status_recap_flow_state_v1": {
+            "mode": "local_readonly_flow",
+            "status": "active",
+            "skill_id": "status_recap",
+            "max_turns": 3,
+            "created_at": "2026-06-12T21:16:18.675Z",
+            "turn_count": 3,
+            "updated_at": "2026-06-12T21:16:38.467Z",
+            "last_intent": "cancelled_objects",
+            "last_answer_summary": "Le user demande spécifiquement à voir les rappels annulés.",
+            "last_target_objects": [
+              "one_shot_reminder",
+              "recurring_reminder"
+            ],
+            "last_projection_summary": {
+              "attack_card_count": 0,
+              "defense_card_count": 0,
+              "potion_session_count": 0,
+              "coach_preference_count": 9,
+              "one_shot_pending_count": 1,
+              "recurring_reminder_count": 1,
+              "recent_effect_history_count": 0,
+              "one_shot_cancelled_recent_count": 1
+            }
+          },
+          "__coaching_intervention_history": []
+        },
+        "current_mode": "companion",
+        "risk_level": 2
+      }
+    ]
+  }
+}

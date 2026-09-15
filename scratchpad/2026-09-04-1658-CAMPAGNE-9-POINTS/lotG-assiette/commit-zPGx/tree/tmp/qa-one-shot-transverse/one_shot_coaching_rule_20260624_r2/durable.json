@@ -1,0 +1,254 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je repousse mon dossier de relance client depuis ce matin; quel levier Sophia tu utiliserais pour m’aider à démarrer ?",
+      "created_at": "2026-06-24T21:05:15.420758+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_coaching_rule_20260624_r2-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Je partirais sur une carte d’attaque libre, technique texte magique : une phrase courte pour recadrer le dossier et couper le “je repousse encore” au moment de démarrer.",
+      "created_at": "2026-06-24T21:05:34.495972+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_coaching_rule_20260624_r2-t01",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Je bloque surtout sur le premier email. Rappelle-moi dans 28 minutes d’ouvrir ce premier email, et donne-moi juste le levier à utiliser.",
+      "created_at": "2026-06-24T21:05:42.627431+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_coaching_rule_20260624_r2-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Je partirais sur une carte d’attaque libre, technique texte magique : une phrase courte pour recadrer le premier email et couper l’hésitation au moment d’ouvrir le dossier.",
+      "created_at": "2026-06-24T21:05:58.102457+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_coaching_rule_20260624_r2-t02",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "90851099-9a43-4a4c-854e-f94078b9c3d4",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T21:05:34.472Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-24T21:05:58.086Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "followup",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Le user bloque sur un dossier de relance client concret, hors plan identifié, et demande quel levier utiliser pour démarrer.",
+              "target_kind": "free_action",
+              "action_title": "dossier de relance client",
+              "action_source": "free"
+            },
+            "turn_count": 2,
+            "coaching_type": "no_plan_action",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "Le blocage concerne le démarrage d'une action concrète hors plan identifié. Une carte d'attaque est le meilleur levier pour préparer l'entrée dans l'action et réduire le coût du premier pas."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user bloque sur le démarrage du premier email, hors plan identifié, et demande le levier à utiliser.",
+            "candidate_features": [
+              {
+                "fit": "high",
+                "why": "Le blocage porte sur le démarrage d’une action concrète hors plan. La friction semble surtout mentale et narrative sur le premier email, donc le texte magique est le meilleur appui pour entrer dans l’action.",
+                "feature": "attack_card",
+                "destination_hint": "Dashboard > Ressources"
+              }
+            ],
+            "last_answer_summary": "Le blocage porte sur le démarrage d’une action concrète hors plan. La friction semble surtout mentale et narrative sur le premier email, donc le texte magique est le meilleur appui pour entrer dans l’action.",
+            "parent_return_focus": null,
+            "pending_type_change": null,
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "last_visible_decision": {
+              "lever": "free_attack_card",
+              "reason": "Le blocage porte sur le démarrage d’une action concrète hors plan. La friction semble surtout mentale et narrative sur le premier email, donc le texte magique est le meilleur appui pour entrer dans l’action.",
+              "variant": "texte_magique",
+              "confidence": "high",
+              "potion_type": null
+            },
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks which coaching lever to use for a concrete action that is blocked, and the action is not identified as part of a plan."
+            ],
+            "current_recommendation": {
+              "fit": "high",
+              "why": "Le blocage porte sur le démarrage d’une action concrète hors plan. La friction semble surtout mentale et narrative sur le premier email, donc le texte magique est le meilleur appui pour entrer dans l’action.",
+              "feature": "attack_card",
+              "destination_hint": "Dashboard > Ressources"
+            },
+            "last_visible_task_kind": "no_plan_coaching",
+            "recommendation_decision": {
+              "why_primary": "Le blocage porte sur le démarrage d’une action concrète hors plan. La friction semble surtout mentale et narrative sur le premier email, donc le texte magique est le meilleur appui pour entrer dans l’action.",
+              "why_not_others": {},
+              "primary_feature": "attack_card",
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": "carte d'attaque libre",
+                "surface_hint": "Dashboard > Ressources",
+                "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+              },
+              "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks which coaching lever to use for a concrete action that is blocked, and the action is not identified as part of a plan.",
+              "category": "free_action_coaching",
+              "confidence": 0.92,
+              "failure_mode": "unclear",
+              "coaching_type": "no_plan_action",
+              "action_context": {
+                "source": "free",
+                "plan_id": null,
+                "action_title": "dossier de relance client",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": false,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": true
+              },
+              "priority_features": [],
+              "emotional_state_context": null
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T21:05:34.472Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-24T21:05:58.086Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "followup",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Le user bloque sur un dossier de relance client concret, hors plan identifié, et demande quel levier utiliser pour démarrer.",
+              "target_kind": "free_action",
+              "action_title": "dossier de relance client",
+              "action_source": "free"
+            },
+            "turn_count": 2,
+            "coaching_type": "no_plan_action",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "Le blocage concerne le démarrage d'une action concrète hors plan identifié. Une carte d'attaque est le meilleur levier pour préparer l'entrée dans l'action et réduire le coût du premier pas."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user bloque sur le démarrage du premier email, hors plan identifié, et demande le levier à utiliser.",
+            "candidate_features": [
+              {
+                "fit": "high",
+                "why": "Le blocage porte sur le démarrage d’une action concrète hors plan. La friction semble surtout mentale et narrative sur le premier email, donc le texte magique est le meilleur appui pour entrer dans l’action.",
+                "feature": "attack_card",
+                "destination_hint": "Dashboard > Ressources"
+              }
+            ],
+            "last_answer_summary": "Le blocage porte sur le démarrage d’une action concrète hors plan. La friction semble surtout mentale et narrative sur le premier email, donc le texte magique est le meilleur appui pour entrer dans l’action.",
+            "parent_return_focus": null,
+            "pending_type_change": null,
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "last_visible_decision": {
+              "lever": "free_attack_card",
+              "reason": "Le blocage porte sur le démarrage d’une action concrète hors plan. La friction semble surtout mentale et narrative sur le premier email, donc le texte magique est le meilleur appui pour entrer dans l’action.",
+              "variant": "texte_magique",
+              "confidence": "high",
+              "potion_type": null
+            },
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks which coaching lever to use for a concrete action that is blocked, and the action is not identified as part of a plan."
+            ],
+            "current_recommendation": {
+              "fit": "high",
+              "why": "Le blocage porte sur le démarrage d’une action concrète hors plan. La friction semble surtout mentale et narrative sur le premier email, donc le texte magique est le meilleur appui pour entrer dans l’action.",
+              "feature": "attack_card",
+              "destination_hint": "Dashboard > Ressources"
+            },
+            "last_visible_task_kind": "no_plan_coaching",
+            "recommendation_decision": {
+              "why_primary": "Le blocage porte sur le démarrage d’une action concrète hors plan. La friction semble surtout mentale et narrative sur le premier email, donc le texte magique est le meilleur appui pour entrer dans l’action.",
+              "why_not_others": {},
+              "primary_feature": "attack_card",
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": "carte d'attaque libre",
+                "surface_hint": "Dashboard > Ressources",
+                "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+              },
+              "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks which coaching lever to use for a concrete action that is blocked, and the action is not identified as part of a plan.",
+              "category": "free_action_coaching",
+              "confidence": 0.92,
+              "failure_mode": "unclear",
+              "coaching_type": "no_plan_action",
+              "action_context": {
+                "source": "free",
+                "plan_id": null,
+                "action_title": "dossier de relance client",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": false,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": true
+              },
+              "priority_features": [],
+              "emotional_state_context": null
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T21:05:58.094777+00:00"
+  }
+}

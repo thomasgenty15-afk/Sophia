@@ -1,0 +1,15 @@
+la croissance des casseroles suit ce que chaque boîte tire de chacune, plus une répartition à parts égales sur les `uses` du plat
+
+Mesuré sur FC4 (2026-09-06 16:06) : chaque plat « quinoa + dinde / tofu » cite DEUX casseroles
+(`uses` : dinde 1, tofu 1) ; les boîtes des omnivores ne tirent que la dinde, celle de Nora que
+le tofu. `neededPotFactor` recevait la boîte entière et répartissait ses grammes voulus à parts
+égales entre les casseroles du plat : la dinde grossissait de moitié — « 5 931 g voulus pour
+4 000 g », `capped_by_pot 3` alors que `short_after 0` — et le tofu du double, en gaspillage.
+C'est le même artefact que le lot 0 (l'énergie suivait `uses.servings`), pris par la croissance.
+
+L'index construit désormais un tirage par (boîte, casserole), sur les grammes des items qui la
+citent (`potDrawsByItems`), pour les deux appels — les passes de croissance et le `short_after`.
+`neededPotFactor` ne change pas. Pin de câblage : le patron d'avant a disparu, les deux appels
+lisent les items.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

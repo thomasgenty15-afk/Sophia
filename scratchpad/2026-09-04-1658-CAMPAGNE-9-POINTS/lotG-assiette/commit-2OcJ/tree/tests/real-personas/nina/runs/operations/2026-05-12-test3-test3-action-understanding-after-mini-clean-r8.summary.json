@@ -1,0 +1,78 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r8-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je suis un peu perdue là. Cette semaine je suis censée faire quoi exactement ? Et nettoyer mon environnement direct, c'est un truc à refaire tous les jours ou c'est autre chose ?",
+    "assistant": "Ok, respire une seconde… on te remet ça au clair 😅\n\nCette semaine, tu as 2 choses :\n1) Faire le choix du brut (habitude)  \n2) Décoder ton envie de grignoter (clarification)\n\nEt pour “Nettoyer ton environnement direct” : non, ce n’est pas à refaire tous les jours. C’était une mission à faire une seule fois (elle est déjà passée).\n\nTu veux qu’on te dise concrètement quoi faire pour “Faire le choix du brut” aujourd’hui, ou tu préfères commencer par “Décoder ton envie de grignoter” ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r8-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r8-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Attends, donc le choix du brut je dois le faire combien de fois cette semaine ? Et nettoyer, pourquoi tu dis que c'est passé ?",
+    "assistant": "Pour “Faire le choix du brut”, c’est 3 jours dans la semaine, avec un objectif de 6 répétitions au total. ✅\n\nEt “Nettoyer ton environnement direct”, je te l’ai dit “c’est passé” parce que cette mission est marquée comme déjà complétée (donc ce n’est plus à refaire cette semaine). 😅\n\nTu veux que je te dise exactement quels jours viser pour les 3 créneaux ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r8-t02",
+    "trace_error": null
+  }
+]

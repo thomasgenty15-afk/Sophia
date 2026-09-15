@@ -1,0 +1,4 @@
+name = "stripe-create-checkout-session"
+verify_jwt = true
+
+

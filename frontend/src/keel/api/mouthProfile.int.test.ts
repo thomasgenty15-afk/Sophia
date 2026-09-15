@@ -24,6 +24,14 @@ import {
 // le seul où « la donnée traverse » se prouve sans base et sans modèle.
 import { loadHouseholdFixedIntakes } from "../../../../supabase/functions/_shared/keel/household_fixed_intakes.ts";
 import { ACTIVITY_LEVELS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+// ⟳ 2026-09-12 · ÉTAPE C1 — LES TROIS MODULES QUI FONT LA CIBLE. Importés ici
+// pour la même raison que le lecteur du foyer juste au-dessus: c'est le seul
+// endroit du dépôt d'où l'écrivain de l'écran et le calcul du moteur sont
+// atteignables dans le même processus. Sans eux, le test s'arrêterait à « une
+// ligne existe en base » — exactement ce que le plan de clôture refuse.
+import { buildCompositionIndex } from "../../../../supabase/functions/_shared/keel/food_composition.ts";
+import { fixedIntakeSlotKcal } from "../../../../supabase/functions/_shared/keel/slot_fixed_kcal.ts";
+import { slotContractsFor } from "../../../../supabase/functions/_shared/keel/slot_nutrition_contract.ts";
 
 // ===========================================================================
 // L5-A (2026-08-18) — CE QUI PART EN BASE, ET DANS QUEL ORDRE
@@ -949,5 +957,277 @@ describe("le pli à l'âge: ce qui part en base est ce que la fiche montre", () 
     expect(mouthToPersist({ ...KID, goal: "maintenance" }, TODAY).goal).toBe("maintenance");
     expect(foldMinorGoal({ ...KID, goal: "" }, TODAY).switchedFrom).toBeNull();
     expect(mouthToPersist({ ...KID, goal: "" }, TODAY).goal).toBeNull();
+  });
+});
+
+// ===========================================================================
+// ⟳ 2026-09-12 · ÉTAPE C1 — LE TRAJET COMPLET: UI/RPC → LECTEUR → CIBLE
+//
+// Chantier: `docs/keel/PLAN-CLOTURE-APRES-SIX-TIRS-2026-09-11.md`, § C1.
+// Preuve d'entrée: `scratchpad/2026-09-11-CLOTURE/fixtures/c0-tir5.json`.
+//
+// ⛔ LE DÉFAUT, AVEC SES CHIFFRES. Tir n° 5 du 2026-09-11:
+//     household_members.fixed_intakes          = [{breakfast, 200 g, greek_yogurt}]
+//     student_goals.practical_constraints
+//       -> 'fixed_intakes'                      = []
+//     cible du petit-déjeuner servie            = 613,50 kcal
+//     cible d'un tir SANS apport fixe           = 613,50 kcal   ← les mêmes
+// Le journal `keel.household_meal.fixed_intakes` n'est pas sorti et le prompt
+// n'a jamais nommé le yaourt.
+//
+// ⛔ CE QUE CE BLOC PROUVE, ET QUE LES TESTS D'AU-DESSUS NE PROUVAIENT PAS.
+// Le plan l'exige: « le test suit le vrai trajet UI/RPC → lecteur → prompt →
+// CIBLE. Il ne valide pas seulement la présence d'une ligne dans une table. »
+// On va donc jusqu'à `slotContractsFor`, c'est-à-dire jusqu'au nombre que le
+// dimensionnement et le prompt consomment.
+// ===========================================================================
+
+describe("⛔ C1 · l'apport fixe traverse jusqu'à la CIBLE, et une seule fois", () => {
+  const YAOURT = {
+    food_ref: "greek_yogurt",
+    label: "yaourt grec",
+    amount: 200,
+    unit: "g",
+    days: [] as string[],
+    slot: "breakfast",
+    replaces_meal: false,
+  };
+
+  /** L'index minimal: un yaourt grec à 100 kcal/100 g, 9 g de protéine. */
+  function indexYaourt() {
+    return buildCompositionIndex(
+      [{
+        slug: "greek_yogurt",
+        foodGroupRef: "dairy_yogurt",
+        label: "Greek yogurt",
+        source: "ciqual",
+        energyKcal: 100,
+        proteinG: 9,
+        carbsG: 4,
+        fatG: 5,
+        fiberG: 0,
+        omega3Marine: false,
+        ironSource: false,
+        calciumSource: true,
+        iodineSource: false,
+        zincSource: false,
+        b12Source: false,
+        folateSource: false,
+        yieldClass: "neutral",
+        yieldFactor: null,
+        atwaterDiscount: 1.0,
+        energyDense: false,
+        unitGrams: null,
+        condimentGrams: null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any],
+      [{ alias: "yaourt grec", slug: "greek_yogurt" }],
+    );
+  }
+
+  /** Un PostgREST en mémoire qui applique VRAIMENT ses `eq`. */
+  function db(tables: Record<string, Record<string, unknown>[]>) {
+    return {
+      from(table: string) {
+        const filters: Array<[string, unknown]> = [];
+        const rows = tables[table] ?? [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const api: any = {
+          select: () => api,
+          eq(column: string, value: unknown) {
+            filters.push([column, value]);
+            return api;
+          },
+          maybeSingle: () =>
+            Promise.resolve({
+              data: rows.find((row) =>
+                filters.every(([c, v]) => String(row[c] ?? "") === String(v ?? ""))
+              ) ?? null,
+              error: null,
+            }),
+        };
+        return api;
+      },
+    };
+  }
+
+  /** La cible du petit-déjeuner de Paul (tir n° 5), par les vraies fonctions. */
+  function cibleDuPetitDejeuner(
+    intakes: ReturnType<typeof parseFixedIntakes>["intakes"],
+  ): number {
+    const fixed = fixedIntakeSlotKcal({
+      index: indexYaourt(),
+      intakes,
+      dayToken: "sat",
+    });
+    const set = slotContractsFor({
+      mouth: {
+        memberId: "m-paul",
+        ageState: "adult",
+        restriction: "clear",
+        body: {
+          heightCm: 178,
+          weightKg: 88,
+          gender: "male",
+          ageYears: 36,
+          activityLevel: "trains_some",
+          activityAxes: { day: "seated", sport: "3_4", asked: true },
+          appetite: "average",
+        },
+        // ⚠️ LA FIXTURE PERTE DE LA CAMPAGNE, pas un corps inventé: c'est elle
+        // qui rend une journée à 2 454 kcal, donc un petit-déjeuner à 613,50 —
+        // le nombre exact publié par le tir n° 5.
+        direction: "down",
+        paceKgPerWeek: 0.5,
+        declaredSlots: [],
+        conditionRefs: [],
+        portionIndex: null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
+      coachCounting: "no_position",
+      rhythmSlots: ["breakfast", "lunch", "dinner"],
+      days: [{
+        dayToken: "sat",
+        date: "2026-09-12",
+        coveredSlots: ["breakfast", "lunch", "dinner"],
+        lockedSlots: [],
+        fixedKcalBySlot: fixed.bySlot,
+      }],
+      lightSlots: [],
+      ageYears: 36,
+    });
+    const c = set.contracts.find((x) => x.slot === "breakfast");
+    if (!c) throw new Error("aucun contrat pour le petit-déjeuner");
+    return c.composeKcal ?? -1;
+  }
+
+  it("⛔ LE CAS QUI MORD — la colonne ORPHELINE d'un titulaire est enfin lue", async () => {
+    // Le décor EXACT du tir n° 5: la déclaration est sur la ligne membre, la
+    // source canonique est vide.
+    const loaded = await loadHouseholdFixedIntakes(
+      db({
+        student_goals: [{ user_id: "u-paul", practical_constraints: { fixed_intakes: [] } }],
+        household_members: [{ member_id: "m-paul", fixed_intakes: [YAOURT] }],
+      }),
+      { mouths: [{ memberId: "m-paul", userId: "u-paul", displayName: "Paul" }] },
+    );
+    // ① LE LECTEUR LA VOIT, et il DIT qu'il a eu besoin du repli.
+    expect(loaded.intakes).toHaveLength(1);
+    expect(loaded.legacyFallback).toBe(1);
+
+    // ② LE PROMPT LA NOMME — il ne la nommait pas.
+    const prose = fixedIntakePromptLines(loaded.intakes).join("\n");
+    expect(prose).toContain("Paul: yaourt grec (200 g) at breakfast");
+
+    // ③ ET LA CIBLE BAISSE. C'est le nombre du rapport: 613,50 sans apport.
+    const sans = cibleDuPetitDejeuner([]);
+    const avec = cibleDuPetitDejeuner(loaded.intakes);
+    expect(Math.round(sans * 100) / 100).toBe(613.5);
+    expect(avec).toBeLessThan(sans);
+    // 200 g de yaourt à 100 kcal/100 g = 200 kcal, retranchées UNE fois.
+    expect(Math.round(sans - avec)).toBe(200);
+  });
+
+  it("⛔ UNE SEULE FOIS — les deux sources ne s'additionnent jamais", async () => {
+    // Les deux colonnes portent la MÊME déclaration. Additionner retrancherait
+    // 400 kcal pour un seul pot, dans le sens qui fait maigrir un plan.
+    const loaded = await loadHouseholdFixedIntakes(
+      db({
+        student_goals: [{
+          user_id: "u-paul",
+          practical_constraints: { fixed_intakes: [YAOURT] },
+        }],
+        household_members: [{ member_id: "m-paul", fixed_intakes: [YAOURT] }],
+      }),
+      { mouths: [{ memberId: "m-paul", userId: "u-paul", displayName: "Paul" }] },
+    );
+    expect(loaded.intakes).toHaveLength(1);
+    expect(loaded.legacyFallback).toBe(0);
+    const sans = cibleDuPetitDejeuner([]);
+    const avec = cibleDuPetitDejeuner(loaded.intakes);
+    expect(Math.round(sans - avec)).toBe(200);
+  });
+
+  it("le membre SANS COMPTE garde son stock, et sa cible baisse aussi", async () => {
+    // LE CAS QUI PASSE, et il ne change pas: la ligne membre EST la source
+    // d'une bouche sans compte, ce n'est pas un repli.
+    const loaded = await loadHouseholdFixedIntakes(
+      db({ household_members: [{ member_id: "m-leo", fixed_intakes: [YAOURT] }] }),
+      { mouths: [{ memberId: "m-leo", userId: null, displayName: "Léo" }] },
+    );
+    expect(loaded.intakes).toHaveLength(1);
+    expect(loaded.legacyFallback).toBe(0);
+    expect(loaded.reads).toBe(1);
+    expect(fixedIntakePromptLines(loaded.intakes).join("\n"))
+      .toContain("Léo: yaourt grec (200 g) at breakfast");
+  });
+
+  it("ALLER-RETOUR — ce que l'écran écrit est ce que le lecteur relit", async () => {
+    // La chaîne entière, sans réseau: brouillon → `mouthToPersist` →
+    // `persistMouth` → la porte → LA COLONNE → `loadHouseholdFixedIntakes` →
+    // la ligne de consigne. Puis on RE-sauvegarde par-dessus la colonne relue,
+    // et on vérifie qu'il n'y a toujours qu'UN apport: la porte remplace la
+    // ligne de même `food_ref`, elle n'en empile pas une seconde.
+    const TYPED: Partial<MouthFormDraft> = {
+      firstName: "Paul",
+      birthDate: ADULT_BIRTH,
+      goal: "muscle_gain",
+      heightCm: "178",
+      weightKg: "88",
+      gender: "male",
+      activityLevel: "trains_some",
+      shaker: {
+        label: "mon shaker",
+        servingGrams: "30",
+        proteinGPerServing: "24",
+        energyKcalPerServing: "120",
+        slot: "snack_pm",
+      },
+    };
+    let column: unknown[] = [];
+    const { writers } = spyWriters();
+    const porte = {
+      ...writers,
+      setShaker: (_memberId: string, shaker: Parameters<typeof shakerIntakeJson>[0]) => {
+        const json = shakerIntakeJson(shaker);
+        // La vraie règle de la porte: on REMPLACE la ligne de même `food_ref`.
+        column = [
+          ...column.filter((e) =>
+            String((e as Record<string, unknown>).food_ref ?? "") !== json.food_ref
+          ),
+          json,
+        ];
+        return Promise.resolve({ ok: true, reason: "" });
+      },
+    };
+    await persistMouth(mouthToPersist(draftOf(TYPED), TODAY), porte);
+    expect(column).toHaveLength(1);
+
+    // RECHARGÉ: le lecteur du moteur relit exactement ce qui a été écrit.
+    const relu = await loadHouseholdFixedIntakes(
+      db({
+        student_goals: [{
+          user_id: "u-paul",
+          practical_constraints: { fixed_intakes: column },
+        }],
+      }),
+      { mouths: [{ memberId: "m-paul", userId: "u-paul", displayName: "Paul" }] },
+    );
+    expect(relu.intakes).toHaveLength(1);
+    expect(relu.intakes[0].label).toBe("Paul: mon shaker");
+
+    // SAUVEGARDÉ UNE SECONDE FOIS: toujours un seul apport, pas deux pots.
+    await persistMouth(mouthToPersist(draftOf(TYPED), TODAY), porte);
+    expect(column).toHaveLength(1);
+    const encore = await loadHouseholdFixedIntakes(
+      db({
+        student_goals: [{
+          user_id: "u-paul",
+          practical_constraints: { fixed_intakes: column },
+        }],
+      }),
+      { mouths: [{ memberId: "m-paul", userId: "u-paul", displayName: "Paul" }] },
+    );
+    expect(encore.intakes).toHaveLength(1);
   });
 });

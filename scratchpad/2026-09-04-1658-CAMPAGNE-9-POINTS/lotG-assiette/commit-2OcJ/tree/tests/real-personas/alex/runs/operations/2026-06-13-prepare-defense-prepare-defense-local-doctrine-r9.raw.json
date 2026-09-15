@@ -1,0 +1,905 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux préparer une carte de défense pour le moment où je rentre complètement vidé le soir et où je me retrouve à commander n’importe quoi au lieu de manger correctement.",
+    "status": 409,
+    "body": {
+      "ok": false,
+      "request_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9-t01",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9",
+      "empty_response": true,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9-t01",
+            "source_message_id": "1aea945f-68e9-4450-b712-498339b21c18",
+            "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "prepare_defense_card",
+                "explicitness": "explicit",
+                "target_hint": "rentre complètement vidé le soir et commande n'importe quoi",
+                "operation_input": {
+                  "target_hint": "rentre complètement vidé le soir et commande n'importe quoi",
+                  "evidence": [
+                    "Je veux préparer une carte de défense",
+                    "rentre complètement vidé le soir",
+                    "commander n’importe quoi au lieu de manger correctement"
+                  ]
+                },
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "create"
+              }
+            ],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "prepare_defense_card",
+              "handoff_context_for_next_dispatcher": "User explicitly asks to prepare a defense card for a specific risk moment: returning home exhausted and ordering junk food. The situation is well-defined in the message.",
+              "user_words": [
+                "Je veux préparer une carte de défense pour le moment où je rentre complètement vidé le soir et où je me retrouve à commander n’importe quoi au lieu de manger correctement."
+              ],
+              "structured_context": {
+                "primary_signal_path": "tool_skill_intents[0]",
+                "target_kind": "tool_skill",
+                "target_flow": "prepare_defense_card",
+                "confidence_band": "high",
+                "evidence": [
+                  "Je veux préparer une carte de défense"
+                ],
+                "recommended_next_focus": "Run the local dispatcher for prepare_defense_card. Use the provided target_hint to initialize the card creation flow."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "sante.alimentation",
+                  "query_hint": "habitudes alimentaires soir fatigue",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "habitudes.reprise_apres_echec",
+                  "query_hint": "craquages alimentaires soir",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "tool_skill_intent_start",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "prepare_defense_card",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "tool_skill_intent_start",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "tool_skill_run": {
+            "selected_handler": "prepare_defense_card",
+            "reason_code": "prepare_defense_card_local_dispatcher_failed",
+            "operation_type": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "blocked",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [
+              {
+                "type": "local_dispatcher",
+                "reason_code": "prepare_defense_card_local_dispatcher_failed"
+              }
+            ],
+            "pending_confirmation": null,
+            "runtime_trace": [
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "active flow entry",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "missing",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher called",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": "ambiguous",
+                "support_need_status": "missing",
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 0,
+                "risk_assessment": null,
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "note_information_consumed",
+                "note_information": {
+                  "source_flow_id": "global_dispatcher",
+                  "handoff_reason": "explicit_user_request",
+                  "target_dispatcher": "prepare_defense_card",
+                  "handoff_context_for_next_dispatcher": "User explicitly asks to prepare a defense card for a specific risk moment: returning home exhausted and ordering junk food. The situation is well-defined in the message.",
+                  "user_words": [
+                    "Je veux préparer une carte de défense pour le moment où je rentre complètement vidé le soir et où je me retrouve à commander n’importe quoi au lieu de manger correctement."
+                  ],
+                  "structured_context": {
+                    "primary_signal_path": "tool_skill_intents[0]",
+                    "target_kind": "tool_skill",
+                    "target_flow": "prepare_defense_card",
+                    "confidence_band": "high",
+                    "evidence": [
+                      "Je veux préparer une carte de défense"
+                    ],
+                    "recommended_next_focus": "Run the local dispatcher for prepare_defense_card. Use the provided target_hint to initialize the card creation flow."
+                  },
+                  "confidence": "high"
+                },
+                "source_flow_id": "global_dispatcher",
+                "target_dispatcher": "prepare_defense_card",
+                "selected_handler": "prepare_defense_card"
+              },
+              {
+                "component": "prepare_defense_card.local_flow",
+                "event": "local_dispatcher failed",
+                "flow_action": null,
+                "visible_task_kind": null,
+                "tool_fit": null,
+                "support_need_status": null,
+                "handoff_ready": false,
+                "slots_modified": [],
+                "exit_to_global_dispatcher": false,
+                "ai_call_count": 1,
+                "risk_assessment": null,
+                "selected_handler": "prepare_defense_card"
+              }
+            ],
+            "ai_call_count": 1
+          },
+          "effect_ledger": {
+            "turn_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 1,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9-t01:platform_handoff:blocked:prepare_defense_card:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.prepare_defense_card",
+                "operation_type": "prepare_defense_card",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "prepare_defense_card",
+                "status": "blocked",
+                "reason_code": "missing_platform_handoff_contract",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "blocked",
+                  "rejected_effect_arrays": "[object]"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9-t01",
+          "source_message_id": "1aea945f-68e9-4450-b712-498339b21c18",
+          "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [
+            {
+              "operation_type": "prepare_defense_card",
+              "explicitness": "explicit",
+              "target_hint": "rentre complètement vidé le soir et commande n'importe quoi",
+              "operation_input": {
+                "target_hint": "rentre complètement vidé le soir et commande n'importe quoi",
+                "evidence": [
+                  "Je veux préparer une carte de défense",
+                  "rentre complètement vidé le soir",
+                  "commander n’importe quoi au lieu de manger correctement"
+                ]
+              },
+              "confidence_band": "high",
+              "ambiguity": "none",
+              "user_intent": "create"
+            }
+          ],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "prepare_defense_card",
+            "handoff_context_for_next_dispatcher": "User explicitly asks to prepare a defense card for a specific risk moment: returning home exhausted and ordering junk food. The situation is well-defined in the message.",
+            "user_words": [
+              "Je veux préparer une carte de défense pour le moment où je rentre complètement vidé le soir et où je me retrouve à commander n’importe quoi au lieu de manger correctement."
+            ],
+            "structured_context": {
+              "primary_signal_path": "tool_skill_intents[0]",
+              "target_kind": "tool_skill",
+              "target_flow": "prepare_defense_card",
+              "confidence_band": "high",
+              "evidence": [
+                "Je veux préparer une carte de défense"
+              ],
+              "recommended_next_focus": "Run the local dispatcher for prepare_defense_card. Use the provided target_hint to initialize the card creation flow."
+            },
+            "confidence": "high"
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "sante.alimentation",
+                "query_hint": "habitudes alimentaires soir fatigue",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "habitudes.reprise_apres_echec",
+                "query_hint": "craquages alimentaires soir",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "tool_skill_intent_start",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "prepare_defense_card",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 0,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "tool_skill_intent_start",
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          }
+        },
+        "tool_skill_run": {
+          "selected_handler": "prepare_defense_card",
+          "reason_code": "prepare_defense_card_local_dispatcher_failed",
+          "operation_type": "prepare_defense_card",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "blocked",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [
+            {
+              "type": "local_dispatcher",
+              "reason_code": "prepare_defense_card_local_dispatcher_failed"
+            }
+          ],
+          "pending_confirmation": null,
+          "runtime_trace": [
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "active flow entry",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "missing",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher called",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": "ambiguous",
+              "support_need_status": "missing",
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 0,
+              "risk_assessment": null,
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "note_information_consumed",
+              "note_information": {
+                "source_flow_id": "global_dispatcher",
+                "handoff_reason": "explicit_user_request",
+                "target_dispatcher": "prepare_defense_card",
+                "handoff_context_for_next_dispatcher": "User explicitly asks to prepare a defense card for a specific risk moment: returning home exhausted and ordering junk food. The situation is well-defined in the message.",
+                "user_words": [
+                  "Je veux préparer une carte de défense pour le moment où je rentre complètement vidé le soir et où je me retrouve à commander n’importe quoi au lieu de manger correctement."
+                ],
+                "structured_context": {
+                  "primary_signal_path": "tool_skill_intents[0]",
+                  "target_kind": "tool_skill",
+                  "target_flow": "prepare_defense_card",
+                  "confidence_band": "high",
+                  "evidence": [
+                    "Je veux préparer une carte de défense"
+                  ],
+                  "recommended_next_focus": "Run the local dispatcher for prepare_defense_card. Use the provided target_hint to initialize the card creation flow."
+                },
+                "confidence": "high"
+              },
+              "source_flow_id": "global_dispatcher",
+              "target_dispatcher": "prepare_defense_card",
+              "selected_handler": "prepare_defense_card"
+            },
+            {
+              "component": "prepare_defense_card.local_flow",
+              "event": "local_dispatcher failed",
+              "flow_action": null,
+              "visible_task_kind": null,
+              "tool_fit": null,
+              "support_need_status": null,
+              "handoff_ready": false,
+              "slots_modified": [],
+              "exit_to_global_dispatcher": false,
+              "ai_call_count": 1,
+              "risk_assessment": null,
+              "selected_handler": "prepare_defense_card"
+            }
+          ],
+          "ai_call_count": 1
+        },
+        "effect_ledger": {
+          "turn_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 1,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r9-t01:platform_handoff:blocked:prepare_defense_card:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.prepare_defense_card",
+              "operation_type": "prepare_defense_card",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "prepare_defense_card",
+              "status": "blocked",
+              "reason_code": "missing_platform_handoff_contract",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "blocked",
+                "rejected_effect_arrays": "[object]"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  }
+]

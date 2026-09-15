@@ -1,0 +1,351 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "46ef0c11-73f1-4ad1-8808-a4e2dcd9870f",
+        "role": "user",
+        "content": "Je viens de sortir d'un point avec mon associe et je me sens ridicule. Il a dit que mon idee n'etait pas assez solide devant tout le monde, et depuis je me repete que je ne suis pas au niveau.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:35:14.196093+00:00"
+      },
+      {
+        "id": "ed916e13-8418-4001-ad01-8583d9722512",
+        "role": "user",
+        "content": "Je viens de raccrocher avec quelqu’un et je me sens minuscule. Je tourne en boucle sur ‘je suis trop sensible, je gâche tout’, alors que je veux juste retrouver un peu de calme.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:35:28.455499+00:00"
+      },
+      {
+        "id": "91dccd98-452d-40cd-8da0-70720fd08000",
+        "role": "assistant",
+        "content": "C'est une sensation très pesante de se sentir exposé ainsi devant les autres. Il est important de bien faire la distinction : une idée peut manquer de solidité à un moment donné sans que cela ne remette en cause ton intelligence ou ta légitimité. Ce que tu as proposé est un élément de travail, mais ce n'est pas le verdict de ta valeur personnelle.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T22:35:40.028332+00:00"
+      },
+      {
+        "id": "d19f3197-e57c-491c-b556-5327b39af2ad",
+        "role": "user",
+        "content": "Oui, je comprends rationnellement, mais dans mon corps c'est comme si cette phrase prouvait que je suis un imposteur. Je n'ai pas besoin d'un plan, juste de m'aider a ne pas la croire totalement.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:36:00.458227+00:00"
+      },
+      {
+        "id": "cfe5e346-dba3-4315-bbd1-f934839da45b",
+        "role": "assistant",
+        "content": "C'est épuisant de se sentir minuscule et d'avoir l'impression de tout gâcher après un échange. Cette sensation est très lourde, mais elle ne définit pas qui tu es. Ta sensibilité n'est pas un défaut, c'est juste une part de toi qui a été bousculée et qui a besoin de souffler. On va simplement laisser la pression redescendre doucement pour retrouver ce calme.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T22:36:29.96724+00:00"
+      },
+      {
+        "id": "50ac858e-2339-4251-a6b8-6ce2eb230a35",
+        "role": "user",
+        "content": "Oui. Je remarque surtout que je confonds ce moment avec ma valeur. Ne me propose pas encore d’action ni de potion, reste juste avec moi sur cette honte une minute.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:36:49.817285+00:00"
+      },
+      {
+        "id": "c23505b5-eaec-47fa-a614-05ad0c28f5bd",
+        "role": "assistant",
+        "content": "Cette critique est une information sur un moment précis de ton travail, elle n'est pas la vérité absolue sur tes capacités ni sur qui tu es.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "conversation_skill_local_flow",
+              "status": "continue",
+              "skill_id": "emotional_repair",
+              "flow_action": "provide_concrete_phrase",
+              "reason_code": "emotional_repair_local_continue",
+              "visible_task": "concrete_phrase",
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_turn",
+                  "component": "emotional_repair",
+                  "safety_handoff": false,
+                  "global_dispatcher_skipped": true
+                }
+              ],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "response_intent": "separate_fact_from_identity",
+              "committed_effects": [],
+              "requested_effects": [],
+              "source_dispatcher_local": "emotional_repair.local_dispatcher",
+              "global_dispatcher_skipped": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-11T22:36:57.157767+00:00"
+      },
+      {
+        "id": "76afe410-9844-483c-8fa4-ffb6ee27ea1a",
+        "role": "assistant",
+        "content": "Je suis là, tout simplement. On reste ensemble dans ce moment. Cette honte est une vague qui te traverse, mais elle n'est pas ce que tu es.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "conversation_skill_local_flow",
+              "status": "continue",
+              "skill_id": "emotional_repair",
+              "flow_action": "answer_repair",
+              "reason_code": "emotional_repair_local_continue",
+              "visible_task": "de_shame",
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_turn",
+                  "component": "emotional_repair",
+                  "safety_handoff": false,
+                  "global_dispatcher_skipped": true
+                }
+              ],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "response_intent": "separate_fact_from_identity",
+              "committed_effects": [],
+              "requested_effects": [],
+              "source_dispatcher_local": "emotional_repair.local_dispatcher",
+              "global_dispatcher_skipped": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-11T22:37:08.541581+00:00"
+      },
+      {
+        "id": "e7b8a2c4-10bb-4f84-8918-01db2aec909c",
+        "role": "user",
+        "content": "Je change de sujet maintenant : dans Sophia, ou est-ce que je retrouve les cartes d'attaque que j'ai deja creees ?",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:37:12.633162+00:00"
+      },
+      {
+        "id": "2dcc94e6-ee92-4551-9583-92f0b6ebc7fb",
+        "role": "user",
+        "content": "Ça redescend un peu. Je voudrais juste une phrase courte que je peux garder, quelque chose qui sépare ce que j’ai vécu de qui je suis.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:37:25.186054+00:00"
+      },
+      {
+        "id": "48b2f631-5a76-41ea-9940-e5996fd916bc",
+        "role": "assistant",
+        "content": "Oui. Garde celle-ci, simple et courte 🤍 : « Ce que j’ai vécu ne définit pas qui je suis. »",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T22:37:29.610882+00:00"
+      },
+      {
+        "id": "0afea79a-dc0a-44ad-8613-53fa7368abcb",
+        "role": "assistant",
+        "content": "Tu retrouveras tes cartes d'attaque dans l'onglet **Ressources** de ton dashboard, rangées par niveau. Tu peux aussi voir un aperçu directement sur la mission ou l'habitude concernée dans ton **Plan**.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r12-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T22:37:53.360356+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

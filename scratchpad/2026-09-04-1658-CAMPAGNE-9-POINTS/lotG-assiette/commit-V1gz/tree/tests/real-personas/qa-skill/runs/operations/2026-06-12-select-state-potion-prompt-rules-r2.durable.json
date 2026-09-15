@@ -1,0 +1,36 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "6f58c3df-fcbb-40c4-8235-8f9bb5d04fa5",
+        "role": "user",
+        "content": "J'aimerais une potion d'état, mais je ne sais pas trop laquelle. Depuis mon échec de vendredi, je me parle hyper durement et j'ai besoin d'arrêter de m'écraser.",
+        "scope": "qa-demotivation-repair-2026-06-12-select-state-potion-prompt-rules-r2",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-12-select-state-potion-prompt-rules-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-12T00:58:03.868735+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

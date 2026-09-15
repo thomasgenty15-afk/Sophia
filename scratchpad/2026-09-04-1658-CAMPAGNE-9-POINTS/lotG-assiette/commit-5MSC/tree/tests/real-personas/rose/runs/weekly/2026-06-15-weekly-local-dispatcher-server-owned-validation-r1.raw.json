@@ -1,0 +1,2374 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t01",
+    "user": "La semaine a ete mitigée : j'ai bien rangé le matériel trois jours, mais j'ai relâché en fin de semaine avec la fatigue.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je note que la fatigue a pesé sur tes habitudes cette semaine, notamment pour le rangement du matériel. Malgré ces moments plus difficiles, as-tu le sentiment d'avoir progressé vers ton objectif de libération du cannabis ?",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t01",
+            "source_message_id": "61c1a640-c625-48f9-a899-298be556e2cc",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_weekly_review_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_weekly_review_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_local_confirm_weekly_diagnostic",
+            "operation_type": "weekly_adaptive_review_v1",
+            "status": "answered",
+            "flow_action": "confirm_weekly_diagnostic",
+            "visible_task": "ask_global_progress_feeling",
+            "confidence": "high",
+            "risk_score": 0,
+            "weekly_intent": {
+              "kind": "weekly_answer",
+              "summary": "Le user confirme la fatigue comme blocage et précise que le rangement du matériel n'a duré que trois jours."
+            },
+            "handoff_updates": {
+              "status": "none",
+              "requested_adjustment_summary": null,
+              "revision_summary": null,
+              "platform_destination": null,
+              "scope": {
+                "kind": "none",
+                "plan_id": null,
+                "plan_title": null,
+                "plan_item_ids": [],
+                "scope_summary": null,
+                "needs_scope_clarification": false
+              }
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null
+            },
+            "local_flow_state": {
+              "stage": "action_review",
+              "proposal_status": "none",
+              "validation_unlock_status": "locked_until_weekly_complete",
+              "human_signals": {
+                "objective_delta": "slight_progress",
+                "felt_state": "tired_but_ok"
+              },
+              "felt_progress": "neutral",
+              "weekly_gates": {
+                "week_experience_status": "complete",
+                "action_review_status": "captured",
+                "global_progress_status": "missing",
+                "felt_progress_status": "captured",
+                "solution_fit_status": "missing",
+                "synthesis_status": "missing",
+                "closure_status": "missing"
+              },
+              "detour_candidate": {
+                "kind": "none",
+                "source_stage": null,
+                "target_action_or_plan": null,
+                "fit_hypothesis": null,
+                "readiness": "none",
+                "user_consent": false,
+                "scope": {},
+                "return_focus": null
+              },
+              "last_user_signal": "Semaine mitigée avec fatigue en fin de semaine impactant la régularité.",
+              "last_visible_summary": "Le user confirme la fatigue comme blocage et précise que le rangement du matériel n'a duré que trois jours.",
+              "last_handoff_summary": null,
+              "child_flow": {
+                "status": "none",
+                "flow_id": null,
+                "reason": null,
+                "expected_return_focus": null,
+                "result_summary": null,
+                "result_details": null
+              },
+              "user_corrected_action_statuses": [
+                {
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                  "title": "Ranger le matériel hors de vue",
+                  "corrected_status": "partial",
+                  "user_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                  "source_turn_summary": "Rangement effectué seulement 3 jours sur la semaine."
+                }
+              ],
+              "turn_count": 1,
+              "max_turns": 6,
+              "updated_at": "2026-06-15T18:13:10.183Z"
+            },
+            "target_dispatcher": "none",
+            "note_information": null,
+            "conversation_context": {
+              "state_summary": "Le user confirme la fatigue comme blocage et précise que le rangement du matériel n'a duré que trois jours.",
+              "user_words": [],
+              "week_window": {
+                "start_date": "2026-06-08",
+                "end_date": "2026-06-14"
+              },
+              "field_or_stage": "ask_global_progress_feeling",
+              "known_values": {
+                "human_signals": {
+                  "objective_delta": "slight_progress",
+                  "felt_state": "tired_but_ok"
+                },
+                "felt_progress": "neutral",
+                "weekly_gates": {
+                  "week_experience_status": "complete",
+                  "action_review_status": "captured",
+                  "global_progress_status": "missing",
+                  "felt_progress_status": "captured",
+                  "solution_fit_status": "missing",
+                  "synthesis_status": "missing",
+                  "closure_status": "missing"
+                },
+                "action_review_complete": false,
+                "action_review_before_global_progress_required": true,
+                "partial_statuses_must_remain_partial": true,
+                "detour_candidate": {
+                  "kind": "none",
+                  "source_stage": null,
+                  "target_action_or_plan": null,
+                  "fit_hypothesis": null,
+                  "readiness": "none",
+                  "user_consent": false,
+                  "scope": {},
+                  "return_focus": null
+                },
+                "next_required_weekly_step": "ask_global_progress_feeling",
+                "validation_unlock_status": "locked_until_weekly_complete",
+                "proposal_status": "none",
+                "child_flow": {
+                  "status": "none",
+                  "flow_id": null,
+                  "reason": null,
+                  "expected_return_focus": null,
+                  "result_summary": null,
+                  "result_details": null
+                },
+                "child_flow_result_details": null,
+                "user_corrected_action_statuses": [
+                  {
+                    "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                    "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                    "title": "Ranger le matériel hors de vue",
+                    "corrected_status": "partial",
+                    "user_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                    "source_turn_summary": "Rangement effectué seulement 3 jours sur la semaine."
+                  }
+                ],
+                "dominant_blocker_confirmation": "confirmed"
+              },
+              "missing_or_weak_values": [
+                "avancee_objectif_global"
+              ],
+              "weekly_strategy": {
+                "strategy_label_human": null,
+                "reason_human": null,
+                "confidence": "high"
+              },
+              "plan_contexts": [
+                {
+                  "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "action_count": 3
+                }
+              ],
+              "item_summaries": [
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                  "title": "Ranger le matériel hors de vue",
+                  "family": "habit",
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "reschedule_decision": null
+                  },
+                  "user_corrected_status": "partial",
+                  "user_correction_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                  "status_source": "user_weekly_correction"
+                },
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-2",
+                  "title": "Cibler le joint réflexe",
+                  "family": "habit",
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "reschedule_decision": null
+                  }
+                },
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-3",
+                  "title": "Faire un sas de décompression (sans fumer)",
+                  "family": "habit",
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": "fatigue fin de semaine",
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "reschedule_decision": null
+                  }
+                }
+              ],
+              "handoff_data": {
+                "summary": null,
+                "platform_destination": null,
+                "scope": {
+                  "kind": "none",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "plan_item_ids": [],
+                  "scope_summary": null,
+                  "needs_scope_clarification": false
+                },
+                "requested_adjustment_summary": null,
+                "revision_summary": null,
+                "executable_from_chat": false,
+                "requires_platform_confirmation": true
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null,
+                "no_plan_adjustment": true
+              },
+              "inline_result": {},
+              "weekly_gates": {
+                "week_experience_status": "complete",
+                "action_review_status": "captured",
+                "global_progress_status": "missing",
+                "felt_progress_status": "captured",
+                "solution_fit_status": "missing",
+                "synthesis_status": "missing",
+                "closure_status": "missing"
+              },
+              "detour_candidate": {
+                "kind": "none",
+                "source_stage": null,
+                "target_action_or_plan": null,
+                "fit_hypothesis": null,
+                "readiness": "none",
+                "user_consent": false,
+                "scope": {},
+                "return_focus": null
+              },
+              "current_action_focus": null,
+              "known_action_gaps": [
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                  "title": "Ranger le matériel hors de vue",
+                  "family": "habit",
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "reschedule_decision": null
+                  },
+                  "user_corrected_status": "partial",
+                  "user_correction_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                  "status_source": "user_weekly_correction"
+                },
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-2",
+                  "title": "Cibler le joint réflexe",
+                  "family": "habit",
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "reschedule_decision": null
+                  }
+                },
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-3",
+                  "title": "Faire un sas de décompression (sans fumer)",
+                  "family": "habit",
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": "fatigue fin de semaine",
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "reschedule_decision": null
+                  }
+                }
+              ],
+              "global_objective_signal": {
+                "objective_delta": "slight_progress",
+                "status": "missing"
+              },
+              "felt_progress_signal": {
+                "felt_progress": "neutral",
+                "felt_state": "tired_but_ok",
+                "status": "captured"
+              },
+              "child_flow_return_summary": null,
+              "next_required_weekly_step": "ask_global_progress_feeling",
+              "tone_constraints": [
+                "compact",
+                "one_question_max_when_asking",
+                "human_language",
+                "prefer_gender_neutral_wording_when_not_certain",
+                "do_not_use_gendered_adjectives_unless_conversation_context_confirms_gender"
+              ],
+              "do_not_say": [
+                "bridge_week",
+                "carry_over",
+                "repeat_week",
+                "level_review",
+                "item_decision",
+                "dominant_blocker",
+                "applique",
+                "modifie le plan",
+                "valide le plan",
+                "enregistre le plan",
+                "j'ai une carte",
+                "carte disponible",
+                "carte prete",
+                "nouvel outil",
+                "j'ai modifie le plan",
+                "j'ai cree un rappel",
+                "j'ai cree une potion",
+                "tu as ete rigoureux",
+                "tu as ete rigoureuse",
+                "reussite pleine pour une action partielle"
+              ],
+              "context_summary": "Le user confirme la fatigue comme blocage et précise que le rangement du matériel n'a duré que trois jours.",
+              "evidence_used": [
+                "semaine mitigée",
+                "rangé le matériel trois jours",
+                "relâché en fin de semaine avec la fatigue",
+                "fatigue"
+              ]
+            },
+            "short_trace": {
+              "flow_action": "confirm_weekly_diagnostic",
+              "visible_task": "ask_global_progress_feeling",
+              "selected_target": null,
+              "pending_state_present": false,
+              "direct_handoff_flag": false,
+              "candidate_summary": [],
+              "constraint_list": [
+                "no_chat_plan_mutation",
+                "weekly_parent_returns_after_child_flow"
+              ],
+              "readiness": "none",
+              "blocked_effects": [],
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "weekly_flow_state",
+                  "stage",
+                  "proposal_status",
+                  "validation_unlock_status",
+                  "human_signals",
+                  "felt_progress",
+                  "weekly_gates",
+                  "detour_candidate",
+                  "last_user_signal",
+                  "last_visible_summary",
+                  "last_handoff_summary",
+                  "child_flow",
+                  "user_corrected_action_statuses",
+                  "turn_count",
+                  "max_turns",
+                  "daily_derived_evidence",
+                  "synthesis_state",
+                  "weekly_adaptive_review",
+                  "weekly_adaptive_review.plan_patch",
+                  "weekly_adaptive_review.plan_patch.requires_confirmation",
+                  "weekly_adaptive_review.pending_confirmation",
+                  "suspended_weekly_snapshot",
+                  "completed_child_result"
+                ],
+                "modified_fields_declared": [],
+                "clear_fields_declared": [],
+                "applied_fields": [
+                  "stage",
+                  "human_signals",
+                  "felt_progress",
+                  "weekly_gates",
+                  "last_user_signal",
+                  "last_visible_summary",
+                  "user_corrected_action_statuses",
+                  "turn_count",
+                  "daily_derived_evidence",
+                  "weekly_adaptive_review.plan_patch.requires_confirmation",
+                  "weekly_adaptive_review.pending_confirmation"
+                ],
+                "preserved_fields": [
+                  "proposal_status",
+                  "validation_unlock_status",
+                  "detour_candidate",
+                  "last_handoff_summary",
+                  "child_flow",
+                  "max_turns",
+                  "weekly_adaptive_review.plan_patch"
+                ],
+                "restored_fields": [],
+                "cleared_fields": [],
+                "rejected_changes": []
+              }
+            },
+            "state_mutation_audit": {
+              "server_owned_fields": [
+                "weekly_flow_state",
+                "stage",
+                "proposal_status",
+                "validation_unlock_status",
+                "human_signals",
+                "felt_progress",
+                "weekly_gates",
+                "detour_candidate",
+                "last_user_signal",
+                "last_visible_summary",
+                "last_handoff_summary",
+                "child_flow",
+                "user_corrected_action_statuses",
+                "turn_count",
+                "max_turns",
+                "daily_derived_evidence",
+                "synthesis_state",
+                "weekly_adaptive_review",
+                "weekly_adaptive_review.plan_patch",
+                "weekly_adaptive_review.plan_patch.requires_confirmation",
+                "weekly_adaptive_review.pending_confirmation",
+                "suspended_weekly_snapshot",
+                "completed_child_result"
+              ],
+              "modified_fields_declared": [],
+              "clear_fields_declared": [],
+              "applied_fields": [
+                "stage",
+                "human_signals",
+                "felt_progress",
+                "weekly_gates",
+                "last_user_signal",
+                "last_visible_summary",
+                "user_corrected_action_statuses",
+                "turn_count",
+                "daily_derived_evidence",
+                "weekly_adaptive_review.plan_patch.requires_confirmation",
+                "weekly_adaptive_review.pending_confirmation"
+              ],
+              "preserved_fields": [
+                "proposal_status",
+                "validation_unlock_status",
+                "detour_candidate",
+                "last_handoff_summary",
+                "child_flow",
+                "max_turns",
+                "weekly_adaptive_review.plan_patch"
+              ],
+              "restored_fields": [],
+              "cleared_fields": [],
+              "rejected_changes": []
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "visible_fallback_used": false,
+            "qa_green_eligible": true,
+            "no_durable_plan_mutation": true,
+            "evidence": [
+              "semaine mitigée",
+              "rangé le matériel trois jours",
+              "relâché en fin de semaine avec la fatigue"
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t01",
+          "source_message_id": "61c1a640-c625-48f9-a899-298be556e2cc",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "weekly_adaptive_review_v1",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_weekly_review_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_weekly_review_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "weekly_adaptive_review_v1",
+          "reason_code": "weekly_review_local_confirm_weekly_diagnostic",
+          "operation_type": "weekly_adaptive_review_v1",
+          "status": "answered",
+          "flow_action": "confirm_weekly_diagnostic",
+          "visible_task": "ask_global_progress_feeling",
+          "confidence": "high",
+          "risk_score": 0,
+          "weekly_intent": {
+            "kind": "weekly_answer",
+            "summary": "Le user confirme la fatigue comme blocage et précise que le rangement du matériel n'a duré que trois jours."
+          },
+          "handoff_updates": {
+            "status": "none",
+            "requested_adjustment_summary": null,
+            "revision_summary": null,
+            "platform_destination": null,
+            "scope": {
+              "kind": "none",
+              "plan_id": null,
+              "plan_title": null,
+              "plan_item_ids": [],
+              "scope_summary": null,
+              "needs_scope_clarification": false
+            }
+          },
+          "forgotten_progress": {
+            "status": "none",
+            "target_hint": null,
+            "outcome_hint": null,
+            "evidence": null
+          },
+          "local_flow_state": {
+            "stage": "action_review",
+            "proposal_status": "none",
+            "validation_unlock_status": "locked_until_weekly_complete",
+            "human_signals": {
+              "objective_delta": "slight_progress",
+              "felt_state": "tired_but_ok"
+            },
+            "felt_progress": "neutral",
+            "weekly_gates": {
+              "week_experience_status": "complete",
+              "action_review_status": "captured",
+              "global_progress_status": "missing",
+              "felt_progress_status": "captured",
+              "solution_fit_status": "missing",
+              "synthesis_status": "missing",
+              "closure_status": "missing"
+            },
+            "detour_candidate": {
+              "kind": "none",
+              "source_stage": null,
+              "target_action_or_plan": null,
+              "fit_hypothesis": null,
+              "readiness": "none",
+              "user_consent": false,
+              "scope": {},
+              "return_focus": null
+            },
+            "last_user_signal": "Semaine mitigée avec fatigue en fin de semaine impactant la régularité.",
+            "last_visible_summary": "Le user confirme la fatigue comme blocage et précise que le rangement du matériel n'a duré que trois jours.",
+            "last_handoff_summary": null,
+            "child_flow": {
+              "status": "none",
+              "flow_id": null,
+              "reason": null,
+              "expected_return_focus": null,
+              "result_summary": null,
+              "result_details": null
+            },
+            "user_corrected_action_statuses": [
+              {
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                "title": "Ranger le matériel hors de vue",
+                "corrected_status": "partial",
+                "user_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                "source_turn_summary": "Rangement effectué seulement 3 jours sur la semaine."
+              }
+            ],
+            "turn_count": 1,
+            "max_turns": 6,
+            "updated_at": "2026-06-15T18:13:10.183Z"
+          },
+          "target_dispatcher": "none",
+          "note_information": null,
+          "conversation_context": {
+            "state_summary": "Le user confirme la fatigue comme blocage et précise que le rangement du matériel n'a duré que trois jours.",
+            "user_words": [],
+            "week_window": {
+              "start_date": "2026-06-08",
+              "end_date": "2026-06-14"
+            },
+            "field_or_stage": "ask_global_progress_feeling",
+            "known_values": {
+              "human_signals": {
+                "objective_delta": "slight_progress",
+                "felt_state": "tired_but_ok"
+              },
+              "felt_progress": "neutral",
+              "weekly_gates": {
+                "week_experience_status": "complete",
+                "action_review_status": "captured",
+                "global_progress_status": "missing",
+                "felt_progress_status": "captured",
+                "solution_fit_status": "missing",
+                "synthesis_status": "missing",
+                "closure_status": "missing"
+              },
+              "action_review_complete": false,
+              "action_review_before_global_progress_required": true,
+              "partial_statuses_must_remain_partial": true,
+              "detour_candidate": {
+                "kind": "none",
+                "source_stage": null,
+                "target_action_or_plan": null,
+                "fit_hypothesis": null,
+                "readiness": "none",
+                "user_consent": false,
+                "scope": {},
+                "return_focus": null
+              },
+              "next_required_weekly_step": "ask_global_progress_feeling",
+              "validation_unlock_status": "locked_until_weekly_complete",
+              "proposal_status": "none",
+              "child_flow": {
+                "status": "none",
+                "flow_id": null,
+                "reason": null,
+                "expected_return_focus": null,
+                "result_summary": null,
+                "result_details": null
+              },
+              "child_flow_result_details": null,
+              "user_corrected_action_statuses": [
+                {
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                  "title": "Ranger le matériel hors de vue",
+                  "corrected_status": "partial",
+                  "user_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                  "source_turn_summary": "Rangement effectué seulement 3 jours sur la semaine."
+                }
+              ],
+              "dominant_blocker_confirmation": "confirmed"
+            },
+            "missing_or_weak_values": [
+              "avancee_objectif_global"
+            ],
+            "weekly_strategy": {
+              "strategy_label_human": null,
+              "reason_human": null,
+              "confidence": "high"
+            },
+            "plan_contexts": [
+              {
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "action_count": 3
+              }
+            ],
+            "item_summaries": [
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                "title": "Ranger le matériel hors de vue",
+                "family": "habit",
+                "status": "partial",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": null,
+                  "still_relevant": true,
+                  "reason_category": "none",
+                  "reschedule_decision": null
+                },
+                "user_corrected_status": "partial",
+                "user_correction_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                "status_source": "user_weekly_correction"
+              },
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-2",
+                "title": "Cibler le joint réflexe",
+                "family": "habit",
+                "status": "partial",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": null,
+                  "still_relevant": true,
+                  "reason_category": "none",
+                  "reschedule_decision": null
+                }
+              },
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-3",
+                "title": "Faire un sas de décompression (sans fumer)",
+                "family": "habit",
+                "status": "missed",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": "fatigue fin de semaine",
+                  "still_relevant": true,
+                  "reason_category": "fatigue",
+                  "reschedule_decision": null
+                }
+              }
+            ],
+            "handoff_data": {
+              "summary": null,
+              "platform_destination": null,
+              "scope": {
+                "kind": "none",
+                "plan_id": null,
+                "plan_title": null,
+                "plan_item_ids": [],
+                "scope_summary": null,
+                "needs_scope_clarification": false
+              },
+              "requested_adjustment_summary": null,
+              "revision_summary": null,
+              "executable_from_chat": false,
+              "requires_platform_confirmation": true
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null,
+              "no_plan_adjustment": true
+            },
+            "inline_result": {},
+            "weekly_gates": {
+              "week_experience_status": "complete",
+              "action_review_status": "captured",
+              "global_progress_status": "missing",
+              "felt_progress_status": "captured",
+              "solution_fit_status": "missing",
+              "synthesis_status": "missing",
+              "closure_status": "missing"
+            },
+            "detour_candidate": {
+              "kind": "none",
+              "source_stage": null,
+              "target_action_or_plan": null,
+              "fit_hypothesis": null,
+              "readiness": "none",
+              "user_consent": false,
+              "scope": {},
+              "return_focus": null
+            },
+            "current_action_focus": null,
+            "known_action_gaps": [
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                "title": "Ranger le matériel hors de vue",
+                "family": "habit",
+                "status": "partial",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": null,
+                  "still_relevant": true,
+                  "reason_category": "none",
+                  "reschedule_decision": null
+                },
+                "user_corrected_status": "partial",
+                "user_correction_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                "status_source": "user_weekly_correction"
+              },
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-2",
+                "title": "Cibler le joint réflexe",
+                "family": "habit",
+                "status": "partial",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": null,
+                  "still_relevant": true,
+                  "reason_category": "none",
+                  "reschedule_decision": null
+                }
+              },
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-3",
+                "title": "Faire un sas de décompression (sans fumer)",
+                "family": "habit",
+                "status": "missed",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": "fatigue fin de semaine",
+                  "still_relevant": true,
+                  "reason_category": "fatigue",
+                  "reschedule_decision": null
+                }
+              }
+            ],
+            "global_objective_signal": {
+              "objective_delta": "slight_progress",
+              "status": "missing"
+            },
+            "felt_progress_signal": {
+              "felt_progress": "neutral",
+              "felt_state": "tired_but_ok",
+              "status": "captured"
+            },
+            "child_flow_return_summary": null,
+            "next_required_weekly_step": "ask_global_progress_feeling",
+            "tone_constraints": [
+              "compact",
+              "one_question_max_when_asking",
+              "human_language",
+              "prefer_gender_neutral_wording_when_not_certain",
+              "do_not_use_gendered_adjectives_unless_conversation_context_confirms_gender"
+            ],
+            "do_not_say": [
+              "bridge_week",
+              "carry_over",
+              "repeat_week",
+              "level_review",
+              "item_decision",
+              "dominant_blocker",
+              "applique",
+              "modifie le plan",
+              "valide le plan",
+              "enregistre le plan",
+              "j'ai une carte",
+              "carte disponible",
+              "carte prete",
+              "nouvel outil",
+              "j'ai modifie le plan",
+              "j'ai cree un rappel",
+              "j'ai cree une potion",
+              "tu as ete rigoureux",
+              "tu as ete rigoureuse",
+              "reussite pleine pour une action partielle"
+            ],
+            "context_summary": "Le user confirme la fatigue comme blocage et précise que le rangement du matériel n'a duré que trois jours.",
+            "evidence_used": [
+              "semaine mitigée",
+              "rangé le matériel trois jours",
+              "relâché en fin de semaine avec la fatigue",
+              "fatigue"
+            ]
+          },
+          "short_trace": {
+            "flow_action": "confirm_weekly_diagnostic",
+            "visible_task": "ask_global_progress_feeling",
+            "selected_target": null,
+            "pending_state_present": false,
+            "direct_handoff_flag": false,
+            "candidate_summary": [],
+            "constraint_list": [
+              "no_chat_plan_mutation",
+              "weekly_parent_returns_after_child_flow"
+            ],
+            "readiness": "none",
+            "blocked_effects": [],
+            "state_mutation_audit": {
+              "server_owned_fields": [
+                "weekly_flow_state",
+                "stage",
+                "proposal_status",
+                "validation_unlock_status",
+                "human_signals",
+                "felt_progress",
+                "weekly_gates",
+                "detour_candidate",
+                "last_user_signal",
+                "last_visible_summary",
+                "last_handoff_summary",
+                "child_flow",
+                "user_corrected_action_statuses",
+                "turn_count",
+                "max_turns",
+                "daily_derived_evidence",
+                "synthesis_state",
+                "weekly_adaptive_review",
+                "weekly_adaptive_review.plan_patch",
+                "weekly_adaptive_review.plan_patch.requires_confirmation",
+                "weekly_adaptive_review.pending_confirmation",
+                "suspended_weekly_snapshot",
+                "completed_child_result"
+              ],
+              "modified_fields_declared": [],
+              "clear_fields_declared": [],
+              "applied_fields": [
+                "stage",
+                "human_signals",
+                "felt_progress",
+                "weekly_gates",
+                "last_user_signal",
+                "last_visible_summary",
+                "user_corrected_action_statuses",
+                "turn_count",
+                "daily_derived_evidence",
+                "weekly_adaptive_review.plan_patch.requires_confirmation",
+                "weekly_adaptive_review.pending_confirmation"
+              ],
+              "preserved_fields": [
+                "proposal_status",
+                "validation_unlock_status",
+                "detour_candidate",
+                "last_handoff_summary",
+                "child_flow",
+                "max_turns",
+                "weekly_adaptive_review.plan_patch"
+              ],
+              "restored_fields": [],
+              "cleared_fields": [],
+              "rejected_changes": []
+            }
+          },
+          "state_mutation_audit": {
+            "server_owned_fields": [
+              "weekly_flow_state",
+              "stage",
+              "proposal_status",
+              "validation_unlock_status",
+              "human_signals",
+              "felt_progress",
+              "weekly_gates",
+              "detour_candidate",
+              "last_user_signal",
+              "last_visible_summary",
+              "last_handoff_summary",
+              "child_flow",
+              "user_corrected_action_statuses",
+              "turn_count",
+              "max_turns",
+              "daily_derived_evidence",
+              "synthesis_state",
+              "weekly_adaptive_review",
+              "weekly_adaptive_review.plan_patch",
+              "weekly_adaptive_review.plan_patch.requires_confirmation",
+              "weekly_adaptive_review.pending_confirmation",
+              "suspended_weekly_snapshot",
+              "completed_child_result"
+            ],
+            "modified_fields_declared": [],
+            "clear_fields_declared": [],
+            "applied_fields": [
+              "stage",
+              "human_signals",
+              "felt_progress",
+              "weekly_gates",
+              "last_user_signal",
+              "last_visible_summary",
+              "user_corrected_action_statuses",
+              "turn_count",
+              "daily_derived_evidence",
+              "weekly_adaptive_review.plan_patch.requires_confirmation",
+              "weekly_adaptive_review.pending_confirmation"
+            ],
+            "preserved_fields": [
+              "proposal_status",
+              "validation_unlock_status",
+              "detour_candidate",
+              "last_handoff_summary",
+              "child_flow",
+              "max_turns",
+              "weekly_adaptive_review.plan_patch"
+            ],
+            "restored_fields": [],
+            "cleared_fields": [],
+            "rejected_changes": []
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "visible_fallback_used": false,
+          "qa_green_eligible": true,
+          "no_durable_plan_mutation": true,
+          "evidence": [
+            "semaine mitigée",
+            "rangé le matériel trois jours",
+            "relâché en fin de semaine avec la fatigue"
+          ],
+          "toolExecution": "none",
+          "executedTools": []
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t02",
+    "user": "Je ne sais pas, peut-être qu'une carte pourrait aider, mais surtout je veux comprendre pourquoi je décroche le soir.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je suis attentive à ce décrochage du soir que tu mentionnes. Est-ce que c'est la fatigue qui rend l'effort trop lourd à ce moment-là, ou un signal précis qui déclenche l'envie ? On peut explorer cela pour voir si une carte de défense t'aiderait, avant de terminer ton bilan.",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t02",
+            "source_message_id": "7a456b34-7460-468c-b1ca-af6865ebec69",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_weekly_review_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_weekly_review_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_local_answer_weekly_question",
+            "operation_type": "weekly_adaptive_review_v1",
+            "status": "answered",
+            "flow_action": "answer_weekly_question",
+            "visible_task": "explore_action_blocker",
+            "confidence": "high",
+            "risk_score": 0,
+            "weekly_intent": {
+              "kind": "weekly_answer",
+              "summary": "Le user hésite sur son sentiment de progrès global et exprime le besoin de comprendre son blocage du soir, tout en évoquant l'idée d'une carte."
+            },
+            "handoff_updates": {
+              "status": "none",
+              "requested_adjustment_summary": null,
+              "revision_summary": null,
+              "platform_destination": null,
+              "scope": {
+                "kind": "none",
+                "plan_id": null,
+                "plan_title": null,
+                "plan_item_ids": [],
+                "scope_summary": null,
+                "needs_scope_clarification": false
+              }
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null
+            },
+            "local_flow_state": {
+              "stage": "action_blocker",
+              "proposal_status": "none",
+              "validation_unlock_status": "locked_until_weekly_complete",
+              "human_signals": {
+                "objective_delta": "unknown",
+                "felt_state": "tired_but_ok"
+              },
+              "felt_progress": "unclear",
+              "weekly_gates": {
+                "week_experience_status": "complete",
+                "action_review_status": "complete",
+                "global_progress_status": "needs_deeper",
+                "felt_progress_status": "captured",
+                "solution_fit_status": "missing",
+                "synthesis_status": "missing",
+                "closure_status": "missing"
+              },
+              "detour_candidate": {
+                "kind": "defense_card",
+                "source_stage": "action_blocker",
+                "target_action_or_plan": "décrochage du soir",
+                "fit_hypothesis": "Une carte de défense pourrait aider à protéger la fenêtre critique du soir une fois le blocage mieux compris.",
+                "readiness": "explore_fit",
+                "user_consent": false,
+                "scope": {},
+                "return_focus": "Revenir au weekly pour valider le progrès global et conclure."
+              },
+              "last_user_signal": "Hésitation sur le progrès global; focus sur le décrochage du soir.",
+              "last_visible_summary": "Le user hésite sur son sentiment de progrès global et exprime le besoin de comprendre son blocage du soir, tout en évoquant l'idée d'une carte.",
+              "last_handoff_summary": null,
+              "child_flow": {
+                "status": "none",
+                "flow_id": null,
+                "reason": null,
+                "expected_return_focus": null,
+                "result_summary": null,
+                "result_details": null
+              },
+              "user_corrected_action_statuses": [
+                {
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                  "title": "Ranger le matériel hors de vue",
+                  "corrected_status": "partial",
+                  "user_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                  "source_turn_summary": "Rangement effectué seulement 3 jours sur la semaine."
+                }
+              ],
+              "turn_count": 2,
+              "max_turns": 6,
+              "updated_at": "2026-06-15T18:13:36.649Z"
+            },
+            "target_dispatcher": "none",
+            "note_information": null,
+            "conversation_context": {
+              "state_summary": "Le user hésite sur son sentiment de progrès global et exprime le besoin de comprendre son blocage du soir, tout en évoquant l'idée d'une carte.",
+              "user_words": [],
+              "week_window": {
+                "start_date": "2026-06-08",
+                "end_date": "2026-06-14"
+              },
+              "field_or_stage": "explore_action_blocker",
+              "known_values": {
+                "human_signals": {
+                  "objective_delta": "unknown",
+                  "felt_state": "tired_but_ok"
+                },
+                "felt_progress": "unclear",
+                "weekly_gates": {
+                  "week_experience_status": "complete",
+                  "action_review_status": "complete",
+                  "global_progress_status": "needs_deeper",
+                  "felt_progress_status": "captured",
+                  "solution_fit_status": "missing",
+                  "synthesis_status": "missing",
+                  "closure_status": "missing"
+                },
+                "action_review_complete": true,
+                "action_review_before_global_progress_required": false,
+                "partial_statuses_must_remain_partial": true,
+                "detour_candidate": {
+                  "kind": "defense_card",
+                  "source_stage": "action_blocker",
+                  "target_action_or_plan": "décrochage du soir",
+                  "fit_hypothesis": "Une carte de défense pourrait aider à protéger la fenêtre critique du soir une fois le blocage mieux compris.",
+                  "readiness": "explore_fit",
+                  "user_consent": false,
+                  "scope": {},
+                  "return_focus": "Revenir au weekly pour valider le progrès global et conclure."
+                },
+                "next_required_weekly_step": "deepen_global_progress",
+                "validation_unlock_status": "locked_until_weekly_complete",
+                "proposal_status": "none",
+                "child_flow": {
+                  "status": "none",
+                  "flow_id": null,
+                  "reason": null,
+                  "expected_return_focus": null,
+                  "result_summary": null,
+                  "result_details": null
+                },
+                "child_flow_result_details": null,
+                "user_corrected_action_statuses": [
+                  {
+                    "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                    "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                    "title": "Ranger le matériel hors de vue",
+                    "corrected_status": "partial",
+                    "user_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                    "source_turn_summary": "Rangement effectué seulement 3 jours sur la semaine."
+                  }
+                ],
+                "dominant_blocker_confirmation": "confirmed"
+              },
+              "missing_or_weak_values": [],
+              "weekly_strategy": {
+                "strategy_label_human": null,
+                "reason_human": null,
+                "confidence": "high"
+              },
+              "plan_contexts": [
+                {
+                  "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "action_count": 3
+                }
+              ],
+              "item_summaries": [
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                  "title": "Ranger le matériel hors de vue",
+                  "family": "habit",
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "reschedule_decision": null
+                  },
+                  "user_corrected_status": "partial",
+                  "user_correction_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                  "status_source": "user_weekly_correction"
+                },
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-2",
+                  "title": "Cibler le joint réflexe",
+                  "family": "habit",
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "reschedule_decision": null
+                  }
+                },
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-3",
+                  "title": "Faire un sas de décompression (sans fumer)",
+                  "family": "habit",
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": "fatigue fin de semaine",
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "reschedule_decision": null
+                  }
+                }
+              ],
+              "handoff_data": {
+                "summary": null,
+                "platform_destination": null,
+                "scope": {
+                  "kind": "none",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "plan_item_ids": [],
+                  "scope_summary": null,
+                  "needs_scope_clarification": false
+                },
+                "requested_adjustment_summary": null,
+                "revision_summary": null,
+                "executable_from_chat": false,
+                "requires_platform_confirmation": true
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null,
+                "no_plan_adjustment": true
+              },
+              "inline_result": {},
+              "weekly_gates": {
+                "week_experience_status": "complete",
+                "action_review_status": "complete",
+                "global_progress_status": "needs_deeper",
+                "felt_progress_status": "captured",
+                "solution_fit_status": "missing",
+                "synthesis_status": "missing",
+                "closure_status": "missing"
+              },
+              "detour_candidate": {
+                "kind": "defense_card",
+                "source_stage": "action_blocker",
+                "target_action_or_plan": "décrochage du soir",
+                "fit_hypothesis": "Une carte de défense pourrait aider à protéger la fenêtre critique du soir une fois le blocage mieux compris.",
+                "readiness": "explore_fit",
+                "user_consent": false,
+                "scope": {},
+                "return_focus": "Revenir au weekly pour valider le progrès global et conclure."
+              },
+              "current_action_focus": {
+                "label": "décrochage du soir",
+                "source": "detour_candidate"
+              },
+              "known_action_gaps": [
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                  "title": "Ranger le matériel hors de vue",
+                  "family": "habit",
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "reschedule_decision": null
+                  },
+                  "user_corrected_status": "partial",
+                  "user_correction_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                  "status_source": "user_weekly_correction"
+                },
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-2",
+                  "title": "Cibler le joint réflexe",
+                  "family": "habit",
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "reschedule_decision": null
+                  }
+                },
+                {
+                  "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                  "plan_title": "Libération progressive du cannabis",
+                  "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-3",
+                  "title": "Faire un sas de décompression (sans fumer)",
+                  "family": "habit",
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "medium",
+                    "reason_text": "fatigue fin de semaine",
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "reschedule_decision": null
+                  }
+                }
+              ],
+              "global_objective_signal": {
+                "objective_delta": "unknown",
+                "status": "needs_deeper"
+              },
+              "felt_progress_signal": {
+                "felt_progress": "unclear",
+                "felt_state": "tired_but_ok",
+                "status": "captured"
+              },
+              "child_flow_return_summary": null,
+              "next_required_weekly_step": "deepen_global_progress",
+              "tone_constraints": [
+                "compact",
+                "one_question_max_when_asking",
+                "human_language",
+                "prefer_gender_neutral_wording_when_not_certain",
+                "do_not_use_gendered_adjectives_unless_conversation_context_confirms_gender"
+              ],
+              "do_not_say": [
+                "bridge_week",
+                "carry_over",
+                "repeat_week",
+                "level_review",
+                "item_decision",
+                "dominant_blocker",
+                "applique",
+                "modifie le plan",
+                "valide le plan",
+                "enregistre le plan",
+                "j'ai une carte",
+                "carte disponible",
+                "carte prete",
+                "nouvel outil",
+                "j'ai modifie le plan",
+                "j'ai cree un rappel",
+                "j'ai cree une potion",
+                "tu as ete rigoureux",
+                "tu as ete rigoureuse",
+                "reussite pleine pour une action partielle"
+              ],
+              "context_summary": "Le user hésite sur son sentiment de progrès global et exprime le besoin de comprendre son blocage du soir, tout en évoquant l'idée d'une carte.",
+              "evidence_used": [
+                "Je ne sais pas",
+                "peut-être qu'une carte pourrait aider",
+                "comprendre pourquoi je décroche le soir",
+                "fatigue"
+              ]
+            },
+            "short_trace": {
+              "flow_action": "answer_weekly_question",
+              "visible_task": "explore_action_blocker",
+              "selected_target": "décrochage du soir",
+              "pending_state_present": true,
+              "direct_handoff_flag": false,
+              "candidate_summary": [
+                {
+                  "kind": "defense_card",
+                  "target": "décrochage du soir",
+                  "readiness": "explore_fit",
+                  "user_consent": false
+                }
+              ],
+              "constraint_list": [
+                "no_chat_plan_mutation",
+                "weekly_parent_returns_after_child_flow"
+              ],
+              "readiness": "explore_fit",
+              "blocked_effects": [],
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "weekly_flow_state",
+                  "stage",
+                  "proposal_status",
+                  "validation_unlock_status",
+                  "human_signals",
+                  "felt_progress",
+                  "weekly_gates",
+                  "detour_candidate",
+                  "last_user_signal",
+                  "last_visible_summary",
+                  "last_handoff_summary",
+                  "child_flow",
+                  "user_corrected_action_statuses",
+                  "turn_count",
+                  "max_turns",
+                  "daily_derived_evidence",
+                  "synthesis_state",
+                  "weekly_adaptive_review",
+                  "weekly_adaptive_review.plan_patch",
+                  "weekly_adaptive_review.plan_patch.requires_confirmation",
+                  "weekly_adaptive_review.pending_confirmation",
+                  "suspended_weekly_snapshot",
+                  "completed_child_result"
+                ],
+                "modified_fields_declared": [],
+                "clear_fields_declared": [],
+                "applied_fields": [
+                  "stage",
+                  "human_signals",
+                  "felt_progress",
+                  "weekly_gates",
+                  "detour_candidate",
+                  "last_user_signal",
+                  "last_visible_summary",
+                  "turn_count",
+                  "daily_derived_evidence",
+                  "weekly_adaptive_review.plan_patch.requires_confirmation"
+                ],
+                "preserved_fields": [
+                  "proposal_status",
+                  "validation_unlock_status",
+                  "last_handoff_summary",
+                  "child_flow",
+                  "user_corrected_action_statuses",
+                  "max_turns",
+                  "weekly_adaptive_review.plan_patch",
+                  "weekly_adaptive_review.pending_confirmation"
+                ],
+                "restored_fields": [],
+                "cleared_fields": [],
+                "rejected_changes": []
+              }
+            },
+            "state_mutation_audit": {
+              "server_owned_fields": [
+                "weekly_flow_state",
+                "stage",
+                "proposal_status",
+                "validation_unlock_status",
+                "human_signals",
+                "felt_progress",
+                "weekly_gates",
+                "detour_candidate",
+                "last_user_signal",
+                "last_visible_summary",
+                "last_handoff_summary",
+                "child_flow",
+                "user_corrected_action_statuses",
+                "turn_count",
+                "max_turns",
+                "daily_derived_evidence",
+                "synthesis_state",
+                "weekly_adaptive_review",
+                "weekly_adaptive_review.plan_patch",
+                "weekly_adaptive_review.plan_patch.requires_confirmation",
+                "weekly_adaptive_review.pending_confirmation",
+                "suspended_weekly_snapshot",
+                "completed_child_result"
+              ],
+              "modified_fields_declared": [],
+              "clear_fields_declared": [],
+              "applied_fields": [
+                "stage",
+                "human_signals",
+                "felt_progress",
+                "weekly_gates",
+                "detour_candidate",
+                "last_user_signal",
+                "last_visible_summary",
+                "turn_count",
+                "daily_derived_evidence",
+                "weekly_adaptive_review.plan_patch.requires_confirmation"
+              ],
+              "preserved_fields": [
+                "proposal_status",
+                "validation_unlock_status",
+                "last_handoff_summary",
+                "child_flow",
+                "user_corrected_action_statuses",
+                "max_turns",
+                "weekly_adaptive_review.plan_patch",
+                "weekly_adaptive_review.pending_confirmation"
+              ],
+              "restored_fields": [],
+              "cleared_fields": [],
+              "rejected_changes": []
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "visible_fallback_used": false,
+            "qa_green_eligible": true,
+            "no_durable_plan_mutation": true,
+            "evidence": [
+              "Je ne sais pas",
+              "peut-être qu'une carte pourrait aider",
+              "comprendre pourquoi je décroche le soir"
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t02",
+          "source_message_id": "7a456b34-7460-468c-b1ca-af6865ebec69",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "weekly_adaptive_review_v1",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_weekly_review_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_weekly_review_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "weekly_adaptive_review_v1",
+          "reason_code": "weekly_review_local_answer_weekly_question",
+          "operation_type": "weekly_adaptive_review_v1",
+          "status": "answered",
+          "flow_action": "answer_weekly_question",
+          "visible_task": "explore_action_blocker",
+          "confidence": "high",
+          "risk_score": 0,
+          "weekly_intent": {
+            "kind": "weekly_answer",
+            "summary": "Le user hésite sur son sentiment de progrès global et exprime le besoin de comprendre son blocage du soir, tout en évoquant l'idée d'une carte."
+          },
+          "handoff_updates": {
+            "status": "none",
+            "requested_adjustment_summary": null,
+            "revision_summary": null,
+            "platform_destination": null,
+            "scope": {
+              "kind": "none",
+              "plan_id": null,
+              "plan_title": null,
+              "plan_item_ids": [],
+              "scope_summary": null,
+              "needs_scope_clarification": false
+            }
+          },
+          "forgotten_progress": {
+            "status": "none",
+            "target_hint": null,
+            "outcome_hint": null,
+            "evidence": null
+          },
+          "local_flow_state": {
+            "stage": "action_blocker",
+            "proposal_status": "none",
+            "validation_unlock_status": "locked_until_weekly_complete",
+            "human_signals": {
+              "objective_delta": "unknown",
+              "felt_state": "tired_but_ok"
+            },
+            "felt_progress": "unclear",
+            "weekly_gates": {
+              "week_experience_status": "complete",
+              "action_review_status": "complete",
+              "global_progress_status": "needs_deeper",
+              "felt_progress_status": "captured",
+              "solution_fit_status": "missing",
+              "synthesis_status": "missing",
+              "closure_status": "missing"
+            },
+            "detour_candidate": {
+              "kind": "defense_card",
+              "source_stage": "action_blocker",
+              "target_action_or_plan": "décrochage du soir",
+              "fit_hypothesis": "Une carte de défense pourrait aider à protéger la fenêtre critique du soir une fois le blocage mieux compris.",
+              "readiness": "explore_fit",
+              "user_consent": false,
+              "scope": {},
+              "return_focus": "Revenir au weekly pour valider le progrès global et conclure."
+            },
+            "last_user_signal": "Hésitation sur le progrès global; focus sur le décrochage du soir.",
+            "last_visible_summary": "Le user hésite sur son sentiment de progrès global et exprime le besoin de comprendre son blocage du soir, tout en évoquant l'idée d'une carte.",
+            "last_handoff_summary": null,
+            "child_flow": {
+              "status": "none",
+              "flow_id": null,
+              "reason": null,
+              "expected_return_focus": null,
+              "result_summary": null,
+              "result_details": null
+            },
+            "user_corrected_action_statuses": [
+              {
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                "title": "Ranger le matériel hors de vue",
+                "corrected_status": "partial",
+                "user_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                "source_turn_summary": "Rangement effectué seulement 3 jours sur la semaine."
+              }
+            ],
+            "turn_count": 2,
+            "max_turns": 6,
+            "updated_at": "2026-06-15T18:13:36.649Z"
+          },
+          "target_dispatcher": "none",
+          "note_information": null,
+          "conversation_context": {
+            "state_summary": "Le user hésite sur son sentiment de progrès global et exprime le besoin de comprendre son blocage du soir, tout en évoquant l'idée d'une carte.",
+            "user_words": [],
+            "week_window": {
+              "start_date": "2026-06-08",
+              "end_date": "2026-06-14"
+            },
+            "field_or_stage": "explore_action_blocker",
+            "known_values": {
+              "human_signals": {
+                "objective_delta": "unknown",
+                "felt_state": "tired_but_ok"
+              },
+              "felt_progress": "unclear",
+              "weekly_gates": {
+                "week_experience_status": "complete",
+                "action_review_status": "complete",
+                "global_progress_status": "needs_deeper",
+                "felt_progress_status": "captured",
+                "solution_fit_status": "missing",
+                "synthesis_status": "missing",
+                "closure_status": "missing"
+              },
+              "action_review_complete": true,
+              "action_review_before_global_progress_required": false,
+              "partial_statuses_must_remain_partial": true,
+              "detour_candidate": {
+                "kind": "defense_card",
+                "source_stage": "action_blocker",
+                "target_action_or_plan": "décrochage du soir",
+                "fit_hypothesis": "Une carte de défense pourrait aider à protéger la fenêtre critique du soir une fois le blocage mieux compris.",
+                "readiness": "explore_fit",
+                "user_consent": false,
+                "scope": {},
+                "return_focus": "Revenir au weekly pour valider le progrès global et conclure."
+              },
+              "next_required_weekly_step": "deepen_global_progress",
+              "validation_unlock_status": "locked_until_weekly_complete",
+              "proposal_status": "none",
+              "child_flow": {
+                "status": "none",
+                "flow_id": null,
+                "reason": null,
+                "expected_return_focus": null,
+                "result_summary": null,
+                "result_details": null
+              },
+              "child_flow_result_details": null,
+              "user_corrected_action_statuses": [
+                {
+                  "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                  "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                  "title": "Ranger le matériel hors de vue",
+                  "corrected_status": "partial",
+                  "user_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                  "source_turn_summary": "Rangement effectué seulement 3 jours sur la semaine."
+                }
+              ],
+              "dominant_blocker_confirmation": "confirmed"
+            },
+            "missing_or_weak_values": [],
+            "weekly_strategy": {
+              "strategy_label_human": null,
+              "reason_human": null,
+              "confidence": "high"
+            },
+            "plan_contexts": [
+              {
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "action_count": 3
+              }
+            ],
+            "item_summaries": [
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                "title": "Ranger le matériel hors de vue",
+                "family": "habit",
+                "status": "partial",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": null,
+                  "still_relevant": true,
+                  "reason_category": "none",
+                  "reschedule_decision": null
+                },
+                "user_corrected_status": "partial",
+                "user_correction_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                "status_source": "user_weekly_correction"
+              },
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-2",
+                "title": "Cibler le joint réflexe",
+                "family": "habit",
+                "status": "partial",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": null,
+                  "still_relevant": true,
+                  "reason_category": "none",
+                  "reschedule_decision": null
+                }
+              },
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-3",
+                "title": "Faire un sas de décompression (sans fumer)",
+                "family": "habit",
+                "status": "missed",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": "fatigue fin de semaine",
+                  "still_relevant": true,
+                  "reason_category": "fatigue",
+                  "reschedule_decision": null
+                }
+              }
+            ],
+            "handoff_data": {
+              "summary": null,
+              "platform_destination": null,
+              "scope": {
+                "kind": "none",
+                "plan_id": null,
+                "plan_title": null,
+                "plan_item_ids": [],
+                "scope_summary": null,
+                "needs_scope_clarification": false
+              },
+              "requested_adjustment_summary": null,
+              "revision_summary": null,
+              "executable_from_chat": false,
+              "requires_platform_confirmation": true
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null,
+              "no_plan_adjustment": true
+            },
+            "inline_result": {},
+            "weekly_gates": {
+              "week_experience_status": "complete",
+              "action_review_status": "complete",
+              "global_progress_status": "needs_deeper",
+              "felt_progress_status": "captured",
+              "solution_fit_status": "missing",
+              "synthesis_status": "missing",
+              "closure_status": "missing"
+            },
+            "detour_candidate": {
+              "kind": "defense_card",
+              "source_stage": "action_blocker",
+              "target_action_or_plan": "décrochage du soir",
+              "fit_hypothesis": "Une carte de défense pourrait aider à protéger la fenêtre critique du soir une fois le blocage mieux compris.",
+              "readiness": "explore_fit",
+              "user_consent": false,
+              "scope": {},
+              "return_focus": "Revenir au weekly pour valider le progrès global et conclure."
+            },
+            "current_action_focus": {
+              "label": "décrochage du soir",
+              "source": "detour_candidate"
+            },
+            "known_action_gaps": [
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-1",
+                "title": "Ranger le matériel hors de vue",
+                "family": "habit",
+                "status": "partial",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": null,
+                  "still_relevant": true,
+                  "reason_category": "none",
+                  "reschedule_decision": null
+                },
+                "user_corrected_status": "partial",
+                "user_correction_evidence": "bien rangé le matériel trois jours, mais relâché en fin de semaine",
+                "status_source": "user_weekly_correction"
+              },
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-2",
+                "title": "Cibler le joint réflexe",
+                "family": "habit",
+                "status": "partial",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": null,
+                  "still_relevant": true,
+                  "reason_category": "none",
+                  "reschedule_decision": null
+                }
+              },
+              {
+                "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+                "plan_title": "Libération progressive du cannabis",
+                "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+                "occurrence_id": "qa-weekly-server-owned-validation-r1-occ-3",
+                "title": "Faire un sas de décompression (sans fumer)",
+                "family": "habit",
+                "status": "missed",
+                "evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "medium",
+                  "reason_text": "fatigue fin de semaine",
+                  "still_relevant": true,
+                  "reason_category": "fatigue",
+                  "reschedule_decision": null
+                }
+              }
+            ],
+            "global_objective_signal": {
+              "objective_delta": "unknown",
+              "status": "needs_deeper"
+            },
+            "felt_progress_signal": {
+              "felt_progress": "unclear",
+              "felt_state": "tired_but_ok",
+              "status": "captured"
+            },
+            "child_flow_return_summary": null,
+            "next_required_weekly_step": "deepen_global_progress",
+            "tone_constraints": [
+              "compact",
+              "one_question_max_when_asking",
+              "human_language",
+              "prefer_gender_neutral_wording_when_not_certain",
+              "do_not_use_gendered_adjectives_unless_conversation_context_confirms_gender"
+            ],
+            "do_not_say": [
+              "bridge_week",
+              "carry_over",
+              "repeat_week",
+              "level_review",
+              "item_decision",
+              "dominant_blocker",
+              "applique",
+              "modifie le plan",
+              "valide le plan",
+              "enregistre le plan",
+              "j'ai une carte",
+              "carte disponible",
+              "carte prete",
+              "nouvel outil",
+              "j'ai modifie le plan",
+              "j'ai cree un rappel",
+              "j'ai cree une potion",
+              "tu as ete rigoureux",
+              "tu as ete rigoureuse",
+              "reussite pleine pour une action partielle"
+            ],
+            "context_summary": "Le user hésite sur son sentiment de progrès global et exprime le besoin de comprendre son blocage du soir, tout en évoquant l'idée d'une carte.",
+            "evidence_used": [
+              "Je ne sais pas",
+              "peut-être qu'une carte pourrait aider",
+              "comprendre pourquoi je décroche le soir",
+              "fatigue"
+            ]
+          },
+          "short_trace": {
+            "flow_action": "answer_weekly_question",
+            "visible_task": "explore_action_blocker",
+            "selected_target": "décrochage du soir",
+            "pending_state_present": true,
+            "direct_handoff_flag": false,
+            "candidate_summary": [
+              {
+                "kind": "defense_card",
+                "target": "décrochage du soir",
+                "readiness": "explore_fit",
+                "user_consent": false
+              }
+            ],
+            "constraint_list": [
+              "no_chat_plan_mutation",
+              "weekly_parent_returns_after_child_flow"
+            ],
+            "readiness": "explore_fit",
+            "blocked_effects": [],
+            "state_mutation_audit": {
+              "server_owned_fields": [
+                "weekly_flow_state",
+                "stage",
+                "proposal_status",
+                "validation_unlock_status",
+                "human_signals",
+                "felt_progress",
+                "weekly_gates",
+                "detour_candidate",
+                "last_user_signal",
+                "last_visible_summary",
+                "last_handoff_summary",
+                "child_flow",
+                "user_corrected_action_statuses",
+                "turn_count",
+                "max_turns",
+                "daily_derived_evidence",
+                "synthesis_state",
+                "weekly_adaptive_review",
+                "weekly_adaptive_review.plan_patch",
+                "weekly_adaptive_review.plan_patch.requires_confirmation",
+                "weekly_adaptive_review.pending_confirmation",
+                "suspended_weekly_snapshot",
+                "completed_child_result"
+              ],
+              "modified_fields_declared": [],
+              "clear_fields_declared": [],
+              "applied_fields": [
+                "stage",
+                "human_signals",
+                "felt_progress",
+                "weekly_gates",
+                "detour_candidate",
+                "last_user_signal",
+                "last_visible_summary",
+                "turn_count",
+                "daily_derived_evidence",
+                "weekly_adaptive_review.plan_patch.requires_confirmation"
+              ],
+              "preserved_fields": [
+                "proposal_status",
+                "validation_unlock_status",
+                "last_handoff_summary",
+                "child_flow",
+                "user_corrected_action_statuses",
+                "max_turns",
+                "weekly_adaptive_review.plan_patch",
+                "weekly_adaptive_review.pending_confirmation"
+              ],
+              "restored_fields": [],
+              "cleared_fields": [],
+              "rejected_changes": []
+            }
+          },
+          "state_mutation_audit": {
+            "server_owned_fields": [
+              "weekly_flow_state",
+              "stage",
+              "proposal_status",
+              "validation_unlock_status",
+              "human_signals",
+              "felt_progress",
+              "weekly_gates",
+              "detour_candidate",
+              "last_user_signal",
+              "last_visible_summary",
+              "last_handoff_summary",
+              "child_flow",
+              "user_corrected_action_statuses",
+              "turn_count",
+              "max_turns",
+              "daily_derived_evidence",
+              "synthesis_state",
+              "weekly_adaptive_review",
+              "weekly_adaptive_review.plan_patch",
+              "weekly_adaptive_review.plan_patch.requires_confirmation",
+              "weekly_adaptive_review.pending_confirmation",
+              "suspended_weekly_snapshot",
+              "completed_child_result"
+            ],
+            "modified_fields_declared": [],
+            "clear_fields_declared": [],
+            "applied_fields": [
+              "stage",
+              "human_signals",
+              "felt_progress",
+              "weekly_gates",
+              "detour_candidate",
+              "last_user_signal",
+              "last_visible_summary",
+              "turn_count",
+              "daily_derived_evidence",
+              "weekly_adaptive_review.plan_patch.requires_confirmation"
+            ],
+            "preserved_fields": [
+              "proposal_status",
+              "validation_unlock_status",
+              "last_handoff_summary",
+              "child_flow",
+              "user_corrected_action_statuses",
+              "max_turns",
+              "weekly_adaptive_review.plan_patch",
+              "weekly_adaptive_review.pending_confirmation"
+            ],
+            "restored_fields": [],
+            "cleared_fields": [],
+            "rejected_changes": []
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "visible_fallback_used": false,
+          "qa_green_eligible": true,
+          "no_durable_plan_mutation": true,
+          "evidence": [
+            "Je ne sais pas",
+            "peut-être qu'une carte pourrait aider",
+            "comprendre pourquoi je décroche le soir"
+          ],
+          "toolExecution": "none",
+          "executedTools": []
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  }
+]

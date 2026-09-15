@@ -1,0 +1,432 @@
+{
+  "run_id": "dispatcher-routing-stress-active-fix-20260521-r1",
+  "created_at": "2026-05-21T08:49:32.838Z",
+  "base_url": "http://127.0.0.1:54321",
+  "qa_user": {
+    "email": "qa-dispatcher-routing-stress-active-fix-20260521-r1-1779353358694@example.com",
+    "user_id": "1191d86d-31ec-4f24-a3e2-630f33418b00"
+  },
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "results": [
+    {
+      "id": "active_recurring_then_attack",
+      "kind": "checks",
+      "trap": null,
+      "group": "active_flow",
+      "scope": "dispatcher-routing-stress-active-fix-20260521-r1-active_recurring_then_attack",
+      "seed_result": {
+        "status": 201,
+        "ok": true,
+        "body": null
+      },
+      "pre_results": [],
+      "sent_at": "2026-05-21T08:49:18.987Z",
+      "user_message": "Non, fais plutôt une carte d'attaque pour le dossier client.",
+      "expected": {
+        "intentIncludes": [
+          "prepare_attack_card"
+        ],
+        "intentExcludes": [
+          "create_recurring_reminder"
+        ],
+        "handlerOneOf": [
+          "prepare_attack_card"
+        ]
+      },
+      "observed": {
+        "intent_operations": [
+          "prepare_attack_card"
+        ],
+        "intent_explicitness": [
+          "explicit"
+        ],
+        "opportunity_type": "none",
+        "opportunity_operation": null,
+        "opportunity_should_offer": false,
+        "opportunity_must_not_execute": true,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "blocked_paths": [],
+        "blocked_reason_codes": [],
+        "skill_entry_ids": [
+          "execution_breakdown"
+        ],
+        "skill_lifecycle_ids": [],
+        "skill_exit_ids": [],
+        "confirmation_kind": null,
+        "safety_risk_band": "low",
+        "needs_research": false,
+        "needs_research_query": null,
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "explicit_tool_intent_supersedes_active",
+        "executed_tools": [],
+        "content": "C'est noté. Je programme un rappel quotidien à 08:00 pour : 'Faire une carte d'attaque pour le dossier client'. C'est bon pour toi ? 🙂"
+      },
+      "verdict": "pass",
+      "failures": [],
+      "raw": {
+        "http_status": 200,
+        "ok": true,
+        "response": {
+          "ok": true,
+          "request_id": "2514fc68-802a-4133-b5f8-03f15b34f3ac",
+          "user_id": "1191d86d-31ec-4f24-a3e2-630f33418b00",
+          "channel": "web",
+          "scope": "dispatcher-routing-stress-active-fix-20260521-r1-active_recurring_then_attack",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "C'est noté. Je programme un rappel quotidien à 08:00 pour : 'Faire une carte d'attaque pour le dossier client'. C'est bon pour toi ? 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "2514fc68-802a-4133-b5f8-03f15b34f3ac",
+            "user_id": "1191d86d-31ec-4f24-a3e2-630f33418b00",
+            "source_message_id": "da46ac94-fcf4-4889-bab9-7c2dc71e0d8f",
+            "ts": "2026-05-21T08:49:32.745+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [
+                "bounded_context_lowers_risk"
+              ],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8477,
+              "latency_ms": 4446,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 722,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "dossier client",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "dossier client",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "standard",
+                "plan_confidence": 0.7,
+                "response_intent": "inventory",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "medium"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "2514fc68-802a-4133-b5f8-03f15b34f3ac",
+              "user_id": "1191d86d-31ec-4f24-a3e2-630f33418b00",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "dossier client",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "dossier client",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "standard",
+                "plan_confidence": 0.7,
+                "response_intent": "inventory",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "medium"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {
+                  "execution_breakdown": {
+                    "reason": "execution_blocked",
+                    "detected": true,
+                    "confidence_band": "high"
+                  }
+                },
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 1,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure"
+                ],
+                "context_summary": null,
+                "previous_scores": [],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "da46ac94-fcf4-4889-bab9-7c2dc71e0d8f",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "dossier client",
+                  "user_intent": "create",
+                  "explicitness": "explicit",
+                  "operation_type": "prepare_attack_card",
+                  "confidence_band": "high",
+                  "operation_input": {
+                    "target_action": {
+                      "value": "dossier client",
+                      "status": "identified",
+                      "evidence": [
+                        "le user demande explicitement une carte d'attaque pour le dossier client"
+                      ],
+                      "confidence": "high"
+                    }
+                  }
+                }
+              ],
+              "rejected_operations": [
+                {
+                  "reason": "user_explicitly_switched_to_attack_card",
+                  "evidence": "Non, fais plutôt une carte d'attaque",
+                  "operation_type": "create_recurring_reminder"
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "explicit_tool_intent_supersedes_active",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "prepare_attack_card",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "suspend_active",
+                "reason_code": "explicit_tool_intent_supersedes_active",
+                "active_owner": "tool_skill",
+                "resume_policy": "user_reopens",
+                "selected_owner": "tool_skill"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "draft": {
+                "draft": {
+                  "days": [],
+                  "time": "08:00",
+                  "title": "Rappel récurrent : carte d'attaque dossier client",
+                  "message": "Faire une carte d'attaque pour le dossier client",
+                  "timezone": "Europe/Paris",
+                  "frequency": "daily",
+                  "destination": "base_de_vie",
+                  "target_binding": {
+                    "target_kind": "none",
+                    "target_label": null,
+                    "binding_policy": "none",
+                    "lifecycle_policy": "independent",
+                    "target_plan_item_id": null,
+                    "target_action_family_key": null,
+                    "target_generated_temp_id": null
+                  },
+                  "related_plan_item_id": null
+                },
+                "output_schema": "recurring_reminder_draft_v1",
+                "operation_type": "create_recurring_reminder",
+                "revision_message": "Si tu souhaites modifier ou supprimer ce rappel, tu pourras le faire directement dans ta Base de vie sur la plateforme.",
+                "execution_message": "C'est fait, ton rappel est programmé dans ta Base de vie. Si tu veux le modifier ou l'annuler, tu devras le faire depuis la plateforme, dans la Base de vie, section Initiatives et rappels.",
+                "user_message_brief": "Rappel : Carte d'attaque dossier client",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "C'est noté. Je programme un rappel quotidien à 08:00 pour : 'Faire une carte d'attaque pour le dossier client'. C'est bon pour toi ?",
+                "user_message_detailed": "Rappel quotidien à 08:00 : Faire une carte d'attaque pour le dossier client."
+              },
+              "status": "pending_confirmation",
+              "reason_code": "explicit_tool_intent_supersedes_active",
+              "operation_id": "f8b53031-3121-42e3-9f24-cb8e65aa9ff3",
+              "selected_handler": "create_recurring_reminder"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 12771,
+            "created_at": "2026-05-21T08:49:32.748146+00:00"
+          },
+          "trace_error": null
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0
+  },
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false,
+      "body": {
+        "code": "PGRST205",
+        "details": null,
+        "hint": "Perhaps you meant the table 'public.user_metrics'",
+        "message": "Could not find the table 'public.user_memories' in the schema cache"
+      }
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true,
+      "body": {}
+    }
+  ]
+}

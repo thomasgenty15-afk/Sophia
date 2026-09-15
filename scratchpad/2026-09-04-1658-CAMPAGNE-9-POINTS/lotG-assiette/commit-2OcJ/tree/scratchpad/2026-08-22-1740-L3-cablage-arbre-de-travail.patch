@@ -1,0 +1,306 @@
+# L3 — LE CÂBLAGE, QUI NE PEUT PAS ENTRER DANS LE COMMIT (2026-08-22, 17:40 CEST)
+#
+# ⛔ Les QUATRE fichiers ci-dessous sont `M` dans l'arbre: ils portent du travail
+#    non commité d'autres sessions (§⑨ n° 15). Le lot `L3` ne commite donc que
+#    son MODULE NEUF (`frontend/src/keel/lib/arrivalHorizon.ts`) et sa GARDE
+#    NEUVE (`arrivalHorizon.int.test.ts`). Ce patch est l'ARCHIVE du reste, pour
+#    qu'il ne se perde pas si quelqu'un revient en arrière sur ces fichiers.
+#
+# ⚠️ HUNKS RETENUS: 3/17 (mouthForm.ts) · 3/23 (MouthFormDialog.tsx) ·
+#    1/2 (mouthForm.int.test.ts) · 2/23 (mouthFormDialog.int.test.ts).
+#
+# ⚠️ UNE LIGNE ÉTRANGÈRE VOYAGE AVEC: dans `mouthFormDialog.int.test.ts`, le
+#    hunk d'imports contient aussi
+#      +import { EATING_OCCASIONS, type EatingOccasion } from "../api/mealGeneration";
+#    qui appartient à une autre session — elle partage le hunk avec mon import
+#    de `ARRIVAL_HORIZON_COPY`. Ce patch est une ARCHIVE, pas un `git apply`
+#    aveugle: relire avant de l'appliquer.
+#
+diff --git a/frontend/src/keel/lib/mouthForm.ts b/frontend/src/keel/lib/mouthForm.ts
+index e3ab77f5..dc341aa7 100644
+--- a/frontend/src/keel/lib/mouthForm.ts
++++ b/frontend/src/keel/lib/mouthForm.ts
+@@ -45,8 +45,18 @@ import {
+   scaleDirectionOf,
+   type TargetWeightRefusal,
+   targetWeightRefusal,
+-  weeksToTarget,
+ } from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
++// ⛔ `weeksToTarget` N'EST PLUS IMPORTÉ ICI — lot `L3`, 2026-08-22. La fonction
++// reste dans `weight_pace.ts` avec ses tests: c'est de l'arithmétique juste, et
++// ce n'est pas elle qu'on retire. Ce qui est retiré, c'est la PROMESSE — un
++// nombre de semaines rendu à quelqu'un alors que notre erreur d'estimation
++// (±580 kcal/j) est plus grande que le déficit qu'on vise (500 kcal/j), au
++// point que la borne haute du nombre de semaines est l'infini. Voir
++// `lib/arrivalHorizon.ts` pour la mesure et la phrase qui la remplace.
++import {
++  type ArrivalHorizon,
++  arrivalHorizonFor,
++} from "./arrivalHorizon";
+ import type { MouthBody } from "../../../../supabase/functions/_shared/keel/meal_envelope.ts";
+ import {
+   assessBirthDate,
+@@ -522,15 +668,25 @@ export function paceControlFor(
+  * ⚠️ LE REFUS EST RENDU À CÔTÉ DU CHAMP, ET C'EST LE CONTRAT DE PASSATION DU
+  * SOCLE. Trois fois dans `SetupPage`, un refus rendu loin du geste s'est lu
+  * comme un bouton mort — cicatrice `refusal-far-from-the-gesture-reads-as-a-
+- * dead-button`. Ce type porte donc le refus ET la date d'arrivée sur le même
+- * objet, pour qu'un rendu ne puisse pas prendre l'un sans l'autre.
++ * dead-button`. Ce type porte donc le refus ET ce qui se dit du chemin sur le
++ * même objet, pour qu'un rendu ne puisse pas prendre l'un sans l'autre.
++ *
++ * ⛔ `weeks` A DISPARU DE CE TYPE — lot `L3`, 2026-08-22, décision produit.
++ * Il portait un nombre de semaines exact; l'erreur d'estimation (±580 kcal/j)
++ * est plus grande que le déficit visé (500 kcal/j), donc l'intervalle réel de
++ * l'écart quotidien TRAVERSE ZÉRO et la borne haute du nombre de semaines est
++ * l'infini. Un jeton le remplace: il n'existe plus de champ où un nombre de
++ * semaines pourrait être réécrit. Voir `lib/arrivalHorizon.ts`.
+  */
+ export type TargetWeightState =
+   /** Pas de direction, ou champ vide: rien à dire. */
+   | { kind: "idle" }
+   | { kind: "refused"; refusal: TargetWeightRefusal }
+-  /** Accepté. `weeks` est `null` quand aucune date n'est calculable. */
+-  | { kind: "accepted"; weeks: number | null };
++  /**
++   * Accepté. `horizon` est `null` quand il n'y a pas de curseur vivant — la
++   * MÊME prémisse qu'avant, pour que la surface reste comparable à l'avant.
++   */
++  | { kind: "accepted"; horizon: ArrivalHorizon | null };
+ 
+ export function targetWeightStateFor(
+   draft: MouthFormDraft,
+@@ -555,8 +711,13 @@ export function targetWeightStateFor(
+   if (refusal !== null) return { kind: "refused", refusal };
+ 
+   const pace = paceControlFor(draft, todayLocalIso);
+-  const paceValue = pace.kind === "slider" ? pace.value : 0;
+-  return { kind: "accepted", weeks: weeksToTarget(current, target, paceValue) };
++  return {
++    kind: "accepted",
++    horizon: arrivalHorizonFor({
++      targetAccepted: true,
++      paceKgPerWeek: pace.kind === "slider" ? pace.value : null,
++    }),
++  };
+ }
+ 
+ // ---------------------------------------------------------------------------
+diff --git a/frontend/src/keel/components/MouthFormDialog.tsx b/frontend/src/keel/components/MouthFormDialog.tsx
+index 5c0d9dcb..f34497f4 100644
+--- a/frontend/src/keel/components/MouthFormDialog.tsx
++++ b/frontend/src/keel/components/MouthFormDialog.tsx
+@@ -5,13 +5,22 @@ import { Button } from "./ui/Button";
+ import { Field, inputClass } from "./ui/Field";
+ import { SectionLabel } from "./ui/Card";
+ import { allergenLabel, ALLERGEN_OPTIONS } from "../copy/allergens";
+-import { t } from "../i18n/t";
++import { type MessageKey, t } from "../i18n/t";
+ import { uiLocale } from "../i18n/runtime";
+ import { MEMBER_GENDERS, MEMBER_GOALS } from "../api/household";
+ import type { MemberGender, MemberGoal } from "../api/household";
+ import { DIET_ANSWERS } from "../api/onboarding";
+-import { EATING_OCCASIONS } from "../api/mealGeneration";
++import {
++  EATING_OCCASIONS,
++  type EatingOccasion,
++  type EatingOccasionSlot,
++} from "../api/mealGeneration";
+ import { mealCopy } from "../api/mealLabels";
++import { type MouthVoice, voiced, whoOf } from "../lib/mouthVoice";
++import {
++  ARRIVAL_HORIZON_COPY,
++  TARGET_WEIGHT_HINT_COPY,
++} from "../lib/arrivalHorizon";
+ import {
+   activityIsRequired,
+   ageStateOfDraft,
+@@ -920,7 +1549,15 @@ export function TargetAndPaceFields(
+             <div className="space-y-4 border-t border-line pt-4">
+               <Field
+                 label={t("household.mouth.target_weight")}
+-                hint={t("household.mouth.target_weight_hint")}
++                // ⛔ LA SECONDE SURFACE DU LOT `L3` — et la plus explicite des
++                // deux. `household.mouth.target_weight_hint` disait « Avec le
++                // rythme ci-dessous, il donne une date d'arrivée. » Retirer le
++                // nombre de semaines en la laissant aurait donné le pire des
++                // deux états: un écran qui ANNONCE une date et n'en donne
++                // aucune. La clé i18n reste en place, elle n'est plus lue.
++                hint={TARGET_WEIGHT_HINT_COPY[
++                  uiLocale() === "fr" ? "fr" : "en"
++                ]}
+                 // ⚠️ LE REFUS EST RENDU À CÔTÉ DU CHAMP, ET C'EST LE CONTRAT DE
+                 // PASSATION DU SOCLE. Trois fois dans `SetupPage`, un refus
+                 // rendu loin du geste s'est lu comme un bouton mort.
+@@ -1020,28 +1657,75 @@ export function TargetAndPaceFields(
+                       une information sur le contrôle: le peindre en alerte
+                       ferait lire « tu fais quelque chose de dangereux » à
+                       quelqu'un qui a simplement poussé un curseur. */}
+-                  {paceControl.saturation !== null ? (
+-                    <p className="mt-2 rounded-card border border-line-strong bg-paper-2 p-3 text-xs leading-5 text-ink-soft">
+-                      {PACE_SATURATION_LABELS[paceControl.saturation][
+-                        uiLocale() === "fr" ? "fr" : "en"
+-                      ]}
+-                    </p>
+-                  ) : null}
+-                  {/* LA DATE D'ARRIVÉE — ce qui rend l'objectif réel au lieu
+-                      d'abstrait. `null` = on n'affiche rien; « tu y es dans 0
+-                      semaine » et « ce rythme ne mène nulle part » ne se disent
+-                      pas de la même façon. */}
+-                  {targetState.kind === "accepted" && targetState.weeks !== null
++                  {/* ⛔ LA PHRASE DE SATURATION N'EST PLUS RENDUE (2026-08-19).
++                      « À partir de ce cran, l'assiette ne change plus… »
++                      décrivait le comportement INTERNE du plafond à quelqu'un
++                      qui pousse un curseur déjà borné par ce même plafond: le
++                      contrôle ne monte pas plus haut, ce qui est l'information
++                      — la phrase ne faisait que la répéter en trente mots.
++
++                      ⚠️ `PACE_SATURATION_LABELS` RESTE dans le module moteur,
++                      avec ses tests: c'est l'AFFICHAGE qui part, pas la
++                      décision. Le jour où un écran veut l'expliquer, le texte
++                      est là et il est traduit. */}
++                  {/* ⛔ LA DATE D'ARRIVÉE EST PARTIE (lot `L3`, 2026-08-22),
++                      ET CE N'EST PAS UN SILENCE. Cette place affichait « About
++                      12 weeks at this pace. ». Mesuré le même jour sur les cas
++                      de design: l'écart quotidien prescrit vaut 495 kcal/j et
++                      notre erreur d'estimation ±580 kcal/j, donc l'écart
++                      RÉELLEMENT exécuté vit dans [-85 … 1075] kcal/j — il
++                      TRAVERSE ZÉRO, et le nombre de semaines réellement
++                      possible allait « de 6 à JAMAIS ». Une fourchette aurait
++                      donc été une seconde promesse, fausse comme la première.
++
++                      ⚠️ LA SURFACE RESTE, SOUS LA MÊME PRÉMISSE — cible
++                      acceptée et curseur vivant. Seul son contenu change: la
++                      direction survit (« vers ce poids »), la raison de
++                      l'absence de date est NOMMÉE, et ce qui donnera le rythme
++                      réel est dit (la balance). Rien de plus: on n'annonce PAS
++                      que le plan suivra les pesées — `L11★` mesure zéro bouche
++                      pesée plus d'une fois, et aucun écrivain ne propage.
++
++                      ⚠️ LA PHRASE VIENT DU MODULE, DANS LES DEUX LANGUES, ET
++                      ELLE N'EST PAS RÉÉCRITE ICI — même règle que
++                      `PACE_WARNING_LABELS` juste au-dessus. Elle n'a donc
++                      AUCUNE clé i18n: `arrivalHorizon.ts` porte son propre
++                      catalogue, et sa garde refuse tout chiffre et toute unité
++                      de calendrier dans les deux langues. */}
++                  {targetState.kind === "accepted" &&
++                      targetState.horizon !== null
+                     ? (
+                       <p className="mt-2 text-sm text-ink-soft">
+-                        {t("household.mouth.arrival", {
+-                          weeks: targetState.weeks,
+-                        })}
++                        {ARRIVAL_HORIZON_COPY[targetState.horizon][
++                          uiLocale() === "fr" ? "fr" : "en"
++                        ]}
+                       </p>
+                     )
+                     : null}
+                 </Field>
+               ) : null}
++      {/* ── ① CE QU'IL Y A D'AUTRE DANS L'ASSIETTE — EN DERNIER, ET EN SURSIS
++          ⛔ SA PLACE DIT SON STATUT. Elle est ici, seule, en bas de fenêtre,
++          parce qu'elle attend une décision de forme: posée UNE FOIS pour la
++          personne (aujourd'hui) ou PAR MOMENT (la forme visée — le déjeuner et
++          le dîner de quelqu'un n'ont pas le même pain). Tant que la décision
++          n'est pas prise, elle ne se mélange à rien: un bloc à elle, que
++          personne ne consolide par erreur. */}
++      <div>
++        <MouthMealComponentsFields
++          voice={voice}
++          who={who}
++          value={{
++            dayActivity: draft.dayActivity,
++            sportFrequency: draft.sportFrequency,
++            takesDessert: draft.takesDessert,
++            takesCheese: draft.takesCheese,
++            takesBread: draft.takesBread,
++            appetite: draft.appetite,
++          }}
++          onChange={(patch) => set(patch)}
++        />
++      </div>
+             </div>
+   );
+ }
+diff --git a/frontend/src/keel/lib/mouthForm.int.test.ts b/frontend/src/keel/lib/mouthForm.int.test.ts
+index 2b9cf350..bfcc2e37 100644
+--- a/frontend/src/keel/lib/mouthForm.int.test.ts
++++ b/frontend/src/keel/lib/mouthForm.int.test.ts
+@@ -466,16 +466,24 @@ describe("le poids visé — le refus est NOMMÉ", () => {
+     });
+   });
+ 
+-  it("accepté → la DATE D'ARRIVÉE, en semaines", () => {
++  it("⛔ L3 — accepté → UN JETON, jamais un nombre de semaines", () => {
++    // ⚠️ CE TEST A CHANGÉ DE CAMP LE 2026-08-22 (lot `L3`). Il exigeait
++    // `expect(state.weeks).toBe(12)` — 5 kg à 0,45 kg/semaine, arrondi au
++    // supérieur. Mesuré le même jour: l'écart quotidien prescrit vaut
++    // 495 kcal/j et notre erreur d'estimation ±580 kcal/j, donc l'écart
++    // RÉELLEMENT exécuté vit dans [-85 … 1075] kcal/j — il traverse zéro, et
++    // les semaines réellement possibles allaient « de 6 à JAMAIS ». Le 12
++    // n'était pas imprécis, il était indéfendable.
+     const state = targetWeightStateFor(
+       draftOf({ ...LOSING, targetWeightKg: "55" }),
+       TODAY,
+     );
+     expect(state.kind).toBe("accepted");
+     if (state.kind !== "accepted") return;
+-    // 5 kg à 0,45 kg/semaine = 11,1 → 12 semaines, ARRONDI AU SUPÉRIEUR: une
+-    // date annoncée trop tôt est une déception programmée.
+-    expect(state.weeks).toBe(12);
++    // ⛔ LA SURFACE RESTE — même prémisse qu'avant, contenu différent.
++    expect(state.horizon).toBe("no_arrival_date");
++    // ⛔ ET IL N'EXISTE PLUS DE CHAMP OÙ UN NOMBRE DE SEMAINES S'ÉCRIRAIT.
++    expect(Object.keys(state).sort()).toEqual(["horizon", "kind"]);
+   });
+ 
+   it("un refus RETIENT le bouton — sinon le refus arriverait du serveur", () => {
+diff --git a/frontend/src/keel/components/mouthFormDialog.int.test.ts b/frontend/src/keel/components/mouthFormDialog.int.test.ts
+index 775ca131..48c1737b 100644
+--- a/frontend/src/keel/components/mouthFormDialog.int.test.ts
++++ b/frontend/src/keel/components/mouthFormDialog.int.test.ts
+@@ -15,8 +15,10 @@ import {
+   type MouthFormDraft,
+ } from "../lib/mouthForm";
+ import { en } from "../i18n/en";
++import { EATING_OCCASIONS, type EatingOccasion } from "../api/mealGeneration";
+ import { fr } from "../i18n/fr";
+ import { setChosenUiLocaleForTest } from "../i18n/runtime";
++import { ARRIVAL_HORIZON_COPY } from "../lib/arrivalHorizon";
+ import {
+   PACE_SATURATION_LABELS,
+   PACE_WARNING_LABELS,
+@@ -363,12 +413,26 @@ describe("le curseur — quatre états, et deux d'entre eux sont des PHRASES", (
+     expect(markup).toContain('step="0.05"');
+   });
+ 
+-  it("la DATE D'ARRIVÉE se rend quand elle est calculable", () => {
+-    const body = text(html({
+-      draft: { ...ADULT_COMPLETE, goal: "fat_loss", targetWeightKg: "55" },
+-    }));
+-    // 5 kg à 0,45 kg/semaine → 12 semaines (arrondi au supérieur).
+-    expect(body).toContain("About 12 weeks");
++  it("⛔ L3 — AUCUNE DATE D'ARRIVÉE NE SE REND, dans aucune langue", () => {
++    // ⚠️ CE TEST EST L'ARME DU LOT `L3` (2026-08-22), ET IL LIT LE HTML RENDU.
++    // Il remplace `expect(body).toContain("About 12 weeks")`: la même fenêtre,
++    // sur le même brouillon, affichait un nombre de semaines EXACT.
++    for (const locale of ["en", "fr"] as const) {
++      const body = text(html({
++        draft: { ...ADULT_COMPLETE, goal: "fat_loss", targetWeightKg: "55" },
++        locale,
++      }));
++      // ① l'ancienne phrase est partie, et son gabarit avec.
++      expect(body).not.toContain("About 12 weeks");
++      expect(body).not.toContain("Environ 12 semaines");
++      // ② et AUCUN nombre de semaines, quel qu'il soit, ne se rend.
++      expect(body).not.toMatch(/\d+\s*(weeks?|semaines?)/i);
++      // ③ ⛔ MAIS LA SURFACE N'A PAS DISPARU: la phrase de remplacement est
++      // là, elle nomme la direction, la raison, et ce qui donnera le rythme.
++      expect(body).toContain(
++        decode(ARRIVAL_HORIZON_COPY.no_arrival_date[locale]),
++      );
++    }
+   });
+ });
+ 

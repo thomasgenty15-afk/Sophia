@@ -1,0 +1,448 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-clarification-local-clarif_local_20260612_r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Pour demain matin avec mon réveil, je veux préparer une carte, mais je ne sais pas si c’est plutôt une carte d’attaque ou une carte de défense.",
+    "assistant": "C'est assez simple : avec une carte d'attaque, tu passes à l'offensive pour avancer concrètement vers ton objectif. Avec une carte de défense, tu cherches plutôt à te protéger d'un imprévu ou à sécuriser ta position actuelle.\n\nLaquelle te semble la plus adaptée à ta situation ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace_error": null,
+    "response_owner": "orientation_clarification",
+    "selected_handler": "orientation_clarification",
+    "route_selected_handler": "orientation_clarification",
+    "route_reason_code": "clarification_required",
+    "safety": null,
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "clarification_flow_run": null,
+    "pending_operation_resolution": null,
+    "pending_tool_skill_confirmation": null,
+    "memory_plan": null,
+    "turn_id": null,
+    "skill_run": null,
+    "tool_skill_run": null,
+    "effect_ledger": {
+      "turn_id": "qa-clarification-local-clarif_local_20260612_r2-t01",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "raw_keys": [
+      "effect_ledger",
+      "response_owner",
+      "route_decision",
+      "turn_frame"
+    ]
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-clarification-local-clarif_local_20260612_r2-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Carte d’attaque : je veux anticiper le moment où je repousse le réveil demain matin.",
+    "assistant": "Pour contrer l'envie de snoozer et réussir à te lever dès que le réveil sonne, quelle technique préfères-tu utiliser entre Preparer le terrain, Mot de bascule ou Le texte magique ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "trace_error": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_selected_handler": "prepare_attack_card",
+    "route_reason_code": "orientation_clarification_resolved_tool_skill",
+    "safety": null,
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "clarification_flow_run": null,
+    "pending_operation_resolution": null,
+    "pending_tool_skill_confirmation": null,
+    "memory_plan": null,
+    "turn_id": null,
+    "skill_run": null,
+    "tool_skill_run": {
+      "selected_handler": "prepare_attack_card",
+      "reason_code": "prepare_attack_card_local_ask_or_confirm_technique",
+      "operation_type": "prepare_attack_card",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "flow_action": "choose_technique",
+      "visible_task": "ask_or_confirm_technique",
+      "visible_task_context": {
+        "state_summary": "Cible (se lever) et piège (snooze) verrouillés. Prêt pour le choix de la technique.",
+        "user_words": [
+          "anticiper le moment où je repousse le réveil demain matin"
+        ],
+        "field_or_stage": "technique_selection",
+        "known_values": {
+          "target": {
+            "status": "locked",
+            "kind": "personal_action",
+            "plan_item_id": null,
+            "candidate_value": null,
+            "locked_value": "se lever dès que le réveil sonne demain matin",
+            "needs_user_confirmation": false,
+            "why_status": "L'utilisateur a explicitement défini l'action cible."
+          },
+          "blocker": {
+            "status": "locked",
+            "blocker_type": "procrastination",
+            "candidate_value": null,
+            "locked_value": "repousser le réveil (snooze)",
+            "needs_user_confirmation": false,
+            "why_status": "Le piège est clairement identifié comme le fait de repousser le réveil."
+          },
+          "technique": {
+            "status": "missing",
+            "technique_key": null,
+            "technique_label": null,
+            "explicitly_requested": false,
+            "candidate_options": [
+              {
+                "technique_key": "preparer_terrain",
+                "technique_label": "Preparer le terrain",
+                "reason": null,
+                "recommended": false
+              },
+              {
+                "technique_key": "pre_engagement",
+                "technique_label": "Mot de bascule",
+                "reason": null,
+                "recommended": false
+              },
+              {
+                "technique_key": "texte_recadrage",
+                "technique_label": "Le texte magique",
+                "reason": null,
+                "recommended": false
+              }
+            ],
+            "fit_warning": null,
+            "needs_user_confirmation": false,
+            "why_status": "Cible et piège verrouillés, passage au choix de la technique."
+          },
+          "current_field": null,
+          "activation_keyword": {
+            "status": "not_applicable",
+            "candidate_value": null,
+            "locked_value": null,
+            "needs_user_confirmation": false,
+            "why_status": "Technique non encore sélectionnée."
+          }
+        },
+        "missing_or_weak_values": [
+          "technique_key"
+        ],
+        "selected_candidate": {
+          "previous_value": null
+        },
+        "handoff_data": {
+          "operation_name": "prepare_attack_card",
+          "surface_label": "Cartes d'attaque",
+          "platform_destination": "",
+          "platform_steps": [],
+          "flow_kind": "free_attack_card",
+          "technique_label": null,
+          "target_value": "se lever dès que le réveil sonne demain matin",
+          "blocker_value": "repousser le réveil (snooze)",
+          "locked_fields": [],
+          "missing_fields": [
+            "technique"
+          ],
+          "activation_keyword": null,
+          "no_chat_mutation": true
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "c'est cree",
+          "je l'ai creee",
+          "je l'ai ajoutee",
+          "c'est active",
+          "dis oui et je la cree",
+          "c'est créé",
+          "je l'ajoute"
+        ],
+        "context_summary": "L'utilisateur veut une carte d'attaque pour ne plus snoozer demain matin. Je dois proposer les techniques adaptées.",
+        "evidence_used": [
+          "repousse le réveil demain matin",
+          "Carte d’attaque"
+        ]
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "handoff_state": {
+        "skill_id": "prepare_attack_card",
+        "mode": "platform_handoff",
+        "status": "collecting",
+        "draft": {
+          "operation_type": "prepare_attack_card",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "target_summary": "se lever dès que le réveil sonne demain matin",
+          "blocker_summary": "repousser le réveil (snooze)",
+          "recommendation": {
+            "technique_label": "",
+            "why_this_technique": "Cible et piège verrouillés, passage au choix de la technique.",
+            "card_draft_summary": "",
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "dans la section Cartes d’attaque",
+            "platform_steps": [
+              "ouvre la section Cartes",
+              "choisis Carte d’attaque",
+              "reprends le brouillon proposé"
+            ]
+          },
+          "missing_decisions": []
+        },
+        "source_draft": null,
+        "local_state": {
+          "flow_id": "prepare_attack_card",
+          "flow_kind": "free_attack_card",
+          "platform_destination": "dans la section Cartes d’attaque",
+          "target_state": {
+            "status": "locked",
+            "kind": "personal_action",
+            "plan_item_id": null,
+            "candidate_value": null,
+            "locked_value": "se lever dès que le réveil sonne demain matin",
+            "needs_user_confirmation": false,
+            "why_status": "L'utilisateur a explicitement défini l'action cible."
+          },
+          "blocker_state": {
+            "status": "locked",
+            "blocker_type": "procrastination",
+            "candidate_value": null,
+            "locked_value": "repousser le réveil (snooze)",
+            "needs_user_confirmation": false,
+            "why_status": "Le piège est clairement identifié comme le fait de repousser le réveil."
+          },
+          "technique_state": {
+            "status": "missing",
+            "technique_key": null,
+            "technique_label": null,
+            "explicitly_requested": false,
+            "candidate_options": [
+              {
+                "technique_key": "preparer_terrain",
+                "technique_label": "Preparer le terrain",
+                "reason": null,
+                "recommended": false
+              },
+              {
+                "technique_key": "pre_engagement",
+                "technique_label": "Mot de bascule",
+                "reason": null,
+                "recommended": false
+              },
+              {
+                "technique_key": "texte_recadrage",
+                "technique_label": "Le texte magique",
+                "reason": null,
+                "recommended": false
+              }
+            ],
+            "fit_warning": null,
+            "needs_user_confirmation": false,
+            "why_status": "Cible et piège verrouillés, passage au choix de la technique."
+          },
+          "platform_field_order": [],
+          "platform_field_states": {},
+          "activation_keyword_state": {
+            "status": "not_applicable",
+            "candidate_value": null,
+            "locked_value": null,
+            "needs_user_confirmation": false,
+            "why_status": "Technique non encore sélectionnée."
+          },
+          "current_field_id": null,
+          "last_visible_task": "ask_or_confirm_technique",
+          "last_handoff_delivered": false,
+          "subskill_history": []
+        },
+        "target": {
+          "kind": "personal_action",
+          "plan_item_id": null,
+          "title": "se lever dès que le réveil sonne demain matin"
+        },
+        "turn_count": 1,
+        "max_turns": 8,
+        "created_at": "2026-06-11T23:23:31.254Z",
+        "updated_at": "2026-06-11T23:23:31.254Z",
+        "no_chat_mutation": true
+      },
+      "risk_assessment": {
+        "risk_score": 0,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "db_context_pack_loaded",
+          "plan_items_count": 0,
+          "micro_memory_items_count": 0,
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "global_dispatcher_skipped",
+          "reason_code": "active_prepare_attack_card_uses_local_dispatcher",
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "note_information_consumed",
+          "source_flow_id": "global_dispatcher",
+          "target_dispatcher": "prepare_attack_card",
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher start",
+          "flow_action": null,
+          "stage": null,
+          "visible_task_kind": null,
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "missing",
+          "blocker_status": "missing",
+          "missing_fields": [],
+          "risk_assessment": null,
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher decision",
+          "flow_action": "choose_technique",
+          "stage": "ask_or_confirm_technique",
+          "visible_task_kind": "ask_or_confirm_technique",
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "reducer reduced",
+          "flow_action": "choose_technique",
+          "stage": "ask_or_confirm_technique",
+          "visible_task_kind": "ask_or_confirm_technique",
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage start",
+          "flow_action": "choose_technique",
+          "stage": "ask_or_confirm_technique",
+          "visible_task_kind": "ask_or_confirm_technique",
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "ask_or_confirm_technique",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage complete",
+          "flow_action": "choose_technique",
+          "stage": "ask_or_confirm_technique",
+          "visible_task_kind": "ask_or_confirm_technique",
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "qa-clarification-local-clarif_local_20260612_r2-t02",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "raw_keys": [
+      "effect_ledger",
+      "response_owner",
+      "route_decision",
+      "tool_skill_run",
+      "turn_frame"
+    ]
+  }
+]

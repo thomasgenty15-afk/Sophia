@@ -1,0 +1,39 @@
+L4 — PREUVE PAR MUTATION
+========================
+Copie HORS DÉPÔT : …/scratchpad/L4-mut/  (rsync --exclude node_modules ; 17 Mo)
+Structure du dépôt reproduite (supabase/functions/{_shared,sophia-brain,tsserver-shims.d.ts})
+Date : 2026-08-22, 17:10–17:30 CEST
+
+⛔ NON MUTÉE D'ABORD — deno test declared_food_group_test.ts : ok | 14 passed | 0 failed
+⛔ ET UN CAS QUI PASSE — « ⛔ LE CAS QUI PASSE — un groupe DÉCLARÉ et valide
+   atteint l'index tel quel » + « un groupe déclaré et valide traverse pour
+   CHACUN des 30 slugs » : verts sur la copie non mutée. Sans eux, une garde
+   qui refuserait TOUT serait indiscernable d'une garde qui marche.
+
+ #   mutation                                                              résultat
+---- --------------------------------------------------------------------- --------
+ M1  `foodGroupRef: intake.foodGroup ?? ungroupedFoodGroup()`               ROUGE
+     → `foodGroupRef: "lean_protein"`  (le défaut EXACT que le lot ferme)
+ M2  le repli ignore la déclaration : `?? ungroupedFoodGroup()` → toujours   ROUGE
+     le neutre (un groupe déclaré n'est plus honoré)
+ M3  `const foodGroup = declaredIntakeGroupOf(e)` → `= null`                 ROUGE
+     (le parseur cesse de lire la clé : le champ devient décoratif)
+ M4  `UNGROUPED_DECLARED_INTAKE = "__ungrouped…__"` → `"lean_protein"`       ROUGE
+     ⛔ pris par `deno check` — la PREUVE DE TYPE, avant tout test
+ M5  `augmentedIndexFor` rend `base` : l'apport sort de l'index              ROUGE
+     (la régression qui ferait passer toutes les épreuves ①)
+ M6  `parseFoodGroupRef(raw.trim())` → `raw.trim() as never`                 ROUGE
+     (le vocabulaire fermé cesse de refuser un slug inventé)
+ M7  `if (declaredGroupReachesIndex(written)) reachesIndex++`                ROUGE
+     → `reachesIndex = valid`  (le compteur perd sa SECONDE population)
+ M8  `declared++` → no-op  (le compteur perd son DÉNOMINATEUR)               ROUGE
+ M9  `NOT_A_CONSTRAINT_KEY` vidé de `"food_group"`                           ROUGE
+     (la soupape B8 est portante : la retirer refait rougir)
+ M10 une VRAIE clé neuve (`FAKE_CONSTRAINT_KEY = "fake_thing"`) ajoutée      ROUGE
+     ⛔ la soupape N'A PAS aveuglé B8 : elle attrape toujours une vraie clé
+
+⛔ APRÈS RESTAURATION — 14/14 vert, B8 vert, et `diff` vide contre le dépôt
+   pour fixed_intakes.ts, declared_food_group.ts, food_group_write.ts et
+   food_preference_promotion_test.ts.
+
+10 mutations, 10 rouges. Aucune n'a été trouvée par relecture.

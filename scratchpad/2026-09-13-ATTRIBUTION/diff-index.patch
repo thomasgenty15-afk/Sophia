@@ -1,0 +1,361 @@
+--- scratchpad/2026-09-13-ATTRIBUTION/sauvegardes/index.ts.ORIG	2026-09-13 22:56:05
++++ supabase/functions/generate-household-meal-v1/index.ts	2026-09-13 22:51:47
+@@ -385,6 +385,12 @@
+   // ⛔ LA MÊME FONCTION QUE `requiredDensityFor`, pas une seconde table: ce que
+   // l'ajusteur ferme doit être exactement ce que le moteur exige ensuite.
+   densityCorridorFor,
++  // ⟳ 2026-09-13 — CROISER LES COULOIRS DE DEUX ASSIETTES. `incompatible ===
++  // "empty_intersection"` est le mot de ce module pour « il faut deux
++  // recettes » : c'est lui qui décide si la recomposition COMMUNE est encore
++  // une option, avant de réserver un complément à qui que ce soit.
++  type DensityCorridor,
++  mergeCorridors,
+   // ⟳ 2026-09-11 · LOT E — LE CONTRÔLE FINAL DU LOT B. Il relit les grammes
+   // ÉCRITS dans chaque contenant, sans aucune exception de population: c'est
+   // lui qui aurait attrapé les 727 g servis contre un plafond de 700.
+@@ -8981,7 +8987,12 @@
+         solved: 0,
+         unsolvable: 0,
+         unsolvable_by: {} as Record<string, number>,
+-        unsolvable_titles: [] as string[],
++        // ⟳ 2026-09-13 · LOT 1 D'ATTRIBUTION — L'ADRESSE, PLUS LE TITRE.
++        // Un titre ne désigne pas un plat : la référence N=4 porte le MÊME
++        // titre à mon/lunch et à tue/lunch, et retirer « par titre » a retiré
++        // les deux plats réparés en même temps que rien du tout. La clé est
++        // `jour|moment|porteur`, celle qui adresse déjà les unités.
++        unsolvable_cells: [] as string[],
+         clamped: { max: 0, min: 0 },
+         moved_kcal: 0,
+       };
+@@ -9025,7 +9036,9 @@
+             : "wrong_side_or_whole_plate";
+           complement.unsolvable++;
+           complement.unsolvable_by[reason] = (complement.unsolvable_by[reason] ?? 0) + 1;
+-          complement.unsolvable_titles.push(String(c.dish.title ?? ""));
++          complement.unsolvable_cells.push(
++            `${c.day}|${c.slot}|${String(c.dish.memberId ?? "")}`,
++          );
+           console.info(JSON.stringify({
+             tag: "keel.household_meal.complement_unsolvable",
+             user_id: userId,
+@@ -11330,6 +11343,13 @@
+         stuck_eaters: 0,
+         residual_eaters: 0,
+         residual_stuck: 0,
++        // ⟳ 2026-09-13 — POURQUOI CETTE PERSONNE EST BLOQUÉE, et combien ne le
++        // sont PAS. Sans ces trois clés, « on a réservé un complément » et « on
++        // a laissé la recomposition commune faire » se relisaient pareil — le
++        // silence exact qui a laissé quatre créations partir sur un plat dont
++        // le frais était réécrivable (2026-09-13, tir N=2).
++        residual_stuck_by: { nothing_rewritable: 0, empty_corridor: 0 },
++        residual_recomposable: 0,
+         // ⟳ 2026-09-08 — COMBIEN D'INGRÉDIENTS LA RELANCE A RÉCITÉS, et combien
+         // portaient une QUANTITÉ. C'est tout le lot B: sans quantités, le modèle
+         // re-proportionne de mémoire et s'arrête à mi-chemin (mesuré: 142 rendus
+@@ -12044,6 +12064,39 @@
+               verdicts,
+             })),
+           });
++          // ══════════════════════════════════════════════════════════════
++          // ⟳ 2026-09-13 — UNE SEULE RECETTE PEUT-ELLE TENIR LES BANDES DE
++          //                TOUS LES MANGEURS DE CE PLAT ?
++          // ══════════════════════════════════════════════════════════════
++          //
++          // ⛔ MÊME FONCTION QUE LE DIMENSIONNEMENT, pas un second calcul :
++          // `densityCorridorFor` par assiette, `mergeCorridors` pour les
++          // croiser. `incompatible === "empty_intersection"` est le mot que ce
++          // module emploie déjà pour « il faut deux recettes ».
++          //
++          // ⚠️ UNE LIGNE SANS BORNES NE VOTE PAS, et une case où PERSONNE n'a
++          // de couloir rend `false` : « on ne sait pas » n'est pas « c'est
++          // impossible ». Réserver un complément sur une abstention serait
++          // reprendre exactement le défaut qu'on vient de retirer.
++          const sharedCorridorEmpty = (dishIndex: number): boolean => {
++            let commun: DensityCorridor | null = null;
++            for (
++              const r of (measured.rows_by_dish ?? []) as {
++                dishIndex: number;
++                targetKcal: number | null;
++                bounds: PlateBounds | null;
++              }[]
++            ) {
++              if (r.dishIndex !== dishIndex || r.bounds === null) continue;
++              const c = densityCorridorFor({
++                targetKcal: r.targetKcal,
++                bounds: r.bounds,
++              });
++              if (c === null) continue;
++              commun = commun === null ? c : mergeCorridors(commun, c);
++            }
++            return commun !== null && commun.incompatible === "empty_intersection";
++          };
+           for (const [i, verdicts] of verdictsFinal) {
+             for (const [memberId, verdict] of verdicts) {
+               if (verdict !== "over_max" && verdict !== "under_min") continue;
+@@ -12060,15 +12113,62 @@
+                 return unit !== undefined &&
+                   repairabilityOf(unit, direction).repairability === "reworkable";
+               });
+-              // ⟳ 2026-09-08 — « BLOQUÉ » = rien de réécrivable, OU déjà réparé
+-              // une fois sans effet. Mesuré au tir CATCH1 : le frais restait
+-              // réécrivable à la lettre, mais il l'avait déjà été (budget d'une
+-              // relance par plat épuisé) et l'assiette restait dehors. Une
+-              // personne qu'aucun geste restant ne peut servir est bloquée.
+-              const dejaDemande = outOfBoundsN.some((x) => x.i === i);
+-              if ((!freshOk && !potsOk) || dejaDemande) {
++              // ══════════════════════════════════════════════════════════
++              // ⟳ 2026-09-13 · LOT 1 D'ATTRIBUTION — « DÉJÀ DEMANDÉ » NE
++              //                PEUT PLUS ÊTRE VRAI ICI, ET IL L'ÉTAIT TOUJOURS
++              // ══════════════════════════════════════════════════════════
++              //
++              // ⛔ LA LIGNE RETIRÉE, ET CE QU'ELLE COÛTAIT :
++              //
++              //     const dejaDemande = outOfBoundsN.some((x) => x.i === i);
++              //     if ((!freshOk && !potsOk) || dejaDemande) { … }
++              //
++              // Écrite le 2026-09-08, elle voulait dire « on a DÉJÀ demandé une
++              // recette plus légère pour ce plat, et l'assiette est toujours
++              // dehors ». Depuis la fermeture C4 (2026-09-12), ce site
++              // NE RAPPELLE PLUS LE MODÈLE : `runDensityRepair` dépose sa
++              // consigne dans `c4DensityAsk` et la décision unique part plus
++              // tard. Aucun appel n'est donc parti, RIEN n'a été remesuré —
++              // `measured` est l'objet même d'où sort `outOfBoundsN` — et
++              // `dejaDemande` était VRAI pour tout plat portant une demande.
++              //
++              // ⛔ MESURÉ SUR LES DEUX APPELS RÉELS DU 2026-09-13 :
++              //   · N=2 (`gain-lot3b-…17-00-55-236Z`) `stuck_dishes: 0`,
++              //     `fresh_frozen: 0`, `pots_frozen: 0` — donc `freshOk` VRAI —
++              //     et pourtant `residual_eaters: 4`, `residual_stuck: 4` ⇒
++              //     quatre compléments réservés, et un prompt qui ordonnait
++              //     dans le même message « réécris ce plat » ET « les
++              //     casseroles restent, ajoute un accompagnement » sur un plat
++              //     QUI N'A AUCUNE CASSEROLE.
++              //   · N=4 (`perte-lot3a-…17-00-38-299Z`) `fresh_frozen: 0`,
++              //     `residual_stuck: 2` ⇒ deux compléments, même cause.
++              //
++              // ⛔ LA DÉCISION, MAINTENANT, ET ELLE EST UNE PAR UNITÉ PARTAGÉE :
++              // on RÉSERVE un complément seulement quand la recomposition
++              // commune ne peut pas servir cette personne. Deux façons :
++              //   ① plus rien n'est réécrivable dans sa direction ;
++              //   ② les couloirs de densité des mangeurs de ce plat n'ont
++              //      AUCUNE intersection — une seule recette ne peut pas tenir
++              //      les deux bandes (`mergeCorridors`, `empty_intersection`).
++              //
++              // ⚠️ ② EST UN PREMIER CONTRÔLE DE FAISABILITÉ, PAS UNE PREUVE.
++              // Une intersection non vide ne dit pas que les protéines, les
++              // aliments autorisés et les quantités suivront ; elle dit
++              // seulement qu'on n'a pas le droit d'écarter la recomposition
++              // commune AVANT de l'avoir demandée. C'est pour ça qu'elle ouvre
++              // la recomposition au lieu de la conclure.
++              const rienAReecrire = !freshOk && !potsOk;
++              const couloirVide = sharedCorridorEmpty(i);
++              if (rienAReecrire || couloirVide) {
+                 repairs.residual_stuck++;
++                repairs.residual_stuck_by[
++                  rienAReecrire ? "nothing_rewritable" : "empty_corridor"
++                ]++;
+                 residualStuck.push({ i, memberId, direction });
++              } else {
++                // ⛔ COMPTÉ, SANS QUOI « on a laissé la recomposition commune
++                // faire » et « on n'a rien fait » se relisent pareil.
++                repairs.residual_recomposable++;
+               }
+             }
+           }
+@@ -12235,31 +12335,55 @@
+         // trop. Le laisser serait la servir deux fois.
+         //
+         // ⚠️ ON NE RETIRE QUE LES COMPLÉMENTS, JAMAIS UN PLAT PARTAGÉ: c'est
+-        // `complementsShared` qui les distingue, et `unsolvable_titles` vient
++        // `complementsShared` qui les distingue, et `unsolvable_cells` vient
+         // de la mesure qu'on vient de lire.
+         {
+           const insolubles = new Set(
+-            ((measured.complement ?? {}) as { unsolvable_titles?: string[] })
+-              .unsolvable_titles ?? [],
++            ((measured.complement ?? {}) as { unsolvable_cells?: string[] })
++              .unsolvable_cells ?? [],
+           );
+           const aRetirer = meal.dishes.filter((d) =>
+             (d as { complementsShared?: true }).complementsShared === true &&
+-            insolubles.has(String(d.title ?? ""))
++            insolubles.has(
++              `${String(d.day ?? "")}|${String(d.slot ?? "")}|${
++                String(d.memberId ?? "")
++              }`,
++            )
+           );
+           if (aRetirer.length > 0) {
+-            const titres = aRetirer.map((d) => String(d.title ?? ""));
++            const adresses = aRetirer.map((d) =>
++              `${String(d.day ?? "")}/${String(d.slot ?? "")} ${
++                String(d.title ?? "")
++              }`
++            );
+             meal.dishes = meal.dishes.filter((d) => !aRetirer.includes(d));
+             dedicated.rejected.unsolvable += aRetirer.length;
+             console.info(JSON.stringify({
+               tag: "keel.household_meal.dedicated_repair_unsolvable",
+               user_id: userId,
+               request_id: requestId,
+-              dropped: titres,
++              dropped: adresses,
+               kept: meal.dishes.length,
+             }));
+             // ⛔ ET ON REMESURE. Un plan jugé sur une mesure qui comptait encore
+             // le plat retiré rendrait des verdicts qui ne décrivent rien.
+             measured = shadowSizing();
++            // ══════════════════════════════════════════════════════════════
++            // ⟳ 2026-09-13 · LOT 1 D'ATTRIBUTION — LES LIGNES D'APPLICATION
++            //                SUIVENT LA MESURE, OU ELLES POSENT LES GRAMMES
++            //                DE QUELQU'UN D'AUTRE
++            // ══════════════════════════════════════════════════════════════
++            //
++            // ⛔ `rows` EST FIGÉ DEPUIS LA MESURE D'AVANT, et il porte des
++            // `dishIndex`. Retirer un plat DÉCALE tous les rangs qui le
++            // suivent : `applySizingForEaters` écrivait alors les contenants du
++            // plat n° k sur le plat n° k+1. Mesuré au rejeu gratuit du tir N=4
++            // du 2026-09-13 : le petit-déjeuner partagé du mardi ne portait
++            // plus que le contenant de la bouche végane, et son plat dédié
++            // portait ceux des trois autres — trois `mouth_unfed:not_named`
++            // sur une case que le patch n'avait jamais touchée.
++            rows.length = 0;
++            rows.push(...((measured.applyRows ?? []) as EaterRowForApply[]));
+           }
+         }
+         {
+@@ -17968,6 +18092,8 @@
+               const parsedByUnit = new Map<string, typeof meal.dishes[number]>();
+               let parsedPreparations: typeof meal.preparations = [];
+               const unsafeUnits: string[] = [];
++              /** Les unités dont le parseur avait jeté NOTRE propre adresse. */
++              let ownersRestored = 0;
+               const bitesParUnite = new Set<string>();
+               for (const { unitId, payload } of pont.payloads) {
+                 const une = parseGeneratedMeal({
+@@ -17985,7 +18111,49 @@
+                   continue;
+                 }
+                 const plat = une.dishes[0];
+-                if (plat !== undefined) parsedByUnit.set(unitId, plat);
++                if (plat !== undefined) {
++                  // ══════════════════════════════════════════════════════
++                  // ⟳ 2026-09-13 · LOT 1 D'ATTRIBUTION — LE PROPRIÉTAIRE EST
++                  //                LE NÔTRE, ET LE PARSEUR LE JETAIT
++                  // ══════════════════════════════════════════════════════
++                  //
++                  // ⛔ CE QUI DISPARAISSAIT, ET OÙ. `patchDishPayloads`
++                  // (`plan_repair_patch.ts:1018`) EFFACE ce que le modèle
++                  // aurait écrit et REPOSE `for_member_id` depuis la table des
++                  // unités — c'est le serveur qui adresse, pas le modèle.
++                  // `parseGeneratedMeal` le relit ensuite comme s'il venait du
++                  // modèle (`meal_generation.ts` ≈ 8027) et le jette quand la
++                  // personne n'est pas dans `dishBearerIds` ou quand la
++                  // consigne du PREMIER JET n'avait pas réclamé de plat dédié :
++                  //
++                  //   dishes[0]: for_member_id on a shared dish (no dedicated
++                  //              dish was asked), dropped
++                  //   dishes[0]: for_member_id "62b33b69…" is not a mouth that
++                  //              gets its own dish, dropped
++                  //
++                  // Mesuré au rejeu gratuit du tir N=2 du 2026-09-13 : les
++                  // quatre compléments perdaient leur porteur, devenaient des
++                  // plats de TABLE, et chaque bouche se retrouvait nommée sur
++                  // deux couvercles à la même case ⇒ `unfed:double` ⇒
++                  // `mouth_unfed` bloquant. Un repas rendu absent par notre
++                  // propre écriture.
++                  //
++                  // ⛔ CE N'EST PAS UN ASSOUPLISSEMENT. On ne lit RIEN de la
++                  // réponse : `unite.ownerId` vient de `RepairUnitIndex`, bâti
++                  // sur le plan et sur nos propres réservations. Les deux
++                  // portes du parseur continuent de garder ce que le MODÈLE
++                  // déclare, et ce chemin ne les traverse pas.
++                  //
++                  // ⚠️ ON NE POSE JAMAIS DE PROPRIÉTAIRE OÙ L'UNITÉ N'EN A PAS :
++                  // donner un porteur à un plat de la maison le retirerait à
++                  // tous les autres, très exactement l'inverse du défaut.
++                  const unite = c4Units.byId.get(unitId) ?? null;
++                  if (unite !== null && unite.ownerId !== null) {
++                    if (String(plat.memberId ?? "") !== unite.ownerId) ownersRestored++;
++                    (plat as { memberId: string | null }).memberId = unite.ownerId;
++                  }
++                  parsedByUnit.set(unitId, plat);
++                }
+               }
+               // ══════════════════════════════════════════════════════════
+               // ⛔ UNE RÉPARATION DE CASSEROLE SEULE DOIT ÊTRE LUE
+@@ -18018,6 +18186,18 @@
+                   units: unsafeUnits,
+                 }));
+               }
++              // ⛔ COMPTÉ, ET C'EST LE COMPTEUR QUI DIT SI LE TROU EST FERMÉ.
++              // Un `0` ici sur un patch qui porte des compléments voudrait dire
++              // que le parseur a gardé notre adresse ; un nombre > 0 dit
++              // combien de fois il l'a jetée et combien de repas ont été sauvés.
++              console.info(JSON.stringify({
++                tag: "keel.household_meal.patch_owner_restored",
++                request_id: requestId,
++                user_id: userId,
++                round: c4Round,
++                restored: ownersRestored,
++                units: pont.payloads.length,
++              }));
+               const parsedPatch = {
+                 dishes: [...parsedByUnit.values()],
+                 preparations: parsedPreparations,
+@@ -18073,18 +18253,49 @@
+                   // recevrait son assiette ENTIÈRE **plus** le complément —
+                   // c'est-à-dire deux fois sa cible. `appendDedicatedDishes` le
+                   // posait ; c'est maintenant à ce site de le poser.
++                  // ══════════════════════════════════════════════════════
++                  // ⟳ 2026-09-13 · LOT 1 D'ATTRIBUTION — LA MARQUE SE POSAIT
++                  //                SUR LE PLAT QUI EXISTAIT DÉJÀ
++                  // ══════════════════════════════════════════════════════
++                  //
++                  // ⛔ LE GESTE RETIRÉ : un `find` sur `jour/moment/porteur`.
++                  // À une case où la personne a DÉJÀ son plat dédié, ce triplet
++                  // désigne DEUX plats — l'ancien et le complément qu'on vient
++                  // de créer — et `find` rend le PREMIER, c'est-à-dire
++                  // l'ancien. Mesuré au rejeu gratuit du tir N=4 du
++                  // 2026-09-13 : `complementsShared` posé sur U4 et U10, les
++                  // deux plats que le modèle venait de réécrire ; le contrôle
++                  // du complément les a jugés insolubles et la lane les a
++                  // RETIRÉS du plan (`dedicated_repair_unsolvable`, deux fois
++                  // « Tofu doré du lot commun et graines de courge »). La
++                  // réparation disparaissait, les compléments restaient.
++                  //
++                  // ⛔ L'IDENTITÉ, PAS L'ADRESSE. `applyRepairPatch` POUSSE
++                  // l'objet même que `parsedByUnit` porte (`dishes.push(a.dish)`,
++                  // `plan_repair_patch.ts` ≈ 683) : le plat créé se reconnaît à
++                  // sa référence, et aucun plat d'avant ne peut la partager.
+                   for (const unitId of c4Fusion.created) {
+                     const unite = c4Units.byId.get(unitId) ?? null;
+                     if (unite === null || !unite.isComplement) continue;
+-                    const ajoute = (c4Fusion.plan.dishes as typeof meal.dishes)
+-                      .find((d) =>
+-                        String(d.day ?? "") === unite.dayToken &&
+-                        String(d.slot ?? "") === unite.slot &&
+-                        String(d.memberId ?? "") === String(unite.ownerId ?? "")
+-                      );
++                    const attendu = parsedByUnit.get(unitId);
++                    const ajoute = attendu !== undefined &&
++                        (c4Fusion.plan.dishes as readonly unknown[]).includes(attendu)
++                      ? attendu
++                      : undefined;
+                     if (ajoute !== undefined) {
+                       (ajoute as { complementsShared?: true }).complementsShared =
+                         true;
++                    } else {
++                      // ⛔ NOMMÉ. Un complément créé qu'on ne retrouve pas dans
++                      // le plan fusionné servirait la personne DEUX fois, et le
++                      // silence est ce qui a coûté ce lot.
++                      console.warn(JSON.stringify({
++                        tag: "keel.household_meal.complement_unmarked",
++                        request_id: requestId,
++                        user_id: userId,
++                        round: c4Round,
++                        unit_id: unitId,
++                      }));
+                     }
+                   }
+                   // ⛔ LE TEXTE SOURCE SUIT LA FUSION, PAS LA CANDIDATE. Le

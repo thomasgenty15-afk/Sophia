@@ -1,0 +1,39 @@
+-- KEEL — LE BUDGET N'EST PLUS UN ADJECTIF.
+--
+-- ── CE QUE CETTE MIGRATION CHANGE, ET CE QU'ELLE NE CHANGE PAS ─────────────
+-- Elle ne touche AUCUNE donnée et n'ajoute aucune colonne: `practical_constraints`
+-- est un jsonb, et la clé qui compte (`budget_amount`) y entre sans DDL. Elle
+-- corrige le COMMENTAIRE de la colonne, et rien d'autre.
+--
+-- ── POURQUOI C'EST UNE MIGRATION ET PAS UN DÉTAIL ─────────────────────────
+-- Ce commentaire est la seule DOCUMENTATION des clés connues de ce jsonb. Il
+-- nommait `budget_band` — trois mots, « tight / normal / comfortable » — qui
+-- n'a plus un seul lecteur depuis ce lot. Une contrainte documentée survit à sa
+-- cause: le prochain qui ouvrira cette colonne pour y ajouter quelque chose
+-- lira « budget_band » comme une clé vivante, l'écrira, et personne ne le
+-- verra — le générateur ne la lit plus.
+--
+-- Ce dépôt a déjà payé cette forme-là de dette exactement: une règle écrite
+-- dans un COMMENTAIRE, plus aucun code derrière, et six mois plus tard un
+-- écran qui la respecte.
+--
+-- ── CE QUE `budget_amount` VEUT DIRE ──────────────────────────────────────
+-- Un MONTANT, dans la monnaie du pays de l'élève (`profiles.country`, que le
+-- prompt porte déjà pour les saisons). Il couvre la liste de courses ENTIÈRE
+-- du plan qu'on est en train de composer.
+--
+-- Il est écrit par les écrans qui COMPOSENT (l'entrée, le constructeur de
+-- repas, la carte de composition du foyer), juste avant d'appeler le
+-- générateur, et relu par lui dans cette colonne. Sa persistance ne sert qu'à
+-- PRÉ-REMPLIR la question suivante: c'est un défaut proposé, pas un réglage de
+-- profil. Un écran qui composerait sans montrer le champ ferait revenir le
+-- défaut que ce lot ferme — un adjectif saisi une fois, appliqué en silence à
+-- toutes les semaines suivantes, y compris celle où on reçoit du monde.
+--
+-- Les lignes écrites avant aujourd'hui gardent leur clé `budget_band`. Elle
+-- n'est pas convertie: « normal » ne désigne pas une somme, et en inventer une
+-- serait écrire à la place de quelqu'un un chiffre qui décide de ses courses.
+-- Elle est simplement ignorée, et la première composition la remplace.
+
+comment on column public.student_goals.practical_constraints is
+  'Contraintes pratiques STRUCTURÉES, sur lesquelles le générateur branche (par opposition à `situation`, qu''il ne fait que lire). Clés connues: cooking_time_min, cook_days[], recipe_difficulty, variety, budget_amount, eats_out_per_week, no_cook_days[], away_days[], et eating_rhythm[] = [{"slot":"breakfast"|"snack_am"|"lunch"|"snack_pm"|"dinner"|"before_bed", "at":"HH:MM"|null}] — les moments où l''élève mange sur une journée normale. L''heure est FACULTATIVE: « je grignote l''après-midi » vaut sans « à 17h », et une heure inventée deviendrait une contrainte que personne n''a exprimée. `budget_amount` est un MONTANT (monnaie du pays de l''élève) qui couvre la liste de courses entière du plan composé; il remplace `budget_band` (« tight/normal/comfortable »), qui n''a plus aucun lecteur depuis le 2026-08-13 et n''est PAS converti — un adjectif ne désigne pas une somme. Sa persistance ne sert qu''à pré-remplir la question posée à la composition suivante.';

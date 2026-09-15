@@ -1,0 +1,63 @@
+horloge: 2026-08-08T12:42:51.976Z — Asia/Bangkok = 2026-08-08 19h
+soir simulé: 2026-08-08T14:15:00.000Z (21h15 Asia/Bangkok) — ≥ réel: true
+decideAskCadence({daysSinceLastAsk:1}) → ask=false (too_soon) — la question de pratique est atteignable: true
+
+============================================================================
+▌ ORDRE B · run 1 — élève 8c23fba7-f7d0-47e5-bdc2-cdcaae9d4e0f
+============================================================================
+— FF-028 · runRecommendationStep (19h-20h local)
+  → {"outcome":"proposed","proposalId":"87afa472-ebe2-494d-a394-0ae126044c80","action":"add_afternoon_snack","fingerprint":"rhythm=breakfast,dinner,lunch|doctrine=1"}
+  ledger: 1 ligne(s)
+— FF-029 · composeRecapBody (21h local, pulseAsks=false)
+  → {"source":"composed","reason":"","practiceMode":"remind","body":"Bud, you ticked off chicken and greens and beef and root vegetables today. Sit down to eat, away from a screen."}
+  ledger: 1 ligne(s)
+— FF-025 · repas HORS PLAN déclaré (chat)
+  → Noted — you had takeaway pizza for dinner.  If you want, I can help you fit the next meal around a protein anchor and vegetables.
+  ledger: 1 ligne(s)
+— FF-017 · repas vague déclaré (chat)
+  → Chicken at lunch is noted.
+  ledger: 1 ligne(s)
+
+LEDGER FINAL (1 ligne(s)):
+  daily_recommendation|2026-08-08|chat|-|You've told me more than once that you were still hungry, an
+VERDICT ordre B run 1: GREEN
+
+============================================================================
+▌ ORDRE B · run 2 — élève 1a41e321-acdc-498e-96c9-e8b56c07c414
+============================================================================
+— FF-028 · runRecommendationStep (19h-20h local)
+  → {"outcome":"proposed","proposalId":"4455b2ba-1057-48d2-8176-515df033c676","action":"add_afternoon_snack","fingerprint":"rhythm=breakfast,dinner,lunch|doctrine=1"}
+  ledger: 1 ligne(s)
+— FF-029 · composeRecapBody (21h local, pulseAsks=false)
+  → {"source":"composed","reason":"","practiceMode":"remind","body":"Bud, you ticked off chicken and greens and beef and root vegetables. Sit down to eat, away from a screen."}
+  ledger: 1 ligne(s)
+— FF-025 · repas HORS PLAN déclaré (chat)
+  → Noted. Dinner is on record as takeaway pizza for this evening.  For the plan, lunch still has two open pieces today: protein and vegetables.
+  ledger: 1 ligne(s)
+— FF-017 · repas vague déclaré (chat)
+  → Noted. Lunch now has protein on record.
+  ledger: 1 ligne(s)
+
+LEDGER FINAL (1 ligne(s)):
+  daily_recommendation|2026-08-08|chat|-|You've told me more than once that you were still hungry, an
+VERDICT ordre B run 2: GREEN
+
+============================================================================
+▌ ORDRE B · run 3 — élève d70d3233-15ac-4d5b-ab05-61f21781f1aa
+============================================================================
+— FF-028 · runRecommendationStep (19h-20h local)
+  → {"outcome":"proposed","proposalId":"1e32d728-7178-458a-a124-3eb7db18204f","action":"add_afternoon_snack","fingerprint":"rhythm=breakfast,dinner,lunch|doctrine=1"}
+  ledger: 1 ligne(s)
+— FF-029 · composeRecapBody (21h local, pulseAsks=false)
+  → {"source":"composed","reason":"","practiceMode":"remind","body":"Bud, you ticked off chicken and greens and beef and root vegetables today. Sit down to eat, away from a screen, with a protein anchor on the plate."}
+  ledger: 1 ligne(s)
+— FF-025 · repas HORS PLAN déclaré (chat)
+  → Got it. Dinner is in the book, and the dinner reminder for 2026-08-08 has just been handled.  If you want, I can help you look at what to do next around the meal structure.
+  ledger: 1 ligne(s)
+— FF-017 · repas vague déclaré (chat)
+  → Lunch protein is in for today.
+  ledger: 1 ligne(s)
+
+LEDGER FINAL (1 ligne(s)):
+  daily_recommendation|2026-08-08|chat|-|You've told me more than once that you were still hungry, an
+VERDICT ordre B run 3: GREEN

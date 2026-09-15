@@ -1,0 +1,392 @@
+{
+  "group": "extra",
+  "repeats": 3,
+  "students": [
+    "bf3e61c2-33a4-4715-b373-3a1a87fe79d5",
+    "7b24535b-282f-40c0-babf-1cdebc8115a4",
+    "c55ebf78-e97f-4a48-a979-3cd765696b55",
+    "896ceac2-2f7b-4f21-a7a6-9b084a0bf29b",
+    "02165369-7eae-4008-acd2-c71298f76b1c",
+    "05b40abc-0943-4883-b9cf-52917acef42d",
+    "73c775bf-504c-448c-9bc5-2a69fbc61ded",
+    "95cbb3d2-bfba-45c6-9c29-0970ba480815",
+    "bf5e0a75-6475-4969-b8c5-84517f3be95e",
+    "573014e0-7a01-453e-a0ad-e235bcacc213",
+    "2e31ce94-fafe-4560-bec8-a7388af85a0d",
+    "10170f92-2a83-4f69-b222-2bb127d042b0",
+    "6a48c479-ac71-4c66-a4ba-efb5612de5db",
+    "f9479cab-6a70-4b78-b8cb-09275c0db536",
+    "487ded59-5d3d-4e53-b2e0-3a8868c38388"
+  ],
+  "results": [
+    {
+      "id": "X1",
+      "level": "extra",
+      "run": 1,
+      "ok": false,
+      "detail": "RÉTRACTATION SANS EFFET: 1 ligne(s) comptent encore — poultry | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+      "replies": [
+        "Noted: protein at lunch is covered for today.  And what did you have with it?",
+        "Got it — then protein at lunch isn’t covered yet today."
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X3",
+      "level": "extra",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken alone is mostly just protein. If it was your lunch protein, that part is covered; the main thing that would still matter is whether you also had the vegetables.  And what did you have with it?",
+        "Eggs later add more protein, but they don’t cover the vegetables line. So your lunch protein side looks covered; the missing piece is still the veg."
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "lean_protein | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US",
+        "eggs | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER lean_protein",
+        "FLOOR [{\"food_group_ref\": \"eggs\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X5",
+      "level": "extra",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "For tonight’s lunch slot, I only have protein and vegetables listed. Pizza is fine as a meal, but it doesn’t cover those two items on its own.  If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries.",
+        "Chicken covers the protein for lunch.  It doesn’t cover the vegetables yet."
+      ],
+      "questions": [],
+      "ledger": [
+        "photo_invitation | chat | - | 2026-08-08 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+      ],
+      "events": [
+        "- | slot=dinner | src=chat | rel=off_plan | dq=NULL | evw=0.8 | loc=en-US",
+        "lean_protein | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER -",
+        "FLOOR []"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X1b",
+      "level": "extra",
+      "run": 1,
+      "ok": false,
+      "detail": "RÉTRACTATION SANS EFFET: 3 ligne(s) comptent encore — whole_grain | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR ;; cruciferous_veg | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR ;; poultry | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+      "replies": [
+        "cruciferous vegetables is outside what your coach set for the lean protein line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+        "Got it — then that meal isn’t something you ate after all.  If you want, I can just treat it as a correction and move on."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [
+        "whole_grain | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "cruciferous_veg | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "poultry | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"whole_grain\"}, {\"food_group_ref\": \"cruciferous_veg\"}, {\"food_group_ref\": \"poultry\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X2",
+      "level": "extra",
+      "run": 1,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken counts as protein at lunch.  And what did you have with it?",
+        "A banana is a fruit, not a protein or a vegetable. For dinner, that means you’ve only got a light carb/fibre item there."
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "lean_protein | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US",
+        "other_fruit | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER lean_protein",
+        "FLOOR [{\"food_group_ref\": \"other_fruit\"}]"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X1",
+      "level": "extra",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Lunch protein is covered: you had chicken at midday.  And what did you have with it?",
+        "Got it — then lunch protein wasn’t covered after all."
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "- | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "DISPATCHER poultry",
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X3",
+      "level": "extra",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken is a solid lunch protein. If you want to keep it aligned with the day, the other lunch item still sitting there is vegetables.  And what did you have with it?",
+        "Eggs later count as protein too. So you’ve got protein covered at lunch and again later; the missing piece from the lunch slot is still vegetables."
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "lean_protein | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US",
+        "eggs | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER lean_protein",
+        "FLOOR []"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X5",
+      "level": "extra",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "That’s a dinner, so it makes sense as the evening meal. If you want, I can help you think through how to fit the rest of the day around it.  If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries.",
+        "Chicken is a solid protein. If you had it at lunch, that fits the protein line for today."
+      ],
+      "questions": [],
+      "ledger": [
+        "photo_invitation | chat | - | 2026-08-08 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+      ],
+      "events": [
+        "- | slot=dinner | src=chat | rel=off_plan | dq=NULL | evw=0.8 | loc=en-US",
+        "lean_protein | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "FLOOR []",
+        "DISPATCHER lean_protein"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X1b",
+      "level": "extra",
+      "run": 2,
+      "ok": false,
+      "detail": "RÉTRACTATION SANS EFFET: 3 ligne(s) comptent encore — whole_grain | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR ;; cruciferous_veg | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR ;; poultry | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+      "replies": [
+        "You had protein and vegetables at lunch, and the lunch is now recorded.",
+        "Got it — then I don’t count that lunch as reported. If you want, send me what you actually had."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [
+        "whole_grain | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "cruciferous_veg | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "poultry | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"whole_grain\"}, {\"food_group_ref\": \"cruciferous_veg\"}, {\"food_group_ref\": \"poultry\"}]",
+        "DISPATCHER -"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X2",
+      "level": "extra",
+      "run": 2,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken gives you protein, which lines up with the lunch protein target. If there were vegetables with it, that would cover the other lunch line too.  And what did you have with it?",
+        "A banana gives you some carbs and a bit of fiber, but not much protein.  If dinner was just that, it’s light on the meal balance side."
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "lean_protein | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US",
+        "other_fruit | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER lean_protein",
+        "DISPATCHER other_fruit"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X1",
+      "level": "extra",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken at lunch fits the protein line for today’s lunch.  And what did you have with it?",
+        "Got it — then I treat the chicken as not eaten."
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "- | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "DISPATCHER poultry"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X3",
+      "level": "extra",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken is a decent protein choice. For lunch, the two things that matter from your plan are protein and vegetables — if the chicken was your protein, the remaining gap is the veg.  And what did you have with it?",
+        "Eggs later is another protein hit. For lunch, chicken plus eggs covers the protein side; the only thing still worth checking from the lunch lines is whether you also got some vegetables."
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US",
+        "eggs | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER poultry",
+        "DISPATCHER eggs"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X5",
+      "level": "extra",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Got it — pizza tonight is a reasonable call. If you want, I can help you judge it against the lunch protein/veg lines you have today.  If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries.",
+        "Chicken counts for the lunch protein line. If there were any vegetables with it too, that would cover the other lunch line as well."
+      ],
+      "questions": [],
+      "ledger": [
+        "photo_invitation | chat | - | 2026-08-08 | If you have a photo of it, send it over: even a rough one tells me more than a description, and if you don't, no worries."
+      ],
+      "events": [
+        "fried_food | slot=dinner | src=chat | rel=off_plan | dq=NULL | evw=0.8 | loc=en-US",
+        "lean_protein | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER fried_food",
+        "DISPATCHER lean_protein"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X1b",
+      "level": "extra",
+      "run": 3,
+      "ok": false,
+      "detail": "RÉTRACTATION SANS EFFET: 3 ligne(s) comptent encore — whole_grain | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR ;; cruciferous_veg | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR ;; poultry | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+      "replies": [
+        "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+        "Got it — then nothing is written for that meal. I’m only seeing your lunch items as unreported, not missed."
+      ],
+      "questions": [],
+      "ledger": [],
+      "events": [
+        "whole_grain | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "cruciferous_veg | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR",
+        "poultry | slot=lunch | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=fr-FR"
+      ],
+      "writers": [
+        "FLOOR [{\"food_group_ref\": \"whole_grain\"}, {\"food_group_ref\": \"cruciferous_veg\"}, {\"food_group_ref\": \"poultry\"}]",
+        "DISPATCHER -"
+      ],
+      "ghostAck": null
+    },
+    {
+      "id": "X2",
+      "level": "extra",
+      "run": 3,
+      "ok": true,
+      "detail": "OK",
+      "replies": [
+        "Chicken gives you protein. If that was lunch today, it fits the protein line.  And what did you have with it?",
+        "A banana gives you a little carbohydrate, but it’s not much of a dinner on its own.  If that was your dinner, it doesn’t really cover protein or vegetables."
+      ],
+      "questions": [
+        "And what did you have with it?"
+      ],
+      "ledger": [
+        "meal_precision_question | text | accompaniment | 2026-08-08 | And what did you have with it?"
+      ],
+      "events": [
+        "poultry | slot=NULL | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US",
+        "other_fruit | slot=dinner | src=chat | rel=NULL | dq=NULL | evw=0.8 | loc=en-US"
+      ],
+      "writers": [
+        "DISPATCHER poultry",
+        "FLOOR [{\"food_group_ref\": \"other_fruit\"}]"
+      ],
+      "ghostAck": null
+    }
+  ]
+}

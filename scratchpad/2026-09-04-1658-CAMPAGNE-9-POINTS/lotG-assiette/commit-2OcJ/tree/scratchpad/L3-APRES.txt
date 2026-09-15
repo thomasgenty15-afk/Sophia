@@ -1,0 +1,405 @@
+=========== REJEU 1 ===========
+{
+  "rejeu": 1,
+  "studentId": "3efec8de-fa16-4e52-932c-c2d468a9b13a",
+  "S0": {
+    "state": "S0_risk_band_absent",
+    "dbRow": [],
+    "isRestrictionFlagged": false,
+    "synthesisFlagged": false,
+    "reengage": {
+      "decision": "send",
+      "tone": "gentle",
+      "hoursSilent": null
+    },
+    "reengageHttp": {
+      "status": 200,
+      "candidates": 1,
+      "skipped_by_reason": {},
+      "sent": 0,
+      "armed": 1
+    },
+    "weeklyFlow": {
+      "decision": "send"
+    },
+    "recommendation": {
+      "decision": "silent",
+      "reason": "nothing_significant"
+    },
+    "practicesKept": [
+      "Two glasses of water before lunch",
+      "Sit down to eat"
+    ],
+    "practiceMode": "ask",
+    "coachLine": {
+      "riskBand": "disengaged",
+      "flagReason": "silent_5d",
+      "severity": 1
+    },
+    "coachStudentPageRead": {
+      "rows": 0,
+      "bannerShown": false
+    }
+  },
+  "S1": {
+    "state": "S1_restriction_flag",
+    "dbRow": [
+      {
+        "id": "635248a6-c041-442c-ba2f-c689b619fd17",
+        "week_start_date": "2026-07-27",
+        "risk_band": "restriction_flag",
+        "plan_version_id": null,
+        "content_locale": "fr-FR"
+      }
+    ],
+    "isRestrictionFlagged": false,
+    "synthesisFlagged": false,
+    "reengage": {
+      "decision": "send",
+      "tone": "gentle",
+      "hoursSilent": null
+    },
+    "reengageHttp": {
+      "status": 200,
+      "candidates": 1,
+      "skipped_by_reason": {},
+      "sent": 0,
+      "armed": 1
+    },
+    "weeklyFlow": {
+      "decision": "send"
+    },
+    "recommendation": {
+      "decision": "silent",
+      "reason": "nothing_significant"
+    },
+    "practicesKept": [
+      "Two glasses of water before lunch",
+      "Sit down to eat"
+    ],
+    "practiceMode": "ask",
+    "coachLine": {
+      "riskBand": "disengaged",
+      "flagReason": "silent_5d",
+      "severity": 1
+    },
+    "coachStudentPageRead": {
+      "rows": 1,
+      "bannerShown": true
+    }
+  },
+  "escalation": {
+    "escalated": true,
+    "reason": "raised",
+    "contractChangeRequestId": "f0de278e-d29b-414c-972a-88a6865b359c"
+  },
+  "S2": {
+    "state": "S2_escalade_vivante_sans_risk_band",
+    "dbRow": [],
+    "isRestrictionFlagged": false,
+    "synthesisFlagged": true,
+    "reengage": {
+      "decision": "send",
+      "tone": "gentle",
+      "hoursSilent": null
+    },
+    "reengageHttp": {
+      "status": 200,
+      "candidates": 1,
+      "skipped_by_reason": {},
+      "sent": 0,
+      "armed": 1
+    },
+    "weeklyFlow": {
+      "decision": "send"
+    },
+    "recommendation": {
+      "decision": "silent",
+      "reason": "nothing_significant"
+    },
+    "practicesKept": [
+      "Two glasses of water before lunch",
+      "Sit down to eat"
+    ],
+    "practiceMode": "ask",
+    "coachLine": {
+      "riskBand": "restriction_flag",
+      "flagReason": "restriction_signal",
+      "severity": 0
+    },
+    "coachStudentPageRead": {
+      "rows": 0,
+      "bannerShown": false
+    }
+  }
+}
+=========== REJEU 2 ===========
+{
+  "rejeu": 2,
+  "studentId": "b83c0ae4-f9ae-40bd-ada6-c43e3bc8f2f4",
+  "S0": {
+    "state": "S0_risk_band_absent",
+    "dbRow": [],
+    "isRestrictionFlagged": false,
+    "synthesisFlagged": false,
+    "reengage": {
+      "decision": "send",
+      "tone": "gentle",
+      "hoursSilent": null
+    },
+    "reengageHttp": {
+      "status": 200,
+      "candidates": 1,
+      "skipped_by_reason": {},
+      "sent": 0,
+      "armed": 1
+    },
+    "weeklyFlow": {
+      "decision": "send"
+    },
+    "recommendation": {
+      "decision": "silent",
+      "reason": "nothing_significant"
+    },
+    "practicesKept": [
+      "Two glasses of water before lunch",
+      "Sit down to eat"
+    ],
+    "practiceMode": "ask",
+    "coachLine": {
+      "riskBand": "disengaged",
+      "flagReason": "silent_5d",
+      "severity": 1
+    },
+    "coachStudentPageRead": {
+      "rows": 0,
+      "bannerShown": false
+    }
+  },
+  "S1": {
+    "state": "S1_restriction_flag",
+    "dbRow": [
+      {
+        "id": "81c09cd7-0542-477c-b919-256368d0a714",
+        "week_start_date": "2026-07-27",
+        "risk_band": "restriction_flag",
+        "plan_version_id": null,
+        "content_locale": "fr-FR"
+      }
+    ],
+    "isRestrictionFlagged": false,
+    "synthesisFlagged": false,
+    "reengage": {
+      "decision": "send",
+      "tone": "gentle",
+      "hoursSilent": null
+    },
+    "reengageHttp": {
+      "status": 200,
+      "candidates": 1,
+      "skipped_by_reason": {},
+      "sent": 0,
+      "armed": 1
+    },
+    "weeklyFlow": {
+      "decision": "send"
+    },
+    "recommendation": {
+      "decision": "silent",
+      "reason": "nothing_significant"
+    },
+    "practicesKept": [
+      "Two glasses of water before lunch",
+      "Sit down to eat"
+    ],
+    "practiceMode": "ask",
+    "coachLine": {
+      "riskBand": "disengaged",
+      "flagReason": "silent_5d",
+      "severity": 1
+    },
+    "coachStudentPageRead": {
+      "rows": 1,
+      "bannerShown": true
+    }
+  },
+  "escalation": {
+    "escalated": true,
+    "reason": "raised",
+    "contractChangeRequestId": "724a1a4a-ec92-4aa5-ac36-2a6189ad6202"
+  },
+  "S2": {
+    "state": "S2_escalade_vivante_sans_risk_band",
+    "dbRow": [],
+    "isRestrictionFlagged": false,
+    "synthesisFlagged": true,
+    "reengage": {
+      "decision": "send",
+      "tone": "gentle",
+      "hoursSilent": null
+    },
+    "reengageHttp": {
+      "status": 200,
+      "candidates": 1,
+      "skipped_by_reason": {},
+      "sent": 0,
+      "armed": 1
+    },
+    "weeklyFlow": {
+      "decision": "send"
+    },
+    "recommendation": {
+      "decision": "silent",
+      "reason": "nothing_significant"
+    },
+    "practicesKept": [
+      "Two glasses of water before lunch",
+      "Sit down to eat"
+    ],
+    "practiceMode": "ask",
+    "coachLine": {
+      "riskBand": "restriction_flag",
+      "flagReason": "restriction_signal",
+      "severity": 0
+    },
+    "coachStudentPageRead": {
+      "rows": 0,
+      "bannerShown": false
+    }
+  }
+}
+=========== REJEU 3 ===========
+{
+  "rejeu": 3,
+  "studentId": "688d824d-8fcc-4ba5-807c-c15a825483a3",
+  "S0": {
+    "state": "S0_risk_band_absent",
+    "dbRow": [],
+    "isRestrictionFlagged": false,
+    "synthesisFlagged": false,
+    "reengage": {
+      "decision": "send",
+      "tone": "gentle",
+      "hoursSilent": null
+    },
+    "reengageHttp": {
+      "status": 200,
+      "candidates": 1,
+      "skipped_by_reason": {},
+      "sent": 0,
+      "armed": 1
+    },
+    "weeklyFlow": {
+      "decision": "send"
+    },
+    "recommendation": {
+      "decision": "silent",
+      "reason": "nothing_significant"
+    },
+    "practicesKept": [
+      "Two glasses of water before lunch",
+      "Sit down to eat"
+    ],
+    "practiceMode": "ask",
+    "coachLine": {
+      "riskBand": "disengaged",
+      "flagReason": "silent_5d",
+      "severity": 1
+    },
+    "coachStudentPageRead": {
+      "rows": 0,
+      "bannerShown": false
+    }
+  },
+  "S1": {
+    "state": "S1_restriction_flag",
+    "dbRow": [
+      {
+        "id": "16685e56-f669-4677-b25e-dd2d6cc8c1cd",
+        "week_start_date": "2026-07-27",
+        "risk_band": "restriction_flag",
+        "plan_version_id": null,
+        "content_locale": "fr-FR"
+      }
+    ],
+    "isRestrictionFlagged": false,
+    "synthesisFlagged": false,
+    "reengage": {
+      "decision": "send",
+      "tone": "gentle",
+      "hoursSilent": null
+    },
+    "reengageHttp": {
+      "status": 200,
+      "candidates": 1,
+      "skipped_by_reason": {},
+      "sent": 0,
+      "armed": 1
+    },
+    "weeklyFlow": {
+      "decision": "send"
+    },
+    "recommendation": {
+      "decision": "silent",
+      "reason": "nothing_significant"
+    },
+    "practicesKept": [
+      "Two glasses of water before lunch",
+      "Sit down to eat"
+    ],
+    "practiceMode": "ask",
+    "coachLine": {
+      "riskBand": "disengaged",
+      "flagReason": "silent_5d",
+      "severity": 1
+    },
+    "coachStudentPageRead": {
+      "rows": 1,
+      "bannerShown": true
+    }
+  },
+  "escalation": {
+    "escalated": true,
+    "reason": "raised",
+    "contractChangeRequestId": "1e8609a4-91c5-4ca7-aa37-b4599834e868"
+  },
+  "S2": {
+    "state": "S2_escalade_vivante_sans_risk_band",
+    "dbRow": [],
+    "isRestrictionFlagged": false,
+    "synthesisFlagged": true,
+    "reengage": {
+      "decision": "send",
+      "tone": "gentle",
+      "hoursSilent": null
+    },
+    "reengageHttp": {
+      "status": 200,
+      "candidates": 1,
+      "skipped_by_reason": {},
+      "sent": 0,
+      "armed": 1
+    },
+    "weeklyFlow": {
+      "decision": "send"
+    },
+    "recommendation": {
+      "decision": "silent",
+      "reason": "nothing_significant"
+    },
+    "practicesKept": [
+      "Two glasses of water before lunch",
+      "Sit down to eat"
+    ],
+    "practiceMode": "ask",
+    "coachLine": {
+      "riskBand": "restriction_flag",
+      "flagReason": "restriction_signal",
+      "severity": 0
+    },
+    "coachStudentPageRead": {
+      "rows": 0,
+      "bannerShown": false
+    }
+  }
+}

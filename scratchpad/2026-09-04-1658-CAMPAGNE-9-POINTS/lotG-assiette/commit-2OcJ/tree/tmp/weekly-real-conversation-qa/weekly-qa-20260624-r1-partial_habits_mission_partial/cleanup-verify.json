@@ -1,0 +1,31 @@
+{
+  "run_id": "weekly-qa-20260624-r1-partial_habits_mission_partial",
+  "user_id": "3f752b92-bfdf-4798-99c0-02ba131e809b",
+  "checked_at": "2026-06-24T11:33:40.428Z",
+  "checks": {
+    "user_chat_states": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    },
+    "chat_messages": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    },
+    "scheduled_checkins": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    },
+    "profiles": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    }
+  }
+}

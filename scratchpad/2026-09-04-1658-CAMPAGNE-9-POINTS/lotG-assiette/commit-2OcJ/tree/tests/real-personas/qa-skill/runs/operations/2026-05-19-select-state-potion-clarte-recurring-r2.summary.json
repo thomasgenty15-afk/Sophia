@@ -1,0 +1,27 @@
+[
+  {
+    "turn": 1,
+    "request_id": "2026-05-19-select-state-potion-clarte-recurring-r2-t01",
+    "http_status": 504,
+    "ok": null,
+    "user": "Sophia, je veux une potion de clarté pour mes réunions du mardi et du jeudi à 8h30. J'arrive souvent flou ; j'ai besoin d'identifier le point prioritaire et la décision à faire avancer avant d'entrer en réunion.",
+    "assistant": "",
+    "empty_response": true,
+    "aborted": false,
+    "abort_reason": null,
+    "trace": {
+      "response_owner": null,
+      "selected_handler": null,
+      "route_reason_code": null,
+      "safety": null,
+      "direct_effects": null,
+      "executed_tools": [],
+      "tool_execution": null,
+      "tool_skill_run": null,
+      "pending_tool_skill_confirmation": null,
+      "memory_plan": null
+    },
+    "qa_diagnostic": null,
+    "error": "The upstream server is timing out"
+  }
+]

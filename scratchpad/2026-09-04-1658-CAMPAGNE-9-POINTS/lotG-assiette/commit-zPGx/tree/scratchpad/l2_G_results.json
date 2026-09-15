@@ -1,0 +1,92 @@
+[
+  {
+    "id": "G1 #1 crise: le FAIT photo est-il ecrit ?",
+    "verdict": "GREEN",
+    "detail": "status=200 protocol_events=1 [src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli florets] dropped=[]]",
+    "proof": null
+  },
+  {
+    "id": "G1 #1 crise: l'ACCUSE part-il quand meme ?",
+    "verdict": "GREEN",
+    "detail": "accuses=0 sollicitation=false texte=\"\"",
+    "proof": ""
+  },
+  {
+    "id": "G2 #1 plancher restriction: le FAIT photo est-il ecrit ?",
+    "verdict": "GREEN",
+    "detail": "status=200 protocol_events=1 [src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]]",
+    "proof": null
+  },
+  {
+    "id": "G2 #1 plancher restriction: l'ACCUSE part-il quand meme ?",
+    "verdict": "GREEN",
+    "detail": "accuses=0 sollicitation=false texte=\"\"",
+    "proof": ""
+  },
+  {
+    "id": "G3 #1 TEMOIN: fait ecrit ET accuse livre",
+    "verdict": "GREEN",
+    "detail": "status=200 protocol_events=1 accuses=1 texte=\"I see grilled chicken breast, brown rice, broccoli. I can see \"Protein at lunch\" and \"Vegetables at lunch\" here, but one photo cannot settle which one it is - tell me which one to count and I will log\"",
+    "proof": null
+  },
+  {
+    "id": "G1 #2 crise: le FAIT photo est-il ecrit ?",
+    "verdict": "GREEN",
+    "detail": "status=200 protocol_events=1 [src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]]",
+    "proof": null
+  },
+  {
+    "id": "G1 #2 crise: l'ACCUSE part-il quand meme ?",
+    "verdict": "GREEN",
+    "detail": "accuses=0 sollicitation=false texte=\"\"",
+    "proof": ""
+  },
+  {
+    "id": "G2 #2 plancher restriction: le FAIT photo est-il ecrit ?",
+    "verdict": "GREEN",
+    "detail": "status=200 protocol_events=1 [src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli florets] dropped=[]]",
+    "proof": null
+  },
+  {
+    "id": "G2 #2 plancher restriction: l'ACCUSE part-il quand meme ?",
+    "verdict": "GREEN",
+    "detail": "accuses=0 sollicitation=false texte=\"\"",
+    "proof": ""
+  },
+  {
+    "id": "G3 #2 TEMOIN: fait ecrit ET accuse livre",
+    "verdict": "GREEN",
+    "detail": "status=200 protocol_events=1 accuses=1 texte=\"I see grilled chicken breast, brown rice, broccoli. I can see \"Protein at lunch\" and \"Vegetables at lunch\" here, but one photo cannot settle which one it is - tell me which one to count and I will log\"",
+    "proof": null
+  },
+  {
+    "id": "G1 #3 crise: le FAIT photo est-il ecrit ?",
+    "verdict": "GREEN",
+    "detail": "status=200 protocol_events=1 [src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]]",
+    "proof": null
+  },
+  {
+    "id": "G1 #3 crise: l'ACCUSE part-il quand meme ?",
+    "verdict": "GREEN",
+    "detail": "accuses=0 sollicitation=false texte=\"\"",
+    "proof": ""
+  },
+  {
+    "id": "G2 #3 plancher restriction: le FAIT photo est-il ecrit ?",
+    "verdict": "GREEN",
+    "detail": "status=200 protocol_events=1 [src=photo disq=null subject=eaten_meal fgr=null band=moderate qty=null/null subst=null weight=1 analyzed=yes plan_rel=null foods=[grilled chicken breast, brown rice, broccoli] dropped=[]]",
+    "proof": null
+  },
+  {
+    "id": "G2 #3 plancher restriction: l'ACCUSE part-il quand meme ?",
+    "verdict": "GREEN",
+    "detail": "accuses=0 sollicitation=false texte=\"\"",
+    "proof": ""
+  },
+  {
+    "id": "G3 #3 TEMOIN: fait ecrit ET accuse livre",
+    "verdict": "GREEN",
+    "detail": "status=200 protocol_events=1 accuses=1 texte=\"I see grilled chicken breast, brown rice, broccoli. I can see \"Protein at lunch\" and \"Vegetables at lunch\" here, but one photo cannot settle which one it is - tell me which one to count and I will log\"",
+    "proof": null
+  }
+]

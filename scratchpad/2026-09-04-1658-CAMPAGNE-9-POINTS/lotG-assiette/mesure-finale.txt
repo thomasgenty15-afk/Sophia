@@ -1,0 +1,69 @@
+kong 900 s
+fa224681 un frais non résolu se juge contre la boîte entière, pas contre le frais seul : la garniture inconnue ne rend plus la casserole illisible
+══════ C03 (quatre, 7 j) · 02:10:53
+   http=200 · 343.916011 s · essais=1 · llm_usage delta=4
+   empreinte APRÈS=0daf6527d410 (inchangée ✓)
+   → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/plan-C03-20260906-021053.json (77791 octets) · journal 25 lignes
+   ⤺ fixture restaurée ✓
+══════ D01 (duo, 7 j) · 02:16:39
+   http=200 · 229.447845 s · essais=1 · llm_usage delta=3
+   empreinte APRÈS=0daf6527d410 (inchangée ✓)
+   → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/plan-D01-20260906-021639.json (56739 octets) · journal 26 lignes
+   ⤺ fixture restaurée ✓
+══════ C01 (solo, 7 j) · 02:20:30
+   http=200 · 80.567253 s · essais=1 · llm_usage delta=2
+   empreinte APRÈS=8008cb4cde2c (inchangée ✓)
+   → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/plan-C01-20260906-022030.json (42186 octets) · journal 25 lignes
+   ⤺ fixture restaurée ✓
+══════ LECTURE quatre plan-C03-20260906-021053.json
+════ plan-C03-20260906-021053.json · quatre
+TABLE   cible/jour 8571 kcal · déjeuner 3428 kcal ≈ 2540 g composés
+Claire         16     490         859             63            69
+Leo            16     490         859             63            69
+Nora           16     514         971             67            72
+Paul           16     525         949             66            75
+⚠️ termes non résolus (2): galette complete, galettes de ble complet
+MASSE NON RÉSOLUE (plats en boîtes, ingrédients en g) : 0 / 16235 g = 0 %
+MOYENNE  4488      302 g
+  unmet: {"none": 4, "factor_clamped": 1, "pot_ceiling": 4, "both": 1, "not_anchored": 18}
+  unmet_band: {"lt_200": 0, "gte_200": 6}
+  densify: moved 203 g · closed 231 kcal · remaining_gte_200 1 · stopped {"closed": 0, "floor": 2, "ceiling": 0, "pot_exhausted": 0, "no_dense_target": 0, "no_box": 0, "no_density": 0}
+  meals_delivered: missing 0 · retry_attempts 1 · merged 2
+  regime_belt: bites 16 separated 14 refused 2 citation_repaired 0 item_repaired 0
+  boîtes à un nom: 32 · g moyens 227 · min 76 · max 652
+── explication IA: {"lines": ["Les bases restent végétales et les protéines animales sont ajoutées séparément dans les boîtes prévues, afin de servir la table sans multiplier les recettes.", "Les protéines et les fruits changent au fil de la semaine pour garder des repas réguliers sans répéter le même plat trois jours de suite.", "Les produits frais sensibles sont achetés près de la session qui les utilise, ce qui rend les préparations réalistes cette semaine."], "refusal": null}
+── plats: 42 · titres distincts 41 · jours composés 7 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 7}) · sessions 3 · issues 30
+  anchor: {"anchored": 8, "day_incomplete": 4, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 2, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 14}
+  anchor_cap: {"none": 26, "density": 2, "density_floor": 0, "assumed_density": 0, "factor_bound": 0} · pot_attribution: {"drawnGrams": 14133, "attributedGrams": 12469, "ratio": 1.13, "potsUnreadable": 1}
+══════ LECTURE duo plan-D01-20260906-021639.json
+════ plan-D01-20260906-021639.json · duo
+TABLE   cible/jour 4186 kcal · déjeuner 1674 kcal ≈ 1240 g composés
+Julie          19    1065        1454             69           136
+Marc           19    1153        1592             75           141
+⚠️ termes non résolus (2): raviolis frais aux champignons, raviolis frais
+MASSE NON RÉSOLUE (plats en boîtes, ingrédients en g) : 1200 / 11669 g = 10 %
+MOYENNE  2511      155 g
+  unmet: {"none": 4, "factor_clamped": 0, "pot_ceiling": 5, "both": 5, "not_anchored": 0}
+  unmet_band: {"lt_200": 7, "gte_200": 3}
+  densify: moved 525 g · closed 476 kcal · remaining_gte_200 1 · stopped {"closed": 1, "floor": 4, "ceiling": 0, "pot_exhausted": 0, "no_dense_target": 0, "no_box": 0, "no_density": 0}
+  meals_delivered: missing 0 · retry_attempts 0 · merged 0
+  regime_belt: bites 0 separated 0 refused 0 citation_repaired 0 item_repaired 0
+  boîtes à un nom: 38 · g moyens 409 · min 125 · max 631
+── explication IA: {"lines": ["Les raviolis aux champignons restent au menu comme demandé; une version aux courgettes garde la même assiette avec un remplacement séparé.", "Le poulet, les boulettes, le saumon, le thon, les œufs et les laitages renforcent chaque repas principal avec un aliment protéiné."], "refusal": null}
+── plats: 21 · titres distincts 15 · jours composés 7 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 7}) · sessions 3 · issues 17
+  anchor: {"anchored": 9, "day_incomplete": 0, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 5, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 0}
+  anchor_cap: {"none": 9, "density": 5, "density_floor": 0, "assumed_density": 0, "factor_bound": 0} · pot_attribution: {"drawnGrams": 15524, "attributedGrams": 11537, "ratio": 1.35, "potsUnreadable": 0}
+══════ LECTURE solo plan-C01-20260906-022030.json
+════ plan-C01-20260906-022030.json · solo
+  sun   1873 kcal   152 g  complet
+  mon    664 kcal    89 g  1/2
+  tue   2445 kcal   191 g  complet
+  wed   2766 kcal   225 g  complet
+  thu   1456 kcal   176 g  2/3
+  fri   1360 kcal   126 g  2/3
+  sat    628 kcal   133 g  1/3
+  jours complets (3) : 2361 kcal/j = 115 % de 2059–2175 · protéine 189 g = 115 %
+  verdict: within under within · résolution 163/168 · non résolus: ['moutarde de dijon', 'jus de citron vert', 'curry en poudre', 'curry en poudre', 'curry en poudre']
+── explication IA: {"lines": ["Le poisson est placé jeudi et consommé le soir même ou le lendemain, car il est plus périssable que les autres préparations.", "Les petits-déjeuners restent des assemblages répétables, afin de garder des horaires réguliers sans ajouter une quatrième séance de cuisine."], "refusal": null}
+── plats: 20 · titres distincts 20 · jours composés 7 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 7}) · sessions 3 · issues 15
+fini 02:21:58

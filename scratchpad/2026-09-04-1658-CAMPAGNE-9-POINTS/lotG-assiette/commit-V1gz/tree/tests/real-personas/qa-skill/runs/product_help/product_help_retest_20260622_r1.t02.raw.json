@@ -1,0 +1,278 @@
+{
+  "http_status": 200,
+  "ok": true,
+  "body": {
+    "ok": true,
+    "request_id": "122b4838-39e1-4b52-b3b8-98fd8d3ed13f",
+    "user_id": "de8f6263-058e-4315-b728-790777f1f0f9",
+    "channel": "web",
+    "scope": "web",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "logged_message_id": null,
+    "latest_message_id": null,
+    "response": {
+      "content": "Plutôt une carte d’attaque si tu veux te remettre en mouvement sans toucher au plan. Mais pour te guider proprement : c’est quoi l’action qui te bloque ?",
+      "mode": "companion",
+      "delivery": null,
+      "tool_execution": "none",
+      "executed_tools": [],
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "122b4838-39e1-4b52-b3b8-98fd8d3ed13f",
+          "source_message_id": "3e97e760-8a47-4632-8163-ed141b02f730",
+          "user_id": "de8f6263-058e-4315-b728-790777f1f0f9",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {
+            "coaching_recommendation": {
+              "detected": true,
+              "confidence_band": "high",
+              "reason": "User asks which coaching lever to use to get moving now without changing the plan.",
+              "context": {
+                "coaching_type": "plan_action",
+                "confidence": 0.84,
+                "activation_checks": {
+                  "is_coaching_need": true,
+                  "is_about_plan_action": true,
+                  "is_about_non_plan_action": false,
+                  "is_about_emotional_state": false,
+                  "has_concrete_plan_action": false,
+                  "needs_type_confirmation": true
+                },
+                "action_context": {
+                  "source": "plan",
+                  "plan_item_id": null,
+                  "action_title": null,
+                  "plan_id": null,
+                  "plan_title": null,
+                  "action_type": "other"
+                },
+                "emotional_state_context": null,
+                "reason": "The user wants immediate movement without changing the plan, which is a plan-linked coaching need."
+              }
+            }
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "coaching_recommendation_followup",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "force_taxonomy",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "coaching_recommendation",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "coaching_recommendation_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "minimal_global_dispatcher",
+            "active_owner": "none",
+            "selected_owner": "coaching_recommendation",
+            "resume_policy": "none",
+            "reason_code": "coaching_recommendation_signal"
+          },
+          "selected_handler": "coaching_recommendation"
+        },
+        "effect_ledger": {
+          "turn_id": "122b4838-39e1-4b52-b3b8-98fd8d3ed13f",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "coaching_recommendation",
+        "skill_run": {
+          "selected_skill_id": "coaching_recommendation",
+          "reason_code": "coaching_recommendation_signal",
+          "status": "continue",
+          "latency_ms": 15774
+        }
+      }
+    },
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "122b4838-39e1-4b52-b3b8-98fd8d3ed13f",
+        "source_message_id": "3e97e760-8a47-4632-8163-ed141b02f730",
+        "user_id": "de8f6263-058e-4315-b728-790777f1f0f9",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "note_information": null,
+        "skill_signals": {
+          "coaching_recommendation": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "User asks which coaching lever to use to get moving now without changing the plan.",
+            "context": {
+              "coaching_type": "plan_action",
+              "confidence": 0.84,
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": true,
+                "is_about_non_plan_action": false,
+                "is_about_emotional_state": false,
+                "has_concrete_plan_action": false,
+                "needs_type_confirmation": true
+              },
+              "action_context": {
+                "source": "plan",
+                "plan_item_id": null,
+                "action_title": null,
+                "plan_id": null,
+                "plan_title": null,
+                "action_type": "other"
+              },
+              "emotional_state_context": null,
+              "reason": "The user wants immediate movement without changing the plan, which is a plan-linked coaching need."
+            }
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "coaching_recommendation_followup",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "force_taxonomy",
+          "plan_confidence": 0.7
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "coaching_recommendation",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "coaching_recommendation_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "minimal_global_dispatcher",
+          "active_owner": "none",
+          "selected_owner": "coaching_recommendation",
+          "resume_policy": "none",
+          "reason_code": "coaching_recommendation_signal"
+        },
+        "selected_handler": "coaching_recommendation"
+      },
+      "effect_ledger": {
+        "turn_id": "122b4838-39e1-4b52-b3b8-98fd8d3ed13f",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "coaching_recommendation",
+      "skill_run": {
+        "selected_skill_id": "coaching_recommendation",
+        "reason_code": "coaching_recommendation_signal",
+        "status": "continue",
+        "latency_ms": 15774
+      }
+    },
+    "trace_error": null
+  }
+}

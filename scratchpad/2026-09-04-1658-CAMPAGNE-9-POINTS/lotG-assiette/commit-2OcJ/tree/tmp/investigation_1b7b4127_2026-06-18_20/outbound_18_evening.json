@@ -1,0 +1,202 @@
+{
+  "rows": [
+    {
+      "id": "e2292b2e-9c2c-44c0-ade0-1d78e5849ef4",
+      "created_at": "2026-06-18T18:33:05.319307+00:00",
+      "request_id": "98e8b457-1e4b-424e-84ec-f3d96329515c",
+      "message_type": "template",
+      "status": "read",
+      "content_preview": "Coucou ! J’espère que ta soirée se passe ok.  \nPour aujourd’hui, comment ça s’est passé avec “Sanctuariser l'agenda du week-end” ?",
+      "provider_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBIzQjc2RDJBNzgyNzFGNzY0QjEA",
+      "attempt_count": 1,
+      "last_error_code": null,
+      "last_error_message": null,
+      "metadata": {
+        "source": "scheduled_checkin",
+        "purpose": "action_evening_review",
+        "proactive": true,
+        "event_context": "action_evening_review_v2",
+        "in_24h_window": false,
+        "plan_item_ids": [
+          "515951e2-d1a3-4b56-8b6a-627f38061f27"
+        ],
+        "template_name": "global_reach_template",
+        "unit_cost_eur": 0.0712,
+        "used_template": true,
+        "occurrence_ids": [
+          "797439ee-32ee-43c3-aac6-21977354c557"
+        ],
+        "require_opted_in": true,
+        "template_language": "fr",
+        "simulated_whatsapp": null,
+        "interactive_buttons": null,
+        "original_checkin_id": "9d499b50-db51-4a8e-876d-702e99109077",
+        "template_policy_priority": null,
+        "already_resolved_occurrence_ids": []
+      },
+      "graph_payload": {
+        "to": "33660778142",
+        "type": "template",
+        "template": {
+          "name": "global_reach_template",
+          "language": {
+            "code": "fr"
+          }
+        },
+        "messaging_product": "whatsapp"
+      }
+    },
+    {
+      "id": "eec0923e-e13c-40bb-9dc2-107751863d88",
+      "created_at": "2026-06-18T20:56:13.102612+00:00",
+      "request_id": "b1af9f06-c014-448a-a0fb-48bcf5042ab2",
+      "message_type": "text",
+      "status": "read",
+      "content_preview": "C'est noté, l'action est marquée comme terminée. On continue ?",
+      "provider_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI0Qjc0MzE2RDkxRUJDMURGMUQA",
+      "attempt_count": 1,
+      "last_error_code": null,
+      "last_error_message": null,
+      "metadata": {
+        "purpose": "action_evening_review",
+        "is_proactive": false
+      },
+      "graph_payload": {
+        "to": "33660778142",
+        "text": {
+          "body": "C'est noté, l'action est marquée comme terminée. On continue ?"
+        },
+        "type": "text",
+        "messaging_product": "whatsapp"
+      }
+    }
+  ],
+  "statuses": [
+    {
+      "id": "22d73974-63ab-45c2-9ce0-eec45b8c879b",
+      "created_at": "2026-06-18T18:33:15.969064+00:00",
+      "provider_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBIzQjc2RDJBNzgyNzFGNzY0QjEA",
+      "status": "sent",
+      "status_timestamp": "2026-06-18T18:33:14+00:00",
+      "recipient_id": "33660778142",
+      "raw": {
+        "id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBIzQjc2RDJBNzgyNzFGNzY0QjEA",
+        "status": "sent",
+        "pricing": {
+          "type": "regular",
+          "billable": true,
+          "category": "marketing",
+          "pricing_model": "PMP"
+        },
+        "timestamp": "1781807594",
+        "recipient_id": "33660778142",
+        "recipient_user_id": "FR.990923827138450"
+      }
+    },
+    {
+      "id": "3150a857-d2dd-424f-a539-fb9a6d623958",
+      "created_at": "2026-06-18T18:33:17.721238+00:00",
+      "provider_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBIzQjc2RDJBNzgyNzFGNzY0QjEA",
+      "status": "delivered",
+      "status_timestamp": "2026-06-18T18:33:16+00:00",
+      "recipient_id": "33660778142",
+      "raw": {
+        "id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBIzQjc2RDJBNzgyNzFGNzY0QjEA",
+        "status": "delivered",
+        "pricing": {
+          "type": "regular",
+          "billable": true,
+          "category": "marketing",
+          "pricing_model": "PMP"
+        },
+        "timestamp": "1781807596",
+        "recipient_id": "33660778142",
+        "recipient_user_id": "FR.990923827138450"
+      }
+    },
+    {
+      "id": "cf3cfec3-9ac1-4d70-b2bb-a110ad8c0c69",
+      "created_at": "2026-06-18T20:55:50.748159+00:00",
+      "provider_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBIzQjc2RDJBNzgyNzFGNzY0QjEA",
+      "status": "read",
+      "status_timestamp": "2026-06-18T20:55:49+00:00",
+      "recipient_id": "33660778142",
+      "raw": {
+        "id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBIzQjc2RDJBNzgyNzFGNzY0QjEA",
+        "status": "read",
+        "pricing": {
+          "type": "regular",
+          "billable": true,
+          "category": "marketing",
+          "pricing_model": "PMP"
+        },
+        "timestamp": "1781816149",
+        "recipient_id": "33660778142",
+        "recipient_user_id": "FR.990923827138450"
+      }
+    },
+    {
+      "id": "a1be49d4-896c-4187-97c6-cae67afa6061",
+      "created_at": "2026-06-18T20:56:15.746563+00:00",
+      "provider_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI0Qjc0MzE2RDkxRUJDMURGMUQA",
+      "status": "sent",
+      "status_timestamp": "2026-06-18T20:56:14+00:00",
+      "recipient_id": "33660778142",
+      "raw": {
+        "id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI0Qjc0MzE2RDkxRUJDMURGMUQA",
+        "status": "sent",
+        "pricing": {
+          "type": "free_customer_service",
+          "billable": false,
+          "category": "service",
+          "pricing_model": "PMP"
+        },
+        "timestamp": "1781816174",
+        "recipient_id": "33660778142",
+        "recipient_user_id": "FR.990923827138450"
+      }
+    },
+    {
+      "id": "15a88b48-1387-45eb-9a4f-92b8dcf7862b",
+      "created_at": "2026-06-18T20:56:17.371142+00:00",
+      "provider_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI0Qjc0MzE2RDkxRUJDMURGMUQA",
+      "status": "delivered",
+      "status_timestamp": "2026-06-18T20:56:16+00:00",
+      "recipient_id": "33660778142",
+      "raw": {
+        "id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI0Qjc0MzE2RDkxRUJDMURGMUQA",
+        "status": "delivered",
+        "pricing": {
+          "type": "free_customer_service",
+          "billable": false,
+          "category": "service",
+          "pricing_model": "PMP"
+        },
+        "timestamp": "1781816176",
+        "recipient_id": "33660778142",
+        "recipient_user_id": "FR.990923827138450"
+      }
+    },
+    {
+      "id": "e822a80c-659e-4b16-abae-703180542282",
+      "created_at": "2026-06-18T21:43:57.621687+00:00",
+      "provider_message_id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI0Qjc0MzE2RDkxRUJDMURGMUQA",
+      "status": "read",
+      "status_timestamp": "2026-06-18T21:43:55+00:00",
+      "recipient_id": "33660778142",
+      "raw": {
+        "id": "wamid.HBgLMzM2NjA3NzgxNDIVAgARGBI0Qjc0MzE2RDkxRUJDMURGMUQA",
+        "status": "read",
+        "pricing": {
+          "type": "free_customer_service",
+          "billable": false,
+          "category": "service",
+          "pricing_model": "PMP"
+        },
+        "timestamp": "1781819035",
+        "recipient_id": "33660778142",
+        "recipient_user_id": "FR.990923827138450"
+      }
+    }
+  ]
+}

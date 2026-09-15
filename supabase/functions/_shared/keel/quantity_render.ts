@@ -45,9 +45,19 @@
  * d'huile » là où la recette dit « 0,77 cuillère à soupe », c'est-à-dire un
  * nombre inventé présenté comme une mesure. Le plan l'interdit mot pour mot.
  *
+ * ⟳ C2 (2026-09-12) — ET C'EST TOUJOURS VRAI: LA CONVERSION A LIEU AVANT, SUR
+ * LA DONNÉE. `roundQuantityLines` (§ ⑤ bis) convertit « 0,77 cuillère à soupe »
+ * en « 12 ml » dans le champ `amount`/`unit` lui-même, avec les conversions du
+ * référentiel, puis fait mesurer le résultat. `renderQuantity` continue de ne
+ * rendre que ce que la donnée porte: il lit « 12 ml » et écrit « 12 ml ». Les
+ * deux règles ne se contredisent pas — l'une change la recette et se fait
+ * peser, l'autre n'a jamais le droit de le faire.
+ *
  * ⛔ AUCUNE SIMPLIFICATION CULINAIRE. Arrondir 458,66 g à « 450 g » pour faire
  * joli est un changement de la RECETTE, pas du rendu: il doit alors modifier la
- * donnée structurée AVANT la dernière mesure, et se faire mesurer. Ce module ne
+ * donnée structurée AVANT la dernière mesure, et se faire mesurer. ⟳ C2: c'est
+ * exactement ce que le propriétaire a décidé, et `roundQuantityLines` le fait —
+ * au gramme entier le plus proche (459), pas au « 450 » qui fait joli. Ce module ne
  * rend que ce que la donnée porte, à deux décimales au plus — un format, jamais
  * une décision. L'écart introduit par ce format est ≤ 0,005 unité et vient des
  * flottants (`458.66000000000003`), pas d'un choix de cuisine.
@@ -370,6 +380,336 @@ export function renderQuantity(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ⑤ bis ⟳ C2 (2026-09-12) — L'ARRONDI AU PLUS PROCHE, SUR LA DONNÉE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ CE QUE ÇA FERME, MESURÉ LE 2026-09-12 SUR LES NEUF PLANS DU BANC:
+// **326 lignes quantifiées sur 365 portaient une fraction décimale** — `2,13
+// hauts de cuisse de poulet`, `1,36 pain pita complet`, `0,39 cube de
+// bouillon`, `0,77 cuillère à soupe d'huile`, `294,62 g de yaourt`. Le run
+// nominal de C1 publiait encore `quantity_final.counted_fractional: 2`, et le
+// pavé du lot C renvoyait la décision « à trancher au lot D ». Elle est
+// tranchée: **le propriétaire a choisi d'arrondir**.
+//
+// ⛔ CE N'EST PAS UNE OPTIMISATION, C'EST UNE DÉCISION DE PRODUIT. Le plan de
+// clôture l'écrit en tête: « les quantités arrondies sont celles réellement
+// calculées, cuisinées, achetées et affichées. Pas de recherche du kcal exact
+// au prix de fractions d'œufs ou de morceaux de viande. » L'écart est absorbé
+// par les tolérances existantes (±10 % par créneau, ±5 % par journée
+// couverte). ⛔ Aucune optimisation n'est rouverte ici pour récupérer le kcal.
+//
+// ⛔ L'ARRONDI MODIFIE LA DONNÉE STRUCTURÉE, PAS SEULEMENT SON AFFICHAGE.
+// C'est la phrase du plan, et c'est la différence avec le lot C: `renderQuantity`
+// ne FORMATE que ce que la donnée porte (« ce module ne rend que ce que la
+// donnée porte… un format, jamais une décision »). Ici on change la donnée —
+// donc ce qu'on cuisine, ce qu'on achète et ce qu'on mesure — et tout ce qui
+// suit (grammes crus, calories, protéines, densités, courses, prose) doit être
+// recalculé DEPUIS cette version.
+//
+// ── LE BARÈME, TEL QUE LE PLAN L'ÉCRIT ─────────────────────────────────────
+//
+//   · pièce entière (`unit`) → entier le plus proche. 3,76 œufs → 4;
+//     2,13 morceaux de poulet → 2; 1,86 pita → 2.
+//   · aliment pesé (`g`)     → gramme entier le plus proche. 458,66 → 459.
+//   · volume (`ml`)          → millilitre entier le plus proche.
+//   · cuillères              → CONVERTIES en millilitres avec les conversions
+//     (`tbsp`/`tsp`)           connues du référentiel (15 ml · 5 ml), PUIS
+//                              arrondies. ⛔ « Ne pas arrondir aveuglément
+//                              0,77 cuillère à une cuillère: utiliser une
+//                              unité plus fine connue, puis appliquer la
+//                              règle. » 0,77 c. à s. → 11,55 ml → **12 ml**.
+//   · « une pincée »         → aucune donnée structurée, donc aucun arrondi.
+//                              La convention textuelle reste. ⛔ Une absence de
+//                              mesure ne devient JAMAIS un zéro.
+//
+// ⚠️ UNE CUILLÈRE DÉJÀ ENTIÈRE RESTE UNE CUILLÈRE, et c'est un arbitrage
+// explicite. « 2 cuillères à soupe » et « 30 ml » sont la MÊME quantité —
+// la conversion est exacte, pas approchée — et le barème ne demande de
+// convertir que pour ne pas « arrondir aveuglément » une fraction. Convertir
+// un nombre déjà entier ne change rien à ce qu'on verse et retire au cuisinier
+// le geste qu'il connaît. La règle mord donc exactement là où le défaut est.
+//
+// ⛔ ZÉRO N'EST PAS UNE SUPPRESSION. « Si l'arrondi donne zéro à un ingrédient
+// nécessaire: ne pas le supprimer silencieusement. Employer une présentation
+// divisible mesurable lorsqu'elle est déjà compatible avec la recette; sinon
+// rendre le cas à la réparation. Aucune conversion inventée. » Mesuré sur le
+// banc: **9 lignes sur 365** tombent à zéro, et ce sont 7 citrons (« la moitié
+// d'un citron » = 0,46), un cube de bouillon (0,39) et une cuillère d'huile
+// (0,36). La présentation plus fine n'est pas inventée: elle est DANS le
+// référentiel — `food_composition_refs.unit_grams` donne 60 g pour `lemon`,
+// 10 g pour `stock_cube`. 0,46 citron devient donc **28 g de citron**, à la
+// masse près. Quand le référentiel ne connaît pas le poids d'une pièce, la
+// ligne n'est PAS touchée, elle est NOMMÉE, et le cas part à la réparation.
+//
+// ⚠️ LA CONVERSION CONSERVE LA MASSE, ET C'EST CE QUI LA REND LÉGITIME.
+// `gramsRawOf` pèse `tbsp` par `amount × 15 × 1,0` et `unit` par
+// `amount × unitGrams`: convertir vers `ml` ou `g` avec les mêmes nombres rend
+// la MÊME masse, à l'arrondi près. Aucune calorie n'apparaît ni ne disparaît
+// du fait du changement d'unité — seul l'arrondi bouge, et il est borné par
+// une demi-unité.
+//
+// ══════════════════════════════════════════════════════════════════════════
+// ⛔ LA COLONNE `divisible` N'EST PLUS NÉCESSAIRE — ARBITRAGE C2, 2026-09-12
+// ══════════════════════════════════════════════════════════════════════════
+//
+// Le chantier précédent a refusé de réparer `applySizing` par une liste
+// d'aliments indivisibles, et il avait raison: « rien dans le référentiel ne
+// dit qu'un cube et un demi-citron sont divisibles mais pas un œuf; une liste
+// serait un matcher maison ». Sa conclusion était d'ajouter une colonne
+// `divisible` au référentiel.
+//
+// **Le barème du propriétaire la rend inutile, et voici les deux cas qui l'ont
+// tranché.** « Entier le plus proche » s'applique à TOUTE pièce, divisible ou
+// non: un demi-citron arrondi à un citron entier est acceptable en cuisine, et
+// 2,13 morceaux de poulet arrondis à 2 aussi. La question « cet aliment
+// se coupe-t-il ? » ne se pose donc jamais sur le chemin nominal — ce qui
+// supprime, par la même occasion, la seule raison qu'on avait d'écrire une
+// liste d'aliments.
+//
+// Elle ne se poserait plus qu'au cas ZÉRO, et là encore le référentiel répond
+// déjà: `unit_grams` EST une présentation plus fine, mesurable, et c'est le
+// référentiel lui-même qui la déclare — « 0,46 citron » devient « 28 g de
+// citron » à la masse près. Mesuré sur les neuf plans du banc: **9 lignes
+// tombaient à zéro, 9 ont trouvé leur présentation** (7 citrons, 1 cube de
+// bouillon, 1 cuillère d'huile), **0 rendue à la réparation**. Une colonne de
+// plus n'aurait rien réparé de plus, et il aurait fallu la remplir à la main
+// sur 900 aliments.
+//
+// ⚠️ CE QU'ON PERD EN LE DÉCIDANT, ET IL FAUT LE DIRE: « 20 g d'œuf » est une
+// phrase que le référentiel autorise et qu'une omelette accepte, mais qu'un
+// œuf au plat n'accepte pas. Le cas ne s'est présenté sur aucune des 365
+// lignes du banc; s'il se présente, il se verra dans `piece_to_grams` et se
+// réparera par la colonne qu'on n'écrit pas aujourd'hui.
+//
+// ⛔ IDEMPOTENTE. « Un second passage ne change rien. » Un entier réarrondi
+// reste lui-même; une cuillère fractionnaire devenue millilitre entier n'est
+// plus une cuillère; une pièce devenue gramme entier n'est plus une pièce; une
+// ligne rendue à la réparation reste telle quelle et se recompte à l'identique.
+// Le test ⑰ le prouve en rejouant la passe sur sa propre sortie.
+
+/** ⚠️ RECOPIÉS DE `food_composition.ts`, et un test compare les deux (⑬). */
+const SPOON_ML: Readonly<Record<string, number>> = { tbsp: 15, tsp: 5 };
+
+/**
+ * À MI-DISTANCE EXACTE, VERS LE HAUT — et c'est la règle du plan, mot pour mot:
+ * « pour les quantités positives exactement à mi-distance, arrondir vers
+ * l'entier supérieur ».
+ *
+ * ⚠️ `Math.round` FAIT DÉJÀ EXACTEMENT ÇA, et seulement parce que les quantités
+ * sont POSITIVES: il rompt l'égalité vers +∞, donc `Math.round(2.5) === 3` mais
+ * `Math.round(-2.5) === -2`. La garde qui rend la phrase vraie est donc le
+ * `amount > 0` de l'appelant, pas cette fonction. Elle existe pour porter ce
+ * commentaire.
+ */
+function roundHalfUp(value: number): number {
+  return Math.round(value);
+}
+
+/**
+ * Une ligne que l'arrondi peut RÉÉCRIRE — donc mutable sur `amount`, `unit`,
+ * `quantity` et `gramsRaw`.
+ *
+ * ⚠️ `gramsRaw` EST REMIS À `null` QUAND `amount` BOUGE, jamais recalculé ici.
+ * C'est la convention de `portion_scaling.ts::scaleIngredients` — « c'est le
+ * résolveur qui sait le faire (état cru/cuit, rendements), et le recalculer à
+ * la main serait un second moteur de conversion à côté de celui qui existe ».
+ * L'appelant doit donc appeler `regramMeal` juste après.
+ */
+export interface RoundableLine extends RenderableQuantity {
+  /** Pour NOMMER la ligne rendue à la réparation. Jamais lu comme une identité. */
+  term?: string;
+  /**
+   * ⚠️ L'IDENTIFIANT EST TRAVERSÉ, JAMAIS LU. Ce module ne résout rien: il
+   * passe la ligne entière à `unitGramsOf`, qui appelle `resolveCompositionLine`
+   * chez le moteur. Les deux champs sont déclarés pour que ce passage soit
+   * TYPÉ — un `as` sur un type étranger désarme le typecheck, et ce dépôt a
+   * déjà payé cette cicatrice (`as-cast-on-foreign-type-disarms-typecheck`).
+   */
+  ref?: string | null;
+  refRefused?: boolean;
+  gramsRaw?: number | null;
+}
+
+/**
+ * ⛔ LES COMPTEURS SONT LE LOT, ICI COMME AU LOT C. Un arrondi débranché rend
+ * exactement le même plan qu'un arrondi qui marche, à ceci près que ses
+ * compteurs sont tous nuls — et « un champ déclaré par le modèle a besoin d'un
+ * compteur » est la cicatrice que ce dépôt paie en boucle.
+ *
+ *   · `quantified`        — le dénominateur RÉEL: les lignes qui portent un
+ *                           `amount > 0` et une unité connue. Les pincées n'en
+ *                           sont pas et ne doivent pas gonfler un taux.
+ *   · `unquantified`      — les pincées, les « to taste », les lignes sans
+ *                           unité. ⛔ AUCUNE N'EST PASSÉE À ZÉRO.
+ *   · `already_whole`     — déjà entières dans leur unité: rien à faire.
+ *   · `rounded`           — `amount` a changé. C'est la mesure de l'étape.
+ *   · `spoon_to_ml`       — cuillères fractionnaires converties en millilitres.
+ *   · `piece_to_grams`    — pièces qui tombaient à zéro, sauvées par le poids
+ *                           d'une pièce que le RÉFÉRENTIEL connaît.
+ *   · `zero_unresolved`   — l'arrondi donne zéro et aucune présentation plus
+ *                           fine n'est connue. ⛔ LA LIGNE N'EST PAS TOUCHÉE,
+ *                           PAS SUPPRIMÉE, et son terme part à la réparation.
+ *   · `unknown_unit`      — une unité hors du vocabulaire fermé. On s'abstient
+ *                           et on compte l'abstention.
+ */
+export interface QuantityRoundCounts {
+  lines: number;
+  quantified: number;
+  unquantified: number;
+  already_whole: number;
+  rounded: number;
+  spoon_to_ml: number;
+  piece_to_grams: number;
+  zero_unresolved: number;
+  unknown_unit: number;
+}
+
+export interface QuantityRoundResult {
+  counts: QuantityRoundCounts;
+  /**
+   * LES CAS RENDUS À LA RÉPARATION, NOMMÉS. Le plan l'exige: « sinon rendre le
+   * cas à la réparation » — et un cas rendu sans son nom n'est pas réparable.
+   */
+  zeroed: { term: string; amount: number; unit: string }[];
+}
+
+export function emptyQuantityRoundCounts(): QuantityRoundCounts {
+  return {
+    lines: 0,
+    quantified: 0,
+    unquantified: 0,
+    already_whole: 0,
+    rounded: 0,
+    spoon_to_ml: 0,
+    piece_to_grams: 0,
+    zero_unresolved: 0,
+    unknown_unit: 0,
+  };
+}
+
+/**
+ * LE POIDS D'UNE PIÈCE, DEMANDÉ À L'APPELANT — jamais deviné ici.
+ *
+ * ⛔ REQUIS, PAS OPTIONNEL. « Un paramètre de garde optionnel est une garde
+ * désarmée » est une cicatrice datée de ce dépôt: un appelant qui l'oublierait
+ * transformerait chaque demi-citron en `zero_unresolved` sans que rien ne le
+ * dise. Il vient de `food_composition_refs.unit_grams` — c'est-à-dire du
+ * référentiel — et `null` veut dire « ce référentiel ne sait pas ce que pèse
+ * une pièce de cet aliment », ce qui est une réponse, pas une panne.
+ *
+ * ⚠️ C'EST AUSSI CE QUI GARDE CE MODULE IMPORTABLE PAR LE NAVIGATEUR. L'index
+ * de composition ne traverse pas la frontière; une fonction, si.
+ */
+export type UnitGramsOf = (line: RoundableLine) => number | null;
+
+/**
+ * ARRONDIT LES QUANTITÉS D'UNE LISTE DE LIGNES, SUR PLACE.
+ *
+ * PURE au sens du dépôt: pas d'I/O, pas d'horloge, pas d'aléa. Elle mute les
+ * objets qu'on lui DONNE, comme `finalizeQuantityProse` juste en dessous.
+ *
+ * ⛔ ELLE NE TOUCHE PAS À LA PROSE. `finalizeQuantityProse` la régénère APRÈS,
+ * depuis la donnée arrondie — c'est l'ordre, et `finalizePlanQuantities` est là
+ * pour qu'aucun appelant n'ait à s'en souvenir.
+ */
+export function roundQuantityLines(
+  lines: Iterable<RoundableLine>,
+  unitGramsOf: UnitGramsOf,
+): QuantityRoundResult {
+  const counts = emptyQuantityRoundCounts();
+  const zeroed: { term: string; amount: number; unit: string }[] = [];
+  for (const line of lines) {
+    counts.lines++;
+    const amount = typeof line.amount === "number" ? line.amount : null;
+    const unit = typeof line.unit === "string" && line.unit.length > 0
+      ? line.unit
+      : null;
+    // ⛔ UNE PINCÉE RESTE UNE PINCÉE. Pas d'`amount`, pas d'unité, pas
+    // d'arrondi — et surtout pas de zéro. Le plan: « ne pas transformer une
+    // absence de mesure en zéro ».
+    if (amount === null || !Number.isFinite(amount) || amount <= 0 || unit === null) {
+      counts.unquantified++;
+      continue;
+    }
+    if (unit !== "g" && unit !== "ml" && unit !== "unit" && !(unit in SPOON_ML)) {
+      // Une unité hors du vocabulaire fermé (`COMPOSITION_UNITS`): on ne sait
+      // pas ce qu'elle mesure, donc on ne l'arrondit pas. Compté.
+      counts.unknown_unit++;
+      continue;
+    }
+    counts.quantified++;
+
+    const term = String(line.term ?? "");
+    /** Écrit la ligne, remet `gramsRaw` à `null`, compte. */
+    const write = (nextAmount: number, nextUnit: string): void => {
+      if (nextAmount === amount && nextUnit === unit) {
+        counts.already_whole++;
+        return;
+      }
+      line.amount = nextAmount;
+      line.unit = nextUnit;
+      if ("gramsRaw" in line) line.gramsRaw = null;
+      counts.rounded++;
+    };
+    /** L'arrondi donne zéro et rien de plus fin n'est connu: on rend le cas. */
+    const giveUp = (): void => {
+      counts.zero_unresolved++;
+      zeroed.push({ term, amount, unit });
+    };
+
+    if (unit in SPOON_ML) {
+      // ⚠️ DÉJÀ ENTIÈRE: on ne convertit pas. Voir l'arbitrage du pavé.
+      if (Number.isInteger(amount)) {
+        counts.already_whole++;
+        continue;
+      }
+      const ml = roundHalfUp(amount * SPOON_ML[unit]);
+      if (ml <= 0) {
+        giveUp();
+        continue;
+      }
+      counts.spoon_to_ml++;
+      write(ml, "ml");
+      continue;
+    }
+
+    if (unit === "unit") {
+      const pieces = roundHalfUp(amount);
+      if (pieces > 0) {
+        write(pieces, "unit");
+        continue;
+      }
+      // ── ZÉRO PIÈCE: LA PRÉSENTATION PLUS FINE DU RÉFÉRENTIEL ───────────
+      const perPiece = unitGramsOf(line);
+      if (perPiece === null || !Number.isFinite(perPiece) || perPiece <= 0) {
+        giveUp();
+        continue;
+      }
+      const grams = roundHalfUp(amount * perPiece);
+      if (grams <= 0) {
+        giveUp();
+        continue;
+      }
+      counts.piece_to_grams++;
+      write(grams, "g");
+      continue;
+    }
+
+    // `g` et `ml`: l'entier le plus proche de leur propre unité.
+    const whole = roundHalfUp(amount);
+    if (whole <= 0) {
+      // ⛔ AUCUNE UNITÉ PLUS FINE QU'UN GRAMME OU QU'UN MILLILITRE N'EXISTE
+      // dans `COMPOSITION_UNITS`. En inventer une (« 400 mg ») serait très
+      // exactement la conversion inventée que le plan interdit.
+      giveUp();
+      continue;
+    }
+    write(whole, unit);
+  }
+  return { counts, zeroed };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // ⑥ LA FINALISATION — une seule passe, APRÈS la dernière mutation
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -393,12 +733,16 @@ export function renderQuantity(
  *   · `absent`            — ni donnée ni texte.
  *   · `counted_fractional`— les lignes en unité DÉNOMBRABLE dont la donnée
  *                           finale n'est pas entière (« 0,39 cube de
- *                           bouillon »). ⚠️ C'EST UN DÉFAUT NOMMÉ, PAS UN BUG
- *                           DE CE LOT: `unitsOfPlan` verrouille bien ces lignes
- *                           pour l'ajusteur (`counted_unit`), mais `applySizing`
- *                           les multiplie quand même. Le rendu dit ce que le
- *                           calcul emploie; rendre « 1 » serait remettre le
- *                           mensonge qu'on vient de retirer. À trancher au lot D.
+ *                           bouillon »). ⟳ C2 (2026-09-12): **c'est désormais
+ *                           une GARDE, et elle doit valoir 0.** Le lot C
+ *                           renvoyait la décision « à trancher au lot D »; elle
+ *                           est tranchée — `roundQuantityLines` tourne AVANT
+ *                           cette passe. Non nul, ce compteur dit qu'une pièce
+ *                           a échappé à l'arrondi, c'est-à-dire qu'une mutation
+ *                           a été ajoutée après la finalisation. La seule
+ *                           exception légitime est une ligne rendue à la
+ *                           réparation (`zero_unresolved`), et celle-là est
+ *                           nommée dans `zeroed`.
  */
 export interface QuantityFinalizeCounts {
   lines: number;
@@ -495,4 +839,46 @@ export function planQuantityLines<
   for (const prep of preparations) for (const l of prep.ingredients ?? []) out.push(l);
   for (const dish of dishes) for (const l of dish.ingredients ?? []) out.push(l);
   return out;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑦ ⟳ C2 (2026-09-12) — LA FINALISATION COMPLÈTE, DANS SON ORDRE
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface QuantityFinalizeResult {
+  rounding: QuantityRoundCounts;
+  /** Les lignes rendues à la réparation par l'arrondi (C4). */
+  zeroed: { term: string; amount: number; unit: string }[];
+  prose: QuantityFinalizeCounts;
+}
+
+/**
+ * ARRONDIR PUIS RÉÉCRIRE — DANS CET ORDRE, ET UN SEUL APPELANT À S'EN SOUVENIR.
+ *
+ * ⛔ L'ORDRE EST LA MOITIÉ DE LA RÈGLE. Régénérer la prose AVANT l'arrondi
+ * écrirait « 0,77 cuillère à soupe » puis changerait la donnée sous elle: le
+ * défaut que le lot C vient de fermer, refabriqué par le lot qui le suit.
+ * Deux appels séparés dans un handler de 17 000 lignes finiraient par se
+ * séparer; cette fonction est là pour que ça ne puisse pas arriver.
+ *
+ * ⛔ ET ELLE EST LA DERNIÈRE. Le plan: « toute mutation ultérieure passe par
+ * cette même finalisation ». Une mutation ajoutée après, sans la rappeler,
+ * remonte dans `prose.stale_before` — c'est le compteur qui prévient.
+ *
+ * ⚠️ `regramMeal` RESTE À L'APPELANT, et ce n'est pas un oubli: ce module est
+ * importable par le navigateur et ne connaît pas le référentiel. L'arrondi
+ * remet `gramsRaw` à `null` sur chaque ligne qu'il déplace; c'est le moteur qui
+ * doit les recalculer AVANT de mesurer quoi que ce soit.
+ */
+export function finalizePlanQuantities<L extends RoundableLine & FinalizableLine>(
+  lines: readonly L[],
+  locale: QuantityLocale,
+  // ⛔ REQUIS, comme dans `roundQuantityLines`. Un appelant sans référentiel
+  // passe `() => null` EXPLICITEMENT: l'abstention est alors écrite à l'endroit
+  // où elle est décidée, et elle se compte dans `zero_unresolved`.
+  unitGramsOf: UnitGramsOf,
+): QuantityFinalizeResult {
+  const round = roundQuantityLines(lines, unitGramsOf);
+  const prose = finalizeQuantityProse(lines, locale);
+  return { rounding: round.counts, zeroed: round.zeroed, prose };
 }

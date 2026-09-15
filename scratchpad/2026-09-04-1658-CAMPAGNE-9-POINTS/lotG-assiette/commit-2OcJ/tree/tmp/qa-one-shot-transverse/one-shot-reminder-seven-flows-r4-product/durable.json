@@ -1,0 +1,55 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "faa8dde6-c409-467d-a965-555da430e36c",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T07:40:00+00:00",
+      "event_context": "one_shot_reminder:tester_ca_sur_mon_mail_a_camille",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: tester ça sur mon mail à Camille.",
+        "local_label": "demain à 9h40",
+        "parse_source": "payload_utc_time",
+        "request_text": "rappelle-moi demain à 9h40 de tester ça sur mon mail à Camille",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: tester ça sur mon mail à Camille.",
+        "source_message_id": "b87c1d63-b21a-43e1-b5e4-6af00bc0c5ee",
+        "reminder_instruction": "tester ça sur mon mail à Camille"
+      },
+      "created_at": "2026-06-24T15:24:08.278633+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "J’ai besoin de comprendre où trouver les cartes d’attaque dans Sophia, et rappelle-moi demain à 9h40 de tester ça sur mon mail à Camille.",
+      "created_at": "2026-06-24T15:24:05.099686+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r4-product-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Tu trouves les cartes d’attaque dans Dashboard > Plan depuis la mission ou l’habitude concernée, puis dans Dashboard > Ressources quand elles ont été générées. Le rappel pour demain à 9h40 : tester ça sur mon mail à Camille.",
+      "created_at": "2026-06-24T15:24:19.693387+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r4-product-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "66e8bd29-79da-4e90-8acd-791f9f7a701e",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-24T15:24:19.688849+00:00"
+  }
+}

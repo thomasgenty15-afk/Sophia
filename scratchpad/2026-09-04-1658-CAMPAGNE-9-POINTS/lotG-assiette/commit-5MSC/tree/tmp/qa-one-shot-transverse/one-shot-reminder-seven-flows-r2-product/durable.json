@@ -1,0 +1,54 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "faae220d-25dd-4fab-8413-b6b9f23b1808",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T14:20:00+00:00",
+      "event_context": "one_shot_reminder:rouvrir_l_onglet_ressources",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: rouvrir l'onglet ressources.",
+        "parse_source": "payload",
+        "request_text": "rappelle-moi demain à 14h20 de rouvrir l'onglet ressources",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: rouvrir l'onglet ressources.",
+        "source_message_id": null,
+        "reminder_instruction": "rouvrir l'onglet ressources"
+      },
+      "created_at": "2026-06-24T13:12:36.259084+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Dans le dashboard Sophia, je cherche où voir mes cartes ressources. Et rappelle-moi demain à 14h20 de rouvrir l'onglet ressources.",
+      "created_at": "2026-06-24T13:12:32.089381+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r2-product-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Tu les vois dans Dashboard > Ressources. Les cartes ressources sont rangées là quand l’onglet est disponible, avec les ressources liées au plan. Et je te rappelle demain à 14:20 de rouvrir l’onglet ressources.",
+      "created_at": "2026-06-24T13:12:41.617707+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r2-product-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "49c96899-3a29-49b8-b6f8-3a1dd68495b1",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-24T13:12:41.612048+00:00"
+  }
+}

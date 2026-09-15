@@ -1,0 +1,92 @@
+[
+  {
+    "potion": "rappel",
+    "user_id": "885e2c12-b80e-4e04-aba6-483c3153943e",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r24_hard2_green_rappel",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "courage",
+    "user_id": "29014fce-5089-4286-a45a-0feb35f02a0c",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r24_hard2_green_courage",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "guerison",
+    "user_id": "df8d6f39-66f6-4f48-b08c-ee1ea7f1f451",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r24_hard2_green_guerison",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "clarte",
+    "user_id": "1aafbfcd-54f5-4074-bc1b-dc9793fb277a",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r24_hard2_green_clarte",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "amour",
+    "user_id": "175b754b-ce01-4ffe-9ea4-537a7cbc524a",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r24_hard2_green_amour",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "apaisement",
+    "user_id": "aea0c95f-2a87-4d3b-8bb6-a168c3edba7a",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r24_hard2_green_apaisement",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  }
+]

@@ -33,6 +33,7 @@
 
 import type { GeneratedMeal } from "./meal_generation.ts";
 import { type MergeOutcome, mergeRetryCells } from "./retry_merge.ts";
+import type { CompositionIndex } from "./food_composition.ts";
 import { DAY_TOKENS, type DayToken } from "./tokens.ts";
 import { RHYTHM_OCCASIONS, type RhythmOccasion } from "./retained_item.ts";
 
@@ -178,6 +179,16 @@ export function mergeCellEdit(args: {
   readonly base: GeneratedMeal;
   readonly retry: GeneratedMeal;
   readonly cells: readonly CellEdit[];
+  /**
+   * ⟳ 2026-09-12 · C3 — LE RÉFÉRENTIEL, TRAVERSÉ JUSQU'À LA FUSION.
+   *
+   * ⛔ REQUIS, PAS OPTIONNEL. Un appelant sans référentiel passe `null`
+   * EXPLICITEMENT : l'abstention est écrite là où elle est décidée. Un
+   * paramètre facultatif ici aurait laissé la chirurgie locale sur l'ancien
+   * appariement par libellé — « paramètre de garde optionnel = garde
+   * désarmée », la cicatrice n° 1 du dépôt.
+   */
+  readonly index: CompositionIndex | null;
 }): CellEditOutcome {
   const baseCells = new Set(args.base.dishes.map(cellEditKey));
   const retryCells = new Set(args.retry.dishes.map(cellEditKey));
@@ -186,7 +197,12 @@ export function mergeCellEdit(args: {
   const known = requested.filter((k) => baseCells.has(k));
   const notRendered = known.filter((k) => !retryCells.has(k));
   const taken = known.filter((k) => retryCells.has(k));
-  const merge = mergeRetryCells({ base: args.base, retry: args.retry, cells: taken });
+  const merge = mergeRetryCells({
+    base: args.base,
+    retry: args.retry,
+    cells: taken,
+    index: args.index,
+  });
   const takenSet = new Set(merge.cells);
   const untouched = args.base.dishes.filter((d) => !takenSet.has(cellEditKey(d))).length;
   return { meal: merge.meal, taken: merge.cells, notRendered, unknown, untouched, merge };

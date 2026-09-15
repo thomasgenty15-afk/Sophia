@@ -1,0 +1,13 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-02-defense-ui-fields-r1b-t01",
+    "auth_method": "local_jwt_secret_fallback",
+    "user": "J'ai besoin d'une carte de défense pour le moment où je finis mes mails tard et je bascule sur des vidéos au lieu d'aller dormir. Prépare-moi quoi mettre dans l'app, mais ne crée rien.",
+    "status": 401,
+    "body": {
+      "error": "Unauthorized",
+      "request_id": "qa-prepare-defense-card-alex-2026-06-02-defense-ui-fields-r1b-t01"
+    }
+  }
+]

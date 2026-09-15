@@ -1,0 +1,660 @@
+{
+  "dishes": [
+    {
+      "name": "Bol tofu-avoine crémeux",
+      "title": "Tofu, edamame, avoine et yaourt de soja",
+      "slot": "breakfast",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "tofu",
+          "quantity": "170 g de tofu",
+          "amount": 170,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tofu",
+          "group": "tofu_tempeh"
+        },
+        {
+          "term": "edamame",
+          "quantity": "50 g d’edamame",
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "edamame",
+          "group": "legumes"
+        },
+        {
+          "term": "oats",
+          "quantity": "10 g de flocons d’avoine",
+          "amount": 10,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "oats",
+          "group": "whole_grain"
+        },
+        {
+          "term": "soy_yogurt",
+          "quantity": "20 g de yaourt de soja nature",
+          "amount": 20,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "soy_yogurt",
+          "group": null
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Mixer le tofu avec le yaourt de soja et les flocons d’avoine, puis incorporer l’edamame.",
+      "why": "Un bol froid et crémeux apporte une base complète avec des produits simples pour commencer la journée régulièrement.",
+      "density_check": 154.4,
+      "uses": [],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Crème froide protéinée",
+      "title": "Tofu, edamame, avoine et yaourt de soja",
+      "slot": "breakfast",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "tofu",
+          "quantity": "154 g de tofu",
+          "amount": 154,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tofu",
+          "group": "tofu_tempeh"
+        },
+        {
+          "term": "edamame",
+          "quantity": "40 g d’edamame",
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "edamame",
+          "group": "legumes"
+        },
+        {
+          "term": "soy_yogurt",
+          "quantity": "100 g de yaourt de soja nature",
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "soy_yogurt",
+          "group": null
+        },
+        {
+          "term": "oats",
+          "quantity": "10 g de flocons d’avoine",
+          "amount": 10,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "oats",
+          "group": "whole_grain"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        }
+      ],
+      "method": "Écraser le tofu avec le yaourt de soja, mélanger avec les flocons d’avoine et déposer l’edamame dessus.",
+      "why": "Cette version plus fraîche change la texture tout en gardant un petit-déjeuner rapide et nourrissant.",
+      "density_check": 127.5,
+      "uses": [],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ]
+    },
+    {
+      "name": "Pâtes vertes au tempeh",
+      "title": "Pâtes complètes, poivron et garniture protéinée",
+      "slot": "lunch",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "tomato",
+          "quantity": "20 g de tomate",
+          "amount": 20,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tomato",
+          "group": "non_starchy_veg"
+        },
+        {
+          "term": "rapeseed_oil",
+          "quantity": "5 ml d’huile de colza",
+          "amount": 5,
+          "unit": "ml",
+          "state": "raw",
+          "part": "garnish_fat",
+          "ref": "rapeseed_oil",
+          "group": "other_added_fat"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "garnish_fat",
+          "role": "garnish_fat",
+          "part_of": "main"
+        }
+      ],
+      "method": "Assembler une portion de la base de pâtes et de poivron avec la tomate, puis ajouter l’huile et la garniture protéinée prévue pour chaque boîte.",
+      "why": "La tomate apporte une touche fraîche à une assiette de pâtes qui se prépare rapidement à partir de la base cuisinée.",
+      "density_check": 169.3,
+      "uses": [
+        {
+          "preparation_id": "prep_lunch_base",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "boxes": [
+        {
+          "id": "max_box",
+          "member_ids": [
+            "5024a399-e4f2-4bdf-91fc-0e5cf37e8ee5"
+          ],
+          "items": [
+            {
+              "term": "ham",
+              "quantity": "6 unités de jambon",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw",
+              "part": "main",
+              "ref": "ham",
+              "group": "red_meat"
+            }
+          ]
+        },
+        {
+          "id": "lea_box",
+          "member_ids": [
+            "9b2a44f5-7226-41d8-9990-c736ddcf750c"
+          ],
+          "items": [
+            {
+              "term": "tofu",
+              "quantity": "150 g de tofu",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw",
+              "part": "main",
+              "ref": "tofu",
+              "group": "tofu_tempeh"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pâtes citronnées au tofu",
+      "title": "Pâtes complètes, poivron, citron et garniture protéinée",
+      "slot": "lunch",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "lemon",
+          "quantity": "10 g de citron",
+          "amount": 10,
+          "unit": "g",
+          "state": "raw",
+          "part": "seasoning",
+          "ref": "lemon",
+          "group": "citrus"
+        },
+        {
+          "term": "rapeseed_oil",
+          "quantity": "2 ml d’huile de colza",
+          "amount": 2,
+          "unit": "ml",
+          "state": "raw",
+          "part": "garnish_fat",
+          "ref": "rapeseed_oil",
+          "group": "other_added_fat"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "seasoning",
+          "role": "seasoning",
+          "part_of": "main"
+        },
+        {
+          "id": "garnish_fat",
+          "role": "garnish_fat",
+          "part_of": "main"
+        }
+      ],
+      "method": "Assembler une portion de la base de pâtes et de poivron avec le citron, puis ajouter l’huile et la garniture protéinée prévue pour chaque boîte.",
+      "why": "Le citron renouvelle la base du lendemain avec une préparation fraîche, acidulée et facile à assembler.",
+      "density_check": 167.5,
+      "uses": [
+        {
+          "preparation_id": "prep_lunch_base",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "boxes": [
+        {
+          "id": "max_box",
+          "member_ids": [
+            "5024a399-e4f2-4bdf-91fc-0e5cf37e8ee5"
+          ],
+          "items": [
+            {
+              "term": "ham",
+              "quantity": "6 unités de jambon",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw",
+              "part": "main",
+              "ref": "ham",
+              "group": "red_meat"
+            }
+          ]
+        },
+        {
+          "id": "lea_box",
+          "member_ids": [
+            "9b2a44f5-7226-41d8-9990-c736ddcf750c"
+          ],
+          "items": [
+            {
+              "term": "tofu",
+              "quantity": "150 g de tofu",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw",
+              "part": "main",
+              "ref": "tofu",
+              "group": "tofu_tempeh"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Couscous poivré au jambon",
+      "title": "Couscous complet, tomate, poivron et garniture protéinée",
+      "slot": "dinner",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "bell_pepper",
+          "quantity": "30 g de poivron",
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "bell_pepper",
+          "group": "non_starchy_veg"
+        },
+        {
+          "term": "rapeseed_oil",
+          "quantity": "4 ml d’huile de colza",
+          "amount": 4,
+          "unit": "ml",
+          "state": "raw",
+          "part": "garnish_fat",
+          "ref": "rapeseed_oil",
+          "group": "other_added_fat"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "garnish_fat",
+          "role": "garnish_fat",
+          "part_of": "main"
+        }
+      ],
+      "method": "Assembler une portion de la base de couscous et de tomate avec le poivron, puis ajouter l’huile et la garniture protéinée prévue pour chaque boîte.",
+      "why": "Le poivron cru donne du croquant à un dîner coloré qui se monte sans nouvelle cuisson.",
+      "density_check": 154.2,
+      "uses": [
+        {
+          "preparation_id": "prep_dinner_base",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "boxes": [
+        {
+          "id": "max_box",
+          "member_ids": [
+            "5024a399-e4f2-4bdf-91fc-0e5cf37e8ee5"
+          ],
+          "items": [
+            {
+              "term": "ham",
+              "quantity": "6 unités de jambon",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw",
+              "part": "main",
+              "ref": "ham",
+              "group": "red_meat"
+            }
+          ]
+        },
+        {
+          "id": "lea_box",
+          "member_ids": [
+            "9b2a44f5-7226-41d8-9990-c736ddcf750c"
+          ],
+          "items": [
+            {
+              "term": "tofu",
+              "quantity": "130 g de tofu",
+              "amount": 130,
+              "unit": "g",
+              "state": "raw",
+              "part": "main",
+              "ref": "tofu",
+              "group": "tofu_tempeh"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Couscous citronné au tofu",
+      "title": "Couscous complet, tomate, citron et garniture protéinée",
+      "slot": "dinner",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "lemon",
+          "quantity": "10 g de citron",
+          "amount": 10,
+          "unit": "g",
+          "state": "raw",
+          "part": "seasoning",
+          "ref": "lemon",
+          "group": "citrus"
+        },
+        {
+          "term": "rapeseed_oil",
+          "quantity": "2 ml d’huile de colza",
+          "amount": 2,
+          "unit": "ml",
+          "state": "raw",
+          "part": "garnish_fat",
+          "ref": "rapeseed_oil",
+          "group": "other_added_fat"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "seasoning",
+          "role": "seasoning",
+          "part_of": "main"
+        },
+        {
+          "id": "garnish_fat",
+          "role": "garnish_fat",
+          "part_of": "main"
+        }
+      ],
+      "method": "Assembler une portion de la base de couscous et de tomate avec le citron, puis ajouter l’huile et la garniture protéinée prévue pour chaque boîte.",
+      "why": "Le citron donne une finition vive à une assiette différente de la veille tout en restant très rapide à servir.",
+      "density_check": 157.5,
+      "uses": [
+        {
+          "preparation_id": "prep_dinner_base",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      },
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "boxes": [
+        {
+          "id": "max_box",
+          "member_ids": [
+            "5024a399-e4f2-4bdf-91fc-0e5cf37e8ee5"
+          ],
+          "items": [
+            {
+              "term": "ham",
+              "quantity": "6 unités de jambon",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw",
+              "part": "main",
+              "ref": "ham",
+              "group": "red_meat"
+            }
+          ]
+        },
+        {
+          "id": "lea_box",
+          "member_ids": [
+            "9b2a44f5-7226-41d8-9990-c736ddcf750c"
+          ],
+          "items": [
+            {
+              "term": "tofu",
+              "quantity": "130 g de tofu",
+              "amount": 130,
+              "unit": "g",
+              "state": "raw",
+              "part": "main",
+              "ref": "tofu",
+              "group": "tofu_tempeh"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "preparations": [
+    {
+      "id": "prep_lunch_base",
+      "title": "Base de pâtes complètes au poivron",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "wholewheat_pasta",
+          "quantity": "77 g de pâtes complètes sèches",
+          "amount": 77,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "wholewheat_pasta",
+          "group": "whole_grain"
+        },
+        {
+          "term": "bell_pepper",
+          "quantity": "60 g de poivron",
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "bell_pepper",
+          "group": "non_starchy_veg"
+        },
+        {
+          "term": "rapeseed_oil",
+          "quantity": "36 ml d’huile de colza",
+          "amount": 36,
+          "unit": "ml",
+          "state": "raw",
+          "part": "garnish_fat",
+          "ref": "rapeseed_oil",
+          "group": "other_added_fat"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "garnish_fat",
+          "role": "garnish_fat",
+          "part_of": "main"
+        }
+      ],
+      "method": "Cuire les pâtes complètes, les égoutter, puis faire revenir le poivron avec l’huile de colza. Refroidir et répartir la base avant de la placer au réfrigérateur.",
+      "active_minutes": 15,
+      "total_minutes": 25,
+      "cook_on": "mon"
+    },
+    {
+      "id": "prep_dinner_base",
+      "title": "Base de couscous complet à la tomate",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "couscous_wholemeal",
+          "quantity": "60 g de couscous complet sec",
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "couscous_wholemeal",
+          "group": "whole_grain"
+        },
+        {
+          "term": "tomato",
+          "quantity": "80 g de tomate",
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "part": "main",
+          "ref": "tomato",
+          "group": "non_starchy_veg"
+        },
+        {
+          "term": "rapeseed_oil",
+          "quantity": "30 ml d’huile de colza",
+          "amount": 30,
+          "unit": "ml",
+          "state": "raw",
+          "part": "garnish_fat",
+          "ref": "rapeseed_oil",
+          "group": "other_added_fat"
+        }
+      ],
+      "components": [
+        {
+          "id": "main",
+          "role": "main",
+          "part_of": null
+        },
+        {
+          "id": "garnish_fat",
+          "role": "garnish_fat",
+          "part_of": "main"
+        }
+      ],
+      "method": "Hydrater le couscous complet, mélanger avec la tomate et incorporer l’huile de colza. Refroidir et répartir la base avant de la placer au réfrigérateur.",
+      "active_minutes": 10,
+      "total_minutes": 20,
+      "cook_on": "mon"
+    }
+  ],
+  "cooking_sessions": [
+    {
+      "day": "mon",
+      "preparation_ids": [
+        "prep_lunch_base",
+        "prep_dinner_base"
+      ],
+      "total_minutes": 45,
+      "run_through": "Commencer par le couscous complet, puis cuire les pâtes complètes pendant que le poivron chauffe. Mélanger les deux bases avec leurs tomates ou poivrons, laisser tiédir, répartir et réfrigérer rapidement."
+    }
+  ],
+  "explanation": [
+    "J’ai privilégié des assemblages frais autour de deux bases préparées, afin de garder des repas réguliers tout en changeant les saveurs d’un jour à l’autre."
+  ]
+}

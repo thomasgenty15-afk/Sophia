@@ -460,8 +460,12 @@ export function proteinAnchorRetryInstruction(
   return [
     "Your previous answer left main meals without a protein anchor:",
     ...bullets,
-    "Answer again, keeping everything else. Give each main meal a full protein " +
-    "food as its anchor — meat, poultry, fish, seafood, eggs, pulses, tofu or " +
-    "tempeh, or a protein-carrying dairy. Do not write any figure for it.",
+    // ⟳ 2026-09-12 · FERMETURE LOT 1 — « Answer again » A ÉTÉ RETIRÉ. Une
+    // réparation ne rend plus un plan, elle rend un PATCH: demander de
+    // « répondre à nouveau en gardant tout le reste » ferait recomposer les
+    // objets que le patch n'a pas le droit de porter.
+    "Give each of those meals a full protein food as its anchor — meat, poultry, " +
+    "fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying dairy. " +
+    "Do not write any figure for it.",
   ].join("\n");
 }

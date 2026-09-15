@@ -1,0 +1,22 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "fais moi un truc d'attaque pour le machin du soir avec le carnet, j'ai pas d'idée de technique et j'ai pas envie d'un pavé",
+    "assistant": "Ok : le “machin du soir” avec ton carnet, version attaque rapide. Tu fais juste ça en 5 minutes :\n\n1) Titre en haut : “Ce soir — 1 chose”.  \n2) Fais une liste de 3 mini options (1 phrase chacune) :  \n   - Option A = ce qui te fera du bien maintenant  \n   - Option B = ce qui te rapproche le plus de ta semaine  \n   - Option C = ce qui te simplifie demain  \n3) Tu choisis A (pas A+B, juste A).  \n4) Tu écris la toute première action concrète (moins de 2 minutes) qui démarre le machin.  \n5) Ligne finale : “Si je bloque → je fais la version 10%”.\n\nLe carnet te sert juste de déclencheur, pas de réflexion infinie 😄\n\nTu veux plutôt que ce soit pour te vider la tête (décharge) ou pour avancer sur un truc (action) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

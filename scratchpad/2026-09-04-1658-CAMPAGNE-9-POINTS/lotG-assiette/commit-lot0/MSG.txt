@@ -1,0 +1,28 @@
+l'énergie d'une boîte suit ses grammes tirés, plus `uses.servings` : le modèle écrivait 1 pour cinq bouches, et l'ancre lisait 1/15 de la casserole
+
+Mesuré sur la campagne du 2026-09-05 (lot 1, M07, cinq bouches) : les boîtes tiraient
+34 417 g des casseroles pendant que le pliage n'en attribuait que 5 826 g aux plats (×5,9).
+Le modèle écrit `uses.servings: 1` sur des casseroles de 10–15 parts quel que soit le
+nombre de bouches (36/39 plats de M05, 44/44 de M06, 11/11 de M11, 19/19 de M12) ;
+`share = servings / servingsMade` donnait 1/15 de casserole à un repas de 3 kg, l'ancre
+lisait 0,2 kcal/g, rabotait ×3 partout et le densifieur ne trouvait « rien de dense ». Le
+déficit était une convention d'écriture, pas l'assiette.
+
+Règle (`mouth_energy.ts`) : un item de boîte qui cite une casserole vaut ses grammes × la
+densité de la casserole — `dishEnergy / weighedReadyGrams`, la MÊME densité que le
+densifieur et la croissance des casseroles ; un item sans casserole est une part du frais
+du plat, au prorata des grammes frais des boîtes ; une casserole illisible rend
+`dish_incomplete`, jamais zéro. Le pliage reste pour les archives d'avant v4 (aucun item
+ne porte `preparationId`). L'écran (`boxEnergies`, `meal-energy-v1`) lit la même règle ;
+le lecteur du plan persisté porte la clé telle qu'écrite (`undefined` ≠ `null`).
+
+Compteur `pot_attribution` {drawn_g, attributed_g, ratio, pots_unreadable} dans
+`box_sizing` (journal et archive) : il dit de combien `uses.servings` se trompe, plan
+par plan, avant de décider s'il faut le dériver des boîtes.
+
+Tests : six cas LOT 0, dont la mutation « retour au pliage » (3 rouges sur 6) ; le test
+LOT F du lecteur suit la clé. `weighedReadyGrams` accepte `CompositionInput` (il ne lisait
+que ce que la résolution lit). Arbitrage produit du 2026-09-05, lot 0 avant le plafond
+par densité mesurée.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

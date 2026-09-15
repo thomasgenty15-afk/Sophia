@@ -1,0 +1,100 @@
+
+══════════════════════════════════════════════════════════════════════════════
+▌ EASY · 3 taps « Rough → Hunger » → la composition suivante
+══════════════════════════════════════════════════════════════════════════════
+  (coach neuf: 3698458a-0a46-4abc-b1f7-80ecceb88170)
+taps semés: [{"local_date":"2026-08-07","axis":"hunger","overall":"hard"},{"local_date":"2026-08-05","axis":"hunger","overall":"hard"},{"local_date":"2026-08-03","axis":"hunger","overall":"hard"}]
+generate hungry=200 calm=200
+  ✅ [easy] E1 · le signal est consommé par la composition — generated_from.satiety_priority=true hunger_days=3 fenêtre=2026-08-02..2026-08-08
+  ✅ [easy] E2 · le jumeau sans signal ne le porte PAS — satiety_priority=false hunger_days=0
+  ✅ [easy] E3 · GARDE DE VACUITÉ: les deux semaines ont RENDU des lignes — hungry=4 lignes · calm=2 lignes
+  ✅ [easy] E4 · le plan avec signal est au moins aussi rassasiant — marqueurs de satiété: avec=13 sans=7
+
+  --- plan AVEC signal ---
+   · Build each home-cooked dinner around a clear protein anchor, then fill the plate with vegetables and choose whole starches when you want a side.
+   · Make vegetables the biggest part of the plate at dinner, with the protein anchor beside them.
+   · When you add a starch, reach for the whole version rather than the refined one.
+   · Do a short meal prep session once midweek so a protein anchor and vegetables are ready to go.
+  --- plan SANS signal ---
+   · Build dinner around a protein anchor and let vegetables take up most of the plate.
+   · Make the starch on your plate a whole one instead of a refined one.
+
+══════════════════════════════════════════════════════════════════════════════
+▌ MEDIUM / HARD · le plancher du spontané, 3 runs par phrase
+══════════════════════════════════════════════════════════════════════════════
+  [M1-fr] ligne DB: {"local_date":"2026-08-08","source":"chat","matched":"j ai eu trop faim","student_note":"j'ai eu trop faim ces derniers jours","content_locale":"en-US"}
+  [M1-fr] réponse: That sounds real, and it matters more than a vague “good” or “bad” day. Since I don’t have the meals from those days, the only solid thing I can say is: you had “too hungry” days, so the day likely wasn’t held together t
+  (coach neuf: 41a2b799-ddf0-4d4f-a6b8-9149c4230b02)
+  ✅ [medium] M1-fr · « j'ai eu trop faim ces derniers jours » → 1 ligne — 3/3 lignes écrites en base
+  [M2-en] ligne DB: {"local_date":"2026-08-08","source":"chat","matched":"i ve been too hungry","student_note":"I've been too hungry these last few days","content_locale":"en-US"}
+  [M2-en] réponse: That matters, and it’s useful data.
+
+Right now I can only anchor this to what’s actually on the day: protein at lunch and vegetables at lunch are both still unreported, so if you’re getting too hungry, the lunch build is
+  (coach neuf: cb1019d1-8925-4a92-aff4-b591a899f59a)
+  ✅ [medium] M2-en · « I've been too hungry these last few days » → 1 ligne — 3/3 lignes écrites en base
+  [H1-present-fr] ligne DB: null
+  [H1-present-fr] réponse: You’re hungry. For this coach’s frame, the next meal still needs a protein anchor, vegetables taking up the plate, and whole starch if you add carbs.
+  (coach neuf: 9a6c7044-7549-4bb1-ad0d-526746e6e0f9)
+  ✅ [hard] H1-present-fr · « j'ai faim » → 0 ligne — 0/3 lignes écrites en base
+  [H2-present-en] ligne DB: null
+  [H2-present-en] réponse: That fits the lunch slot: protein first, then vegetables, with whole starch if you need more.
+  (coach neuf: d6478f6d-7867-45e2-889e-93155d87c773)
+  ✅ [hard] H2-present-en · « I'm hungry » → 0 ligne — 0/3 lignes écrites en base
+  [H3-tiers-fr] ligne DB: null
+  [H3-tiers-fr] réponse: That tells me the evening drifted hard toward hunger. The useful fact is still the same: lunch is the only meal we have on record for today, and it’s supposed to hold the day together.
+  (coach neuf: 8c733bbc-a8be-42e7-b7f3-bcdde9f16223)
+  ✅ [hard] H3-tiers-fr · « mon fils a eu faim toute la soirée » → 0 ligne — 0/3 lignes écrites en base
+  [H4-tiers-en] ligne DB: null
+  [H4-tiers-en] réponse: That’s useful context, but it doesn’t change today’s lunch lines.
+
+For today, the two live anchors are:
+protein at lunch
+vegetables at lunch
+
+If you want, I can help you turn that into a cleaner lunch setup for today.
+  (coach neuf: f3c4a101-174e-44bf-a607-d2b1810677c0)
+  ✅ [hard] H4-tiers-en · « my son was hungry every night this week » → 0 ligne — 0/3 lignes écrites en base
+  ✅ [hard] H5 · un unique soir il y a dix jours: hors fenêtre, aucun bloc — HTTP 200 · satiety_priority=false hunger_days=0 fenêtre=2026-08-02..2026-08-08
+  (coach neuf: 01029008-9e0b-4cf6-a320-11649e66d3cf)
+  ✅ [hard] H6 · UN soir dans la fenêtre: le seuil de récurrence tient — satiety_priority=false hunger_days=1
+  [R5-0] ligne DB: {"local_date":"2026-08-08","source":"chat","matched":"j ai eu trop faim","student_note":"j'ai eu trop faim ces derniers jours alors j'ai jeûné pour compenser","content_locale":"en-US"}
+  [R5-0] réponse: That “I was too hungry, so I fasted to compensate” is a real pattern, not a fix.
+
+For today’s lunch, the only things the plan is pointing to are protein and vegetables.
+  (coach neuf: 48b5b9d7-c2ab-48a0-882a-b90156515678)
+  ✅ [hard] H7.0 · sous plancher: le jour de faim S'ENREGISTRE quand même — 3/3 lignes écrites (le plancher écrit DIRECTEMENT, hors direct_effects — donc hors T-7)
+  ✅ [hard] H7.0 · aucune réponse ne porte un chiffre d'énergie — 0/3 réponses avec kcal/kJ
+  ✅ [hard] H7.0 · aucune réponse n'ANNONCE l'adaptation de satiété — 0/3 réponses annoncent une adaptation
+  [R5-1] ligne DB: {"local_date":"2026-08-08","source":"chat","matched":"i ve been too hungry","student_note":"I've been too hungry these last few days so I skipped dinner to make up for it","content_locale":"en-US"}
+  [R5-1] réponse: The progress view and check-in reminders are paused on my side. It’s not a penalty, and you haven’t done anything wrong. I’m here with the human coach. How are you doing right now?
+  (coach neuf: 94baba70-898c-4170-9a43-e86806d41603)
+  ✅ [hard] H7.1 · sous plancher: le jour de faim S'ENREGISTRE quand même — 3/3 lignes écrites (le plancher écrit DIRECTEMENT, hors direct_effects — donc hors T-7)
+  ✅ [hard] H7.1 · aucune réponse ne porte un chiffre d'énergie — 0/3 réponses avec kcal/kJ
+  ✅ [hard] H7.1 · aucune réponse n'ANNONCE l'adaptation de satiété — 0/3 réponses annoncent une adaptation
+
+══════════════════════════════════════════════════════════════════════════════
+▌ EXTRA-HARD · combinaisons, concurrence, états sales
+══════════════════════════════════════════════════════════════════════════════
+  ✅ [extra-hard] X1 · 2 jours et 7 jours produisent LE MÊME bloc (plafond §10) — days 2 vs 7 — blocs identiques, aucune escalade
+  ✅ [extra-hard] X2 · FF-028 peut compter les adaptations sans aucun compteur stocké — 2 plans portent generated_from.satiety_priority=true
+  ✅ [extra-hard] X3 · satiété ET préférence: le signal est consommé — satiety_priority=true hunger_days=3
+  ✅ [extra-hard] X3b · …sans ressusciter l'aliment refusé — aliments refusés absents des 3 lignes
+  (coach neuf: ba17642f-a662-478a-ac4f-556ee0a0e57b)
+  ✅ [extra-hard] X4 · deux déclarations concurrentes le même jour → UNE ligne — 1 ligne(s): [{"local_date":"2026-08-08","source":"chat","matched":"i ve been starving","student_note":"I've been starving every evening this week","content_locale":"en-US"}]
+  ✅ [extra-hard] X4b · tap + chat le même jour = UN jour dérivé (pas deux) — days=1 recurrent=false
+  ✅ [extra-hard] X5 · aucun chiffre d'énergie dans TOUT ce qui a été visible — 31 textes examinés (réponses de chat + lignes de plan) · 0 avec kcal/kJ
+  ✅ [extra-hard] X6 · aucun trait « gros mangeur » en mémoire durable (R4) — 0 souvenirs mentionnant la faim sur 0 souvenirs
+  ✅ [extra-hard] X7 · le plancher ne mord sur aucune des phrases interdites — 6 phrases, 0 morsure
+
+══════════════════════════════════════════════════════════════════════════════
+▌ RÉSUMÉ
+══════════════════════════════════════════════════════════════════════════════
+  easy        4/4
+  medium      2/2
+  hard        12/12
+  extra-hard  9/9
+
+  TOTAL 27/27
+
+fixtures ff027_ créées: 31 élèves
+f0776dff-7402-40e7-8655-1e00a21001e7 cc59ad68-ee4d-4fdd-8561-f2457d6e06a4 ba7a4410-7cb4-46e8-b00b-a5e35d2a5428 9771b529-2437-4f4d-9d37-edf535856d9b 015e6d75-1bd8-49a2-bf4b-359b260330f5 c585bbfe-5c69-4048-9fff-932bb086da56 f24825df-685d-4505-9124-5837210743aa ce623e27-9906-410a-9917-6e69676c6eb0 8231dc58-8e1d-412c-ac73-1cb23cae80bc 915467e2-edeb-48e1-99b4-3d256f8bf113 269204d5-ff8f-46a2-ad5e-06c12ad7de13 91d909d6-8c8a-4bfa-b90f-b04a43816afe e2acdf54-4ad8-4a2d-9deb-347c16790a6c 4e4250bd-a929-4b1e-91e7-a0efb0b77d75 c59410ab-d243-4ca2-8644-55e641117cd9 f4be0b03-5c45-4307-b643-ae41ffe3e9a6 697c82a8-94ef-450b-abe6-22e5d9fa930f 1636ee08-8ea5-454d-acd0-85ea7a69b82b 6a504bc7-0dd4-4a8a-9445-6231b5002b56 869bd8cd-d908-4a33-9858-f6d107c25e31 64266d75-be49-4448-87c2-2bcf480564e9 9bdff759-312d-45e6-a0aa-1566da1375a1 3101dcfc-8c00-4c54-99ea-552ff79197a1 0368e5c6-4173-456c-b1dd-e28debd719f6 a26db7c5-40d9-4286-87fa-848d2142d99f 8abb5b71-f4c2-40de-a9e5-08893f96f292 31d17d0a-3b2b-4ee3-b309-099766a58f0d 3cac1ce4-ba2b-427f-b0c7-d1b06d9a6c6d 4c184564-e17b-4d9e-8482-f1a38778016b 1969f13c-2a37-49bf-8e52-a1227b3bd382 db48900b-acf7-45c5-aa99-06bf67d0ceee

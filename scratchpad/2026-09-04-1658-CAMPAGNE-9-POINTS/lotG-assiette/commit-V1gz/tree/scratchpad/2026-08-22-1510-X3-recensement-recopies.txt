@@ -1,0 +1,1562 @@
+######################################################################
+# ① ARBRE DE TRAVAIL — ce que `functions serve` exécute
+######################################################################
+
+══════════════════════════════════════════════════════════════════════
+X3′ — RECENSEMENT DES RECOPIES DE CLÉS « À LA MAIN »
+══════════════════════════════════════════════════════════════════════
+arbre           : arbre de travail
+racine          : /Users/ahmedamara/Dev/Sophia 2
+horodatage      : 2026-08-22T13:10:12.444Z
+seuil de recopie: ≥ 3 propriétés lisant la MÊME racine
+parseur         : typescript 5.9.3 (AST — commentaires exclus par construction)
+
+── LE PÉRIMÈTRE BALAYÉ (fichiers non-test) ───────────────────────────
+  A · _shared/keel              184 fichiers
+  B · _shared hors keel         124 fichiers
+  C · fonctions edge            255 fichiers
+  D · frontend/src/keel         195 fichiers
+  TOTAL                         758 fichiers
+  index de types : 1565 interfaces/alias résolus
+  formes déclarées par un modèle : 46 (extraites des littéraux)
+
+── ⓪ L'UNIVERS : toute recopie énumérée du périmètre ─────────────────
+  A · _shared/keel              329
+  B · _shared hors keel         305
+  C · fonctions edge           1012
+  D · frontend/src/keel         202
+  TOTAL ⓪                      1848
+
+── ① ENTRE UN PARSEUR DE RÉPONSE DE MODÈLE ET UNE ÉCRITURE ───────────
+   critère mécanique: la recopie manipule une FORME que le modèle déclare
+   — son vocabulaire de clés couvre ≥ 50 % d'un schéma de prompt, avec au
+   moins 3 clés en commun. C'est la population qui peut perdre
+   quelque chose; le reste ne recopie rien qu'un modèle ait écrit.
+  A · _shared/keel               48
+  B · _shared hors keel           4
+  C · fonctions edge             53
+  D · frontend/src/keel          10
+  TOTAL ①                       115
+
+── ② COMBIEN SONT PLUS COURTES QUE LEUR TYPE (sur ①) ─────────────────
+  ②a cible nommée, clés écrites < membres du type : 4
+     …dont TOUS les membres manquants sont facultatifs : 1   ⛔ le tsc est muet sur celles-là
+  ②b source nommée, champs lus < membres          : 7   ⛔ le tsc est muet sur TOUTES
+  ②c cible non contrainte (Record/unknown/rien)   : 102   ⛔ le tsc est désarmé par construction
+  au moins l'un des trois                         : 107
+  non résolus par l'index syntaxique — cible 1, source 4
+
+── ③ LESQUELLES PERDENT UN CHAMP QUE LE MODÈLE DÉCLARE ───────────────
+  recopies de ① dont le vocabulaire NE COUVRE PAS toute la forme : 72
+  ⚠️ « ne couvre pas » est un CANDIDAT, pas un verdict: une clé de schéma
+     peut légitimement ne pas concerner cette recopie-là. Le verdict est
+     une LECTURE, écrite dans `VERDICTS`, et le script rougit sans elle.
+
+  frontend/src/keel/api/household.ts:1802  <anonyme>()
+      racine « d » · 5 propriétés · 5 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, ingredients, method, name, same_day, why
+      lit   : day, member_id, slot, title, uses
+      écrit : title, day, slot, uses, memberId
+      cible : (aucune annotation) [return]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — `readHouseholdDishes` — « Les plats d'un plan, réduits à ce qui se dit à table. Voir `HouseholdDishView` pour ce qui est délibérément laissé de côté, et pourquoi. » ⚠️ Il ne porte pas `name` non plus: il est CONCERNÉ par la fiche `X3-a`, comme second écran aveugle.
+
+  frontend/src/keel/api/mealGeneration.ts:917  <anonyme>()
+      racine « d » · 9 propriétés · 10 clés écrites
+      forme du modèle : « dishes » 8/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, name
+      lit   : day, ingredients, member_id, method, same_day, slot, title, uses, why
+      écrit : title, slot, day, method, why, uses, ingredients, boxes, same_day, member_id
+      cible : (aucune annotation) [return]  · source : (déduite)
+      ⇒ ③ PERD — ⛔ PERD `dishes[].name`, LE NOM D'USAGE — TROUVÉ PAR CE RECENSEMENT, fiche neuve `X3-a`. Le modèle le déclare (« Write BOTH, on every single dish. Count them before you answer »), `mealDishesPayload` l'écrit MÊME À `null` (lot L7 ③), et ce lecteur — documenté « le SEUL chemin vers `GeneratedDish[]` » — ne le recopie pas. `GeneratedDish` côté front N'A PAS DE MEMBRE `name`: 0 occurrence dans tout `frontend/src`. COÛT MESURÉ le 2026-08-22: 734 plats sur 2 129, 65 plans, portent un nom non nul que AUCUN écran ne peut afficher. `honours_belief_keys`, lui, est exclu EXPRÈS (en-tête du module: « pour qu'aucun écran ne puisse l'afficher par accident »).
+
+  frontend/src/keel/components/CommitmentEditor.tsx:191  <anonyme>()
+      racine « c » · 7 propriétés · 7 clés écrites
+      forme du modèle : « commitments » 7/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, food_group_ref, polarity, priority, required_days_per_week, scheduled_days, slot_key, slot_kind, source_span, template_commitment_key, window_end_local, window_start_local
+      lit   : measure, substance_ref, target_max, target_min, target_op, title, unit
+      écrit : title, substance_ref, measure, unit, target_op, target_min, target_max
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Champs d'un formulaire d'édition, pas une ligne écrite.
+
+  frontend/src/keel/lib/dishSession.ts:92  sessionForDish()
+      racine « session » · 3 propriétés · 4 clés écrites
+      forme du modèle : « cooking_sessions » 3/4 clés couvertes
+      NON COUVERT     : total_minutes
+      lit   : day, preparation_ids, run_through
+      écrit : day, runThrough, preparations, viaPreparationId
+      cible : DishSessionView | null [return]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Vue d'une session pour UN plat: `total_minutes` est la durée de la session entière, rendue par l'écran des sessions, pas par la carte du plat.
+
+  frontend/src/keel/pages/PlanImportPage.tsx:151  fromImport()
+      racine « c » · 26 propriétés · 27 clés écrites
+      forme du modèle : « commitments » 25/27 clés couvertes
+      NON COUVERT     : content, slot_kind
+      lit   : activity_class, anchor_kind, clock_local, confidence, evaluation_grain, evidence_kind, expected_occasions_per_day, food_group_ref, measure, needs_review, polarity, priority, required_days_per_week, scheduled_days, slot_key, source_span, substance_ref, target_max, target_min, target_op, template_commitment_key, title, unit, validation_issues, window_end_local, window_start_local
+      écrit : template_commitment_key, title, content_locale, polarity, activity_class, anchor_kind, slot_key, clock_local, window_start_local, window_end_local, measure, unit, target_op, target_min, target_max, substance_ref, food_group_ref, evidence_kind, evaluation_grain, priority, scheduled_days, required_days_per_week, expected_occasions_per_day, source_span, needs_review, extraction_confidence, extraction_issues
+      cible : (aucune annotation) [argument]  · source : ImportCommitment
+      ⇒ ③ HORS-CHEMIN — `content` est assemblé côté publication; `slot_kind` est dérivé. Et la confiance d'extraction, elle, EST recopiée (`extraction_confidence`) — le renommage est ce qui la faisait paraître perdue.
+
+  frontend/src/keel/pages/PlanImportPage.tsx:191  fromGap()
+      racine « gap » · 3 propriétés · 5 clés écrites
+      forme du modèle : « commitments » 4/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, evaluation_grain, evidence_kind, expected_occasions_per_day, food_group_ref, measure, polarity, required_days_per_week, scheduled_days, slot_key, slot_kind, source_span, substance_ref, target_max, target_min, target_op, unit, window_end_local, window_start_local
+      lit   : description, priority
+      écrit : template_commitment_key, title, content_locale, auto_generated, priority
+      cible : (aucune annotation) [argument]  · source : { description: string; priority?: string }
+      ⇒ ③ HORS-CHEMIN — Une ligne fabriquée pour un TROU d'extraction: elle n'a par construction aucun champ du modèle.
+
+  supabase/functions/_shared/keel/accident.ts:364  <anonyme>()
+      racine « d » · 4 propriétés · 5 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, ingredients, method, name, same_day, why
+      lit   : day, slot, title, uses
+      écrit : dishIndex, day, slot, title, preparationIds
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Vue « accident »: ce qu'il faut pour dire quel plat tombe quel jour. Les ingrédients et la méthode ne servent à rien ici.
+
+  supabase/functions/_shared/keel/accident.ts:379  <anonyme>()
+      racine « p » · 4 propriétés · 4 clés écrites
+      forme du modèle : « preparations » 4/8 clés couvertes
+      NON COUVERT     : active_minutes, method, servings_made, total_minutes
+      lit   : cook_on, id, ingredients, title
+      écrit : id, title, cookOn, ingredientTerms
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Idem, côté préparation: seuls les TERMES comptent pour l'accident.
+
+  supabase/functions/_shared/keel/doctrine_from_forks.ts:373  buildDraftFromForkGeneration()
+      racine « it » · 3 propriétés · 5 clés écrites
+      forme du modèle : « beliefs » 3/4 clés couvertes
+      NON COUVERT     : quote
+      lit   : forkKey
+      écrit : key, claim, rationale, goal_scope, source
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Même raison: `quote` vit dans les citations, jamais dans la doctrine.
+
+  supabase/functions/_shared/keel/doctrine_from_forks.ts:471  <anonyme>()
+      racine « f » · 3 propriétés · 3 clés écrites
+      forme du modèle : « forbidden » 3/4 clés couvertes
+      NON COUVERT     : reason
+      lit   : instead, surface_forms, token
+      écrit : token, surfaceForms, instead
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ COMPLET — `reason` est la justification LUE PAR LE COACH à l'écran d'édition; un interdit issu d'un débat de départ n'en porte pas. `DoctrineForbidden.reason` est facultatif et `parseCoachDoctrine` le lit quand il existe.
+
+  supabase/functions/_shared/keel/doctrine_starter.ts:557  applyStarterChoices()
+      racine « position » · 3 propriétés · 5 clés écrites
+      forme du modèle : « beliefs » 3/4 clés couvertes
+      NON COUVERT     : quote
+      lit   : belief
+      écrit : key, claim, rationale, goal_scope, source
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Idem — et la position de départ n'a pas de document d'où citer.
+
+  supabase/functions/_shared/keel/doctrine.ts:430  parseCoachDoctrine()
+      racine « b » · 5 propriétés · 5 clés écrites
+      forme du modèle : « beliefs » 3/4 clés couvertes
+      NON COUVERT     : quote
+      lit   : claim, goalScope, goal_scope, key, rationale, source
+      écrit : key, claim, rationale, goalScope, source
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — `quote` N'APPARTIENT PAS à la doctrine: `stripQuotes` (`doctrine_document.ts`) le retire du brouillon et le range en `citations`, une table à part — « le brouillon rendu est exactement celui d'avant ce lot, `quote` compris — c'est-à-dire sans ». `DoctrineBelief` n'a pas de membre `quote`.
+
+  supabase/functions/_shared/keel/evaluator.ts:1064  buildEvaluation()
+      racine « commitment » · 12 propriétés · 12 clés écrites
+      forme du modèle : « commitments » 10/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, priority, scheduled_days, slot_key, source_span, template_commitment_key, title, window_end_local, window_start_local
+      lit   : autoSource, foodGroupRef, measure, polarity, requiredDaysPerWeek, slotKind, substanceRef, targetMax, targetMin, targetOp, tolerancePct, unit
+      écrit : measure, unit, target_op, target_min, target_max, tolerance_pct, substance_ref, food_group_ref, polarity, slot_kind, auto_source, required_days_per_week
+      cible : Record<string, unknown> [variable]  · source : EvaluatorCommitment
+      ⇒ ③ HORS-CHEMIN — Ce qu'il faut pour JUGER une consigne. Le titre et la fenêtre horaire ne changent aucun verdict.
+
+  supabase/functions/_shared/keel/fixed_intakes.ts:460  fixedIntakeInputsFor()
+      racine « intake » · 3 propriétés · 4 clés écrites
+      forme du modèle : « ingredients » 4/6 clés couvertes
+      NON COUVERT     : group, quantity
+      lit   : amount, foodRef, unit
+      écrit : term, amount, unit, state
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Un apport DÉCLARÉ PAR L'ÉLÈVE, pas une ligne de modèle: il n'a ni prose ni groupe à perdre.
+
+  supabase/functions/_shared/keel/food_composition.ts:1223  resolveIngredients()
+      racine « input » · 4 propriétés · 5 clés écrites
+      forme du modèle : « ingredients » 3/6 clés couvertes
+      NON COUVERT     : group, quantity, term
+      lit   : amount, state, unit, unitGrams
+      écrit : amount, unit, state, yieldClass, unitGrams
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Argument de `gramsRawOf`, qui ne pèse qu'une masse: `term` et `group` sont lus ailleurs dans la même fonction, sur le même objet.
+
+  supabase/functions/_shared/keel/food_composition.ts:1256  resolveIngredients()
+      racine « input » · 4 propriétés · 5 clés écrites
+      forme du modèle : « ingredients » 4/6 clés couvertes
+      NON COUVERT     : group, term
+      lit   : quantity, state, unitGrams
+      écrit : amount, unit, state, yieldClass, unitGrams
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Argument de `gramsRawOf`, qui ne pèse qu'une masse: `term` et `group` sont lus ailleurs dans la même fonction, sur le même objet.
+
+  supabase/functions/_shared/keel/grocery_waves.ts:154  <anonyme>()
+      racine « row » · 3 propriétés · 3 clés écrites
+      forme du modèle : « preparations » 3/8 clés couvertes
+      NON COUVERT     : active_minutes, method, servings_made, title, total_minutes
+      lit   : cook_on, id, ingredients
+      écrit : id, cookOn, ingredientTerms
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Les vagues de courses n'ont besoin que du jour de cuisson et des termes.
+
+  supabase/functions/_shared/keel/household_merge_notice_io.ts:72  storedDishes()
+      racine « row » · 3 propriétés · 3 clés écrites
+      forme du modèle : « dishes » 3/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, ingredients, method, name, same_day, uses, why
+      lit   : day, slot, title
+      écrit : day, slot, title
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Avis de fusion: on nomme les plats, on ne les recompose pas.
+
+  supabase/functions/_shared/keel/household_turn_context.ts:433  <anonyme>()
+      racine « d » · 3 propriétés · 3 clés écrites
+      forme du modèle : « dishes » 3/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, ingredients, method, name, same_day, uses, why
+      lit   : day, slot, title
+      écrit : title, slot, day
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Contexte de tour: ce que la conversation peut CITER d'un plan.
+
+  supabase/functions/_shared/keel/meal_analysis.ts:495  compactCommitment()
+      racine « c » · 8 propriétés · 9 clés écrites
+      forme du modèle : « commitments » 6/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evidence_kind, expected_occasions_per_day, food_group_ref, required_days_per_week, scheduled_days, slot_kind, source_span, substance_ref, target_max, target_min, target_op, template_commitment_key, unit, window_end_local, window_start_local
+      lit   : autonomy, evaluation_grain, id, measure, polarity, priority, slot_key, title
+      écrit : commitment_id, title, polarity, slot_key, measure, target, evaluation_grain, priority, autonomy
+      cible : Record<string, unknown> [variable]  · source : MealAnalysisCommitmentContext
+      ⇒ ③ HORS-CHEMIN — Compactage EXPRÈS: le prompt de la photo reçoit le minimum qui décide, pas la ligne entière. `target` fond `target_op`/`min`/`max`.
+
+  supabase/functions/_shared/keel/meal_generation.ts:4015  scanMealForRegime()
+      racine « prep » · 3 propriétés · 3 clés écrites
+      forme du modèle : « preparations » 4/8 clés couvertes
+      NON COUVERT     : active_minutes, cook_on, servings_made, total_minutes
+      lit   : id, ingredients, method, title
+      écrit : prepId, prose, items
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — La ceinture de régime lit de la PROSE et des termes; les minutes et les portions ne disent rien d'un régime.
+
+  supabase/functions/_shared/keel/meal_generation.ts:4630  parseGeneratedMeal()
+      racine « s » · 3 propriétés · 4 clés écrites
+      forme du modèle : « ingredients » 3/6 clés couvertes
+      NON COUVERT     : amount, state, unit
+      lit   : quantity, term
+      écrit : term, quantity, in_pantry, group
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ÉTALE : readStructuredQuantity(ing, args.composition, term)
+      ⇒ ③ COMPLET — `amount`/`unit`/`state` arrivent par `...readStructuredQuantity(ing, …)`. Les deux sites (plats et préparations) sont identiques.
+
+  supabase/functions/_shared/keel/meal_generation.ts:5371  parseGeneratedMeal()
+      racine « s » · 3 propriétés · 4 clés écrites
+      forme du modèle : « ingredients » 3/6 clés couvertes
+      NON COUVERT     : amount, state, unit
+      lit   : quantity, term
+      écrit : term, quantity, in_pantry, group
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ÉTALE : structured
+      ⇒ ③ COMPLET — `amount`/`unit`/`state` arrivent par `...readStructuredQuantity(ing, …)`. Les deux sites (plats et préparations) sont identiques.
+
+  supabase/functions/_shared/keel/meal_generation.ts:6752  parseGeneratedMeal()
+      racine « dish » · 3 propriétés · 3 clés écrites
+      forme du modèle : « dishes » 3/10 clés couvertes
+      NON COUVERT     : day, honours_belief_keys, name, same_day, slot, uses, why
+      lit   : ingredients, method, title
+      écrit : title, method, ingredients
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Argument d'une vérification interne au parseur; l'objet complet est construit dix lignes plus bas.
+
+  supabase/functions/_shared/keel/meal_generation.ts:6868  ingredientPayload()
+      racine « i » · 7 propriétés · 7 clés écrites
+      forme du modèle : « ingredients » 5/6 clés couvertes
+      NON COUVERT     : group
+      lit   : amount, gramsRaw, in_pantry, quantity, state, term, unit
+      écrit : term, quantity, in_pantry, amount, unit, state, grams_raw
+      cible : Record<string, unknown> [return]  · source : DishIngredient
+      ÉTALE : ingredientGroupPayload(i.group) · quantitySourcePayload(i.quantitySource)
+      ⇒ ③ COMPLET — ⟳ RÉPARÉE le 2026-08-22 par `L17-0`: `group` était jeté (242 déclarés, 0 en base). Il arrive maintenant par `...ingredientGroupPayload(i.group)`. Reste `Record<string, unknown>` en cible ⇒ compte quand même en ②c.
+
+  supabase/functions/_shared/keel/meal_verdict.ts:344  <anonyme>()
+      racine « i » · 3 propriétés · 3 clés écrites
+      forme du modèle : « ingredients » 3/6 clés couvertes
+      NON COUVERT     : group, state, term
+      lit   : amount, quantity, unit
+      écrit : amount, unit, quantity
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Argument de `weighableQuantityOf`: une masse et sa prose, rien d'autre n'entre dans une pesée.
+
+  supabase/functions/_shared/keel/meal_verdict.ts:349  <anonyme>()
+      racine « lue » · 3 propriétés · 4 clés écrites
+      forme du modèle : « ingredients » 3/6 clés couvertes
+      NON COUVERT     : group, state, term
+      lit   : amount, source, unit
+      écrit : amount, unit, quantity, quantitySource
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ÉTALE : i
+      ⇒ ③ COMPLET — Étale `...i` avant de surcharger quatre clés: rien ne se perd, et `quantity: null` est VOULU (la prose est retirée de la copie pliée pour qu'aucun lecteur aval ne la relise après le prorata).
+
+  supabase/functions/_shared/keel/meal_verdict.ts:361  <anonyme>()
+      racine « d » · 3 propriétés · 3 clés écrites
+      forme du modèle : « dishes » 3/10 clés couvertes
+      NON COUVERT     : day, honours_belief_keys, name, same_day, title, uses, why
+      lit   : ingredients, method, slot
+      écrit : slot, method, ingredients
+      cible : (aucune annotation) [return]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Sortie du pliage: le verdict juge une assiette, pas un plat nommé.
+
+  supabase/functions/_shared/keel/mouth_energy.ts:289  <anonyme>()
+      racine « d » · 4 propriétés · 4 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : day, honours_belief_keys, name, same_day, title, why
+      lit   : ingredients, method, slot, uses
+      écrit : slot, method, ingredients, uses
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Entrée de `mouthDayEnergy`: `ingredients` passe l'objet ENTIER, donc `group` traverse.
+
+  supabase/functions/_shared/keel/plan_energy.ts:199  boundGramsOf()
+      racine « ing » · 4 propriétés · 5 clés écrites
+      forme du modèle : « ingredients » 3/6 clés couvertes
+      NON COUVERT     : group, quantity, term
+      lit   : amount, state, unit, unitGrams
+      écrit : amount, unit, state, yieldClass, unitGrams
+      cible : (aucune annotation) [argument]  · source : EnergyIngredient
+      ⇒ ③ COMPLET — N'a pas à lire `group`, et c'est ÉCRIT dans son en-tête: « POURQUOI LE MAXIMUM, ET PAS LA CLASSE DU GROUPE DÉCLARÉ — la deviner ferait passer une CONVENTION pour une mesure ». Le groupe est lu par `boundOf`, dix lignes plus bas.
+
+  supabase/functions/_shared/keel/plan_energy.ts:678  <anonyme>()
+      racine « d » · 3 propriétés · 4 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : day, honours_belief_keys, name, same_day, title, why
+      lit   : ingredients, method, uses
+      écrit : slot, method, ingredients, uses
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Idem — `ingredients` passe l'objet entier.
+
+  supabase/functions/_shared/keel/plan_energy.ts:684  <anonyme>()
+      racine « p » · 3 propriétés · 3 clés écrites
+      forme du modèle : « preparations » 3/8 clés couvertes
+      NON COUVERT     : active_minutes, cook_on, method, title, total_minutes
+      lit   : id, ingredients, servingsMade
+      écrit : id, servingsMade, ingredients
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Idem, côté préparation.
+
+  supabase/functions/_shared/keel/protocol_compiler.ts:480  compileTimingRule()
+      racine « rule » · 7 propriétés · 17 clés écrites
+      forme du modèle : « commitments » 15/27 clés couvertes
+      NON COUVERT     : activity_class, clock_local, confidence, content, content_locale, evidence_kind, priority, scheduled_days, source_span, substance_ref, template_commitment_key, title
+      lit   : direction, food_group_ref, period, portions
+      écrit : polarity, anchor_kind, slot_key, window_start_local, window_end_local, measure, unit, target_op, target_min, target_max, evaluation_grain, slot_kind, required_days_per_week, expected_occasions_per_day, autonomy, flex_eligible, preview
+      cible : CompiledCommitment [return]  · source : CoachTimingRule
+      ÉTALE : base
+      ⇒ ③ COMPLET — Étale `...base`: titre, clé de gabarit, langue et priorité viennent de là. Le compilateur PRODUIT une consigne depuis une règle de coach; il ne recopie pas une déclaration de modèle.
+
+  supabase/functions/_shared/keel/slot_reminders.ts:411  <anonyme>()
+      racine « c » · 5 propriétés · 5 clés écrites
+      forme du modèle : « commitments » 5/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, food_group_ref, measure, polarity, slot_kind, source_span, substance_ref, target_max, target_min, target_op, template_commitment_key, unit, window_end_local, window_start_local
+      lit   : priority, required_days_per_week, scheduled_days, slot_key, title
+      écrit : title, scheduledDays, requiredDaysPerWeek, slotKey, priority
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Un rappel de créneau: la cible chiffrée n'y paraît pas.
+
+  supabase/functions/analyze-meal-photo-v1/index.ts:216  toCommitmentContext()
+      racine « row » · 17 propriétés · 17 clés écrites
+      forme du modèle : « commitments » 14/27 clés couvertes
+      NON COUVERT     : anchor_kind, clock_local, confidence, content_locale, evidence_kind, expected_occasions_per_day, required_days_per_week, scheduled_days, slot_kind, source_span, template_commitment_key, window_end_local, window_start_local
+      lit   : activity_class, autonomy, content, evaluation_grain, food_group_ref, id, measure, polarity, priority, slot_key, student_instruction, substance_ref, target_max, target_min, target_op, title, unit
+      écrit : id, title, student_instruction, polarity, activity_class, slot_key, measure, unit, target_op, target_min, target_max, food_group_ref, substance_ref, evaluation_grain, autonomy, priority, content
+      cible : MealAnalysisCommitmentContext [return]  · source : Record<string, unknown>
+      ⇒ ③ HORS-CHEMIN — Contexte servi au modèle de photo: les fenêtres horaires et la provenance d'extraction n'aident pas à lire une assiette.
+
+  supabase/functions/evaluate-adherence-v1/index.ts:494  evaluateStudentDay()
+      racine « c » · 3 propriétés · 3 clés écrites
+      forme du modèle : « commitments » 3/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evidence_kind, food_group_ref, measure, polarity, required_days_per_week, scheduled_days, slot_key, slot_kind, source_span, substance_ref, target_max, target_min, target_op, template_commitment_key, title, unit, window_end_local, window_start_local
+      lit   : countsTowardAdherence, evaluationGrain, expectedOccasionsPerDay, priority
+      écrit : priority, countsTowardAdherence, expectedEvaluationsPerDay
+      cible : (aucune annotation) [autre]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Trois champs de tri pour une boucle de journée.
+
+  supabase/functions/evaluate-adherence-v1/snapshot.ts:150  toCommitment()
+      racine « row » · 32 propriétés · 32 clés écrites
+      forme du modèle : « commitments » 21/27 clés couvertes
+      NON COUVERT     : activity_class, confidence, content_locale, source_span, template_commitment_key, title
+      lit   : anchor_kind, auto_source, autonomy, clock_local, content, counts_toward_adherence, evaluation_grain, evidence_kind, evidence_required, expected_occasions_per_day, flex_eligible, food_group_ref, id, measure, plan_version_id, polarity, priority, required_days_per_week, scheduled_days, slot_key, slot_kind, status, substance_ref, target_max, target_min, target_op, tolerance_minutes, tolerance_pct, unit, user_id, window_end_local, window_start_local
+      écrit : id, planVersionId, userId, polarity, anchorKind, slotKey, clockLocal, toleranceMinutes, windowStartLocal, windowEndLocal, measure, unit, targetOp, targetMin, targetMax, tolerancePct, substanceRef, foodGroupRef, evidenceKind, evidenceRequired, autoSource, countsTowardAdherence, evaluationGrain, slotKind, scheduledDays, requiredDaysPerWeek, expectedOccasionsPerDay, priority, autonomy, flexEligible, status, swapPolicy
+      cible : EvaluatorCommitment [return]  · source : Row
+      ⇒ ③ HORS-CHEMIN — Instantané d'ÉVALUATION: le titre, la langue et la provenance d'extraction ne pèsent sur aucune adhérence. La source est une ligne de base, pas une réponse de modèle.
+
+  supabase/functions/generate-household-meal-v1/index.ts:4791  <anonyme>()
+      racine « i » · 5 propriétés · 5 clés écrites
+      forme du modèle : « ingredients » 5/6 clés couvertes
+      NON COUVERT     : quantity
+      lit   : amount, group, state, term, unit
+      écrit : term, amount, unit, state, group
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Worklist foyer: `group` passe. `quantity` n'a rien à y faire.
+
+  supabase/functions/generate-household-meal-v1/index.ts:4802  <anonyme>()
+      racine « d » · 4 propriétés · 4 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : day, honours_belief_keys, name, same_day, title, why
+      lit   : ingredients, method, slot, uses
+      écrit : slot, method, ingredients, uses
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Entrée du pliage: `ingredients` porte l'objet ENTIER — la lane foyer ne perd pas `group` là où la lane solo le perd.
+
+  supabase/functions/generate-household-meal-v1/index.ts:4808  <anonyme>()
+      racine « prep » · 3 propriétés · 3 clés écrites
+      forme du modèle : « preparations » 3/8 clés couvertes
+      NON COUVERT     : active_minutes, cook_on, method, title, total_minutes
+      lit   : id, ingredients, servingsMade
+      écrit : id, servingsMade, ingredients
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Idem, côté préparation. Deux sites identiques.
+
+  supabase/functions/generate-household-meal-v1/index.ts:5622  <anonyme>()
+      racine « dish » · 6 propriétés · 6 clés écrites
+      forme du modèle : « dishes » 5/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, name, same_day, title, why
+      lit   : boxes, day, ingredients, method, slot, uses
+      écrit : day, method, slot, ingredients, uses, boxes
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Entrée de `mouthDayEnergy`: `ingredients` et `boxes` passent entiers.
+
+  supabase/functions/generate-household-meal-v1/index.ts:5630  <anonyme>()
+      racine « prep » · 3 propriétés · 3 clés écrites
+      forme du modèle : « preparations » 3/8 clés couvertes
+      NON COUVERT     : active_minutes, cook_on, method, title, total_minutes
+      lit   : id, ingredients, servingsMade
+      écrit : id, servingsMade, ingredients
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Idem, côté préparation. Deux sites identiques.
+
+  supabase/functions/generate-household-meal-v1/index.ts:5746  <anonyme>()
+      racine « prep » · 3 propriétés · 3 clés écrites
+      forme du modèle : « preparations » 3/8 clés couvertes
+      NON COUVERT     : active_minutes, cook_on, method, title, total_minutes
+      lit   : id, ingredients, servingsMade
+      écrit : id, servingsMade, readyGrams
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Une préparation vue par sa masse prête: rien du modèle n'y entre.
+
+  supabase/functions/generate-meal-v1/index.ts:2339  <anonyme>()
+      racine « d » · 4 propriétés · 4 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : day, honours_belief_keys, name, same_day, title, why
+      lit   : ingredients, method, slot, uses
+      écrit : slot, method, ingredients, uses
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Entrée du pliage: `ingredients` porte l'objet entier.
+
+  supabase/functions/generate-meal-v1/index.ts:2342  <anonyme>()
+      racine « i » · 4 propriétés · 4 clés écrites
+      forme du modèle : « ingredients » 4/6 clés couvertes
+      NON COUVERT     : group, quantity
+      lit   : amount, state, term, unit
+      écrit : term, amount, unit, state
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ PERD — ⛔ PERD `group` SUR LA LANE SOLO — `verdictDishesOf`, les DEUX sites (l. 2342 plats, l. 2353 préparations). Sa sortie alimente `planEnergyVerdict`, la couverture, `resolveIngredients` et `energyInputs` du remplissage; `plan_energy.boundOf` lit `ing.group` pour choisir la bande. ⛔ ET DIX LIGNES PLUS BAS, `inputs:` (l. 2446) LE PASSE, avec le commentaire « avec le groupe que le modèle a pu déclarer ». Deux projections frères dans la même fonction, une le garde, l'autre le jette. ⚠️ `EnergyIngredient.group` est FACULTATIF (`group?`) ⇒ le `tsc` est muet (cicatrice `optional-gate-params-are-disarmed-gates`). COÛT MESURÉ AUJOURD'HUI: 0 ligne — la lane `personal` porte 0 groupe non nul sur 3 722 lignes. C'est une garde désarmée qui mordra à la PREMIÈRE génération solo d'un élève à régime déclaré.
+
+  supabase/functions/generate-meal-v1/index.ts:2350  <anonyme>()
+      racine « p » · 3 propriétés · 3 clés écrites
+      forme du modèle : « preparations » 3/8 clés couvertes
+      NON COUVERT     : active_minutes, cook_on, method, title, total_minutes
+      lit   : id, ingredients, servingsMade
+      écrit : id, servingsMade, ingredients
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Idem, côté préparation.
+
+  supabase/functions/generate-meal-v1/index.ts:2353  <anonyme>()
+      racine « i » · 4 propriétés · 4 clés écrites
+      forme du modèle : « ingredients » 4/6 clés couvertes
+      NON COUVERT     : group, quantity
+      lit   : amount, state, term, unit
+      écrit : term, amount, unit, state
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ PERD — ⛔ PERD `group` SUR LA LANE SOLO — `verdictDishesOf`, les DEUX sites (l. 2342 plats, l. 2353 préparations). Sa sortie alimente `planEnergyVerdict`, la couverture, `resolveIngredients` et `energyInputs` du remplissage; `plan_energy.boundOf` lit `ing.group` pour choisir la bande. ⛔ ET DIX LIGNES PLUS BAS, `inputs:` (l. 2446) LE PASSE, avec le commentaire « avec le groupe que le modèle a pu déclarer ». Deux projections frères dans la même fonction, une le garde, l'autre le jette. ⚠️ `EnergyIngredient.group` est FACULTATIF (`group?`) ⇒ le `tsc` est muet (cicatrice `optional-gate-params-are-disarmed-gates`). COÛT MESURÉ AUJOURD'HUI: 0 ligne — la lane `personal` porte 0 groupe non nul sur 3 722 lignes. C'est une garde désarmée qui mordra à la PREMIÈRE génération solo d'un élève à régime déclaré.
+
+  supabase/functions/generate-meal-v1/index.ts:2446  <anonyme>()
+      racine « i » · 5 propriétés · 5 clés écrites
+      forme du modèle : « ingredients » 5/6 clés couvertes
+      NON COUVERT     : quantity
+      lit   : amount, group, state, term, unit
+      écrit : term, amount, unit, state, group
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — ⛔ LA WORKLIST DE REMPLISSAGE, et elle PASSE `group` — c'est le témoin qui rend le verdict `perd` de `verdictDishesOf` inattaquable: deux projections de la même fonction, une le garde, l'autre le jette. `quantity` (la prose) n'entre pas: le remplissage résout un TERME.
+
+  supabase/functions/generate-meal-v1/index.ts:2885  <anonyme>()
+      racine « d » · 4 propriétés · 5 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, name, same_day, slot, uses, why
+      lit   : day, ingredients, method, title
+      écrit : id, title, method, day, ingredients
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Rapport à la demande: `id` est un index de plan, jamais rendu à l'élève ni écrit.
+
+  supabase/functions/meal-energy-v1/index.ts:192  readIngredient()
+      racine « i » · 5 propriétés · 5 clés écrites
+      forme du modèle : « ingredients » 5/6 clés couvertes
+      NON COUVERT     : group
+      lit   : amount, quantity, state, term, unit
+      écrit : term, amount, unit, state, quantity
+      cible : CompositionInput | null [return]  · source : (déduite)
+      ⇒ ③ PERD — ⛔ PERD `group`. Le modèle le déclare (`FOOD_GROUP_DECLARATION_BLOCK`), `ingredientPayload` le PERSISTE depuis `L17-0`, et ce lecteur ne le lit pas ⇒ la borne de `L17` retombe sur 902 kcal/100 g au lieu de la bande du groupe. COÛT MESURÉ le 2026-08-22: 769 lignes sur 10 plans foyer portent `group is not null` en base. Fiche `L17-a`, §⑨ n° 59.
+
+  supabase/functions/meal-energy-v1/index.ts:236  <anonyme>()
+      racine « d » · 4 propriétés · 4 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, name, same_day, slot, title, why
+      lit   : day, ingredients, method, uses
+      écrit : day, method, ingredients, uses
+      cible : (aucune annotation) [return]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — `readDishes` de la lane de lecture: `ingredients` passe par `readIngredients`, et c'est LÀ que `group` tombe — le verdict est porté par `readIngredient`, pas ici.
+
+  supabase/functions/meal-energy-v1/index.ts:257  <anonyme>()
+      racine « p » · 3 propriétés · 3 clés écrites
+      forme du modèle : « preparations » 3/8 clés couvertes
+      NON COUVERT     : active_minutes, cook_on, method, title, total_minutes
+      lit   : id, ingredients, servings_made
+      écrit : id, servingsMade, ingredients
+      cible : (aucune annotation) [return]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Idem, côté préparation.
+
+  supabase/functions/plan-import-v1/import_rules.ts:646  toDraftCommitment()
+      racine « c » · 26 propriétés · 35 clés écrites
+      forme du modèle : « commitments » 25/27 clés couvertes
+      NON COUVERT     : confidence, content
+      lit   : activity_class, anchor_kind, clock_local, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, food_group_ref, measure, polarity, priority, required_days_per_week, scheduled_days, slot_key, slot_kind, source_span, student_instruction, substance_ref, target_max, target_min, target_op, title, tolerance_minutes, unit, window_end_local, window_start_local
+      écrit : template_commitment_key, title, student_instruction, content_locale, polarity, activity_class, anchor_kind, slot_key, clock_local, tolerance_minutes, window_start_local, window_end_local, measure, unit, target_op, target_min, target_max, substance_ref, food_group_ref, evidence_kind, evidence_required, auto_source, counts_toward_adherence, evaluation_grain, slot_kind, scheduled_days, required_days_per_week, expected_occasions_per_day, priority, autonomy, flex_eligible, provenance, requires_clinician_signoff, auto_generated, source_span
+      cible : DraftCommitment [return]  · source : Record<string, unknown>
+      ⇒ ③ COMPLET — `confidence` est lu par `validateImportCommitment` (l. 768) et devient `needs_review`; `content` est assemblé par `plan-publish`. L'en-tête le dit: « Fields the extractor never produces take the SQL default of their column ».
+
+  supabase/functions/plan-import-v1/import_rules.ts:721  validateImportCommitment()
+      racine « draft » · 9 propriétés · 10 clés écrites
+      forme du modèle : « commitments » 10/27 clés couvertes
+      NON COUVERT     : activity_class, clock_local, confidence, content, content_locale, evidence_kind, expected_occasions_per_day, food_group_ref, priority, required_days_per_week, scheduled_days, source_span, substance_ref, template_commitment_key, unit, window_end_local, window_start_local
+      lit   : anchor_kind, evaluation_grain, measure, polarity, slot_key, slot_kind, target_max, target_min, target_op
+      écrit : title, polarity, targetOp, targetMin, targetMax, measure, anchorKind, slotKey, slotKind, grain
+      cible : Ctx [variable]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Argument d'une validation, pas une ligne. `confidence` est lu SÉPARÉMENT dans la même fonction (l. 768) et ressort en `needs_review`.
+
+  supabase/functions/plan-import-v1/import_rules.ts:957  validateImportRelation()
+      racine « r » · 7 propriétés · 10 clés écrites
+      forme du modèle : « relations » 7/9 clés couvertes
+      NON COUVERT     : confidence, source_span
+      lit   : cofactor_ref, kind, object_key, object_note, param_minutes, student_note, subject_key
+      écrit : kind, subject_key, object_key, object_note, cofactor_ref, param_minutes, student_note, persistable, review_questions, diagnostics
+      cible : ValidatedImportRelation [return]  · source : (déduite)
+      ÉTALE : (r as unknown as PlanImportRelation)
+      ⇒ ③ COMPLET — Étale `(r as unknown as PlanImportRelation)`: `confidence` et `source_span` traversent.
+
+  supabase/functions/plan-publish-v1/commitments.ts:280  buildCommitmentRow()
+      racine « c » · 36 propriétés · 42 clés écrites
+      forme du modèle : « commitments » 26/27 clés couvertes
+      NON COUVERT     : confidence
+      lit   : activity_class, anchor_kind, auto_generated, auto_source, clock_local, content, counts_toward_adherence, evaluation_grain, evidence_kind, evidence_required, expected_occasions_per_day, flex_eligible, food_group_ref, measure, phase_id, polarity, priority, provenance, required_days_per_week, requires_clinician_signoff, slot_key, slot_kind, source_span, status, student_instruction, substance_ref, target_max, target_min, target_op, template_commitment_key, title, tolerance_minutes, tolerance_pct, unit, window_end_local, window_start_local
+      écrit : plan_version_id, user_id, coach_id, template_commitment_key, polarity, activity_class, anchor_kind, slot_key, clock_local, tolerance_minutes, window_start_local, window_end_local, measure, unit, target_op, target_min, target_max, tolerance_pct, substance_ref, food_group_ref, evidence_kind, evidence_required, auto_source, counts_toward_adherence, evaluation_grain, slot_kind, scheduled_days, required_days_per_week, expected_occasions_per_day, priority, autonomy, flex_eligible, provenance, requires_clinician_signoff, title, student_instruction, content, content_locale, source_span, phase_id, auto_generated, status
+      cible : Json [return]  · source : (déduite)
+      ⇒ ③ COMPLET — La confiance d'EXTRACTION est un signal de brouillon (`extraction_confidence` sur la ligne de gabarit, plus `needs_review`); une consigne PUBLIÉE a été relue par le coach. 0 occurrence de `confidence` dans le fichier, et c'est cohérent.
+
+  supabase/functions/plan-template-v1/index.ts:181  <anonyme>()
+      racine « c » · 7 propriétés · 7 clés écrites
+      forme du modèle : « commitments » 7/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, food_group_ref, polarity, priority, required_days_per_week, scheduled_days, slot_key, slot_kind, source_span, template_commitment_key, window_end_local, window_start_local
+      lit   : measure, substance_ref, target_max, target_min, target_op, title, unit
+      écrit : title, substance_ref, measure, unit, target_op, target_min, target_max
+      cible : (aucune annotation) [return]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Aperçu de gabarit rendu à l'écran du coach.
+
+  supabase/functions/process-checkins/index.ts:1654  processDueRendezVous()
+      racine « rdv » · 5 propriétés · 8 clés écrites
+      forme du modèle : « events » 3/4 clés couvertes
+      NON COUVERT     : confidence_score
+      lit   : kind, posture, scheduled_for, source_refs, trigger_reason, user_id
+      écrit : admin, userId, eventContext, scheduledFor, instruction, eventGrounding, source, requestId
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Idem — et `admin`/`requestId` montrent que c'est un argument d'appel, pas une ligne.
+
+  supabase/functions/process-checkins/index.ts:2621  <anonyme>()
+      racine « payload » · 3 propriétés · 8 clés écrites
+      forme du modèle : « events » 3/4 clés couvertes
+      NON COUVERT     : confidence_score
+      lit   : event_grounding, instruction, note, source
+      écrit : admin, userId, eventContext, scheduledFor, instruction, eventGrounding, source, requestId
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Idem.
+
+  supabase/functions/provision-day-v1/provisioning.ts:224  parseProvisionCommitment()
+      racine « row » · 18 propriétés · 19 clés écrites
+      forme du modèle : « commitments » 12/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evidence_kind, expected_occasions_per_day, priority, required_days_per_week, source_span, template_commitment_key, title, window_end_local, window_start_local
+      lit   : auto_source, evaluation_grain, food_group_ref, id, measure, phase_id, plan_version_id, polarity, slot_key, slot_kind, status, substance_ref, target_max, target_min, target_op, tolerance_pct, unit, user_id
+      écrit : id, planVersionId, userId, status, slotKind, evaluationGrain, slotKey, scheduledDays, phaseId, polarity, measure, unit, targetOp, targetMin, targetMax, tolerancePct, substanceRef, foodGroupRef, autoSource
+      cible : ProvisionCommitment [return]  · source : Record<string, unknown>
+      ⇒ ③ HORS-CHEMIN — Ce qu'il faut pour POSER la journée. Source: une ligne de base.
+
+  supabase/functions/provision-day-v1/provisioning.ts:421  buildExpectedSnapshot()
+      racine « commitment » · 11 propriétés · 11 clés écrites
+      forme du modèle : « commitments » 9/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, priority, required_days_per_week, scheduled_days, slot_key, source_span, template_commitment_key, title, window_end_local, window_start_local
+      lit   : autoSource, foodGroupRef, measure, polarity, slotKind, substanceRef, targetMax, targetMin, targetOp, tolerancePct, unit
+      écrit : measure, unit, target_op, target_min, target_max, tolerance_pct, substance_ref, food_group_ref, polarity, slot_kind, auto_source
+      cible : Record<string, unknown> [return]  · source : ProvisionCommitment
+      ⇒ ③ HORS-CHEMIN — Instantané ATTENDU: la cible et rien d'autre.
+
+  supabase/functions/sophia-brain/agents/watcher.ts:749  runWatcher()
+      racine « candidate » · 3 propriétés · 4 clés écrites
+      forme du modèle : « events » 3/4 clés couvertes
+      NON COUVERT     : confidence_score
+      lit   : eventContext, eventGrounding, scheduledFor
+      écrit : event_context, event_grounding, scheduled_for, now_iso
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Argument de `watcherCandidateCoveredByExistingFollowUp`: une comparaison de recouvrement, pas une écriture.
+
+  supabase/functions/sophia-brain/agents/watcher.ts:805  runWatcher()
+      racine « candidate » · 3 propriétés · 8 clés écrites
+      forme du modèle : « events » 3/4 clés couvertes
+      NON COUVERT     : confidence_score
+      lit   : eventContext, eventGrounding, scheduledFor
+      écrit : user_id, origin, event_context, draft_message, message_mode, message_payload, scheduled_for, status
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — `confidence_score` est LU (l. 690, renommé `score`) et CONSOMMÉ comme porte: `filter(c.score >= 8)` puis `candidateScore` dans le prompt d'envoi. Un score de tri n'a pas à être persisté sur la ligne planifiée.
+
+  supabase/functions/sophia-brain/agents/watcher.ts:820  runWatcher()
+      racine « candidate » · 3 propriétés · 6 clés écrites
+      forme du modèle : « events » 3/4 clés couvertes
+      NON COUVERT     : confidence_score
+      lit   : eventContext, eventGrounding, scheduledFor
+      écrit : scheduled_for, event_context, origin, status, draft_message, message_payload
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Miroir en mémoire de la ligne qu'on vient d'empiler, pour la détection de doublon du même tour. Même raison.
+
+  supabase/functions/sophia-brain/momentum_outreach.ts:469  scheduleMomentumOutreach()
+      racine « planWithHistory » · 3 propriétés · 8 clés écrites
+      forme du modèle : « events » 3/4 clés couvertes
+      NON COUVERT     : confidence_score
+      lit   : confidence, event_context, event_grounding, fallback_text, instruction, plan_item_ids_targeted, plan_item_titles_targeted, state, strategy
+      écrit : user_id, origin, event_context, draft_message, message_mode, message_payload, scheduled_for, status
+      cible : (aucune annotation) [autre]  · source : (déduite)
+      ⇒ ③ COMPLET — Même forme que `watcher`: le score de confiance est une porte, pas une donnée de la ligne.
+
+  supabase/functions/sophia-brain/router/one_shot_local_direct_effect.ts:131  oneShotDirectEffectFromLocalRequest()
+      racine « request » · 4 propriétés · 5 clés écrites
+      forme du modèle : « direct_effect_request » 5/8 clés couvertes
+      NON COUVERT     : content_risk, reason, requested
+      lit   : confidence_band, explicitness, payload_hint, target_status
+      écrit : effect_type, explicitness, target_status, confidence_band, payload_hint
+      cible : TurnFrame["direct_effects"][number] | null [return]  · source : LocalOneShotDirectEffectRequest | null | undefined
+      ⇒ ③ COMPLET — ⛔ `content_risk` et `requested` sont CONSOMMÉS COMME PORTES juste au-dessus, dans `shouldAcceptLocalOneShotDirectEffect` (`request.content_risk !== "flagged"`, `request.requested === true`). Les recopier dans l'effet serait porter deux fois une décision déjà prise. `reason` n'existe pas sur ce type.
+
+  supabase/functions/sophia-brain/router/run.ts:4426  processMessage()
+      racine « pendingCreateSlots » · 3 propriétés · 3 clés écrites
+      forme du modèle : « payload_hint » 3/5 clés couvertes
+      NON COUVERT     : instruction_hint, raw_text
+      lit   : UTC_time, local_label, when_hint
+      écrit : when_hint, UTC_time, local_label
+      cible : (aucune annotation) [autre]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Écho des créneaux en attente vers le tour suivant; `raw_text` et `instruction_hint` sont déjà consommés par le compilateur.
+
+  supabase/functions/sophia-brain/tools/always_on/log_protocol_event/intake.ts:199  readComponent()
+      racine « raw » · 5 propriétés · 5 clés écrites
+      forme du modèle : « commitments » 3/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, measure, polarity, priority, required_days_per_week, scheduled_days, slot_key, slot_kind, source_span, target_max, target_min, target_op, template_commitment_key, title, window_end_local, window_start_local
+      lit   : commitment_id, food_group_ref, quantity, substance_ref, unit
+      écrit : unit, substance_ref, food_group_ref, quantity, commitment_id
+      cible : ComponentDraft [return]  · source : Record<string, unknown>
+      ⇒ ③ HORS-CHEMIN — ⚠️ LIAISON FAIBLE — ce n'est pas une consigne, c'est un COMPOSANT d'événement journalisé; il partage cinq mots de vocabulaire avec le schéma `commitments` et rien de plus. La forme liée est fausse, et la liaison est imprimée pour qu'on puisse la contester.
+
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:3836  runOneShotReminderDirectEffectInner()
+      racine « compiledPayload » · 3 propriétés · 4 clés écrites
+      forme du modèle : « payload_hint » 3/5 clés couvertes
+      NON COUVERT     : raw_text, when_hint
+      lit   : instruction, localLabel, scheduledFor
+      écrit : UTC_time, local_label, instruction_hint, replace_target_label
+      cible : (aucune annotation) [propriété]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Payload COMPILÉ (ce que le compilateur déterministe a produit), pas la déclaration du modèle: `raw_text` et `when_hint` sont ses ENTRÉES. Trois sites identiques.
+
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:3919  runOneShotReminderDirectEffectInner()
+      racine « compiledPayload » · 3 propriétés · 4 clés écrites
+      forme du modèle : « payload_hint » 3/5 clés couvertes
+      NON COUVERT     : raw_text, when_hint
+      lit   : instruction, localLabel, scheduledFor
+      écrit : UTC_time, local_label, instruction_hint, replace_target_label
+      cible : (aucune annotation) [propriété]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Payload COMPILÉ (ce que le compilateur déterministe a produit), pas la déclaration du modèle: `raw_text` et `when_hint` sont ses ENTRÉES. Trois sites identiques.
+
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:4225  runOneShotReminderDirectEffectInner()
+      racine « compiledPayload » · 3 propriétés · 4 clés écrites
+      forme du modèle : « payload_hint » 3/5 clés couvertes
+      NON COUVERT     : raw_text, when_hint
+      lit   : instruction, localLabel, scheduledFor
+      écrit : UTC_time, local_label, instruction_hint, replace_target_label
+      cible : (aucune annotation) [propriété]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Payload COMPILÉ (ce que le compilateur déterministe a produit), pas la déclaration du modèle: `raw_text` et `when_hint` sont ses ENTRÉES. Trois sites identiques.
+
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:4667  runOneShotReminderDirectEffectInner()
+      racine « compiledPayload » · 4 propriétés · 4 clés écrites
+      forme du modèle : « payload_hint » 4/5 clés couvertes
+      NON COUVERT     : when_hint
+      lit   : instruction, localLabel, rawText, scheduledFor
+      écrit : instruction_hint, UTC_time, local_label, raw_text
+      cible : (aucune annotation) [propriété]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Même chose, avec `raw_text` en plus.
+
+── ③ VERDICT ─────────────────────────────────────────────────────────
+  perd un champ déclaré par le modèle, AUJOURD'HUI, EN PRODUCTION : 4
+      ⛔ frontend/src/keel/api/mealGeneration.ts:917 <anonyme>()
+      ⛔ supabase/functions/generate-meal-v1/index.ts:2342 <anonyme>()
+      ⛔ supabase/functions/generate-meal-v1/index.ts:2353 <anonyme>()
+      ⛔ supabase/functions/meal-energy-v1/index.ts:192 readIngredient()
+  non classés (le script sort en rc=1) : 0
+
+── LA LISTE ① COMPLÈTE ───────────────────────────────────────────────
+  frontend/src/keel/api/household.ts:1802  <anonyme>()  [sac écrit ②c ③?-6]  5←d  ~dishes
+  frontend/src/keel/api/mealGeneration.ts:917  <anonyme>()  [sac écrit ②c ③?-2]  9←d  ~dishes
+  frontend/src/keel/api/mealGeneration.ts:985  <anonyme>()  [sac écrit ②c]  3←s  ~shopping_list
+  frontend/src/keel/api/mealGeneration.ts:1000  <anonyme>()  [sac écrit ②c]  8←p  ~preparations
+  frontend/src/keel/api/mealGeneration.ts:1140  <anonyme>()  [sac écrit ②c]  4←sess  ~cooking_sessions
+  frontend/src/keel/components/CommitmentEditor.tsx:191  <anonyme>()  [typé - ②c ③?-20]  7←c  ~commitments
+  frontend/src/keel/lib/dishSession.ts:92  sessionForDish()  [typé - ③?-1]  3←session  ~cooking_sessions
+  frontend/src/keel/pages/CoachProtocolPage.tsx:573  acceptProposal()  [typé écrit ②c ②b-2]  5←p  ~food_proposals
+  frontend/src/keel/pages/PlanImportPage.tsx:151  fromImport()  [typé - ②c ③?-2]  26←c  ~commitments
+  frontend/src/keel/pages/PlanImportPage.tsx:191  fromGap()  [typé - ②c ③?-23]  3←gap  ~commitments
+  supabase/functions/_shared/keel/accident.ts:364  <anonyme>()  [typé - ②c ③?-6]  4←d  ~dishes
+  supabase/functions/_shared/keel/accident.ts:379  <anonyme>()  [typé - ②c ③?-4]  4←p  ~preparations
+  supabase/functions/_shared/keel/doctrine_document.ts:295  parseDocumentExtraction()  [typé - ②c]  4←entry  ~food_proposals
+  supabase/functions/_shared/keel/doctrine_editor_shape.ts:66  <anonyme>()  [typé - ②c]  3←f  ~forbidden
+  supabase/functions/_shared/keel/doctrine_from_forks.ts:373  buildDraftFromForkGeneration()  [typé - ②c ③?-1]  3←it  ~beliefs
+  supabase/functions/_shared/keel/doctrine_from_forks.ts:395  buildDraftFromForkGeneration()  [typé - ②c]  4←it  ~forbidden
+  supabase/functions/_shared/keel/doctrine_from_forks.ts:445  buildDraftFromForkGeneration()  [typé - ②c]  4←generated  ~voice
+  supabase/functions/_shared/keel/doctrine_from_forks.ts:471  <anonyme>()  [typé - ②c ③?-1]  3←f  ~forbidden
+  supabase/functions/_shared/keel/doctrine_starter.ts:557  applyStarterChoices()  [typé - ②c ③?-1]  3←position  ~beliefs
+  supabase/functions/_shared/keel/doctrine_starter.ts:567  applyStarterChoices()  [typé - ②c]  4←position  ~forbidden
+  supabase/functions/_shared/keel/doctrine.ts:430  parseCoachDoctrine()  [sac - ②c ③?-1]  5←b  ~beliefs
+  supabase/functions/_shared/keel/doctrine.ts:450  parseCoachDoctrine()  [sac - ②c]  4←f  ~forbidden
+  supabase/functions/_shared/keel/doctrine.ts:515  parseFoodList()  [sac - ②c]  3←f  ~discouraged
+  supabase/functions/_shared/keel/doctrine.ts:591  parseCoachDoctrine()  [typé - ②c]  4←row  ~voice
+  supabase/functions/_shared/keel/evaluator.ts:1064  buildEvaluation()  [typé - ②c ②b-20 ③?-17]  12←commitment  ~commitments
+  supabase/functions/_shared/keel/fixed_intakes.ts:460  fixedIntakeInputsFor()  [typé - ②c ③?-2]  3←intake  ~ingredients
+  supabase/functions/_shared/keel/food_composition.ts:1223  resolveIngredients()  [typé - ②c ③?-3]  4←input  ~ingredients
+  supabase/functions/_shared/keel/food_composition.ts:1256  resolveIngredients()  [typé - ②c ③?-2]  4←input  ~ingredients
+  supabase/functions/_shared/keel/grocery_waves.ts:154  <anonyme>()  [typé - ②c ③?-5]  3←row  ~preparations
+  supabase/functions/_shared/keel/household_merge_notice_io.ts:72  storedDishes()  [sac - ②c ③?-7]  3←row  ~dishes
+  supabase/functions/_shared/keel/household_turn_context.ts:433  <anonyme>()  [typé écrit ②c ③?-7]  3←d  ~dishes
+  supabase/functions/_shared/keel/meal_analysis.ts:495  compactCommitment()  [typé - ②c ②b-9 ③?-21]  8←c  ~commitments
+  supabase/functions/_shared/keel/meal_analysis.ts:1020  parseMealAnalysis()  [sac - ②c]  4←match  ~commitment_matches
+  supabase/functions/_shared/keel/meal_analysis.ts:1070  parseMealAnalysis()  [sac - ②c]  3←a  ~assumptions
+  supabase/functions/_shared/keel/meal_generation.ts:4015  scanMealForRegime()  [typé - ②c ③?-4]  3←prep  ~preparations
+  supabase/functions/_shared/keel/meal_generation.ts:4630  parseGeneratedMeal()  [sac - ②c ③?-3]  3←s  ~ingredients
+  supabase/functions/_shared/keel/meal_generation.ts:4644  parseGeneratedMeal()  [sac - ②c]  5←prep  ~preparations
+  supabase/functions/_shared/keel/meal_generation.ts:5371  parseGeneratedMeal()  [sac - ②c ③?-3]  3←s  ~ingredients
+  supabase/functions/_shared/keel/meal_generation.ts:6032  parseGeneratedMeal()  [sac - ②c]  3←s  ~shopping_list
+  supabase/functions/_shared/keel/meal_generation.ts:6162  parseGeneratedMeal()  [sac - ②c]  3←ing  ~shopping_list
+  supabase/functions/_shared/keel/meal_generation.ts:6752  parseGeneratedMeal()  [typé - ②c ③?-7]  3←dish  ~dishes
+  supabase/functions/_shared/keel/meal_generation.ts:6868  ingredientPayload()  [typé - ②c ③?-1]  7←i  ~ingredients
+  supabase/functions/_shared/keel/meal_generation.ts:6916  <anonyme>()  [typé - ②c]  12←d  ~dishes
+  supabase/functions/_shared/keel/meal_generation.ts:7004  <anonyme>()  [typé - ②c]  8←p  ~preparations
+  supabase/functions/_shared/keel/meal_generation.ts:7019  <anonyme>()  [typé - ②c]  4←session  ~cooking_sessions
+  supabase/functions/_shared/keel/meal_generation.ts:7028  <anonyme>()  [typé - ②c]  4←s  ~shopping_list
+  supabase/functions/_shared/keel/meal_verdict.ts:344  <anonyme>()  [typé - ②c ③?-3]  3←i  ~ingredients
+  supabase/functions/_shared/keel/meal_verdict.ts:349  <anonyme>()  [typé - ②c ③?-3]  3←lue  ~ingredients
+  supabase/functions/_shared/keel/meal_verdict.ts:361  <anonyme>()  [typé - ②c ③?-7]  3←d  ~dishes
+  supabase/functions/_shared/keel/mouth_energy.ts:289  <anonyme>()  [typé - ②c ③?-6]  4←d  ~dishes
+  supabase/functions/_shared/keel/plan_energy.ts:199  boundGramsOf()  [typé - ②c ③?-3]  4←ing  ~ingredients
+  supabase/functions/_shared/keel/plan_energy.ts:678  <anonyme>()  [typé - ②c ③?-6]  3←d  ~dishes
+  supabase/functions/_shared/keel/plan_energy.ts:684  <anonyme>()  [typé - ②c ③?-5]  3←p  ~preparations
+  supabase/functions/_shared/keel/protocol_compiler.ts:480  compileTimingRule()  [typé - ②a-21 ③?-12]  7←rule  ~commitments
+  supabase/functions/_shared/keel/slot_reminders.ts:411  <anonyme>()  [typé - ②c ③?-22]  5←c  ~commitments
+  supabase/functions/_shared/keel/week_plan_generation.ts:779  parseWeekPlan()  [sac - ②c]  5←it  ~items
+  supabase/functions/_shared/keel/week_plan_generation.ts:810  parseWeekPlan()  [sac - ②c]  4←it  ~items
+  supabase/functions/_shared/keel/week_plan_generation.ts:855  <anonyme>()  [typé - ②c]  7←it  ~items
+  supabase/functions/_shared/v2-prompts/conversation-pulse.ts:480  <anonyme>()  [typé - ②c]  7←anchor  ~emotional_anchors
+  supabase/functions/_shared/v2-prompts/conversation-pulse.ts:655  validateConversationPulseOutput()  [sac - ②c]  3←obj  ~tone
+  supabase/functions/_shared/v2-prompts/conversation-pulse.ts:665  validateConversationPulseOutput()  [sac - ②c]  4←obj  ~highlights
+  supabase/functions/_shared/v2-prompts/conversation-pulse.ts:672  validateConversationPulseOutput()  [sac - ②c]  3←obj  ~signals
+  supabase/functions/analyze-meal-photo-v1/index.ts:216  toCommitmentContext()  [typé écrit ③?-13]  17←row  ~commitments
+  supabase/functions/coach-doctrine-v1/index.ts:323  saveFoodProposals()  [typé écrit ②c]  5←p  ~food_proposals
+  supabase/functions/evaluate-adherence-v1/index.ts:494  evaluateStudentDay()  [typé écrit ②c ③?-24]  3←c  ~commitments
+  supabase/functions/evaluate-adherence-v1/snapshot.ts:150  toCommitment()  [typé - ③?-6]  32←row  ~commitments
+  supabase/functions/generate-household-meal-v1/index.ts:4791  <anonyme>()  [typé écrit ②c ③?-1]  5←i  ~ingredients
+  supabase/functions/generate-household-meal-v1/index.ts:4802  <anonyme>()  [typé écrit ②c ③?-6]  4←d  ~dishes
+  supabase/functions/generate-household-meal-v1/index.ts:4808  <anonyme>()  [typé écrit ②c ③?-5]  3←prep  ~preparations
+  supabase/functions/generate-household-meal-v1/index.ts:5622  <anonyme>()  [typé écrit ②c ③?-5]  6←dish  ~dishes
+  supabase/functions/generate-household-meal-v1/index.ts:5630  <anonyme>()  [typé écrit ②c ③?-5]  3←prep  ~preparations
+  supabase/functions/generate-household-meal-v1/index.ts:5746  <anonyme>()  [typé écrit ②c ③?-5]  3←prep  ~preparations
+  supabase/functions/generate-meal-v1/index.ts:2339  <anonyme>()  [typé écrit ②c ③?-6]  4←d  ~dishes
+  supabase/functions/generate-meal-v1/index.ts:2342  <anonyme>()  [typé écrit ②c ③?-2]  4←i  ~ingredients
+  supabase/functions/generate-meal-v1/index.ts:2350  <anonyme>()  [typé écrit ②c ③?-5]  3←p  ~preparations
+  supabase/functions/generate-meal-v1/index.ts:2353  <anonyme>()  [typé écrit ②c ③?-2]  4←i  ~ingredients
+  supabase/functions/generate-meal-v1/index.ts:2446  <anonyme>()  [typé écrit ②c ③?-1]  5←i  ~ingredients
+  supabase/functions/generate-meal-v1/index.ts:2885  <anonyme>()  [typé écrit ②c ③?-6]  4←d  ~dishes
+  supabase/functions/meal-energy-v1/index.ts:192  readIngredient()  [sac - ②a-2 ③?-1]  5←i  ~ingredients
+  supabase/functions/meal-energy-v1/index.ts:236  <anonyme>()  [sac - ②c ③?-6]  4←d  ~dishes
+  supabase/functions/meal-energy-v1/index.ts:257  <anonyme>()  [sac - ②c ③?-5]  3←p  ~preparations
+  supabase/functions/plan-import-v1/import_rules.ts:646  toDraftCommitment()  [typé - ②a-4 ③?-2]  26←c  ~commitments
+  supabase/functions/plan-import-v1/import_rules.ts:721  validateImportCommitment()  [typé - ③?-17]  9←draft  ~commitments
+  supabase/functions/plan-import-v1/import_rules.ts:957  validateImportRelation()  [sac - ②a-2 ③?-2]  7←r  ~relations
+  supabase/functions/plan-publish-v1/commitments.ts:280  buildCommitmentRow()  [typé - ③?-1]  36←c  ~commitments
+  supabase/functions/plan-template-v1/index.ts:181  <anonyme>()  [sac écrit ②c ③?-20]  7←c  ~commitments
+  supabase/functions/process-checkins/index.ts:1654  processDueRendezVous()  [typé écrit ②c ③?-1]  5←rdv  ~events
+  supabase/functions/process-checkins/index.ts:2621  <anonyme>()  [typé écrit ②c ③?-1]  3←payload  ~events
+  supabase/functions/provision-day-v1/provisioning.ts:224  parseProvisionCommitment()  [typé - ③?-15]  18←row  ~commitments
+  supabase/functions/provision-day-v1/provisioning.ts:421  buildExpectedSnapshot()  [typé - ②c ②b-8 ③?-18]  11←commitment  ~commitments
+  supabase/functions/sophia-brain/agents/watcher.ts:644  runWatcher()  [typé écrit ②c ②b-1]  4←analysis  ~pause_decision
+  supabase/functions/sophia-brain/agents/watcher.ts:697  <anonyme>()  [typé écrit ②c]  4←event  ~events
+  supabase/functions/sophia-brain/agents/watcher.ts:749  runWatcher()  [typé écrit ②c ③?-1]  3←candidate  ~events
+  supabase/functions/sophia-brain/agents/watcher.ts:805  runWatcher()  [typé écrit ②c ③?-1]  3←candidate  ~events
+  supabase/functions/sophia-brain/agents/watcher.ts:820  runWatcher()  [typé écrit ②c ③?-1]  3←candidate  ~events
+  supabase/functions/sophia-brain/conversation_pulse_builder.ts:761  buildDailyConversationPulse()  [typé écrit ②c]  4←rows  ~highlights
+  supabase/functions/sophia-brain/momentum_outreach.ts:469  scheduleMomentumOutreach()  [typé écrit ②c ③?-1]  3←planWithHistory  ~events
+  supabase/functions/sophia-brain/router/one_shot_local_direct_effect.ts:49  normalizeLocalOneShotDirectEffectRequest()  [typé -]  8←root  ~direct_effect_request
+  supabase/functions/sophia-brain/router/one_shot_local_direct_effect.ts:72  normalizeLocalOneShotDirectEffectRequest()  [typé - ②c]  5←payloadRoot  ~payload_hint
+  supabase/functions/sophia-brain/router/one_shot_local_direct_effect.ts:131  oneShotDirectEffectFromLocalRequest()  [typé - ②b-4 ③?-3]  4←request  ~direct_effect_request
+  supabase/functions/sophia-brain/router/one_shot_local_direct_effect.ts:142  oneShotDirectEffectFromLocalRequest()  [typé - ②c ②b-7]  5←request  ~payload_hint
+  supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts:584  runDirectEffectLane()  [sac - ②c]  5←slots  ~payload_hint
+  supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts:693  runDirectEffectLane()  [sac - ②c]  5←payload  ~payload_hint
+  supabase/functions/sophia-brain/router/run.ts:4426  processMessage()  [typé écrit ②c ③?-2]  3←pendingCreateSlots  ~payload_hint
+  supabase/functions/sophia-brain/skills/safety_crisis/local_dispatcher.ts:236  normalizeSafetyCrisisLocalDispatcherOutput()  [typé - ②c]  11←signalsRoot  ~safety_signals
+  supabase/functions/sophia-brain/skills/safety_crisis/local_dispatcher.ts:257  normalizeSafetyCrisisLocalDispatcherOutput()  [typé - ②c]  3←summaryRoot  ~user_state_summary
+  supabase/functions/sophia-brain/skills/safety_crisis/local_dispatcher.ts:268  normalizeSafetyCrisisLocalDispatcherOutput()  [typé - ②c]  3←root  ~product_tool_boundary
+  supabase/functions/sophia-brain/skills/safety_crisis/local_dispatcher.ts:280  normalizeSafetyCrisisLocalDispatcherOutput()  [typé - ②c]  3←exitRoot  ~exit_request
+  supabase/functions/sophia-brain/tools/always_on/log_protocol_event/intake.ts:199  readComponent()  [typé - ③?-24]  5←raw  ~commitments
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:2891  runOneShotReminderDirectEffectInner()  [typé - ②c]  3←compiledPayload  ~payload_hint
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:3836  runOneShotReminderDirectEffectInner()  [typé - ②c ③?-2]  3←compiledPayload  ~payload_hint
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:3919  runOneShotReminderDirectEffectInner()  [typé - ②c ③?-2]  3←compiledPayload  ~payload_hint
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:4225  runOneShotReminderDirectEffectInner()  [typé - ②c ③?-2]  3←compiledPayload  ~payload_hint
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:4667  runOneShotReminderDirectEffectInner()  [typé - ②c ③?-1]  4←compiledPayload  ~payload_hint
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:4861  runOneShotReminderDirectEffectInner()  [typé - ②c]  4←compiledPayload  ~payload_hint
+
+══════════════════════════════════════════════════════════════════════
+FIN — ⓪ 1848 · ① 115 · ②a 4 (1 muettes au tsc) · ②b 7 · ②c 102 · ③ candidats 72, perdent 4
+══════════════════════════════════════════════════════════════════════
+
+rc(arbre de travail) = 0
+
+######################################################################
+# ② HEAD — ce qu'un clone lirait, sans le travail non commité
+######################################################################
+
+HEAD = ad1bf107135ce37ef90fad4757cf1e81caaeb494
+
+══════════════════════════════════════════════════════════════════════
+X3′ — RECENSEMENT DES RECOPIES DE CLÉS « À LA MAIN »
+══════════════════════════════════════════════════════════════════════
+arbre           : HEAD ad1bf107135ce37ef90fad4757cf1e81caaeb494
+racine          : /var/folders/yg/3ljjtd7n1pl8n9lwhypn3cwc0000gp/T/keel-x3-RR63kh/head
+horodatage      : 2026-08-22T13:10:15.515Z
+seuil de recopie: ≥ 3 propriétés lisant la MÊME racine
+parseur         : typescript 5.9.3 (AST — commentaires exclus par construction)
+
+── LE PÉRIMÈTRE BALAYÉ (fichiers non-test) ───────────────────────────
+  A · _shared/keel              182 fichiers
+  B · _shared hors keel         124 fichiers
+  C · fonctions edge            256 fichiers
+  D · frontend/src/keel         195 fichiers
+  TOTAL                         757 fichiers
+  index de types : 1540 interfaces/alias résolus
+  formes déclarées par un modèle : 46 (extraites des littéraux)
+
+── ⓪ L'UNIVERS : toute recopie énumérée du périmètre ─────────────────
+  A · _shared/keel              314
+  B · _shared hors keel         305
+  C · fonctions edge           1000
+  D · frontend/src/keel         187
+  TOTAL ⓪                      1806
+
+── ① ENTRE UN PARSEUR DE RÉPONSE DE MODÈLE ET UNE ÉCRITURE ───────────
+   critère mécanique: la recopie manipule une FORME que le modèle déclare
+   — son vocabulaire de clés couvre ≥ 50 % d'un schéma de prompt, avec au
+   moins 3 clés en commun. C'est la population qui peut perdre
+   quelque chose; le reste ne recopie rien qu'un modèle ait écrit.
+  A · _shared/keel               39
+  B · _shared hors keel           4
+  C · fonctions edge             46
+  D · frontend/src/keel          10
+  TOTAL ①                        99
+
+── ② COMBIEN SONT PLUS COURTES QUE LEUR TYPE (sur ①) ─────────────────
+  ②a cible nommée, clés écrites < membres du type : 4
+     …dont TOUS les membres manquants sont facultatifs : 1   ⛔ le tsc est muet sur celles-là
+  ②b source nommée, champs lus < membres          : 7   ⛔ le tsc est muet sur TOUTES
+  ②c cible non contrainte (Record/unknown/rien)   : 86   ⛔ le tsc est désarmé par construction
+  au moins l'un des trois                         : 91
+  non résolus par l'index syntaxique — cible 1, source 4
+
+── ③ LESQUELLES PERDENT UN CHAMP QUE LE MODÈLE DÉCLARE ───────────────
+  recopies de ① dont le vocabulaire NE COUVRE PAS toute la forme : 58
+  ⚠️ « ne couvre pas » est un CANDIDAT, pas un verdict: une clé de schéma
+     peut légitimement ne pas concerner cette recopie-là. Le verdict est
+     une LECTURE, écrite dans `VERDICTS`, et le script rougit sans elle.
+
+  frontend/src/keel/api/household.ts:1595  <anonyme>()
+      racine « d » · 5 propriétés · 5 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, ingredients, method, name, same_day, why
+      lit   : day, member_id, slot, title, uses
+      écrit : title, day, slot, uses, memberId
+      cible : (aucune annotation) [return]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — `readHouseholdDishes` — « Les plats d'un plan, réduits à ce qui se dit à table. Voir `HouseholdDishView` pour ce qui est délibérément laissé de côté, et pourquoi. » ⚠️ Il ne porte pas `name` non plus: il est CONCERNÉ par la fiche `X3-a`, comme second écran aveugle.
+
+  frontend/src/keel/api/mealGeneration.ts:824  <anonyme>()
+      racine « d » · 9 propriétés · 9 clés écrites
+      forme du modèle : « dishes » 8/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, name
+      lit   : day, ingredients, member_id, method, same_day, slot, title, uses, why
+      écrit : title, slot, day, method, why, uses, ingredients, same_day, member_id
+      cible : (aucune annotation) [return]  · source : (déduite)
+      ⇒ ③ PERD — ⛔ VERSION `HEAD` du même lecteur: perd `name` (fiche `X3-a`) et n'a pas encore `boxes` (lot `L6′`, arbre de travail).
+
+  frontend/src/keel/components/CommitmentEditor.tsx:191  <anonyme>()
+      racine « c » · 7 propriétés · 7 clés écrites
+      forme du modèle : « commitments » 7/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, food_group_ref, polarity, priority, required_days_per_week, scheduled_days, slot_key, slot_kind, source_span, template_commitment_key, window_end_local, window_start_local
+      lit   : measure, substance_ref, target_max, target_min, target_op, title, unit
+      écrit : title, substance_ref, measure, unit, target_op, target_min, target_max
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Champs d'un formulaire d'édition, pas une ligne écrite.
+
+  frontend/src/keel/lib/dishSession.ts:92  sessionForDish()
+      racine « session » · 3 propriétés · 4 clés écrites
+      forme du modèle : « cooking_sessions » 3/4 clés couvertes
+      NON COUVERT     : total_minutes
+      lit   : day, preparation_ids, run_through
+      écrit : day, runThrough, preparations, viaPreparationId
+      cible : DishSessionView | null [return]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Vue d'une session pour UN plat: `total_minutes` est la durée de la session entière, rendue par l'écran des sessions, pas par la carte du plat.
+
+  frontend/src/keel/pages/PlanImportPage.tsx:151  fromImport()
+      racine « c » · 26 propriétés · 27 clés écrites
+      forme du modèle : « commitments » 25/27 clés couvertes
+      NON COUVERT     : content, slot_kind
+      lit   : activity_class, anchor_kind, clock_local, confidence, evaluation_grain, evidence_kind, expected_occasions_per_day, food_group_ref, measure, needs_review, polarity, priority, required_days_per_week, scheduled_days, slot_key, source_span, substance_ref, target_max, target_min, target_op, template_commitment_key, title, unit, validation_issues, window_end_local, window_start_local
+      écrit : template_commitment_key, title, content_locale, polarity, activity_class, anchor_kind, slot_key, clock_local, window_start_local, window_end_local, measure, unit, target_op, target_min, target_max, substance_ref, food_group_ref, evidence_kind, evaluation_grain, priority, scheduled_days, required_days_per_week, expected_occasions_per_day, source_span, needs_review, extraction_confidence, extraction_issues
+      cible : (aucune annotation) [argument]  · source : ImportCommitment
+      ⇒ ③ HORS-CHEMIN — `content` est assemblé côté publication; `slot_kind` est dérivé. Et la confiance d'extraction, elle, EST recopiée (`extraction_confidence`) — le renommage est ce qui la faisait paraître perdue.
+
+  frontend/src/keel/pages/PlanImportPage.tsx:191  fromGap()
+      racine « gap » · 3 propriétés · 5 clés écrites
+      forme du modèle : « commitments » 4/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, evaluation_grain, evidence_kind, expected_occasions_per_day, food_group_ref, measure, polarity, required_days_per_week, scheduled_days, slot_key, slot_kind, source_span, substance_ref, target_max, target_min, target_op, unit, window_end_local, window_start_local
+      lit   : description, priority
+      écrit : template_commitment_key, title, content_locale, auto_generated, priority
+      cible : (aucune annotation) [argument]  · source : { description: string; priority?: string }
+      ⇒ ③ HORS-CHEMIN — Une ligne fabriquée pour un TROU d'extraction: elle n'a par construction aucun champ du modèle.
+
+  supabase/functions/_shared/keel/accident.ts:364  <anonyme>()
+      racine « d » · 4 propriétés · 5 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, ingredients, method, name, same_day, why
+      lit   : day, slot, title, uses
+      écrit : dishIndex, day, slot, title, preparationIds
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Vue « accident »: ce qu'il faut pour dire quel plat tombe quel jour. Les ingrédients et la méthode ne servent à rien ici.
+
+  supabase/functions/_shared/keel/accident.ts:379  <anonyme>()
+      racine « p » · 4 propriétés · 4 clés écrites
+      forme du modèle : « preparations » 4/8 clés couvertes
+      NON COUVERT     : active_minutes, method, servings_made, total_minutes
+      lit   : cook_on, id, ingredients, title
+      écrit : id, title, cookOn, ingredientTerms
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Idem, côté préparation: seuls les TERMES comptent pour l'accident.
+
+  supabase/functions/_shared/keel/doctrine_from_forks.ts:373  buildDraftFromForkGeneration()
+      racine « it » · 3 propriétés · 5 clés écrites
+      forme du modèle : « beliefs » 3/4 clés couvertes
+      NON COUVERT     : quote
+      lit   : forkKey
+      écrit : key, claim, rationale, goal_scope, source
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Même raison: `quote` vit dans les citations, jamais dans la doctrine.
+
+  supabase/functions/_shared/keel/doctrine_from_forks.ts:471  <anonyme>()
+      racine « f » · 3 propriétés · 3 clés écrites
+      forme du modèle : « forbidden » 3/4 clés couvertes
+      NON COUVERT     : reason
+      lit   : instead, surface_forms, token
+      écrit : token, surfaceForms, instead
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ COMPLET — `reason` est la justification LUE PAR LE COACH à l'écran d'édition; un interdit issu d'un débat de départ n'en porte pas. `DoctrineForbidden.reason` est facultatif et `parseCoachDoctrine` le lit quand il existe.
+
+  supabase/functions/_shared/keel/doctrine_starter.ts:557  applyStarterChoices()
+      racine « position » · 3 propriétés · 5 clés écrites
+      forme du modèle : « beliefs » 3/4 clés couvertes
+      NON COUVERT     : quote
+      lit   : belief
+      écrit : key, claim, rationale, goal_scope, source
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Idem — et la position de départ n'a pas de document d'où citer.
+
+  supabase/functions/_shared/keel/doctrine.ts:430  parseCoachDoctrine()
+      racine « b » · 5 propriétés · 5 clés écrites
+      forme du modèle : « beliefs » 3/4 clés couvertes
+      NON COUVERT     : quote
+      lit   : claim, goalScope, goal_scope, key, rationale, source
+      écrit : key, claim, rationale, goalScope, source
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — `quote` N'APPARTIENT PAS à la doctrine: `stripQuotes` (`doctrine_document.ts`) le retire du brouillon et le range en `citations`, une table à part — « le brouillon rendu est exactement celui d'avant ce lot, `quote` compris — c'est-à-dire sans ». `DoctrineBelief` n'a pas de membre `quote`.
+
+  supabase/functions/_shared/keel/evaluator.ts:1064  buildEvaluation()
+      racine « commitment » · 12 propriétés · 12 clés écrites
+      forme du modèle : « commitments » 10/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, priority, scheduled_days, slot_key, source_span, template_commitment_key, title, window_end_local, window_start_local
+      lit   : autoSource, foodGroupRef, measure, polarity, requiredDaysPerWeek, slotKind, substanceRef, targetMax, targetMin, targetOp, tolerancePct, unit
+      écrit : measure, unit, target_op, target_min, target_max, tolerance_pct, substance_ref, food_group_ref, polarity, slot_kind, auto_source, required_days_per_week
+      cible : Record<string, unknown> [variable]  · source : EvaluatorCommitment
+      ⇒ ③ HORS-CHEMIN — Ce qu'il faut pour JUGER une consigne. Le titre et la fenêtre horaire ne changent aucun verdict.
+
+  supabase/functions/_shared/keel/fixed_intakes.ts:460  fixedIntakeInputsFor()
+      racine « intake » · 3 propriétés · 4 clés écrites
+      forme du modèle : « ingredients » 4/6 clés couvertes
+      NON COUVERT     : group, quantity
+      lit   : amount, foodRef, unit
+      écrit : term, amount, unit, state
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Un apport DÉCLARÉ PAR L'ÉLÈVE, pas une ligne de modèle: il n'a ni prose ni groupe à perdre.
+
+  supabase/functions/_shared/keel/food_composition.ts:788  resolveIngredients()
+      racine « input » · 4 propriétés · 5 clés écrites
+      forme du modèle : « ingredients » 3/6 clés couvertes
+      NON COUVERT     : group, quantity, term
+      lit   : amount, state, unit, unitGrams
+      écrit : amount, unit, state, yieldClass, unitGrams
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Argument de `gramsRawOf`, qui ne pèse qu'une masse: `term` et `group` sont lus ailleurs dans la même fonction, sur le même objet.
+
+  supabase/functions/_shared/keel/grocery_waves.ts:154  <anonyme>()
+      racine « row » · 3 propriétés · 3 clés écrites
+      forme du modèle : « preparations » 3/8 clés couvertes
+      NON COUVERT     : active_minutes, method, servings_made, title, total_minutes
+      lit   : cook_on, id, ingredients
+      écrit : id, cookOn, ingredientTerms
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Les vagues de courses n'ont besoin que du jour de cuisson et des termes.
+
+  supabase/functions/_shared/keel/household_merge_notice_io.ts:72  storedDishes()
+      racine « row » · 3 propriétés · 3 clés écrites
+      forme du modèle : « dishes » 3/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, ingredients, method, name, same_day, uses, why
+      lit   : day, slot, title
+      écrit : day, slot, title
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Avis de fusion: on nomme les plats, on ne les recompose pas.
+
+  supabase/functions/_shared/keel/household_turn_context.ts:433  <anonyme>()
+      racine « d » · 3 propriétés · 3 clés écrites
+      forme du modèle : « dishes » 3/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, ingredients, method, name, same_day, uses, why
+      lit   : day, slot, title
+      écrit : title, slot, day
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Contexte de tour: ce que la conversation peut CITER d'un plan.
+
+  supabase/functions/_shared/keel/meal_analysis.ts:495  compactCommitment()
+      racine « c » · 8 propriétés · 9 clés écrites
+      forme du modèle : « commitments » 6/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evidence_kind, expected_occasions_per_day, food_group_ref, required_days_per_week, scheduled_days, slot_kind, source_span, substance_ref, target_max, target_min, target_op, template_commitment_key, unit, window_end_local, window_start_local
+      lit   : autonomy, evaluation_grain, id, measure, polarity, priority, slot_key, title
+      écrit : commitment_id, title, polarity, slot_key, measure, target, evaluation_grain, priority, autonomy
+      cible : Record<string, unknown> [variable]  · source : MealAnalysisCommitmentContext
+      ⇒ ③ HORS-CHEMIN — Compactage EXPRÈS: le prompt de la photo reçoit le minimum qui décide, pas la ligne entière. `target` fond `target_op`/`min`/`max`.
+
+  supabase/functions/_shared/keel/meal_generation.ts:4809  ingredientPayload()
+      racine « i » · 7 propriétés · 7 clés écrites
+      forme du modèle : « ingredients » 5/6 clés couvertes
+      NON COUVERT     : group
+      lit   : amount, gramsRaw, in_pantry, quantity, state, term, unit
+      écrit : term, quantity, in_pantry, amount, unit, state, grams_raw
+      cible : Record<string, unknown> [return]  · source : DishIngredient
+      ⇒ ③ COMPLET — ⟳ RÉPARÉE le 2026-08-22 par `L17-0`: `group` était jeté (242 déclarés, 0 en base). Il arrive maintenant par `...ingredientGroupPayload(i.group)`. Reste `Record<string, unknown>` en cible ⇒ compte quand même en ②c.
+
+  supabase/functions/_shared/keel/meal_verdict.ts:337  <anonyme>()
+      racine « d » · 3 propriétés · 3 clés écrites
+      forme du modèle : « dishes » 3/10 clés couvertes
+      NON COUVERT     : day, honours_belief_keys, name, same_day, title, uses, why
+      lit   : ingredients, method, slot
+      écrit : slot, method, ingredients
+      cible : (aucune annotation) [return]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Sortie du pliage: le verdict juge une assiette, pas un plat nommé.
+
+  supabase/functions/_shared/keel/mouth_energy.ts:289  <anonyme>()
+      racine « d » · 4 propriétés · 4 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : day, honours_belief_keys, name, same_day, title, why
+      lit   : ingredients, method, slot, uses
+      écrit : slot, method, ingredients, uses
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Entrée de `mouthDayEnergy`: `ingredients` passe l'objet ENTIER, donc `group` traverse.
+
+  supabase/functions/_shared/keel/plan_energy.ts:199  boundGramsOf()
+      racine « ing » · 4 propriétés · 5 clés écrites
+      forme du modèle : « ingredients » 3/6 clés couvertes
+      NON COUVERT     : group, quantity, term
+      lit   : amount, state, unit, unitGrams
+      écrit : amount, unit, state, yieldClass, unitGrams
+      cible : (aucune annotation) [argument]  · source : EnergyIngredient
+      ⇒ ③ COMPLET — N'a pas à lire `group`, et c'est ÉCRIT dans son en-tête: « POURQUOI LE MAXIMUM, ET PAS LA CLASSE DU GROUPE DÉCLARÉ — la deviner ferait passer une CONVENTION pour une mesure ». Le groupe est lu par `boundOf`, dix lignes plus bas.
+
+  supabase/functions/_shared/keel/plan_energy.ts:678  <anonyme>()
+      racine « d » · 3 propriétés · 4 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : day, honours_belief_keys, name, same_day, title, why
+      lit   : ingredients, method, uses
+      écrit : slot, method, ingredients, uses
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Idem — `ingredients` passe l'objet entier.
+
+  supabase/functions/_shared/keel/plan_energy.ts:684  <anonyme>()
+      racine « p » · 3 propriétés · 3 clés écrites
+      forme du modèle : « preparations » 3/8 clés couvertes
+      NON COUVERT     : active_minutes, cook_on, method, title, total_minutes
+      lit   : id, ingredients, servingsMade
+      écrit : id, servingsMade, ingredients
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Idem, côté préparation.
+
+  supabase/functions/_shared/keel/protocol_compiler.ts:480  compileTimingRule()
+      racine « rule » · 7 propriétés · 17 clés écrites
+      forme du modèle : « commitments » 15/27 clés couvertes
+      NON COUVERT     : activity_class, clock_local, confidence, content, content_locale, evidence_kind, priority, scheduled_days, source_span, substance_ref, template_commitment_key, title
+      lit   : direction, food_group_ref, period, portions
+      écrit : polarity, anchor_kind, slot_key, window_start_local, window_end_local, measure, unit, target_op, target_min, target_max, evaluation_grain, slot_kind, required_days_per_week, expected_occasions_per_day, autonomy, flex_eligible, preview
+      cible : CompiledCommitment [return]  · source : CoachTimingRule
+      ÉTALE : base
+      ⇒ ③ COMPLET — Étale `...base`: titre, clé de gabarit, langue et priorité viennent de là. Le compilateur PRODUIT une consigne depuis une règle de coach; il ne recopie pas une déclaration de modèle.
+
+  supabase/functions/_shared/keel/slot_reminders.ts:411  <anonyme>()
+      racine « c » · 5 propriétés · 5 clés écrites
+      forme du modèle : « commitments » 5/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, food_group_ref, measure, polarity, slot_kind, source_span, substance_ref, target_max, target_min, target_op, template_commitment_key, unit, window_end_local, window_start_local
+      lit   : priority, required_days_per_week, scheduled_days, slot_key, title
+      écrit : title, scheduledDays, requiredDaysPerWeek, slotKey, priority
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Un rappel de créneau: la cible chiffrée n'y paraît pas.
+
+  supabase/functions/analyze-meal-photo-v1/index.ts:216  toCommitmentContext()
+      racine « row » · 17 propriétés · 17 clés écrites
+      forme du modèle : « commitments » 14/27 clés couvertes
+      NON COUVERT     : anchor_kind, clock_local, confidence, content_locale, evidence_kind, expected_occasions_per_day, required_days_per_week, scheduled_days, slot_kind, source_span, template_commitment_key, window_end_local, window_start_local
+      lit   : activity_class, autonomy, content, evaluation_grain, food_group_ref, id, measure, polarity, priority, slot_key, student_instruction, substance_ref, target_max, target_min, target_op, title, unit
+      écrit : id, title, student_instruction, polarity, activity_class, slot_key, measure, unit, target_op, target_min, target_max, food_group_ref, substance_ref, evaluation_grain, autonomy, priority, content
+      cible : MealAnalysisCommitmentContext [return]  · source : Record<string, unknown>
+      ⇒ ③ HORS-CHEMIN — Contexte servi au modèle de photo: les fenêtres horaires et la provenance d'extraction n'aident pas à lire une assiette.
+
+  supabase/functions/evaluate-adherence-v1/index.ts:494  evaluateStudentDay()
+      racine « c » · 3 propriétés · 3 clés écrites
+      forme du modèle : « commitments » 3/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evidence_kind, food_group_ref, measure, polarity, required_days_per_week, scheduled_days, slot_key, slot_kind, source_span, substance_ref, target_max, target_min, target_op, template_commitment_key, title, unit, window_end_local, window_start_local
+      lit   : countsTowardAdherence, evaluationGrain, expectedOccasionsPerDay, priority
+      écrit : priority, countsTowardAdherence, expectedEvaluationsPerDay
+      cible : (aucune annotation) [autre]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Trois champs de tri pour une boucle de journée.
+
+  supabase/functions/evaluate-adherence-v1/snapshot.ts:150  toCommitment()
+      racine « row » · 32 propriétés · 32 clés écrites
+      forme du modèle : « commitments » 21/27 clés couvertes
+      NON COUVERT     : activity_class, confidence, content_locale, source_span, template_commitment_key, title
+      lit   : anchor_kind, auto_source, autonomy, clock_local, content, counts_toward_adherence, evaluation_grain, evidence_kind, evidence_required, expected_occasions_per_day, flex_eligible, food_group_ref, id, measure, plan_version_id, polarity, priority, required_days_per_week, scheduled_days, slot_key, slot_kind, status, substance_ref, target_max, target_min, target_op, tolerance_minutes, tolerance_pct, unit, user_id, window_end_local, window_start_local
+      écrit : id, planVersionId, userId, polarity, anchorKind, slotKey, clockLocal, toleranceMinutes, windowStartLocal, windowEndLocal, measure, unit, targetOp, targetMin, targetMax, tolerancePct, substanceRef, foodGroupRef, evidenceKind, evidenceRequired, autoSource, countsTowardAdherence, evaluationGrain, slotKind, scheduledDays, requiredDaysPerWeek, expectedOccasionsPerDay, priority, autonomy, flexEligible, status, swapPolicy
+      cible : EvaluatorCommitment [return]  · source : Row
+      ⇒ ③ HORS-CHEMIN — Instantané d'ÉVALUATION: le titre, la langue et la provenance d'extraction ne pèsent sur aucune adhérence. La source est une ligne de base, pas une réponse de modèle.
+
+  supabase/functions/generate-meal-v1/index.ts:2125  <anonyme>()
+      racine « d » · 4 propriétés · 4 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : day, honours_belief_keys, name, same_day, title, why
+      lit   : ingredients, method, slot, uses
+      écrit : slot, method, ingredients, uses
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Entrée du pliage: `ingredients` porte l'objet entier.
+
+  supabase/functions/generate-meal-v1/index.ts:2128  <anonyme>()
+      racine « i » · 4 propriétés · 4 clés écrites
+      forme du modèle : « ingredients » 4/6 clés couvertes
+      NON COUVERT     : group, quantity
+      lit   : amount, state, term, unit
+      écrit : term, amount, unit, state
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ PERD — ⛔ PERD `group` SUR LA LANE SOLO — `verdictDishesOf`, les DEUX sites (l. 2342 plats, l. 2353 préparations). Sa sortie alimente `planEnergyVerdict`, la couverture, `resolveIngredients` et `energyInputs` du remplissage; `plan_energy.boundOf` lit `ing.group` pour choisir la bande. ⛔ ET DIX LIGNES PLUS BAS, `inputs:` (l. 2446) LE PASSE, avec le commentaire « avec le groupe que le modèle a pu déclarer ». Deux projections frères dans la même fonction, une le garde, l'autre le jette. ⚠️ `EnergyIngredient.group` est FACULTATIF (`group?`) ⇒ le `tsc` est muet (cicatrice `optional-gate-params-are-disarmed-gates`). COÛT MESURÉ AUJOURD'HUI: 0 ligne — la lane `personal` porte 0 groupe non nul sur 3 722 lignes. C'est une garde désarmée qui mordra à la PREMIÈRE génération solo d'un élève à régime déclaré.
+
+  supabase/functions/generate-meal-v1/index.ts:2136  <anonyme>()
+      racine « p » · 3 propriétés · 3 clés écrites
+      forme du modèle : « preparations » 3/8 clés couvertes
+      NON COUVERT     : active_minutes, cook_on, method, title, total_minutes
+      lit   : id, ingredients, servingsMade
+      écrit : id, servingsMade, ingredients
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Idem, côté préparation.
+
+  supabase/functions/generate-meal-v1/index.ts:2139  <anonyme>()
+      racine « i » · 4 propriétés · 4 clés écrites
+      forme du modèle : « ingredients » 4/6 clés couvertes
+      NON COUVERT     : group, quantity
+      lit   : amount, state, term, unit
+      écrit : term, amount, unit, state
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ PERD — ⛔ PERD `group` SUR LA LANE SOLO — `verdictDishesOf`, les DEUX sites (l. 2342 plats, l. 2353 préparations). Sa sortie alimente `planEnergyVerdict`, la couverture, `resolveIngredients` et `energyInputs` du remplissage; `plan_energy.boundOf` lit `ing.group` pour choisir la bande. ⛔ ET DIX LIGNES PLUS BAS, `inputs:` (l. 2446) LE PASSE, avec le commentaire « avec le groupe que le modèle a pu déclarer ». Deux projections frères dans la même fonction, une le garde, l'autre le jette. ⚠️ `EnergyIngredient.group` est FACULTATIF (`group?`) ⇒ le `tsc` est muet (cicatrice `optional-gate-params-are-disarmed-gates`). COÛT MESURÉ AUJOURD'HUI: 0 ligne — la lane `personal` porte 0 groupe non nul sur 3 722 lignes. C'est une garde désarmée qui mordra à la PREMIÈRE génération solo d'un élève à régime déclaré.
+
+  supabase/functions/generate-meal-v1/index.ts:2503  <anonyme>()
+      racine « d » · 4 propriétés · 5 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, name, same_day, slot, uses, why
+      lit   : day, ingredients, method, title
+      écrit : id, title, method, day, ingredients
+      cible : (aucune annotation) [arrow-body]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Rapport à la demande: `id` est un index de plan, jamais rendu à l'élève ni écrit.
+
+  supabase/functions/meal-energy-v1/index.ts:192  readIngredient()
+      racine « i » · 4 propriétés · 4 clés écrites
+      forme du modèle : « ingredients » 4/6 clés couvertes
+      NON COUVERT     : group, quantity
+      lit   : amount, state, term, unit
+      écrit : term, amount, unit, state
+      cible : CompositionInput | null [return]  · source : (déduite)
+      ⇒ ③ PERD — ⛔ VERSION `HEAD` du même lecteur: perd `group` ET `quantity`. `quantity` a été ajouté à la main par `L-1-b` dans l'arbre de travail — sans lui, 3 833 lignes dont la masse est écrite en clair restaient comptées « sans quantité ».
+
+  supabase/functions/meal-energy-v1/index.ts:222  <anonyme>()
+      racine « d » · 4 propriétés · 4 clés écrites
+      forme du modèle : « dishes » 4/10 clés couvertes
+      NON COUVERT     : honours_belief_keys, name, same_day, slot, title, why
+      lit   : day, ingredients, method, uses
+      écrit : day, method, ingredients, uses
+      cible : (aucune annotation) [return]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — `readDishes` de la lane de lecture: `ingredients` passe par `readIngredients`, et c'est LÀ que `group` tombe — le verdict est porté par `readIngredient`, pas ici.
+
+  supabase/functions/meal-energy-v1/index.ts:243  <anonyme>()
+      racine « p » · 3 propriétés · 3 clés écrites
+      forme du modèle : « preparations » 3/8 clés couvertes
+      NON COUVERT     : active_minutes, cook_on, method, title, total_minutes
+      lit   : id, ingredients, servings_made
+      écrit : id, servingsMade, ingredients
+      cible : (aucune annotation) [return]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Idem, côté préparation.
+
+  supabase/functions/plan-import-v1/import_rules.ts:646  toDraftCommitment()
+      racine « c » · 26 propriétés · 35 clés écrites
+      forme du modèle : « commitments » 25/27 clés couvertes
+      NON COUVERT     : confidence, content
+      lit   : activity_class, anchor_kind, clock_local, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, food_group_ref, measure, polarity, priority, required_days_per_week, scheduled_days, slot_key, slot_kind, source_span, student_instruction, substance_ref, target_max, target_min, target_op, title, tolerance_minutes, unit, window_end_local, window_start_local
+      écrit : template_commitment_key, title, student_instruction, content_locale, polarity, activity_class, anchor_kind, slot_key, clock_local, tolerance_minutes, window_start_local, window_end_local, measure, unit, target_op, target_min, target_max, substance_ref, food_group_ref, evidence_kind, evidence_required, auto_source, counts_toward_adherence, evaluation_grain, slot_kind, scheduled_days, required_days_per_week, expected_occasions_per_day, priority, autonomy, flex_eligible, provenance, requires_clinician_signoff, auto_generated, source_span
+      cible : DraftCommitment [return]  · source : Record<string, unknown>
+      ⇒ ③ COMPLET — `confidence` est lu par `validateImportCommitment` (l. 768) et devient `needs_review`; `content` est assemblé par `plan-publish`. L'en-tête le dit: « Fields the extractor never produces take the SQL default of their column ».
+
+  supabase/functions/plan-import-v1/import_rules.ts:721  validateImportCommitment()
+      racine « draft » · 9 propriétés · 10 clés écrites
+      forme du modèle : « commitments » 10/27 clés couvertes
+      NON COUVERT     : activity_class, clock_local, confidence, content, content_locale, evidence_kind, expected_occasions_per_day, food_group_ref, priority, required_days_per_week, scheduled_days, source_span, substance_ref, template_commitment_key, unit, window_end_local, window_start_local
+      lit   : anchor_kind, evaluation_grain, measure, polarity, slot_key, slot_kind, target_max, target_min, target_op
+      écrit : title, polarity, targetOp, targetMin, targetMax, measure, anchorKind, slotKey, slotKind, grain
+      cible : Ctx [variable]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Argument d'une validation, pas une ligne. `confidence` est lu SÉPARÉMENT dans la même fonction (l. 768) et ressort en `needs_review`.
+
+  supabase/functions/plan-import-v1/import_rules.ts:957  validateImportRelation()
+      racine « r » · 7 propriétés · 10 clés écrites
+      forme du modèle : « relations » 7/9 clés couvertes
+      NON COUVERT     : confidence, source_span
+      lit   : cofactor_ref, kind, object_key, object_note, param_minutes, student_note, subject_key
+      écrit : kind, subject_key, object_key, object_note, cofactor_ref, param_minutes, student_note, persistable, review_questions, diagnostics
+      cible : ValidatedImportRelation [return]  · source : (déduite)
+      ÉTALE : (r as unknown as PlanImportRelation)
+      ⇒ ③ COMPLET — Étale `(r as unknown as PlanImportRelation)`: `confidence` et `source_span` traversent.
+
+  supabase/functions/plan-publish-v1/commitments.ts:280  buildCommitmentRow()
+      racine « c » · 36 propriétés · 42 clés écrites
+      forme du modèle : « commitments » 26/27 clés couvertes
+      NON COUVERT     : confidence
+      lit   : activity_class, anchor_kind, auto_generated, auto_source, clock_local, content, counts_toward_adherence, evaluation_grain, evidence_kind, evidence_required, expected_occasions_per_day, flex_eligible, food_group_ref, measure, phase_id, polarity, priority, provenance, required_days_per_week, requires_clinician_signoff, slot_key, slot_kind, source_span, status, student_instruction, substance_ref, target_max, target_min, target_op, template_commitment_key, title, tolerance_minutes, tolerance_pct, unit, window_end_local, window_start_local
+      écrit : plan_version_id, user_id, coach_id, template_commitment_key, polarity, activity_class, anchor_kind, slot_key, clock_local, tolerance_minutes, window_start_local, window_end_local, measure, unit, target_op, target_min, target_max, tolerance_pct, substance_ref, food_group_ref, evidence_kind, evidence_required, auto_source, counts_toward_adherence, evaluation_grain, slot_kind, scheduled_days, required_days_per_week, expected_occasions_per_day, priority, autonomy, flex_eligible, provenance, requires_clinician_signoff, title, student_instruction, content, content_locale, source_span, phase_id, auto_generated, status
+      cible : Json [return]  · source : (déduite)
+      ⇒ ③ COMPLET — La confiance d'EXTRACTION est un signal de brouillon (`extraction_confidence` sur la ligne de gabarit, plus `needs_review`); une consigne PUBLIÉE a été relue par le coach. 0 occurrence de `confidence` dans le fichier, et c'est cohérent.
+
+  supabase/functions/plan-template-v1/index.ts:181  <anonyme>()
+      racine « c » · 7 propriétés · 7 clés écrites
+      forme du modèle : « commitments » 7/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, food_group_ref, polarity, priority, required_days_per_week, scheduled_days, slot_key, slot_kind, source_span, template_commitment_key, window_end_local, window_start_local
+      lit   : measure, substance_ref, target_max, target_min, target_op, title, unit
+      écrit : title, substance_ref, measure, unit, target_op, target_min, target_max
+      cible : (aucune annotation) [return]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Aperçu de gabarit rendu à l'écran du coach.
+
+  supabase/functions/process-checkins/index.ts:1654  processDueRendezVous()
+      racine « rdv » · 5 propriétés · 8 clés écrites
+      forme du modèle : « events » 3/4 clés couvertes
+      NON COUVERT     : confidence_score
+      lit   : kind, posture, scheduled_for, source_refs, trigger_reason, user_id
+      écrit : admin, userId, eventContext, scheduledFor, instruction, eventGrounding, source, requestId
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Idem — et `admin`/`requestId` montrent que c'est un argument d'appel, pas une ligne.
+
+  supabase/functions/process-checkins/index.ts:2621  <anonyme>()
+      racine « payload » · 3 propriétés · 8 clés écrites
+      forme du modèle : « events » 3/4 clés couvertes
+      NON COUVERT     : confidence_score
+      lit   : event_grounding, instruction, note, source
+      écrit : admin, userId, eventContext, scheduledFor, instruction, eventGrounding, source, requestId
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Idem.
+
+  supabase/functions/provision-day-v1/provisioning.ts:224  parseProvisionCommitment()
+      racine « row » · 18 propriétés · 19 clés écrites
+      forme du modèle : « commitments » 12/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evidence_kind, expected_occasions_per_day, priority, required_days_per_week, source_span, template_commitment_key, title, window_end_local, window_start_local
+      lit   : auto_source, evaluation_grain, food_group_ref, id, measure, phase_id, plan_version_id, polarity, slot_key, slot_kind, status, substance_ref, target_max, target_min, target_op, tolerance_pct, unit, user_id
+      écrit : id, planVersionId, userId, status, slotKind, evaluationGrain, slotKey, scheduledDays, phaseId, polarity, measure, unit, targetOp, targetMin, targetMax, tolerancePct, substanceRef, foodGroupRef, autoSource
+      cible : ProvisionCommitment [return]  · source : Record<string, unknown>
+      ⇒ ③ HORS-CHEMIN — Ce qu'il faut pour POSER la journée. Source: une ligne de base.
+
+  supabase/functions/provision-day-v1/provisioning.ts:421  buildExpectedSnapshot()
+      racine « commitment » · 11 propriétés · 11 clés écrites
+      forme du modèle : « commitments » 9/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, priority, required_days_per_week, scheduled_days, slot_key, source_span, template_commitment_key, title, window_end_local, window_start_local
+      lit   : autoSource, foodGroupRef, measure, polarity, slotKind, substanceRef, targetMax, targetMin, targetOp, tolerancePct, unit
+      écrit : measure, unit, target_op, target_min, target_max, tolerance_pct, substance_ref, food_group_ref, polarity, slot_kind, auto_source
+      cible : Record<string, unknown> [return]  · source : ProvisionCommitment
+      ⇒ ③ HORS-CHEMIN — Instantané ATTENDU: la cible et rien d'autre.
+
+  supabase/functions/sophia-brain/agents/watcher.ts:749  runWatcher()
+      racine « candidate » · 3 propriétés · 4 clés écrites
+      forme du modèle : « events » 3/4 clés couvertes
+      NON COUVERT     : confidence_score
+      lit   : eventContext, eventGrounding, scheduledFor
+      écrit : event_context, event_grounding, scheduled_for, now_iso
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Argument de `watcherCandidateCoveredByExistingFollowUp`: une comparaison de recouvrement, pas une écriture.
+
+  supabase/functions/sophia-brain/agents/watcher.ts:805  runWatcher()
+      racine « candidate » · 3 propriétés · 8 clés écrites
+      forme du modèle : « events » 3/4 clés couvertes
+      NON COUVERT     : confidence_score
+      lit   : eventContext, eventGrounding, scheduledFor
+      écrit : user_id, origin, event_context, draft_message, message_mode, message_payload, scheduled_for, status
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — `confidence_score` est LU (l. 690, renommé `score`) et CONSOMMÉ comme porte: `filter(c.score >= 8)` puis `candidateScore` dans le prompt d'envoi. Un score de tri n'a pas à être persisté sur la ligne planifiée.
+
+  supabase/functions/sophia-brain/agents/watcher.ts:820  runWatcher()
+      racine « candidate » · 3 propriétés · 6 clés écrites
+      forme du modèle : « events » 3/4 clés couvertes
+      NON COUVERT     : confidence_score
+      lit   : eventContext, eventGrounding, scheduledFor
+      écrit : scheduled_for, event_context, origin, status, draft_message, message_payload
+      cible : (aucune annotation) [argument]  · source : (déduite)
+      ⇒ ③ COMPLET — Miroir en mémoire de la ligne qu'on vient d'empiler, pour la détection de doublon du même tour. Même raison.
+
+  supabase/functions/sophia-brain/momentum_outreach.ts:469  scheduleMomentumOutreach()
+      racine « planWithHistory » · 3 propriétés · 8 clés écrites
+      forme du modèle : « events » 3/4 clés couvertes
+      NON COUVERT     : confidence_score
+      lit   : confidence, event_context, event_grounding, fallback_text, instruction, plan_item_ids_targeted, plan_item_titles_targeted, state, strategy
+      écrit : user_id, origin, event_context, draft_message, message_mode, message_payload, scheduled_for, status
+      cible : (aucune annotation) [autre]  · source : (déduite)
+      ⇒ ③ COMPLET — Même forme que `watcher`: le score de confiance est une porte, pas une donnée de la ligne.
+
+  supabase/functions/sophia-brain/router/one_shot_local_direct_effect.ts:131  oneShotDirectEffectFromLocalRequest()
+      racine « request » · 4 propriétés · 5 clés écrites
+      forme du modèle : « direct_effect_request » 5/8 clés couvertes
+      NON COUVERT     : content_risk, reason, requested
+      lit   : confidence_band, explicitness, payload_hint, target_status
+      écrit : effect_type, explicitness, target_status, confidence_band, payload_hint
+      cible : TurnFrame["direct_effects"][number] | null [return]  · source : LocalOneShotDirectEffectRequest | null | undefined
+      ⇒ ③ COMPLET — ⛔ `content_risk` et `requested` sont CONSOMMÉS COMME PORTES juste au-dessus, dans `shouldAcceptLocalOneShotDirectEffect` (`request.content_risk !== "flagged"`, `request.requested === true`). Les recopier dans l'effet serait porter deux fois une décision déjà prise. `reason` n'existe pas sur ce type.
+
+  supabase/functions/sophia-brain/router/run.ts:4401  processMessage()
+      racine « pendingCreateSlots » · 3 propriétés · 3 clés écrites
+      forme du modèle : « payload_hint » 3/5 clés couvertes
+      NON COUVERT     : instruction_hint, raw_text
+      lit   : UTC_time, local_label, when_hint
+      écrit : when_hint, UTC_time, local_label
+      cible : (aucune annotation) [autre]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Écho des créneaux en attente vers le tour suivant; `raw_text` et `instruction_hint` sont déjà consommés par le compilateur.
+
+  supabase/functions/sophia-brain/tools/always_on/log_protocol_event/intake.ts:199  readComponent()
+      racine « raw » · 5 propriétés · 5 clés écrites
+      forme du modèle : « commitments » 3/27 clés couvertes
+      NON COUVERT     : activity_class, anchor_kind, clock_local, confidence, content, content_locale, evaluation_grain, evidence_kind, expected_occasions_per_day, measure, polarity, priority, required_days_per_week, scheduled_days, slot_key, slot_kind, source_span, target_max, target_min, target_op, template_commitment_key, title, window_end_local, window_start_local
+      lit   : commitment_id, food_group_ref, quantity, substance_ref, unit
+      écrit : unit, substance_ref, food_group_ref, quantity, commitment_id
+      cible : ComponentDraft [return]  · source : Record<string, unknown>
+      ⇒ ③ HORS-CHEMIN — ⚠️ LIAISON FAIBLE — ce n'est pas une consigne, c'est un COMPOSANT d'événement journalisé; il partage cinq mots de vocabulaire avec le schéma `commitments` et rien de plus. La forme liée est fausse, et la liaison est imprimée pour qu'on puisse la contester.
+
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:3836  runOneShotReminderDirectEffectInner()
+      racine « compiledPayload » · 3 propriétés · 4 clés écrites
+      forme du modèle : « payload_hint » 3/5 clés couvertes
+      NON COUVERT     : raw_text, when_hint
+      lit   : instruction, localLabel, scheduledFor
+      écrit : UTC_time, local_label, instruction_hint, replace_target_label
+      cible : (aucune annotation) [propriété]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Payload COMPILÉ (ce que le compilateur déterministe a produit), pas la déclaration du modèle: `raw_text` et `when_hint` sont ses ENTRÉES. Trois sites identiques.
+
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:3919  runOneShotReminderDirectEffectInner()
+      racine « compiledPayload » · 3 propriétés · 4 clés écrites
+      forme du modèle : « payload_hint » 3/5 clés couvertes
+      NON COUVERT     : raw_text, when_hint
+      lit   : instruction, localLabel, scheduledFor
+      écrit : UTC_time, local_label, instruction_hint, replace_target_label
+      cible : (aucune annotation) [propriété]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Payload COMPILÉ (ce que le compilateur déterministe a produit), pas la déclaration du modèle: `raw_text` et `when_hint` sont ses ENTRÉES. Trois sites identiques.
+
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:4225  runOneShotReminderDirectEffectInner()
+      racine « compiledPayload » · 3 propriétés · 4 clés écrites
+      forme du modèle : « payload_hint » 3/5 clés couvertes
+      NON COUVERT     : raw_text, when_hint
+      lit   : instruction, localLabel, scheduledFor
+      écrit : UTC_time, local_label, instruction_hint, replace_target_label
+      cible : (aucune annotation) [propriété]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Payload COMPILÉ (ce que le compilateur déterministe a produit), pas la déclaration du modèle: `raw_text` et `when_hint` sont ses ENTRÉES. Trois sites identiques.
+
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:4667  runOneShotReminderDirectEffectInner()
+      racine « compiledPayload » · 4 propriétés · 4 clés écrites
+      forme du modèle : « payload_hint » 4/5 clés couvertes
+      NON COUVERT     : when_hint
+      lit   : instruction, localLabel, rawText, scheduledFor
+      écrit : instruction_hint, UTC_time, local_label, raw_text
+      cible : (aucune annotation) [propriété]  · source : (déduite)
+      ⇒ ③ HORS-CHEMIN — Même chose, avec `raw_text` en plus.
+
+── ③ VERDICT ─────────────────────────────────────────────────────────
+  perd un champ déclaré par le modèle, AUJOURD'HUI, EN PRODUCTION : 4
+      ⛔ frontend/src/keel/api/mealGeneration.ts:824 <anonyme>()
+      ⛔ supabase/functions/generate-meal-v1/index.ts:2128 <anonyme>()
+      ⛔ supabase/functions/generate-meal-v1/index.ts:2139 <anonyme>()
+      ⛔ supabase/functions/meal-energy-v1/index.ts:192 readIngredient()
+  non classés (le script sort en rc=1) : 0
+
+── LA LISTE ① COMPLÈTE ───────────────────────────────────────────────
+  frontend/src/keel/api/household.ts:1595  <anonyme>()  [sac écrit ②c ③?-6]  5←d  ~dishes
+  frontend/src/keel/api/mealGeneration.ts:824  <anonyme>()  [sac écrit ②c ③?-2]  9←d  ~dishes
+  frontend/src/keel/api/mealGeneration.ts:898  <anonyme>()  [sac écrit ②c]  3←s  ~shopping_list
+  frontend/src/keel/api/mealGeneration.ts:913  <anonyme>()  [sac écrit ②c]  9←p  ~preparations
+  frontend/src/keel/api/mealGeneration.ts:964  <anonyme>()  [sac écrit ②c]  4←sess  ~cooking_sessions
+  frontend/src/keel/components/CommitmentEditor.tsx:191  <anonyme>()  [typé - ②c ③?-20]  7←c  ~commitments
+  frontend/src/keel/lib/dishSession.ts:92  sessionForDish()  [typé - ③?-1]  3←session  ~cooking_sessions
+  frontend/src/keel/pages/CoachProtocolPage.tsx:573  acceptProposal()  [typé écrit ②c ②b-2]  5←p  ~food_proposals
+  frontend/src/keel/pages/PlanImportPage.tsx:151  fromImport()  [typé - ②c ③?-2]  26←c  ~commitments
+  frontend/src/keel/pages/PlanImportPage.tsx:191  fromGap()  [typé - ②c ③?-23]  3←gap  ~commitments
+  supabase/functions/_shared/keel/accident.ts:364  <anonyme>()  [typé - ②c ③?-6]  4←d  ~dishes
+  supabase/functions/_shared/keel/accident.ts:379  <anonyme>()  [typé - ②c ③?-4]  4←p  ~preparations
+  supabase/functions/_shared/keel/doctrine_document.ts:295  parseDocumentExtraction()  [typé - ②c]  4←entry  ~food_proposals
+  supabase/functions/_shared/keel/doctrine_editor_shape.ts:66  <anonyme>()  [typé - ②c]  3←f  ~forbidden
+  supabase/functions/_shared/keel/doctrine_from_forks.ts:373  buildDraftFromForkGeneration()  [typé - ②c ③?-1]  3←it  ~beliefs
+  supabase/functions/_shared/keel/doctrine_from_forks.ts:395  buildDraftFromForkGeneration()  [typé - ②c]  4←it  ~forbidden
+  supabase/functions/_shared/keel/doctrine_from_forks.ts:445  buildDraftFromForkGeneration()  [typé - ②c]  4←generated  ~voice
+  supabase/functions/_shared/keel/doctrine_from_forks.ts:471  <anonyme>()  [typé - ②c ③?-1]  3←f  ~forbidden
+  supabase/functions/_shared/keel/doctrine_starter.ts:557  applyStarterChoices()  [typé - ②c ③?-1]  3←position  ~beliefs
+  supabase/functions/_shared/keel/doctrine_starter.ts:567  applyStarterChoices()  [typé - ②c]  4←position  ~forbidden
+  supabase/functions/_shared/keel/doctrine.ts:430  parseCoachDoctrine()  [sac - ②c ③?-1]  5←b  ~beliefs
+  supabase/functions/_shared/keel/doctrine.ts:450  parseCoachDoctrine()  [sac - ②c]  4←f  ~forbidden
+  supabase/functions/_shared/keel/doctrine.ts:515  parseFoodList()  [sac - ②c]  3←f  ~discouraged
+  supabase/functions/_shared/keel/doctrine.ts:591  parseCoachDoctrine()  [typé - ②c]  4←row  ~voice
+  supabase/functions/_shared/keel/evaluator.ts:1064  buildEvaluation()  [typé - ②c ②b-20 ③?-17]  12←commitment  ~commitments
+  supabase/functions/_shared/keel/fixed_intakes.ts:460  fixedIntakeInputsFor()  [typé - ②c ③?-2]  3←intake  ~ingredients
+  supabase/functions/_shared/keel/food_composition.ts:788  resolveIngredients()  [typé - ②c ③?-3]  4←input  ~ingredients
+  supabase/functions/_shared/keel/grocery_waves.ts:154  <anonyme>()  [typé - ②c ③?-5]  3←row  ~preparations
+  supabase/functions/_shared/keel/household_merge_notice_io.ts:72  storedDishes()  [sac - ②c ③?-7]  3←row  ~dishes
+  supabase/functions/_shared/keel/household_turn_context.ts:433  <anonyme>()  [typé écrit ②c ③?-7]  3←d  ~dishes
+  supabase/functions/_shared/keel/meal_analysis.ts:495  compactCommitment()  [typé - ②c ②b-9 ③?-21]  8←c  ~commitments
+  supabase/functions/_shared/keel/meal_analysis.ts:1020  parseMealAnalysis()  [sac - ②c]  4←match  ~commitment_matches
+  supabase/functions/_shared/keel/meal_analysis.ts:1070  parseMealAnalysis()  [sac - ②c]  3←a  ~assumptions
+  supabase/functions/_shared/keel/meal_generation.ts:3345  parseGeneratedMeal()  [sac - ②c]  5←prep  ~preparations
+  supabase/functions/_shared/keel/meal_generation.ts:4809  ingredientPayload()  [typé - ②c ③?-1]  7←i  ~ingredients
+  supabase/functions/_shared/keel/meal_generation.ts:4822  <anonyme>()  [typé - ②c]  11←d  ~dishes
+  supabase/functions/_shared/keel/meal_generation.ts:4888  <anonyme>()  [typé - ②c]  9←p  ~preparations
+  supabase/functions/_shared/keel/meal_generation.ts:4922  <anonyme>()  [typé - ②c]  4←session  ~cooking_sessions
+  supabase/functions/_shared/keel/meal_generation.ts:4931  <anonyme>()  [typé - ②c]  3←s  ~shopping_list
+  supabase/functions/_shared/keel/meal_verdict.ts:337  <anonyme>()  [typé - ②c ③?-7]  3←d  ~dishes
+  supabase/functions/_shared/keel/mouth_energy.ts:289  <anonyme>()  [typé - ②c ③?-6]  4←d  ~dishes
+  supabase/functions/_shared/keel/plan_energy.ts:199  boundGramsOf()  [typé - ②c ③?-3]  4←ing  ~ingredients
+  supabase/functions/_shared/keel/plan_energy.ts:678  <anonyme>()  [typé - ②c ③?-6]  3←d  ~dishes
+  supabase/functions/_shared/keel/plan_energy.ts:684  <anonyme>()  [typé - ②c ③?-5]  3←p  ~preparations
+  supabase/functions/_shared/keel/protocol_compiler.ts:480  compileTimingRule()  [typé - ②a-21 ③?-12]  7←rule  ~commitments
+  supabase/functions/_shared/keel/slot_reminders.ts:411  <anonyme>()  [typé - ②c ③?-22]  5←c  ~commitments
+  supabase/functions/_shared/keel/week_plan_generation.ts:747  parseWeekPlan()  [sac - ②c]  5←it  ~items
+  supabase/functions/_shared/keel/week_plan_generation.ts:778  parseWeekPlan()  [sac - ②c]  4←it  ~items
+  supabase/functions/_shared/keel/week_plan_generation.ts:823  <anonyme>()  [typé - ②c]  7←it  ~items
+  supabase/functions/_shared/v2-prompts/conversation-pulse.ts:480  <anonyme>()  [typé - ②c]  7←anchor  ~emotional_anchors
+  supabase/functions/_shared/v2-prompts/conversation-pulse.ts:655  validateConversationPulseOutput()  [sac - ②c]  3←obj  ~tone
+  supabase/functions/_shared/v2-prompts/conversation-pulse.ts:665  validateConversationPulseOutput()  [sac - ②c]  4←obj  ~highlights
+  supabase/functions/_shared/v2-prompts/conversation-pulse.ts:672  validateConversationPulseOutput()  [sac - ②c]  3←obj  ~signals
+  supabase/functions/analyze-meal-photo-v1/index.ts:216  toCommitmentContext()  [typé écrit ③?-13]  17←row  ~commitments
+  supabase/functions/coach-doctrine-v1/index.ts:323  saveFoodProposals()  [typé écrit ②c]  5←p  ~food_proposals
+  supabase/functions/evaluate-adherence-v1/index.ts:494  evaluateStudentDay()  [typé écrit ②c ③?-24]  3←c  ~commitments
+  supabase/functions/evaluate-adherence-v1/snapshot.ts:150  toCommitment()  [typé - ③?-6]  32←row  ~commitments
+  supabase/functions/generate-meal-v1/index.ts:2125  <anonyme>()  [typé écrit ②c ③?-6]  4←d  ~dishes
+  supabase/functions/generate-meal-v1/index.ts:2128  <anonyme>()  [typé écrit ②c ③?-2]  4←i  ~ingredients
+  supabase/functions/generate-meal-v1/index.ts:2136  <anonyme>()  [typé écrit ②c ③?-5]  3←p  ~preparations
+  supabase/functions/generate-meal-v1/index.ts:2139  <anonyme>()  [typé écrit ②c ③?-2]  4←i  ~ingredients
+  supabase/functions/generate-meal-v1/index.ts:2503  <anonyme>()  [typé écrit ②c ③?-6]  4←d  ~dishes
+  supabase/functions/meal-energy-v1/index.ts:192  readIngredient()  [sac - ②a-1 ③?-2]  4←i  ~ingredients
+  supabase/functions/meal-energy-v1/index.ts:222  <anonyme>()  [sac - ②c ③?-6]  4←d  ~dishes
+  supabase/functions/meal-energy-v1/index.ts:243  <anonyme>()  [sac - ②c ③?-5]  3←p  ~preparations
+  supabase/functions/plan-import-v1/import_rules.ts:646  toDraftCommitment()  [typé - ②a-4 ③?-2]  26←c  ~commitments
+  supabase/functions/plan-import-v1/import_rules.ts:721  validateImportCommitment()  [typé - ③?-17]  9←draft  ~commitments
+  supabase/functions/plan-import-v1/import_rules.ts:957  validateImportRelation()  [sac - ②a-2 ③?-2]  7←r  ~relations
+  supabase/functions/plan-publish-v1/commitments.ts:280  buildCommitmentRow()  [typé - ③?-1]  36←c  ~commitments
+  supabase/functions/plan-template-v1/index.ts:181  <anonyme>()  [sac écrit ②c ③?-20]  7←c  ~commitments
+  supabase/functions/process-checkins/index.ts:1654  processDueRendezVous()  [typé écrit ②c ③?-1]  5←rdv  ~events
+  supabase/functions/process-checkins/index.ts:2621  <anonyme>()  [typé écrit ②c ③?-1]  3←payload  ~events
+  supabase/functions/provision-day-v1/provisioning.ts:224  parseProvisionCommitment()  [typé - ③?-15]  18←row  ~commitments
+  supabase/functions/provision-day-v1/provisioning.ts:421  buildExpectedSnapshot()  [typé - ②c ②b-8 ③?-18]  11←commitment  ~commitments
+  supabase/functions/sophia-brain/agents/watcher.ts:644  runWatcher()  [typé écrit ②c ②b-1]  4←analysis  ~pause_decision
+  supabase/functions/sophia-brain/agents/watcher.ts:697  <anonyme>()  [typé écrit ②c]  4←event  ~events
+  supabase/functions/sophia-brain/agents/watcher.ts:749  runWatcher()  [typé écrit ②c ③?-1]  3←candidate  ~events
+  supabase/functions/sophia-brain/agents/watcher.ts:805  runWatcher()  [typé écrit ②c ③?-1]  3←candidate  ~events
+  supabase/functions/sophia-brain/agents/watcher.ts:820  runWatcher()  [typé écrit ②c ③?-1]  3←candidate  ~events
+  supabase/functions/sophia-brain/conversation_pulse_builder.ts:761  buildDailyConversationPulse()  [typé écrit ②c]  4←rows  ~highlights
+  supabase/functions/sophia-brain/momentum_outreach.ts:469  scheduleMomentumOutreach()  [typé écrit ②c ③?-1]  3←planWithHistory  ~events
+  supabase/functions/sophia-brain/router/one_shot_local_direct_effect.ts:49  normalizeLocalOneShotDirectEffectRequest()  [typé -]  8←root  ~direct_effect_request
+  supabase/functions/sophia-brain/router/one_shot_local_direct_effect.ts:72  normalizeLocalOneShotDirectEffectRequest()  [typé - ②c]  5←payloadRoot  ~payload_hint
+  supabase/functions/sophia-brain/router/one_shot_local_direct_effect.ts:131  oneShotDirectEffectFromLocalRequest()  [typé - ②b-4 ③?-3]  4←request  ~direct_effect_request
+  supabase/functions/sophia-brain/router/one_shot_local_direct_effect.ts:142  oneShotDirectEffectFromLocalRequest()  [typé - ②c ②b-7]  5←request  ~payload_hint
+  supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts:584  runDirectEffectLane()  [sac - ②c]  5←slots  ~payload_hint
+  supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts:693  runDirectEffectLane()  [sac - ②c]  5←payload  ~payload_hint
+  supabase/functions/sophia-brain/router/run.ts:4401  processMessage()  [typé écrit ②c ③?-2]  3←pendingCreateSlots  ~payload_hint
+  supabase/functions/sophia-brain/skills/safety_crisis/local_dispatcher.ts:236  normalizeSafetyCrisisLocalDispatcherOutput()  [typé - ②c]  11←signalsRoot  ~safety_signals
+  supabase/functions/sophia-brain/skills/safety_crisis/local_dispatcher.ts:257  normalizeSafetyCrisisLocalDispatcherOutput()  [typé - ②c]  3←summaryRoot  ~user_state_summary
+  supabase/functions/sophia-brain/skills/safety_crisis/local_dispatcher.ts:268  normalizeSafetyCrisisLocalDispatcherOutput()  [typé - ②c]  3←root  ~product_tool_boundary
+  supabase/functions/sophia-brain/skills/safety_crisis/local_dispatcher.ts:280  normalizeSafetyCrisisLocalDispatcherOutput()  [typé - ②c]  3←exitRoot  ~exit_request
+  supabase/functions/sophia-brain/tools/always_on/log_protocol_event/intake.ts:199  readComponent()  [typé - ③?-24]  5←raw  ~commitments
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:2891  runOneShotReminderDirectEffectInner()  [typé - ②c]  3←compiledPayload  ~payload_hint
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:3836  runOneShotReminderDirectEffectInner()  [typé - ②c ③?-2]  3←compiledPayload  ~payload_hint
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:3919  runOneShotReminderDirectEffectInner()  [typé - ②c ③?-2]  3←compiledPayload  ~payload_hint
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:4225  runOneShotReminderDirectEffectInner()  [typé - ②c ③?-2]  3←compiledPayload  ~payload_hint
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:4667  runOneShotReminderDirectEffectInner()  [typé - ②c ③?-1]  4←compiledPayload  ~payload_hint
+  supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts:4861  runOneShotReminderDirectEffectInner()  [typé - ②c]  4←compiledPayload  ~payload_hint
+
+══════════════════════════════════════════════════════════════════════
+FIN — ⓪ 1806 · ① 99 · ②a 4 (1 muettes au tsc) · ②b 7 · ②c 86 · ③ candidats 58, perdent 4
+══════════════════════════════════════════════════════════════════════
+
+rc(HEAD) = 0
+
+######################################################################
+# ③ CE QUI DIFFÈRE ENTRE LES DEUX — le mur du §⑨ n° 15, chiffré
+######################################################################
+
+-- fichiers de supabase/functions modifiés et NON COMMITÉS:
+   93 fichiers, +16887 / -3112 lignes
+-- fichiers de frontend/src modifiés et NON COMMITÉS:
+   71 fichiers, +9656 / -2100 lignes
+
+-- les porteurs des instances de la fiche, un par un:
+   supabase/functions/_shared/keel/meal_generation.ts : +2660 / -558 NON COMMITÉES
+   supabase/functions/meal-energy-v1/index.ts : +29 / -0 NON COMMITÉES
+   supabase/functions/generate-meal-v1/index.ts : +479 / -31 NON COMMITÉES
+   supabase/functions/generate-household-meal-v1/index.ts : +1720 / -80 NON COMMITÉES
+   frontend/src/keel/api/mealGeneration.ts : +221 / -45 NON COMMITÉES
+
+######################################################################
+# ④ CE QUE LES DEUX PERTES COÛTENT EN BASE — lecture seule
+######################################################################
+
+-- `dishes[].name` : ce que le modèle a écrit et qu'aucun écran ne lit
+   2129 plats | 734 portent la cle | 734 avec un nom NON NUL | 65 plans concernes
+
+-- `ingredients[].group` : par lane, ce que le lecteur d'energie ne voit pas
+   household | 7145 lignes | 769 avec groupe NON NUL | 10 plans
+   personal | 3722 lignes | 0 avec groupe NON NUL | 0 plans
+
+FIN — deux arbres, un écart nommé, et deux pertes chiffrées.

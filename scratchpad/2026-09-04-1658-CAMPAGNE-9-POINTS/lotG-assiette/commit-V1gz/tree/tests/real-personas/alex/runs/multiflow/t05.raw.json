@@ -1,0 +1,244 @@
+{
+  "ok": true,
+  "request_id": "f31c0508-b5e2-4f36-97d9-8ed853a99a4b",
+  "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "channel": "web",
+  "scope": "web",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Je vois le truc: ce n’est pas juste “je dors mal”, c’est plutôt un fond continu où ton cerveau tourne sans pause, la nuit mais aussi en pleine journée, avec 40 trucs en parallèle. Et le plus pénible, c’est souvent justement ce “j’sais pas comment l’expliquer” — parce que c’est diffus, mais très envahissant.\n\nDit comme ça, ça ressemble moins à un problème de sommeil qu’à une saturation permanente. Pas forcément du bruit “fort”, parfois juste une activité mentale qui ne décroche jamais, qui saute d’un sujet à l’autre, anticipe, repasse, relance. À la longue, ça épuise même quand il ne “se passe rien”.\n\nTu n’as pas besoin de me l’expliquer parfaitement. On peut le prendre par un bout simple: quand ça tourne, c’est plutôt des pensées en boucle, des listes de trucs à gérer, des scénarios, ou un mélange de tout ça ? 🙂",
+    "mode": "companion",
+    "delivery": {
+      "mode": "text_reply"
+    },
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "f31c0508-b5e2-4f36-97d9-8ed853a99a4b",
+        "source_message_id": "9e5314af-fba1-4f77-8a8e-bfe583527648",
+        "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "direct_effect_time_context": {
+          "now_utc": "2026-07-10T20:59:42.589Z",
+          "user_timezone": "Europe/Paris",
+          "user_locale": "fr-FR",
+          "user_local_datetime": "2026-07-10T22:59:42",
+          "user_local_human": "vendredi 10 juillet 2026 à 22:59"
+        },
+        "note_information": null,
+        "skill_signals": {
+          "presence_conversation": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "deep_personal_reflection_without_tool_request",
+            "context": {
+              "kind": "maintain",
+              "topic_hint": "mental overload and racing thoughts",
+              "reason": "The user is depositing a personal internal experience and wants to talk it through, without asking for a feature, coaching lever, or plan adjustment."
+            }
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "supportive_presence",
+          "reasoning_complexity": "medium",
+          "context_need": "broad",
+          "memory_mode": "broad",
+          "model_tier_hint": "deep",
+          "context_budget_tier": "large",
+          "targets": [],
+          "retrieval_policy": "taxonomy_first",
+          "plan_confidence": 0.86
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "presence_conversation",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "presence_conversation_entry",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "enter_presence",
+          "active_owner": "none",
+          "selected_owner": "presence_conversation",
+          "resume_policy": "enter_fresh",
+          "reason_code": "presence_conversation_entry"
+        },
+        "selected_handler": "presence_conversation"
+      },
+      "effect_ledger": {
+        "turn_id": "f31c0508-b5e2-4f36-97d9-8ed853a99a4b",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "presence_conversation"
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "f31c0508-b5e2-4f36-97d9-8ed853a99a4b",
+      "source_message_id": "9e5314af-fba1-4f77-8a8e-bfe583527648",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "direct_effect_time_context": {
+        "now_utc": "2026-07-10T20:59:42.589Z",
+        "user_timezone": "Europe/Paris",
+        "user_locale": "fr-FR",
+        "user_local_datetime": "2026-07-10T22:59:42",
+        "user_local_human": "vendredi 10 juillet 2026 à 22:59"
+      },
+      "note_information": null,
+      "skill_signals": {
+        "presence_conversation": {
+          "detected": true,
+          "confidence_band": "high",
+          "reason": "deep_personal_reflection_without_tool_request",
+          "context": {
+            "kind": "maintain",
+            "topic_hint": "mental overload and racing thoughts",
+            "reason": "The user is depositing a personal internal experience and wants to talk it through, without asking for a feature, coaching lever, or plan adjustment."
+          }
+        }
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "supportive_presence",
+        "reasoning_complexity": "medium",
+        "context_need": "broad",
+        "memory_mode": "broad",
+        "model_tier_hint": "deep",
+        "context_budget_tier": "large",
+        "targets": [],
+        "retrieval_policy": "taxonomy_first",
+        "plan_confidence": 0.86
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "presence_conversation",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "presence_conversation_entry",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "active_flow_arbitration": {
+        "decision": "enter_presence",
+        "active_owner": "none",
+        "selected_owner": "presence_conversation",
+        "resume_policy": "enter_fresh",
+        "reason_code": "presence_conversation_entry"
+      },
+      "selected_handler": "presence_conversation"
+    },
+    "effect_ledger": {
+      "turn_id": "f31c0508-b5e2-4f36-97d9-8ed853a99a4b",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "presence_conversation"
+  },
+  "trace_error": null
+}

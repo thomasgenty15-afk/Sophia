@@ -1,0 +1,12 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r2-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "J'aimerais préparer une carte de défense pour les retours de boulot où je suis éclaté, je passe devant les restos et je finis par prendre un truc au hasard au lieu de manger correctement.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

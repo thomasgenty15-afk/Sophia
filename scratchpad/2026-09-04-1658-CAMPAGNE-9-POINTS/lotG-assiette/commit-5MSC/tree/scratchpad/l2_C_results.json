@@ -1,0 +1,38 @@
+[
+  {
+    "id": "C en-US #1 temoin hors plancher",
+    "verdict": "GREEN",
+    "detail": "owner=normal_reply dtr=[\"log_protocol_event\"] protocol_events=2 [lean_protein/lunch/-/chat ; refined_grain/lunch/-/chat] demandes=1 reply=\"Protein at lunch is covered.\n\nAnd what did you have with it?\"",
+    "proof": "Protein at lunch is covered.\n\nAnd what did you have with it?"
+  },
+  {
+    "id": "C en-US #2 temoin hors plancher",
+    "verdict": "GREEN",
+    "detail": "owner=normal_reply dtr=[\"log_protocol_event\"] protocol_events=2 [poultry/lunch/-/chat ; refined_grain/lunch/-/chat] demandes=1 reply=\"I’ve logged the lunch report: grilled chicken and rice. Also, the lunch protein line has been marked, and vegetables at lunch is still unreported.\n\nAnd what did\"",
+    "proof": "I’ve logged the lunch report: grilled chicken and rice. Also, the lunch protein line has been marked, and vegetables at lunch is still unreported.\n\nAnd what did you have with it?"
+  },
+  {
+    "id": "C en-US #3 temoin hors plancher",
+    "verdict": "GREEN",
+    "detail": "owner=normal_reply dtr=[\"log_protocol_event\"] protocol_events=2 [poultry/lunch/-/chat ; refined_grain/lunch/-/chat] demandes=1 reply=\"Got it — grilled chicken and rice. Also, protein at lunch is covered for today.\n\nAnd what did you have with it?\"",
+    "proof": "Got it — grilled chicken and rice. Also, protein at lunch is covered for today.\n\nAnd what did you have with it?"
+  },
+  {
+    "id": "C fr-FR #1 temoin hors plancher",
+    "verdict": "GREEN",
+    "detail": "owner=normal_reply dtr=[\"log_protocol_event\"] protocol_events=2 [poultry/lunch/-/chat ; refined_grain/lunch/-/chat] demandes=1 reply=\"C’est bien noté pour le déjeuner de midi : poulet grillé et riz.\n\nEt, en plus, deux enregistrements ont été faits pour le repas de midi aujourd’hui : protéines \"",
+    "proof": "C’est bien noté pour le déjeuner de midi : poulet grillé et riz.\n\nEt, en plus, deux enregistrements ont été faits pour le repas de midi aujourd’hui : protéines au déjeuner et légumes au déjeuner.\n\nEt tu as mangé quoi avec ?"
+  },
+  {
+    "id": "C fr-FR #2 temoin hors plancher",
+    "verdict": "GREEN",
+    "detail": "owner=normal_reply dtr=[\"log_protocol_event\"] protocol_events=2 [poultry/lunch/-/chat ; refined_grain/lunch/-/chat] demandes=1 reply=\"Pour le déjeuner d’aujourd’hui, je te note le poulet grillé pour la protéine et le riz pour le féculent. Il manque juste les légumes à midi.\n\nEt tu as mangé quo\"",
+    "proof": "Pour le déjeuner d’aujourd’hui, je te note le poulet grillé pour la protéine et le riz pour le féculent. Il manque juste les légumes à midi.\n\nEt tu as mangé quoi avec ?"
+  },
+  {
+    "id": "C fr-FR #3 temoin hors plancher",
+    "verdict": "GREEN",
+    "detail": "owner=normal_reply dtr=[\"log_protocol_event\"] protocol_events=2 [poultry/lunch/-/chat ; refined_grain/lunch/-/chat] demandes=1 reply=\"C’est bien noté pour ton déjeuner : poulet grillé et riz.\n\nEt en plus, deux enregistrements sont bien pris pour le déjeuner aujourd’hui : protéines et légumes.\n\"",
+    "proof": "C’est bien noté pour ton déjeuner : poulet grillé et riz.\n\nEt en plus, deux enregistrements sont bien pris pour le déjeuner aujourd’hui : protéines et légumes.\n\nEt tu as mangé quoi avec ?"
+  }
+]

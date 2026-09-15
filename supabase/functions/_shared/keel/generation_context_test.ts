@@ -141,3 +141,51 @@ Deno.test("le vocabulaire des refus est FERMÉ, avec son statut", () => {
     "not_owner",
   ]);
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-13 · LOT 2 § 2.3 ④ — LE MAÎTRE PASSE, LE SECONDAIRE NON
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("§ 2.3 ④ — `owner` est le SEUL rôle qui admet, à la lettre près", () => {
+  // ⛔ LA COMPARAISON EST EXACTE, ET C'EST VOULU. Le rôle vient de
+  // `household_members.role`, écrit par la base; l'assouplir (minuscules,
+  // espaces rognés) ferait admettre une valeur que la base n'écrit pas — et
+  // c'est la porte d'entrée d'une écriture dans le foyer d'autrui.
+  for (const role of ["member", "child", "guest", "Owner", "OWNER", " owner ", "owners", ""]) {
+    const out = resolveGenerationAdmission(reads({
+      actorUserId: SECOND,
+      seat: { householdId: FOYER, memberId: "m-second", role },
+    }));
+    assertEquals(out.ok, false, `le rôle « ${role} » a été admis`);
+    if (out.ok) return;
+    assertEquals(out.refusal, "not_owner");
+    assertEquals(out.status, 403);
+  }
+  // ⛔ LE CAS QUI PASSE — et il dit sous quel compte le plan s'écrira. Sans
+  // cette moitié-là, une garde cassée qui refuse tout le monde ressemblerait à
+  // une garde qui marche.
+  const maitre = resolveGenerationAdmission(reads());
+  assertEquals(maitre.ok, true);
+  if (!maitre.ok) return;
+  assertEquals(maitre.actor.planOwnerUserId, MAITRE);
+  assertEquals(maitre.actor.masterUserId, MAITRE);
+  assertEquals(maitre.actor.householdId, FOYER);
+  assertEquals(maitre.actor.writeScope, "household");
+});
+
+Deno.test("§ 2.3 ④ bis — le refus d'un secondaire ne dépend d'AUCUNE lecture payante", () => {
+  // ⛔ LES TROIS ÉTATS DE COUVERTURE DONNENT LE MÊME REFUS. Un secondaire est
+  // refusé sur son rôle, point: ni un abonnement vivant, ni un gel, ni une
+  // lecture de facturation en panne ne changent la réponse. C'est ce qui rend
+  // le refus décidable AVANT toute dépense.
+  for (const covered of [true, false, null]) {
+    const out = resolveGenerationAdmission(reads({
+      actorUserId: SECOND,
+      seat: { householdId: FOYER, memberId: "m-second", role: "member" },
+      covered,
+    }));
+    assertEquals(out.ok, false);
+    if (out.ok) return;
+    assertEquals(out.refusal, "not_owner", `couverture ${String(covered)}`);
+  }
+});

@@ -1,0 +1,882 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r60-whole-plan-direction-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je crois que la direction du plan ne me convient plus vraiment. Le plan met trop l'accent sur désamorcer les tensions, alors que je pense pouvoir faire mieux avec une vraie étape de réparation après conflit.",
+    "assistant": "Je comprends que tu veuilles réorienter le plan vers la réparation après conflit. Pour que je puisse bien comprendre comment l'ajuster, peux-tu me dire quelles actions ou missions actuelles te semblent trop axées sur le désamorçage et que tu voudrais ajuster, ou même remplacer, pour aller vers la réparation ? Ou y a-t-il des éléments que tu souhaites absolument garder ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "whole_plan.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des solutions techniques sans avoir approfondi la compréhension humaine du besoin.",
+          "Ignorer la dimension émotionnelle ou relationnelle sous-jacente à la demande de changement.",
+          "Faire des suppositions sur la capacité de l'utilisateur ou de son partenaire à gérer des étapes de réparation complexes."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global d'améliorer la gestion des conflits et la qualité de la relation.",
+          "Le principe de progression et de construction de compétences étape par étape.",
+          "L'autonomie de l'utilisateur dans la définition de son parcours."
+        ],
+        "warnings": [
+          "Ne pas invalider la phase actuelle de désamorçage, car elle pourrait être un prérequis essentiel à une réparation efficace.",
+          "Ne pas proposer immédiatement des actions de 'réparation' sans avoir clarifié ce que l'utilisateur entend par là et sans évaluer la capacité actuelle de la relation à les mettre en œuvre.",
+          "Éviter de considérer ce changement comme un simple ajout d'actions; il s'agit d'une potentielle refonte de la logique séquentielle du plan."
+        ],
+        "confidence": "medium",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Guidelines action: Toute nouvelle action de réparation doit être définie en collaboration avec l'utilisateur pour s'assurer de sa pertinence et de sa faisabilité. Elle doit idéalement s'appuyer sur les bases posées par le désamorçage, sans changer la nature profonde de l'objectif relationnel sans demande explicite.",
+          "Guidelines niveau: Si la direction du plan change, les niveaux devront être réévalués pour refléter la nouvelle progression. Assurer que la charge et le rythme restent adaptés et que le cœur du nouveau niveau est clairement défini.",
+          "Guidelines whole_plan: La nouvelle trajectoire doit maintenir une cohérence globale. Si la réparation devient le focus, il est crucial de s'assurer que les prérequis (comme une capacité minimale à désamorcer) sont soit acquis, soit intégrés dans les premières phases du nouveau plan. L'objectif et le questionnaire initial du plan doivent être réexaminés pour s'aligner avec cette nouvelle orientation."
+        ],
+        "observation": "L'utilisateur exprime une réorientation fondamentale de la trajectoire du plan. Il perçoit que l'accent actuel sur le désamorçage des tensions ne correspond plus à son besoin, et souhaite se concentrer sur une phase de 'réparation après conflit'. Cela indique un changement de perspective sur le point d'intervention le plus pertinent et potentiellement une évolution de sa propre capacité ou de celle de la relation.",
+        "recommendation": "Reconnaître la demande de changement de direction du plan comme une opportunité d'aligner la stratégie sur la perception évoluée de l'utilisateur. Le sous-skill doit explorer la nature exacte de cette 'réparation' et évaluer la cohérence de ce nouveau focus avec les acquis et les prérequis du plan actuel.",
+        "options_to_discuss": [
+          "Explorer si l'utilisateur estime que la phase de désamorçage a déjà suffisamment porté ses fruits ou si elle est perçue comme un obstacle à la progression.",
+          "Discuter de la nature spécifique des actions de 'réparation après conflit' que l'utilisateur envisage (ex: excuses, compréhension mutuelle, reconstruction de la confiance, actions concrètes).",
+          "Envisager l'intégration d'une phase de transition qui consoliderait les acquis du désamorçage tout en introduisant progressivement des éléments de réparation.",
+          "Évaluer la perception de l'utilisateur quant à la réceptivité de son partenaire à une phase de réparation active."
+        ],
+        "questions_to_clarify": [
+          "Qu'est-ce qui vous fait penser que le plan actuel met 'trop' l'accent sur le désamorçage ? Y a-t-il eu des expériences récentes qui ont renforcé cette conviction ?",
+          "Pour vous, qu'est-ce qu'une 'vraie étape de réparation après conflit' impliquerait concrètement ? Quels types d'actions ou de discussions imaginez-vous ?",
+          "Sentez-vous que les outils de désamorçage mis en place (comme le signal de pause) sont déjà suffisamment intégrés et efficaces pour passer à l'étape suivante ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des solutions techniques sans avoir approfondi la compréhension humaine du besoin.",
+        "Ignorer la dimension émotionnelle ou relationnelle sous-jacente à la demande de changement.",
+        "Faire des suppositions sur la capacité de l'utilisateur ou de son partenaire à gérer des étapes de réparation complexes."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global d'améliorer la gestion des conflits et la qualité de la relation.",
+        "Le principe de progression et de construction de compétences étape par étape.",
+        "L'autonomie de l'utilisateur dans la définition de son parcours."
+      ],
+      "warnings": [
+        "Ne pas invalider la phase actuelle de désamorçage, car elle pourrait être un prérequis essentiel à une réparation efficace.",
+        "Ne pas proposer immédiatement des actions de 'réparation' sans avoir clarifié ce que l'utilisateur entend par là et sans évaluer la capacité actuelle de la relation à les mettre en œuvre.",
+        "Éviter de considérer ce changement comme un simple ajout d'actions; il s'agit d'une potentielle refonte de la logique séquentielle du plan."
+      ],
+      "confidence": "medium",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Guidelines action: Toute nouvelle action de réparation doit être définie en collaboration avec l'utilisateur pour s'assurer de sa pertinence et de sa faisabilité. Elle doit idéalement s'appuyer sur les bases posées par le désamorçage, sans changer la nature profonde de l'objectif relationnel sans demande explicite.",
+        "Guidelines niveau: Si la direction du plan change, les niveaux devront être réévalués pour refléter la nouvelle progression. Assurer que la charge et le rythme restent adaptés et que le cœur du nouveau niveau est clairement défini.",
+        "Guidelines whole_plan: La nouvelle trajectoire doit maintenir une cohérence globale. Si la réparation devient le focus, il est crucial de s'assurer que les prérequis (comme une capacité minimale à désamorcer) sont soit acquis, soit intégrés dans les premières phases du nouveau plan. L'objectif et le questionnaire initial du plan doivent être réexaminés pour s'aligner avec cette nouvelle orientation."
+      ],
+      "observation": "L'utilisateur exprime une réorientation fondamentale de la trajectoire du plan. Il perçoit que l'accent actuel sur le désamorçage des tensions ne correspond plus à son besoin, et souhaite se concentrer sur une phase de 'réparation après conflit'. Cela indique un changement de perspective sur le point d'intervention le plus pertinent et potentiellement une évolution de sa propre capacité ou de celle de la relation.",
+      "recommendation": "Reconnaître la demande de changement de direction du plan comme une opportunité d'aligner la stratégie sur la perception évoluée de l'utilisateur. Le sous-skill doit explorer la nature exacte de cette 'réparation' et évaluer la cohérence de ce nouveau focus avec les acquis et les prérequis du plan actuel.",
+      "options_to_discuss": [
+        "Explorer si l'utilisateur estime que la phase de désamorçage a déjà suffisamment porté ses fruits ou si elle est perçue comme un obstacle à la progression.",
+        "Discuter de la nature spécifique des actions de 'réparation après conflit' que l'utilisateur envisage (ex: excuses, compréhension mutuelle, reconstruction de la confiance, actions concrètes).",
+        "Envisager l'intégration d'une phase de transition qui consoliderait les acquis du désamorçage tout en introduisant progressivement des éléments de réparation.",
+        "Évaluer la perception de l'utilisateur quant à la réceptivité de son partenaire à une phase de réparation active."
+      ],
+      "questions_to_clarify": [
+        "Qu'est-ce qui vous fait penser que le plan actuel met 'trop' l'accent sur le désamorçage ? Y a-t-il eu des expériences récentes qui ont renforcé cette conviction ?",
+        "Pour vous, qu'est-ce qu'une 'vraie étape de réparation après conflit' impliquerait concrètement ? Quels types d'actions ou de discussions imaginez-vous ?",
+        "Sentez-vous que les outils de désamorçage mis en place (comme le signal de pause) sont déjà suffisamment intégrés et efficaces pour passer à l'étape suivante ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r60-whole-plan-direction-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r60-whole-plan-direction-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux garder le signal de pause comme base, mais ajouter une vraie étape après : revenir sur un conflit avec une phrase de réparation. Par exemple : 'je regrette ma part sur...' puis 'la prochaine fois j'aimerais qu'on essaie...'.",
+    "assistant": "Pour cette nouvelle étape de réparation, y a-t-il d'autres actions ou habitudes existantes que tu souhaiterais modifier, ou est-ce principalement l'ajout de cette nouvelle étape qui t'intéresse ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": "direction du plan",
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des solutions techniques sans avoir approfondi la compréhension humaine du besoin.",
+          "Ignorer la dimension émotionnelle ou relationnelle sous-jacente à la demande de changement.",
+          "Faire des suppositions sur la capacité de l'utilisateur ou de son partenaire à gérer des étapes de réparation complexes.",
+          "Ajouter directement les phrases de réparation sans s'assurer des prérequis relationnels et de la capacité d'exécution."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global d'améliorer la gestion des conflits et la qualité de la relation.",
+          "Le principe de progression et de construction de compétences étape par étape.",
+          "L'autonomie de l'utilisateur dans la définition de son parcours.",
+          "Le signal de pause comme base et fondation des interactions post-conflit."
+        ],
+        "warnings": [
+          "Ne pas invalider la phase actuelle de désamorçage, car elle pourrait être un prérequis essentiel à une réparation efficace.",
+          "Ne pas proposer immédiatement des actions de 'réparation' sans avoir clarifié ce que l'utilisateur entend par là et sans évaluer la capacité actuelle de la relation à les mettre en œuvre.",
+          "Éviter de considérer ce changement comme un simple ajout d'actions; il s'agit d'une potentielle refonte de la logique séquentielle du plan.",
+          "Ne pas sous-estimer la complexité émotionnelle et relationnelle des phrases de réparation proposées ('je regrette ma part sur...', 'la prochaine fois j'aimerais qu'on essaie...') et leur besoin de prérequis en termes de sécurité et de confiance."
+        ],
+        "confidence": "medium",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Guidelines action: Toute nouvelle action de réparation doit être définie en collaboration avec l'utilisateur pour s'assurer de sa pertinence et de sa faisabilité. Elle doit idéalement s'appuyer sur les bases posées par le désamorçage, sans changer la nature profonde de l'objectif relationnel sans demande explicite.",
+          "Guidelines niveau: Si la direction du plan change, les niveaux devront être réévalués pour refléter la nouvelle progression. Assurer que la charge et le rythme restent adaptés et que le cœur du nouveau niveau est clairement défini.",
+          "Guidelines whole_plan: La nouvelle trajectoire doit maintenir une cohérence globale. Si la réparation devient le focus, il est crucial de s'assurer que les prérequis (comme une capacité minimale à désamorcer) sont soit acquis, soit intégrés dans les premières phases du nouveau plan. L'objectif et le questionnaire initial du plan doivent être réexaminés pour s'aligner avec cette nouvelle orientation."
+        ],
+        "observation": "L'utilisateur exprime une réorientation fondamentale de la trajectoire du plan. Il perçoit que l'accent actuel sur le désamorçage des tensions ne correspond plus à son besoin, et souhaite se concentrer sur une phase de 'réparation après conflit'. Cela indique un changement de perspective sur le point d'intervention le plus pertinent et potentiellement une évolution de sa propre capacité ou de celle de la relation. Il souhaite intégrer des phrases de réparation spécifiques après le signal de pause, qu'il veut conserver comme base.",
+        "recommendation": "Reconnaître la demande de changement de direction du plan comme une opportunité d'aligner la stratégie sur la perception évoluée de l'utilisateur. Le sous-skill doit explorer la nature exacte de cette 'réparation' et évaluer la cohérence de ce nouveau focus avec les acquis et les prérequis du plan actuel, tout en intégrant le signal de pause comme fondation.",
+        "options_to_discuss": [
+          "Explorer si l'utilisateur estime que la phase de désamorçage a déjà suffisamment porté ses fruits ou si elle est perçue comme un obstacle à la progression.",
+          "Discuter de la nature spécifique des actions de 'réparation après conflit' que l'utilisateur envisage (ex: excuses, compréhension mutuelle, reconstruction de la confiance, actions concrètes).",
+          "Envisager l'intégration d'une phase de transition qui consoliderait les acquis du désamorçage tout en introduisant progressivement des éléments de réparation.",
+          "Évaluer la perception de l'utilisateur quant à la réceptivité de son partenaire à une phase de réparation active."
+        ],
+        "questions_to_clarify": [
+          "Qu'est-ce qui vous fait penser que le plan actuel met 'trop' l'accent sur le désamorçage ? Y a-t-il eu des expériences récentes qui ont renforcé cette conviction ?",
+          "Pour vous, qu'est-ce qu'une 'vraie étape de réparation après conflit' impliquerait concrètement ? Quels types d'actions ou de discussions imaginez-vous au-delà des exemples donnés ?",
+          "Sentez-vous que les outils de désamorçage mis en place (comme le signal de pause) sont déjà suffisamment intégrés et efficaces pour passer à l'étape suivante ?",
+          "Comment imaginez-vous que votre partenaire réagirait à ces phrases de réparation ? Est-ce quelque chose que vous avez déjà abordé ou envisagé ensemble ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des solutions techniques sans avoir approfondi la compréhension humaine du besoin.",
+        "Ignorer la dimension émotionnelle ou relationnelle sous-jacente à la demande de changement.",
+        "Faire des suppositions sur la capacité de l'utilisateur ou de son partenaire à gérer des étapes de réparation complexes.",
+        "Ajouter directement les phrases de réparation sans s'assurer des prérequis relationnels et de la capacité d'exécution."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global d'améliorer la gestion des conflits et la qualité de la relation.",
+        "Le principe de progression et de construction de compétences étape par étape.",
+        "L'autonomie de l'utilisateur dans la définition de son parcours.",
+        "Le signal de pause comme base et fondation des interactions post-conflit."
+      ],
+      "warnings": [
+        "Ne pas invalider la phase actuelle de désamorçage, car elle pourrait être un prérequis essentiel à une réparation efficace.",
+        "Ne pas proposer immédiatement des actions de 'réparation' sans avoir clarifié ce que l'utilisateur entend par là et sans évaluer la capacité actuelle de la relation à les mettre en œuvre.",
+        "Éviter de considérer ce changement comme un simple ajout d'actions; il s'agit d'une potentielle refonte de la logique séquentielle du plan.",
+        "Ne pas sous-estimer la complexité émotionnelle et relationnelle des phrases de réparation proposées ('je regrette ma part sur...', 'la prochaine fois j'aimerais qu'on essaie...') et leur besoin de prérequis en termes de sécurité et de confiance."
+      ],
+      "confidence": "medium",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Guidelines action: Toute nouvelle action de réparation doit être définie en collaboration avec l'utilisateur pour s'assurer de sa pertinence et de sa faisabilité. Elle doit idéalement s'appuyer sur les bases posées par le désamorçage, sans changer la nature profonde de l'objectif relationnel sans demande explicite.",
+        "Guidelines niveau: Si la direction du plan change, les niveaux devront être réévalués pour refléter la nouvelle progression. Assurer que la charge et le rythme restent adaptés et que le cœur du nouveau niveau est clairement défini.",
+        "Guidelines whole_plan: La nouvelle trajectoire doit maintenir une cohérence globale. Si la réparation devient le focus, il est crucial de s'assurer que les prérequis (comme une capacité minimale à désamorcer) sont soit acquis, soit intégrés dans les premières phases du nouveau plan. L'objectif et le questionnaire initial du plan doivent être réexaminés pour s'aligner avec cette nouvelle orientation."
+      ],
+      "observation": "L'utilisateur exprime une réorientation fondamentale de la trajectoire du plan. Il perçoit que l'accent actuel sur le désamorçage des tensions ne correspond plus à son besoin, et souhaite se concentrer sur une phase de 'réparation après conflit'. Cela indique un changement de perspective sur le point d'intervention le plus pertinent et potentiellement une évolution de sa propre capacité ou de celle de la relation. Il souhaite intégrer des phrases de réparation spécifiques après le signal de pause, qu'il veut conserver comme base.",
+      "recommendation": "Reconnaître la demande de changement de direction du plan comme une opportunité d'aligner la stratégie sur la perception évoluée de l'utilisateur. Le sous-skill doit explorer la nature exacte de cette 'réparation' et évaluer la cohérence de ce nouveau focus avec les acquis et les prérequis du plan actuel, tout en intégrant le signal de pause comme fondation.",
+      "options_to_discuss": [
+        "Explorer si l'utilisateur estime que la phase de désamorçage a déjà suffisamment porté ses fruits ou si elle est perçue comme un obstacle à la progression.",
+        "Discuter de la nature spécifique des actions de 'réparation après conflit' que l'utilisateur envisage (ex: excuses, compréhension mutuelle, reconstruction de la confiance, actions concrètes).",
+        "Envisager l'intégration d'une phase de transition qui consoliderait les acquis du désamorçage tout en introduisant progressivement des éléments de réparation.",
+        "Évaluer la perception de l'utilisateur quant à la réceptivité de son partenaire à une phase de réparation active."
+      ],
+      "questions_to_clarify": [
+        "Qu'est-ce qui vous fait penser que le plan actuel met 'trop' l'accent sur le désamorçage ? Y a-t-il eu des expériences récentes qui ont renforcé cette conviction ?",
+        "Pour vous, qu'est-ce qu'une 'vraie étape de réparation après conflit' impliquerait concrètement ? Quels types d'actions ou de discussions imaginez-vous au-delà des exemples donnés ?",
+        "Sentez-vous que les outils de désamorçage mis en place (comme le signal de pause) sont déjà suffisamment intégrés et efficaces pour passer à l'étape suivante ?",
+        "Comment imaginez-vous que votre partenaire réagirait à ces phrases de réparation ? Est-ce quelque chose que vous avez déjà abordé ou envisagé ensemble ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r60-whole-plan-direction-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r60-whole-plan-direction-t03",
+    "status": 200,
+    "ok": true,
+    "user": "C'est principalement l'ajout de cette étape qui m'intéresse. Je ne veux pas juste modifier deux actions : je veux que la trajectoire globale devienne désamorçage puis réparation, avant les conversations plus sensibles.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "user_explicit_replace_request",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "je regrette ma part sur...",
+              "la prochaine fois j'aimerais qu'on essaie...",
+              "preserved_intent:garder le signal de pause comme base",
+              "coach_observation:L'utilisateur exprime une réorientation fondamentale de la trajectoire du plan. Il perçoit que l'accent actuel sur le désamorçage des tensions ne correspond plus à son besoin, et souhaite se concentrer sur une phase de 'réparation après conflit'. Cela indique un changement de perspective sur le point d'intervention le plus pertinent et potentiellement une évolution de sa propre capacité ou de celle de la relation. Il souhaite intégrer des phrases de réparation spécifiques après le signal de pause, qu'il veut conserver comme base.",
+              "coach_recommendation:Reconnaître la demande de changement de direction du plan comme une opportunité d'aligner la stratégie sur la perception évoluée de l'utilisateur. Le sous-skill doit explorer la nature exacte de cette 'réparation' et évaluer la cohérence de ce nouveau focus avec les acquis et les prérequis du plan actuel, tout en intégrant le signal de pause comme fondation.",
+              "coach_warning:Ne pas invalider la phase actuelle de désamorçage, car elle pourrait être un prérequis essentiel à une réparation efficace.",
+              "coach_warning:Ne pas proposer immédiatement des actions de 'réparation' sans avoir clarifié ce que l'utilisateur entend par là et sans évaluer la capacité actuelle de la relation à les mettre en œuvre.",
+              "coach_warning:Éviter de considérer ce changement comme un simple ajout d'actions; il s'agit d'une potentielle refonte de la logique séquentielle du plan.",
+              "coach_warning:Ne pas sous-estimer la complexité émotionnelle et relationnelle des phrases de réparation proposées ('je regrette ma part sur...', 'la prochaine fois j'aimerais qu'on essaie...') et leur besoin de prérequis en termes de sécurité et de confiance.",
+              "coach_preserve:L'objectif global d'améliorer la gestion des conflits et la qualité de la relation.",
+              "coach_preserve:Le principe de progression et de construction de compétences étape par étape.",
+              "coach_preserve:L'autonomie de l'utilisateur dans la définition de son parcours.",
+              "coach_preserve:Le signal de pause comme base et fondation des interactions post-conflit.",
+              "coach_avoid:Proposer des solutions techniques sans avoir approfondi la compréhension humaine du besoin.",
+              "coach_avoid:Ignorer la dimension émotionnelle ou relationnelle sous-jacente à la demande de changement.",
+              "coach_avoid:Faire des suppositions sur la capacité de l'utilisateur ou de son partenaire à gérer des étapes de réparation complexes.",
+              "coach_avoid:Ajouter directement les phrases de réparation sans s'assurer des prérequis relationnels et de la capacité d'exécution.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Guidelines action: Toute nouvelle action de réparation doit être définie en collaboration avec l'utilisateur pour s'assurer de sa pertinence et de sa faisabilité. Elle doit idéalement s'appuyer sur les bases posées par le désamorçage, sans changer la nature profonde de l'objectif relationnel sans demande explicite.",
+              "coach_guideline:Guidelines niveau: Si la direction du plan change, les niveaux devront être réévalués pour refléter la nouvelle progression. Assurer que la charge et le rythme restent adaptés et que le cœur du nouveau niveau est clairement défini.",
+              "coach_guideline:Guidelines whole_plan: La nouvelle trajectoire doit maintenir une cohérence globale. Si la réparation devient le focus, il est crucial de s'assurer que les prérequis (comme une capacité minimale à désamorcer) sont soit acquis, soit intégrés dans les premières phases du nouveau plan. L'objectif et le questionnaire initial du plan doivent être réexaminés pour s'aligner avec cette nouvelle orientation.",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "context_changed",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Rôle du signal de pause",
+              "Actions de soutien existantes sauf réordonnancement nécessaire"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La progression devient plus cohérente avec le rythme de sécurité du user.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+          "decision_basis": {
+            "evidence": [
+              "C'est principalement l'ajout de cette étape qui m'intéresse. Je ne veux pas juste modifier deux actions : je veux que la trajectoire globale devienne désamorçage puis réparation, avant les conversations plus sensibles.",
+              "la trajectoire globale devienne désamorçage puis réparation, avant les conversations plus sensibles",
+              "Je ne veux pas juste modifier deux actions : je veux que la trajectoire globale devienne désamorçage puis réparation, avant les conversations plus sensibles.",
+              "Le plan met trop l'accent sur désamorcer les tensions, alors que je pense pouvoir faire mieux avec une vraie étape de réparation après conflit.",
+              "la trajectoire globale devienne désamorçage puis réparation, avant les conversations plus sensibles"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "replace",
+          "proposed_change": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le prochain plan garde le même objectif mais avance plus progressivement.",
+            "expected_mechanism": "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "La prochaine étape semble arriver trop vite avant des conversations plus sensibles.",
+              "expected_effect": "Le plan avance sans surcharger le user ni casser l'objectif global.",
+              "why_this_change": "Une étape intermédiaire rend la trajectoire plus progressive et plus sécurisante."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde ce cap, mais ajoute d'abord une étape de consolidation pour sécuriser le retour au calme et la réparation simple.",
+                "before": "Le plan avance du désamorçage vers des conversations plus sensibles.",
+                "inserted_step": "Une étape intermédiaire de sécurité émotionnelle et de réparation simple après conflit.",
+                "coaching_reason": "La réparation après conflit devient plus réaliste si le couple a d'abord un protocole de pause et de reprise calme.",
+                "reordered_steps": [
+                  "Consolider le signal de pause",
+                  "S'entraîner au retour au calme et à la réparation simple",
+                  "Reprendre ensuite les conversations plus sensibles"
+                ],
+                "preserved_direction": "L'objectif global du plan et l'apprentissage du désamorçage restent la base."
+              }
+            },
+            "user_message_brief": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+            "user_message_detailed": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour ralentir la transition et consolider le signal de pause avec une réparation simple avant les conversations plus sensibles.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas."
+      },
+      "status": "draft_review",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "611e324c-e403-4eb6-bb19-f158739c3275",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des solutions techniques sans avoir approfondi la compréhension humaine du besoin.",
+          "Ignorer la dimension émotionnelle ou relationnelle sous-jacente à la demande de changement.",
+          "Faire des suppositions sur la capacité de l'utilisateur ou de son partenaire à gérer des étapes de réparation complexes.",
+          "Ajouter directement les phrases de réparation sans s'assurer des prérequis relationnels et de la capacité d'exécution."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global d'améliorer la gestion des conflits et la qualité de la relation.",
+          "Le principe de progression et de construction de compétences étape par étape.",
+          "L'autonomie de l'utilisateur dans la définition de son parcours.",
+          "Le signal de pause comme base et fondation des interactions post-conflit."
+        ],
+        "warnings": [
+          "Ne pas invalider la phase actuelle de désamorçage, car elle pourrait être un prérequis essentiel à une réparation efficace.",
+          "Ne pas proposer immédiatement des actions de 'réparation' sans avoir clarifié ce que l'utilisateur entend par là et sans évaluer la capacité actuelle de la relation à les mettre en œuvre.",
+          "Éviter de considérer ce changement comme un simple ajout d'actions; il s'agit d'une potentielle refonte de la logique séquentielle du plan.",
+          "Ne pas sous-estimer la complexité émotionnelle et relationnelle des phrases de réparation proposées ('je regrette ma part sur...', 'la prochaine fois j'aimerais qu'on essaie...') et leur besoin de prérequis en termes de sécurité et de confiance."
+        ],
+        "confidence": "medium",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Guidelines action: Toute nouvelle action de réparation doit être définie en collaboration avec l'utilisateur pour s'assurer de sa pertinence et de sa faisabilité. Elle doit idéalement s'appuyer sur les bases posées par le désamorçage, sans changer la nature profonde de l'objectif relationnel sans demande explicite.",
+          "Guidelines niveau: Si la direction du plan change, les niveaux devront être réévalués pour refléter la nouvelle progression. Assurer que la charge et le rythme restent adaptés et que le cœur du nouveau niveau est clairement défini.",
+          "Guidelines whole_plan: La nouvelle trajectoire doit maintenir une cohérence globale. Si la réparation devient le focus, il est crucial de s'assurer que les prérequis (comme une capacité minimale à désamorcer) sont soit acquis, soit intégrés dans les premières phases du nouveau plan. L'objectif et le questionnaire initial du plan doivent être réexaminés pour s'aligner avec cette nouvelle orientation."
+        ],
+        "observation": "L'utilisateur exprime une réorientation fondamentale de la trajectoire du plan. Il perçoit que l'accent actuel sur le désamorçage des tensions ne correspond plus à son besoin, et souhaite se concentrer sur une phase de 'réparation après conflit'. Cela indique un changement de perspective sur le point d'intervention le plus pertinent et potentiellement une évolution de sa propre capacité ou de celle de la relation. Il souhaite intégrer des phrases de réparation spécifiques après le signal de pause, qu'il veut conserver comme base.",
+        "recommendation": "Reconnaître la demande de changement de direction du plan comme une opportunité d'aligner la stratégie sur la perception évoluée de l'utilisateur. Le sous-skill doit explorer la nature exacte de cette 'réparation' et évaluer la cohérence de ce nouveau focus avec les acquis et les prérequis du plan actuel, tout en intégrant le signal de pause comme fondation.",
+        "options_to_discuss": [
+          "Explorer si l'utilisateur estime que la phase de désamorçage a déjà suffisamment porté ses fruits ou si elle est perçue comme un obstacle à la progression.",
+          "Discuter de la nature spécifique des actions de 'réparation après conflit' que l'utilisateur envisage (ex: excuses, compréhension mutuelle, reconstruction de la confiance, actions concrètes).",
+          "Envisager l'intégration d'une phase de transition qui consoliderait les acquis du désamorçage tout en introduisant progressivement des éléments de réparation.",
+          "Évaluer la perception de l'utilisateur quant à la réceptivité de son partenaire à une phase de réparation active."
+        ],
+        "questions_to_clarify": [
+          "Qu'est-ce qui vous fait penser que le plan actuel met 'trop' l'accent sur le désamorçage ? Y a-t-il eu des expériences récentes qui ont renforcé cette conviction ?",
+          "Pour vous, qu'est-ce qu'une 'vraie étape de réparation après conflit' impliquerait concrètement ? Quels types d'actions ou de discussions imaginez-vous au-delà des exemples donnés ?",
+          "Sentez-vous que les outils de désamorçage mis en place (comme le signal de pause) sont déjà suffisamment intégrés et efficaces pour passer à l'étape suivante ?",
+          "Comment imaginez-vous que votre partenaire réagirait à ces phrases de réparation ? Est-ce quelque chose que vous avez déjà abordé ou envisagé ensemble ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des solutions techniques sans avoir approfondi la compréhension humaine du besoin.",
+        "Ignorer la dimension émotionnelle ou relationnelle sous-jacente à la demande de changement.",
+        "Faire des suppositions sur la capacité de l'utilisateur ou de son partenaire à gérer des étapes de réparation complexes.",
+        "Ajouter directement les phrases de réparation sans s'assurer des prérequis relationnels et de la capacité d'exécution."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global d'améliorer la gestion des conflits et la qualité de la relation.",
+        "Le principe de progression et de construction de compétences étape par étape.",
+        "L'autonomie de l'utilisateur dans la définition de son parcours.",
+        "Le signal de pause comme base et fondation des interactions post-conflit."
+      ],
+      "warnings": [
+        "Ne pas invalider la phase actuelle de désamorçage, car elle pourrait être un prérequis essentiel à une réparation efficace.",
+        "Ne pas proposer immédiatement des actions de 'réparation' sans avoir clarifié ce que l'utilisateur entend par là et sans évaluer la capacité actuelle de la relation à les mettre en œuvre.",
+        "Éviter de considérer ce changement comme un simple ajout d'actions; il s'agit d'une potentielle refonte de la logique séquentielle du plan.",
+        "Ne pas sous-estimer la complexité émotionnelle et relationnelle des phrases de réparation proposées ('je regrette ma part sur...', 'la prochaine fois j'aimerais qu'on essaie...') et leur besoin de prérequis en termes de sécurité et de confiance."
+      ],
+      "confidence": "medium",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Guidelines action: Toute nouvelle action de réparation doit être définie en collaboration avec l'utilisateur pour s'assurer de sa pertinence et de sa faisabilité. Elle doit idéalement s'appuyer sur les bases posées par le désamorçage, sans changer la nature profonde de l'objectif relationnel sans demande explicite.",
+        "Guidelines niveau: Si la direction du plan change, les niveaux devront être réévalués pour refléter la nouvelle progression. Assurer que la charge et le rythme restent adaptés et que le cœur du nouveau niveau est clairement défini.",
+        "Guidelines whole_plan: La nouvelle trajectoire doit maintenir une cohérence globale. Si la réparation devient le focus, il est crucial de s'assurer que les prérequis (comme une capacité minimale à désamorcer) sont soit acquis, soit intégrés dans les premières phases du nouveau plan. L'objectif et le questionnaire initial du plan doivent être réexaminés pour s'aligner avec cette nouvelle orientation."
+      ],
+      "observation": "L'utilisateur exprime une réorientation fondamentale de la trajectoire du plan. Il perçoit que l'accent actuel sur le désamorçage des tensions ne correspond plus à son besoin, et souhaite se concentrer sur une phase de 'réparation après conflit'. Cela indique un changement de perspective sur le point d'intervention le plus pertinent et potentiellement une évolution de sa propre capacité ou de celle de la relation. Il souhaite intégrer des phrases de réparation spécifiques après le signal de pause, qu'il veut conserver comme base.",
+      "recommendation": "Reconnaître la demande de changement de direction du plan comme une opportunité d'aligner la stratégie sur la perception évoluée de l'utilisateur. Le sous-skill doit explorer la nature exacte de cette 'réparation' et évaluer la cohérence de ce nouveau focus avec les acquis et les prérequis du plan actuel, tout en intégrant le signal de pause comme fondation.",
+      "options_to_discuss": [
+        "Explorer si l'utilisateur estime que la phase de désamorçage a déjà suffisamment porté ses fruits ou si elle est perçue comme un obstacle à la progression.",
+        "Discuter de la nature spécifique des actions de 'réparation après conflit' que l'utilisateur envisage (ex: excuses, compréhension mutuelle, reconstruction de la confiance, actions concrètes).",
+        "Envisager l'intégration d'une phase de transition qui consoliderait les acquis du désamorçage tout en introduisant progressivement des éléments de réparation.",
+        "Évaluer la perception de l'utilisateur quant à la réceptivité de son partenaire à une phase de réparation active."
+      ],
+      "questions_to_clarify": [
+        "Qu'est-ce qui vous fait penser que le plan actuel met 'trop' l'accent sur le désamorçage ? Y a-t-il eu des expériences récentes qui ont renforcé cette conviction ?",
+        "Pour vous, qu'est-ce qu'une 'vraie étape de réparation après conflit' impliquerait concrètement ? Quels types d'actions ou de discussions imaginez-vous au-delà des exemples donnés ?",
+        "Sentez-vous que les outils de désamorçage mis en place (comme le signal de pause) sont déjà suffisamment intégrés et efficaces pour passer à l'étape suivante ?",
+        "Comment imaginez-vous que votre partenaire réagirait à ces phrases de réparation ? Est-ce quelque chose que vous avez déjà abordé ou envisagé ensemble ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r60-whole-plan-direction-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r60-whole-plan-direction-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui c'est la bonne direction. Avant d'appliquer, confirme-moi juste que tu n'es pas en train de changer seulement deux actions, mais bien de régénérer la trajectoire du plan avec cette étape de réparation.",
+    "assistant": "Je n'ai encore rien appliqué. Le brouillon actuel prévoit:\n\n1. Convenir d'un signal de pause: avant, À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.; maintenant, À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.. Pourquoi: Le user demande de ralentir la transition globale sans changer l'objectif du plan.\n2. Faire le point sur le signal de pause: avant, Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.; maintenant, À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.. Pourquoi: Le user demande de ralentir la transition globale sans changer l'objectif du plan.\n\nCe qui reste inchangé:\n- Partager un point positif: L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression.\n\nSi ça te va, dis-moi clairement de l'appliquer. Sinon, dis-moi ce que tu veux modifier dans ce brouillon. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "draft_review_details",
+      "reason_code": "normal_reply_default",
+      "operation_id": "611e324c-e403-4eb6-bb19-f158739c3275",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Toute formulation qui pourrait laisser penser que le changement est mineur ou ne concerne que des actions isolées.",
+          "Ajouter des éléments techniques ou des détails d'implémentation à ce stade."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'intention de l'utilisateur de réorienter la trajectoire du plan vers une séquence 'désamorçage puis réparation'.",
+          "Le maintien du signal de pause comme base fondamentale du plan.",
+          "L'objectif global d'améliorer la gestion des conflits et la qualité de la relation."
+        ],
+        "warnings": [
+          "Ne pas minimiser l'ampleur du changement en le présentant comme un ajustement local ou superficiel.",
+          "Éviter de proposer de nouveaux détails ou actions avant d'avoir pleinement confirmé la compréhension du scope global avec l'utilisateur."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Guidelines whole_plan: La confirmation doit réitérer que la nouvelle trajectoire implique une réorganisation des phases et des prérequis, et non un simple ajout. L'objectif et le questionnaire initial du plan doivent être réexaminés pour s'aligner avec cette nouvelle orientation.",
+          "Guidelines action: Toute nouvelle action de réparation sera définie en collaboration avec l'utilisateur et s'appuiera sur les bases posées par le désamorçage, sans changer la nature profonde de l'objectif relationnel sans demande explicite.",
+          "Guidelines niveau: Si la direction du plan change, les niveaux devront être réévalués pour refléter la nouvelle progression. Assurer que la charge et le rythme restent adaptés et que le cœur du nouveau niveau est clairement défini."
+        ],
+        "observation": "L'utilisateur cherche une confirmation explicite que la proposition d'ajustement est bien une régénération de la trajectoire globale du plan, et non une simple modification de quelques actions. Il réaffirme son besoin d'une évolution structurelle du plan vers une séquence désamorçage puis réparation.",
+        "recommendation": "Confirmer sans ambiguïté que l'ajustement proposé est une refonte de la trajectoire globale du plan, intégrant la nouvelle étape de réparation comme un élément structurant, et non un simple patch d'actions. Cela valide la compréhension du sous-skill et renforce la confiance de l'utilisateur dans la prise en compte de son besoin profond.",
+        "options_to_discuss": [],
+        "questions_to_clarify": []
+      },
+      "draft_review_decision": {
+        "decision": "explain",
+        "evidence": [
+          "confirme-moi juste que tu n'es pas en train de changer seulement deux actions, mais bien de régénérer la trajectoire du plan avec cette étape de réparation."
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Toute formulation qui pourrait laisser penser que le changement est mineur ou ne concerne que des actions isolées.",
+        "Ajouter des éléments techniques ou des détails d'implémentation à ce stade."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'intention de l'utilisateur de réorienter la trajectoire du plan vers une séquence 'désamorçage puis réparation'.",
+        "Le maintien du signal de pause comme base fondamentale du plan.",
+        "L'objectif global d'améliorer la gestion des conflits et la qualité de la relation."
+      ],
+      "warnings": [
+        "Ne pas minimiser l'ampleur du changement en le présentant comme un ajustement local ou superficiel.",
+        "Éviter de proposer de nouveaux détails ou actions avant d'avoir pleinement confirmé la compréhension du scope global avec l'utilisateur."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Guidelines whole_plan: La confirmation doit réitérer que la nouvelle trajectoire implique une réorganisation des phases et des prérequis, et non un simple ajout. L'objectif et le questionnaire initial du plan doivent être réexaminés pour s'aligner avec cette nouvelle orientation.",
+        "Guidelines action: Toute nouvelle action de réparation sera définie en collaboration avec l'utilisateur et s'appuiera sur les bases posées par le désamorçage, sans changer la nature profonde de l'objectif relationnel sans demande explicite.",
+        "Guidelines niveau: Si la direction du plan change, les niveaux devront être réévalués pour refléter la nouvelle progression. Assurer que la charge et le rythme restent adaptés et que le cœur du nouveau niveau est clairement défini."
+      ],
+      "observation": "L'utilisateur cherche une confirmation explicite que la proposition d'ajustement est bien une régénération de la trajectoire globale du plan, et non une simple modification de quelques actions. Il réaffirme son besoin d'une évolution structurelle du plan vers une séquence désamorçage puis réparation.",
+      "recommendation": "Confirmer sans ambiguïté que l'ajustement proposé est une refonte de la trajectoire globale du plan, intégrant la nouvelle étape de réparation comme un élément structurant, et non un simple patch d'actions. Cela valide la compréhension du sous-skill et renforce la confiance de l'utilisateur dans la prise en compte de son besoin profond.",
+      "options_to_discuss": [],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r60-whole-plan-direction-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r60-whole-plan-direction-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Je valide l'idée, mais je ne veux pas que ce soit présenté comme deux actions réécrites. Applique l'ajustement global : trajectoire désamorçage puis réparation simple, objectif global inchangé.",
+    "assistant": "C'est fait ! J'ai ajusté la trajectoire globale de ton plan pour qu'il suive désormais une séquence claire : d'abord le désamorçage des tensions, puis une étape de réparation simple, avant d'aborder des conversations plus sensibles. L'objectif général de ton plan reste le même, et le signal de pause est toujours la base de cette approche.\n\nConcrètement, cela signifie que des actions comme \"Convenir d'un signal de pause\" sont maintenant ancrées comme les fondations de la phase de désamorçage, et \"Faire le point sur le signal de pause\" est positionnée comme un jalon important pour t'assurer que cette première phase est solide avant de passer à la réparation. Cette nouvelle structure te permettra de progresser de manière plus sereine et progressive. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "executed",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "a782879a-c2f8-4807-867f-f4150c41cb56",
+      "plan_patch_id": "9f03bbac-9f88-4bdd-98eb-3e7f67ac84d1",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Toute formulation qui suggérerait que seules deux actions sont 'réécrites' ou 'replacées'.",
+          "Des propositions techniques qui ne répondent pas à la préoccupation humaine de l'utilisateur concernant la perception du changement.",
+          "Des questions qui remettraient en cause la clarté de la demande de l'utilisateur sur la nature globale de l'ajustement."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "La trajectoire souhaitée : désamorçage puis réparation simple.",
+          "L'objectif global du plan, qui doit rester inchangé.",
+          "Le signal de pause comme base et fondation.",
+          "L'idée que le changement est un ajustement global de la trajectoire, et non une modification isolée d'actions."
+        ],
+        "warnings": [
+          "Ne pas présenter le changement comme une modification superficielle ou textuelle de deux actions existantes.",
+          "Éviter de minimiser la portée du changement en se concentrant sur des détails d'implémentation plutôt que sur la vision globale.",
+          "Ne pas demander de clarification supplémentaire sur la nature 'globale' du changement, l'utilisateur l'ayant déjà explicitement formulée."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Guidelines whole_plan: Confirmer que la régénération du plan intègre une nouvelle séquence de phases, avec la réparation simple comme étape distincte après le désamorçage, et non comme un simple ajout d'actions. L'objectif global et le questionnaire initial du plan doivent être réexaminés pour s'aligner avec cette nouvelle orientation structurelle.",
+          "Guidelines action: Les actions existantes liées au désamorçage (comme le signal de pause) doivent être intégrées comme prérequis ou première phase de cette nouvelle trajectoire, sans être simplement 'réécrites' mais réordonnées dans une nouvelle logique de progression.",
+          "Guidelines niveau: Les niveaux du plan devront être réévalués et renommés pour refléter la nouvelle progression 'désamorçage puis réparation'. S'assurer que la charge et le rythme restent adaptés à cette nouvelle séquence."
+        ],
+        "observation": "L'utilisateur valide la direction de l'ajustement (désamorçage puis réparation simple, objectif global inchangé), mais insiste sur la nature globale et structurelle du changement. Il ne veut pas que cela soit perçu ou présenté comme une simple réécriture de deux actions, mais bien comme une refonte de la trajectoire du plan. Il cherche une confirmation que le système a bien compris l'ampleur de la modification demandée.",
+        "recommendation": "Le sous-skill doit confirmer explicitement que l'ajustement est bien une modification de la trajectoire globale du plan, et non une simple réécriture d'actions. Il doit rassurer l'utilisateur sur le fait que la régénération du plan tiendra compte de cette nouvelle séquence de phases (désamorçage puis réparation simple) tout en maintenant l'objectif global.",
+        "options_to_discuss": [],
+        "questions_to_clarify": []
+      },
+      "bridge_plan_item_id": null,
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Toute formulation qui suggérerait que seules deux actions sont 'réécrites' ou 'replacées'.",
+        "Des propositions techniques qui ne répondent pas à la préoccupation humaine de l'utilisateur concernant la perception du changement.",
+        "Des questions qui remettraient en cause la clarté de la demande de l'utilisateur sur la nature globale de l'ajustement."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "La trajectoire souhaitée : désamorçage puis réparation simple.",
+        "L'objectif global du plan, qui doit rester inchangé.",
+        "Le signal de pause comme base et fondation.",
+        "L'idée que le changement est un ajustement global de la trajectoire, et non une modification isolée d'actions."
+      ],
+      "warnings": [
+        "Ne pas présenter le changement comme une modification superficielle ou textuelle de deux actions existantes.",
+        "Éviter de minimiser la portée du changement en se concentrant sur des détails d'implémentation plutôt que sur la vision globale.",
+        "Ne pas demander de clarification supplémentaire sur la nature 'globale' du changement, l'utilisateur l'ayant déjà explicitement formulée."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Guidelines whole_plan: Confirmer que la régénération du plan intègre une nouvelle séquence de phases, avec la réparation simple comme étape distincte après le désamorçage, et non comme un simple ajout d'actions. L'objectif global et le questionnaire initial du plan doivent être réexaminés pour s'aligner avec cette nouvelle orientation structurelle.",
+        "Guidelines action: Les actions existantes liées au désamorçage (comme le signal de pause) doivent être intégrées comme prérequis ou première phase de cette nouvelle trajectoire, sans être simplement 'réécrites' mais réordonnées dans une nouvelle logique de progression.",
+        "Guidelines niveau: Les niveaux du plan devront être réévalués et renommés pour refléter la nouvelle progression 'désamorçage puis réparation'. S'assurer que la charge et le rythme restent adaptés à cette nouvelle séquence."
+      ],
+      "observation": "L'utilisateur valide la direction de l'ajustement (désamorçage puis réparation simple, objectif global inchangé), mais insiste sur la nature globale et structurelle du changement. Il ne veut pas que cela soit perçu ou présenté comme une simple réécriture de deux actions, mais bien comme une refonte de la trajectoire du plan. Il cherche une confirmation que le système a bien compris l'ampleur de la modification demandée.",
+      "recommendation": "Le sous-skill doit confirmer explicitement que l'ajustement est bien une modification de la trajectoire globale du plan, et non une simple réécriture d'actions. Il doit rassurer l'utilisateur sur le fait que la régénération du plan tiendra compte de cette nouvelle séquence de phases (désamorçage puis réparation simple) tout en maintenant l'objectif global.",
+      "options_to_discuss": [],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r60-whole-plan-direction-t05",
+    "trace_error": null
+  }
+]

@@ -1,0 +1,172 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r7-t01",
+    "status": 200,
+    "ok": true,
+    "user": "fais moi un truc d'attaque pour le machin du soir avec le carnet, j'ai pas d'idée de technique et j'ai pas envie d'un pavé",
+    "assistant": "Ça marche, on booste ton sas de déchargement. Pour éviter le pavé, je te propose 3 options : un Mantra (une phrase courte), une Ancre (ton carnet comme signal) ou un Mot de bascule (un mot à m'envoyer si tu bloques). Qu'est-ce qui te tente ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "structured_ai_missing_technique",
+        "status": "missing",
+        "question": "Ça marche, on booste ton sas de déchargement. Pour éviter le pavé, je te propose 3 options : un Mantra (une phrase courte), une Ancre (ton carnet comme signal) ou un Mot de bascule (un mot à m'envoyer si tu bloques). Qu'est-ce qui te tente ?",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "intake_state": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "machin du soir avec le carnet",
+                "sas de déchargement"
+              ],
+              "confidence": "high",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "blocker": {
+              "type": "friction",
+              "evidence": [
+                "pas envie d'un pavé"
+              ],
+              "confidence": 0.8
+            },
+            "skill_id": "prepare_attack_card",
+            "technique": {
+              "value": null,
+              "status": "ambiguous",
+              "options": [
+                {
+                  "title": "Mantra de force",
+                  "reason": "Répond à la contrainte 'pas de pavé' et renforce l'intention.",
+                  "example": "Je pose tout, mon cerveau respire.",
+                  "description": "Une phrase courte à répéter pour te mettre dans l'action.",
+                  "recommended": true,
+                  "technique_key": "mantra_force"
+                },
+                {
+                  "title": "Ancre visuelle",
+                  "reason": "Le carnet est déjà mentionné par l'utilisateur.",
+                  "example": "Le carnet ouvert sur la table basse.",
+                  "description": "Utiliser ton carnet comme signal concret.",
+                  "recommended": true,
+                  "technique_key": "ancre_visuelle"
+                },
+                {
+                  "title": "Mot de bascule",
+                  "reason": "Ultra court, idéal pour éviter la friction.",
+                  "example": "M'envoyer 'SAS' quand tu hésites.",
+                  "description": "Un mot simple à m'envoyer si tu sens que tu vas esquiver.",
+                  "recommended": false,
+                  "technique_key": "pre_engagement"
+                }
+              ],
+              "evidence": [
+                "pas d'idée de technique",
+                "pas envie d'un pavé"
+              ],
+              "confidence": "medium",
+              "fit_warning": null,
+              "explicitly_requested": false
+            },
+            "confidence": "high",
+            "constraints": [
+              "format court",
+              "pas de pavé"
+            ],
+            "current_step": "technique_selection",
+            "missing_slots": [
+              "technique"
+            ],
+            "activation_keyword": {
+              "value": null,
+              "status": "missing",
+              "options": [],
+              "evidence": [],
+              "confidence": "low",
+              "rejected_value": null
+            },
+            "generated_user_message": "Ça marche, on booste ton sas de déchargement. Pour éviter le pavé, je te propose 3 options : un Mantra (une phrase courte), une Ancre (ton carnet comme signal) ou un Mot de bascule (un mot à m'envoyer si tu bloques). Qu'est-ce qui te tente ?"
+          },
+          "technique_options": [
+            {
+              "title": "Mantra de force",
+              "reason": "Répond à la contrainte 'pas de pavé' et renforce l'intention.",
+              "example": "Je pose tout, mon cerveau respire.",
+              "description": "Une phrase courte à répéter pour te mettre dans l'action.",
+              "recommended": true,
+              "technique_key": "mantra_force"
+            },
+            {
+              "title": "Ancre visuelle",
+              "reason": "Le carnet est déjà mentionné par l'utilisateur.",
+              "example": "Le carnet ouvert sur la table basse.",
+              "description": "Utiliser ton carnet comme signal concret.",
+              "recommended": true,
+              "technique_key": "ancre_visuelle"
+            },
+            {
+              "title": "Mot de bascule",
+              "reason": "Ultra court, idéal pour éviter la friction.",
+              "example": "M'envoyer 'SAS' quand tu hésites.",
+              "description": "Un mot simple à m'envoyer si tu sens que tu vas esquiver.",
+              "recommended": false,
+              "technique_key": "pre_engagement"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Mantra de force",
+            "reason": "Répond à la contrainte 'pas de pavé' et renforce l'intention.",
+            "example": "Je pose tout, mon cerveau respire.",
+            "description": "Une phrase courte à répéter pour te mettre dans l'action.",
+            "recommended": true,
+            "technique_key": "mantra_force"
+          },
+          {
+            "title": "Ancre visuelle",
+            "reason": "Le carnet est déjà mentionné par l'utilisateur.",
+            "example": "Le carnet ouvert sur la table basse.",
+            "description": "Utiliser ton carnet comme signal concret.",
+            "recommended": true,
+            "technique_key": "ancre_visuelle"
+          },
+          {
+            "title": "Mot de bascule",
+            "reason": "Ultra court, idéal pour éviter la friction.",
+            "example": "M'envoyer 'SAS' quand tu hésites.",
+            "description": "Un mot simple à m'envoyer si tu sens que tu vas esquiver.",
+            "recommended": false,
+            "technique_key": "pre_engagement"
+          }
+        ],
+        "activation_keyword_options": []
+      },
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

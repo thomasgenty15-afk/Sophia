@@ -77,7 +77,7 @@ import { Page, PageHeader, type PageWidth } from "./ui/Page";
 //   les DESTINATIONS entrent dans la rangée (`xl:flex`), la barre du bas s'en
 //   va (`xl:hidden`), et la réserve de padding s'en va avec elle (`xl:pb-0`).
 //   Les désunir donne soit une barre du bas sans réserve — le dernier bouton de
-//   chaque écran passe dessous —, soit une réserve de 4 rem sous une barre
+//   chaque écran passe dessous —, soit une réserve de 5 rem sous une barre
 //   absente.
 //   Le bouton Menu, lui, n'a PLUS de seuil: il est là partout, parce qu'il est
 //   le seul chemin vers le compte, les mentions légales et la déconnexion.
@@ -856,22 +856,22 @@ function ShellBottomBar({
               onglets se repartagent la largeur — pas de trou au milieu.
               ═════════════════════════════════════════════════════════════ */}
           {offerable && (
-            <div className="flex min-w-0 flex-1 items-center justify-center px-0.5 py-3">
-              <button
-                type="button"
-                aria-haspopup="menu"
-                aria-expanded={addOpen}
-                aria-controls="shell-quick-add"
-                aria-label={t("chat.compose.add")}
-                data-testid="shell-quick-add"
-                onClick={() => {
-                  setAddOpen((open) => !open);
-                  setSlotPicker(false);
-                }}
-                // 44 px de côté: le plancher d'une cible tactile, et c'est la
-                // cible la plus visée de la barre.
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-fig-700 text-paper transition-colors hover:bg-fig-800"
-              >
+            <button
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={addOpen}
+              aria-controls="shell-quick-add"
+              aria-label={t("shell.quick_add.aria")}
+              data-testid="shell-quick-add"
+              onClick={() => {
+                setAddOpen((open) => !open);
+                setSlotPicker(false);
+              }}
+              // Toute la colonne est la cible: le cercle visuel peut être plus
+              // petit que 44 px, le pouce vise la colonne, pas le glyphe.
+              className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 py-1.5"
+            >
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-fig-700 text-paper transition-colors hover:bg-fig-800">
                 {/* LE SIGNE TOURNE EN CROIX QUAND LE TIROIR EST OUVERT: c'est
                     la même touche qui ouvre et qui ferme, et elle le dit.
                     `aria-hidden`: le nom du bouton est son `aria-label`, un
@@ -886,8 +886,19 @@ function ShellBottomBar({
                 >
                   +
                 </span>
-              </button>
-            </div>
+              </span>
+              {/* LA LÉGENDE, ET ELLE EST LÀ POUR ÊTRE LUE AVANT LE TAP.
+                  Un « + » au milieu de quatre mots ne dit pas ce qu'il ouvre.
+                  Forme courte, deux lignes au plus, plus petite que les
+                  onglets: c'est une légende, pas un cinquième libellé. */}
+              <span
+                aria-hidden="true"
+                data-testid="shell-quick-add-caption"
+                className="max-w-full text-center text-[0.625rem] font-medium leading-tight text-ink-soft"
+              >
+                {t("shell.quick_add.caption")}
+              </span>
+            </button>
           )}
           {right.map((item) => (
             <BottomTab key={item.to} item={item} unread={unread} />
@@ -1102,7 +1113,7 @@ export function KeelAppShell({
         // la fin de la page si on ne lui réserve pas sa place. Sans ce padding,
         // le dernier bouton de chaque écran élève — « Log it » du dernier
         // engagement, « Add » du formulaire santé — passe dessous.
-        variant === "student" ? "pb-[calc(4rem+env(safe-area-inset-bottom))] xl:pb-0" : ""
+        variant === "student" ? "pb-[calc(5rem+env(safe-area-inset-bottom))] xl:pb-0" : ""
       }`}
     >
       <KeelShellBar variant={variant} />

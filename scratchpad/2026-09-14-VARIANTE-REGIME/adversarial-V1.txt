@@ -1,0 +1,19 @@
+═══ V1 — dietDiverges perd sa prémisse ① (la bouche qui porte elle-même la ligne) ═══
+muté
+[0m[31m        ^[0m
+    at [0m[1m[3massertEquals[0m ([0m[36mhttps://jsr.io/@std/assert/1.0.16/equals.ts[0m:[0m[33m65[0m:[0m[33m9[0m)
+    at [0m[2m[38;5;245mfile:///Users/ahmedamara/Dev/Sophia%202/[0m[0m[36msupabase/functions/_shared/keel/household_regime_variant_test.ts[0m:[0m[33m177[0m:[0m[33m3[0m
+
+[0m[1m[37m[41m FAILURES [0m
+
+⛔ UNE TABLE ENTIÈREMENT VÉGANE NE PAIE AUCUN SECOND PLAT [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_cells_test.ts:353:6[0m
+⛔ CONTRE-CAS QUI MORD — une table ENTIÈREMENT végane ne paie aucun second plat [0m[38;5;245m=> ./supabase/functions/_shared/keel/household_regime_variant_test.ts:173:6[0m
+
+[0m[31mFAILED[0m | 56 passed | 2 failed [0m[38;5;245m(309ms)[0m
+
+[0m[1m[31merror[0m: Test failed
+--- restauré ---
+
+[0m[32mok[0m | 58 passed | 0 failed [0m[38;5;245m(286ms)[0m
+
+25dfb83b035026b47e283d2cef83ca53286177be8811e77a51a28dede99a72a1  supabase/functions/_shared/keel/household_diet.ts

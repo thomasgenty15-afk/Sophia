@@ -1,0 +1,50 @@
+{
+  "run_id": "watcher-oneshot-guard-20260519185445",
+  "user_id": "720a24af-7296-49f2-8908-20d43d6792f8",
+  "email": "qa-watcher-oneshot-guard-20260519185445@example.com",
+  "turn_statuses": [
+    200,
+    200
+  ],
+  "watcher_status": 200,
+  "watcher_response": {
+    "success": true,
+    "request_id": "qa-watcher-one-shot-watcher-oneshot-guard-20260519185445-watcher",
+    "processed": 9,
+    "skipped": 0
+  },
+  "before_count": 1,
+  "after_count": 1,
+  "before_watcher_count": 0,
+  "after_watcher_count": 0,
+  "one_shot_count_after": 1,
+  "checkins_after": [
+    {
+      "id": "af566b93-6ae3-4fdf-a103-8b517978fcd5",
+      "status": "pending",
+      "origin": "rendez_vous",
+      "scheduled_for": "2026-05-20T07:10:00+00:00",
+      "event_context": "one_shot_reminder:preparer_le_dossier_client",
+      "message_payload": {
+        "source": "companion_one_shot_reminder_tool",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de préparer le dossier client.",
+        "parse_source": "strict_absolute",
+        "request_text": "Rappelle-moi demain à 9h10 de préparer le dossier client.",
+        "parse_details": {
+          "now_utc": "2026-05-19T16:54:50.590Z",
+          "timezone": "Europe/Paris",
+          "algorithm": "strict_absolute_hard_path_pure_calendar_v2",
+          "day_offset": 1,
+          "local_time_hhmm": "09:10",
+          "scheduled_for_utc": "2026-05-20T07:10:00.000Z"
+        },
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: préparer le dossier client.",
+        "reminder_instruction": "préparer le dossier client"
+      },
+      "created_at": "2026-05-19T16:54:50.59634+00:00"
+    }
+  ],
+  "run_dir": "/Users/ahmedamara/Dev/Sophia 2/tmp/watcher-one-shot-qa/watcher-oneshot-guard-20260519185445"
+}

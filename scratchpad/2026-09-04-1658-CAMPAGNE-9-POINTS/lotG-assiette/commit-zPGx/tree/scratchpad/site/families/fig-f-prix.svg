@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fig-f-t fig-f-d">
+  <title id="fig-f-t">Huit places, un seul prix</title>
+  <desc id="fig-f-d">Huit emplacements de bouche alignés. Le premier est le vôtre et n’est
+    jamais compté. Le prix inscrit dessous ne change pas quand les emplacements se
+    remplissent.</desc>
+
+  <!-- FIGURE F — /families, section « le prix ». Fait ancré : AUDIT C1
+       (12,99 € le foyer, maître jamais compté, plafond 8 bouches —
+       20260810260000_household_billable_profiles.sql:235-250 et :101-105).
+       Les huit emplacements sont un COMPTE tiré de l'audit, pas une
+       proportion inventée (F9). Aucune date, aucun bouton d'achat, aucune
+       durée d'essai : le tunnel ne peut pas encaisser aujourd'hui
+       (AUDIT §8 n°1), donc la page dit le prix et rien du geste.
+       Pièce chaude : l'équerre + l'emplacement qui n'est pas compté. -->
+
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8"
+        fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)"
+        font-size="11" font-weight="600" letter-spacing="1.2"
+        fill="var(--ill-ink-soft, #6A5A64)">LE PRIX SUIT LE FOYER</text>
+
+  <g font-family="var(--font-text, ui-sans-serif, system-ui, sans-serif)">
+    <rect x="22" y="64" width="44" height="44" rx="12" fill="var(--ill-wash, #EFE0E9)"
+          stroke="var(--ill-fig, #632C4C)" stroke-width="2"/>
+
+    <g fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="78" y="64" width="44" height="44" rx="12"/>
+      <rect x="134" y="64" width="44" height="44" rx="12"/>
+      <rect x="190" y="64" width="44" height="44" rx="12"/>
+    </g>
+    <g fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+      <rect x="246" y="64" width="44" height="44" rx="12"/>
+      <rect x="302" y="64" width="44" height="44" rx="12"/>
+      <rect x="358" y="64" width="44" height="44" rx="12"/>
+      <rect x="414" y="64" width="44" height="44" rx="12"/>
+    </g>
+
+    <g font-size="9" font-weight="600" letter-spacing="1" fill="var(--ill-ink-soft, #6A5A64)">
+      <text x="22" y="128">VOUS</text>
+      <text x="22" y="152">JAMAIS COMPTÉ</text>
+      <text x="320" y="152">PLAFOND : 8 BOUCHES</text>
+    </g>
+
+    <path d="M 22 170 L 458 170" fill="none" stroke="var(--ill-ink-soft, #6A5A64)"
+          stroke-width="1"/>
+
+    <text x="22" y="198" font-size="13"
+          fill="var(--ill-ink, #23191F)">12,99 €</text>
+    <text x="22" y="222" font-size="11"
+          fill="var(--ill-ink-soft, #6A5A64)">à une bouche comme à huit</text>
+  </g>
+</svg>

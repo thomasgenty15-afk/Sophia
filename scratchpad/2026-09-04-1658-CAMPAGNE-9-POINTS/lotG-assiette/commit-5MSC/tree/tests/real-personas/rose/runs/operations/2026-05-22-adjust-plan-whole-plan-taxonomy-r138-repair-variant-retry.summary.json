@@ -1,0 +1,1164 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je viens de relire la prochaine partie du plan. Ce qui me manque, ce n est pas analyser la dispute, c est une mini marche pour revenir en lien apres un accrochage avant de reparler du fond.",
+    "assistant": "Je peux préparer cet ajustement du plan global sans changer l'objectif de fond.\n\nje clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nL'objectif global et la progression par étapes restent stables; on rend surtout la frontière entre deux étapes plus nette.\n\nSi tu valides, je régénère une nouvelle version du plan avec ce feedback. Rien n'est encore appliqué. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "implicit_whole_plan_repair_bridge_adjustment",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "before_fund_discussion:revenir_en_lien_apres_un_accrochage",
+              "preserve_intent:ne_pas_analyser_la_dispute_a_chaud",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:split_or_merge_phase",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "coach_observation:La demande ne porte pas sur une analyse de conflit, mais sur un manque de transition humaine après un accrochage : il faut une courte étape de reconnexion avant de revenir au fond. Le vrai enjeu est de créer un pont émotionnel et relationnel, pas d’ajouter une explication de plus.",
+              "coach_recommendation:Traiter cela comme une restructuration de trajectoire au niveau du plan entier, en insérant ou en isolant une phase de reconnexion brève et praticable entre la désescalade et la reprise du fond. Garder l’intention de sécurité, mais distinguer clairement la reprise de lien de l’analyse du conflit.",
+              "coach_warning:Éviter de reformuler la demande comme une simple clarification du contenu de la dispute.",
+              "coach_warning:Éviter d’ajouter une étape trop cognitive ou trop longue : la demande est une marche courte, pas un débrief.",
+              "coach_warning:Éviter de fusionner cette reconnexion avec l’analyse des déclencheurs si cela brouille l’ordre des étapes.",
+              "coach_warning:Éviter de proposer un changement de nature du plan vers la résolution de fond alors que le besoin exprimé est préalable au fond.",
+              "coach_preserve:L’intention de sécurité et de désescalade déjà installée.",
+              "coach_preserve:Le fait de ne pas analyser à chaud.",
+              "coach_preserve:La logique d’un plan progressif, avec reprise du fond seulement après un minimum de régulation.",
+              "coach_preserve:Les actions déjà présentes qui servent d’ancrage, notamment le signal de pause.",
+              "coach_avoid:Ne pas proposer une discussion de fond immédiate comme solution.",
+              "coach_avoid:Ne pas transformer la micro-marche en exercice de communication élaboré.",
+              "coach_avoid:Ne pas supprimer les étapes existantes sans nécessité.",
+              "coach_avoid:Ne pas demander de nouvelles précisions si le sous-skill peut déjà formuler un brouillon de structure.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Rôle de l’action : faire le pont entre l’accrochage et la reprise du dialogue, pas résoudre le contenu du désaccord.",
+              "coach_guideline:Intention préservée : maintenir la sécurité relationnelle avant le fond.",
+              "coach_guideline:Pont mini : privilégier une formulation très courte, concrète, et immédiatement praticable.",
+              "coach_guideline:Pas de changement de nature sans demande explicite : rester dans la reconnexion, pas dans l’analyse ni la réparation complète.",
+              "coach_guideline:Niveau : préserver la charge faible et le rythme court ; la micro-phase doit être un sas, pas une nouvelle exigence.",
+              "coach_guideline:Boundary de fin : la phase doit se terminer dès que le lien est suffisamment rétabli pour reparler sans escalade, sans prolonger artificiellement la transition.",
+              "coach_guideline:Whole plan : préserver la trajectoire globale de sécurité vers dialogue, respecter l’ordre des phases, et garder les prérequis avant le fond.",
+              "coach_guideline:Whole plan : si une nouvelle étape est ajoutée, elle doit s’intégrer entre la gestion de tension et la discussion substantielle, sans casser la cohérence des objectifs.",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:split_or_merge_phase",
+              "whole_plan_readiness:draft_ready",
+              "coach_trajectory_hypothesis:La trajectoire actuelle va de la désescalade vers l’observation puis la discussion du fond ; la trajectoire possible ajoute un sas de reconnexion entre l’accrochage et le retour au fond pour éviter d’entrer trop tôt dans l’analyse.",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:split_or_merge_phase",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Transition après accrochage vers reprise du fond",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+          "decision_basis": {
+            "evidence": [
+              "Je viens de relire la prochaine partie du plan. Ce qui me manque, ce n est pas analyser la dispute, c est une mini marche pour revenir en lien apres un accrochage avant de reparler du fond.",
+              "Le user demande une étape de transition entre l'accrochage et le retour au fond, ce qui relève d'une structure globale du plan.",
+              "deterministic whole-plan structural/family signal",
+              "deterministic whole-plan fit/complexity signal",
+              "ce n est pas analyser la dispute, c est une mini marche pour revenir en lien apres un accrochage avant de reparler du fond",
+              "mini marche pour revenir en lien apres un accrochage avant de reparler du fond"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+            "expected_mechanism": "Le user demande une structure plus lisible entre deux phases futures proches."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user demande une structure plus lisible entre deux phases futures proches."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+                "before": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+                "inserted_step": "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                "coaching_reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                "reordered_steps": [
+                  "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                  "Garder une marche claire avant d'aborder les sujets sensibles"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+            "user_message_detailed": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux préparer cet ajustement du plan global sans changer l'objectif de fond.\n\nje clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nL'objectif global et la progression par étapes restent stables; on rend surtout la frontière entre deux étapes plus nette.\n\nSi tu valides, je régénère une nouvelle version du plan avec ce feedback. Rien n'est encore appliqué."
+      },
+      "status": "draft_review",
+      "reason_code": "implicit_whole_plan_repair_bridge_adjustment",
+      "operation_id": "f7b8f4cc-3254-41ab-bd74-edf1477f81b7",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer une discussion de fond immédiate comme solution.",
+          "Ne pas transformer la micro-marche en exercice de communication élaboré.",
+          "Ne pas supprimer les étapes existantes sans nécessité.",
+          "Ne pas demander de nouvelles précisions si le sous-skill peut déjà formuler un brouillon de structure."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’intention de sécurité et de désescalade déjà installée.",
+          "Le fait de ne pas analyser à chaud.",
+          "La logique d’un plan progressif, avec reprise du fond seulement après un minimum de régulation.",
+          "Les actions déjà présentes qui servent d’ancrage, notamment le signal de pause."
+        ],
+        "warnings": [
+          "Éviter de reformuler la demande comme une simple clarification du contenu de la dispute.",
+          "Éviter d’ajouter une étape trop cognitive ou trop longue : la demande est une marche courte, pas un débrief.",
+          "Éviter de fusionner cette reconnexion avec l’analyse des déclencheurs si cela brouille l’ordre des étapes.",
+          "Éviter de proposer un changement de nature du plan vers la résolution de fond alors que le besoin exprimé est préalable au fond."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Rôle de l’action : faire le pont entre l’accrochage et la reprise du dialogue, pas résoudre le contenu du désaccord.",
+          "Intention préservée : maintenir la sécurité relationnelle avant le fond.",
+          "Pont mini : privilégier une formulation très courte, concrète, et immédiatement praticable.",
+          "Pas de changement de nature sans demande explicite : rester dans la reconnexion, pas dans l’analyse ni la réparation complète.",
+          "Niveau : préserver la charge faible et le rythme court ; la micro-phase doit être un sas, pas une nouvelle exigence.",
+          "Boundary de fin : la phase doit se terminer dès que le lien est suffisamment rétabli pour reparler sans escalade, sans prolonger artificiellement la transition.",
+          "Whole plan : préserver la trajectoire globale de sécurité vers dialogue, respecter l’ordre des phases, et garder les prérequis avant le fond.",
+          "Whole plan : si une nouvelle étape est ajoutée, elle doit s’intégrer entre la gestion de tension et la discussion substantielle, sans casser la cohérence des objectifs."
+        ],
+        "observation": "La demande ne porte pas sur une analyse de conflit, mais sur un manque de transition humaine après un accrochage : il faut une courte étape de reconnexion avant de revenir au fond. Le vrai enjeu est de créer un pont émotionnel et relationnel, pas d’ajouter une explication de plus.",
+        "change_family": "split_merge_restructure",
+        "recommendation": "Traiter cela comme une restructuration de trajectoire au niveau du plan entier, en insérant ou en isolant une phase de reconnexion brève et praticable entre la désescalade et la reprise du fond. Garder l’intention de sécurité, mais distinguer clairement la reprise de lien de l’analyse du conflit.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Insérer une micro-phase de reconnexion juste après l’accrochage et avant toute discussion de fond.",
+          "Scinder la séquence actuelle en trois temps : pause, reconnexion, puis fond.",
+          "Transformer une mission existante en pont de reprise de lien si elle peut jouer ce rôle sans alourdir le plan.",
+          "Définir un critère simple de sortie de la micro-phase : par exemple, le ton est redescendu et chacun peut reparler sans défense immédiate."
+        ],
+        "candidate_operation": "split_or_merge_phase",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle va de la désescalade vers l’observation puis la discussion du fond ; la trajectoire possible ajoute un sas de reconnexion entre l’accrochage et le retour au fond pour éviter d’entrer trop tôt dans l’analyse.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer une discussion de fond immédiate comme solution.",
+        "Ne pas transformer la micro-marche en exercice de communication élaboré.",
+        "Ne pas supprimer les étapes existantes sans nécessité.",
+        "Ne pas demander de nouvelles précisions si le sous-skill peut déjà formuler un brouillon de structure."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’intention de sécurité et de désescalade déjà installée.",
+        "Le fait de ne pas analyser à chaud.",
+        "La logique d’un plan progressif, avec reprise du fond seulement après un minimum de régulation.",
+        "Les actions déjà présentes qui servent d’ancrage, notamment le signal de pause."
+      ],
+      "warnings": [
+        "Éviter de reformuler la demande comme une simple clarification du contenu de la dispute.",
+        "Éviter d’ajouter une étape trop cognitive ou trop longue : la demande est une marche courte, pas un débrief.",
+        "Éviter de fusionner cette reconnexion avec l’analyse des déclencheurs si cela brouille l’ordre des étapes.",
+        "Éviter de proposer un changement de nature du plan vers la résolution de fond alors que le besoin exprimé est préalable au fond."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Rôle de l’action : faire le pont entre l’accrochage et la reprise du dialogue, pas résoudre le contenu du désaccord.",
+        "Intention préservée : maintenir la sécurité relationnelle avant le fond.",
+        "Pont mini : privilégier une formulation très courte, concrète, et immédiatement praticable.",
+        "Pas de changement de nature sans demande explicite : rester dans la reconnexion, pas dans l’analyse ni la réparation complète.",
+        "Niveau : préserver la charge faible et le rythme court ; la micro-phase doit être un sas, pas une nouvelle exigence.",
+        "Boundary de fin : la phase doit se terminer dès que le lien est suffisamment rétabli pour reparler sans escalade, sans prolonger artificiellement la transition.",
+        "Whole plan : préserver la trajectoire globale de sécurité vers dialogue, respecter l’ordre des phases, et garder les prérequis avant le fond.",
+        "Whole plan : si une nouvelle étape est ajoutée, elle doit s’intégrer entre la gestion de tension et la discussion substantielle, sans casser la cohérence des objectifs."
+      ],
+      "observation": "La demande ne porte pas sur une analyse de conflit, mais sur un manque de transition humaine après un accrochage : il faut une courte étape de reconnexion avant de revenir au fond. Le vrai enjeu est de créer un pont émotionnel et relationnel, pas d’ajouter une explication de plus.",
+      "change_family": "split_merge_restructure",
+      "recommendation": "Traiter cela comme une restructuration de trajectoire au niveau du plan entier, en insérant ou en isolant une phase de reconnexion brève et praticable entre la désescalade et la reprise du fond. Garder l’intention de sécurité, mais distinguer clairement la reprise de lien de l’analyse du conflit.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Insérer une micro-phase de reconnexion juste après l’accrochage et avant toute discussion de fond.",
+        "Scinder la séquence actuelle en trois temps : pause, reconnexion, puis fond.",
+        "Transformer une mission existante en pont de reprise de lien si elle peut jouer ce rôle sans alourdir le plan.",
+        "Définir un critère simple de sortie de la micro-phase : par exemple, le ton est redescendu et chacun peut reparler sans défense immédiate."
+      ],
+      "candidate_operation": "split_or_merge_phase",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle va de la désescalade vers l’observation puis la discussion du fond ; la trajectoire possible ajoute un sas de reconnexion entre l’accrochage et le retour au fond pour éviter d’entrer trop tôt dans l’analyse.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t02",
+    "status": 502,
+    "ok": null,
+    "user": "Non, ce n est pas une séparation entre petits sujets et sujets sensibles. Je parle vraiment d une marche de réparation après un accrochage : revenir en lien, puis seulement après reparler du fond.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t02",
+    "status": 502,
+    "ok": null,
+    "user": "Non, ce n est pas une séparation entre petits sujets et sujets sensibles. Je parle vraiment d une marche de réparation après un accrochage : revenir en lien, puis seulement après reparler du fond.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Non, ce n est pas une séparation entre petits sujets et sujets sensibles. Je parle vraiment d une marche de réparation après un accrochage : revenir en lien, puis seulement après reparler du fond.",
+    "assistant": "Je peux préparer cet ajustement du plan global sans changer l'objectif de fond.\n\nje reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.\n\nL'objectif global reste stable, et les actions de soutien ne changent pas sauf si la régénération montre qu'il faut les reformuler.\n\nSi tu valides, je régénère une nouvelle version du plan avec ce feedback. Rien n'est encore appliqué. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "whole_plan_change_family:future_phase_mismatch",
+              "whole_plan_candidate_operation:replace_phase",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "replace_phase_kind:light_repair_after_tension",
+              "coach_observation:La demande corrige clairement la lecture précédente : il ne s'agit pas d'opposer des sujets légers à des sujets sensibles, mais d'ajouter une marche de réparation immédiatement après un accrochage. Le besoin réel est un sas relationnel court pour revenir en lien avant toute reprise du fond.",
+              "coach_recommendation:Traiter cela comme une restructuration du plan global, en isolant une micro-phase de reconnexion après tension et avant la discussion substantielle. Garder l'intention de sécurité et de désescalade, mais faire de cette marche un vrai pont fonctionnel, distinct de l'analyse du conflit.",
+              "coach_warning:Éviter de reformuler la demande comme une simple graduation de contenu entre sujets faciles et sujets difficiles.",
+              "coach_warning:Éviter de transformer la marche de réparation en débrief, en analyse de dispute ou en exercice de communication élaboré.",
+              "coach_warning:Éviter d'ajouter une charge trop longue ou trop cognitive : la demande vise un pont bref, pas une nouvelle étape lourde.",
+              "coach_warning:Éviter de supprimer ou d'écraser les appuis existants si un ancrage utile peut être conservé pour la transition.",
+              "coach_preserve:L'intention de sécurité relationnelle avant le fond.",
+              "coach_preserve:Le refus d'analyser à chaud pendant l'accrochage.",
+              "coach_preserve:La logique progressive du plan.",
+              "coach_preserve:Les appuis déjà présents qui peuvent servir de base, notamment le signal de pause.",
+              "coach_avoid:Ne pas proposer directement une discussion de fond.",
+              "coach_avoid:Ne pas présenter cette marche comme une simple nuance de sujet ou de difficulté.",
+              "coach_avoid:Ne pas alourdir la micro-phase avec des consignes trop nombreuses.",
+              "coach_avoid:Ne pas demander une clarification supplémentaire si une structure de brouillon peut déjà être proposée.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Traiter le whole plan comme une décision de trajectoire : ordre des phases, prérequis, cohérence globale.",
+              "coach_guideline:Préserver explicitement l'intention du user : revenir en lien avant de reparler du fond.",
+              "coach_guideline:Raisonner en sas de régulation, pas en analyse du contenu du désaccord.",
+              "coach_guideline:Si une nouvelle phase est ajoutée, elle doit être brève, concrète et immédiatement praticable.",
+              "coach_guideline:Ne pas changer la nature du plan sans demande explicite ; rester dans la reconnexion et la réparation légère.",
+              "coach_guideline:Vérifier que la nouvelle marche s'insère entre gestion de tension et reprise du dialogue substantiel.",
+              "coach_guideline:Garder la charge émotionnelle et opérationnelle basse pour ne pas recréer de pression.",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:split_or_merge_phase",
+              "whole_plan_readiness:draft_ready",
+              "coach_trajectory_hypothesis:La trajectoire actuelle va de la désescalade vers la reprise du dialogue ; la trajectoire ajustée ajoute un sas de réparation après l'accrochage pour rétablir le lien avant toute discussion du fond.",
+              "whole_plan_change_family:future_phase_mismatch",
+              "whole_plan_candidate_operation:replace_phase",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+          "decision_basis": {
+            "evidence": [
+              "Non, ce n est pas une séparation entre petits sujets et sujets sensibles. Je parle vraiment d une marche de réparation après un accrochage : revenir en lien, puis seulement après reparler du fond.",
+              "Le user demande une étape de transition entre l'accrochage et le retour au fond, ce qui relève d'une structure globale du plan.",
+              "rebalance",
+              "deterministic whole-plan fit/complexity signal",
+              "ce n est pas analyser la dispute, c est une mini marche pour revenir en lien apres un accrochage avant de reparler du fond",
+              "mini marche pour revenir en lien apres un accrochage avant de reparler du fond"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "La phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+            "expected_mechanism": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Une phase future arrivait avec une logique qui ne paraît pas assez cohérente.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "La phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+                "before": "Une phase future arrivait avec une logique qui ne paraît pas assez cohérente.",
+                "inserted_step": "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                "coaching_reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                "reordered_steps": [
+                  "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "Remplacer la phase future par une progression plus cohérente"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+            "user_message_detailed": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLa phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux préparer cet ajustement du plan global sans changer l'objectif de fond.\n\nje reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.\n\nL'objectif global reste stable, et les actions de soutien ne changent pas sauf si la régénération montre qu'il faut les reformuler.\n\nSi tu valides, je régénère une nouvelle version du plan avec ce feedback. Rien n'est encore appliqué."
+      },
+      "status": "draft_review_updated",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "618cce95-af75-4f87-9ed6-24b48b2baeaf",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer directement une discussion de fond.",
+          "Ne pas présenter cette marche comme une simple nuance de sujet ou de difficulté.",
+          "Ne pas alourdir la micro-phase avec des consignes trop nombreuses.",
+          "Ne pas demander une clarification supplémentaire si une structure de brouillon peut déjà être proposée."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'intention de sécurité relationnelle avant le fond.",
+          "Le refus d'analyser à chaud pendant l'accrochage.",
+          "La logique progressive du plan.",
+          "Les appuis déjà présents qui peuvent servir de base, notamment le signal de pause."
+        ],
+        "warnings": [
+          "Éviter de reformuler la demande comme une simple graduation de contenu entre sujets faciles et sujets difficiles.",
+          "Éviter de transformer la marche de réparation en débrief, en analyse de dispute ou en exercice de communication élaboré.",
+          "Éviter d'ajouter une charge trop longue ou trop cognitive : la demande vise un pont bref, pas une nouvelle étape lourde.",
+          "Éviter de supprimer ou d'écraser les appuis existants si un ancrage utile peut être conservé pour la transition."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une décision de trajectoire : ordre des phases, prérequis, cohérence globale.",
+          "Préserver explicitement l'intention du user : revenir en lien avant de reparler du fond.",
+          "Raisonner en sas de régulation, pas en analyse du contenu du désaccord.",
+          "Si une nouvelle phase est ajoutée, elle doit être brève, concrète et immédiatement praticable.",
+          "Ne pas changer la nature du plan sans demande explicite ; rester dans la reconnexion et la réparation légère.",
+          "Vérifier que la nouvelle marche s'insère entre gestion de tension et reprise du dialogue substantiel.",
+          "Garder la charge émotionnelle et opérationnelle basse pour ne pas recréer de pression."
+        ],
+        "observation": "La demande corrige clairement la lecture précédente : il ne s'agit pas d'opposer des sujets légers à des sujets sensibles, mais d'ajouter une marche de réparation immédiatement après un accrochage. Le besoin réel est un sas relationnel court pour revenir en lien avant toute reprise du fond.",
+        "change_family": "split_merge_restructure",
+        "recommendation": "Traiter cela comme une restructuration du plan global, en isolant une micro-phase de reconnexion après tension et avant la discussion substantielle. Garder l'intention de sécurité et de désescalade, mais faire de cette marche un vrai pont fonctionnel, distinct de l'analyse du conflit.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Insérer une micro-phase explicite de réparation/reconnexion entre l'accrochage et la reprise du fond.",
+          "Scinder la séquence en trois temps : pause, reconnexion, puis fond.",
+          "Réutiliser une action déjà présente comme support de reprise de lien, si elle peut être relue sans alourdir le plan.",
+          "Définir un critère simple de sortie de cette micro-phase : le ton est redescendu et chacun peut reparler sans se défendre immédiatement."
+        ],
+        "candidate_operation": "split_or_merge_phase",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle va de la désescalade vers la reprise du dialogue ; la trajectoire ajustée ajoute un sas de réparation après l'accrochage pour rétablir le lien avant toute discussion du fond.",
+        "must_not_execute_reason": null
+      },
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "Correction explicite de la trajectoire proposée",
+          "The requested change is a concrete reformulation of the plan structure, not an approval for execution"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "previous_operation_id": "f7b8f4cc-3254-41ab-bd74-edf1477f81b7",
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer directement une discussion de fond.",
+        "Ne pas présenter cette marche comme une simple nuance de sujet ou de difficulté.",
+        "Ne pas alourdir la micro-phase avec des consignes trop nombreuses.",
+        "Ne pas demander une clarification supplémentaire si une structure de brouillon peut déjà être proposée."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'intention de sécurité relationnelle avant le fond.",
+        "Le refus d'analyser à chaud pendant l'accrochage.",
+        "La logique progressive du plan.",
+        "Les appuis déjà présents qui peuvent servir de base, notamment le signal de pause."
+      ],
+      "warnings": [
+        "Éviter de reformuler la demande comme une simple graduation de contenu entre sujets faciles et sujets difficiles.",
+        "Éviter de transformer la marche de réparation en débrief, en analyse de dispute ou en exercice de communication élaboré.",
+        "Éviter d'ajouter une charge trop longue ou trop cognitive : la demande vise un pont bref, pas une nouvelle étape lourde.",
+        "Éviter de supprimer ou d'écraser les appuis existants si un ancrage utile peut être conservé pour la transition."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une décision de trajectoire : ordre des phases, prérequis, cohérence globale.",
+        "Préserver explicitement l'intention du user : revenir en lien avant de reparler du fond.",
+        "Raisonner en sas de régulation, pas en analyse du contenu du désaccord.",
+        "Si une nouvelle phase est ajoutée, elle doit être brève, concrète et immédiatement praticable.",
+        "Ne pas changer la nature du plan sans demande explicite ; rester dans la reconnexion et la réparation légère.",
+        "Vérifier que la nouvelle marche s'insère entre gestion de tension et reprise du dialogue substantiel.",
+        "Garder la charge émotionnelle et opérationnelle basse pour ne pas recréer de pression."
+      ],
+      "observation": "La demande corrige clairement la lecture précédente : il ne s'agit pas d'opposer des sujets légers à des sujets sensibles, mais d'ajouter une marche de réparation immédiatement après un accrochage. Le besoin réel est un sas relationnel court pour revenir en lien avant toute reprise du fond.",
+      "change_family": "split_merge_restructure",
+      "recommendation": "Traiter cela comme une restructuration du plan global, en isolant une micro-phase de reconnexion après tension et avant la discussion substantielle. Garder l'intention de sécurité et de désescalade, mais faire de cette marche un vrai pont fonctionnel, distinct de l'analyse du conflit.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Insérer une micro-phase explicite de réparation/reconnexion entre l'accrochage et la reprise du fond.",
+        "Scinder la séquence en trois temps : pause, reconnexion, puis fond.",
+        "Réutiliser une action déjà présente comme support de reprise de lien, si elle peut être relue sans alourdir le plan.",
+        "Définir un critère simple de sortie de cette micro-phase : le ton est redescendu et chacun peut reparler sans se défendre immédiatement."
+      ],
+      "candidate_operation": "split_or_merge_phase",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle va de la désescalade vers la reprise du dialogue ; la trajectoire ajustée ajoute un sas de réparation après l'accrochage pour rétablir le lien avant toute discussion du fond.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Avant de valider, confirme-moi que tu ne rajoutes pas plusieurs nouvelles actions. Je veux juste cette marche dans la trajectoire, pas un gros bloc en plus.",
+    "assistant": "Oui: le brouillon ne rajoute pas plusieurs nouvelles actions. Il ajuste la trajectoire autour de ça: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.\n\nJe n'applique rien tant que tu ne me le confirmes pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "draft_review_details",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "618cce95-af75-4f87-9ed6-24b48b2baeaf",
+      "selected_handler": "adjust_plan_item",
+      "draft_review_decision": {
+        "decision": "explain",
+        "evidence": [
+          "pre_validation_detail_request_deterministic_answer"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      }
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Et avec cette marche prévue, on garde quand même l idée de progression ? Je veux éviter que le plan devienne juste au feeling.",
+    "assistant": "Non: l'idée n'est pas de rendre le plan flou ou de fonctionner au feeling.\n\nLe brouillon garde une progression: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite. sert de marche claire avant de passer à la suite du plan.\n\nSi tu valides, ce feedback servira à régénérer le plan dans ce sens. Rien n'est encore appliqué. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "draft_review_details",
+      "reason_code": "normal_reply_default",
+      "operation_id": "618cce95-af75-4f87-9ed6-24b48b2baeaf",
+      "selected_handler": "adjust_plan_item",
+      "draft_review_decision": {
+        "decision": "explain",
+        "evidence": [
+          "pre_validation_detail_request_deterministic_answer"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      }
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Ajoute au brouillon que cette marche doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion. Ne valide pas encore.",
+    "assistant": "C'est corrigé dans le brouillon: Nuance intégrée: cette marche doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion. Je n'applique rien tant que tu ne me le confirmes pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "whole_plan_change_family:future_phase_mismatch",
+              "whole_plan_candidate_operation:replace_phase",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "replace_phase_kind:light_repair_after_tension",
+              "coach_observation:La demande corrige clairement la lecture précédente : il ne s'agit pas d'opposer des sujets légers à des sujets sensibles, mais d'ajouter une marche de réparation immédiatement après un accrochage. Le besoin réel est un sas relationnel court pour revenir en lien avant toute reprise du fond.",
+              "coach_recommendation:Traiter cela comme une restructuration du plan global, en isolant une micro-phase de reconnexion après tension et avant la discussion substantielle. Garder l'intention de sécurité et de désescalade, mais faire de cette marche un vrai pont fonctionnel, distinct de l'analyse du conflit.",
+              "coach_warning:Éviter de reformuler la demande comme une simple graduation de contenu entre sujets faciles et sujets difficiles.",
+              "coach_warning:Éviter de transformer la marche de réparation en débrief, en analyse de dispute ou en exercice de communication élaboré.",
+              "coach_warning:Éviter d'ajouter une charge trop longue ou trop cognitive : la demande vise un pont bref, pas une nouvelle étape lourde.",
+              "coach_warning:Éviter de supprimer ou d'écraser les appuis existants si un ancrage utile peut être conservé pour la transition.",
+              "coach_preserve:L'intention de sécurité relationnelle avant le fond.",
+              "coach_preserve:Le refus d'analyser à chaud pendant l'accrochage.",
+              "coach_preserve:La logique progressive du plan.",
+              "coach_preserve:Les appuis déjà présents qui peuvent servir de base, notamment le signal de pause.",
+              "coach_avoid:Ne pas proposer directement une discussion de fond.",
+              "coach_avoid:Ne pas présenter cette marche comme une simple nuance de sujet ou de difficulté.",
+              "coach_avoid:Ne pas alourdir la micro-phase avec des consignes trop nombreuses.",
+              "coach_avoid:Ne pas demander une clarification supplémentaire si une structure de brouillon peut déjà être proposée.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Traiter le whole plan comme une décision de trajectoire : ordre des phases, prérequis, cohérence globale.",
+              "coach_guideline:Préserver explicitement l'intention du user : revenir en lien avant de reparler du fond.",
+              "coach_guideline:Raisonner en sas de régulation, pas en analyse du contenu du désaccord.",
+              "coach_guideline:Si une nouvelle phase est ajoutée, elle doit être brève, concrète et immédiatement praticable.",
+              "coach_guideline:Ne pas changer la nature du plan sans demande explicite ; rester dans la reconnexion et la réparation légère.",
+              "coach_guideline:Vérifier que la nouvelle marche s'insère entre gestion de tension et reprise du dialogue substantiel.",
+              "coach_guideline:Garder la charge émotionnelle et opérationnelle basse pour ne pas recréer de pression.",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:split_or_merge_phase",
+              "whole_plan_readiness:draft_ready",
+              "coach_trajectory_hypothesis:La trajectoire actuelle va de la désescalade vers la reprise du dialogue ; la trajectoire ajustée ajoute un sas de réparation après l'accrochage pour rétablir le lien avant toute discussion du fond.",
+              "whole_plan_change_family:future_phase_mismatch",
+              "whole_plan_candidate_operation:replace_phase",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+          "decision_basis": {
+            "evidence": [
+              "Non, ce n est pas une séparation entre petits sujets et sujets sensibles. Je parle vraiment d une marche de réparation après un accrochage : revenir en lien, puis seulement après reparler du fond.",
+              "Le user demande une étape de transition entre l'accrochage et le retour au fond, ce qui relève d'une structure globale du plan.",
+              "rebalance",
+              "deterministic whole-plan fit/complexity signal",
+              "ce n est pas analyser la dispute, c est une mini marche pour revenir en lien apres un accrochage avant de reparler du fond",
+              "mini marche pour revenir en lien apres un accrochage avant de reparler du fond"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.\n\nNuance intégrée: cette marche doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "La phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+            "expected_mechanism": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Une phase future arrivait avec une logique qui ne paraît pas assez cohérente.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.\n\nNuance intégrée: cette marche doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion.",
+              "why_this_change": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "La phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.\n\nNuance intégrée: cette marche doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion.",
+                "before": "Une phase future arrivait avec une logique qui ne paraît pas assez cohérente.",
+                "inserted_step": "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                "coaching_reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.\n\nNuance intégrée: cette marche doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion.",
+                "reordered_steps": [
+                  "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "Remplacer la phase future par une progression plus cohérente"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+            "user_message_detailed": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLa phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.\n\nNuance intégrée: cette marche doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux préparer cet ajustement du plan global sans changer l'objectif de fond.\n\nje reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.\n\nL'objectif global reste stable, et les actions de soutien ne changent pas sauf si la régénération montre qu'il faut les reformuler.\n\nSi tu valides, je régénère une nouvelle version du plan avec ce feedback. Rien n'est encore appliqué.\n\nNuance intégrée: cette marche doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion."
+      },
+      "status": "draft_review_updated",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "618cce95-af75-4f87-9ed6-24b48b2baeaf",
+      "selected_handler": "adjust_plan_item",
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "deterministic_simple_revision"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      }
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t05",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t06",
+    "status": 502,
+    "ok": null,
+    "user": "Ok, valide et applique cet ajustement du plan global.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t06",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t06",
+    "status": 502,
+    "ok": null,
+    "user": "Ok, valide et applique cet ajustement du plan global.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t06",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t06",
+    "status": 502,
+    "ok": null,
+    "user": "Ok, valide et applique cet ajustement du plan global.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-22-adjust-plan-whole-plan-taxonomy-r138-repair-variant-retry-t06",
+    "trace_error": null
+  }
+]

@@ -1,0 +1,52 @@
+{
+  "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "scope": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r3",
+  "before": {
+    "chat_messages": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    },
+    "user_chat_states": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    }
+  },
+  "deleted": {
+    "chat_messages": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    },
+    "user_chat_states": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    }
+  },
+  "after": {
+    "chat_messages": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    },
+    "user_chat_states": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    },
+    "user_defense_cards": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    }
+  }
+}

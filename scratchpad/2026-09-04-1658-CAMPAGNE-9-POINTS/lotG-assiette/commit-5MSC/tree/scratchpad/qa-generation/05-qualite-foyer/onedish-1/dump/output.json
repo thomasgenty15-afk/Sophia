@@ -1,0 +1,649 @@
+{
+  "request_id": "2cb017f5-8b3e-545d-9b4f-d02080c38c15",
+  "resolved_by": "--request-id",
+  "user_id": "5a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T04:21:31.489Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "be864d96-178c-4cde-a421-5feacb6712bd",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T04:20:34.680809+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 17479,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17479,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 17479
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "6ced1ed9-827f-4247-b725-594a7f1f7214",
+    "created_at": "2026-08-19T04:21:30.85531+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Chickpea Summer Salad\",\n      \"title\": \"Chickpea, cucumber and cherry tomato salad with lemon\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"240 g\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber, diced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cherry tomatoes, halved\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"In a large bowl, toss the drained chickpeas with the diced cucumber and halved tomatoes. Whisk the lemon juice and olive oil together, pour over the salad, and season with salt and pepper before serving.\",\n      \"why\": \"A fresh, no-cook assembly that provides a substantial vegan lunch before your evening cooking session.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Velvety Sweet Potato Dahl\",\n      \"title\": \"Red lentil and sweet potato dahl with spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Take the freshly prepared portions of dahl and serve warm in bowls.\",\n      \"why\": \"A comforting, warm plate that meets the vegan and gluten-free needs of the whole house on a single hob.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_roxane_wed\"\n        },\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_zoe_wed\"\n        },\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_lubna_wed\"\n        },\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_ivar_wed\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Golden Quinoa & Veg Medley\",\n      \"title\": \"Zesty quinoa with chickpeas, peppers and courgettes\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the quinoa and vegetable portion until steaming. Squeeze over a fresh lemon wedge just before eating.\",\n      \"why\": \"This protein-rich quinoa base is designed to reheat perfectly for a satisfying work lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_roxane_thu\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_zoe_thu\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_lubna_thu\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Velvety Sweet Potato Dahl\",\n      \"title\": \"Red lentil and sweet potato dahl with spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the dahl portions in a pan or microwave until hot throughout.\",\n      \"why\": \"The flavours of the dahl deepen overnight, providing a quick and comforting second dinner.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_roxane_thu\"\n        },\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_zoe_thu\"\n        },\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_lubna_thu\"\n        },\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_ivar_thu\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_dahl\",\n      \"title\": \"Velvety Sweet Potato & Lentil Dahl\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"red lentils\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sweet potatoes, peeled and cubed\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"coconut milk\",\n          \"quantity\": \"400 ml\",\n          \"amount\": 400,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"gluten-free vegetable stock\",\n          \"quantity\": \"1.2 L\",\n          \"amount\": 1.2,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"turmeric, cumin, and garlic powder\",\n          \"quantity\": \"1 tbsp each\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"In a large pot, combine lentils, sweet potatoes, spices, and stock. Bring to a boil, then simmer for 20-25 minutes until lentils are soft and potatoes are tender. Stir in the coconut milk and spinach, cooking for 2 more minutes until the spinach wilts. Season well.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_dahl_roxane_wed\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_zoe_wed\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_lubna_wed\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_ivar_wed\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_roxane_thu\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_zoe_thu\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_lubna_thu\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_ivar_thu\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 320\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_quinoa\",\n      \"title\": \"Zesty Quinoa & Summer Veg Medley\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"quinoa\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"red peppers, sliced\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes, sliced into half-moons\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rinse quinoa and boil in salted water for 12-15 minutes until tender; drain. While quinoa cooks, sauté peppers and courgettes in olive oil over high heat until slightly charred. Stir in the chickpeas and cooked quinoa, season with salt and pepper.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_quinoa_roxane_thu\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 560\n        },\n        {\n          \"id\": \"box_quinoa_zoe_thu\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 560\n        },\n        {\n          \"id\": \"box_quinoa_lubna_thu\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 560\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_dahl\",\n        \"prep_quinoa\"\n      ],\n      \"total_minutes\": 45,\n      \"run_through\": \"Start the lentils and quinoa in separate pots. While they simmer, chop the sweet potatoes, peppers, and courgettes. Add sweet potatoes to the lentils. Sauté the peppers and courgettes in a pan, then mix with the cooked quinoa and chickpeas. Finish the dahl with coconut milk and spinach, then weigh everything into the named boxes.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"red lentils\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"quinoa\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"tinned chickpeas\",\n      \"quantity\": \"3 x 400g cans\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sweet potatoes\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh spinach\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cherry tomatoes\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"coconut milk\",\n      \"quantity\": \"400 ml\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"gluten-free vegetable stock cubes\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"portion_note\": \"Serve the vegetables first on the plate, followed by the protein and then the starch.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"note\": \"Serve the spinach and sweet potato chunks first, followed by the lentil base.\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"Serve the peppers and courgettes first, then the quinoa and chickpeas.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\",\n      \"portion_note\": \"Serve all components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"note\": \"Serve as a complete, mixed bowl.\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"Serve the quinoa and vegetables mixed together.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"86129e3c-2f50-480f-a359-077165b6232b\",\n      \"portion_note\": \"Serve all components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"note\": \"Serve as a complete, mixed bowl.\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"Serve the quinoa and vegetables mixed together.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"portion_note\": \"Serve the protein and starch first on the plate, then the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"note\": \"Serve the lentils and sweet potato first, then the spinach on top.\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Zesty Chickpea Summer Salad",
+          "title": "Chickpea, cucumber and cherry tomato salad with lemon",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "tinned chickpeas, drained",
+              "quantity": "240 g",
+              "amount": 240,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cucumber, diced",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "cherry tomatoes, halved",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon juice",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "In a large bowl, toss the drained chickpeas with the diced cucumber and halved tomatoes. Whisk the lemon juice and olive oil together, pour over the salad, and season with salt and pepper before serving.",
+          "why": "A fresh, no-cook assembly that provides a substantial vegan lunch before your evening cooking session.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Velvety Sweet Potato Dahl",
+          "title": "Red lentil and sweet potato dahl with spinach",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Take the freshly prepared portions of dahl and serve warm in bowls.",
+          "why": "A comforting, warm plate that meets the vegan and gluten-free needs of the whole house on a single hob.",
+          "uses": [
+            {
+              "preparation_id": "prep_dahl",
+              "servings": 1,
+              "box_id": "box_dahl_roxane_wed"
+            },
+            {
+              "preparation_id": "prep_dahl",
+              "servings": 1,
+              "box_id": "box_dahl_zoe_wed"
+            },
+            {
+              "preparation_id": "prep_dahl",
+              "servings": 1,
+              "box_id": "box_dahl_lubna_wed"
+            },
+            {
+              "preparation_id": "prep_dahl",
+              "servings": 1,
+              "box_id": "box_dahl_ivar_wed"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Golden Quinoa & Veg Medley",
+          "title": "Zesty quinoa with chickpeas, peppers and courgettes",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "lemon wedge",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the quinoa and vegetable portion until steaming. Squeeze over a fresh lemon wedge just before eating.",
+          "why": "This protein-rich quinoa base is designed to reheat perfectly for a satisfying work lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_quinoa",
+              "servings": 1,
+              "box_id": "box_quinoa_roxane_thu"
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "servings": 1,
+              "box_id": "box_quinoa_zoe_thu"
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "servings": 1,
+              "box_id": "box_quinoa_lubna_thu"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Velvety Sweet Potato Dahl",
+          "title": "Red lentil and sweet potato dahl with spinach",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [],
+          "method": "Reheat the dahl portions in a pan or microwave until hot throughout.",
+          "why": "The flavours of the dahl deepen overnight, providing a quick and comforting second dinner.",
+          "uses": [
+            {
+              "preparation_id": "prep_dahl",
+              "servings": 1,
+              "box_id": "box_dahl_roxane_thu"
+            },
+            {
+              "preparation_id": "prep_dahl",
+              "servings": 1,
+              "box_id": "box_dahl_zoe_thu"
+            },
+            {
+              "preparation_id": "prep_dahl",
+              "servings": 1,
+              "box_id": "box_dahl_lubna_thu"
+            },
+            {
+              "preparation_id": "prep_dahl",
+              "servings": 1,
+              "box_id": "box_dahl_ivar_thu"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_dahl",
+          "title": "Velvety Sweet Potato & Lentil Dahl",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "red lentils",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "sweet potatoes, peeled and cubed",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "coconut milk",
+              "quantity": "400 ml",
+              "amount": 400,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "fresh spinach",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "gluten-free vegetable stock",
+              "quantity": "1.2 L",
+              "amount": 1.2,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "turmeric, cumin, and garlic powder",
+              "quantity": "1 tbsp each",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "In a large pot, combine lentils, sweet potatoes, spices, and stock. Bring to a boil, then simmer for 20-25 minutes until lentils are soft and potatoes are tender. Stir in the coconut milk and spinach, cooking for 2 more minutes until the spinach wilts. Season well.",
+          "active_minutes": 10,
+          "total_minutes": 35,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_dahl_roxane_wed",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 320
+            },
+            {
+              "id": "box_dahl_zoe_wed",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 320
+            },
+            {
+              "id": "box_dahl_lubna_wed",
+              "member_ids": [
+                "86129e3c-2f50-480f-a359-077165b6232b"
+              ],
+              "grams": 320
+            },
+            {
+              "id": "box_dahl_ivar_wed",
+              "member_ids": [
+                "12362957-32c9-43a5-82ef-66b8d5732171"
+              ],
+              "grams": 320
+            },
+            {
+              "id": "box_dahl_roxane_thu",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 320
+            },
+            {
+              "id": "box_dahl_zoe_thu",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 320
+            },
+            {
+              "id": "box_dahl_lubna_thu",
+              "member_ids": [
+                "86129e3c-2f50-480f-a359-077165b6232b"
+              ],
+              "grams": 320
+            },
+            {
+              "id": "box_dahl_ivar_thu",
+              "member_ids": [
+                "12362957-32c9-43a5-82ef-66b8d5732171"
+              ],
+              "grams": 320
+            }
+          ]
+        },
+        {
+          "id": "prep_quinoa",
+          "title": "Zesty Quinoa & Summer Veg Medley",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "quinoa",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tinned chickpeas, drained",
+              "quantity": "480 g",
+              "amount": 480,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "red peppers, sliced",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes, sliced into half-moons",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Rinse quinoa and boil in salted water for 12-15 minutes until tender; drain. While quinoa cooks, sauté peppers and courgettes in olive oil over high heat until slightly charred. Stir in the chickpeas and cooked quinoa, season with salt and pepper.",
+          "active_minutes": 10,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_quinoa_roxane_thu",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 560
+            },
+            {
+              "id": "box_quinoa_zoe_thu",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 560
+            },
+            {
+              "id": "box_quinoa_lubna_thu",
+              "member_ids": [
+                "86129e3c-2f50-480f-a359-077165b6232b"
+              ],
+              "grams": 560
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_dahl",
+            "prep_quinoa"
+          ],
+          "total_minutes": 45,
+          "run_through": "Start the lentils and quinoa in separate pots. While they simmer, chop the sweet potatoes, peppers, and courgettes. Add sweet potatoes to the lentils. Sauté the peppers and courgettes in a pan, then mix with the cooked quinoa and chickpeas. Finish the dahl with coconut milk and spinach, then weigh everything into the named boxes."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "red lentils",
+          "quantity": "500 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "quinoa",
+          "quantity": "200 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "tinned chickpeas",
+          "quantity": "3 x 400g cans",
+          "aisle": "pantry"
+        },
+        {
+          "term": "sweet potatoes",
+          "quantity": "800 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh spinach",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "red peppers",
+          "quantity": "2 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "2 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "cucumber",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "cherry tomatoes",
+          "quantity": "250 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemons",
+          "quantity": "2 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "coconut milk",
+          "quantity": "400 ml",
+          "aisle": "pantry"
+        },
+        {
+          "term": "gluten-free vegetable stock cubes",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "portion_note": "Serve the vegetables first on the plate, followed by the protein and then the starch.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_dahl",
+              "note": "Serve the spinach and sweet potato chunks first, followed by the lentil base."
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "note": "Serve the peppers and courgettes first, then the quinoa and chickpeas."
+            }
+          ]
+        },
+        {
+          "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+          "portion_note": "Serve all components together on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_dahl",
+              "note": "Serve as a complete, mixed bowl."
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "note": "Serve the quinoa and vegetables mixed together."
+            }
+          ]
+        },
+        {
+          "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+          "portion_note": "Serve all components together on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_dahl",
+              "note": "Serve as a complete, mixed bowl."
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "note": "Serve the quinoa and vegetables mixed together."
+            }
+          ]
+        },
+        {
+          "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "portion_note": "Serve the protein and starch first on the plate, then the vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_dahl",
+              "note": "Serve the lentils and sweet potato first, then the spinach on top."
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Chickpea Summer Salad\",\n      \"title\": \"Chickpea, cucumber and cherry tomato salad with lemon\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"240 g\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber, diced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cherry tomatoes, halved\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"In a large bowl, toss the drained chickpeas with the diced cucumber and halved tomatoes. Whisk the lemon juice and olive oil together, pour over the salad, and season with salt and pepper before serving.\",\n      \"why\": \"A fresh, no-cook assembly that provides a substantial vegan lunch before your evening cooking session.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Velvety Sweet Potato Dahl\",\n      \"title\": \"Red lentil and sweet potato dahl with spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Take the freshly prepared portions of dahl and serve warm in bowls.\",\n      \"why\": \"A comforting, warm plate that meets the vegan and gluten-free needs of the whole house on a single hob.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_roxane_wed\"\n        },\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_zoe_wed\"\n        },\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_lubna_wed\"\n        },\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_ivar_wed\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Golden Quinoa & Veg Medley\",\n      \"title\": \"Zesty quinoa with chickpeas, peppers and courgettes\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the quinoa and vegetable portion until steaming. Squeeze over a fresh lemon wedge just before eating.\",\n      \"why\": \"This protein-rich quinoa base is designed to reheat perfectly for a satisfying work lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_roxane_thu\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_zoe_thu\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1,\n          \"box_id\": \"box_quinoa_lubna_thu\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Velvety Sweet Potato Dahl\",\n      \"title\": \"Red lentil and sweet potato dahl with spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the dahl portions in a pan or microwave until hot throughout.\",\n      \"why\": \"The flavours of the dahl deepen overnight, providing a quick and comforting second dinner.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_roxane_thu\"\n        },\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_zoe_thu\"\n        },\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_lubna_thu\"\n        },\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_ivar_thu\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_dahl\",\n      \"title\": \"Velvety Sweet Potato & Lentil Dahl\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"red lentils\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sweet potatoes, peeled and cubed\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"coconut milk\",\n          \"quantity\": \"400 ml\",\n          \"amount\": 400,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"fresh spinach\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"gluten-free vegetable stock\",\n          \"quantity\": \"1.2 L\",\n          \"amount\": 1.2,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"turmeric, cumin, and garlic powder\",\n          \"quantity\": \"1 tbsp each\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"In a large pot, combine lentils, sweet potatoes, spices, and stock. Bring to a boil, then simmer for 20-25 minutes until lentils are soft and potatoes are tender. Stir in the coconut milk and spinach, cooking for 2 more minutes until the spinach wilts. Season well.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_dahl_roxane_wed\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_zoe_wed\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_lubna_wed\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_ivar_wed\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_roxane_thu\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_zoe_thu\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_lubna_thu\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_dahl_ivar_thu\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 320\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_quinoa\",\n      \"title\": \"Zesty Quinoa & Summer Veg Medley\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"quinoa\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"red peppers, sliced\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes, sliced into half-moons\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rinse quinoa and boil in salted water for 12-15 minutes until tender; drain. While quinoa cooks, sauté peppers and courgettes in olive oil over high heat until slightly charred. Stir in the chickpeas and cooked quinoa, season with salt and pepper.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_quinoa_roxane_thu\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 560\n        },\n        {\n          \"id\": \"box_quinoa_zoe_thu\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 560\n        },\n        {\n          \"id\": \"box_quinoa_lubna_thu\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 560\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_dahl\",\n        \"prep_quinoa\"\n      ],\n      \"total_minutes\": 45,\n      \"run_through\": \"Start the lentils and quinoa in separate pots. While they simmer, chop the sweet potatoes, peppers, and courgettes. Add sweet potatoes to the lentils. Sauté the peppers and courgettes in a pan, then mix with the cooked quinoa and chickpeas. Finish the dahl with coconut milk and spinach, then weigh everything into the named boxes.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"red lentils\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"quinoa\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"tinned chickpeas\",\n      \"quantity\": \"3 x 400g cans\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sweet potatoes\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh spinach\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cherry tomatoes\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"coconut milk\",\n      \"quantity\": \"400 ml\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"gluten-free vegetable stock cubes\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"portion_note\": \"Serve the vegetables first on the plate, followed by the protein and then the starch.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"note\": \"Serve the spinach and sweet potato chunks first, followed by the lentil base.\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"Serve the peppers and courgettes first, then the quinoa and chickpeas.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\",\n      \"portion_note\": \"Serve all components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"note\": \"Serve as a complete, mixed bowl.\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"Serve the quinoa and vegetables mixed together.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"86129e3c-2f50-480f-a359-077165b6232b\",\n      \"portion_note\": \"Serve all components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"note\": \"Serve as a complete, mixed bowl.\"\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"note\": \"Serve the quinoa and vegetables mixed together.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"portion_note\": \"Serve the protein and starch first on the plate, then the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"note\": \"Serve the lentils and sweet potato first, then the spinach on top.\"\n        }\n      ]\n    }\n  ]\n}\n",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "Fy-FaoveO8GExN8P_vHhwAQ",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 19122,
+        "promptTokenCount": 8458,
+        "thoughtsTokenCount": 6141,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8458
+          }
+        ],
+        "candidatesTokenCount": 4523
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T04:20:34.680809+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T04:20:35.364645+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T04:20:39.61546+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T04:20:39.619008+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T04:20:39.621229+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T04:21:30.85531+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

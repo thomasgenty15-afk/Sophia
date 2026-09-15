@@ -1,0 +1,22 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-defense-tool-opportunity-r1-t01",
+    "status": 502,
+    "ok": null,
+    "user": "Ce soir, au moment de faire le sas de déchargement, je sens que je vais rester collé à mon téléphone et zapper le carnet.",
+    "assistant": "",
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "tool_skill_intents": null,
+    "tool_skill_opportunity": null,
+    "operation_status": null,
+    "operation_reason": null,
+    "local_dispatcher": null,
+    "ai_call_count": null,
+    "executed_tools": [],
+    "tool_execution": null,
+    "direct_effects": null
+  }
+]

@@ -1,0 +1,1860 @@
+{
+  "ok": true,
+  "source": "local",
+  "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+  "scope": "qa-create-recurring-reminder-20260612-r1",
+  "since": "2026-06-11T23:00:00.000Z",
+  "until": null,
+  "request_ids": [
+    "qa-create-recurring-reminder-20260612-r1-t01",
+    "qa-create-recurring-reminder-20260612-r1-t02",
+    "qa-create-recurring-reminder-20260612-r1-t03",
+    "qa-create-recurring-reminder-20260612-r1-t04",
+    "qa-create-recurring-reminder-20260612-r1-t05"
+  ],
+  "counts": {
+    "chat_messages": 10,
+    "conversation_eval_events": 0,
+    "system_error_logs": 0,
+    "llm_usage_events": 11
+  },
+  "chat_messages": [
+    {
+      "id": "9aac8b65-0e74-41e1-9e8e-972e69f363a8",
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "role": "user",
+      "content": "Je veux que tu me prépares un rappel récurrent pour boire un verre d'eau tous les matins, mais je ne sais plus à quelle heure le mettre.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "qa-create-recurring-reminder-20260612-r1-t01",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-11T23:14:13.531898+00:00",
+      "scope": "qa-create-recurring-reminder-20260612-r1"
+    },
+    {
+      "id": "a73fd6d3-386e-4f11-8609-d37cbcc8ee01",
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "role": "assistant",
+      "content": "À quelle heure souhaites-tu recevoir ton rappel pour boire de l'eau chaque matin ?",
+      "agent_used": "companion",
+      "metadata": {
+        "channel": "web",
+        "request_id": "qa-create-recurring-reminder-20260612-r1-t01",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "target_mode": "companion",
+          "safety_level": "NONE",
+          "tool_skill_runtime": {
+            "status": "collecting",
+            "reason_code": "create_recurring_reminder_ask_time",
+            "local_reducer": {
+              "status": "collecting",
+              "reason_code": "create_recurring_reminder_ask_time",
+              "blocked_effects": [],
+              "note_information": {
+                "needed": false,
+                "user_words": [],
+                "handoff_reason": "none",
+                "source_flow_id": "create_recurring_reminder",
+                "target_dispatcher": null,
+                "structured_context": {
+                  "fields": {
+                    "recurrence": {
+                      "days": [],
+                      "time": null,
+                      "status": "identified",
+                      "evidence": [
+                        "tous les matins"
+                      ],
+                      "timezone": "Europe/Paris",
+                      "frequency": "daily",
+                      "confidence": "high",
+                      "cadence_label": "tous les matins"
+                    },
+                    "destination": {
+                      "value": "base_de_vie",
+                      "status": "identified",
+                      "evidence": [
+                        "routine personnelle générale"
+                      ],
+                      "confidence": "medium",
+                      "target_kind": "none",
+                      "target_label": null,
+                      "target_plan_item_id": null,
+                      "related_plan_item_id": null,
+                      "target_binding_policy": "none",
+                      "target_lifecycle_policy": "independent",
+                      "target_action_family_key": null,
+                      "target_generated_temp_id": null
+                    },
+                    "reminder_content": {
+                      "status": "identified",
+                      "message": "boire un verre d'eau",
+                      "evidence": [
+                        "boire un verre d'eau"
+                      ],
+                      "confidence": "high",
+                      "subject_hint": "hydratation"
+                    }
+                  },
+                  "active_status": null
+                },
+                "handoff_context_for_next_dispatcher": null
+              },
+              "exit_to_global_dispatcher": false
+            },
+            "operation_type": "create_recurring_reminder",
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "local_dispatcher": {
+              "fields": {
+                "recurrence": {
+                  "days": [],
+                  "time": null,
+                  "status": "identified",
+                  "evidence": [
+                    "tous les matins"
+                  ],
+                  "timezone": "Europe/Paris",
+                  "frequency": "daily",
+                  "confidence": "high",
+                  "cadence_label": "tous les matins"
+                },
+                "destination": {
+                  "value": "base_de_vie",
+                  "status": "identified",
+                  "evidence": [
+                    "routine personnelle générale"
+                  ],
+                  "confidence": "medium",
+                  "target_kind": "none",
+                  "target_label": null,
+                  "target_plan_item_id": null,
+                  "related_plan_item_id": null,
+                  "target_binding_policy": "none",
+                  "target_lifecycle_policy": "independent",
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                },
+                "reminder_content": {
+                  "status": "identified",
+                  "message": "boire un verre d'eau",
+                  "evidence": [
+                    "boire un verre d'eau"
+                  ],
+                  "confidence": "high",
+                  "subject_hint": "hydratation"
+                }
+              },
+              "evidence": [
+                "tous les matins",
+                "boire un verre d'eau",
+                "ne sais plus à quelle heure"
+              ],
+              "confidence": "medium",
+              "risk_score": 0,
+              "flow_action": "ask_time",
+              "inline_tool": {
+                "requested": false,
+                "tool_name": null,
+                "question_to_answer": null,
+                "active_flow_context": null
+              },
+              "visible_task": {
+                "kind": "ask_time",
+                "conversation_context": {
+                  "handoff": {
+                    "avoid": [
+                      "dire que le rappel est créé",
+                      "promettre une relance depuis le chat"
+                    ],
+                    "ready": false,
+                    "preserve": [],
+                    "time_summary": null,
+                    "cadence_summary": "tous les matins",
+                    "content_summary": "boire un verre d'eau",
+                    "reminder_summary": "boire un verre d'eau",
+                    "platform_destination": "dans la section Rappels"
+                  },
+                  "do_not_say": [
+                    "créé",
+                    "programmé",
+                    "actif"
+                  ],
+                  "stage_goal": "ask_time",
+                  "source_flow": "create_recurring_reminder",
+                  "known_values": {
+                    "time_summary": null,
+                    "cadence_summary": "tous les matins",
+                    "content_summary": "boire un verre d'eau",
+                    "recurring_summary": "rappel récurrent",
+                    "platform_destination": "dans la section Rappels",
+                    "revised_value_summary": "boire un verre d'eau"
+                  },
+                  "evidence_used": [
+                    "tous les matins",
+                    "boire un verre d'eau"
+                  ],
+                  "collected_state": {
+                    "content": "boire un verre d'eau",
+                    "recurrence": "daily",
+                    "destination": "base_de_vie",
+                    "no_chat_mutation": true,
+                    "reminder_content": {
+                      "status": "identified",
+                      "message": "boire un verre d'eau",
+                      "evidence": [
+                        "boire un verre d'eau"
+                      ],
+                      "confidence": "high",
+                      "subject_hint": "hydratation"
+                    }
+                  },
+                  "question_to_ask": "À quelle heure souhaites-tu recevoir ce rappel chaque matin ?",
+                  "tone_constraints": [
+                    "empathique",
+                    "court"
+                  ],
+                  "inline_tool_result": null,
+                  "active_flow_summary": "Contenu et fréquence quotidienne saisis. L'heure reste à définir.",
+                  "unresolved_questions": [
+                    "heure précise"
+                  ],
+                  "missing_or_weak_values": [
+                    "heure"
+                  ],
+                  "note_information_summary": null,
+                  "current_user_message_summary": "Le user veut un rappel quotidien pour boire de l'eau mais hésite sur l'heure."
+                }
+              },
+              "handoff_draft": {
+                "avoid": [
+                  "création depuis le chat"
+                ],
+                "ready": false,
+                "preserve": [
+                  "rappel récurrent"
+                ],
+                "time_summary": null,
+                "cadence_summary": "tous les matins",
+                "content_summary": "boire un verre d'eau",
+                "reminder_summary": "boire un verre d'eau",
+                "platform_destination": "Rappels"
+              },
+              "missing_fields": [
+                "time"
+              ],
+              "recurring_state": {
+                "phase": "recurrence_resolution",
+                "summary": "Contenu et fréquence quotidienne identifiés, mais l'heure est explicitement manquante.",
+                "user_words": [
+                  "boire un verre d'eau",
+                  "tous les matins",
+                  "ne sais plus à quelle heure"
+                ],
+                "user_intent": "provide_slot",
+                "one_shot_conflict": "none",
+                "minimum_fields_ready": false
+              },
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              },
+              "note_information": {
+                "needed": false,
+                "user_words": [],
+                "handoff_reason": "none",
+                "source_flow_id": "create_recurring_reminder",
+                "target_dispatcher": null,
+                "structured_context": {
+                  "fields": {
+                    "recurrence": {
+                      "days": [],
+                      "time": null,
+                      "status": "identified",
+                      "evidence": [
+                        "tous les matins"
+                      ],
+                      "timezone": "Europe/Paris",
+                      "frequency": "daily",
+                      "confidence": "high",
+                      "cadence_label": "tous les matins"
+                    },
+                    "destination": {
+                      "value": "base_de_vie",
+                      "status": "identified",
+                      "evidence": [
+                        "routine personnelle générale"
+                      ],
+                      "confidence": "medium",
+                      "target_kind": "none",
+                      "target_label": null,
+                      "target_plan_item_id": null,
+                      "related_plan_item_id": null,
+                      "target_binding_policy": "none",
+                      "target_lifecycle_policy": "independent",
+                      "target_action_family_key": null,
+                      "target_generated_temp_id": null
+                    },
+                    "reminder_content": {
+                      "status": "identified",
+                      "message": "boire un verre d'eau",
+                      "evidence": [
+                        "boire un verre d'eau"
+                      ],
+                      "confidence": "high",
+                      "subject_hint": "hydratation"
+                    }
+                  },
+                  "active_status": null
+                },
+                "handoff_context_for_next_dispatcher": null
+              }
+            },
+            "platform_handoff": {
+              "draft": null,
+              "status": "delivered",
+              "surface_id": "recurring_reminders",
+              "reason_code": "create_recurring_reminder_ask_time",
+              "operation_type": "create_recurring_reminder",
+              "no_chat_mutation": true
+            },
+            "selected_handler": "create_recurring_reminder",
+            "committed_effects": [],
+            "requested_effects": [],
+            "activation_note_information": {
+              "needed": true,
+              "evidence": [
+                "central_arbitrator_recurring_reminder_structured_intent",
+                "create_recurring_reminder"
+              ],
+              "confidence": "medium",
+              "source_flow": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "source_flow_id": "global_dispatcher",
+              "collected_state": {
+                "reason_code": "central_arbitrator_recurring_reminder_structured_intent",
+                "product_surface": {
+                  "label": "Rappels récurrents",
+                  "surface_id": "recurring_reminders",
+                  "chat_behavior": "platform_handoff",
+                  "operation_type": "create_recurring_reminder",
+                  "platform_steps": [
+                    "ouvre la section Rappels",
+                    "crée un rappel récurrent",
+                    "reprends la cadence, l’heure et le contenu proposés"
+                  ],
+                  "can_execute_from_chat": false,
+                  "short_destination_label": "Rappels",
+                  "user_facing_destination": "dans la section Rappels"
+                },
+                "selected_handler": "create_recurring_reminder",
+                "platform_context_keys": [
+                  "active_cycle",
+                  "active_transformation",
+                  "active_plan",
+                  "active_plans",
+                  "plan_items"
+                ]
+              },
+              "target_dispatcher": "create_recurring_reminder",
+              "active_flow_summary": "Première activation du flow local create_recurring_reminder depuis le dispatcher global.",
+              "unresolved_questions": [],
+              "user_message_summary": "Je veux que tu me prépares un rappel récurrent pour boire un verre d'eau tous les matins, mais je ne sais plus à quelle heure le mettre.",
+              "recommended_next_focus": "Stabiliser recurrence, heure, contenu et destination/binding sans mutation chat."
+            }
+          }
+        },
+        "multi_message_count": 1,
+        "multi_message_index": 0
+      },
+      "created_at": "2026-06-11T23:15:32.083425+00:00",
+      "scope": "qa-create-recurring-reminder-20260612-r1"
+    },
+    {
+      "id": "a36783d3-1c2e-4126-8a26-8e9f607d1bdd",
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "role": "user",
+      "content": "Mets-le à 8h15. Et garde ça comme brouillon à reprendre dans Rappels, ne le crée pas directement depuis le chat.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "qa-create-recurring-reminder-20260612-r1-t02",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-11T23:15:58.122192+00:00",
+      "scope": "qa-create-recurring-reminder-20260612-r1"
+    },
+    {
+      "id": "a8fa09ad-84fd-4606-a095-a6aca70bffad",
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "role": "assistant",
+      "content": "Voici les infos pour ton rappel : 'boire un verre d'eau' tous les matins à 8h15. Rien n'est encore en place ici, tu peux maintenant l'ajouter toi-même dans ta section Rappels.",
+      "agent_used": "companion",
+      "metadata": {
+        "channel": "web",
+        "request_id": "qa-create-recurring-reminder-20260612-r1-t02",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 0,
+          "target_mode": "companion",
+          "safety_level": "NONE",
+          "tool_skill_runtime": {
+            "status": "handoff_delivered",
+            "reason_code": "create_recurring_reminder_handoff_delivered",
+            "local_reducer": {
+              "status": "handoff_ready",
+              "reason_code": "create_recurring_reminder_handoff_delivered",
+              "blocked_effects": [],
+              "note_information": {
+                "needed": false,
+                "user_words": [],
+                "handoff_reason": "none",
+                "source_flow_id": "create_recurring_reminder",
+                "target_dispatcher": null,
+                "structured_context": {
+                  "fields": {
+                    "recurrence": {
+                      "days": [],
+                      "time": "08:15",
+                      "status": "identified",
+                      "evidence": [
+                        "tous les matins",
+                        "8h15"
+                      ],
+                      "timezone": "Europe/Paris",
+                      "frequency": "daily",
+                      "confidence": "high",
+                      "cadence_label": "tous les matins"
+                    },
+                    "destination": {
+                      "value": "base_de_vie",
+                      "status": "identified",
+                      "evidence": [
+                        "routine personnelle générale"
+                      ],
+                      "confidence": "medium",
+                      "target_kind": "none",
+                      "target_label": null,
+                      "target_plan_item_id": null,
+                      "related_plan_item_id": null,
+                      "target_binding_policy": "none",
+                      "target_lifecycle_policy": "independent",
+                      "target_action_family_key": null,
+                      "target_generated_temp_id": null
+                    },
+                    "reminder_content": {
+                      "status": "identified",
+                      "message": "boire un verre d'eau",
+                      "evidence": [
+                        "boire un verre d'eau"
+                      ],
+                      "confidence": "high",
+                      "subject_hint": "hydratation"
+                    }
+                  },
+                  "active_status": "collecting"
+                },
+                "handoff_context_for_next_dispatcher": null
+              },
+              "exit_to_global_dispatcher": false
+            },
+            "operation_type": "create_recurring_reminder",
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "local_dispatcher": {
+              "fields": {
+                "recurrence": {
+                  "days": [],
+                  "time": "08:15",
+                  "status": "identified",
+                  "evidence": [
+                    "tous les matins",
+                    "8h15"
+                  ],
+                  "timezone": "Europe/Paris",
+                  "frequency": "daily",
+                  "confidence": "high",
+                  "cadence_label": "tous les matins"
+                },
+                "destination": {
+                  "value": "base_de_vie",
+                  "status": "identified",
+                  "evidence": [
+                    "routine personnelle générale"
+                  ],
+                  "confidence": "medium",
+                  "target_kind": "none",
+                  "target_label": null,
+                  "target_plan_item_id": null,
+                  "related_plan_item_id": null,
+                  "target_binding_policy": "none",
+                  "target_lifecycle_policy": "independent",
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                },
+                "reminder_content": {
+                  "status": "identified",
+                  "message": "boire un verre d'eau",
+                  "evidence": [
+                    "boire un verre d'eau"
+                  ],
+                  "confidence": "high",
+                  "subject_hint": "hydratation"
+                }
+              },
+              "evidence": [
+                "8h15",
+                "garde ça comme brouillon",
+                "ne le crée pas directement"
+              ],
+              "confidence": "high",
+              "risk_score": 0,
+              "flow_action": "handoff_ready",
+              "inline_tool": {
+                "requested": false,
+                "tool_name": null,
+                "question_to_answer": null,
+                "active_flow_context": null
+              },
+              "visible_task": {
+                "kind": "handoff_ready",
+                "conversation_context": {
+                  "handoff": {
+                    "avoid": [
+                      "dire que le rappel est créé",
+                      "promettre une relance depuis le chat"
+                    ],
+                    "ready": true,
+                    "preserve": [],
+                    "time_summary": "08:15, Europe/Paris",
+                    "cadence_summary": "tous les matins",
+                    "content_summary": "boire un verre d'eau",
+                    "reminder_summary": "boire un verre d'eau chaque matin à 8h15",
+                    "platform_destination": "dans la section Rappels"
+                  },
+                  "do_not_say": [
+                    "j'ai créé",
+                    "c'est programmé",
+                    "rappel actif"
+                  ],
+                  "stage_goal": "handoff_ready",
+                  "source_flow": "create_recurring_reminder",
+                  "known_values": {
+                    "time_summary": "08:15",
+                    "cadence_summary": "tous les matins",
+                    "content_summary": "boire un verre d'eau",
+                    "recurring_summary": "rappel récurrent",
+                    "platform_destination": "dans la section Rappels",
+                    "revised_value_summary": "boire un verre d'eau"
+                  },
+                  "evidence_used": [
+                    "8h15",
+                    "garde ça comme brouillon",
+                    "ne le crée pas directement"
+                  ],
+                  "collected_state": {
+                    "time": "08:15",
+                    "content": "boire un verre d'eau",
+                    "recurrence": "daily",
+                    "destination": "base_de_vie",
+                    "no_chat_mutation": true,
+                    "reminder_content": {
+                      "status": "identified",
+                      "message": "boire un verre d'eau",
+                      "evidence": [
+                        "boire un verre d'eau"
+                      ],
+                      "confidence": "high",
+                      "subject_hint": "hydratation"
+                    }
+                  },
+                  "question_to_ask": null,
+                  "tone_constraints": [
+                    "rassurant",
+                    "court"
+                  ],
+                  "inline_tool_result": null,
+                  "active_flow_summary": "Tous les éléments sont réunis pour le handoff vers la surface Rappels.",
+                  "unresolved_questions": [],
+                  "missing_or_weak_values": [],
+                  "note_information_summary": null,
+                  "current_user_message_summary": "Le user fixe l'heure à 8h15 et confirme vouloir un brouillon dans Rappels sans création directe."
+                }
+              },
+              "handoff_draft": {
+                "avoid": [
+                  "création automatique",
+                  "activation immédiate"
+                ],
+                "ready": true,
+                "preserve": [
+                  "rappel récurrent",
+                  "brouillon uniquement"
+                ],
+                "time_summary": "08:15",
+                "cadence_summary": "tous les matins",
+                "content_summary": "boire un verre d'eau",
+                "reminder_summary": "boire un verre d'eau",
+                "platform_destination": "Rappels"
+              },
+              "missing_fields": [],
+              "recurring_state": {
+                "phase": "handoff_ready",
+                "summary": "Heure fixée à 08:15, cadence quotidienne et contenu validés. Le user demande explicitement un brouillon sans création directe.",
+                "user_words": [
+                  "8h15",
+                  "garde ça comme brouillon",
+                  "ne le crée pas directement"
+                ],
+                "user_intent": "provide_slot",
+                "one_shot_conflict": "none",
+                "minimum_fields_ready": true
+              },
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              },
+              "note_information": {
+                "needed": false,
+                "user_words": [],
+                "handoff_reason": "none",
+                "source_flow_id": "create_recurring_reminder",
+                "target_dispatcher": null,
+                "structured_context": {
+                  "fields": {
+                    "recurrence": {
+                      "days": [],
+                      "time": "08:15",
+                      "status": "identified",
+                      "evidence": [
+                        "tous les matins",
+                        "8h15"
+                      ],
+                      "timezone": "Europe/Paris",
+                      "frequency": "daily",
+                      "confidence": "high",
+                      "cadence_label": "tous les matins"
+                    },
+                    "destination": {
+                      "value": "base_de_vie",
+                      "status": "identified",
+                      "evidence": [
+                        "routine personnelle générale"
+                      ],
+                      "confidence": "medium",
+                      "target_kind": "none",
+                      "target_label": null,
+                      "target_plan_item_id": null,
+                      "related_plan_item_id": null,
+                      "target_binding_policy": "none",
+                      "target_lifecycle_policy": "independent",
+                      "target_action_family_key": null,
+                      "target_generated_temp_id": null
+                    },
+                    "reminder_content": {
+                      "status": "identified",
+                      "message": "boire un verre d'eau",
+                      "evidence": [
+                        "boire un verre d'eau"
+                      ],
+                      "confidence": "high",
+                      "subject_hint": "hydratation"
+                    }
+                  },
+                  "active_status": "collecting"
+                },
+                "handoff_context_for_next_dispatcher": null
+              }
+            },
+            "platform_handoff": {
+              "draft": {
+                "mode": "platform_handoff",
+                "time_summary": "08:15, Europe/Paris",
+                "operation_type": "create_recurring_reminder",
+                "recommendation": {
+                  "avoid": [
+                    "Ne pas créer un rappel ponctuel si l'intention reste récurrente.",
+                    "Ne pas modifier le contenu sans validation utilisateur."
+                  ],
+                  "preserve": [
+                    "Message exact du rappel: boire un verre d'eau",
+                    "Rythme prévu: tous les matins",
+                    "Heure locale prévue: 08:15, Europe/Paris"
+                  ],
+                  "platform_steps": [
+                    "ouvre la section Rappels",
+                    "crée un rappel récurrent",
+                    "reprends la cadence, l’heure et le contenu proposés"
+                  ],
+                  "platform_destination": "dans la section Rappels"
+                },
+                "cadence_summary": "tous les matins",
+                "content_summary": "boire un verre d'eau",
+                "no_chat_mutation": true,
+                "reminder_summary": "rappel récurrent pour boire un verre d'eau",
+                "missing_decisions": [],
+                "executable_from_chat": false
+              },
+              "status": "delivered",
+              "surface_id": "recurring_reminders",
+              "reason_code": "create_recurring_reminder_handoff_delivered",
+              "operation_type": "create_recurring_reminder",
+              "no_chat_mutation": true
+            },
+            "selected_handler": "create_recurring_reminder",
+            "committed_effects": [],
+            "requested_effects": [],
+            "activation_note_information": null
+          }
+        },
+        "multi_message_count": 1,
+        "multi_message_index": 0
+      },
+      "created_at": "2026-06-11T23:16:24.957735+00:00",
+      "scope": "qa-create-recurring-reminder-20260612-r1"
+    },
+    {
+      "id": "f79387f9-8e17-4d41-aecb-18ca6035520a",
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "role": "user",
+      "content": "Ok vas-y programme-le pour moi maintenant.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "qa-create-recurring-reminder-20260612-r1-t03",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-11T23:16:49.743926+00:00",
+      "scope": "qa-create-recurring-reminder-20260612-r1"
+    },
+    {
+      "id": "a61214ef-ba6d-4948-aae4-dd6b79466245",
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "role": "assistant",
+      "content": "Je ne peux pas configurer de rappel récurrent directement ici dans le chat. Pour ton rappel « boire un verre d'eau » tous les matins à 08:15, rends-toi dans la section Rappels de l'application pour l'ajouter avec ces paramètres.",
+      "agent_used": "companion",
+      "metadata": {
+        "channel": "web",
+        "request_id": "qa-create-recurring-reminder-20260612-r1-t03",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 0,
+          "target_mode": "companion",
+          "safety_level": "NONE",
+          "tool_skill_runtime": {
+            "status": "apply_attempt",
+            "reason_code": "create_recurring_reminder_apply_attempt",
+            "local_reducer": {
+              "status": "handoff_ready",
+              "reason_code": "create_recurring_reminder_apply_attempt",
+              "blocked_effects": [],
+              "note_information": {
+                "needed": false,
+                "user_words": [],
+                "handoff_reason": "none",
+                "source_flow_id": "create_recurring_reminder",
+                "target_dispatcher": null,
+                "structured_context": {
+                  "fields": {
+                    "recurrence": {
+                      "days": [],
+                      "time": "08:15",
+                      "status": "identified",
+                      "evidence": [
+                        "tous les matins",
+                        "8h15"
+                      ],
+                      "timezone": "Europe/Paris",
+                      "frequency": "daily",
+                      "confidence": "high",
+                      "cadence_label": "tous les matins"
+                    },
+                    "destination": {
+                      "value": "base_de_vie",
+                      "status": "identified",
+                      "evidence": [
+                        "routine personnelle générale"
+                      ],
+                      "confidence": "medium",
+                      "target_kind": "none",
+                      "target_label": null,
+                      "target_plan_item_id": null,
+                      "related_plan_item_id": null,
+                      "target_binding_policy": "none",
+                      "target_lifecycle_policy": "independent",
+                      "target_action_family_key": null,
+                      "target_generated_temp_id": null
+                    },
+                    "reminder_content": {
+                      "status": "identified",
+                      "message": "boire un verre d'eau",
+                      "evidence": [
+                        "boire un verre d'eau"
+                      ],
+                      "confidence": "high",
+                      "subject_hint": "hydratation"
+                    }
+                  },
+                  "active_status": "handoff_delivered"
+                },
+                "handoff_context_for_next_dispatcher": null
+              },
+              "exit_to_global_dispatcher": false
+            },
+            "operation_type": "create_recurring_reminder",
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "local_dispatcher": {
+              "fields": {
+                "recurrence": {
+                  "days": [],
+                  "time": "08:15",
+                  "status": "identified",
+                  "evidence": [
+                    "tous les matins",
+                    "8h15"
+                  ],
+                  "timezone": "Europe/Paris",
+                  "frequency": "daily",
+                  "confidence": "high",
+                  "cadence_label": "tous les matins"
+                },
+                "destination": {
+                  "value": "base_de_vie",
+                  "status": "identified",
+                  "evidence": [
+                    "routine personnelle générale"
+                  ],
+                  "confidence": "medium",
+                  "target_kind": "none",
+                  "target_label": null,
+                  "target_plan_item_id": null,
+                  "related_plan_item_id": null,
+                  "target_binding_policy": "none",
+                  "target_lifecycle_policy": "independent",
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                },
+                "reminder_content": {
+                  "status": "identified",
+                  "message": "boire un verre d'eau",
+                  "evidence": [
+                    "boire un verre d'eau"
+                  ],
+                  "confidence": "high",
+                  "subject_hint": "hydratation"
+                }
+              },
+              "evidence": [
+                "programme-le pour moi maintenant",
+                "can_execute_from_chat: false"
+              ],
+              "confidence": "high",
+              "risk_score": 0,
+              "flow_action": "apply_attempt",
+              "inline_tool": {
+                "requested": false,
+                "tool_name": null,
+                "question_to_answer": null,
+                "active_flow_context": null
+              },
+              "visible_task": {
+                "kind": "apply_attempt",
+                "conversation_context": {
+                  "handoff": {
+                    "avoid": [
+                      "dire que le rappel est créé",
+                      "promettre une relance depuis le chat"
+                    ],
+                    "ready": true,
+                    "preserve": [],
+                    "time_summary": "08:15, Europe/Paris",
+                    "cadence_summary": "tous les matins",
+                    "content_summary": "boire un verre d'eau",
+                    "reminder_summary": "boire un verre d'eau",
+                    "platform_destination": "dans la section Rappels"
+                  },
+                  "do_not_say": [
+                    "c'est fait",
+                    "je l'ai programmé",
+                    "je m'en occupe"
+                  ],
+                  "stage_goal": "platform_destination_followup",
+                  "source_flow": "create_recurring_reminder",
+                  "known_values": {
+                    "time_summary": "08:15",
+                    "cadence_summary": "tous les matins",
+                    "content_summary": "boire un verre d'eau",
+                    "recurring_summary": "rappel récurrent",
+                    "platform_destination": "dans la section Rappels",
+                    "revised_value_summary": "boire un verre d'eau"
+                  },
+                  "evidence_used": [
+                    "programme-le pour moi maintenant",
+                    "can_execute_from_chat: false"
+                  ],
+                  "collected_state": {
+                    "time": "08:15",
+                    "content": "boire un verre d'eau",
+                    "recurrence": "daily",
+                    "destination": {
+                      "value": "base_de_vie",
+                      "status": "identified",
+                      "evidence": [
+                        "routine personnelle générale"
+                      ],
+                      "confidence": "medium",
+                      "target_kind": "none",
+                      "target_label": null,
+                      "target_plan_item_id": null,
+                      "related_plan_item_id": null,
+                      "target_binding_policy": "none",
+                      "target_lifecycle_policy": "independent",
+                      "target_action_family_key": null,
+                      "target_generated_temp_id": null
+                    },
+                    "no_chat_mutation": true,
+                    "reminder_content": {
+                      "status": "identified",
+                      "message": "boire un verre d'eau",
+                      "evidence": [
+                        "boire un verre d'eau"
+                      ],
+                      "confidence": "high",
+                      "subject_hint": "hydratation"
+                    },
+                    "can_execute_from_chat": false
+                  },
+                  "question_to_ask": null,
+                  "tone_constraints": [
+                    "pédagogue",
+                    "transparent sur les limites"
+                  ],
+                  "inline_tool_result": null,
+                  "active_flow_summary": "Le rappel est prêt mais la création directe est impossible.",
+                  "unresolved_questions": [],
+                  "missing_or_weak_values": [],
+                  "note_information_summary": null,
+                  "current_user_message_summary": "Le user demande l'exécution immédiate du rappel par Sophia."
+                }
+              },
+              "handoff_draft": {
+                "avoid": [
+                  "dire que le rappel est créé",
+                  "promettre une création directe depuis le chat"
+                ],
+                "ready": true,
+                "preserve": [
+                  "Message exact du rappel: boire un verre d'eau",
+                  "Rythme prévu: tous les matins",
+                  "Heure locale prévue: 08:15, Europe/Paris"
+                ],
+                "time_summary": "08:15, Europe/Paris",
+                "cadence_summary": "tous les matins",
+                "content_summary": "boire un verre d'eau",
+                "reminder_summary": "rappel récurrent pour boire un verre d'eau",
+                "platform_destination": "Rappels"
+              },
+              "missing_fields": [],
+              "recurring_state": {
+                "phase": "handoff_delivered",
+                "summary": "Le user demande de programmer le rappel directement depuis le chat, mais cette action n'est pas supportée techniquement par l'interface actuelle.",
+                "user_words": [
+                  "programme-le pour moi maintenant"
+                ],
+                "user_intent": "create",
+                "one_shot_conflict": "none",
+                "minimum_fields_ready": true
+              },
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              },
+              "note_information": {
+                "needed": false,
+                "user_words": [],
+                "handoff_reason": "none",
+                "source_flow_id": "create_recurring_reminder",
+                "target_dispatcher": null,
+                "structured_context": {
+                  "fields": {
+                    "recurrence": {
+                      "days": [],
+                      "time": "08:15",
+                      "status": "identified",
+                      "evidence": [
+                        "tous les matins",
+                        "8h15"
+                      ],
+                      "timezone": "Europe/Paris",
+                      "frequency": "daily",
+                      "confidence": "high",
+                      "cadence_label": "tous les matins"
+                    },
+                    "destination": {
+                      "value": "base_de_vie",
+                      "status": "identified",
+                      "evidence": [
+                        "routine personnelle générale"
+                      ],
+                      "confidence": "medium",
+                      "target_kind": "none",
+                      "target_label": null,
+                      "target_plan_item_id": null,
+                      "related_plan_item_id": null,
+                      "target_binding_policy": "none",
+                      "target_lifecycle_policy": "independent",
+                      "target_action_family_key": null,
+                      "target_generated_temp_id": null
+                    },
+                    "reminder_content": {
+                      "status": "identified",
+                      "message": "boire un verre d'eau",
+                      "evidence": [
+                        "boire un verre d'eau"
+                      ],
+                      "confidence": "high",
+                      "subject_hint": "hydratation"
+                    }
+                  },
+                  "active_status": "handoff_delivered"
+                },
+                "handoff_context_for_next_dispatcher": null
+              }
+            },
+            "platform_handoff": {
+              "draft": {
+                "mode": "platform_handoff",
+                "time_summary": "08:15, Europe/Paris",
+                "operation_type": "create_recurring_reminder",
+                "recommendation": {
+                  "avoid": [
+                    "Ne pas créer un rappel ponctuel si l'intention reste récurrente.",
+                    "Ne pas modifier le contenu sans validation utilisateur."
+                  ],
+                  "preserve": [
+                    "Message exact du rappel: boire un verre d'eau",
+                    "Rythme prévu: tous les matins",
+                    "Heure locale prévue: 08:15, Europe/Paris"
+                  ],
+                  "platform_steps": [
+                    "ouvre la section Rappels",
+                    "crée un rappel récurrent",
+                    "reprends la cadence, l’heure et le contenu proposés"
+                  ],
+                  "platform_destination": "dans la section Rappels"
+                },
+                "cadence_summary": "tous les matins",
+                "content_summary": "boire un verre d'eau",
+                "no_chat_mutation": true,
+                "reminder_summary": "rappel récurrent pour boire un verre d'eau",
+                "missing_decisions": [],
+                "executable_from_chat": false
+              },
+              "status": "delivered",
+              "surface_id": "recurring_reminders",
+              "reason_code": "create_recurring_reminder_apply_attempt",
+              "operation_type": "create_recurring_reminder",
+              "no_chat_mutation": true
+            },
+            "selected_handler": "create_recurring_reminder",
+            "committed_effects": [],
+            "requested_effects": [],
+            "activation_note_information": null
+          }
+        },
+        "multi_message_count": 1,
+        "multi_message_index": 0
+      },
+      "created_at": "2026-06-11T23:17:05.501628+00:00",
+      "scope": "qa-create-recurring-reminder-20260612-r1"
+    },
+    {
+      "id": "05194bf5-8715-4048-8024-cc2d32ee78c7",
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "role": "user",
+      "content": "Finalement mets plutôt 7h45, le reste ne change pas.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "qa-create-recurring-reminder-20260612-r1-t04",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-11T23:17:27.049565+00:00",
+      "scope": "qa-create-recurring-reminder-20260612-r1"
+    },
+    {
+      "id": "8417cdb4-c77d-4a4b-9e28-6ca4cde4db33",
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "role": "assistant",
+      "content": "C'est entendu pour 07:45. Voici les informations à reprendre pour ton rappel dans la section Rappels : boire un verre d'eau, tous les matins à 07:45.",
+      "agent_used": "companion",
+      "metadata": {
+        "channel": "web",
+        "request_id": "qa-create-recurring-reminder-20260612-r1-t04",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 0,
+          "target_mode": "companion",
+          "safety_level": "NONE",
+          "tool_skill_runtime": {
+            "status": "revise_handoff",
+            "reason_code": "create_recurring_reminder_revise_handoff",
+            "local_reducer": {
+              "status": "handoff_ready",
+              "reason_code": "create_recurring_reminder_revise_handoff",
+              "blocked_effects": [],
+              "note_information": {
+                "needed": false,
+                "user_words": [],
+                "handoff_reason": "none",
+                "source_flow_id": "create_recurring_reminder",
+                "target_dispatcher": null,
+                "structured_context": {
+                  "fields": {
+                    "recurrence": {
+                      "days": [],
+                      "time": "07:45",
+                      "status": "identified",
+                      "evidence": [
+                        "7h45",
+                        "tous les matins"
+                      ],
+                      "timezone": "Europe/Paris",
+                      "frequency": "daily",
+                      "confidence": "high",
+                      "cadence_label": "tous les matins"
+                    },
+                    "destination": {
+                      "value": "base_de_vie",
+                      "status": "identified",
+                      "evidence": [
+                        "routine personnelle générale"
+                      ],
+                      "confidence": "medium",
+                      "target_kind": "none",
+                      "target_label": null,
+                      "target_plan_item_id": null,
+                      "related_plan_item_id": null,
+                      "target_binding_policy": "none",
+                      "target_lifecycle_policy": "independent",
+                      "target_action_family_key": null,
+                      "target_generated_temp_id": null
+                    },
+                    "reminder_content": {
+                      "status": "identified",
+                      "message": "boire un verre d'eau",
+                      "evidence": [
+                        "boire un verre d'eau"
+                      ],
+                      "confidence": "high",
+                      "subject_hint": "hydratation"
+                    }
+                  },
+                  "active_status": "apply_attempt"
+                },
+                "handoff_context_for_next_dispatcher": null
+              },
+              "exit_to_global_dispatcher": false
+            },
+            "operation_type": "create_recurring_reminder",
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "local_dispatcher": {
+              "fields": {
+                "recurrence": {
+                  "days": [],
+                  "time": "07:45",
+                  "status": "identified",
+                  "evidence": [
+                    "7h45",
+                    "tous les matins"
+                  ],
+                  "timezone": "Europe/Paris",
+                  "frequency": "daily",
+                  "confidence": "high",
+                  "cadence_label": "tous les matins"
+                },
+                "destination": {
+                  "value": "base_de_vie",
+                  "status": "identified",
+                  "evidence": [
+                    "routine personnelle générale"
+                  ],
+                  "confidence": "medium",
+                  "target_kind": "none",
+                  "target_label": null,
+                  "target_plan_item_id": null,
+                  "related_plan_item_id": null,
+                  "target_binding_policy": "none",
+                  "target_lifecycle_policy": "independent",
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                },
+                "reminder_content": {
+                  "status": "identified",
+                  "message": "boire un verre d'eau",
+                  "evidence": [
+                    "boire un verre d'eau"
+                  ],
+                  "confidence": "high",
+                  "subject_hint": "hydratation"
+                }
+              },
+              "evidence": [
+                "7h45",
+                "le reste ne change pas"
+              ],
+              "confidence": "high",
+              "risk_score": 0,
+              "flow_action": "revise_handoff",
+              "inline_tool": {
+                "requested": false,
+                "tool_name": null,
+                "question_to_answer": null,
+                "active_flow_context": null
+              },
+              "visible_task": {
+                "kind": "revise_handoff",
+                "conversation_context": {
+                  "handoff": {
+                    "avoid": [
+                      "dire que le rappel est créé",
+                      "promettre une relance depuis le chat"
+                    ],
+                    "ready": true,
+                    "preserve": [],
+                    "time_summary": "07:45",
+                    "cadence_summary": "tous les matins",
+                    "content_summary": "boire un verre d'eau",
+                    "reminder_summary": "boire un verre d'eau",
+                    "platform_destination": "dans la section Rappels"
+                  },
+                  "do_not_say": [
+                    "c'est fait",
+                    "j'ai programmé",
+                    "je m'en occupe"
+                  ],
+                  "stage_goal": "revise_handoff",
+                  "source_flow": "create_recurring_reminder",
+                  "known_values": {
+                    "time_summary": "07:45",
+                    "cadence_summary": "tous les matins",
+                    "content_summary": "boire un verre d'eau",
+                    "recurring_summary": "rappel récurrent",
+                    "platform_destination": "Rappels",
+                    "revised_value_summary": "boire un verre d'eau"
+                  },
+                  "evidence_used": [
+                    "7h45",
+                    "le reste ne change pas"
+                  ],
+                  "collected_state": {
+                    "time": "07:45",
+                    "content": "boire un verre d'eau",
+                    "recurrence": "daily",
+                    "destination": "base_de_vie",
+                    "no_chat_mutation": true,
+                    "reminder_content": {
+                      "status": "identified",
+                      "message": "boire un verre d'eau",
+                      "evidence": [
+                        "boire un verre d'eau"
+                      ],
+                      "confidence": "high",
+                      "subject_hint": "hydratation"
+                    }
+                  },
+                  "question_to_ask": null,
+                  "tone_constraints": [
+                    "précis",
+                    "transparent sur les limites de création directe"
+                  ],
+                  "inline_tool_result": null,
+                  "active_flow_summary": "Mise à jour de l'heure du rappel récurrent quotidien.",
+                  "unresolved_questions": [],
+                  "missing_or_weak_values": [],
+                  "note_information_summary": null,
+                  "current_user_message_summary": "Le user met à jour l'heure à 07:45."
+                }
+              },
+              "handoff_draft": {
+                "avoid": [
+                  "dire que le rappel est créé",
+                  "promettre une programmation automatique"
+                ],
+                "ready": true,
+                "preserve": [
+                  "Message exact du rappel: boire un verre d'eau",
+                  "Rythme prévu: tous les matins",
+                  "Heure locale prévue: 07:45, Europe/Paris"
+                ],
+                "time_summary": "07:45, Europe/Paris",
+                "cadence_summary": "tous les matins",
+                "content_summary": "boire un verre d'eau",
+                "reminder_summary": "rappel récurrent pour boire un verre d'eau",
+                "platform_destination": "Rappels"
+              },
+              "missing_fields": [],
+              "recurring_state": {
+                "phase": "revision",
+                "summary": "Le user modifie l'heure du rappel récurrent à 07:45, les autres paramètres restent inchangés.",
+                "user_words": [
+                  "7h45",
+                  "le reste ne change pas"
+                ],
+                "user_intent": "revise",
+                "one_shot_conflict": "none",
+                "minimum_fields_ready": true
+              },
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              },
+              "note_information": {
+                "needed": false,
+                "user_words": [],
+                "handoff_reason": "none",
+                "source_flow_id": "create_recurring_reminder",
+                "target_dispatcher": null,
+                "structured_context": {
+                  "fields": {
+                    "recurrence": {
+                      "days": [],
+                      "time": "07:45",
+                      "status": "identified",
+                      "evidence": [
+                        "7h45",
+                        "tous les matins"
+                      ],
+                      "timezone": "Europe/Paris",
+                      "frequency": "daily",
+                      "confidence": "high",
+                      "cadence_label": "tous les matins"
+                    },
+                    "destination": {
+                      "value": "base_de_vie",
+                      "status": "identified",
+                      "evidence": [
+                        "routine personnelle générale"
+                      ],
+                      "confidence": "medium",
+                      "target_kind": "none",
+                      "target_label": null,
+                      "target_plan_item_id": null,
+                      "related_plan_item_id": null,
+                      "target_binding_policy": "none",
+                      "target_lifecycle_policy": "independent",
+                      "target_action_family_key": null,
+                      "target_generated_temp_id": null
+                    },
+                    "reminder_content": {
+                      "status": "identified",
+                      "message": "boire un verre d'eau",
+                      "evidence": [
+                        "boire un verre d'eau"
+                      ],
+                      "confidence": "high",
+                      "subject_hint": "hydratation"
+                    }
+                  },
+                  "active_status": "apply_attempt"
+                },
+                "handoff_context_for_next_dispatcher": null
+              }
+            },
+            "platform_handoff": {
+              "draft": {
+                "mode": "platform_handoff",
+                "time_summary": "07:45, Europe/Paris",
+                "operation_type": "create_recurring_reminder",
+                "recommendation": {
+                  "avoid": [
+                    "Ne pas créer un rappel ponctuel si l'intention reste récurrente.",
+                    "Ne pas modifier le contenu sans validation utilisateur."
+                  ],
+                  "preserve": [
+                    "Message exact du rappel: boire un verre d'eau",
+                    "Rythme prévu: tous les matins",
+                    "Heure locale prévue: 07:45, Europe/Paris"
+                  ],
+                  "platform_steps": [
+                    "ouvre la section Rappels",
+                    "crée un rappel récurrent",
+                    "reprends la cadence, l’heure et le contenu proposés"
+                  ],
+                  "platform_destination": "dans la section Rappels"
+                },
+                "cadence_summary": "tous les matins",
+                "content_summary": "boire un verre d'eau",
+                "no_chat_mutation": true,
+                "reminder_summary": "rappel récurrent pour boire un verre d'eau",
+                "missing_decisions": [],
+                "executable_from_chat": false
+              },
+              "status": "delivered",
+              "surface_id": "recurring_reminders",
+              "reason_code": "create_recurring_reminder_revise_handoff",
+              "operation_type": "create_recurring_reminder",
+              "no_chat_mutation": true
+            },
+            "selected_handler": "create_recurring_reminder",
+            "committed_effects": [],
+            "requested_effects": [],
+            "activation_note_information": null
+          }
+        },
+        "multi_message_count": 1,
+        "multi_message_index": 0
+      },
+      "created_at": "2026-06-11T23:17:41.142351+00:00",
+      "scope": "qa-create-recurring-reminder-20260612-r1"
+    },
+    {
+      "id": "9e000299-ceeb-46ee-918f-e8d78a41c377",
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "role": "user",
+      "content": "Ok laisse ce rappel de côté. Maintenant aide-moi plutôt à prioriser ma journée.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "qa-create-recurring-reminder-20260612-r1-t05",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-11T23:18:02.608369+00:00",
+      "scope": "qa-create-recurring-reminder-20260612-r1"
+    },
+    {
+      "id": "cbacc8c3-b953-4e44-9190-e8c978edde40",
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "role": "assistant",
+      "content": "Ça marche, on laisse le rappel de côté. Dis-moi ce que tu as au programme aujourd'hui pour qu'on puisse prioriser tes tâches ensemble.",
+      "agent_used": "companion",
+      "metadata": {
+        "channel": "web",
+        "request_id": "qa-create-recurring-reminder-20260612-r1-t05",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 0,
+          "target_mode": "companion",
+          "safety_level": "NONE",
+          "tool_skill_runtime": {
+            "status": "blocked",
+            "reason_code": "local_dispatcher_failed",
+            "operation_type": "create_recurring_reminder",
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "platform_handoff": {
+              "draft": null,
+              "status": "delivered",
+              "surface_id": "recurring_reminders",
+              "reason_code": "local_dispatcher_failed",
+              "operation_type": "create_recurring_reminder",
+              "no_chat_mutation": true
+            },
+            "selected_handler": "create_recurring_reminder",
+            "committed_effects": [],
+            "requested_effects": [],
+            "activation_note_information": null
+          }
+        },
+        "multi_message_count": 1,
+        "multi_message_index": 0
+      },
+      "created_at": "2026-06-11T23:18:17.930522+00:00",
+      "scope": "qa-create-recurring-reminder-20260612-r1"
+    }
+  ],
+  "conversation_eval_events": [],
+  "system_error_logs": [],
+  "llm_usage_events": [
+    {
+      "id": "a024ca9c-8604-4e1f-a9af-932e2c5c1867",
+      "created_at": "2026-06-11T23:15:17.373298+00:00",
+      "request_id": "qa-create-recurring-reminder-20260612-r1-t01",
+      "source": "dispatcher-v2-llm",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "kind": "generate",
+      "prompt_tokens": 13556,
+      "output_tokens": 487,
+      "total_tokens": 14043,
+      "cost_usd": 0,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "request_id_lookup"
+      },
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "operation_family": "dispatcher",
+      "operation_name": "dispatcher-v2-llm",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 63799,
+      "provider_request_id": null,
+      "pricing_version": null,
+      "input_price_per_1k_tokens_usd": null,
+      "output_price_per_1k_tokens_usd": null,
+      "cost_unpriced": true,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "0337cb97-d660-4947-a5af-bee47bf76cc3",
+      "created_at": "2026-06-11T23:15:26.112655+00:00",
+      "request_id": "qa-create-recurring-reminder-20260612-r1-t01",
+      "source": "create_recurring_reminder.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "kind": "generate",
+      "prompt_tokens": 5916,
+      "output_tokens": 1249,
+      "total_tokens": 7968,
+      "cost_usd": 0.006705000000000001,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "operation_family": "dispatcher",
+      "operation_name": "create_recurring_reminder.local_dispatcher",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 8714,
+      "provider_request_id": null,
+      "pricing_version": "v1",
+      "input_price_per_1k_tokens_usd": 0.0005,
+      "output_price_per_1k_tokens_usd": 0.003,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "f8754bb7-320f-4b94-964b-c1946dd61f04",
+      "created_at": "2026-06-11T23:15:32.071882+00:00",
+      "request_id": "qa-create-recurring-reminder-20260612-r1-t01",
+      "source": "create_recurring_reminder.visible.ask_time",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "kind": "generate",
+      "prompt_tokens": 1231,
+      "output_tokens": 24,
+      "total_tokens": 1745,
+      "cost_usd": 0.0006875000000000001,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "operation_family": "scheduling",
+      "operation_name": "create_recurring_reminder.visible.ask_time",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 5954,
+      "provider_request_id": null,
+      "pricing_version": "v1",
+      "input_price_per_1k_tokens_usd": 0.0005,
+      "output_price_per_1k_tokens_usd": 0.003,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "0a78be5b-eb2b-4233-9726-df8715efb7a1",
+      "created_at": "2026-06-11T23:16:04.161114+00:00",
+      "request_id": "qa-create-recurring-reminder-20260612-r1-t02",
+      "source": "create_recurring_reminder.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "kind": "generate",
+      "prompt_tokens": 7064,
+      "output_tokens": 1255,
+      "total_tokens": 8319,
+      "cost_usd": 0.007297,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "operation_family": "dispatcher",
+      "operation_name": "create_recurring_reminder.local_dispatcher",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 5996,
+      "provider_request_id": null,
+      "pricing_version": "v1",
+      "input_price_per_1k_tokens_usd": 0.0005,
+      "output_price_per_1k_tokens_usd": 0.003,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "9936c8fb-93f6-41ed-bd9e-2ea6ded5d002",
+      "created_at": "2026-06-11T23:16:24.943112+00:00",
+      "request_id": "qa-create-recurring-reminder-20260612-r1-t02",
+      "source": "create_recurring_reminder.visible.handoff_ready",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "kind": "generate",
+      "prompt_tokens": 1363,
+      "output_tokens": 56,
+      "total_tokens": 5274,
+      "cost_usd": 0.0008495,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "operation_family": "scheduling",
+      "operation_name": "create_recurring_reminder.visible.handoff_ready",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 20774,
+      "provider_request_id": null,
+      "pricing_version": "v1",
+      "input_price_per_1k_tokens_usd": 0.0005,
+      "output_price_per_1k_tokens_usd": 0.003,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "66be00d7-90a4-43d2-81e1-629a8535b972",
+      "created_at": "2026-06-11T23:16:58.81434+00:00",
+      "request_id": "qa-create-recurring-reminder-20260612-r1-t03",
+      "source": "create_recurring_reminder.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "kind": "generate",
+      "prompt_tokens": 7721,
+      "output_tokens": 1256,
+      "total_tokens": 9647,
+      "cost_usd": 0.0076285,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "operation_family": "dispatcher",
+      "operation_name": "create_recurring_reminder.local_dispatcher",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 9027,
+      "provider_request_id": null,
+      "pricing_version": "v1",
+      "input_price_per_1k_tokens_usd": 0.0005,
+      "output_price_per_1k_tokens_usd": 0.003,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "d03f8eb7-fd40-46b2-b594-721cefbb5877",
+      "created_at": "2026-06-11T23:17:05.486081+00:00",
+      "request_id": "qa-create-recurring-reminder-20260612-r1-t03",
+      "source": "create_recurring_reminder.visible.apply_attempt",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "kind": "generate",
+      "prompt_tokens": 1456,
+      "output_tokens": 64,
+      "total_tokens": 2750,
+      "cost_usd": 0.00092,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "operation_family": "scheduling",
+      "operation_name": "create_recurring_reminder.visible.apply_attempt",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 6665,
+      "provider_request_id": null,
+      "pricing_version": "v1",
+      "input_price_per_1k_tokens_usd": 0.0005,
+      "output_price_per_1k_tokens_usd": 0.003,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "1264b0ac-0ea2-495c-b95d-43cd1da98af1",
+      "created_at": "2026-06-11T23:17:36.39673+00:00",
+      "request_id": "qa-create-recurring-reminder-20260612-r1-t04",
+      "source": "create_recurring_reminder.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "kind": "generate",
+      "prompt_tokens": 7903,
+      "output_tokens": 1281,
+      "total_tokens": 10188,
+      "cost_usd": 0.007794499999999999,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "operation_family": "dispatcher",
+      "operation_name": "create_recurring_reminder.local_dispatcher",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 9321,
+      "provider_request_id": null,
+      "pricing_version": "v1",
+      "input_price_per_1k_tokens_usd": 0.0005,
+      "output_price_per_1k_tokens_usd": 0.003,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "8d8e8883-8307-47ce-abbc-fd0b26f8e26e",
+      "created_at": "2026-06-11T23:17:41.13058+00:00",
+      "request_id": "qa-create-recurring-reminder-20260612-r1-t04",
+      "source": "create_recurring_reminder.visible.revise_handoff",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "kind": "generate",
+      "prompt_tokens": 1349,
+      "output_tokens": 49,
+      "total_tokens": 2339,
+      "cost_usd": 0.0008215,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "operation_family": "scheduling",
+      "operation_name": "create_recurring_reminder.visible.revise_handoff",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 4729,
+      "provider_request_id": null,
+      "pricing_version": "v1",
+      "input_price_per_1k_tokens_usd": 0.0005,
+      "output_price_per_1k_tokens_usd": 0.003,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "0b02b0d4-b7c5-44dd-bf50-032c255352cb",
+      "created_at": "2026-06-11T23:18:08.872742+00:00",
+      "request_id": "qa-create-recurring-reminder-20260612-r1-t05",
+      "source": "create_recurring_reminder.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "kind": "generate",
+      "prompt_tokens": 7887,
+      "output_tokens": 1485,
+      "total_tokens": 9372,
+      "cost_usd": 0.0083985,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "operation_family": "dispatcher",
+      "operation_name": "create_recurring_reminder.local_dispatcher",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 6230,
+      "provider_request_id": null,
+      "pricing_version": "v1",
+      "input_price_per_1k_tokens_usd": 0.0005,
+      "output_price_per_1k_tokens_usd": 0.003,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "4e3a5fb8-6576-4971-8960-802b47a1f397",
+      "created_at": "2026-06-11T23:18:17.918463+00:00",
+      "request_id": "qa-create-recurring-reminder-20260612-r1-t05",
+      "source": "create_recurring_reminder.visible.contract_recovery",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "kind": "generate",
+      "prompt_tokens": 779,
+      "output_tokens": 38,
+      "total_tokens": 2404,
+      "cost_usd": 0.0005035,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "8953317e-1d4b-44f3-9545-a942dbefa350",
+      "operation_family": "scheduling",
+      "operation_name": "create_recurring_reminder.visible.contract_recovery",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 9033,
+      "provider_request_id": null,
+      "pricing_version": "v1",
+      "input_price_per_1k_tokens_usd": 0.0005,
+      "output_price_per_1k_tokens_usd": 0.003,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    }
+  ]
+}

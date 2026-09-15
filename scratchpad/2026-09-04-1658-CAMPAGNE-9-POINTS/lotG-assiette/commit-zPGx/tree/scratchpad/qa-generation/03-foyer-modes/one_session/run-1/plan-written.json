@@ -1,0 +1,57 @@
+{
+    "cooking": {
+        "asked": "one_session",
+        "capped": false,
+        "served": "one_session",
+        "unused": false,
+        "computed": "one_session",
+        "diverging": [
+            "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+            "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+            "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+        ],
+        "dish_bearing": [
+            "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+            "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+            "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+        ]
+    },
+    "plan_id": "699f1021-8ca9-405a-a411-c0046d7c395d",
+    "box_sizing": {
+        "boxes": 12,
+        "share": {
+            "sized": 4,
+            "no_body": 0,
+            "age_unknown": 0,
+            "no_reference": 0,
+            "restriction_floor": 0,
+            "restriction_unknown": 0,
+            "doctrine_no_counting": 0
+        },
+        "sized": 12,
+        "mouths": {
+            "minor": 1,
+            "sized": 1,
+            "no_body": 0,
+            "no_pace": 2,
+            "age_unknown": 0,
+            "no_direction": 0,
+            "restriction_floor": 0,
+            "implausible_factor": 0,
+            "restriction_unknown": 0,
+            "doctrine_no_counting": 0
+        },
+        "unchanged": 0,
+        "shared_mixed": 0,
+        "unverifiable": 1,
+        "capped_by_pot": 0,
+        "share_clamped": 0
+    },
+    "created_at": "2026-08-19T01:51:26.97662+00:00",
+    "dish_owners": {
+        "asked": 6,
+        "refused": 0,
+        "declared": 3,
+        "attributed": 3
+    }
+}

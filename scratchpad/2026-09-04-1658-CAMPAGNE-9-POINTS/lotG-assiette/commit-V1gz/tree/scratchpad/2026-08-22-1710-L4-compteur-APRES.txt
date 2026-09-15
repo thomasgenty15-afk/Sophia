@@ -1,0 +1,10 @@
+{"tag":"keel.meal.declared_intake_groups","user_id":"1a000000-0000-4000-8000-000000000001","declared":1,"declaresGroup":0,"valid":0,"refused":0,"reachesIndex":0,"ungrouped":1}
+{"tag":"keel.meal.declared_intake_groups","user_id":"1e000000-0000-4000-8000-000000000001","declared":1,"declaresGroup":0,"valid":0,"refused":0,"reachesIndex":0,"ungrouped":1}
+{"tag":"keel.meal.declared_intake_groups","user_id":"3e5f4256-7060-4fc7-a0c5-28476eb02a65","declared":0,"declaresGroup":0,"valid":0,"refused":0,"reachesIndex":0,"ungrouped":0}
+{"tag":"keel.meal.declared_intake_groups","user_id":"2a000000-0000-4000-8000-000000000001","declared":1,"declaresGroup":0,"valid":0,"refused":0,"reachesIndex":0,"ungrouped":1}
+{"tag":"keel.meal.declared_intake_groups","user_id":"8d6d727e-e7ca-4b62-9864-2ae23b031049","declared":1,"declaresGroup":0,"valid":0,"refused":0,"reachesIndex":0,"ungrouped":1}
+{"tag":"keel.meal.declared_intake_groups","user_id":"08050000-0000-4000-8000-000000000011","declared":1,"declaresGroup":0,"valid":0,"refused":0,"reachesIndex":0,"ungrouped":1}
+{"tag":"keel.meal.declared_intake_groups","user_id":"8494a2e4-c31c-52e7-7f71-7bf9f3506f95","declared":1,"declaresGroup":0,"valid":0,"refused":0,"reachesIndex":0,"ungrouped":1}
+
+TOTAL sur les porteurs de student_goals — declared=6 declares_group=0 reaches_index=0 ungrouped=6
+APPORTS DÉCLARÉS RANGÉS EN lean_protein: 0 / 6

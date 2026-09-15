@@ -1,0 +1,50 @@
+═══════════════════════════════════════════════════════════════════════════
+L30b — LE BUDGET DEVIENT UN CONSTAT · LES DIRECTIONS, ÉCRITES AVANT
+Écrit le 2026-08-22 à 17:28 CEST, AVANT d'écrire une ligne de `meal_cost.ts`
+et AVANT toute promotion réelle.
+═══════════════════════════════════════════════════════════════════════════
+
+⛔ Ce fichier existe pour qu'aucune de ces cinq phrases ne puisse être
+   réécrite après avoir vu le résultat.
+
+─ D1 · LA FORME DU RÉSULTAT ────────────────────────────────────────────────
+Un coût de plan est COMPLET ou il n'existe pas. Aucun total partiel ne sort.
+Deux populations sont comptées séparément et TOUJOURS imprimées ensemble :
+les lignes CHIFFRÉES et les lignes INCONNUES (non résolues · non pesées ·
+résolues et pesées mais SANS PRIX).
+
+─ D2 · LA COUVERTURE, AVANT PROMOTION ──────────────────────────────────────
+`food_composition_refs` porte 0 prix. Je prédis donc `0 / 13` plans complets
+sur le prompt vivant et `0 / 193` sur le corpus — par construction, et le
+harnais doit le RETROUVER. S'il en rend un seul, mon lecteur invente.
+
+─ D3 · LA COUVERTURE, APRÈS PROMOTION ──────────────────────────────────────
+Le sas cote 917/923 lignes en FR ; le dry-run en promeut 896. Je prédis que
+la couverture en PLANS restera très en dessous : le coût s'éteint dès UNE
+ligne non résolue ou non pesée, et `L-1-b` a mesuré 69 % de couverture de
+termes. Prédiction chiffrée : **entre 1 et 6 plans complets sur les 13** du
+prompt vivant, et **moins de 40 %** du corpus. Je prédis que le premier
+motif d'abstention n'est PAS le prix manquant mais le terme non résolu.
+
+─ D4 · LE NIVEAU, QUAND IL EXISTE ──────────────────────────────────────────
+Seuil de la fiche : **[1,5 ; 4,0] €/1 000 kcal**, référence 2,47 au cas 05.
+Je prédis une médiane **dans la bande, entre 2 et 3 €/1 000 kcal**. Hors
+bande, c'est la grille qui est fausse, pas le plan — et je l'écrirai ainsi.
+
+─ D5 · CRU/CUIT APRÈS `L-C` ────────────────────────────────────────────────
+Mesuré AVANT d'écrire quoi que ce soit (17:23 CEST) : **3 lignes** portent
+`price_basis = 'cooked_label_yield_absorbed'` alors que `L-C` a ramené leur
+`yield_class` à `neutral` — `noodles`, `mashed_potatoes`,
+`potato_puree_milk_butter`. Le prix de ces trois lignes suppose que le
+runtime divise ; il ne divise plus. Direction de l'erreur, écrite avant de
+la vérifier autrement que par le raisonnement :
+  · `noodles` (ex-`grain_absorbs`, 2,6) ⇒ prix **×2,6 TROP HAUT**
+  · les deux purées (ex-`veg_shrinks`, 0,9) ⇒ prix **×0,9, 10 % TROP BAS**
+Je ne réécris AUCUN de ces trois prix : re-dériver une valeur marchande est
+le travail du lot 30. Je pose une garde qui les REFUSE à la promotion.
+Prédiction : après la garde, `promote_pending_food_prices` promeut
+**896 − 3 = 893** lignes FR au lieu de 896.
+
+─ D6 · CE QUE JE NE FAIS PAS ───────────────────────────────────────────────
+Le chiffre ne s'affiche NULLE PART pour l'utilisateur (risque de la fiche :
+périmètre étroit, faux à l'œil de qui le lirait). Aucun appel de modèle.

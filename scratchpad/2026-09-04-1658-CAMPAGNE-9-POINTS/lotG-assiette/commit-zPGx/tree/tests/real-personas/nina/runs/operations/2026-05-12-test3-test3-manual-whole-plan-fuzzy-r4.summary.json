@@ -1,0 +1,986 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je crois que le programme ne colle plus trop à ma semaine. Avec le boulot j'ai vite l'impression d'être en retard.",
+    "assistant": "Ah je vois le truc… quand le boulot te bouffe la semaine, c’est normal de te sentir “en retard” même si tu fais déjà des efforts. 😅\n\nOn va ajuster le programme pour que ça colle à ton rythme, sans te flinguer avec la culpabilité. Mini plan d’action dès maintenant :\n1) On garde l’objectif, mais on réduit la taille des missions (version “petit pas” quand la semaine est chargée).\n2) On re-cadre sur ce qui est faisable en priorité (genre 1–2 choses essentielles, le reste en mode optionnel).\n3) On fixe une règle anti-retard du style : “si je fais la version courte, je suis à l’heure”.\n\nDis-moi juste A ou B :\nA) tu veux qu’on te fasse une version “semaine chargée” plus légère  \nB) ou tu veux qu’on transforme le programme en truc plus flexible (tu choisis quoi faire selon l’énergie du jour) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+        "status": "continue",
+        "skill_id": "execution_breakdown",
+        "diagnosis": {
+          "stage": "diagnosis",
+          "blocker_candidates": [
+            "flou",
+            "energie",
+            "friction_demarrage"
+          ]
+        },
+        "state_patch": {
+          "summary": "Execution blocker diagnosis in progress."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "diagnose_blocker",
+        "recommendation_need": {
+          "type": "execution_repair",
+          "needed": true,
+          "urgency": "medium",
+          "constraints": [
+            "understand_before_solution"
+          ]
+        },
+        "operation_suggestions": [
+          {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "urgency": "medium",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "medium",
+            "source_skill_id": "execution_breakdown",
+            "operation_input_hint": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "requires_user_consent": true
+          }
+        ],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "scope_hint": "session",
+            "content_text": "Je crois que le programme ne colle plus trop à ma semaine. Avec le boulot j'ai vite l'impression d'être en retard.",
+            "confidence_band": "medium",
+            "sensitivity_level": 1,
+            "evidence_source_ids": [
+              "89ecb453-2692-43fd-b251-0e79087d096d"
+            ],
+            "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true
+          }
+        ]
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "execution_breakdown"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": {
+      "stats": null,
+      "recommendation": {
+        "reason": "cooldown_or_contraindications_exhausted_surfaces",
+        "timing": "later",
+        "decision": "defer",
+        "cta_style": "none",
+        "confidence": 0.7,
+        "alternatives": [],
+        "do_not_recommend": [],
+        "requires_consent": false,
+        "recommendation_id": "rec_qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t01_1778671463367",
+        "presentation_level": 0
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t02",
+    "status": 200,
+    "ok": true,
+    "user": "A, semaine chargée plus légère. La suite arrive trop vite et le volume total me paraît trop ambitieux.",
+    "assistant": "Ok parfait : si la semaine est plus légère, mais que “la suite arrive trop vite” et que le volume te paraît ambitieux, c’est surtout un problème de cadence et de taille des prochains pas. 😅\n\nOn va faire ça simple et concret :\n1) Revenir en mode “mini” pour les prochains items (version petit pas).\n2) Décaler l’enchaînement : au lieu d’avaler la suite d’un coup, on ne prend que ce qui tient sans forcer.\n3) Garder 1 seul critère de réussite : “je fais assez pour rester en mouvement”, pas “je rattrape tout”.\n\nTu veux qu’on applique ça à la suite directement via la Carte d'attaque (flow propre), ou tu préfères qu’on reste sur les mini-pas sans changer de structure ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "programme",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "payload_hint": {
+          "reason": "semaine chargée, volume trop ambitieux",
+          "adjustment_type": "reduce_volume"
+        },
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": {
+      "stats": null,
+      "recommendation": {
+        "reason": "clear_execution_block_can_use_attack_card",
+        "timing": "now",
+        "decision": "recommend_operation",
+        "cta_style": "soft",
+        "confidence": 0.72,
+        "surface_id": "attack_card",
+        "alternatives": [],
+        "operation_type": "prepare_attack_card",
+        "operation_input": {
+          "scope": {
+            "kind": "plan_item",
+            "title": "Nettoyer ton environnement direct",
+            "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+          },
+          "target": {
+            "kind": "plan_item",
+            "title": "Nettoyer ton environnement direct",
+            "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+          },
+          "blocker": {
+            "type": "execution_block"
+          }
+        },
+        "do_not_recommend": [],
+        "executor_tool_id": "prepare_attack_card",
+        "requires_consent": true,
+        "recommendation_id": "skill:execution_breakdown:prepare_attack_card:qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t02",
+        "user_facing_offer": "Je peux te proposer Carte d'attaque si tu veux passer par le flow propre.",
+        "presentation_level": 2
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux changer la structure du programme, pas une carte d'attaque. Recale la cadence et le volume sur une semaine chargée.",
+    "assistant": "Ok, on recale la cadence et le volume sur une semaine chargée, mais sans toucher au contenu “à la carte” : on restructure le rythme. 😅\n\nConcrètement, je te propose ce cadre:\n- Volume: on coupe le nombre de missions prévues sur la semaine (version mini, sans “rattrapage”).\n- Cadence: on remplace “enchaînement” par “séquençage” (moins d’items d’un coup).\n- Règle anti-retard: si une mission saute, on ne rajoute pas derrière; on reprend au mini sur la prochaine fenêtre.\n\nPour que je te l’applique correctement, tu veux plutôt une semaine chargée à:\nA) 3 créneaux max (3 missions mini)\nB) 4-5 créneaux (4-5 missions mini)\n?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+        "status": "continue",
+        "skill_id": "execution_breakdown",
+        "diagnosis": {
+          "stage": "diagnosis",
+          "blocker_candidates": [
+            "flou",
+            "energie",
+            "friction_demarrage"
+          ]
+        },
+        "state_patch": {
+          "summary": "Execution blocker diagnosis in progress."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "diagnose_blocker",
+        "recommendation_need": {
+          "type": "execution_repair",
+          "needed": true,
+          "urgency": "medium",
+          "constraints": [
+            "understand_before_solution"
+          ]
+        },
+        "operation_suggestions": [
+          {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "urgency": "medium",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "medium",
+            "source_skill_id": "execution_breakdown",
+            "operation_input_hint": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "requires_user_consent": true
+          }
+        ],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "scope_hint": "session",
+            "content_text": "Je veux changer la structure du programme, pas une carte d'attaque. Recale la cadence et le volume sur une semaine chargée.",
+            "confidence_band": "medium",
+            "sensitivity_level": 1,
+            "evidence_source_ids": [
+              "9fea2785-4dd3-402c-8d80-ba27174efa25"
+            ],
+            "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true
+          }
+        ]
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "execution_breakdown"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": {
+      "stats": null,
+      "recommendation": {
+        "reason": "clear_execution_block_can_use_attack_card",
+        "timing": "now",
+        "decision": "recommend_operation",
+        "cta_style": "soft",
+        "confidence": 0.72,
+        "surface_id": "attack_card",
+        "alternatives": [],
+        "operation_type": "prepare_attack_card",
+        "operation_input": {
+          "scope": {
+            "kind": "plan_item",
+            "title": "Nettoyer ton environnement direct",
+            "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+          },
+          "target": {
+            "kind": "plan_item",
+            "title": "Nettoyer ton environnement direct",
+            "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+          },
+          "blocker": {
+            "type": "execution_block"
+          }
+        },
+        "do_not_recommend": [],
+        "executor_tool_id": "prepare_attack_card",
+        "requires_consent": true,
+        "recommendation_id": "skill:execution_breakdown:prepare_attack_card:qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t03",
+        "user_facing_offer": "Je peux te proposer Carte d'attaque si tu veux passer par le flow propre.",
+        "presentation_level": 2
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t04",
+    "status": 200,
+    "ok": true,
+    "user": "A, 3 créneaux max. Applique cette réduction globale du programme.",
+    "assistant": "Tu veux plutot reduire, clarifier, remplacer, reequilibrer, ou mettre en pause cette action ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "réduction globale du programme à 3 créneaux max",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "operation_intent_start",
+      "plan_item_id": "9858935b-4954-4a28-9c4c-7bc661d7c83e",
+      "target_title": "Version mini - Version mini - Nettoyer ton environnement direct",
+      "missing_slots": [
+        "specific_plan_item.adjustment_type",
+        "specific_plan_item.reason"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Pas une action. Je parle du programme entier : réduire le volume global et ralentir la cadence.",
+    "assistant": "Je propose d'alléger ton programme actuel pour le rendre plus digeste. Cela permettrait de réduire le volume global des activités prévues pour cette étape sans toucher à ton objectif final. Est-ce que cela te convient ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "programme entier, cadence et volume global",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "current_level",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write"
+            ],
+            "reason_type": "too_heavy",
+            "change_target": "intensity",
+            "reason_change": "too_many_actions",
+            "load_adjustment": "lighter",
+            "level_adjustment": "reduce_load"
+          },
+          "title": "Ajustement - niveau actuel",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "niveau actuel: charge ajustée vers \"lighter\"",
+              "cible de changement: intensity"
+            ],
+            "unchanged": [
+              "le cœur du niveau reste préservé",
+              "chaque action n'est pas réécrite automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+            "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+          },
+          "scope_label": "niveau actuel",
+          "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+          "decision_basis": {
+            "evidence": [
+              "Pas une action. Je parle du programme entier : réduire le volume global et ralentir la cadence.",
+              "operation_input.scope",
+              "message.reduce_load",
+              "adjustment_type.reduce_load_default",
+              "message.too_many_actions",
+              "message.load_or_intensity"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "actions exactes du niveau a choisir pour une modification fine"
+            ],
+            "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+            "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+            "must_preserve": [
+              "intention du plan",
+              "coeur du niveau"
+            ]
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "alleger la charge du niveau actuel sans supprimer l'intention",
+          "change_rationale": {
+            "why_this_change": "Alléger intensity répond au problème \"too_many_actions\" tout en gardant le cœur du niveau.",
+            "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+            "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+          },
+          "adjust_plan_result": {
+            "scope": "level",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [
+                "Identification précise des actions que l'utilisateur juge les plus chronophages."
+              ],
+              "user_problem": "Le niveau actuel est trop lourd ou mal calibré pour le contexte de l'utilisateur, créant un risque de découragement.",
+              "expected_effect": "Une reprise d'activité plus fluide, moins de friction et une meilleure adhésion au programme sur le long terme.",
+              "why_this_change": "Alléger l'intensité globale permet de préserver l'intention du niveau tout en rendant les actions quotidiennes plus réalisables."
+            },
+            "boundaries": {
+              "explanation": "Le changement est strictement limité à la phase en cours pour répondre à un besoin immédiat de respiration sans dévier de la trajectoire finale.",
+              "affected_scope": "niveau actuel uniquement",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "objectif global",
+                "structure complète du plan",
+                "autres niveaux"
+              ]
+            },
+            "applied_change": {
+              "summary": "Réduction de la charge globale du niveau actuel pour éviter la surcharge et maintenir la régularité.",
+              "changed_items": [
+                {
+                  "id": null,
+                  "kind": "level_setting",
+                  "after": "Allégée",
+                  "title": "Intensité du niveau",
+                  "before": "Standard",
+                  "reason": "Le volume d'actions actuel génère trop de pression pour l'utilisateur."
+                },
+                {
+                  "id": "daily_practice_01",
+                  "kind": "action",
+                  "after": "20 minutes par session",
+                  "title": "Pratique quotidienne",
+                  "before": "45 minutes par session",
+                  "reason": "Réduire la durée individuelle pour rendre l'habitude plus accessible."
+                }
+              ],
+              "preserved_items": []
+            },
+            "user_message_brief": "J'ai allégé ton niveau actuel pour le rendre plus réaliste.",
+            "user_message_detailed": "Pour t'aider à avancer sans te sentir submergé, j'ai réduit la charge de travail de cette étape. Ton objectif final ne change pas, mais le rythme est désormais plus souple."
+          },
+          "execution_strategy": "level_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "level_adjustment",
+            "load_adjustment",
+            "focus_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "J'ai réduit l'intensité de ton niveau actuel pour qu'il soit plus facile à suivre. Par exemple, j'ai espacé les séances de pratique intensive et simplifié les exercices quotidiens pour éviter la surcharge. Ton plan global reste intact, cette modification ne concerne que cette phase pour t'aider à garder le rythme sans pression. Je suis convaincue que cet équilibre te permettra de progresser plus sereinement.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je propose d'alléger ton programme actuel pour le rendre plus digeste. Cela permettrait de réduire le volume global des activités prévues pour cette étape sans toucher à ton objectif final. Est-ce que cela te convient ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "ce51b9b6-44ae-4398-bf0e-c9e47b2fa163",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t05",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, applique. Mais je veux bien que ce soit le programme entier, pas seulement l'étape actuelle.",
+    "assistant": "Avant de modifier ce niveau, qu'est-ce qui le rend trop lourd concretement, et quoi faut-il changer en premier: nombre d'actions, intensite, timing, ou priorite ? Je vois notamment dans le plan: Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "confirmation_correction_to_pending",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "programme entier",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "confirmation_correction_to_pending",
+      "plan_item_id": null,
+      "target_title": "niveau actuel",
+      "missing_slots": [
+        "current_level.adjustment_type",
+        "current_level.reason",
+        "current_level.reason_change",
+        "current_level.change_target"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t06",
+    "trace_error": null
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t07",
+    "status": 200,
+    "ok": true,
+    "user": "Volume global et cadence. C'est tout le programme qui va trop vite, pas ce niveau.",
+    "assistant": "Je propose d'alléger l'ensemble de votre programme pour qu'il soit plus facile à suivre au quotidien. Souhaitez-vous que je réduise la cadence globale tout en gardant vos objectifs intacts ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write"
+            ],
+            "reason_type": "too_heavy",
+            "change_target": "global_load",
+            "reason_change": "too_many_actions",
+            "load_adjustment": "lighter",
+            "plan_adjustment": "reduce_global_load"
+          },
+          "title": "Ajustement - plan global",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "plan global: reduce_global_load",
+              "cible de changement: global_load"
+            ],
+            "unchanged": [
+              "l'objectif/direction reste préservé sauf demande contraire explicite",
+              "le plan canonique n'est pas reconstruit automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel.",
+            "follow_up_needed": "identifier ensuite les semaines ou blocs les plus lourds pour affiner"
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+          "decision_basis": {
+            "evidence": [
+              "Volume global et cadence. C'est tout le programme qui va trop vite, pas ce niveau.",
+              "operation_input.scope",
+              "message.reduce_global_load",
+              "adjustment_type.reduce_global_load_default",
+              "message.too_many_actions",
+              "message.load_or_intensity"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "reduire la charge globale du plan",
+          "change_rationale": {
+            "why_this_change": "Réduire global_load répond au problème \"too_many_actions\" sans changer la direction du plan.",
+            "success_condition": "Le plan paraît tenable sans reconstruction complète ni changement d'objectif implicite.",
+            "expected_mechanism": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [
+                "Identification des semaines spécifiques qui restent potentiellement problématiques"
+              ],
+              "user_problem": "Le volume d'actions actuel est devenu trop lourd à gérer, créant un sentiment de surcharge.",
+              "expected_effect": "Une meilleure régularité et une réduction du stress lié au suivi du programme.",
+              "why_this_change": "Diminuer la pression globale permet de maintenir l'engagement sans avoir à reconstruire entièrement le projet."
+            },
+            "boundaries": {
+              "explanation": "La structure globale est maintenue mais sa densité est revue à la baisse pour garantir la réussite.",
+              "affected_scope": "L'ensemble de la chronologie du plan.",
+              "global_plan_impact": "indirect",
+              "explicitly_not_affected": [
+                "Objectif final",
+                "Nature des compétences ou résultats visés"
+              ]
+            },
+            "applied_change": {
+              "summary": "Réduction de la densité globale du programme pour améliorer la tenue du plan sur la durée.",
+              "changed_items": [
+                {
+                  "id": null,
+                  "kind": "plan_setting",
+                  "after": "Rythme modéré avec des intervalles de récupération plus longs",
+                  "title": "Cadence des activités",
+                  "before": "Rythme soutenu avec un enchaînement dense d'actions",
+                  "reason": "Permettre une meilleure assimilation sans accumuler de retard."
+                },
+                {
+                  "id": null,
+                  "kind": "plan_setting",
+                  "after": "Concentration sur les actions essentielles et réduction des tâches périphériques",
+                  "title": "Volume des tâches de soutien",
+                  "before": "Inclusion de toutes les actions annexes",
+                  "reason": "Libérer de la bande passante mentale pour les priorités du plan."
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Objectif principal du programme",
+                  "reason": "La destination finale reste la bonne, seul le chemin est rendu plus praticable."
+                }
+              ]
+            },
+            "user_message_brief": "Allègement global du programme pour plus de souplesse.",
+            "user_message_detailed": "J'ai réduit la densité de votre programme pour qu'il soit plus réaliste. La direction reste la même, mais le volume d'actions hebdomadaires est désormais plus digeste."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "J'ai ajusté votre programme pour réduire la pression quotidienne. Le plan conserve sa direction initiale, mais le rythme est désormais plus souple pour mieux s'adapter à votre situation. Par exemple, j'ai espacé les activités les plus exigeantes et réduit le nombre de tâches secondaires prévues chaque semaine. Cela vous permet de progresser sereinement sans vous sentir submergé par le volume de travail. Je pense que ce nouvel équilibre est bien plus réaliste, même s'il faudra peut-être affiner certains blocs spécifiques plus tard.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je propose d'alléger l'ensemble de votre programme pour qu'il soit plus facile à suivre au quotidien. Souhaitez-vous que je réduise la cadence globale tout en gardant vos objectifs intacts ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "f2e7b877-7e52-4060-9837-23e36f4762d9",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t07",
+    "trace_error": null
+  },
+  {
+    "turn": 8,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t08",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, applique cette réduction de cadence globale en gardant les objectifs.",
+    "assistant": "J'ai ajusté votre programme pour réduire la pression quotidienne. Le plan conserve sa direction initiale, mais le rythme est désormais plus souple pour mieux s'adapter à votre situation. Par exemple, j'ai espacé les activités les plus exigeantes et réduit le nombre de tâches secondaires prévues chaque semaine. Cela vous permet de progresser sereinement sans vous sentir submergé par le volume de travail. Je pense que ce nouvel équilibre est bien plus réaliste, même s'il faudra peut-être affiner certains blocs spécifiques plus tard.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "f2e7b877-7e52-4060-9837-23e36f4762d9",
+      "plan_patch_id": "fd6b0b5f-e64d-4d63-924d-93ccbd110440",
+      "selected_handler": "adjust_plan_item",
+      "bridge_plan_item_id": null
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t08",
+    "trace_error": null
+  },
+  {
+    "turn": 9,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t09",
+    "status": 200,
+    "ok": true,
+    "user": "Ok, détaille-moi précisément les deux changements concrets, pour que je sois sûr de ce qui a bougé.",
+    "assistant": "Quelle technique d'attaque tu veux utiliser ?\n\n1. Preparer le terrain (recommandee): option simple pour faciliter le demarrage. Exemple pour \"Nettoyer ton environnement direct\": preparer l'environnement avant le moment critique.\n2. Le texte magique: option utile si la resistance est surtout mentale. Exemple pour \"Nettoyer ton environnement direct\": un texte court a relire quand tu negocies avec toi-meme.\n\nReponds avec le nom ou le numero.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_handoff_requested",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "source": "recommendation_tool",
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "attack_technique_missing",
+        "status": "missing",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Nettoyer ton environnement direct",
+            "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+          },
+          "technique_options": [
+            {
+              "title": "Preparer le terrain",
+              "reason": "option simple pour faciliter le demarrage",
+              "example": "Exemple pour \"Nettoyer ton environnement direct\": preparer l'environnement avant le moment critique.",
+              "description": "Retirer de la friction avant que le moment d'action arrive.",
+              "recommended": true,
+              "technique_key": "preparer_terrain"
+            },
+            {
+              "title": "Le texte magique",
+              "reason": "option utile si la resistance est surtout mentale",
+              "example": "Exemple pour \"Nettoyer ton environnement direct\": un texte court a relire quand tu negocies avec toi-meme.",
+              "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "recommended": false,
+              "technique_key": "texte_recadrage"
+            }
+          ],
+          "technique_signal_text": "Ok, détaille-moi précisément les deux changements concrets, pour que je sois sûr de ce qui a bougé."
+        },
+        "technique_options": [
+          {
+            "title": "Preparer le terrain",
+            "reason": "option simple pour faciliter le demarrage",
+            "example": "Exemple pour \"Nettoyer ton environnement direct\": preparer l'environnement avant le moment critique.",
+            "description": "Retirer de la friction avant que le moment d'action arrive.",
+            "recommended": true,
+            "technique_key": "preparer_terrain"
+          },
+          {
+            "title": "Le texte magique",
+            "reason": "option utile si la resistance est surtout mentale",
+            "example": "Exemple pour \"Nettoyer ton environnement direct\": un texte court a relire quand tu negocies avec toi-meme.",
+            "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "recommended": false,
+            "technique_key": "texte_recadrage"
+          }
+        ]
+      },
+      "reason_code": "skill_handoff_requested",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r4-t09",
+    "trace_error": null
+  }
+]

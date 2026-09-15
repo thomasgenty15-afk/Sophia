@@ -1,0 +1,27 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r2c-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J’ai besoin d’aide quand je rentre fatigué et que j’ai l’impulsion de commander n’importe quoi.",
+    "assistant": "C'est un moment de vulnérabilité très fréquent. Pour préparer ta carte de défense, est-ce que la formulation « quand je rentre fatigué et que j’ai l’impulsion de commander n’importe quoi » te convient pour répondre à la question : Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? Elle sera ensuite disponible dans Ressources / Défense / Cartes de défense libres. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_selected_handler": "prepare_defense_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r2c-t01",
+    "trace_error": null
+  }
+]

@@ -1,0 +1,1462 @@
+[
+  {
+    "potion": "rappel",
+    "user_id": "ad0a7358-7856-4e47-aa08-cfb1ed5eacea",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r19_hard_green_rappel",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "96ca2c3c-e14e-4ac2-9d0d-8c6bde095a14",
+          "potion_type": "rappel",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "ec0a2bd7-71a3-4708-a77a-e3f6f799cf16",
+          "transformation_id": null,
+          "content": {
+            "title": "Raccrocher au geste du soir",
+            "target_binding": {
+              "kind": "action_family",
+              "label": "Le geste du soir (marche ou rangement)",
+              "evidence": [
+                "Le piege, c'est que je me raconte que je vais le faire plus tard.",
+                "Vise plutot 19h, avec un ton doux."
+              ],
+              "recurrence_hint": "chaque soir avant que l'envie de repousser ne s'installe",
+              "date_or_window_hint": null,
+              "target_plan_item_id": null,
+              "related_plan_item_id": "a85f0475-2096-4f9a-a607-e83c5b0024bf",
+              "target_action_family_key": "after_dinner_walk_or_desk_reset",
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Raccrocher au geste du soir",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un soutien quotidien à 19h permet de stabiliser l'habitude avant que le glissement ne s'installe.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "19:00",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "19:00",
+                "reason_for_time": "À 19h, on devance le moment où tu commences à repousser tes actions à plus tard.",
+                "reminder_instruction": "Rappelle-moi de revenir à mon geste du soir maintenant, pour ne pas me laisser piéger par le 'plus tard'."
+              },
+              "potion_type": "rappel",
+              "opening_prompt": "Quand tu sens que tu commences à te dire que tu le feras plus tard, qu'est-ce qui t'aiderait le plus à juste démarrer ?",
+              "target_binding": {
+                "kind": "action_family",
+                "label": "Le geste du soir (marche ou rangement)",
+                "evidence": [
+                  "Le piege, c'est que je me raconte que je vais le faire plus tard.",
+                  "Vise plutot 19h, avec un ton doux."
+                ],
+                "recurrence_hint": "chaque soir avant que l'envie de repousser ne s'installe",
+                "date_or_window_hint": null,
+                "target_plan_item_id": null,
+                "related_plan_item_id": "a85f0475-2096-4f9a-a607-e83c5b0024bf",
+                "target_action_family_key": "after_dinner_walk_or_desk_reset",
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Le piège du 'plus tard' est ce qui crée le glissement entre ton intention et tes actions de fin de journée.",
+              "expected_duration": "short",
+              "potion_info_message": "Cette potion est là pour devancer le moment où tu décroches. On se donne rendez-vous chaque soir à 19h pour garder ton élan sur tes gestes du soir.",
+              "instant_support_message": "C'est normal de vouloir repousser quand la fatigue arrive. On va juste essayer de ne pas laisser le fil s'échapper, tout doucement, sans se mettre la pression."
+            },
+            "why_this_potion": "Le piège du 'plus tard' est ce qui crée le glissement entre ton intention et tes actions de fin de journée.",
+            "potion_info_message": "Cette potion est là pour devancer le moment où tu décroches. On se donne rendez-vous chaque soir à 19h pour garder ton élan sur tes gestes du soir.",
+            "instant_support_message": "C'est normal de vouloir repousser quand la fatigue arrive. On va juste essayer de ne pas laisser le fil s'échapper, tout doucement, sans se mettre la pression."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un soutien quotidien à 19h permet de stabiliser l'habitude avant que le glissement ne s'installe.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "19:00",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "action_family",
+              "label": "Le geste du soir (marche ou rangement)",
+              "evidence": [
+                "Le piege, c'est que je me raconte que je vais le faire plus tard.",
+                "Vise plutot 19h, avec un ton doux."
+              ],
+              "recurrence_hint": "chaque soir avant que l'envie de repousser ne s'installe",
+              "date_or_window_hint": null,
+              "target_plan_item_id": null,
+              "related_plan_item_id": "a85f0475-2096-4f9a-a607-e83c5b0024bf",
+              "target_action_family_key": "after_dinner_walk_or_desk_reset",
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "19:00",
+            "reason_for_time": "À 19h, on devance le moment où tu commences à repousser tes actions à plus tard.",
+            "reminder_instruction": "Rappelle-moi de revenir à mon geste du soir maintenant, pour ne pas me laisser piéger par le 'plus tard'."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r19_hard_green-rappel-t04-a1",
+            "operation_id": "7c6e334b-8bb8-45d7-8107-1606877603c4",
+            "operation_type": "select_state_potion",
+            "source_message_id": "303b7538-8c0a-4c2e-b01e-bedfc110382f"
+          },
+          "generated_at": "2026-05-21T12:31:03.985+00:00",
+          "last_updated_at": "2026-05-21T12:31:03.985+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "840ffc19-0414-46cf-a834-4e1c5d20a1c4",
+          "message_instruction": "Rappelle-moi de revenir à mon geste du soir maintenant, pour ne pas me laisser piéger par le 'plus tard'.",
+          "rationale": "Un soutien quotidien à 19h permet de stabiliser l'habitude avant que le glissement ne s'installe.",
+          "local_time_hhmm": "19:00",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "96ca2c3c-e14e-4ac2-9d0d-8c6bde095a14",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r19_hard_green-rappel-t04-a1",
+            "operation_id": "7c6e334b-8bb8-45d7-8107-1606877603c4",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un soutien quotidien à 19h permet de stabiliser l'habitude avant que le glissement ne s'installe.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "19:00",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "action_family",
+              "label": "Le geste du soir (marche ou rangement)",
+              "evidence": [
+                "Le piege, c'est que je me raconte que je vais le faire plus tard.",
+                "Vise plutot 19h, avec un ton doux."
+              ],
+              "recurrence_hint": "chaque soir avant que l'envie de repousser ne s'installe",
+              "date_or_window_hint": null,
+              "target_plan_item_id": null,
+              "related_plan_item_id": "a85f0475-2096-4f9a-a607-e83c5b0024bf",
+              "target_action_family_key": "after_dinner_walk_or_desk_reset",
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "action_family",
+          "target_plan_item_id": "a85f0475-2096-4f9a-a607-e83c5b0024bf",
+          "target_action_family_key": "after_dinner_walk_or_desk_reset",
+          "target_binding_policy": "live_action_family",
+          "target_lifecycle_policy": "while_family_in_current_plan",
+          "starts_at": "2026-05-21T12:31:03.985+00:00",
+          "created_at": "2026-05-21T12:31:03.99328+00:00",
+          "updated_at": "2026-05-21T12:31:03.99328+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "0945c1a2-eb6b-4752-aaa7-bfef87c9c729",
+          "recurring_reminder_id": "840ffc19-0414-46cf-a834-4e1c5d20a1c4",
+          "event_context": "recurring_reminder:840ffc19-0414-46cf-a834-4e1c5d20a1c4:potion:96ca2c3c-e14e-4ac2-9d0d-8c6bde095a14:2026-05-22",
+          "draft_message": "Rappelle-moi de revenir à mon geste du soir maintenant, pour ne pas me laisser piéger par le 'plus tard'.",
+          "scheduled_for": "2026-05-22T19:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:31:03.997665+00:00"
+        },
+        {
+          "id": "ecc5a751-a1c0-4167-b113-8d25363fcbdc",
+          "recurring_reminder_id": "840ffc19-0414-46cf-a834-4e1c5d20a1c4",
+          "event_context": "recurring_reminder:840ffc19-0414-46cf-a834-4e1c5d20a1c4:potion:96ca2c3c-e14e-4ac2-9d0d-8c6bde095a14:2026-05-23",
+          "draft_message": "Rappelle-moi de revenir à mon geste du soir maintenant, pour ne pas me laisser piéger par le 'plus tard'.",
+          "scheduled_for": "2026-05-23T19:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:31:03.997665+00:00"
+        },
+        {
+          "id": "14e3fe02-8f96-4a08-a9e3-f4de74794373",
+          "recurring_reminder_id": "840ffc19-0414-46cf-a834-4e1c5d20a1c4",
+          "event_context": "recurring_reminder:840ffc19-0414-46cf-a834-4e1c5d20a1c4:potion:96ca2c3c-e14e-4ac2-9d0d-8c6bde095a14:2026-05-24",
+          "draft_message": "Rappelle-moi de revenir à mon geste du soir maintenant, pour ne pas me laisser piéger par le 'plus tard'.",
+          "scheduled_for": "2026-05-24T19:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:31:03.997665+00:00"
+        },
+        {
+          "id": "a4a27175-6ffc-41af-9c4e-e272dc1e495f",
+          "recurring_reminder_id": "840ffc19-0414-46cf-a834-4e1c5d20a1c4",
+          "event_context": "recurring_reminder:840ffc19-0414-46cf-a834-4e1c5d20a1c4:potion:96ca2c3c-e14e-4ac2-9d0d-8c6bde095a14:2026-05-25",
+          "draft_message": "Rappelle-moi de revenir à mon geste du soir maintenant, pour ne pas me laisser piéger par le 'plus tard'.",
+          "scheduled_for": "2026-05-25T19:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:31:03.997665+00:00"
+        },
+        {
+          "id": "b6785972-783e-40ec-b019-caa47ce35be6",
+          "recurring_reminder_id": "840ffc19-0414-46cf-a834-4e1c5d20a1c4",
+          "event_context": "recurring_reminder:840ffc19-0414-46cf-a834-4e1c5d20a1c4:potion:96ca2c3c-e14e-4ac2-9d0d-8c6bde095a14:2026-05-26",
+          "draft_message": "Rappelle-moi de revenir à mon geste du soir maintenant, pour ne pas me laisser piéger par le 'plus tard'.",
+          "scheduled_for": "2026-05-26T19:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:31:03.997665+00:00"
+        },
+        {
+          "id": "caab05ac-cf0e-4c43-b6a0-98bee03d1c0c",
+          "recurring_reminder_id": "840ffc19-0414-46cf-a834-4e1c5d20a1c4",
+          "event_context": "recurring_reminder:840ffc19-0414-46cf-a834-4e1c5d20a1c4:potion:96ca2c3c-e14e-4ac2-9d0d-8c6bde095a14:2026-05-27",
+          "draft_message": "Rappelle-moi de revenir à mon geste du soir maintenant, pour ne pas me laisser piéger par le 'plus tard'.",
+          "scheduled_for": "2026-05-27T19:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:31:03.997665+00:00"
+        },
+        {
+          "id": "49a753c6-152f-4981-bb55-e1182fca7a5b",
+          "recurring_reminder_id": "840ffc19-0414-46cf-a834-4e1c5d20a1c4",
+          "event_context": "recurring_reminder:840ffc19-0414-46cf-a834-4e1c5d20a1c4:potion:96ca2c3c-e14e-4ac2-9d0d-8c6bde095a14:2026-05-28",
+          "draft_message": "Rappelle-moi de revenir à mon geste du soir maintenant, pour ne pas me laisser piéger par le 'plus tard'.",
+          "scheduled_for": "2026-05-28T19:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:31:03.997665+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "courage",
+    "user_id": "ef60dddc-84a1-4316-9a93-63e980ab35c1",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r19_hard_green_courage",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "3243ba61-57fb-4b48-95c9-7b74c17647dd",
+          "potion_type": "courage",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "5f675a1c-e0d3-4362-8594-6045c35c07e4",
+          "transformation_id": null,
+          "content": {
+            "title": "Clarifier avec ton associé",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Envoyer le message difficile",
+              "evidence": [
+                "Le vrai sujet c'est mon associe",
+                "Je dois clarifier un conflit",
+                "J'ai peur que ca parte mal",
+                "j'ai peur qu'il me voie comme quelqu'un de penible",
+                "Je ne sais pas si je le fais mardi ou jeudi"
+              ],
+              "recurrence_hint": "mardi et jeudi",
+              "date_or_window_hint": "matin",
+              "target_plan_item_id": "e1546a5b-695a-4a17-a0a3-ac8e6b851803",
+              "related_plan_item_id": "e1546a5b-695a-4a17-a0a3-ac8e6b851803",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Clarifier avec ton associé",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "specific_weekdays",
+                  "reason": "Un appui ciblé les jours où tu envisages d'agir permet de réduire l'évitement sans t'épuiser le reste de la semaine.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [
+                    "tue",
+                    "thu"
+                  ],
+                  "local_time_hhmm": "08:30",
+                  "timing_relation": "before"
+                },
+                "local_time_hhmm": "08:30",
+                "reason_for_time": "Le matin correspond à ton rythme préféré et permet d'être là juste avant le moment où l'angoisse peut monter.",
+                "reminder_instruction": "Envoie un message de soutien doux et direct pour l'aider à tenir face à l'appréhension du conflit avec son associé."
+              },
+              "potion_type": "courage",
+              "opening_prompt": "Qu'est-ce qui te fait le plus hésiter quand tu penses à cette discussion ?",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Envoyer le message difficile",
+                "evidence": [
+                  "Le vrai sujet c'est mon associe",
+                  "Je dois clarifier un conflit",
+                  "J'ai peur que ca parte mal",
+                  "j'ai peur qu'il me voie comme quelqu'un de penible",
+                  "Je ne sais pas si je le fais mardi ou jeudi"
+                ],
+                "recurrence_hint": "mardi et jeudi",
+                "date_or_window_hint": "matin",
+                "target_plan_item_id": "e1546a5b-695a-4a17-a0a3-ac8e6b851803",
+                "related_plan_item_id": "e1546a5b-695a-4a17-a0a3-ac8e6b851803",
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Tu ne bloques pas seulement sur la réponse : tu redoutes aussi la tournure de l'échange et le regard de ton associé. La potion de courage aide justement à avancer malgré cette tension, sans te brutaliser.",
+              "expected_duration": "short",
+              "potion_info_message": "Je serai là mardi et jeudi matin pour t'aider à traverser cette appréhension sans te mettre plus de pression.",
+              "instant_support_message": "Le fait d'avoir peur que ça tourne mal ou que tu passes pour quelqu'un de pénible, c'est lourd à porter. Là, l'idée n'est pas de forcer quoi que ce soit : juste te redonner un peu d'air avant d'y aller."
+            },
+            "why_this_potion": "Tu ne bloques pas seulement sur la réponse : tu redoutes aussi la tournure de l'échange et le regard de ton associé. La potion de courage aide justement à avancer malgré cette tension, sans te brutaliser.",
+            "potion_info_message": "Je serai là mardi et jeudi matin pour t'aider à traverser cette appréhension sans te mettre plus de pression.",
+            "instant_support_message": "Le fait d'avoir peur que ça tourne mal ou que tu passes pour quelqu'un de pénible, c'est lourd à porter. Là, l'idée n'est pas de forcer quoi que ce soit : juste te redonner un peu d'air avant d'y aller."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "specific_weekdays",
+              "reason": "Un appui ciblé les jours où tu envisages d'agir permet de réduire l'évitement sans t'épuiser le reste de la semaine.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [
+                "tue",
+                "thu"
+              ],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "before"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Envoyer le message difficile",
+              "evidence": [
+                "Le vrai sujet c'est mon associe",
+                "Je dois clarifier un conflit",
+                "J'ai peur que ca parte mal",
+                "j'ai peur qu'il me voie comme quelqu'un de penible",
+                "Je ne sais pas si je le fais mardi ou jeudi"
+              ],
+              "recurrence_hint": "mardi et jeudi",
+              "date_or_window_hint": "matin",
+              "target_plan_item_id": "e1546a5b-695a-4a17-a0a3-ac8e6b851803",
+              "related_plan_item_id": "e1546a5b-695a-4a17-a0a3-ac8e6b851803",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "08:30",
+            "reason_for_time": "Le matin correspond à ton rythme préféré et permet d'être là juste avant le moment où l'angoisse peut monter.",
+            "reminder_instruction": "Envoie un message de soutien doux et direct pour l'aider à tenir face à l'appréhension du conflit avec son associé."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r19_hard_green-courage-t05-a1",
+            "operation_id": "a79f80e9-0f20-46a1-b63f-7e94f0964ecb",
+            "operation_type": "select_state_potion",
+            "source_message_id": "8be4387e-9f28-44f1-81a1-e9edaa56338c"
+          },
+          "generated_at": "2026-05-21T12:34:18.165+00:00",
+          "last_updated_at": "2026-05-21T12:34:18.165+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "065ddc46-b504-4ac3-bf07-3b10e3d75189",
+          "message_instruction": "Envoie un message de soutien doux et direct pour l'aider à tenir face à l'appréhension du conflit avec son associé.",
+          "rationale": "Un appui ciblé les jours où tu envisages d'agir permet de réduire l'évitement sans t'épuiser le reste de la semaine.",
+          "local_time_hhmm": "08:30",
+          "scheduled_days": [
+            "tue",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "3243ba61-57fb-4b48-95c9-7b74c17647dd",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r19_hard_green-courage-t05-a1",
+            "operation_id": "a79f80e9-0f20-46a1-b63f-7e94f0964ecb",
+            "schedule_plan": {
+              "mode": "specific_weekdays",
+              "reason": "Un appui ciblé les jours où tu envisages d'agir permet de réduire l'évitement sans t'épuiser le reste de la semaine.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [
+                "tue",
+                "thu"
+              ],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "before"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Envoyer le message difficile",
+              "evidence": [
+                "Le vrai sujet c'est mon associe",
+                "Je dois clarifier un conflit",
+                "J'ai peur que ca parte mal",
+                "j'ai peur qu'il me voie comme quelqu'un de penible",
+                "Je ne sais pas si je le fais mardi ou jeudi"
+              ],
+              "recurrence_hint": "mardi et jeudi",
+              "date_or_window_hint": "matin",
+              "target_plan_item_id": "e1546a5b-695a-4a17-a0a3-ac8e6b851803",
+              "related_plan_item_id": "e1546a5b-695a-4a17-a0a3-ac8e6b851803",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "e1546a5b-695a-4a17-a0a3-ac8e6b851803",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T12:34:18.165+00:00",
+          "created_at": "2026-05-21T12:34:18.171665+00:00",
+          "updated_at": "2026-05-21T12:34:18.171665+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "68794583-ccfe-49ba-ad1c-8847bf14c712",
+          "recurring_reminder_id": "065ddc46-b504-4ac3-bf07-3b10e3d75189",
+          "event_context": "recurring_reminder:065ddc46-b504-4ac3-bf07-3b10e3d75189:potion:3243ba61-57fb-4b48-95c9-7b74c17647dd:2026-05-26",
+          "draft_message": "Envoie un message de soutien doux et direct pour l'aider à tenir face à l'appréhension du conflit avec son associé.",
+          "scheduled_for": "2026-05-26T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:34:18.176709+00:00"
+        },
+        {
+          "id": "c83442f8-bb9b-42ef-909b-6d1ad8bd0964",
+          "recurring_reminder_id": "065ddc46-b504-4ac3-bf07-3b10e3d75189",
+          "event_context": "recurring_reminder:065ddc46-b504-4ac3-bf07-3b10e3d75189:potion:3243ba61-57fb-4b48-95c9-7b74c17647dd:2026-05-28",
+          "draft_message": "Envoie un message de soutien doux et direct pour l'aider à tenir face à l'appréhension du conflit avec son associé.",
+          "scheduled_for": "2026-05-28T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:34:18.176709+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "guerison",
+    "user_id": "16085994-f587-4f51-9df8-3a83f9827006",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r19_hard_green_guerison",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "2ce6c544-65c4-485f-9d63-54517ba335e3",
+          "potion_type": "guerison",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "83362ecd-f6b2-4700-912f-956bea6e7be7",
+          "transformation_id": null,
+          "content": {
+            "title": "Reprise sobre",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Reprendre doucement après un ratage",
+              "evidence": [
+                "Hier j'ai juste tout lache",
+                "depuis je me parle mal"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "7c348a49-db2a-4baa-a38e-c319d01a240e",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Reprise sobre",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un suivi quotidien pendant une semaine permet de stabiliser le dialogue intérieur après une rechute.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "09:00",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "09:00",
+                "reason_for_time": "Le matin à 09:00 correspond à ton rythme préféré et à l'heure prévue pour ton habitude de reprise.",
+                "reminder_instruction": "Envoie un message sobre et ancré pour désamorcer l'auto-critique et soutenir la reprise de l'habitude sans ton infantilisant."
+              },
+              "potion_type": "guerison",
+              "opening_prompt": "Qu'est-ce qui te pèse le plus dans ce que tu te dis depuis hier ?",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Reprendre doucement après un ratage",
+                "evidence": [
+                  "Hier j'ai juste tout lache",
+                  "depuis je me parle mal"
+                ],
+                "recurrence_hint": "quotidien",
+                "date_or_window_hint": "09:00",
+                "target_plan_item_id": "7c348a49-db2a-4baa-a38e-c319d01a240e",
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Désamorcer l'auto-jugement après un arrêt brutal pour permettre une reprise factuelle et calme de l'habitude.",
+              "expected_duration": "short",
+              "potion_info_message": "La potion de guérison sert à stabiliser le terrain après une secousse. Je t'écrirai chaque matin à 09:00 pendant 7 jours pour t'aider à rester dans une dynamique de reprise constructive.",
+              "instant_support_message": "Lâcher prise hier est un fait, pas une définition de qui tu es. On va juste laisser la poussière retomber sans en rajouter avec des reproches inutiles."
+            },
+            "why_this_potion": "Désamorcer l'auto-jugement après un arrêt brutal pour permettre une reprise factuelle et calme de l'habitude.",
+            "potion_info_message": "La potion de guérison sert à stabiliser le terrain après une secousse. Je t'écrirai chaque matin à 09:00 pendant 7 jours pour t'aider à rester dans une dynamique de reprise constructive.",
+            "instant_support_message": "Lâcher prise hier est un fait, pas une définition de qui tu es. On va juste laisser la poussière retomber sans en rajouter avec des reproches inutiles."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien pendant une semaine permet de stabiliser le dialogue intérieur après une rechute.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Reprendre doucement après un ratage",
+              "evidence": [
+                "Hier j'ai juste tout lache",
+                "depuis je me parle mal"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "7c348a49-db2a-4baa-a38e-c319d01a240e",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "09:00",
+            "reason_for_time": "Le matin à 09:00 correspond à ton rythme préféré et à l'heure prévue pour ton habitude de reprise.",
+            "reminder_instruction": "Envoie un message sobre et ancré pour désamorcer l'auto-critique et soutenir la reprise de l'habitude sans ton infantilisant."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r19_hard_green-guerison-t05-a1",
+            "operation_id": "97a389de-ae45-4859-811f-d1acfd6deb05",
+            "operation_type": "select_state_potion",
+            "source_message_id": "ae908a9e-0087-4dee-b8b2-8142499e0fdb"
+          },
+          "generated_at": "2026-05-21T12:36:54.307+00:00",
+          "last_updated_at": "2026-05-21T12:36:54.307+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "7417b308-3494-46cc-8607-20c2b4865cb9",
+          "message_instruction": "Envoie un message sobre et ancré pour désamorcer l'auto-critique et soutenir la reprise de l'habitude sans ton infantilisant.",
+          "rationale": "Un suivi quotidien pendant une semaine permet de stabiliser le dialogue intérieur après une rechute.",
+          "local_time_hhmm": "09:00",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "2ce6c544-65c4-485f-9d63-54517ba335e3",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r19_hard_green-guerison-t05-a1",
+            "operation_id": "97a389de-ae45-4859-811f-d1acfd6deb05",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien pendant une semaine permet de stabiliser le dialogue intérieur après une rechute.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Reprendre doucement après un ratage",
+              "evidence": [
+                "Hier j'ai juste tout lache",
+                "depuis je me parle mal"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "7c348a49-db2a-4baa-a38e-c319d01a240e",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "7c348a49-db2a-4baa-a38e-c319d01a240e",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T12:36:54.307+00:00",
+          "created_at": "2026-05-21T12:36:54.311836+00:00",
+          "updated_at": "2026-05-21T12:36:54.311836+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "930ee392-f3f1-4499-92e5-1fa255f16aeb",
+          "recurring_reminder_id": "7417b308-3494-46cc-8607-20c2b4865cb9",
+          "event_context": "recurring_reminder:7417b308-3494-46cc-8607-20c2b4865cb9:potion:2ce6c544-65c4-485f-9d63-54517ba335e3:2026-05-22",
+          "draft_message": "Envoie un message sobre et ancré pour désamorcer l'auto-critique et soutenir la reprise de l'habitude sans ton infantilisant.",
+          "scheduled_for": "2026-05-22T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:36:54.315356+00:00"
+        },
+        {
+          "id": "48d359c6-7df8-421f-9575-555e21f5bd50",
+          "recurring_reminder_id": "7417b308-3494-46cc-8607-20c2b4865cb9",
+          "event_context": "recurring_reminder:7417b308-3494-46cc-8607-20c2b4865cb9:potion:2ce6c544-65c4-485f-9d63-54517ba335e3:2026-05-23",
+          "draft_message": "Envoie un message sobre et ancré pour désamorcer l'auto-critique et soutenir la reprise de l'habitude sans ton infantilisant.",
+          "scheduled_for": "2026-05-23T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:36:54.315356+00:00"
+        },
+        {
+          "id": "1d37d9c1-138b-4445-9da1-38538a98edcb",
+          "recurring_reminder_id": "7417b308-3494-46cc-8607-20c2b4865cb9",
+          "event_context": "recurring_reminder:7417b308-3494-46cc-8607-20c2b4865cb9:potion:2ce6c544-65c4-485f-9d63-54517ba335e3:2026-05-24",
+          "draft_message": "Envoie un message sobre et ancré pour désamorcer l'auto-critique et soutenir la reprise de l'habitude sans ton infantilisant.",
+          "scheduled_for": "2026-05-24T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:36:54.315356+00:00"
+        },
+        {
+          "id": "0890547b-6be5-4e28-9d06-b90ddebb1c8d",
+          "recurring_reminder_id": "7417b308-3494-46cc-8607-20c2b4865cb9",
+          "event_context": "recurring_reminder:7417b308-3494-46cc-8607-20c2b4865cb9:potion:2ce6c544-65c4-485f-9d63-54517ba335e3:2026-05-25",
+          "draft_message": "Envoie un message sobre et ancré pour désamorcer l'auto-critique et soutenir la reprise de l'habitude sans ton infantilisant.",
+          "scheduled_for": "2026-05-25T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:36:54.315356+00:00"
+        },
+        {
+          "id": "7df59ae2-79a5-47cc-a120-fb960d7954b5",
+          "recurring_reminder_id": "7417b308-3494-46cc-8607-20c2b4865cb9",
+          "event_context": "recurring_reminder:7417b308-3494-46cc-8607-20c2b4865cb9:potion:2ce6c544-65c4-485f-9d63-54517ba335e3:2026-05-26",
+          "draft_message": "Envoie un message sobre et ancré pour désamorcer l'auto-critique et soutenir la reprise de l'habitude sans ton infantilisant.",
+          "scheduled_for": "2026-05-26T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:36:54.315356+00:00"
+        },
+        {
+          "id": "fab6b49a-f3bd-4029-bd0b-be70d4e8fbd9",
+          "recurring_reminder_id": "7417b308-3494-46cc-8607-20c2b4865cb9",
+          "event_context": "recurring_reminder:7417b308-3494-46cc-8607-20c2b4865cb9:potion:2ce6c544-65c4-485f-9d63-54517ba335e3:2026-05-27",
+          "draft_message": "Envoie un message sobre et ancré pour désamorcer l'auto-critique et soutenir la reprise de l'habitude sans ton infantilisant.",
+          "scheduled_for": "2026-05-27T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:36:54.315356+00:00"
+        },
+        {
+          "id": "a8e18613-8c28-487a-9607-55230528143e",
+          "recurring_reminder_id": "7417b308-3494-46cc-8607-20c2b4865cb9",
+          "event_context": "recurring_reminder:7417b308-3494-46cc-8607-20c2b4865cb9:potion:2ce6c544-65c4-485f-9d63-54517ba335e3:2026-05-28",
+          "draft_message": "Envoie un message sobre et ancré pour désamorcer l'auto-critique et soutenir la reprise de l'habitude sans ton infantilisant.",
+          "scheduled_for": "2026-05-28T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:36:54.315356+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "clarte",
+    "user_id": "37f828f0-5492-43a9-8074-bac741576734",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r19_hard_green_clarte",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "7ea85364-2997-40e6-99e4-4bbb046fb093",
+          "potion_type": "clarte",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "f426b67f-3e1f-4c30-bef3-66d65cf1efeb",
+          "transformation_id": null,
+          "content": {
+            "title": "Retrouver le premier fil",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Choisir la priorité du matin",
+              "evidence": [
+                "Demain matin a 9h serait utile",
+                "Choisir la priorité du matin"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "0cbe744e-b67c-4302-b4fe-563d6b02b62f",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Retrouver le premier fil",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un soutien quotidien pendant une semaine pour stabiliser la capacité à trouver le point de départ, en commençant par demain matin.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "09:00",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "09:00",
+                "reason_for_time": "C'est le moment où tu choisis ta priorité et où tu as besoin de clarté pour la journée.",
+                "reminder_instruction": "Aider le user à isoler son premier fil conducteur sans pression."
+              },
+              "potion_type": "clarte",
+              "opening_prompt": "Si tu veux, ajoute ici le point qui te brouille le plus l'esprit en ce moment.",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Choisir la priorité du matin",
+                "evidence": [
+                  "Demain matin a 9h serait utile",
+                  "Choisir la priorité du matin"
+                ],
+                "recurrence_hint": "quotidien",
+                "date_or_window_hint": "09:00",
+                "target_plan_item_id": "0cbe744e-b67c-4302-b4fe-563d6b02b62f",
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Parce que tu as besoin de retrouver un point de départ simple au milieu du flou pour protéger ton énergie.",
+              "expected_duration": "short",
+              "potion_info_message": "Cette potion de clarté va t'aider à décanter. Je t'enverrai un message chaque matin pour t'aider à isoler une seule chose importante, sans surcharge.",
+              "instant_support_message": "Respire. On ne cherche pas la solution parfaite ni la décision finale, juste le point de départ pour aujourd'hui. C'est normal que ce soit flou quand il y a trop de choses en même temps."
+            },
+            "why_this_potion": "Parce que tu as besoin de retrouver un point de départ simple au milieu du flou pour protéger ton énergie.",
+            "potion_info_message": "Cette potion de clarté va t'aider à décanter. Je t'enverrai un message chaque matin pour t'aider à isoler une seule chose importante, sans surcharge.",
+            "instant_support_message": "Respire. On ne cherche pas la solution parfaite ni la décision finale, juste le point de départ pour aujourd'hui. C'est normal que ce soit flou quand il y a trop de choses en même temps."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un soutien quotidien pendant une semaine pour stabiliser la capacité à trouver le point de départ, en commençant par demain matin.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Choisir la priorité du matin",
+              "evidence": [
+                "Demain matin a 9h serait utile",
+                "Choisir la priorité du matin"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "0cbe744e-b67c-4302-b4fe-563d6b02b62f",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "09:00",
+            "reason_for_time": "C'est le moment où tu choisis ta priorité et où tu as besoin de clarté pour la journée.",
+            "reminder_instruction": "Aider le user à isoler son premier fil conducteur sans pression."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r19_hard_green-clarte-t05-a1",
+            "operation_id": "b4b218b3-39b8-43d7-8613-b976305e7627",
+            "operation_type": "select_state_potion",
+            "source_message_id": "6468863a-e4fa-4704-918a-14645094da8a"
+          },
+          "generated_at": "2026-05-21T12:39:57.253+00:00",
+          "last_updated_at": "2026-05-21T12:39:57.253+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "bd4b24f2-da52-4196-bdf6-a4cbde116d56",
+          "message_instruction": "Aider le user à isoler son premier fil conducteur sans pression.",
+          "rationale": "Un soutien quotidien pendant une semaine pour stabiliser la capacité à trouver le point de départ, en commençant par demain matin.",
+          "local_time_hhmm": "09:00",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "7ea85364-2997-40e6-99e4-4bbb046fb093",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r19_hard_green-clarte-t05-a1",
+            "operation_id": "b4b218b3-39b8-43d7-8613-b976305e7627",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un soutien quotidien pendant une semaine pour stabiliser la capacité à trouver le point de départ, en commençant par demain matin.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Choisir la priorité du matin",
+              "evidence": [
+                "Demain matin a 9h serait utile",
+                "Choisir la priorité du matin"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "0cbe744e-b67c-4302-b4fe-563d6b02b62f",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "0cbe744e-b67c-4302-b4fe-563d6b02b62f",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T12:39:57.253+00:00",
+          "created_at": "2026-05-21T12:39:57.259175+00:00",
+          "updated_at": "2026-05-21T12:39:57.259175+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "6ee02002-8ae8-4f74-a6be-627e1861f000",
+          "recurring_reminder_id": "bd4b24f2-da52-4196-bdf6-a4cbde116d56",
+          "event_context": "recurring_reminder:bd4b24f2-da52-4196-bdf6-a4cbde116d56:potion:7ea85364-2997-40e6-99e4-4bbb046fb093:2026-05-22",
+          "draft_message": "Aider le user à isoler son premier fil conducteur sans pression.",
+          "scheduled_for": "2026-05-22T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:39:57.262449+00:00"
+        },
+        {
+          "id": "c69e4dba-1ca8-4e13-8ea8-b56cc35169ef",
+          "recurring_reminder_id": "bd4b24f2-da52-4196-bdf6-a4cbde116d56",
+          "event_context": "recurring_reminder:bd4b24f2-da52-4196-bdf6-a4cbde116d56:potion:7ea85364-2997-40e6-99e4-4bbb046fb093:2026-05-23",
+          "draft_message": "Aider le user à isoler son premier fil conducteur sans pression.",
+          "scheduled_for": "2026-05-23T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:39:57.262449+00:00"
+        },
+        {
+          "id": "98f74aa4-f8e8-457b-b709-727438c14c02",
+          "recurring_reminder_id": "bd4b24f2-da52-4196-bdf6-a4cbde116d56",
+          "event_context": "recurring_reminder:bd4b24f2-da52-4196-bdf6-a4cbde116d56:potion:7ea85364-2997-40e6-99e4-4bbb046fb093:2026-05-24",
+          "draft_message": "Aider le user à isoler son premier fil conducteur sans pression.",
+          "scheduled_for": "2026-05-24T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:39:57.262449+00:00"
+        },
+        {
+          "id": "982a781c-43a7-439e-b496-856289f4b97c",
+          "recurring_reminder_id": "bd4b24f2-da52-4196-bdf6-a4cbde116d56",
+          "event_context": "recurring_reminder:bd4b24f2-da52-4196-bdf6-a4cbde116d56:potion:7ea85364-2997-40e6-99e4-4bbb046fb093:2026-05-25",
+          "draft_message": "Aider le user à isoler son premier fil conducteur sans pression.",
+          "scheduled_for": "2026-05-25T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:39:57.262449+00:00"
+        },
+        {
+          "id": "ec711937-0333-43ab-ad99-d21b45c044a3",
+          "recurring_reminder_id": "bd4b24f2-da52-4196-bdf6-a4cbde116d56",
+          "event_context": "recurring_reminder:bd4b24f2-da52-4196-bdf6-a4cbde116d56:potion:7ea85364-2997-40e6-99e4-4bbb046fb093:2026-05-26",
+          "draft_message": "Aider le user à isoler son premier fil conducteur sans pression.",
+          "scheduled_for": "2026-05-26T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:39:57.262449+00:00"
+        },
+        {
+          "id": "cfc826bf-ff95-4d41-a6f9-a6cb8d4e4262",
+          "recurring_reminder_id": "bd4b24f2-da52-4196-bdf6-a4cbde116d56",
+          "event_context": "recurring_reminder:bd4b24f2-da52-4196-bdf6-a4cbde116d56:potion:7ea85364-2997-40e6-99e4-4bbb046fb093:2026-05-27",
+          "draft_message": "Aider le user à isoler son premier fil conducteur sans pression.",
+          "scheduled_for": "2026-05-27T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:39:57.262449+00:00"
+        },
+        {
+          "id": "85f0cc85-8348-4abe-8714-eac86477d708",
+          "recurring_reminder_id": "bd4b24f2-da52-4196-bdf6-a4cbde116d56",
+          "event_context": "recurring_reminder:bd4b24f2-da52-4196-bdf6-a4cbde116d56:potion:7ea85364-2997-40e6-99e4-4bbb046fb093:2026-05-28",
+          "draft_message": "Aider le user à isoler son premier fil conducteur sans pression.",
+          "scheduled_for": "2026-05-28T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:39:57.262449+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "amour",
+    "user_id": "74ce6bae-7109-4b0e-9cc3-99ed8f433137",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r19_hard_green_amour",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "a585b2e8-869d-48de-b7f1-93ceeb16d7dc",
+          "potion_type": "amour",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "61ed33b4-5843-4538-9cb8-237c024655e5",
+          "transformation_id": null,
+          "content": {
+            "title": "Un ton juste pour soi",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Me parler avec plus de douceur",
+              "evidence": [
+                "Action QA active visible par le skill potion.",
+                "Me parler avec plus de douceur"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "7f491005-485e-4c9c-bc5e-92041bc1be98",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Un ton juste pour soi",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un suivi quotidien à l'heure choisie permet d'ancrer une nouvelle habitude de dialogue intérieur dès le début de la journée.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "09:00",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "09:00",
+                "reason_for_time": "Le user a confirmé que 9h00 lui convient pour démarrer la journée sans auto-critique.",
+                "reminder_instruction": "Aide le user à observer ses erreurs ou ses blocages avec une honnêteté calme, sans utiliser de mots durs ou de jugements globaux. Reste direct, factuel et encourageant, en évitant le ton excessivement sucré qu'il redoute."
+              },
+              "potion_type": "amour",
+              "opening_prompt": "C'est entendu. On va chercher cette lucidité qui ne blesse pas.",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Me parler avec plus de douceur",
+                "evidence": [
+                  "Action QA active visible par le skill potion.",
+                  "Me parler avec plus de douceur"
+                ],
+                "recurrence_hint": "quotidien",
+                "date_or_window_hint": "09:00",
+                "target_plan_item_id": "7f491005-485e-4c9c-bc5e-92041bc1be98",
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Le user exprime un auto-jugement répétitif ('tu rates toujours les mêmes choses') et cherche une alternative à la dureté qui reste honnête et lucide, ce qui correspond parfaitement à la potion d'amour pour adoucir le dialogue intérieur sans déni.",
+              "expected_duration": "short",
+              "potion_info_message": "Pendant une semaine, je t'enverrai un message chaque matin pour t'aider à garder ce ton juste, sans sucre mais sans dureté, pour soutenir ton intention de mieux te parler.",
+              "instant_support_message": "Prends un instant pour laisser redescendre la pression du jugement. Voir ce qui bloque, c'est déjà un premier pas ; le faire avec douceur, c'est ce qui permet de ne pas s'épuiser."
+            },
+            "why_this_potion": "Le user exprime un auto-jugement répétitif ('tu rates toujours les mêmes choses') et cherche une alternative à la dureté qui reste honnête et lucide, ce qui correspond parfaitement à la potion d'amour pour adoucir le dialogue intérieur sans déni.",
+            "potion_info_message": "Pendant une semaine, je t'enverrai un message chaque matin pour t'aider à garder ce ton juste, sans sucre mais sans dureté, pour soutenir ton intention de mieux te parler.",
+            "instant_support_message": "Prends un instant pour laisser redescendre la pression du jugement. Voir ce qui bloque, c'est déjà un premier pas ; le faire avec douceur, c'est ce qui permet de ne pas s'épuiser."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien à l'heure choisie permet d'ancrer une nouvelle habitude de dialogue intérieur dès le début de la journée.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Me parler avec plus de douceur",
+              "evidence": [
+                "Action QA active visible par le skill potion.",
+                "Me parler avec plus de douceur"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "7f491005-485e-4c9c-bc5e-92041bc1be98",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "09:00",
+            "reason_for_time": "Le user a confirmé que 9h00 lui convient pour démarrer la journée sans auto-critique.",
+            "reminder_instruction": "Aide le user à observer ses erreurs ou ses blocages avec une honnêteté calme, sans utiliser de mots durs ou de jugements globaux. Reste direct, factuel et encourageant, en évitant le ton excessivement sucré qu'il redoute."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r19_hard_green-amour-t05-a1",
+            "operation_id": "24f3977c-5c89-4d95-968c-7610524824ca",
+            "operation_type": "select_state_potion",
+            "source_message_id": "38825c9e-5fca-4748-a11f-be5d61cea03e"
+          },
+          "generated_at": "2026-05-21T12:41:38.827+00:00",
+          "last_updated_at": "2026-05-21T12:41:38.827+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "c711cca3-843d-4a1c-8239-07505334872f",
+          "message_instruction": "Aide le user à observer ses erreurs ou ses blocages avec une honnêteté calme, sans utiliser de mots durs ou de jugements globaux. Reste direct, factuel et encourageant, en évitant le ton excessivement sucré qu'il redoute.",
+          "rationale": "Un suivi quotidien à l'heure choisie permet d'ancrer une nouvelle habitude de dialogue intérieur dès le début de la journée.",
+          "local_time_hhmm": "09:00",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "a585b2e8-869d-48de-b7f1-93ceeb16d7dc",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r19_hard_green-amour-t05-a1",
+            "operation_id": "24f3977c-5c89-4d95-968c-7610524824ca",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien à l'heure choisie permet d'ancrer une nouvelle habitude de dialogue intérieur dès le début de la journée.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Me parler avec plus de douceur",
+              "evidence": [
+                "Action QA active visible par le skill potion.",
+                "Me parler avec plus de douceur"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "7f491005-485e-4c9c-bc5e-92041bc1be98",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "7f491005-485e-4c9c-bc5e-92041bc1be98",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T12:41:38.827+00:00",
+          "created_at": "2026-05-21T12:41:38.833595+00:00",
+          "updated_at": "2026-05-21T12:41:38.833595+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "0e61ce21-edc7-4302-ad1a-42df225c0bd2",
+          "recurring_reminder_id": "c711cca3-843d-4a1c-8239-07505334872f",
+          "event_context": "recurring_reminder:c711cca3-843d-4a1c-8239-07505334872f:potion:a585b2e8-869d-48de-b7f1-93ceeb16d7dc:2026-05-22",
+          "draft_message": "Aide le user à observer ses erreurs ou ses blocages avec une honnêteté calme, sans utiliser de mots durs ou de jugements globaux. Reste direct, factuel et encourageant, en évitant le ton excessivement sucré qu'il redoute.",
+          "scheduled_for": "2026-05-22T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:41:38.838539+00:00"
+        },
+        {
+          "id": "40d862c5-a666-47a4-892b-12c88abefb92",
+          "recurring_reminder_id": "c711cca3-843d-4a1c-8239-07505334872f",
+          "event_context": "recurring_reminder:c711cca3-843d-4a1c-8239-07505334872f:potion:a585b2e8-869d-48de-b7f1-93ceeb16d7dc:2026-05-23",
+          "draft_message": "Aide le user à observer ses erreurs ou ses blocages avec une honnêteté calme, sans utiliser de mots durs ou de jugements globaux. Reste direct, factuel et encourageant, en évitant le ton excessivement sucré qu'il redoute.",
+          "scheduled_for": "2026-05-23T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:41:38.838539+00:00"
+        },
+        {
+          "id": "f505f570-f7e3-4cd2-8da7-b09656838f88",
+          "recurring_reminder_id": "c711cca3-843d-4a1c-8239-07505334872f",
+          "event_context": "recurring_reminder:c711cca3-843d-4a1c-8239-07505334872f:potion:a585b2e8-869d-48de-b7f1-93ceeb16d7dc:2026-05-24",
+          "draft_message": "Aide le user à observer ses erreurs ou ses blocages avec une honnêteté calme, sans utiliser de mots durs ou de jugements globaux. Reste direct, factuel et encourageant, en évitant le ton excessivement sucré qu'il redoute.",
+          "scheduled_for": "2026-05-24T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:41:38.838539+00:00"
+        },
+        {
+          "id": "ba240a2a-312b-4341-a2b2-f9a0e99ac725",
+          "recurring_reminder_id": "c711cca3-843d-4a1c-8239-07505334872f",
+          "event_context": "recurring_reminder:c711cca3-843d-4a1c-8239-07505334872f:potion:a585b2e8-869d-48de-b7f1-93ceeb16d7dc:2026-05-25",
+          "draft_message": "Aide le user à observer ses erreurs ou ses blocages avec une honnêteté calme, sans utiliser de mots durs ou de jugements globaux. Reste direct, factuel et encourageant, en évitant le ton excessivement sucré qu'il redoute.",
+          "scheduled_for": "2026-05-25T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:41:38.838539+00:00"
+        },
+        {
+          "id": "a7e97095-7d4f-4371-8352-1b563be45cba",
+          "recurring_reminder_id": "c711cca3-843d-4a1c-8239-07505334872f",
+          "event_context": "recurring_reminder:c711cca3-843d-4a1c-8239-07505334872f:potion:a585b2e8-869d-48de-b7f1-93ceeb16d7dc:2026-05-26",
+          "draft_message": "Aide le user à observer ses erreurs ou ses blocages avec une honnêteté calme, sans utiliser de mots durs ou de jugements globaux. Reste direct, factuel et encourageant, en évitant le ton excessivement sucré qu'il redoute.",
+          "scheduled_for": "2026-05-26T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:41:38.838539+00:00"
+        },
+        {
+          "id": "671b0f4b-06f8-4428-9b23-e5b424714d57",
+          "recurring_reminder_id": "c711cca3-843d-4a1c-8239-07505334872f",
+          "event_context": "recurring_reminder:c711cca3-843d-4a1c-8239-07505334872f:potion:a585b2e8-869d-48de-b7f1-93ceeb16d7dc:2026-05-27",
+          "draft_message": "Aide le user à observer ses erreurs ou ses blocages avec une honnêteté calme, sans utiliser de mots durs ou de jugements globaux. Reste direct, factuel et encourageant, en évitant le ton excessivement sucré qu'il redoute.",
+          "scheduled_for": "2026-05-27T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:41:38.838539+00:00"
+        },
+        {
+          "id": "5374ac79-43a6-484d-ad8e-b7ae0b5d5581",
+          "recurring_reminder_id": "c711cca3-843d-4a1c-8239-07505334872f",
+          "event_context": "recurring_reminder:c711cca3-843d-4a1c-8239-07505334872f:potion:a585b2e8-869d-48de-b7f1-93ceeb16d7dc:2026-05-28",
+          "draft_message": "Aide le user à observer ses erreurs ou ses blocages avec une honnêteté calme, sans utiliser de mots durs ou de jugements globaux. Reste direct, factuel et encourageant, en évitant le ton excessivement sucré qu'il redoute.",
+          "scheduled_for": "2026-05-28T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:41:38.838539+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "apaisement",
+    "user_id": "09140039-6efc-46e2-be49-6098b2eb2f61",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r19_hard_green_apaisement",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "03df0b24-722b-4c3f-b6f8-afef0cb23870",
+          "potion_type": "apaisement",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "42ecbae0-e52d-4f55-a07c-fd47476b4133",
+          "transformation_id": null,
+          "content": {
+            "title": "Redescendre la pression",
+            "target_binding": {
+              "kind": "none",
+              "label": null,
+              "evidence": [
+                "Dans le corps c'est poitrine serree, machoire bloquee",
+                "Le matin a 08h30 sur la semaine peut aider"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Redescendre la pression",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un suivi quotidien le matin permet de prévenir la montée en charge et de détendre les tensions physiques mentionnées.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "08:30",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "08:30",
+                "reason_for_time": "L'horaire de 08h30 a été explicitement demandé pour soutenir le début de journée sur toute la semaine.",
+                "reminder_instruction": "Envoie un message doux pour aider à relâcher les tensions physiques (poitrine, mâchoire) et aborder la journée sans pression de performance."
+              },
+              "potion_type": "apaisement",
+              "opening_prompt": "On va chercher à desserrer un peu l'étau avant que la pression ne devienne trop lourde.",
+              "target_binding": {
+                "kind": "none",
+                "label": null,
+                "evidence": [
+                  "Dans le corps c'est poitrine serree, machoire bloquee",
+                  "Le matin a 08h30 sur la semaine peut aider"
+                ],
+                "recurrence_hint": null,
+                "date_or_window_hint": null,
+                "target_plan_item_id": null,
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Tu ressens une forte tension physique, notamment au niveau de la poitrine et de la mâchoire, liée à la charge globale et à ta réunion. Cette potion vise à ramener de la souplesse sans ajouter d'exigence.",
+              "expected_duration": "short",
+              "potion_info_message": "Cette potion d'apaisement est là pour t'aider à retrouver de l'air quand tout se compacte. Je t'enverrai un message chaque matin à 08h30 pendant 7 jours pour t'aider à aborder la journée avec plus de douceur, sans aucune pression de performance.",
+              "instant_support_message": "Prends un instant pour desserrer ta mâchoire et laisser tes épaules redescendre. Ta poitrine est serrée, c'est le signe que la pression est là : respire juste un peu plus lentement, sans chercher à tout résoudre d'un coup."
+            },
+            "why_this_potion": "Tu ressens une forte tension physique, notamment au niveau de la poitrine et de la mâchoire, liée à la charge globale et à ta réunion. Cette potion vise à ramener de la souplesse sans ajouter d'exigence.",
+            "potion_info_message": "Cette potion d'apaisement est là pour t'aider à retrouver de l'air quand tout se compacte. Je t'enverrai un message chaque matin à 08h30 pendant 7 jours pour t'aider à aborder la journée avec plus de douceur, sans aucune pression de performance.",
+            "instant_support_message": "Prends un instant pour desserrer ta mâchoire et laisser tes épaules redescendre. Ta poitrine est serrée, c'est le signe que la pression est là : respire juste un peu plus lentement, sans chercher à tout résoudre d'un coup."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien le matin permet de prévenir la montée en charge et de détendre les tensions physiques mentionnées.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "none",
+              "label": null,
+              "evidence": [
+                "Dans le corps c'est poitrine serree, machoire bloquee",
+                "Le matin a 08h30 sur la semaine peut aider"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "08:30",
+            "reason_for_time": "L'horaire de 08h30 a été explicitement demandé pour soutenir le début de journée sur toute la semaine.",
+            "reminder_instruction": "Envoie un message doux pour aider à relâcher les tensions physiques (poitrine, mâchoire) et aborder la journée sans pression de performance."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r19_hard_green-apaisement-t04-a1",
+            "operation_id": "f86159cf-14d4-4723-81bb-3fa720929547",
+            "operation_type": "select_state_potion",
+            "source_message_id": "41088589-ecc7-490a-981e-713ab70b793f"
+          },
+          "generated_at": "2026-05-21T12:43:33.292+00:00",
+          "last_updated_at": "2026-05-21T12:43:33.292+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14",
+          "message_instruction": "Envoie un message doux pour aider à relâcher les tensions physiques (poitrine, mâchoire) et aborder la journée sans pression de performance.",
+          "rationale": "Un suivi quotidien le matin permet de prévenir la montée en charge et de détendre les tensions physiques mentionnées.",
+          "local_time_hhmm": "08:30",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "03df0b24-722b-4c3f-b6f8-afef0cb23870",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r19_hard_green-apaisement-t04-a1",
+            "operation_id": "f86159cf-14d4-4723-81bb-3fa720929547",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien le matin permet de prévenir la montée en charge et de détendre les tensions physiques mentionnées.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "none",
+              "label": null,
+              "evidence": [
+                "Dans le corps c'est poitrine serree, machoire bloquee",
+                "Le matin a 08h30 sur la semaine peut aider"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "none",
+          "target_plan_item_id": null,
+          "target_action_family_key": null,
+          "target_binding_policy": "none",
+          "target_lifecycle_policy": "independent",
+          "starts_at": "2026-05-21T12:43:33.292+00:00",
+          "created_at": "2026-05-21T12:43:33.296397+00:00",
+          "updated_at": "2026-05-21T12:43:33.296397+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "42154514-ee1f-416f-b118-93edbe343665",
+          "recurring_reminder_id": "b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14",
+          "event_context": "recurring_reminder:b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14:potion:03df0b24-722b-4c3f-b6f8-afef0cb23870:2026-05-22",
+          "draft_message": "Envoie un message doux pour aider à relâcher les tensions physiques (poitrine, mâchoire) et aborder la journée sans pression de performance.",
+          "scheduled_for": "2026-05-22T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:43:33.300308+00:00"
+        },
+        {
+          "id": "fbfefbb5-d3f1-480a-bc6f-6cb1d2d407c4",
+          "recurring_reminder_id": "b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14",
+          "event_context": "recurring_reminder:b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14:potion:03df0b24-722b-4c3f-b6f8-afef0cb23870:2026-05-23",
+          "draft_message": "Envoie un message doux pour aider à relâcher les tensions physiques (poitrine, mâchoire) et aborder la journée sans pression de performance.",
+          "scheduled_for": "2026-05-23T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:43:33.300308+00:00"
+        },
+        {
+          "id": "a97178aa-b3f8-4ac4-99ef-d22412a54814",
+          "recurring_reminder_id": "b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14",
+          "event_context": "recurring_reminder:b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14:potion:03df0b24-722b-4c3f-b6f8-afef0cb23870:2026-05-24",
+          "draft_message": "Envoie un message doux pour aider à relâcher les tensions physiques (poitrine, mâchoire) et aborder la journée sans pression de performance.",
+          "scheduled_for": "2026-05-24T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:43:33.300308+00:00"
+        },
+        {
+          "id": "58cd8a83-1854-46f7-9629-239bdb30fc60",
+          "recurring_reminder_id": "b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14",
+          "event_context": "recurring_reminder:b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14:potion:03df0b24-722b-4c3f-b6f8-afef0cb23870:2026-05-25",
+          "draft_message": "Envoie un message doux pour aider à relâcher les tensions physiques (poitrine, mâchoire) et aborder la journée sans pression de performance.",
+          "scheduled_for": "2026-05-25T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:43:33.300308+00:00"
+        },
+        {
+          "id": "bdcd794a-1a91-4bb6-a8db-097b4a34dfed",
+          "recurring_reminder_id": "b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14",
+          "event_context": "recurring_reminder:b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14:potion:03df0b24-722b-4c3f-b6f8-afef0cb23870:2026-05-26",
+          "draft_message": "Envoie un message doux pour aider à relâcher les tensions physiques (poitrine, mâchoire) et aborder la journée sans pression de performance.",
+          "scheduled_for": "2026-05-26T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:43:33.300308+00:00"
+        },
+        {
+          "id": "9ded2aeb-ce20-48c6-8445-2cce28d733d2",
+          "recurring_reminder_id": "b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14",
+          "event_context": "recurring_reminder:b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14:potion:03df0b24-722b-4c3f-b6f8-afef0cb23870:2026-05-27",
+          "draft_message": "Envoie un message doux pour aider à relâcher les tensions physiques (poitrine, mâchoire) et aborder la journée sans pression de performance.",
+          "scheduled_for": "2026-05-27T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:43:33.300308+00:00"
+        },
+        {
+          "id": "064e4003-e1dc-4eba-b25b-35c14e03256f",
+          "recurring_reminder_id": "b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14",
+          "event_context": "recurring_reminder:b9dbc75e-f7e8-4a12-93e6-70b1bb7f7d14:potion:03df0b24-722b-4c3f-b6f8-afef0cb23870:2026-05-28",
+          "draft_message": "Envoie un message doux pour aider à relâcher les tensions physiques (poitrine, mâchoire) et aborder la journée sans pression de performance.",
+          "scheduled_for": "2026-05-28T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T12:43:33.300308+00:00"
+        }
+      ]
+    }
+  }
+]

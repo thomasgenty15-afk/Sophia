@@ -882,7 +882,7 @@ Deno.test("LA FUSION EST COLLANTE, ET C'EST BRANCHÉ", async () => {
   // La relecture et le report doivent précéder l'écriture, sinon ils décrivent
   // un plan qui est déjà en base.
   const readAt = src.indexOf("mergeStandings({");
-  const writeAt = src.indexOf('"write_student_meal_plan"');
+  const writeAt = src.indexOf('"keel_household_publish_generation"');
   assert(readAt >= 0 && writeAt >= 0, "marqueurs introuvables — test à réviser");
   assert(readAt < writeAt, "les reprises sont relues APRÈS l'écriture du plan.");
 });
@@ -917,15 +917,15 @@ Deno.test("LA DÉFUSION N'ÉCRIT PAS PLUS QUE LA FUSION SUR LE COMPTE DU SECONDA
   // est STRUCTUREL: la RPC ne touche que les lignes de `p_user_id`, qui est le
   // MAÎTRE. Le jour où quelqu'un y passe autre chose, ce test tombe.
   const src = await source("generate-household-meal-v1/index.ts");
-  const at = src.indexOf('"write_student_meal_plan"');
+  const at = src.indexOf('"keel_household_publish_generation"');
   assert(at >= 0, "l'écriture est introuvable — test à réviser");
   assert(
-    /p_user_id:\s*userId/.test(src.slice(at, at + 400)),
+    /p_user:\s*userId/.test(src.slice(at, at + 500)),
     "l'écriture ne se fait plus sur le compte du MAÎTRE: une défusion " +
       "écraserait le plan personnel qu'elle est censée laisser intact.",
   );
   assertEquals(
-    (src.match(/"write_student_meal_plan"/g) ?? []).length,
+    (src.match(/"keel_household_publish_generation"/g) ?? []).length,
     1,
     "il y a plus d'un site d'écriture de plan dans le générateur: les trois " +
       "opérations doivent passer par le même, sinon l'invariant se prouve " +

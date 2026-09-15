@@ -1,0 +1,344 @@
+{
+  "http_status": 200,
+  "ok": true,
+  "body": {
+    "ok": true,
+    "request_id": "b1ef598e-8e7b-46b0-9168-62b5c67c7aef",
+    "user_id": "de8f6263-058e-4315-b728-790777f1f0f9",
+    "channel": "web",
+    "scope": "web",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "logged_message_id": null,
+    "latest_message_id": null,
+    "response": {
+      "content": "C’est séparé : une carte d’attaque sert à te remettre en mouvement sans modifier ton plan.  \nSi elle ne colle plus, tu la refais ; ton plan, lui, reste inchangé 🙂",
+      "mode": "companion",
+      "delivery": {
+        "mode": "text_reply"
+      },
+      "tool_execution": "none",
+      "executed_tools": [],
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "b1ef598e-8e7b-46b0-9168-62b5c67c7aef",
+          "source_message_id": "211f1b1c-edb2-47d7-b791-21e91263ee5b",
+          "user_id": "de8f6263-058e-4315-b728-790777f1f0f9",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {
+            "product_help": {
+              "detected": true,
+              "confidence_band": "high",
+              "reason": "product_help_question"
+            }
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "answer_product_boundary_question",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "force_taxonomy",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "coaching_recommendation_exit_to_global",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "active_owner": "coaching_recommendation",
+            "selected_owner": "coaching_recommendation",
+            "resume_policy": "resume_active",
+            "reason_code": "active_coaching_recommendation"
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "b1ef598e-8e7b-46b0-9168-62b5c67c7aef",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "normal_reply",
+        "skill_run": {
+          "selected_skill_id": "coaching_recommendation",
+          "reason_code": "active_coaching_recommendation",
+          "status": "exit",
+          "latency_ms": 8959,
+          "exit_target": "global",
+          "exit_note_information": {
+            "source_flow_id": "coaching_recommendation",
+            "handoff_reason": "topic_change",
+            "target_dispatcher": "global",
+            "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"Question produit autonome sur la carte d'attaque: le user demande si elle modifie le plan ou si elle est séparée.\",\"active_flow_summary\":\"coaching_recommendation helps choose a Sophia feature and never executes tools.\",\"collected_state\":{\"user_need_summary\":\"Le user pose une question produit sur la carte d'attaque et ajoute une demande de rappel ponctuel déjà prise en charge par la lane directe.\",\"candidate_features\":[],\"current_recommendation\":null,\"parent_context\":null,\"dispatcher_signal_context\":{\"reason\":\"The user wants immediate movement without changing the plan, which is a plan-linked coaching need.\",\"confidence\":0.84,\"coaching_type\":\"plan_action\",\"action_context\":{\"source\":\"plan\",\"plan_id\":null,\"plan_title\":null,\"action_type\":\"other\",\"action_title\":null,\"plan_item_id\":null},\"activation_checks\":{\"is_coaching_need\":true,\"is_about_plan_action\":true,\"needs_type_confirmation\":true,\"has_concrete_plan_action\":false,\"is_about_emotional_state\":false,\"is_about_non_plan_action\":false},\"emotional_state_context\":null}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"constraints\":[\"coaching_recommendation_never_executes_tools\",\"recommendation_only\"],\"evidence\":[\"Je change de sujet : question produit seulement\",\"quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?\"]}",
+            "user_words": [
+              "Je change de sujet : question produit seulement, quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?",
+              "Je change de sujet : question produit seulement",
+              "quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?"
+            ],
+            "structured_context": {
+              "user_message_summary": "Question produit autonome sur la carte d'attaque: le user demande si elle modifie le plan ou si elle est séparée.",
+              "active_flow_summary": "coaching_recommendation helps choose a Sophia feature and never executes tools.",
+              "collected_state": {
+                "user_need_summary": "Le user pose une question produit sur la carte d'attaque et ajoute une demande de rappel ponctuel déjà prise en charge par la lane directe.",
+                "candidate_features": [],
+                "current_recommendation": null,
+                "parent_context": null,
+                "dispatcher_signal_context": {
+                  "reason": "The user wants immediate movement without changing the plan, which is a plan-linked coaching need.",
+                  "confidence": 0.84,
+                  "coaching_type": "plan_action",
+                  "action_context": {
+                    "source": "plan",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other",
+                    "action_title": null,
+                    "plan_item_id": null
+                  },
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": true,
+                    "needs_type_confirmation": true,
+                    "has_concrete_plan_action": false,
+                    "is_about_emotional_state": false,
+                    "is_about_non_plan_action": false
+                  },
+                  "emotional_state_context": null
+                }
+              },
+              "unresolved_questions": [],
+              "recommended_next_focus": "global",
+              "constraints": [
+                "coaching_recommendation_never_executes_tools",
+                "recommendation_only"
+              ],
+              "evidence": [
+                "Je change de sujet : question produit seulement",
+                "quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?"
+              ]
+            },
+            "confidence": "high"
+          }
+        }
+      }
+    },
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "b1ef598e-8e7b-46b0-9168-62b5c67c7aef",
+        "source_message_id": "211f1b1c-edb2-47d7-b791-21e91263ee5b",
+        "user_id": "de8f6263-058e-4315-b728-790777f1f0f9",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "note_information": null,
+        "skill_signals": {
+          "product_help": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "product_help_question"
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "answer_product_boundary_question",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "force_taxonomy",
+          "plan_confidence": 0.7
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "normal_reply",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "coaching_recommendation_exit_to_global",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "continue_active",
+          "active_owner": "coaching_recommendation",
+          "selected_owner": "coaching_recommendation",
+          "resume_policy": "resume_active",
+          "reason_code": "active_coaching_recommendation"
+        }
+      },
+      "effect_ledger": {
+        "turn_id": "b1ef598e-8e7b-46b0-9168-62b5c67c7aef",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "normal_reply",
+      "skill_run": {
+        "selected_skill_id": "coaching_recommendation",
+        "reason_code": "active_coaching_recommendation",
+        "status": "exit",
+        "latency_ms": 8959,
+        "exit_target": "global",
+        "exit_note_information": {
+          "source_flow_id": "coaching_recommendation",
+          "handoff_reason": "topic_change",
+          "target_dispatcher": "global",
+          "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"Question produit autonome sur la carte d'attaque: le user demande si elle modifie le plan ou si elle est séparée.\",\"active_flow_summary\":\"coaching_recommendation helps choose a Sophia feature and never executes tools.\",\"collected_state\":{\"user_need_summary\":\"Le user pose une question produit sur la carte d'attaque et ajoute une demande de rappel ponctuel déjà prise en charge par la lane directe.\",\"candidate_features\":[],\"current_recommendation\":null,\"parent_context\":null,\"dispatcher_signal_context\":{\"reason\":\"The user wants immediate movement without changing the plan, which is a plan-linked coaching need.\",\"confidence\":0.84,\"coaching_type\":\"plan_action\",\"action_context\":{\"source\":\"plan\",\"plan_id\":null,\"plan_title\":null,\"action_type\":\"other\",\"action_title\":null,\"plan_item_id\":null},\"activation_checks\":{\"is_coaching_need\":true,\"is_about_plan_action\":true,\"needs_type_confirmation\":true,\"has_concrete_plan_action\":false,\"is_about_emotional_state\":false,\"is_about_non_plan_action\":false},\"emotional_state_context\":null}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"constraints\":[\"coaching_recommendation_never_executes_tools\",\"recommendation_only\"],\"evidence\":[\"Je change de sujet : question produit seulement\",\"quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?\"]}",
+          "user_words": [
+            "Je change de sujet : question produit seulement, quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?",
+            "Je change de sujet : question produit seulement",
+            "quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?"
+          ],
+          "structured_context": {
+            "user_message_summary": "Question produit autonome sur la carte d'attaque: le user demande si elle modifie le plan ou si elle est séparée.",
+            "active_flow_summary": "coaching_recommendation helps choose a Sophia feature and never executes tools.",
+            "collected_state": {
+              "user_need_summary": "Le user pose une question produit sur la carte d'attaque et ajoute une demande de rappel ponctuel déjà prise en charge par la lane directe.",
+              "candidate_features": [],
+              "current_recommendation": null,
+              "parent_context": null,
+              "dispatcher_signal_context": {
+                "reason": "The user wants immediate movement without changing the plan, which is a plan-linked coaching need.",
+                "confidence": 0.84,
+                "coaching_type": "plan_action",
+                "action_context": {
+                  "source": "plan",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "action_type": "other",
+                  "action_title": null,
+                  "plan_item_id": null
+                },
+                "activation_checks": {
+                  "is_coaching_need": true,
+                  "is_about_plan_action": true,
+                  "needs_type_confirmation": true,
+                  "has_concrete_plan_action": false,
+                  "is_about_emotional_state": false,
+                  "is_about_non_plan_action": false
+                },
+                "emotional_state_context": null
+              }
+            },
+            "unresolved_questions": [],
+            "recommended_next_focus": "global",
+            "constraints": [
+              "coaching_recommendation_never_executes_tools",
+              "recommendation_only"
+            ],
+            "evidence": [
+              "Je change de sujet : question produit seulement",
+              "quand Sophia propose une carte d'attaque, est-ce que ça modifie mon plan ou c'est séparé ?"
+            ]
+          },
+          "confidence": "high"
+        }
+      }
+    },
+    "trace_error": null
+  }
+}

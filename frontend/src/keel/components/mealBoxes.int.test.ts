@@ -838,6 +838,12 @@ describe("le jour suit l'ordre des gestes", () => {
         food_group: "poultry",
         buy_on: null,
         freeze_on_purchase: false,
+        // ⟳ 2026-09-12 · FERMETURE LOT 2 — les cinq champs du lot 1 sont requis.
+        ref: null,
+        amount: null,
+        unit: null,
+        state: null,
+        purchasable: true,
       },
       {
         term: "rice",
@@ -846,6 +852,12 @@ describe("le jour suit l'ordre des gestes", () => {
         food_group: "whole_grain",
         buy_on: null,
         freeze_on_purchase: false,
+        // ⟳ 2026-09-12 · FERMETURE LOT 2 — les cinq champs du lot 1 sont requis.
+        ref: null,
+        amount: null,
+        unit: null,
+        state: null,
+        purchasable: true,
       },
     ],
     moments: [],

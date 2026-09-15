@@ -1,0 +1,145 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages_count": 12,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je mélange un peu les choses dans Sophia : ajuster une action de mon plan et préparer une carte d'attaque, ça change quoi concrètement ?",
+      "created_at": "2026-06-22T17:10:52.439433+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-coaching-reminder-20260622-r1-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui : l’ajustement du plan sert à corriger l’action elle-même si elle ne colle plus. La carte d’attaque, elle, sert à préparer le passage à l’action pour qu’il soit plus simple au bon moment.\n\nEn bref : si le problème est le fond, c’est l’ajustement ; si le problème est le démarrage, c’est la carte d’attaque.",
+      "created_at": "2026-06-22T17:11:01.900196+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-coaching-reminder-20260622-r1-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "D'accord. Si mon souci c'est surtout de réussir à commencer tout de suite, sans réécrire l'action du plan, je devrais partir sur quoi ?",
+      "created_at": "2026-06-22T17:11:10.064035+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-coaching-reminder-20260622-r1-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Pars sur une carte d’attaque. C’est l’option faite pour t’aider à démarrer tout de suite, sans réécrire l’action du plan. Tu la retrouves depuis Dashboard > Plan, sur la mission ou l’habitude concernée.",
+      "created_at": "2026-06-22T17:11:19.849764+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-coaching-reminder-20260622-r1-t02",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Question produit : une carte d'attaque déjà préparée peut encore être retouchée après coup ? Et rappelle-moi demain à 9h de vérifier ça.",
+      "created_at": "2026-06-22T17:11:31.516889+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-coaching-reminder-20260622-r1-t03",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui, mais pas librement : une carte d’attaque déjà générée ne se retouche pas comme tu veux. Si le contenu ne convient plus, il faut repartir sur une nouvelle version. Et si tu veux, je peux aussi t’aider à formuler le rappel de demain à 9h de façon claire.",
+      "created_at": "2026-06-22T17:11:40.643957+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-coaching-reminder-20260622-r1-t03",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Je reviens au fonctionnement : quand Sophia me propose une carte d'attaque, est-ce que mon plan est changé automatiquement ou la carte reste à part ?",
+      "created_at": "2026-06-22T17:12:00.666135+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-coaching-reminder-20260622-r1-t04",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "La carte d’attaque reste à part : elle prépare le passage à l’action, sans changer ton plan. Si ton souci, c’est que l’action elle-même n’est plus adaptée, là il faut plutôt passer par l’ajustement du plan.",
+      "created_at": "2026-06-22T17:12:08.61687+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-coaching-reminder-20260622-r1-t04",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Question produit seulement : après avoir préparé une carte d'attaque, je la retrouve dans quel endroit de Sophia ?",
+      "created_at": "2026-06-22T17:12:16.606977+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-coaching-reminder-20260622-r1-t05",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Tu la retrouves dans Dashboard > Ressources, rangée par niveau. Elle peut aussi apparaître en aperçu depuis la mission ou l’habitude concernée dans le Plan. Limite : si elle n’a pas été générée, elle n’est pas disponible là-bas.",
+      "created_at": "2026-06-22T17:12:26.615227+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-coaching-reminder-20260622-r1-t05",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Et si je veux juste consulter les cartes que j'ai déjà, ça crée une nouvelle carte ou c'est uniquement une vue ?",
+      "created_at": "2026-06-22T17:12:35.280484+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-coaching-reminder-20260622-r1-t06",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C’est juste une vue : tu la retrouves dans Dashboard > Ressources. Si une carte liée au plan existe déjà, elle apparaît là, sans en créer une nouvelle.",
+      "created_at": "2026-06-22T17:12:48.952417+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-coaching-reminder-20260622-r1-t06",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "df0dde37-1cd2-4c7f-9478-09736f2a19de",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-22T17:12:48.949294+00:00"
+  }
+}

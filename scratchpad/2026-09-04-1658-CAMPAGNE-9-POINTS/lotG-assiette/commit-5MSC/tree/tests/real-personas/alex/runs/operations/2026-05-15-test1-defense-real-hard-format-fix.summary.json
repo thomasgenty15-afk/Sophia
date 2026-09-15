@@ -1,0 +1,161 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-format-fix-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Fais un truc pour le soir, là où ça part en vrille. Pas un pavé, juste règle ça.",
+    "assistant": "On prépare ça. C'est pour protéger ton sas de déchargement ? Et concrètement, il se passe quoi quand 'ça part en vrille' ? C'est quoi le piège ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "risk_situation",
+        "needed": true,
+        "reason": "structured_ai_missing_trigger",
+        "status": "missing",
+        "question": "On prépare ça. C'est pour protéger ton sas de déchargement ? Et concrètement, il se passe quoi quand 'ça part en vrille' ? C'est quoi le piège ?",
+        "known_slots": {
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "intake_state": {
+            "trigger": {
+              "type": null,
+              "status": "missing",
+              "evidence": [],
+              "confidence": 0
+            },
+            "skill_id": "prepare_defense_card",
+            "tool_fit": {
+              "reason": "L'utilisateur décrit un moment de dérapage ('ça part en vrille') le soir, ce qui correspond à une situation de risque nécessitant une carte de défense.",
+              "status": "defense",
+              "evidence": [
+                "Fais un truc pour le soir, là où ça part en vrille"
+              ],
+              "confidence": "high"
+            },
+            "attachment": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "le soir",
+                "plan_snapshot: habit 'Faire le sas de déchargement' scheduled for evening"
+              ],
+              "confidence": "medium",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "confidence": "medium",
+            "constraints": [
+              "Pas de pavé",
+              "Réponse courte"
+            ],
+            "current_step": "risk_intake",
+            "defense_goal": {
+              "value": null,
+              "status": "missing",
+              "evidence": [],
+              "confidence": "low"
+            },
+            "missing_slots": [
+              "trigger",
+              "defense_goal"
+            ],
+            "risk_situation": {
+              "label": "Soirée qui dérape",
+              "status": "identified",
+              "evidence": [
+                "le soir, là où ça part en vrille"
+              ],
+              "confidence": "medium",
+              "description": "ça part en vrille",
+              "timing_hint": "le soir",
+              "context_hint": null
+            },
+            "defense_response_hint": {
+              "value": null,
+              "status": "missing",
+              "evidence": [],
+              "confidence": "low",
+              "strategy_hint": null
+            },
+            "generated_user_message": "On prépare ça. C'est pour protéger ton sas de déchargement ? Et concrètement, il se passe quoi quand 'ça part en vrille' ? C'est quoi le piège ?"
+          },
+          "risk_situation": {
+            "label": "Soirée qui dérape",
+            "description": "ça part en vrille",
+            "timing_hint": "le soir",
+            "context_hint": null
+          }
+        }
+      },
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "trigger",
+        "defense_goal"
+      ],
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-format-fix-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui le sas. Quand je ferme le carnet je reprends le tel, soi-disant pour vérifier un truc sinon j'ai peur d'oublier.",
+    "assistant": "Voici ta carte de défense :\n\nLe moment : Fin du sas de déchargement\nLe piège : Peur d'oublier un truc\nMon geste : Rouvrir le carnet pour noter l'idée\nPlan B : Éloigner le téléphone avant le sas\n\nOn valide ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Protéger mon sas",
+          "plan_b": "Éloigner le téléphone avant le sas",
+          "signal": "Peur d'oublier un truc",
+          "trigger": "Peur d'oublier",
+          "situation": "Fin du sas de déchargement",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Évite de retomber dans les écrans par peur d'oublier.",
+          "fallback_plan": "Éloigner le téléphone",
+          "impulse_label": "Reprendre le téléphone",
+          "risk_situation": "Fin du sas de déchargement",
+          "generic_defense": "Noter sur papier",
+          "defense_response": "Rouvrir le carnet pour noter l'idée"
+        },
+        "output_schema": "defense_card_draft_v1",
+        "operation_type": "prepare_defense_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ta carte de défense :\n\nLe moment : Fin du sas de déchargement\nLe piège : Peur d'oublier un truc\nMon geste : Rouvrir le carnet pour noter l'idée\nPlan B : Éloigner le téléphone avant le sas\n\nOn valide ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "8c9fcc00-b91b-45df-9247-73a606e712a9",
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

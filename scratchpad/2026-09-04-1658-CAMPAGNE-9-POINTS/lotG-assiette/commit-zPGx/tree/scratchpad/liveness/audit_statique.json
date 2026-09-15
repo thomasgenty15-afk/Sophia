@@ -1,0 +1,413 @@
+[
+ {
+  "lot": "FF-037",
+  "symbol": "detectProteinAnchor",
+  "home": "keel/protein_anchor.ts",
+  "what": "repère l'ancre protéique d'un plat",
+  "callers": [
+   "supabase/functions/_shared/keel/meal_generation.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-037",
+  "symbol": "proteinAnchorRetryInstruction",
+  "home": "keel/protein_anchor.ts",
+  "what": "la relance quand un repas principal n'a pas d'ancre",
+  "callers": [
+   "supabase/functions/generate-household-meal-v1/index.ts",
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-037",
+  "symbol": "PROTEIN_ANCHOR_PROMPT_LINE",
+  "home": "keel/protein_anchor.ts",
+  "what": "la consigne d'ancre dans le prompt",
+  "callers": [],
+  "importersOnly": [
+   "supabase/functions/_shared/keel/meal_generation.ts"
+  ]
+ },
+ {
+  "lot": "FF-038",
+  "symbol": "loadCompositionIndex",
+  "home": "keel/food_composition_io.ts",
+  "what": "charge le référentiel Ciqual",
+  "callers": [
+   "supabase/functions/generate-household-meal-v1/index.ts",
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-038",
+  "symbol": "resolveIngredients",
+  "home": "keel/food_composition.ts",
+  "what": "résout les ingrédients contre le référentiel",
+  "callers": [
+   "supabase/functions/_shared/keel/meal_coverage.ts",
+   "supabase/functions/_shared/keel/meal_verdict.ts",
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-038",
+  "symbol": "nutrientsOf",
+  "home": "keel/food_composition.ts",
+  "what": "calcule énergie et macros",
+  "callers": [
+   "supabase/functions/_shared/keel/meal_coverage.ts",
+   "supabase/functions/_shared/keel/meal_verdict.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-038",
+  "symbol": "gramsRawOf",
+  "home": "keel/food_composition.ts",
+  "what": "convertit une quantité structurée en grammes crus",
+  "callers": [
+   "supabase/functions/_shared/keel/meal_generation.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-038",
+  "symbol": "isFriedMethod",
+  "home": "keel/food_composition.ts",
+  "what": "impute l'huile de friture",
+  "callers": [
+   "supabase/functions/_shared/keel/meal_coverage.ts"
+  ],
+  "importersOnly": [
+   "supabase/functions/generate-meal-v1/index.ts"
+  ]
+ },
+ {
+  "lot": "FF-039",
+  "symbol": "envelopeFor",
+  "home": "keel/meal_envelope.ts",
+  "what": "l'enveloppe énergétique, deux formes",
+  "callers": [
+   "supabase/functions/generate-household-meal-v1/index.ts",
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-039",
+  "symbol": "verdictFor",
+  "home": "keel/meal_verdict.ts",
+  "what": "le verdict de composition",
+  "callers": [
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-039",
+  "symbol": "envelopeFingerprint",
+  "home": "keel/meal_envelope.ts",
+  "what": "l'empreinte d'enveloppe écrite en base",
+  "callers": [],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-039",
+  "symbol": "sentinelCarriersOf",
+  "home": "keel/meal_verdict.ts",
+  "what": "les groupes porteurs de chaque sentinelle",
+  "callers": [],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-040",
+  "symbol": "correctionPlanFor",
+  "home": "keel/meal_correction.ts",
+  "what": "traduit le verdict en jetons de correction",
+  "callers": [
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-040",
+  "symbol": "correctionRetryInstruction",
+  "home": "keel/meal_correction.ts",
+  "what": "la relance servie au modèle",
+  "callers": [
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-040",
+  "symbol": "assessCoverage",
+  "home": "keel/meal_coverage.ts",
+  "what": "le plancher de couverture énergétique",
+  "callers": [
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-040",
+  "symbol": "coverageFlagAfterCorrection",
+  "home": "keel/meal_coverage.ts",
+  "what": "le drapeau après correction",
+  "callers": [
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-040",
+  "symbol": "nextRecalibration",
+  "home": "keel/meal_coverage.ts",
+  "what": "le ré-ancrage de l'enveloppe",
+  "callers": [],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-040",
+  "symbol": "contradictsDeclaration",
+  "home": "keel/meal_correction.ts",
+  "what": "une correction qui contredit une déclaration de l'élève",
+  "callers": [],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-041",
+  "symbol": "parseCompositionSteering",
+  "home": "keel/composition_steering.ts",
+  "what": "lit le pilotage du coach",
+  "callers": [
+   "supabase/functions/_shared/keel/doctrine.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-041",
+  "symbol": "steeringFor",
+  "home": "keel/composition_steering.ts",
+  "what": "le pilotage applicable à un objectif",
+  "callers": [
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-041",
+  "symbol": "applyPiloting",
+  "home": "keel/composition_steering.ts",
+  "what": "applique le pilotage à l'enveloppe",
+  "callers": [
+   "supabase/functions/_shared/keel/meal_envelope.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-041",
+  "symbol": "offAxesFor",
+  "home": "keel/composition_steering.ts",
+  "what": "les axes que la doctrine éteint",
+  "callers": [
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-041",
+  "symbol": "deriveSteeringFromPositions",
+  "home": "keel/composition_forks.ts",
+  "what": "dérive le pilotage des positions du coach",
+  "callers": [
+   "supabase/functions/coach-doctrine-v1/index.ts"
+  ],
+  "importersOnly": [
+   "frontend/src/keel/api/coachDoctrine.ts"
+  ]
+ },
+ {
+  "lot": "FF-041",
+  "symbol": "COMPOSITION_FORKS",
+  "home": "keel/composition_forks.ts",
+  "what": "les quatre débats de composition",
+  "callers": [],
+  "importersOnly": [
+   "frontend/src/keel/api/coachDoctrine.ts",
+   "frontend/src/keel/pages/CoachDoctrinePage.tsx"
+  ]
+ },
+ {
+  "lot": "A4",
+  "symbol": "aggregateMayShip",
+  "home": "keel/meal_coverage.ts",
+  "what": "le plancher d'anonymat k=5",
+  "callers": [],
+  "importersOnly": []
+ },
+ {
+  "lot": "A4",
+  "symbol": "aggregatePairMayShip",
+  "home": "keel/meal_coverage.ts",
+  "what": "l'inférence par soustraction",
+  "callers": [],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-043",
+  "symbol": "resolveHousehold",
+  "home": "keel/household_composition.ts",
+  "what": "la résolution de composition d'un foyer",
+  "callers": [
+   "supabase/functions/generate-household-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-043",
+  "symbol": "trunkSizing",
+  "home": "keel/household_composition.ts",
+  "what": "le dimensionnement du tronc commun",
+  "callers": [],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-043",
+  "symbol": "memberDeltasPayload",
+  "home": "keel/household_composition.ts",
+  "what": "les deltas par membre",
+  "callers": [
+   "supabase/functions/generate-household-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-043",
+  "symbol": "householdLaneMode",
+  "home": "keel/household_composition.ts",
+  "what": "le mode de lane du foyer",
+  "callers": [],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-042 R6",
+  "symbol": "uncoverableSentinelsFor",
+  "home": "keel/dietary_regime.ts",
+  "what": "les nutriments qu'aucun aliment n'apporte à ce régime",
+  "callers": [
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-042",
+  "symbol": "dietaryRegimePromptLine",
+  "home": "keel/dietary_regime.ts",
+  "what": "la ligne de régime en tête de consigne",
+  "callers": [],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-042",
+  "symbol": "excludedSurfaceFormsFor",
+  "home": "keel/dietary_regime.ts",
+  "what": "les formes exclues du régime, pour le parseur",
+  "callers": [],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-042",
+  "symbol": "parseDietaryRegime",
+  "home": "keel/dietary_regime.ts",
+  "what": "lit le régime déclaré",
+  "callers": [
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-051",
+  "symbol": "parseFixedIntakes",
+  "home": "keel/fixed_intakes.ts",
+  "what": "lit les apports fixes",
+  "callers": [
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-051",
+  "symbol": "slotIsTaken",
+  "home": "keel/fixed_intakes.ts",
+  "what": "branche 1 — le créneau est pris",
+  "callers": [
+   "supabase/functions/_shared/keel/meal_generation.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-051",
+  "symbol": "fixedIntakeInputsFor",
+  "home": "keel/fixed_intakes.ts",
+  "what": "branches 2 et 3 — ce que l'apport pèse",
+  "callers": [
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-051",
+  "symbol": "fixedIntakePromptLines",
+  "home": "keel/fixed_intakes.ts",
+  "what": "la consigne des apports fixes",
+  "callers": [
+   "supabase/functions/_shared/keel/meal_generation.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-052",
+  "symbol": "parseDayProperties",
+  "home": "keel/day_properties.ts",
+  "what": "lit les propriétés de jour",
+  "callers": [
+   "supabase/functions/generate-meal-v1/index.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-052",
+  "symbol": "dayHasProperty",
+  "home": "keel/day_properties.ts",
+  "what": "branche leftovers — le parseur",
+  "callers": [
+   "supabase/functions/_shared/keel/meal_generation.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-052",
+  "symbol": "daysWithProperty",
+  "home": "keel/day_properties.ts",
+  "what": "branche batch_cook — le parseur",
+  "callers": [
+   "supabase/functions/_shared/keel/meal_generation.ts"
+  ],
+  "importersOnly": []
+ },
+ {
+  "lot": "FF-052",
+  "symbol": "dayPropertyPromptLines",
+  "home": "keel/day_properties.ts",
+  "what": "la consigne des propriétés de jour",
+  "callers": [
+   "supabase/functions/_shared/keel/meal_generation.ts"
+  ],
+  "importersOnly": []
+ }
+]

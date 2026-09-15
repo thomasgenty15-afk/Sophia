@@ -1,0 +1,50 @@
+{
+  "user_id": "85c5cbc9-47f2-41a5-83e5-aa8c8073d7e4",
+  "rows": [
+    {
+      "table": "chat_messages",
+      "status": 200,
+      "count": 10
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 200,
+      "count": 0
+    },
+    {
+      "table": "user_potion_sessions",
+      "status": 200,
+      "count": 0
+    },
+    {
+      "table": "user_cycles",
+      "status": 200,
+      "count": 0
+    },
+    {
+      "table": "memory_items",
+      "status": 200,
+      "count": 0
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 200,
+      "count": 0
+    },
+    {
+      "table": "user_profile_facts",
+      "status": 200,
+      "count": 9
+    },
+    {
+      "table": "operation_suggestions",
+      "status": 404,
+      "error": "{\"code\":\"PGRST205\",\"details\":null,\"hint\":\"Perhaps you meant the table 'public.user_potion_sessions'\",\"message\":\"Could not find the table 'public.operation_suggestions' in the schema cache\"}"
+    },
+    {
+      "table": "tool_recommendations",
+      "status": 404,
+      "error": "{\"code\":\"PGRST205\",\"details\":null,\"hint\":\"Perhaps you meant the table 'public.user_level_tool_recommendations'\",\"message\":\"Could not find the table 'public.tool_recommendations' in the schema cache\"}"
+    }
+  ]
+}

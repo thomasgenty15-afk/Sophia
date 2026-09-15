@@ -602,6 +602,29 @@ export default function ChatPage() {
       // La ligne réelle arrive par Realtime et remplace l'écho. Un refetch
       // couvre le cas où l'abonnement était tombé au moment de l'envoi.
       await refetch();
+
+      // ⟳ LE TOUR A RÉUSSI ET IL N'Y AURA PAS DE RÉPONSE — le seul cas où
+      // l'attente n'a pas de fin.
+      //
+      // `delivered: false` veut dire que le moteur a tourné mais que rien n'est
+      // parti (`empty_content`, `unknown_user`). Le message de l'élève, LUI, est
+      // bien en base: on ne le marque donc PAS en échec — il n'a pas échoué, et
+      // le proposer à réessayer relancerait un tour pour le même résultat.
+      //
+      // Ce qu'on éteint est l'ATTENTE. Sans ce bloc, « Sophia écrit… » tourne
+      // pour toujours (mesuré au navigateur: encore visible 20 s après l'envoi,
+      // sans une ligne d'erreur), et c'est indiscernable d'une panne totale du
+      // point de vue de la personne.
+      //
+      // ⚠️ APRÈS LE `refetch`, ET PAS AVANT. `refetch` finit par `setError(null)`
+      // sur toute lecture réussie — poser le message avant le rafraîchissement
+      // l'efface aussitôt. Mesuré: l'indicateur s'éteignait bien et l'écran
+      // restait muet, ce qui est la moitié la moins utile de la correction.
+      if (result.delivered === false) {
+        waitingForRef.current = null;
+        setThinking(false);
+        setError(t("chat.error.noReply"));
+      }
     },
     [sending, refetch],
   );
@@ -657,7 +680,13 @@ export default function ChatPage() {
       // message suivant, et le tap n'aurait laissé aucune trace), et le front
       // doit se souvenir du créneau que la question nommait.
       const photoSlot = forcedSlotFromPhotoTap(payload);
-      if (photoSlot) setForcedPhotoSlot(photoSlot);
+      if (photoSlot) {
+        setForcedPhotoSlot(photoSlot);
+        // Le tap DIT « prends une photo »: ouvrir le sélecteur ici, dans le
+        // geste, plutôt que de renvoyer au « + ». Sans ça, la personne clique
+        // le bouton qu'on vient de lui offrir et rien ne s'ouvre.
+        photoInputRef.current?.click();
+      }
       // ⟳ « TE DIRE » OUVRE LE CHAMP, exactement comme « Photo » arme le
       // créneau — et le tap part au serveur dans les deux cas. Avant ce lot, ce
       // bouton n'ouvrait RIEN: le serveur écrivait un fait vide et invitait, et
@@ -856,7 +885,7 @@ export default function ChatPage() {
         setThinking(false);
       }
     },
-    [refetch],
+    [refetch, forcedPhotoSlot],
   );
 
   // Les `blob:` créés pour les aperçus sont relâchés au démontage. Un
@@ -1283,7 +1312,9 @@ export default function ChatPage() {
         )}
 
         {/* ⛔ UN FAIT: rouge = échec, `red-700` (6,13:1) comme partout ailleurs. */}
-        {error && <p className="text-sm text-red-700">{error}</p>}
+        {error && (
+          <p data-testid="chat-error" className="text-sm text-red-700">{error}</p>
+        )}
 
         {/* LE COMPOSEUR NE QUITTE PAS L'ÉCRAN, et il n'a pour ça besoin d'aucun
             `sticky`: la page ne défile plus (voir `fill`), c'est le fil au-dessus
@@ -1507,6 +1538,12 @@ export default function ChatPage() {
             <input
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
+              // Le champ et son bouton sont NOMMÉS pour le navigateur: la
+              // moitié des défauts de cet écran (doublon d'écho, indicateur qui
+              // ne s'éteint pas, défilement) ne sont reproductibles qu'à
+              // l'exécution, et un test qui cible le placeholder casse au
+              // premier changement de copie ou de langue.
+              data-testid="chat-input"
               placeholder={pendingPhoto
                 ? t("chat.photo.caption.placeholder")
                 : t("chat.input.placeholder")}
@@ -1544,6 +1581,7 @@ export default function ChatPage() {
               type="submit"
               variant="primary"
               className="shrink-0"
+              data-testid="chat-send"
               disabled={sending || (!draft.trim() && !pendingPhoto)}
             >
               {t("chat.send")}

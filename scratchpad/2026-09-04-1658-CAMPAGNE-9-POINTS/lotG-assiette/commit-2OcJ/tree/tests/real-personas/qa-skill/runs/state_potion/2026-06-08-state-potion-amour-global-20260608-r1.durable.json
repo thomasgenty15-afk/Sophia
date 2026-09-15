@@ -1,0 +1,1041 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "6bd225a5-c3d8-4d16-8394-c67562ccc722",
+        "role": "user",
+        "content": "J'aimerais bien avoir une potion, mais je ne sais pas laquelle. En ce moment je suis surtout très dur avec moi après un échec.",
+        "scope": "qa-state-potion-amour-global-20260608-r1",
+        "metadata": {
+          "request_id": "qa-state-potion-amour-global-20260608-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T12:48:38.86326+00:00"
+      },
+      {
+        "id": "8a1950d8-34a1-494b-bc18-5624a868a3e2",
+        "role": "assistant",
+        "content": "C'est souvent dans ces moments-là qu'on est le plus dur avec soi-même. Pour t'aider à traverser cela, est-ce que tu aurais plutôt besoin de retrouver un peu de douceur et de bienveillance envers toi, ou est-ce que tu cherches surtout un soutien pour cicatriser après cet échec et réussir à avancer ? 🙂",
+        "scope": "qa-state-potion-amour-global-20260608-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-amour-global-20260608-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_clarifying",
+              "runtime_trace": [],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": null,
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_clarifying",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T12:49:01.977325+00:00"
+      },
+      {
+        "id": "b57e9c35-108a-409a-8183-41026ca71695",
+        "role": "user",
+        "content": "Plutôt retrouver de la douceur et de la bienveillance envers moi.",
+        "scope": "qa-state-potion-amour-global-20260608-r1",
+        "metadata": {
+          "request_id": "qa-state-potion-amour-global-20260608-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T12:49:16.19766+00:00"
+      },
+      {
+        "id": "3388efe3-b695-42a9-97b6-6b281b6b4177",
+        "role": "assistant",
+        "content": "C'est entendu, la Potion d'amour est justement là pour t'apporter cette douceur dont tu as besoin en ce moment. Pour mieux comprendre ce qui se joue, est-ce que cet échec qui te pèse est plutôt lié à ta vie pro, à une relation, ou à un défi personnel que tu t'étais lancé ? ❤️",
+        "scope": "qa-state-potion-amour-global-20260608-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-amour-global-20260608-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 1,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "amour_field_missing",
+              "runtime_trace": [
+                {
+                  "event": "active_amour_turn_start",
+                  "component": "select_state_potion.amour",
+                  "previous_status": "clarifying",
+                  "global_dispatcher_available": false
+                },
+                {
+                  "flow": "select_state_potion.amour",
+                  "event": "decision",
+                  "component": "local_dispatcher",
+                  "confidence": "high",
+                  "exit_reason": null,
+                  "flow_action": "answer_current_field",
+                  "visible_task": "ask_deeper",
+                  "risk_assessment": {
+                    "risk_band": "low",
+                    "risk_score": 1,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_potion": "amour",
+                  "current_field_id": "love_lack_context"
+                },
+                {
+                  "flow": "select_state_potion.amour",
+                  "event": "reduced",
+                  "status": "clarifying",
+                  "component": "local_reducer",
+                  "reason_code": "amour_field_missing",
+                  "visible_task": "ask_deeper",
+                  "current_field_id": "love_lack_context",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage",
+                  "handoff_status": "clarifying",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "ask_deeper"
+                },
+                {
+                  "stage": "potion_subskill_task",
+                  "issues": [],
+                  "attempt": 1,
+                  "accepted": true,
+                  "component": "visible_agent"
+                },
+                {
+                  "event": "complete",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage"
+                }
+              ],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "low",
+                "risk_score": 1,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "amour_field_missing",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion.amour",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T12:49:38.026157+00:00"
+      },
+      {
+        "id": "984dd968-03ac-445b-a0b7-b4ed137db725",
+        "role": "user",
+        "content": "C'est un défi perso : j'avais promis de finir un texte vendredi et j'ai tout lâché, depuis je me dis que je ne tiens jamais mes engagements.",
+        "scope": "qa-state-potion-amour-global-20260608-r1",
+        "metadata": {
+          "request_id": "qa-state-potion-amour-global-20260608-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T12:49:53.250383+00:00"
+      },
+      {
+        "id": "ebf371e8-6897-4205-a6b5-d5b3e7147277",
+        "role": "assistant",
+        "content": "C'est pesant de porter ce sentiment de ne pas avoir honoré un engagement envers soi-même, et c'est précisément pour t'aider à transformer cette sévérité en douceur que la Potion d'amour est tout indiquée. Elle est prête pour toi dans l'application, au chemin État / Potions. Voici les éléments que tu pourras y indiquer :\n\nPar rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?\nDéfi perso : j'avais promis de finir un texte vendredi et j'ai tout lâché, avec le sentiment de ne jamais tenir mes engagements.\n\nTu te sens surtout comment ?\nDur avec moi 🙂",
+        "scope": "qa-state-potion-amour-global-20260608-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-amour-global-20260608-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "amour_handoff_delivered",
+              "runtime_trace": [
+                {
+                  "event": "active_amour_turn_start",
+                  "component": "select_state_potion.amour",
+                  "previous_status": "clarifying",
+                  "global_dispatcher_available": false
+                },
+                {
+                  "flow": "select_state_potion.amour",
+                  "event": "decision",
+                  "component": "local_dispatcher",
+                  "confidence": "high",
+                  "exit_reason": null,
+                  "flow_action": "answer_current_field",
+                  "visible_task": "handoff_ready",
+                  "risk_assessment": {
+                    "risk_band": "low",
+                    "risk_score": 2,
+                    "reason_codes": [
+                      "self_criticism"
+                    ],
+                    "safety_preempt": false
+                  },
+                  "selected_potion": "amour",
+                  "current_field_id": "love_lack_context"
+                },
+                {
+                  "flow": "select_state_potion.amour",
+                  "event": "reduced",
+                  "status": "handoff_delivered",
+                  "component": "local_reducer",
+                  "reason_code": "amour_handoff_delivered",
+                  "visible_task": "handoff_ready",
+                  "current_field_id": null,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage",
+                  "handoff_status": "handoff_delivered",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "handoff_ready"
+                },
+                {
+                  "stage": "potion_subskill_task",
+                  "issues": [],
+                  "attempt": 1,
+                  "accepted": true,
+                  "component": "visible_agent"
+                },
+                {
+                  "event": "complete",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage"
+                }
+              ],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "low",
+                "risk_score": 2,
+                "reason_codes": [
+                  "self_criticism"
+                ],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion d'amour",
+                    "immediate_step": null,
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion d'amour"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "Défi perso : j'avais promis de finir un texte vendredi et j'ai tout lâché, avec le sentiment de ne jamais tenir mes engagements.",
+                          "question_id": "love_lack_context",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?"
+                        },
+                        {
+                          "value": "Dur avec moi",
+                          "question_id": "love_state",
+                          "option_label": "Dur avec moi",
+                          "option_value": "dur",
+                          "question_label": "Tu te sens surtout comment ?"
+                        }
+                      ],
+                      "potion_type": "amour",
+                      "potion_title": "Potion d'amour",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Quand tu es dur avec toi, froid envers toi ou en manque de douceur, elle remet de la chaleur humaine.",
+                    "platform_destination": "section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "Défi perso : j'avais promis de finir un texte vendredi et j'ai tout lâché, avec le sentiment de ne jamais tenir mes engagements. ; Dur avec moi",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "ramener de la douceur, adoucir le dialogue interieur, te traiter plus humainement"
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "amour_handoff_delivered",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion.amour",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T12:50:06.248856+00:00"
+      },
+      {
+        "id": "94659f3a-693f-4008-b197-3c88879f06d1",
+        "role": "user",
+        "content": "Redis-moi juste quoi mettre dans la plateforme.",
+        "scope": "qa-state-potion-amour-global-20260608-r1",
+        "metadata": {
+          "request_id": "qa-state-potion-amour-global-20260608-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T12:50:19.120348+00:00"
+      },
+      {
+        "id": "53cf37b4-e6b5-4b6b-96c8-0c4ccc169a1f",
+        "role": "assistant",
+        "content": "Pas de problème ! Pour configurer ta Potion d'amour dans la section État / Potions, voici les informations à saisir :\n\nPar rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?\nDéfi perso : j'avais promis de finir un texte vendredi et j'ai tout lâché, avec le sentiment de ne jamais tenir mes engagements.\n\nTu te sens surtout comment ?\nDur avec moi 🙂",
+        "scope": "qa-state-potion-amour-global-20260608-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-amour-global-20260608-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "repeat_handoff",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "amour_repeat_handoff",
+              "runtime_trace": [
+                {
+                  "event": "active_amour_turn_start",
+                  "component": "select_state_potion.amour",
+                  "previous_status": "handoff_delivered",
+                  "global_dispatcher_available": false
+                },
+                {
+                  "flow": "select_state_potion.amour",
+                  "event": "decision",
+                  "component": "local_dispatcher",
+                  "confidence": "high",
+                  "exit_reason": null,
+                  "flow_action": "repeat_handoff",
+                  "visible_task": "repeat_handoff",
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_potion": "amour",
+                  "current_field_id": null
+                },
+                {
+                  "flow": "select_state_potion.amour",
+                  "event": "reduced",
+                  "status": "repeat_handoff",
+                  "component": "local_reducer",
+                  "reason_code": "amour_repeat_handoff",
+                  "visible_task": "repeat_handoff",
+                  "current_field_id": null,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage",
+                  "handoff_status": "repeat_handoff",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "repeat_handoff"
+                },
+                {
+                  "stage": "potion_subskill_task",
+                  "issues": [],
+                  "attempt": 1,
+                  "accepted": true,
+                  "component": "visible_agent"
+                },
+                {
+                  "event": "complete",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage"
+                }
+              ],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion d'amour",
+                    "immediate_step": null,
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion d'amour"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "Défi perso : j'avais promis de finir un texte vendredi et j'ai tout lâché, avec le sentiment de ne jamais tenir mes engagements.",
+                          "question_id": "love_lack_context",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?"
+                        },
+                        {
+                          "value": "Dur avec moi",
+                          "question_id": "love_state",
+                          "option_label": "Dur avec moi",
+                          "option_value": "dur",
+                          "question_label": "Tu te sens surtout comment ?"
+                        }
+                      ],
+                      "potion_type": "amour",
+                      "potion_title": "Potion d'amour",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Quand tu es dur avec toi, froid envers toi ou en manque de douceur, elle remet de la chaleur humaine.",
+                    "platform_destination": "section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "Défi perso : j'avais promis de finir un texte vendredi et j'ai tout lâché, avec le sentiment de ne jamais tenir mes engagements. ; Dur avec moi",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "ramener de la douceur, adoucir le dialogue interieur, te traiter plus humainement"
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "amour_repeat_handoff",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion.amour",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T12:50:32.830665+00:00"
+      },
+      {
+        "id": "8db7064d-ca4b-465f-8a8f-92b1d1578ef3",
+        "role": "user",
+        "content": "Ok active-la.",
+        "scope": "qa-state-potion-amour-global-20260608-r1",
+        "metadata": {
+          "request_id": "qa-state-potion-amour-global-20260608-r1-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T12:50:45.910024+00:00"
+      },
+      {
+        "id": "2331c3cb-445d-4fcf-a08a-5fe965818ab3",
+        "role": "assistant",
+        "content": "Je ne peux malheureusement pas activer la potion directement depuis notre échange, c'est à toi de faire le dernier petit pas. 🌸\n\nTu trouveras tout ce qu'il faut dans la section État / Potions en choisissant la Potion d'amour. Voici les précisions à y noter :\n\nPar rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?\nDéfi perso : j'avais promis de finir un texte vendredi et j'ai tout lâché, avec le sentiment de ne jamais tenir mes engagements.\n\nTu te sens surtout comment ?\nDur avec moi",
+        "scope": "qa-state-potion-amour-global-20260608-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-state-potion-amour-global-20260608-r1-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 1,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "apply_attempt",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "amour_apply_attempt_no_chat_execution",
+              "runtime_trace": [
+                {
+                  "event": "active_amour_turn_start",
+                  "component": "select_state_potion.amour",
+                  "previous_status": "repeat_handoff",
+                  "global_dispatcher_available": false
+                },
+                {
+                  "flow": "select_state_potion.amour",
+                  "event": "decision",
+                  "component": "local_dispatcher",
+                  "confidence": "high",
+                  "exit_reason": null,
+                  "flow_action": "apply_attempt",
+                  "visible_task": "apply_attempt",
+                  "risk_assessment": {
+                    "risk_band": "low",
+                    "risk_score": 1,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_potion": "amour",
+                  "current_field_id": null
+                },
+                {
+                  "flow": "select_state_potion.amour",
+                  "event": "reduced",
+                  "status": "apply_attempt",
+                  "component": "local_reducer",
+                  "reason_code": "amour_apply_attempt_no_chat_execution",
+                  "visible_task": "apply_attempt",
+                  "current_field_id": null,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage",
+                  "handoff_status": "apply_attempt",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "apply_attempt"
+                },
+                {
+                  "stage": "potion_subskill_task",
+                  "issues": [],
+                  "attempt": 1,
+                  "accepted": true,
+                  "component": "visible_agent"
+                },
+                {
+                  "event": "complete",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage"
+                }
+              ],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "low",
+                "risk_score": 1,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion d'amour",
+                    "immediate_step": null,
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion d'amour"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "Défi perso : j'avais promis de finir un texte vendredi et j'ai tout lâché, avec le sentiment de ne jamais tenir mes engagements.",
+                          "question_id": "love_lack_context",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?"
+                        },
+                        {
+                          "value": "Dur avec moi",
+                          "question_id": "love_state",
+                          "option_label": "Dur avec moi",
+                          "option_value": "dur",
+                          "question_label": "Tu te sens surtout comment ?"
+                        }
+                      ],
+                      "potion_type": "amour",
+                      "potion_title": "Potion d'amour",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Quand tu es dur avec toi, froid envers toi ou en manque de douceur, elle remet de la chaleur humaine.",
+                    "platform_destination": "section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "Défi perso : j'avais promis de finir un texte vendredi et j'ai tout lâché, avec le sentiment de ne jamais tenir mes engagements. ; Dur avec moi",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "ramener de la douceur, adoucir le dialogue interieur, te traiter plus humainement"
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "amour_apply_attempt_no_chat_execution",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion.amour",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T12:51:06.673243+00:00"
+      }
+    ]
+  },
+  "user_chat_states": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "user_id": "75ba8f9d-d840-498d-a81f-f852677d4179",
+        "scope": "qa-state-potion-amour-global-20260608-r1",
+        "temp_memory": {
+          "__conversation_risk_last": {
+            "at": "2026-06-08T12:48:43.636Z",
+            "score": 0,
+            "threshold": 8,
+            "reason_codes": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__active_tool_skill_intake": {
+            "mode": "platform_handoff",
+            "draft": {
+              "mode": "platform_handoff",
+              "operation_type": "select_state_potion",
+              "recommendation": {
+                "avoid": [],
+                "preserve": [],
+                "potion_label": "Potion d'amour",
+                "immediate_step": null,
+                "platform_steps": [
+                  "va dans État / Potions",
+                  "choisis Potion d'amour"
+                ],
+                "platform_inputs": {
+                  "answers": [
+                    {
+                      "value": "Défi perso : j'avais promis de finir un texte vendredi et j'ai tout lâché, avec le sentiment de ne jamais tenir mes engagements.",
+                      "question_id": "love_lack_context",
+                      "option_label": null,
+                      "option_value": null,
+                      "question_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?"
+                    },
+                    {
+                      "value": "Dur avec moi",
+                      "question_id": "love_state",
+                      "option_label": "Dur avec moi",
+                      "option_value": "dur",
+                      "question_label": "Tu te sens surtout comment ?"
+                    }
+                  ],
+                  "potion_type": "amour",
+                  "potion_title": "Potion d'amour",
+                  "optional_free_text": null
+                },
+                "why_this_potion": "Quand tu es dur avec toi, froid envers toi ou en manque de douceur, elle remet de la chaleur humaine.",
+                "platform_destination": "section État / Potions"
+              },
+              "no_chat_mutation": true,
+              "missing_decisions": [],
+              "user_state_summary": "Défi perso : j'avais promis de finir un texte vendredi et j'ai tout lâché, avec le sentiment de ne jamais tenir mes engagements. ; Dur avec moi",
+              "executable_from_chat": false,
+              "desired_shift_summary": "ramener de la douceur, adoucir le dialogue interieur, te traiter plus humainement"
+            },
+            "phase": "detail_intake",
+            "status": "apply_attempt",
+            "skill_id": "select_state_potion",
+            "max_turns": 6,
+            "created_at": "2026-06-08T12:48:51.628Z",
+            "turn_count": 5,
+            "updated_at": "2026-06-08T12:50:56.533Z",
+            "clarte_state": null,
+            "intake_state": {
+              "state": {
+                "kind": "self_harshness",
+                "status": "identified",
+                "evidence": [
+                  "très dur avec moi après un échec"
+                ],
+                "intensity": "high",
+                "confidence": "high"
+              },
+              "context": {
+                "topic_hint": "auto-bienveillance",
+                "target_hint": "échec récent",
+                "handoff_summary": null,
+                "related_plan_item_id": null,
+                "opportunistic_detail_candidates": []
+              },
+              "details": {
+                "fields": [
+                  {
+                    "label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                    "status": "missing",
+                    "evidence": [],
+                    "required": true,
+                    "question_id": "love_lack_context",
+                    "locked_value": null,
+                    "user_evidence": [],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  {
+                    "label": "Tu te sens surtout comment ?",
+                    "status": "missing",
+                    "evidence": [],
+                    "required": true,
+                    "question_id": "love_state",
+                    "locked_value": null,
+                    "user_evidence": [],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "missing",
+                "answers": [],
+                "evidence": [],
+                "optional_free_text": null,
+                "required_question_ids": [
+                  "love_lack_context",
+                  "love_state"
+                ]
+              },
+              "skill_id": "select_state_potion",
+              "shortlist": {
+                "status": "identified",
+                "options": [
+                  {
+                    "reason": "Pour ramener de la douceur face à cette dureté envers toi-même.",
+                    "evidence": [
+                      "très dur avec moi"
+                    ],
+                    "potion_type": "amour",
+                    "fit_confidence": "high"
+                  },
+                  {
+                    "reason": "Pour t'aider à te relever après cet échec sans t'enfoncer.",
+                    "evidence": [
+                      "après un échec"
+                    ],
+                    "potion_type": "guerison",
+                    "fit_confidence": "high"
+                  }
+                ],
+                "evidence": [
+                  "très dur avec moi après un échec"
+                ]
+              },
+              "confidence": "high",
+              "missing_slots": [
+                "potion_detail:love_lack_context",
+                "potion_detail:love_state"
+              ],
+              "selected_potion": {
+                "value": "amour",
+                "status": "identified",
+                "evidence": [
+                  "Plutôt retrouver de la douceur et de la bienveillance envers moi."
+                ],
+                "confidence": "high"
+              },
+              "current_sub_skill": "detail_intake",
+              "generated_user_message": null,
+              "explicit_potion_request": {
+                "status": "none",
+                "evidence": [],
+                "potion_type": null
+              }
+            },
+            "operation_input": {
+              "state": {
+                "kind": "self_harshness",
+                "evidence": [
+                  "très dur avec moi après un échec"
+                ],
+                "intensity": "high"
+              },
+              "context": {
+                "topic_hint": "auto-bienveillance",
+                "target_hint": "échec récent",
+                "handoff_summary": null,
+                "related_plan_item_id": null,
+                "opportunistic_detail_candidates": []
+              },
+              "shortlist": {
+                "status": "identified",
+                "options": [
+                  {
+                    "reason": "Pour ramener de la douceur face à cette dureté envers toi-même.",
+                    "evidence": [
+                      "très dur avec moi"
+                    ],
+                    "potion_type": "amour",
+                    "fit_confidence": "high"
+                  },
+                  {
+                    "reason": "Pour t'aider à te relever après cet échec sans t'enfoncer.",
+                    "evidence": [
+                      "après un échec"
+                    ],
+                    "potion_type": "guerison",
+                    "fit_confidence": "high"
+                  }
+                ],
+                "evidence": [
+                  "très dur avec moi après un échec"
+                ]
+              },
+              "intake_state": {
+                "state": {
+                  "kind": "self_harshness",
+                  "status": "identified",
+                  "evidence": [
+                    "très dur avec moi après un échec"
+                  ],
+                  "intensity": "high",
+                  "confidence": "high"
+                },
+                "context": {
+                  "topic_hint": "auto-bienveillance",
+                  "target_hint": "échec récent",
+                  "handoff_summary": null,
+                  "related_plan_item_id": null,
+                  "opportunistic_detail_candidates": []
+                },
+                "details": {
+                  "fields": [],
+                  "status": "missing",
+                  "answers": [],
+                  "evidence": [],
+                  "optional_free_text": null,
+                  "required_question_ids": []
+                },
+                "skill_id": "select_state_potion",
+                "shortlist": {
+                  "status": "identified",
+                  "options": [
+                    {
+                      "reason": "Pour ramener de la douceur face à cette dureté envers toi-même.",
+                      "evidence": [
+                        "très dur avec moi"
+                      ],
+                      "potion_type": "amour",
+                      "fit_confidence": "high"
+                    },
+                    {
+                      "reason": "Pour t'aider à te relever après cet échec sans t'enfoncer.",
+                      "evidence": [
+                        "après un échec"
+                      ],
+                      "potion_type": "guerison",
+                      "fit_confidence": "high"
+                    }
+                  ],
+                  "evidence": [
+                    "très dur avec moi après un échec"
+                  ]
+                },
+                "confidence": "high",
+                "missing_slots": [
+                  "potion_type"
+                ],
+                "selected_potion": {
+                  "value": null,
+                  "status": "missing",
+                  "evidence": [],
+                  "confidence": "low"
+                },
+                "current_sub_skill": "potion_choice",
+                "generated_user_message": "Je comprends. Pour t'accompagner, j'hésite entre deux options : la Potion d'amour pour ramener de la douceur envers toi-même, ou la Potion de guérison pour t'aider à te relever après cet échec. Laquelle te ferait le plus de bien ?",
+                "explicit_potion_request": {
+                  "status": "none",
+                  "evidence": [],
+                  "potion_type": null
+                }
+              }
+            },
+            "no_chat_mutation": true,
+            "active_subskill_id": "select_state_potion.amour",
+            "potion_subskill_state": {
+              "flow_id": "select_state_potion.amour",
+              "field_order": [
+                "love_lack_context",
+                "love_state"
+              ],
+              "potion_name": "Potion d'amour",
+              "field_states": {
+                "love_state": {
+                  "status": "locked",
+                  "field_id": "love_state",
+                  "input_type": "single_select",
+                  "why_status": "Confirmé précédemment par l'utilisateur.",
+                  "field_label": "Tu te sens surtout comment ?",
+                  "locked_value": "Dur avec moi",
+                  "option_label": "Dur avec moi",
+                  "option_value": "dur",
+                  "previous_value": "Dur avec moi",
+                  "candidate_value": null,
+                  "detail_sufficiency": {
+                    "reason": null,
+                    "status": "sufficient",
+                    "evidence": [],
+                    "followup_asked": false,
+                    "followup_answered": true,
+                    "followup_question": null
+                  },
+                  "needs_user_confirmation": false
+                },
+                "love_lack_context": {
+                  "status": "locked",
+                  "field_id": "love_lack_context",
+                  "input_type": "free_text",
+                  "why_status": "L'utilisateur a précisé l'objet de son auto-jugement suite à la question d'approfondissement.",
+                  "field_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                  "locked_value": "Défi perso : j'avais promis de finir un texte vendredi et j'ai tout lâché, avec le sentiment de ne jamais tenir mes engagements.",
+                  "option_label": null,
+                  "option_value": null,
+                  "previous_value": "Un échec récent où je suis très dur avec moi-même.",
+                  "candidate_value": null,
+                  "detail_sufficiency": {
+                    "reason": "L'événement et la croyance associée sont clairement identifiés.",
+                    "status": "sufficient",
+                    "evidence": [
+                      "défi perso",
+                      "promis de finir un texte vendredi",
+                      "tout lâché",
+                      "je ne tiens jamais mes engagements"
+                    ],
+                    "followup_asked": true,
+                    "followup_answered": true,
+                    "followup_question": null
+                  },
+                  "needs_user_confirmation": false
+                }
+              },
+              "selected_potion": "amour",
+              "current_field_id": null,
+              "last_visible_task": "apply_attempt",
+              "platform_destination": "section État / Potions",
+              "last_handoff_delivered": true
+            }
+          },
+          "__conversation_risk_history": [
+            0
+          ],
+          "__coaching_intervention_history": []
+        },
+        "last_interaction_at": "2026-06-08T12:51:06.667+00:00"
+      }
+    ]
+  },
+  "user_potion_sessions": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

@@ -1,0 +1,65 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r8-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je te partage un point hors plan officiel : le soir en rentrant, si mon téléphone arrive avec moi sur le canapé, je scrolle et ça finit souvent en envie de snack. Le laisser charger dans l’entrée serait plus protecteur.",
+    "assistant": "Voici ta carte de défense :\nLe moment : Le soir en rentrant, sur le canapé\nLe piège : Mon téléphone est avec moi sur le canapé\nMon geste : Laisser mon téléphone charger dans l'entrée\nPlan B : Si le téléphone est là, le poser loin ou boire de l'eau\nOn valide ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Grignotage du soir lié au téléphone",
+          "plan_b": "Si le téléphone est là, le poser loin ou boire de l'eau",
+          "signal": "Mon téléphone est avec moi sur le canapé",
+          "trigger": "Mon téléphone est sur le canapé et je commence à scroller",
+          "situation": "Le soir en rentrant, sur le canapé",
+          "target_label": "Grignoter",
+          "why_it_helps": "Coupe le lien entre le téléphone et l'envie de snack",
+          "fallback_plan": "Si le téléphone est là, le poser loin ou boire de l'eau",
+          "impulse_label": "Envie de grignoter",
+          "risk_situation": "Le soir en rentrant, sur le canapé",
+          "generic_defense": "Modifier l'environnement pour éviter le déclencheur",
+          "defense_response": "Laisser mon téléphone charger dans l'entrée"
+        },
+        "output_schema": "defense_card_draft_v1",
+        "operation_type": "prepare_defense_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ta carte de défense :\nLe moment : Le soir en rentrant, sur le canapé\nLe piège : Mon téléphone est avec moi sur le canapé\nMon geste : Laisser mon téléphone charger dans l'entrée\nPlan B : Si le téléphone est là, le poser loin ou boire de l'eau\nOn valide ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "de01bd48-4a86-4b71-9129-a00a820ae42c",
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r8-t01",
+    "trace_error": null
+  }
+]

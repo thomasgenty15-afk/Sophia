@@ -1,0 +1,288 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a5b2b901-f614-40cb-90bc-75be25165866",
+        "role": "user",
+        "content": "Depuis quelques jours je continue mes habitudes, mais je ne sens plus le sens derrière. Mon plan santé devait servir la présence, le respect de moi et une énergie plus stable; là tout devient mécanique.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:49:33.647912+00:00"
+      },
+      {
+        "id": "ebcb9634-172c-4a0b-a83a-08466501034a",
+        "role": "assistant",
+        "content": "Je sens que tout devient un peu mécanique pour toi en ce moment. Est-ce que tu préfères qu'on fasse le point sur ta motivation ou qu'on ajuste ton plan santé ?",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T13:50:49.78313+00:00"
+      },
+      {
+        "id": "c4d7e381-36d4-4934-8d66-7ce1dc7d6fd9",
+        "role": "user",
+        "content": "La motivation, clairement. Je ne veux pas modifier les actions tout de suite; je veux retrouver le fil du pourquoi santé voulait dire présence, énergie et respect de moi.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:51:05.733366+00:00"
+      },
+      {
+        "id": "c3ade56c-78c3-4b0a-8f24-71d81c0e208e",
+        "role": "assistant",
+        "content": "C'est épuisant de fonctionner en mode automatique quand on aspire à plus de présence et de respect de soi. Quand tout devient mécanique, le lien avec ce qui t'anime vraiment finit par s'effacer, et ton énergie s'en va avec.\n\nPour t'aider à retrouver ce fil, quel est l'aspect de tes actions actuelles qui te semble le plus déconnecté de ton pourquoi ?",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T13:51:29.082678+00:00"
+      },
+      {
+        "id": "ba362417-fc5e-4c8d-8d05-57fde167b583",
+        "role": "user",
+        "content": "Le plus déconnecté, c'est le sport du matin: je le fais comme une case à valider alors que ça devait me rendre plus présent dans ma journée. Maintenant que ce fil est clair, est-ce que Sophia a un support pour m'aider à garder cette clarté plusieurs jours ?",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:51:40.220614+00:00"
+      },
+      {
+        "id": "acfb30a5-81dd-4261-97be-5c0b1184afab",
+        "role": "assistant",
+        "content": "Pour garder cette clarté sur la durée, tu préfères qu'on travaille sur ta motivation ou qu'on ajuste ton plan santé ?",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T13:53:19.29843+00:00"
+      },
+      {
+        "id": "16932ad1-f929-4ad5-8d34-85e27f8653ff",
+        "role": "user",
+        "content": "Toujours la motivation, pas l'ajustement du plan. Je veux juste un support Sophia qui m'aide à garder le pourquoi visible, comme une clarté à reprendre pendant quelques jours.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:53:58.785376+00:00"
+      },
+      {
+        "id": "2c8ea57a-1de1-46d3-8d3e-fa46cf13eb03",
+        "role": "assistant",
+        "content": "Je suis prête à t'épauler pour que ton pourquoi reste bien visible. La Potion de clarté permet de maintenir durablement le lien entre tes actions et tes valeurs de présence et de respect de soi. Je te propose cette solution pour éviter que tes efforts ne deviennent mécaniques.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T13:54:33.528539+00:00"
+      },
+      {
+        "id": "90be4fca-0ff2-4d2e-9523-1c02369203ac",
+        "role": "user",
+        "content": "Oui, je veux poursuivre avec cette Potion de clarté pour ce fil santé, sans modifier mon plan depuis le chat.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:54:52.289973+00:00"
+      },
+      {
+        "id": "fd35c1ae-54d0-4b03-a4ef-931e8526cc3b",
+        "role": "assistant",
+        "content": "C'est entendu. On se tourne vers la Potion de clarté pour garder ton sens bien en vue sans modifier ton plan.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1b-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T13:56:00.99323+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

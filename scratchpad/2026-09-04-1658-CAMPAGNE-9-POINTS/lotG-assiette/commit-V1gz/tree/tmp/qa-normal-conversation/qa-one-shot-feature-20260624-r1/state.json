@@ -1,0 +1,962 @@
+{
+  "run_id": "qa-one-shot-feature-20260624-r1",
+  "scope": "qa-normal-conversation-qa-one-shot-feature-20260624-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-qa-one-shot-feature-20260624-r1-1782300465299@example.com",
+  "user_id": "9633eb3f-7821-42ce-86c9-2b5d5b4f48a6",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiI5NjMzZWIzZi03ODIxLTQyY2UtODZjOS0yYjVkNWI0ZjQ4YTYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgyMzA0MDY1LCJpYXQiOjE3ODIzMDA0NjUsImVtYWlsIjoicWEtbm9ybWFsLXFhLW9uZS1zaG90LWZlYXR1cmUtMjAyNjA2MjQtcjEtMTc4MjMwMDQ2NTI5OUBleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJxYS1ub3JtYWwtcWEtb25lLXNob3QtZmVhdHVyZS0yMDI2MDYyNC1yMS0xNzgyMzAwNDY1Mjk5QGV4YW1wbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJxYV9ydW5faWQiOiJxYS1vbmUtc2hvdC1mZWF0dXJlLTIwMjYwNjI0LXIxIiwic3ViIjoiOTYzM2ViM2YtNzgyMS00MmNlLTg2YzktMmI1ZDViNGY0OGE2In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODIzMDA0NjV9XSwic2Vzc2lvbl9pZCI6IjAwNjc3OTUzLThiM2MtNDU2Yi04Y2JmLTczNjZiNWM3ZDk5NiIsImlzX2Fub255bW91cyI6ZmFsc2V9.cJJ_L6Epwo-LhaQr7AKFgf8ShmEnZ2yrSWi2ZQyAgL8",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-24T11:27:45.630Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-24T11:28:16.678Z",
+      "user": "J'ai remarqué un motif récurrent : je perds mes fins de journée dès que je rentre fatigué, et j'aimerais que Sophia m'aide à structurer ça sur plusieurs soirs.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Ça ressemble bien à une opportunité pour les initiatives. Tu peux t’en servir pour poser un petit rituel des soirs où tu rentres fatigué, avec quoi faire, à quelle heure, et sur quels jours l’activer.",
+      "trace_short": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "route_reason": "feature_opportunity_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "feature_opportunity",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "feature_opportunity",
+                  "started_at": "2026-06-24T11:28:16.621Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-24T11:28:16.621Z",
+                  "working_state": {
+                    "feature_opportunity_local_state": {
+                      "feature": "initiatives",
+                      "max_turns": 3,
+                      "turn_count": 1,
+                      "trigger_context": "quand je rentre fatigué / plusieurs soirs",
+                      "opportunity_kind": "recurring_context",
+                      "user_problem_summary": "User describes a recurring end-of-day context where Sophia could help structure the evening over multiple nights.",
+                      "dispatcher_signal_context": {
+                        "feature": "initiatives",
+                        "priority_reason": "Repeated context and requested recurring support fit initiatives.",
+                        "trigger_context": "quand je rentre fatigué / plusieurs soirs",
+                        "opportunity_kind": "recurring_context",
+                        "user_problem_summary": "User describes a recurring end-of-day context where Sophia could help structure the evening over multiple nights."
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "feature_opportunity",
+                  "started_at": "2026-06-24T11:28:16.621Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-24T11:28:16.621Z",
+                  "working_state": {
+                    "feature_opportunity_local_state": {
+                      "feature": "initiatives",
+                      "max_turns": 3,
+                      "turn_count": 1,
+                      "trigger_context": "quand je rentre fatigué / plusieurs soirs",
+                      "opportunity_kind": "recurring_context",
+                      "user_problem_summary": "User describes a recurring end-of-day context where Sophia could help structure the evening over multiple nights.",
+                      "dispatcher_signal_context": {
+                        "feature": "initiatives",
+                        "priority_reason": "Repeated context and requested recurring support fit initiatives.",
+                        "trigger_context": "quand je rentre fatigué / plusieurs soirs",
+                        "opportunity_kind": "recurring_context",
+                        "user_problem_summary": "User describes a recurring end-of-day context where Sophia could help structure the evening over multiple nights."
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T11:28:16.627409+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "qa-one-shot-feature-20260624-r1-t01",
+        "user_id": "9633eb3f-7821-42ce-86c9-2b5d5b4f48a6",
+        "channel": "web",
+        "scope": "qa-normal-conversation-qa-one-shot-feature-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ça ressemble bien à une opportunité pour les initiatives. Tu peux t’en servir pour poser un petit rituel des soirs où tu rentres fatigué, avec quoi faire, à quelle heure, et sur quels jours l’activer.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-one-shot-feature-20260624-r1-t01",
+              "source_message_id": "43f985ee-13d2-43c9-9874-bb8f263fd694",
+              "user_id": "9633eb3f-7821-42ce-86c9-2b5d5b4f48a6",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "feature_opportunity": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "initiative_opportunity",
+                  "context": {
+                    "feature": "initiatives",
+                    "opportunity_kind": "recurring_context",
+                    "trigger_context": "quand je rentre fatigué / plusieurs soirs",
+                    "user_problem_summary": "User describes a recurring end-of-day context where Sophia could help structure the evening over multiple nights.",
+                    "priority_reason": "Repeated context and requested recurring support fit initiatives."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "feature_opportunity_recurring_context",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.91
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "feature_opportunity",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "feature_opportunity_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "feature_opportunity",
+                "resume_policy": "none",
+                "reason_code": "feature_opportunity_signal"
+              },
+              "selected_handler": "feature_opportunity"
+            },
+            "effect_ledger": {
+              "turn_id": "qa-one-shot-feature-20260624-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "feature_opportunity",
+            "skill_run": {
+              "selected_skill_id": "feature_opportunity",
+              "reason_code": "feature_opportunity_signal",
+              "status": "continue",
+              "latency_ms": 4045
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-one-shot-feature-20260624-r1-t01",
+            "source_message_id": "43f985ee-13d2-43c9-9874-bb8f263fd694",
+            "user_id": "9633eb3f-7821-42ce-86c9-2b5d5b4f48a6",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "feature_opportunity": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "initiative_opportunity",
+                "context": {
+                  "feature": "initiatives",
+                  "opportunity_kind": "recurring_context",
+                  "trigger_context": "quand je rentre fatigué / plusieurs soirs",
+                  "user_problem_summary": "User describes a recurring end-of-day context where Sophia could help structure the evening over multiple nights.",
+                  "priority_reason": "Repeated context and requested recurring support fit initiatives."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "feature_opportunity_recurring_context",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.91
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "feature_opportunity",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "feature_opportunity_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "feature_opportunity",
+              "resume_policy": "none",
+              "reason_code": "feature_opportunity_signal"
+            },
+            "selected_handler": "feature_opportunity"
+          },
+          "effect_ledger": {
+            "turn_id": "qa-one-shot-feature-20260624-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "feature_opportunity",
+          "skill_run": {
+            "selected_skill_id": "feature_opportunity",
+            "reason_code": "feature_opportunity_signal",
+            "status": "continue",
+            "latency_ms": 4045
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-24T11:29:02.314Z",
+      "user": "Rappelle-moi demain à 19h de noter ce motif de fin de journée, et continue : est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Oui : ton rappel de samedi à 19h pour noter ce motif de fin de journée est bien pris en compte.\n\nEt sur le fond, ça ressemble davantage à une initiative : tu décris un contexte récurrent sur plusieurs soirs, avec un besoin de structure répétée, pas juste un ajustement ponctuel de plan.",
+      "trace_short": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "route_reason": "direct_effect_lane_message_intake",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [
+          "create_one_shot_reminder"
+        ],
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "confirmation_kind": null,
+        "selected_skill_id": "feature_opportunity",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ],
+        "tool_execution": "success"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "feature_opportunity",
+                  "started_at": "2026-06-24T11:28:16.621Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-24T11:29:02.215Z",
+                  "working_state": {
+                    "feature_opportunity_local_state": {
+                      "feature": "initiatives",
+                      "max_turns": 3,
+                      "turn_count": 2,
+                      "trigger_context": "quand je rentre fatigué / plusieurs soirs",
+                      "opportunity_kind": "recurring_context",
+                      "user_problem_summary": "User describes a recurring end-of-day context where Sophia could help structure the evening over multiple nights.",
+                      "dispatcher_signal_context": {
+                        "feature": "initiatives",
+                        "priority_reason": "Repeated context and requested recurring support fit initiatives.",
+                        "trigger_context": "quand je rentre fatigué / plusieurs soirs",
+                        "opportunity_kind": "recurring_context",
+                        "user_problem_summary": "User describes a recurring end-of-day context where Sophia could help structure the evening over multiple nights."
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "feature_opportunity",
+                  "started_at": "2026-06-24T11:28:16.621Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-24T11:29:02.215Z",
+                  "working_state": {
+                    "feature_opportunity_local_state": {
+                      "feature": "initiatives",
+                      "max_turns": 3,
+                      "turn_count": 2,
+                      "trigger_context": "quand je rentre fatigué / plusieurs soirs",
+                      "opportunity_kind": "recurring_context",
+                      "user_problem_summary": "User describes a recurring end-of-day context where Sophia could help structure the evening over multiple nights.",
+                      "dispatcher_signal_context": {
+                        "feature": "initiatives",
+                        "priority_reason": "Repeated context and requested recurring support fit initiatives.",
+                        "trigger_context": "quand je rentre fatigué / plusieurs soirs",
+                        "opportunity_kind": "recurring_context",
+                        "user_problem_summary": "User describes a recurring end-of-day context where Sophia could help structure the evening over multiple nights."
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T11:29:02.243331+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "ffb95fb5-a631-43a8-9504-66a8c2ebacb7",
+              "status": "pending",
+              "event_context": "one_shot_reminder:noter_ce_motif_de_fin_de_journee_et_continue_est_ce_que_ca_r",
+              "draft_message": null,
+              "scheduled_for": "2026-05-23T17:00:00+00:00",
+              "created_at": "2026-06-24T11:28:55.072048+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "qa-one-shot-feature-20260624-r1-t02",
+        "user_id": "9633eb3f-7821-42ce-86c9-2b5d5b4f48a6",
+        "channel": "web",
+        "scope": "qa-normal-conversation-qa-one-shot-feature-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui : ton rappel de samedi à 19h pour noter ce motif de fin de journée est bien pris en compte.\n\nEt sur le fond, ça ressemble davantage à une initiative : tu décris un contexte récurrent sur plusieurs soirs, avec un besoin de structure répétée, pas juste un ajustement ponctuel de plan.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "success",
+          "executed_tools": [
+            "create_one_shot_reminder"
+          ],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-one-shot-feature-20260624-r1-t02",
+              "source_message_id": "96d277b2-e6df-4b9a-9e9b-d78cac5fa748",
+              "user_id": "9633eb3f-7821-42ce-86c9-2b5d5b4f48a6",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [
+                {
+                  "effect_type": "create_one_shot_reminder",
+                  "explicitness": "explicit",
+                  "target_status": "identified",
+                  "confidence_band": "high",
+                  "payload_hint": {
+                    "raw_text": "Rappelle-moi demain à 19h de noter ce motif de fin de journée, et continue : est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan ?",
+                    "when_hint": null,
+                    "instruction_hint": null
+                  }
+                }
+              ],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "direct_effect_lane": {
+                "selected_handler": "create_one_shot_reminder",
+                "toolExecution": "success",
+                "executedTools": [
+                  "create_one_shot_reminder"
+                ],
+                "requested_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-23T17:00:00+00:00",
+                    "local_label": "samedi 23 mai à 19:00",
+                    "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan",
+                    "reason_code": "local_parser"
+                  }
+                ],
+                "allowed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-23T17:00:00+00:00",
+                    "local_label": "samedi 23 mai à 19:00",
+                    "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan",
+                    "reason_code": "local_parser"
+                  }
+                ],
+                "committed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "id": "ffb95fb5-a631-43a8-9504-66a8c2ebacb7",
+                    "scheduled_for": "2026-05-23T17:00:00+00:00",
+                    "local_label": "samedi 23 mai à 19:00",
+                    "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan"
+                  }
+                ],
+                "blocked_effects": [],
+                "visible_confirmation_hint": "C'est programmé pour samedi 23 mai à 19:00: je te ferai un rappel pour noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan."
+              },
+              "direct_effect_confirmation_context": {
+                "has_committed_one_shot_reminder": true,
+                "has_requested_one_shot_reminder": true,
+                "confirmation_text": null,
+                "committed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "id": "ffb95fb5-a631-43a8-9504-66a8c2ebacb7",
+                    "scheduled_for": "2026-05-23T17:00:00+00:00",
+                    "local_label": "samedi 23 mai à 19:00",
+                    "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan"
+                  }
+                ],
+                "requested_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-23T17:00:00+00:00",
+                    "local_label": "samedi 23 mai à 19:00",
+                    "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan",
+                    "reason_code": "local_parser"
+                  }
+                ],
+                "blocked_effects": [],
+                "do_not_recreate": true,
+                "do_not_reroute": true,
+                "do_not_redemand": true,
+                "do_not_confirm_without_commit": true,
+                "remaining_user_need_must_continue": true
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "feature_opportunity",
+              "blocked_paths": [],
+              "direct_effects_to_run": [
+                "create_one_shot_reminder"
+              ],
+              "reason_code": "direct_effect_lane_message_intake",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "feature_opportunity",
+                "selected_owner": "feature_opportunity",
+                "resume_policy": "resume_active",
+                "reason_code": "active_feature_opportunity"
+              },
+              "selected_handler": "feature_opportunity"
+            },
+            "effect_ledger": {
+              "turn_id": "qa-one-shot-feature-20260624-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "feature_opportunity",
+            "skill_run": {
+              "selected_skill_id": "feature_opportunity",
+              "reason_code": "direct_effect_lane_message_intake",
+              "status": "continue",
+              "latency_ms": 7139
+            },
+            "tool_skill_run": {
+              "selected_handler": "create_one_shot_reminder",
+              "status": "success",
+              "reason": "local_parser",
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T17:00:00+00:00",
+                  "local_label": "samedi 23 mai à 19:00",
+                  "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan",
+                  "reason_code": "local_parser"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T17:00:00+00:00",
+                  "local_label": "samedi 23 mai à 19:00",
+                  "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan",
+                  "reason_code": "local_parser"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "ffb95fb5-a631-43a8-9504-66a8c2ebacb7",
+                  "scheduled_for": "2026-05-23T17:00:00+00:00",
+                  "local_label": "samedi 23 mai à 19:00",
+                  "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan"
+                }
+              ],
+              "blocked_effects": []
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-one-shot-feature-20260624-r1-t02",
+            "source_message_id": "96d277b2-e6df-4b9a-9e9b-d78cac5fa748",
+            "user_id": "9633eb3f-7821-42ce-86c9-2b5d5b4f48a6",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [
+              {
+                "effect_type": "create_one_shot_reminder",
+                "explicitness": "explicit",
+                "target_status": "identified",
+                "confidence_band": "high",
+                "payload_hint": {
+                  "raw_text": "Rappelle-moi demain à 19h de noter ce motif de fin de journée, et continue : est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan ?",
+                  "when_hint": null,
+                  "instruction_hint": null
+                }
+              }
+            ],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "direct_effect_lane": {
+              "selected_handler": "create_one_shot_reminder",
+              "toolExecution": "success",
+              "executedTools": [
+                "create_one_shot_reminder"
+              ],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T17:00:00+00:00",
+                  "local_label": "samedi 23 mai à 19:00",
+                  "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan",
+                  "reason_code": "local_parser"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T17:00:00+00:00",
+                  "local_label": "samedi 23 mai à 19:00",
+                  "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan",
+                  "reason_code": "local_parser"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "ffb95fb5-a631-43a8-9504-66a8c2ebacb7",
+                  "scheduled_for": "2026-05-23T17:00:00+00:00",
+                  "local_label": "samedi 23 mai à 19:00",
+                  "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan"
+                }
+              ],
+              "blocked_effects": [],
+              "visible_confirmation_hint": "C'est programmé pour samedi 23 mai à 19:00: je te ferai un rappel pour noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan."
+            },
+            "direct_effect_confirmation_context": {
+              "has_committed_one_shot_reminder": true,
+              "has_requested_one_shot_reminder": true,
+              "confirmation_text": null,
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "ffb95fb5-a631-43a8-9504-66a8c2ebacb7",
+                  "scheduled_for": "2026-05-23T17:00:00+00:00",
+                  "local_label": "samedi 23 mai à 19:00",
+                  "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan"
+                }
+              ],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T17:00:00+00:00",
+                  "local_label": "samedi 23 mai à 19:00",
+                  "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan",
+                  "reason_code": "local_parser"
+                }
+              ],
+              "blocked_effects": [],
+              "do_not_recreate": true,
+              "do_not_reroute": true,
+              "do_not_redemand": true,
+              "do_not_confirm_without_commit": true,
+              "remaining_user_need_must_continue": true
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "feature_opportunity",
+            "blocked_paths": [],
+            "direct_effects_to_run": [
+              "create_one_shot_reminder"
+            ],
+            "reason_code": "direct_effect_lane_message_intake",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "feature_opportunity",
+              "selected_owner": "feature_opportunity",
+              "resume_policy": "resume_active",
+              "reason_code": "active_feature_opportunity"
+            },
+            "selected_handler": "feature_opportunity"
+          },
+          "effect_ledger": {
+            "turn_id": "qa-one-shot-feature-20260624-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "feature_opportunity",
+          "skill_run": {
+            "selected_skill_id": "feature_opportunity",
+            "reason_code": "direct_effect_lane_message_intake",
+            "status": "continue",
+            "latency_ms": 7139
+          },
+          "tool_skill_run": {
+            "selected_handler": "create_one_shot_reminder",
+            "status": "success",
+            "reason": "local_parser",
+            "requested_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-05-23T17:00:00+00:00",
+                "local_label": "samedi 23 mai à 19:00",
+                "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan",
+                "reason_code": "local_parser"
+              }
+            ],
+            "allowed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-05-23T17:00:00+00:00",
+                "local_label": "samedi 23 mai à 19:00",
+                "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan",
+                "reason_code": "local_parser"
+              }
+            ],
+            "committed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "id": "ffb95fb5-a631-43a8-9504-66a8c2ebacb7",
+                "scheduled_for": "2026-05-23T17:00:00+00:00",
+                "local_label": "samedi 23 mai à 19:00",
+                "reminder_instruction": "noter ce motif de fin de journée, et continue: est-ce que ça ressemble plus à une initiative ou à un simple ajustement de plan"
+              }
+            ],
+            "blocked_effects": []
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-24T11:29:02.316Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-24T11:32:49.859Z"
+}

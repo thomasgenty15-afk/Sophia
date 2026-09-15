@@ -1,0 +1,18 @@
+[
+  {
+    "role": "user",
+    "content": "Rappelle-moi demain à 9h10 de préparer le dossier client."
+  },
+  {
+    "role": "assistant",
+    "content": "C’est programmé pour mercredi 20 mai à 09:10 : préparer le dossier client. 🙂"
+  },
+  {
+    "role": "user",
+    "content": "Demain matin, ce dossier client me stresse un peu ; il faut vraiment que je le prépare avant l'appel."
+  },
+  {
+    "role": "assistant",
+    "content": "C'est normal que la pression monte un peu si l'enjeu est important. Pour éviter que ça tourne en boucle dans ta tête ce soir, on va simplifier le démarrage.\n\nJe te propose de préparer une Carte d'attaque ensemble : ça nous permettra de définir le tout premier petit geste concret à faire à 9h10 pour briser la glace avec ce dossier.\n\nTu veux qu'on fasse ça ? 📋"
+  }
+]

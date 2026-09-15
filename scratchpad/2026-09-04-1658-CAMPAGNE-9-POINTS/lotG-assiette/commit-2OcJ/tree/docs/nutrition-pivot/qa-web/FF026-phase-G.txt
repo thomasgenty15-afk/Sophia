@@ -1,0 +1,41 @@
+
+══════════════════════════════════════════════════════════════════════════════
+▌ PHASE G — §10 SUR-CAPTURE: le bavardage devient-il une préférence ?
+══════════════════════════════════════════════════════════════════════════════
+
+── passage 1/2 ──
+  → « I like that idea, thanks »
+    Glad it helps.
+  → « j'adore, merci ! »
+    🙂
+  → « haha j'aime bien ta façon de dire ça »
+    Glad you like it.
+  → « sounds good, I love it »
+    Glad you love it.
+  ── memory_items ──
+    (aucun souvenir)
+  ✅ [adversarial] H4 sur-capture — un bavardage court ne devient PAS une préférence proposable
+      preuve: 0 souvenir(s) créé(s) ; proposeFoodPreferences rend 0 proposition(s)
+
+── passage 2/2 ──
+  → « I like that idea, thanks »
+    Glad it helps.
+  → « j'adore, merci ! »
+    Glad it helps.
+  → « haha j'aime bien ta façon de dire ça »
+    Glad you like the way I said it.
+  → « sounds good, I love it »
+    Nice — I’ll keep that tone.
+  ── memory_items ──
+    (aucun souvenir)
+  ✅ [adversarial] H4 sur-capture — un bavardage court ne devient PAS une préférence proposable
+      preuve: 0 souvenir(s) créé(s) ; proposeFoodPreferences rend 0 proposition(s)
+
+══════════════════════════════════════════════════════════════════════════════
+▌ SYNTHÈSE
+══════════════════════════════════════════════════════════════════════════════
+2/2 verdicts au vert
+  ✅ [adversarial] H4 sur-capture — un bavardage court ne devient PAS une préférence proposable
+  ✅ [adversarial] H4 sur-capture — un bavardage court ne devient PAS une préférence proposable
+
+nettoyage: 4 compte(s)

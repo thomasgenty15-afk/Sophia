@@ -349,6 +349,17 @@ describe("le câblage de la vue jour", () => {
       // simulée n'en porte pas — et `false` est une valeur pleine, « rien à
       // congeler », jamais un champ manquant.
       freeze_on_purchase: false,
+      // ⟳ 2026-09-12 · C3 — L'IDENTITÉ ET LA QUANTITÉ STRUCTURÉE TRAVERSENT
+      // AUSSI, et cette assertion EXHAUSTIVE a fait exactement son travail:
+      // elle a rougi le jour où les champs sont nés. `null` ici parce que la
+      // réponse simulée n'en porte pas — et `null` est une valeur pleine,
+      // « on ne sait pas », jamais zéro.
+      ref: null,
+      amount: null,
+      unit: null,
+      state: null,
+      // ⛔ `true` par défaut: l'absence du champ ne sort personne du panier.
+      purchasable: true,
     });
     // ⚠️ ET SON ABSENCE RESTE UNE ABSENCE: la seconde ligne n'en porte pas
     // (un plan écrit avant `L0-a`), et le lecteur rend `null` — une valeur

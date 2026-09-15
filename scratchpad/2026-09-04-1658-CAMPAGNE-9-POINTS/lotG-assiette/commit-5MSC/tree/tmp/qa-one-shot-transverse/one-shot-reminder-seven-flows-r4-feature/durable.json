@@ -1,0 +1,130 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages_count": 6,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je remarque que je décroche tous les soirs avant de ranger mon bureau ; est-ce que Sophia a un truc pour ritualiser ça ? Et rappelle-moi dans 45 minutes de vider la tasse sur mon bureau.",
+      "created_at": "2026-06-24T15:24:32.291955+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r4-feature-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui : la bonne surface ici, c’est **initiatives**. Tu peux y mettre un petit rituel récurrent pour le moment “avant de ranger ton bureau” : par exemple, un message du type « Pose ton téléphone, vide ta tasse, puis range 5 minutes ». Tu peux aussi préciser l’heure, les jours actifs et la destination (Plan actuel ou Base de vie).\n\nPour le rappel dans 45 minutes, je ne peux pas le confirmer ici. Si tu veux, je peux t’aider à formuler le rituel le plus simple possible.",
+      "created_at": "2026-06-24T15:24:55.188243+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r4-feature-t01",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Ok, alors mets-le plutôt demain à 11h05 : vider la tasse sur mon bureau.",
+      "created_at": "2026-06-24T15:25:08.602005+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r4-feature-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Je peux t’aider pour les deux : pour le rituel récurrent du soir, une initiative peut bien coller. Pour le message de demain à 11h05, il me manque ton fuseau horaire pour te répondre correctement. Tu es dans quel fuseau ?",
+      "created_at": "2026-06-24T15:25:16.054393+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r4-feature-t02",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Europe/Paris.",
+      "created_at": "2026-06-24T15:25:26.761303+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r4-feature-t03",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Pour ton cas, la bonne surface est **initiatives** : tu peux y définir quoi dire, juste avant quel moment le lancer, à quelle heure, quels jours, et où l’envoyer. Ton rituel du soir avant de ranger ton bureau colle très bien à ça.\n\nPour le passage ponctuel de demain à 11h05, c’est à traiter à part dans la plateforme.\n\nTu veux que je t’aide à formuler l’initiative en une phrase simple ?",
+      "created_at": "2026-06-24T15:25:35.622597+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r4-feature-t03",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "5220713c-0a7c-44f4-b99b-460a21cba25f",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-24T15:24:55.177Z",
+        "turn_count": 3,
+        "updated_at": "2026-06-24T15:25:35.608Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 3,
+            "trigger_context": "tous les soirs avant de ranger mon bureau",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "The user has a recurring evening desk-tidying moment and also requested a one-time reminder for tomorrow at 11:05 to empty the cup on the desk.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated context plus request for a ritual fits initiatives.",
+              "trigger_context": "tous les soirs avant de ranger mon bureau",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "The user says they consistently drift off every evening before tidying their desk and asks for a ritual to support that repeated moment."
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-24T15:24:55.177Z",
+        "turn_count": 3,
+        "updated_at": "2026-06-24T15:25:35.608Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 3,
+            "trigger_context": "tous les soirs avant de ranger mon bureau",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "The user has a recurring evening desk-tidying moment and also requested a one-time reminder for tomorrow at 11:05 to empty the cup on the desk.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated context plus request for a ritual fits initiatives.",
+              "trigger_context": "tous les soirs avant de ranger mon bureau",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "The user says they consistently drift off every evening before tidying their desk and asks for a ritual to support that repeated moment."
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T15:25:35.618543+00:00"
+  }
+}

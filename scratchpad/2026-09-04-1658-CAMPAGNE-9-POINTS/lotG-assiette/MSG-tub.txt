@@ -1,0 +1,24 @@
+la journée « bac commun seul » devient mesurable : un servi estimé pour le compteur, jamais un facteur — et les alias que les bacs du quatre ne résolvaient pas
+
+Mesuré sur le quatre (C03, 2026-09-06 02:10) : 14 journées-bouche sur 21 sortaient
+`not_anchored` d'`unmetDemand` parce que la bouche n'a mangé que dans des bacs communs — le
+manque de trois personnes sur quatre était invisible au compteur, pendant que les 16 bacs
+communs (à deux bouches, la casserole protéique seule : « saumon cuit 499 g ») servaient
+300 à 700 kcal par bouche et par repas.
+
+`unmetDemand` reçoit un `tubServed` optionnel (Σ kcal des bacs de la journée / leurs
+mangeurs, `null` si un bac est illisible) et rend la cause `tub_estimate` pour une journée
+`common_pot_day` : une ESTIMATION nommée pour le compteur, jamais un chiffre au nom de
+quelqu'un sur un couvercle (v4) ni un facteur — la règle du bac reste seule à
+dimensionner. Sans le paramètre, comportement d'hier octet pour octet ; une journée ancrée
+n'est jamais remplacée par l'estimation. L'alimentation depuis `perBox` dans l'index foyer
+suit dans un commit séparé (fichier en cours d'écriture par une autre session).
+
+Migration `20260906030000` : les alias vérifiés que ces bacs ne résolvaient pas — galette
+complète (→ tortilla_wholemeal ; la casserole `prep_galettes_sun` n'avait ni énergie ni
+densité, deux bacs `dish_incomplete`), curry en poudre, moutarde de dijon, jus de citron
+vert, vinaigre de cidre/de vin, poulet nu. Aucune ligne de référentiel créée ; « raviolis
+frais » n'a pas de ligne et n'est pas inventé. Appliquée en local (`migration up`), pas
+poussée.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

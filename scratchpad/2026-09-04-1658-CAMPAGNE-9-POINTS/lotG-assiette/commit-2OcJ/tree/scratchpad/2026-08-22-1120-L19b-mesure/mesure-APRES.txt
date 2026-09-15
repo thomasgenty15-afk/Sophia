@@ -1,0 +1,116 @@
+════════════════════════════════════════════════════════════════════════
+ L19b — MESURE APRÈS, le 2026-08-22 11:45 CEST
+════════════════════════════════════════════════════════════════════════
+ Arbre de travail (volet ① appliqué) + base migrée
+ (20260822113000_lot19b_les_alias_verifies) = 2 668 alias · 923 refs · 182 plans.
+
+── ① L'ÉPREUVE DU NOM NU, 150 paires ──────────────────────────────────
+   SEUILS DE LA FICHE: FR ≥ 145/150 · EN = 150/150 · écart ≤ 4 points
+
+═══ ÉPREUVE DU NOM NU — même aliment, même règle, deux langues ═══
+aliments : 150   (formes anglaises réellement observées dans le corpus : 136/150)
+
+langue | bon aliment | AUTRE aliment | RIEN
+EN     | 150 100.0 % |   0   0.0 % |   0   0.0 %
+FR     | 147  98.0 % |   3   2.0 % |   0   0.0 %
+
+ÉCART sur « bon aliment » : 3 aliments, soit 2.0 points
+
+  ⇒ FR      124/150 (82,7 %)  →  147/150 (98,0 %)   SEUIL ≥ 145   ✅ ATTEINT
+  ⇒ EN      150/150 (100 %)   →  150/150 (100 %)    SEUIL = 150   ✅ ATTEINT
+  ⇒ ÉCART   17,3 points       →  2,0 points         SEUIL ≤ 4     ✅ ATTEINT
+
+  Les TROIS échecs français restants, un par un:
+    egg              oeuf         ≠whole_eggs
+    plum             prune        ≠prune
+    yoghurt          yaourt       ≠plain_yogurt
+
+    ⛔ « prune » est IRRÉPARABLE PAR UN ALIAS: le slug ANGLAIS `prune`
+       (le pruneau séché) capture la forme avant que byAlias soit consulté.
+       Seul un renommage de slug répare — lot O8. Idem « pate ».
+    ⚠️ « oeuf » et « yaourt » ne sont PAS des trous de traduction: ils
+       atteignent une ligne JUMELLE du MÊME aliment (whole_eggs 140 kcal
+       vs egg 140 · plain_yogurt 59 vs yoghurt 56,8). Le défaut est un
+       DOUBLON du référentiel, pas la langue. ⇒ fiche neuve L19c.
+
+── ② LES RÉDUCTIONS QUI CHANGENT L'ALIMENT ────────────────────────────
+modificateurs lus dans le module : 123
+
+noms connus éprouvés : 3398
+réductions qui changent l'aliment : 35
+
+  ⇒ 127 modificateurs → 123. Les CINQ réductions de `complet`/`completes`
+     ont disparu: à univers de noms CONSTANT, 38 → 33.
+
+  ⛔ MAIS LE COMPTE PUBLIÉ EST 35, PAS 33, ET IL FAUT LE DIRE. Le script
+     éprouve TOUS les noms connus (slugs + alias): les 86 alias neufs en
+     ajoutent 86, donc 3 312 → 3 398 noms, et DEUX d'entre eux sont des noms
+     dont la réduction change l'aliment:
+
+       [moulu]  « piment moulu »  : chilli_powder (sauce_dressing, 282)
+                                  → chilli (non_starchy_veg, 44,5)  [GROUPE + ×6,3]
+       [ground] « ground chilli » : idem
+
+     ⚠️ Ce ne sont PAS deux défauts neufs, et c'est mesuré, pas déduit:
+       • AVANT, « piment moulu » et « ground chilli » atteignaient DÉJÀ
+         `chilli` (44,5 kcal, le piment FRAIS) — par cette réduction exacte.
+         Les deux alias les font atteindre `chilli_powder`: c'est une
+         CORRECTION de ×6,3 sur l'énergie et un changement de groupe.
+       • La forme étendue qui pourrait retomber sur la réduction
+         (« piment moulu doux ») rend ∅ AVANT COMME APRÈS.
+       • Les trois formes ont ZÉRO occurrence dans les 182 plans.
+     ⇒ Le compteur monte parce qu'on lui a donné deux noms de plus à éprouver,
+       pas parce qu'un aliment s'est mis à changer. Un lecteur qui compare 33
+       et 35 sans ça conclurait l'inverse.
+
+── ③ LES TERMES QUE LA FICHE NOMMAIT ──────────────────────────────────
+pain complet grille                → wholemeal_bread          | Wholemeal bread | whole_grain | 262 kcal | unit_grams=40
+wrap                               → tortilla_wrap            | Tortilla wrap (wheat) | refined_grain | 305 kcal | unit_grams=60
+wraps                              → tortilla_wrap            | Tortilla wrap (wheat) | refined_grain | 305 kcal | unit_grams=60
+tortilla complete                  → tortilla_wholemeal       | Wholemeal tortilla wrap | whole_grain | 290 kcal | unit_grams=60
+pain pita complet                  → pita_wholemeal           | Wholemeal pita bread | whole_grain | 265 kcal | unit_grams=60
+couscous complet sec               → couscous_wholemeal       | Wholemeal couscous | whole_grain | 345 kcal | unit_grams=—
+semoule complete                   → couscous_wholemeal       | Wholemeal couscous | whole_grain | 345 kcal | unit_grams=—
+oignon rouge                       → red_onion                | Red onion, raw | non_starchy_veg | 36.3 kcal | unit_grams=110
+pain                               → bread                    | Bread (average) | refined_grain | 276 kcal | unit_grams=35
+toast                              → toasted_bread            | Toasted bread, home-made | refined_grain | 317 kcal | unit_grams=—
+baguette                           → bread_french_bread_baguette | Bread, French bread, baguette | refined_grain | 287 kcal | unit_grams=—
+
+── ④ LES ALIAS MORTS ──────────────────────────────────────────────────
+alias en base                         : 2668
+MORTS (forme = un slug)               : 191
+  ① morts INOFFENSIFS (même ligne)    : 191
+  ② ⛔ morts CONTRADICTOIRES          : 0
+
+
+── ⑤ LE DIFF SUR TOUT LE CORPUS — 827 chaînes brutes, 10 038 lignes ───
+  résolues (distinctes)  : 637 → 651
+  résolues (occurrences) : 9 545 → 9 590
+  ⛔ chaînes PERDUES     : 0
+
+    19 occ  wraps                              white_bread    → tortilla_wrap
+    11 occ  braised beef                       ∅              → beef_braising
+    10 occ  cooked chicken thigh meat          ∅              → chicken_thigh
+     7 occ  pain complet grillé                white_bread    → wholemeal_bread
+     6 occ  toast                              white_bread    → toasted_bread
+     5 occ  tuna tins                          ∅              → tuna_tinned
+     4 occ  lamb mince                         ∅              → lamb
+     2 occ  Italian herbs                      ∅              → dried_herbs
+     2 occ  baguette                           white_bread    → bread_french_bread_baguette
+     2 occ  ciboulette                         ∅              → herbs_chives
+     2 occ  crusty baguette                    white_bread    → bread_french_bread_baguette
+     2 occ  lettuce leaves                     ∅              → lettuce
+     2 occ  mixed greens                       ∅              → lettuce
+     2 occ  mixed salad greens                 ∅              → lettuce
+     2 occ  pain pita complet                  pita_bread     → pita_wholemeal
+     2 occ  tortilla complète                  white_bread    → tortilla_wholemeal
+     1 occ  baguettes                          white_bread    → bread_french_bread_baguette
+     1 occ  chicken thigh fillets              ∅              → chicken_thigh
+     1 occ  chilli sauce                       ∅              → hot_sauce
+     1 occ  couscous complet sec               couscous       → couscous_wholemeal
+     1 occ  crackers                           ∅              → wheat_crackers
+     1 occ  pittas                             white_bread    → pita_bread
+     1 occ  pommes de terre nouvelles          ∅              → potato
+     1 occ  semoule complète cuite             couscous       → couscous_wholemeal
+     1 occ  tuna cans                          ∅              → tuna_tinned
+     1 occ  wrap                               white_bread    → tortilla_wrap

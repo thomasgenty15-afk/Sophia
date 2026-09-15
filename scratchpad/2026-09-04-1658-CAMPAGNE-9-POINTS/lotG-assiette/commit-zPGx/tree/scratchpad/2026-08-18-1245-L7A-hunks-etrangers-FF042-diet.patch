@@ -1,0 +1,158 @@
+diff --git a/supabase/functions/generate-meal-v1/index.ts b/supabase/functions/generate-meal-v1/index.ts
+index 5cb493b7..3fe306ff 100644
+--- a/supabase/functions/generate-meal-v1/index.ts
++++ b/supabase/functions/generate-meal-v1/index.ts
+@@ -65,7 +65,10 @@ import { explainPlanChoices } from "../_shared/keel/plan_rationale.ts";
+ // dépôt. Les quatre portes vivent DANS le module, pas ici.
+ import { reportOnRequest } from "../_shared/keel/request_report.ts";
+ import { gateRequestReport } from "../_shared/keel/request_report_gate.ts";
+-import { type ForbiddenTerm } from "../_shared/keel/forbidden_matcher.ts";
++import {
++  findForbiddenMatches,
++  type ForbiddenTerm,
++} from "../_shared/keel/forbidden_matcher.ts";
+ // LA PHRASE ÉCRITE SUR UN BROUILLON — gardée À L'ENTRÉE, parce qu'elle part au
+ // modèle dans le même message que la doctrine du coach et les contraintes de
+ // sécurité. Les quatre portes vivent DANS le module, pas ici.
+@@ -159,6 +162,8 @@ import {
+ } from "../_shared/keel/meal_coverage.ts";
+ import { type ActivityLevel, GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
+ import {
++  dietaryRegimePromptLine,
++  excludedSurfaceFormsFor,
+   parseDietaryRegime,
+   uncoverableSentinelsFor,
+ } from "../_shared/keel/dietary_regime.ts";
+@@ -801,6 +806,24 @@ Deno.serve(async (req) => {
+       console.warn(`[${FN_NAME}] safety constraints unavailable`, error);
+     }
+ 
++    // ── FF-042 · LE RÉGIME DÉCLARÉ, LU UNE SEULE FOIS ET ASSEZ TÔT ─────────
++    //
++    // ⚠️ CE `const` EST HISSÉ ICI EXPRÈS, et le défaut qu'il corrige tenait
++    // entièrement dans son ancienne POSITION. Il était calculé ~300 lignes
++    // plus bas, juste au-dessus du verdict — c'est-à-dire APRÈS
++    // `buildMealPrompt`. Le régime ne pouvait donc pas entrer dans la
++    // consigne, même si quelqu'un avait voulu l'y mettre: à l'endroit où on
++    // le lisait, le prompt était déjà parti. Il n'a jamais servi qu'à
++    // `uncoverableSentinelsFor` (« il va lui manquer de la B12 »), pendant
++    // qu'on lui composait du poulet.
++    //
++    // LU DEPUIS LES CONTRAINTES DÉJÀ CHARGÉES, jamais par une seconde
++    // requête: deux lectures de la même table divergent, et c'est celle qu'on
++    // regarde le moins qui garde l'ancien comportement.
++    const declaredRegime = (constraints ?? [])
++      .map((c) => parseDietaryRegime(c.dietRef))
++      .find((r): r is NonNullable<typeof r> => r !== null) ?? null;
++
+     // ── LE JOUR OÙ L'ÉLÈVE EST, ET LA FENÊTRE QU'IL A DEMANDÉE ───────────
+     //
+     // ── LE REPLI SUR « LE MODÈLE CHOISIT SES JOURS » A DISPARU ───────────
+@@ -1388,6 +1411,17 @@ Deno.serve(async (req) => {
+       // double verrou du §3.3 du pivot: la consigne informe, la ceinture
+       // garantit. `null` (lecture en panne) reste `null` des deux côtés.
+       safetyConstraints: constraints,
++      // ── FF-042 · LE RÉGIME ENTRE DANS LA CONSIGNE ──────────────────────
++      // La MOITIÉ AMONT du double verrou, et elle manquait entièrement sur
++      // cette lane: `dietary_regime.ts` était importé ici pour son seul
++      // drapeau de carence. On déclarait donc à un végane qu'il manquerait de
++      // B12, dans un plan qui lui servait du poulet.
++      //
++      // La phrase vient de `dietaryRegimePromptLine`, JAMAIS d'une phrase
++      // écrite ici — même règle qu'au call site du foyer. Une seconde
++      // formulation divergerait de la première le jour où un quatrième régime
++      // arrive, et c'est la lane la moins relue qui garderait l'ancienne.
++      dietBlock: declaredRegime ? dietaryRegimePromptLine(declaredRegime) : "",
+       body: studentBody,
+       // L'AXE. La lecture est défensive contre la liste FERMÉE plutôt que
+       // recopiée: le CHECK SQL tient la base, mais une valeur écrite avant lui
+@@ -1684,17 +1718,9 @@ Deno.serve(async (req) => {
+     // FAIL-CLOSED: une lecture du plancher en panne a déjà rendu
+     // `restrictionFlag = true` en amont (FF-030 R6), et `studentBody` absent
+     // dégrade de toute façon par la MÊME branche de `envelopeFor`.
+-    // ── FF-042 R6 · LE RÉGIME DÉCLARÉ, ET CE QU'IL REND INCOUVRABLE ───────
+-    // Lu depuis les contraintes déjà chargées, jamais par une seconde requête:
+-    // deux lectures de la même table divergent, et c'est celle qu'on regarde le
+-    // moins qui garde l'ancien comportement.
+-    //
+-    // ⚠️ `dietRef` n'entre PAS dans la liste d'évitement — la ceinture reçoit
+-    // l'expansion (viande, poisson, œuf…), jamais le nom du régime. Ce dépôt a
+-    // payé le contraire en run réel avec `allergen_ref='diabetes'`.
+-    const declaredRegime = (constraints ?? [])
+-      .map((c) => parseDietaryRegime(c.dietRef))
+-      .find((r): r is NonNullable<typeof r> => r !== null) ?? null;
++    // ── FF-042 R6 · CE QUE LE RÉGIME REND INCOUVRABLE ─────────────────────
++    // `declaredRegime` est HISSÉ au chargement des contraintes, et c'est ce
++    // déplacement qui a branché la consigne: ici, le prompt est déjà parti.
+     const uncoverableForStudent = declaredRegime
+       ? uncoverableSentinelsFor(declaredRegime)
+       : [];
+@@ -1911,6 +1937,68 @@ Deno.serve(async (req) => {
+       }
+     }
+ 
++    // ══ FF-042 · LE SECOND TOUR DU DOUBLE VERROU, SUR LE RÉGIME ══════════
++    //
++    // La consigne est partie dans le prompt (`dietBlock`, plus haut). Une
++    // consigne de prompt régresse en réel — c'est la phrase fondatrice de
++    // `household_restriction_lock.ts`, et le régime n'y échappe pas: c'est
++    // exactement dans les fonds, les sauces et les garnitures que la règle se
++    // perd, ce que `dietaryRegimePromptLine` dit au modèle sans pouvoir le
++    // vérifier.
++    //
++    // ⚠️ ON MESURE L'EXPANSION, JAMAIS LE JETON. Les aiguilles sont les formes
++    // de surface (`excludedSurfaceFormsFor`: viande, lardons, nuoc-mâm,
++    // gélatine…), en FR ET EN EN. Armer la ceinture sur « vegan » ferait
++    // rejeter toute réponse qui décrit un plat comme végane — le défaut exact
++    // qu'`allergen_ref='diabetes'` a produit en run réel le 2026-08-06, où un
++    // message d'urgence a été remplacé par un refus poli.
++    //
++    // ⚠️ ON NE JETTE RIEN, même arbitrage et même raison que le bloc au-dessus.
++    // Le verrou de sortie est BINAIRE et calculé sur la concaténation de tous
++    // les plats: refuser ici viderait la semaine entière pour un lardon dans
++    // un seul plat, et l'élève paierait son régime en semaines vides — le
++    // défaut que FF-030 a déjà corrigé pour l'allergène. Le silence se COMPTE
++    // et se DIT, ce qui est la condition pour décider un jour d'en faire un
++    // motif de relance. Décider avant de mesurer, c'est ce qui a produit le
++    // refus poli ci-dessus.
++    if (declaredRegime) {
++      const excludedForms = excludedSurfaceFormsFor(declaredRegime);
++      const regimeTerms = excludedForms.map((form) => ({
++        ruleId: `diet:${declaredRegime}`,
++        token: form,
++      }));
++      // LE PLAT ENTIER, ingrédients COMPRIS. Le titre seul laisserait passer
++      // « risotto crémeux » dont la liste porte du parmesan et du bouillon de
++      // volaille — c'est-à-dire le cas que la consigne nomme en toutes lettres.
++      const breaches: string[] = [];
++      for (const dish of meal.dishes) {
++        const haystack = [
++          dish.title,
++          dish.why,
++          ...(dish.ingredients ?? []).map((i) =>
++            typeof i === "string" ? i : String((i as { term?: string })?.term ?? "")
++          ),
++        ].filter((s) => typeof s === "string" && s.trim() !== "").join(" · ");
++        for (const hit of findForbiddenMatches(haystack, regimeTerms)) {
++          breaches.push(`${dish.title}: ${hit.matchedText}`);
++        }
++      }
++      // TROIS NOMBRES, pas un booléen: un lot désarmé et un lot qui marche
++      // rendent le même `false`. `dishes` dit que la garde a eu de la matière,
++      // `forms` qu'elle avait des aiguilles, `breaches` ce qu'elle a trouvé.
++      console.log(JSON.stringify({
++        tag: "keel.meal.dietary_regime",
++        user_id: userId,
++        regime: declaredRegime,
++        dishes: meal.dishes.length,
++        forms: excludedForms.length,
++        breaches: breaches.length,
++      }));
++      for (const breach of breaches) {
++        issues.push(`dietary_regime_breach: ${breach}`);
++      }
++    }
++
+     if (meal.dishes.length === 0) {
+       // Rien n'est écrit. Même arbitrage que le plan vide: un brouillon sans
+       // plat donnerait à l'élève l'impression d'un repas.

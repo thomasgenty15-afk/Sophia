@@ -1,0 +1,5 @@
+un composant demandé et absent des boîtes est dit dans `issues`, pas seulement compté
+
+ASP4 (quatre, 5fa06ef6) : `preference_split {pairs 1, composed 0}` — le modèle écrit dans son explication « les asperges restent un ajout séparé dans les boîtes de Paul » et n'en met dans aucune boîte. La ligne d'`issues` est ce qu'une relance et le lecteur peuvent voir ; l'explication ne peut plus le masquer sans que l'archive le contredise.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

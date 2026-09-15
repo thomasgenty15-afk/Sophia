@@ -1,0 +1,1067 @@
+{
+  "run_id": "one-shot-reminder-instruction-hint-smoke-20260613-r1",
+  "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-one-shot-reminder-instruction-hint-smoke-20260613-r1-1781366790069@example.com",
+  "user_id": "4731d82b-095b-4a2c-b917-efe4d0be6f6f",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvY2FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNjY3MzAsImV4cCI6MTgxMjkwMjc5MH0.RZm87tX1QlWf5WWC64IdAyVJOPfA1TAruvPqGlniK2A",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvY2FsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTM2NjczMCwiZXhwIjoxODEyOTAyNzkwfQ.EJ-_f0AYKSIN1cIg7Lgkv531FqM0Iy_48vH84siTg_Q",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiI0NzMxZDgyYi0wOTViLTRhMmMtYjkxNy1lZmU0ZDBiZTZmNmYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxMzcwMzkwLCJpYXQiOjE3ODEzNjY3OTAsImVtYWlsIjoicWEtbm9ybWFsLW9uZS1zaG90LXJlbWluZGVyLWluc3RydWN0aW9uLWhpbnQtc21va2UtMjAyNjA2MTMtcjEtMTc4MTM2Njc5MDA2OUBleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJxYS1ub3JtYWwtb25lLXNob3QtcmVtaW5kZXItaW5zdHJ1Y3Rpb24taGludC1zbW9rZS0yMDI2MDYxMy1yMS0xNzgxMzY2NzkwMDY5QGV4YW1wbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJxYV9ydW5faWQiOiJvbmUtc2hvdC1yZW1pbmRlci1pbnN0cnVjdGlvbi1oaW50LXNtb2tlLTIwMjYwNjEzLXIxIiwic3ViIjoiNDczMWQ4MmItMDk1Yi00YTJjLWI5MTctZWZlNGQwYmU2ZjZmIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODEzNjY3OTB9XSwic2Vzc2lvbl9pZCI6ImJiOGFlOTRjLTcwMjQtNDI4My04MDZhLTYyZWNmZGYyMzgyYyIsImlzX2Fub255bW91cyI6ZmFsc2V9.hdvgVQ7ay6SEXFZod3zzMFGygV4vtKOe065_XzuGWQ0",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-13T16:06:30.360Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-13T16:06:42.587Z",
+      "user": "Alors rappelle-moi dans 25 minutes : ouvrir le fichier, sans essayer de régler tout le dossier.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "C'est programmé pour samedi 13 juin à 10:25: je te rappellerai de ouvrir le fichier, sans essayer de régler tout le dossier.",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "create_one_shot_reminder",
+        "route_reason": "central_arbitrator_one_shot_reminder_structured_effect",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [
+          "create_one_shot_reminder"
+        ],
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ],
+        "tool_execution": "success"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__conversation_risk_last": {
+                  "at": "2026-06-13T16:06:42.509Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__conversation_risk_history": [
+                  0
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-06-13T16:06:42.550164+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "6ad74ab3-a1d5-4da7-9474-9a82a3b5fba7",
+              "status": "pending",
+              "event_context": "one_shot_reminder:ouvrir_le_fichier_sans_essayer_de_regler_tout_le_dossier",
+              "draft_message": null,
+              "scheduled_for": "2026-06-13T08:25:00+00:00",
+              "created_at": "2026-06-13T16:06:42.541018+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "one-shot-reminder-instruction-hint-smoke-20260613-r1-t01",
+        "user_id": "4731d82b-095b-4a2c-b917-efe4d0be6f6f",
+        "channel": "web",
+        "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est programmé pour samedi 13 juin à 10:25: je te rappellerai de ouvrir le fichier, sans essayer de régler tout le dossier.",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "success",
+          "executed_tools": [
+            "create_one_shot_reminder"
+          ],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "one-shot-reminder-instruction-hint-smoke-20260613-r1-t01",
+              "source_message_id": "36c542f4-74ba-48aa-ae1d-3ab87e0ebe6c",
+              "user_id": "4731d82b-095b-4a2c-b917-efe4d0be6f6f",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [
+                {
+                  "effect_type": "create_one_shot_reminder",
+                  "explicitness": "explicit",
+                  "target_status": "identified",
+                  "confidence_band": "high",
+                  "payload_hint": {
+                    "raw_text": "rappelle-moi dans 25 minutes : ouvrir le fichier, sans essayer de régler tout le dossier.",
+                    "when_hint": "dans 25 minutes",
+                    "instruction_hint": "ouvrir le fichier, sans essayer de régler tout le dossier"
+                  }
+                }
+              ],
+              "tool_skill_intents": [],
+              "flow_opportunity": null,
+              "note_information": {
+                "source_flow_id": "global_dispatcher",
+                "handoff_reason": "explicit_user_request",
+                "target_dispatcher": "create_one_shot_reminder",
+                "handoff_context_for_next_dispatcher": "User explicitly asks for a one-shot reminder in 25 minutes with a specific instruction. Do not interpret as a recurring reminder or an attack card.",
+                "user_words": [
+                  "rappelle-moi dans 25 minutes",
+                  "ouvrir le fichier, sans essayer de régler tout le dossier",
+                  "Alors rappelle-moi dans 25 minutes : ouvrir le fichier, sans essayer de régler tout le dossier."
+                ],
+                "structured_context": {
+                  "primary_signal_path": "direct_effects[0]",
+                  "target_kind": "direct_effect",
+                  "target_flow": "create_one_shot_reminder",
+                  "confidence_band": "high",
+                  "evidence": [
+                    "rappelle-moi dans 25 minutes"
+                  ],
+                  "recommended_next_focus": "Execute the one-shot reminder creation with the provided payload_hint."
+                },
+                "confidence": "high"
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "normal_reply_fit_score": 0.1,
+              "normal_reply_fit_evidence": [
+                "Demande d'action explicite de création de rappel ponctuel"
+              ],
+              "active_handoff_action": null,
+              "confirmation_response": null,
+              "direct_effect_lane": {
+                "selected_handler": "create_one_shot_reminder",
+                "toolExecution": "success",
+                "executedTools": [
+                  "create_one_shot_reminder"
+                ],
+                "requested_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-06-13T08:25:00+00:00",
+                    "local_label": "samedi 13 juin à 10:25",
+                    "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier",
+                    "reason_code": "payload"
+                  }
+                ],
+                "allowed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-06-13T08:25:00+00:00",
+                    "local_label": "samedi 13 juin à 10:25",
+                    "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier",
+                    "reason_code": "payload"
+                  }
+                ],
+                "committed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "id": "6ad74ab3-a1d5-4da7-9474-9a82a3b5fba7",
+                    "scheduled_for": "2026-06-13T08:25:00+00:00",
+                    "local_label": "samedi 13 juin à 10:25",
+                    "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier"
+                  }
+                ],
+                "blocked_effects": [],
+                "visible_confirmation_hint": "C'est programmé pour samedi 13 juin à 10:25: je te rappellerai de ouvrir le fichier, sans essayer de régler tout le dossier."
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "tool_skill_flow",
+                  "reason_code": "central_arbitrator_one_shot_reminder_structured_effect"
+                }
+              ],
+              "direct_effects_to_run": [
+                "create_one_shot_reminder"
+              ],
+              "reason_code": "central_arbitrator_one_shot_reminder_structured_effect",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "active_flow_debug": {
+                "version": "active_flow_debug_v1",
+                "snapshots": [
+                  {
+                    "phase": "user_state_loaded",
+                    "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 0,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_onboarding_and_reconcile",
+                    "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "read_active_flow_state",
+                    "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_pending_confirmation_reload",
+                    "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "before_run_conversation_routers",
+                    "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_run_conversation_routers",
+                    "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": "normal_reply_default",
+                    "route_active_flow_reason_code": "no_active_flow"
+                  }
+                ]
+              },
+              "selected_handler": "create_one_shot_reminder"
+            },
+            "tool_skill_run": {
+              "selected_handler": "create_one_shot_reminder",
+              "reason_code": "central_arbitrator_one_shot_reminder_structured_effect",
+              "status": "success",
+              "reason": "payload",
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-06-13T08:25:00+00:00",
+                  "local_label": "samedi 13 juin à 10:25",
+                  "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier",
+                  "reason_code": "payload"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-06-13T08:25:00+00:00",
+                  "local_label": "samedi 13 juin à 10:25",
+                  "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier",
+                  "reason_code": "payload"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "6ad74ab3-a1d5-4da7-9474-9a82a3b5fba7",
+                  "scheduled_for": "2026-06-13T08:25:00+00:00",
+                  "local_label": "samedi 13 juin à 10:25",
+                  "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier"
+                }
+              ],
+              "blocked_effects": []
+            },
+            "effect_ledger": {
+              "turn_id": "one-shot-reminder-instruction-hint-smoke-20260613-r1-t01",
+              "counts": {
+                "requested": 1,
+                "allowed": 1,
+                "blocked": 0,
+                "committed": 1,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "one-shot-reminder-instruction-hint-smoke-20260613-r1-t01:requested_effects:one_shot_reminder.create:0",
+                  "kind": "durable_effect",
+                  "effect_type": "one_shot_reminder.create",
+                  "operation_type": "one_shot_reminder",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "create_one_shot_reminder",
+                  "status": "requested",
+                  "reason_code": "payload",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "preference_keys": [],
+                    "scheduled_for": "2026-06-13T08:25:00+00:00",
+                    "local_label": "samedi 13 juin à 10:25",
+                    "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": null,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                },
+                {
+                  "effect_id": "one-shot-reminder-instruction-hint-smoke-20260613-r1-t01:allowed_effects:one_shot_reminder.create:0",
+                  "kind": "durable_effect",
+                  "effect_type": "one_shot_reminder.create",
+                  "operation_type": "one_shot_reminder",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "create_one_shot_reminder",
+                  "status": "allowed",
+                  "reason_code": "payload",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "preference_keys": [],
+                    "scheduled_for": "2026-06-13T08:25:00+00:00",
+                    "local_label": "samedi 13 juin à 10:25",
+                    "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": null,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                },
+                {
+                  "effect_id": "one-shot-reminder-instruction-hint-smoke-20260613-r1-t01:committed_effects:one_shot_reminder.create:0",
+                  "kind": "durable_effect",
+                  "effect_type": "one_shot_reminder.create",
+                  "operation_type": "one_shot_reminder",
+                  "operation_id": null,
+                  "committed_id": "6ad74ab3-a1d5-4da7-9474-9a82a3b5fba7",
+                  "tool_id": "create_one_shot_reminder",
+                  "status": "committed",
+                  "reason_code": "success",
+                  "source": "executor",
+                  "payload_summary": {
+                    "preference_keys": [],
+                    "scheduled_for": "2026-06-13T08:25:00+00:00",
+                    "local_label": "samedi 13 juin à 10:25",
+                    "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier"
+                  },
+                  "db_ref": {
+                    "table": "scheduled_checkins",
+                    "id": "6ad74ab3-a1d5-4da7-9474-9a82a3b5fba7"
+                  },
+                  "error_message": null,
+                  "surface_id": null,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "one-shot-reminder-instruction-hint-smoke-20260613-r1-t01",
+            "source_message_id": "36c542f4-74ba-48aa-ae1d-3ab87e0ebe6c",
+            "user_id": "4731d82b-095b-4a2c-b917-efe4d0be6f6f",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [
+              {
+                "effect_type": "create_one_shot_reminder",
+                "explicitness": "explicit",
+                "target_status": "identified",
+                "confidence_band": "high",
+                "payload_hint": {
+                  "raw_text": "rappelle-moi dans 25 minutes : ouvrir le fichier, sans essayer de régler tout le dossier.",
+                  "when_hint": "dans 25 minutes",
+                  "instruction_hint": "ouvrir le fichier, sans essayer de régler tout le dossier"
+                }
+              }
+            ],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "create_one_shot_reminder",
+              "handoff_context_for_next_dispatcher": "User explicitly asks for a one-shot reminder in 25 minutes with a specific instruction. Do not interpret as a recurring reminder or an attack card.",
+              "user_words": [
+                "rappelle-moi dans 25 minutes",
+                "ouvrir le fichier, sans essayer de régler tout le dossier",
+                "Alors rappelle-moi dans 25 minutes : ouvrir le fichier, sans essayer de régler tout le dossier."
+              ],
+              "structured_context": {
+                "primary_signal_path": "direct_effects[0]",
+                "target_kind": "direct_effect",
+                "target_flow": "create_one_shot_reminder",
+                "confidence_band": "high",
+                "evidence": [
+                  "rappelle-moi dans 25 minutes"
+                ],
+                "recommended_next_focus": "Execute the one-shot reminder creation with the provided payload_hint."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.1,
+            "normal_reply_fit_evidence": [
+              "Demande d'action explicite de création de rappel ponctuel"
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null,
+            "direct_effect_lane": {
+              "selected_handler": "create_one_shot_reminder",
+              "toolExecution": "success",
+              "executedTools": [
+                "create_one_shot_reminder"
+              ],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-06-13T08:25:00+00:00",
+                  "local_label": "samedi 13 juin à 10:25",
+                  "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier",
+                  "reason_code": "payload"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-06-13T08:25:00+00:00",
+                  "local_label": "samedi 13 juin à 10:25",
+                  "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier",
+                  "reason_code": "payload"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "6ad74ab3-a1d5-4da7-9474-9a82a3b5fba7",
+                  "scheduled_for": "2026-06-13T08:25:00+00:00",
+                  "local_label": "samedi 13 juin à 10:25",
+                  "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier"
+                }
+              ],
+              "blocked_effects": [],
+              "visible_confirmation_hint": "C'est programmé pour samedi 13 juin à 10:25: je te rappellerai de ouvrir le fichier, sans essayer de régler tout le dossier."
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_flow",
+                "reason_code": "central_arbitrator_one_shot_reminder_structured_effect"
+              }
+            ],
+            "direct_effects_to_run": [
+              "create_one_shot_reminder"
+            ],
+            "reason_code": "central_arbitrator_one_shot_reminder_structured_effect",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-normal-conversation-one-shot-reminder-instruction-hint-smoke-20260613-r1",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "normal_reply_default",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            },
+            "selected_handler": "create_one_shot_reminder"
+          },
+          "tool_skill_run": {
+            "selected_handler": "create_one_shot_reminder",
+            "reason_code": "central_arbitrator_one_shot_reminder_structured_effect",
+            "status": "success",
+            "reason": "payload",
+            "requested_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-06-13T08:25:00+00:00",
+                "local_label": "samedi 13 juin à 10:25",
+                "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier",
+                "reason_code": "payload"
+              }
+            ],
+            "allowed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-06-13T08:25:00+00:00",
+                "local_label": "samedi 13 juin à 10:25",
+                "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier",
+                "reason_code": "payload"
+              }
+            ],
+            "committed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "id": "6ad74ab3-a1d5-4da7-9474-9a82a3b5fba7",
+                "scheduled_for": "2026-06-13T08:25:00+00:00",
+                "local_label": "samedi 13 juin à 10:25",
+                "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier"
+              }
+            ],
+            "blocked_effects": []
+          },
+          "effect_ledger": {
+            "turn_id": "one-shot-reminder-instruction-hint-smoke-20260613-r1-t01",
+            "counts": {
+              "requested": 1,
+              "allowed": 1,
+              "blocked": 0,
+              "committed": 1,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "one-shot-reminder-instruction-hint-smoke-20260613-r1-t01:requested_effects:one_shot_reminder.create:0",
+                "kind": "durable_effect",
+                "effect_type": "one_shot_reminder.create",
+                "operation_type": "one_shot_reminder",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "create_one_shot_reminder",
+                "status": "requested",
+                "reason_code": "payload",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "preference_keys": [],
+                  "scheduled_for": "2026-06-13T08:25:00+00:00",
+                  "local_label": "samedi 13 juin à 10:25",
+                  "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "one-shot-reminder-instruction-hint-smoke-20260613-r1-t01:allowed_effects:one_shot_reminder.create:0",
+                "kind": "durable_effect",
+                "effect_type": "one_shot_reminder.create",
+                "operation_type": "one_shot_reminder",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "create_one_shot_reminder",
+                "status": "allowed",
+                "reason_code": "payload",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "preference_keys": [],
+                  "scheduled_for": "2026-06-13T08:25:00+00:00",
+                  "local_label": "samedi 13 juin à 10:25",
+                  "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "one-shot-reminder-instruction-hint-smoke-20260613-r1-t01:committed_effects:one_shot_reminder.create:0",
+                "kind": "durable_effect",
+                "effect_type": "one_shot_reminder.create",
+                "operation_type": "one_shot_reminder",
+                "operation_id": null,
+                "committed_id": "6ad74ab3-a1d5-4da7-9474-9a82a3b5fba7",
+                "tool_id": "create_one_shot_reminder",
+                "status": "committed",
+                "reason_code": "success",
+                "source": "executor",
+                "payload_summary": {
+                  "preference_keys": [],
+                  "scheduled_for": "2026-06-13T08:25:00+00:00",
+                  "local_label": "samedi 13 juin à 10:25",
+                  "reminder_instruction": "ouvrir le fichier, sans essayer de régler tout le dossier"
+                },
+                "db_ref": {
+                  "table": "scheduled_checkins",
+                  "id": "6ad74ab3-a1d5-4da7-9474-9a82a3b5fba7"
+                },
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-13T16:06:42.588Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-13T16:07:49.604Z"
+}

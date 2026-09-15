@@ -1,0 +1,5 @@
+ langue | plan_kind |           millesime           | count 
+--------+-----------+-------------------------------+-------
+ fr     | personal  | meal.en.v18_one_box_per_group |     1
+(1 row)
+

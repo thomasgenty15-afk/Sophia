@@ -164,6 +164,21 @@ describe("« Te dire » ouvre le champ, au bon créneau", () => {
       .toBeNull();
   });
 
+  it("« Photo » ouvre le sélecteur, au créneau déjà nommé", () => {
+    // Le tap de la redirection (et celui de la question du soir) DIT le geste.
+    // Sans `click()` ici, la personne appuie sur « Prendre une photo » et
+    // rien ne s'ouvre — il lui resterait à retrouver le « + ».
+    const src = strip(read(CHAT));
+    const at = src.indexOf("forcedSlotFromPhotoTap(payload)");
+    expect(at, "le tap photo est introuvable").toBeGreaterThan(-1);
+    const after = src.slice(at, at + 500);
+    expect(after).toContain("setForcedPhotoSlot(photoSlot)");
+    expect(after).toContain("photoInputRef.current?.click()");
+    // ⛔ ET IL PART QUAND MÊME AU SERVEUR. Même règle que « Te dire ».
+    expect(after).toContain('send({ kind: "button", payload, label }');
+    expect(after.slice(0, after.indexOf("send("))).not.toContain("return;");
+  });
+
   it("le tap part QUAND MÊME au serveur", () => {
     // Sans quoi R13 désarmerait la question au message suivant, et le tap
     // n'aurait laissé aucune trace. Même règle que « Photo ».

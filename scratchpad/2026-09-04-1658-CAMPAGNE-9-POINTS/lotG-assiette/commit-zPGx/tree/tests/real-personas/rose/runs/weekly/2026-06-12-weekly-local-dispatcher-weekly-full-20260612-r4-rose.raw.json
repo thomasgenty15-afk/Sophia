@@ -1,0 +1,12 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-full-20260612-r4-rose-t01",
+    "user": "Oui, on peut faire le weekly. Globalement la semaine a été un peu bizarre : j’ai eu deux bons débuts de journée, mais le soir j’étais fatiguée et j’ai encore eu des automatismes. Je ne sais pas trop si je dois voir ça comme un progrès ou comme un échec.",
+    "status": 503,
+    "body": {
+      "code": "BOOT_ERROR",
+      "message": "Worker failed to boot (please check logs)"
+    }
+  }
+]

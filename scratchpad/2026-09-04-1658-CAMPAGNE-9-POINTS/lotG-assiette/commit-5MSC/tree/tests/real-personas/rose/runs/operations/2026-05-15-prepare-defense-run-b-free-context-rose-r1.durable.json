@@ -1,0 +1,82 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+        "title": "Convenir d'un signal de pause",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-12T16:44:08.371+00:00"
+      },
+      {
+        "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+        "title": "Partager un point positif",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Chaque jour, exprime une gratitude ou souligne un point positif auprès de ton partenaire, même très simple (un merci pour la logistique, un compliment).",
+        "target_reps": 6,
+        "current_reps": 0,
+        "cadence_label": "6 jours / semaine",
+        "time_of_day": "evening",
+        "updated_at": "2026-05-12T16:44:08.371+00:00"
+      },
+      {
+        "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+        "title": "Cartographier les déclencheurs",
+        "dimension": "clarifications",
+        "kind": "framework",
+        "status": "pending",
+        "cards_status": "not_required",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Prends 5 minutes en fin de semaine pour noter à froid ce qui a fait monter la pression, sans chercher à le résoudre tout de suite.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-12T16:44:08.371+00:00"
+      },
+      {
+        "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+        "title": "Faire le point sur le signal de pause",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-12T16:44:08.371+00:00"
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

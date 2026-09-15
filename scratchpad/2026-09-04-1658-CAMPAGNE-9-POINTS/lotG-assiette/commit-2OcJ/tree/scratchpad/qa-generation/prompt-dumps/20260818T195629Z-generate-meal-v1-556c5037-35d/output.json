@@ -1,0 +1,713 @@
+{
+  "request_id": "556c5037-35d4-4525-8121-ae5b9fbae4af",
+  "resolved_by": "dernier run de --user-id 08050000-0000-4000-8000-000000000022",
+  "user_id": "08050000-0000-4000-8000-000000000022",
+  "source": "generate-meal-v1",
+  "exported_at": "2026-08-18T20:04:53.341Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "f61dd585-f2fd-4fc9-82c2-43909e2147e9",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T19:56:29.185959+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 14382,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 14382,
+    "user_message_chars": 5752,
+    "user_message_truncated": false,
+    "user_message_written_chars": 5752,
+    "independent_counters": {
+      "system_prompt_chars": 14382,
+      "prompt_chars": 5752
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "63efc6b3-0ff9-48ec-a548-5f9a3349df68",
+    "created_at": "2026-08-18T19:59:06.848992+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-sol",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Golden summer chicken roast\",\n      \"title\": \"Roast chicken, potatoes and summer vegetables\",\n      \"slot\": \"dinner\",\n      \"day\": \"tue\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Dijon mustard\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Plate one hot serving each of the roast chicken, potatoes and summer vegetables. Mix the yoghurt with the mustard and juice from the lemon half, then spoon it alongside.\",\n      \"why\": \"This gives the student the proper roast they requested while using bright summer vegetables and a generous serving of potatoes.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_roast_chicken\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roast_potatoes\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_summer_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Berry crunch yoghurt bowl\",\n      \"title\": \"Greek yoghurt, oats, berries and pumpkin seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"British berries\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"pumpkin seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon the yoghurt into a bowl, add the oats and berries, then finish with the pumpkin seeds and honey.\",\n      \"why\": \"A substantial yoghurt-based breakfast is quick before an office day and requires no extra cooking session.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Herby chicken crunch wrap\",\n      \"title\": \"Roast chicken wrap with hummus, spinach and tomatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"large wholemeal wrap\",\n          \"quantity\": \"1 large wrap\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"hummus\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"baby spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cherry tomatoes\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice one cold serving of roast chicken. Spread the wrap with hummus, add the spinach, halved tomatoes and chicken, then roll tightly.\",\n      \"why\": \"The roast chicken becomes a fresh, portable lunch rather than repeating Tuesday's roast dinner.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_roast_chicken\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Lemony lentil roast salad\",\n      \"title\": \"Lentils, roast potatoes, summer vegetables and feta\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned green lentils, drained\",\n          \"quantity\": \"240 g\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"baby spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"feta\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"extra virgin olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Combine the drained lentils and spinach with one cold serving each of the roast potatoes and summer vegetables. Crumble over the feta, squeeze over the lemon half, add the olive oil and season with black pepper.\",\n      \"why\": \"Lentils provide a full protein anchor while the leftover roast sides become a generous summer salad with no further cooking.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_roast_potatoes\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_summer_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 7\n      },\n      \"honours_belief_keys\": []\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_roast_chicken\",\n      \"title\": \"Herb-roasted chicken thighs\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"boneless skinless chicken thighs\",\n          \"quantity\": \"360 g\",\n          \"amount\": 360,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"dried thyme\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Coat the chicken with the olive oil, thyme, salt and pepper. Arrange on a lined roasting tray and roast at 220°C, or 200°C fan, for about 25 minutes until browned and cooked through. Serve one portion immediately and chill the other promptly for Wednesday.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"tue\"\n    },\n    {\n      \"id\": \"prep_roast_potatoes\",\n      \"title\": \"Crisp roast baby potatoes\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"baby potatoes\",\n          \"quantity\": \"560 g\",\n          \"amount\": 560,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Halve the baby potatoes, coat them with the olive oil, salt and pepper, and arrange cut-side down on a large roasting tray. Roast at 220°C, or 200°C fan, for 35 minutes until crisp and tender. Serve half immediately and chill the remainder promptly.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 35,\n      \"cook_on\": \"tue\"\n    },\n    {\n      \"id\": \"prep_summer_vegetables\",\n      \"title\": \"Roast summer vegetables\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"courgette\",\n          \"quantity\": \"1 courgette\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red pepper\",\n          \"quantity\": \"1 red pepper\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 red onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Cut the courgette, pepper and onion into bite-sized pieces. Toss with the olive oil, salt and pepper, spread on a roasting tray and roast at 220°C, or 200°C fan, for 25 minutes. Serve half immediately and chill the remainder promptly.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"tue\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"tue\",\n      \"preparation_ids\": [\n        \"prep_roast_potatoes\",\n        \"prep_roast_chicken\",\n        \"prep_summer_vegetables\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"Heat the oven to 220°C, or 200°C fan. Halve and season the potatoes first, then put them in the oven. While they start roasting, season the chicken and chop the vegetables. After 10 minutes, add the chicken and vegetables on separate lined trays or separate sections of a large tray. Roast everything together for the remaining 25 minutes, then plate Tuesday's portions and chill Wednesday's portions promptly.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"boneless skinless chicken thighs\",\n      \"quantity\": \"360 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Greek yoghurt\",\n      \"quantity\": \"310 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"feta\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"tinned green lentils\",\n      \"quantity\": \"1 x 400 g tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"hummus\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"large wholemeal wrap\",\n      \"quantity\": \"1\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"60 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"baby potatoes\",\n      \"quantity\": \"560 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgette\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red pepper\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onion\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"baby spinach\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cherry tomatoes\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"British berries\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"5 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"pumpkin seeds\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Dijon mustard\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"dried thyme\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"salt\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"black pepper\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Golden summer chicken roast",
+          "title": "Roast chicken, potatoes and summer vegetables",
+          "slot": "dinner",
+          "day": "tue",
+          "ingredients": [
+            {
+              "term": "Greek yoghurt",
+              "quantity": "60 g",
+              "amount": 60,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "Dijon mustard",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Plate one hot serving each of the roast chicken, potatoes and summer vegetables. Mix the yoghurt with the mustard and juice from the lemon half, then spoon it alongside.",
+          "why": "This gives the student the proper roast they requested while using bright summer vegetables and a generous serving of potatoes.",
+          "uses": [
+            {
+              "preparation_id": "prep_roast_chicken",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_roast_potatoes",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_summer_vegetables",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Berry crunch yoghurt bowl",
+          "title": "Greek yoghurt, oats, berries and pumpkin seeds",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Greek yoghurt",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "60 g",
+              "amount": 60,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "British berries",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "pumpkin seeds",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "honey",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Spoon the yoghurt into a bowl, add the oats and berries, then finish with the pumpkin seeds and honey.",
+          "why": "A substantial yoghurt-based breakfast is quick before an office day and requires no extra cooking session.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Herby chicken crunch wrap",
+          "title": "Roast chicken wrap with hummus, spinach and tomatoes",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "large wholemeal wrap",
+              "quantity": "1 large wrap",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "hummus",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "baby spinach",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "cherry tomatoes",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Slice one cold serving of roast chicken. Spread the wrap with hummus, add the spinach, halved tomatoes and chicken, then roll tightly.",
+          "why": "The roast chicken becomes a fresh, portable lunch rather than repeating Tuesday's roast dinner.",
+          "uses": [
+            {
+              "preparation_id": "prep_roast_chicken",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Lemony lentil roast salad",
+          "title": "Lentils, roast potatoes, summer vegetables and feta",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "tinned green lentils, drained",
+              "quantity": "240 g",
+              "amount": 240,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "baby spinach",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "feta",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            },
+            {
+              "term": "extra virgin olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Combine the drained lentils and spinach with one cold serving each of the roast potatoes and summer vegetables. Crumble over the feta, squeeze over the lemon half, add the olive oil and season with black pepper.",
+          "why": "Lentils provide a full protein anchor while the leftover roast sides become a generous summer salad with no further cooking.",
+          "uses": [
+            {
+              "preparation_id": "prep_roast_potatoes",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_summer_vegetables",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 7
+          },
+          "honours_belief_keys": []
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_roast_chicken",
+          "title": "Herb-roasted chicken thighs",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "boneless skinless chicken thighs",
+              "quantity": "360 g",
+              "amount": 360,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "dried thyme",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Coat the chicken with the olive oil, thyme, salt and pepper. Arrange on a lined roasting tray and roast at 220°C, or 200°C fan, for about 25 minutes until browned and cooked through. Serve one portion immediately and chill the other promptly for Wednesday.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "tue"
+        },
+        {
+          "id": "prep_roast_potatoes",
+          "title": "Crisp roast baby potatoes",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "baby potatoes",
+              "quantity": "560 g",
+              "amount": 560,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Halve the baby potatoes, coat them with the olive oil, salt and pepper, and arrange cut-side down on a large roasting tray. Roast at 220°C, or 200°C fan, for 35 minutes until crisp and tender. Serve half immediately and chill the remainder promptly.",
+          "active_minutes": 5,
+          "total_minutes": 35,
+          "cook_on": "tue"
+        },
+        {
+          "id": "prep_summer_vegetables",
+          "title": "Roast summer vegetables",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "courgette",
+              "quantity": "1 courgette",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red pepper",
+              "quantity": "1 red pepper",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red onion",
+              "quantity": "1 red onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Cut the courgette, pepper and onion into bite-sized pieces. Toss with the olive oil, salt and pepper, spread on a roasting tray and roast at 220°C, or 200°C fan, for 25 minutes. Serve half immediately and chill the remainder promptly.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "tue"
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "tue",
+          "preparation_ids": [
+            "prep_roast_potatoes",
+            "prep_roast_chicken",
+            "prep_summer_vegetables"
+          ],
+          "total_minutes": 35,
+          "run_through": "Heat the oven to 220°C, or 200°C fan. Halve and season the potatoes first, then put them in the oven. While they start roasting, season the chicken and chop the vegetables. After 10 minutes, add the chicken and vegetables on separate lined trays or separate sections of a large tray. Roast everything together for the remaining 25 minutes, then plate Tuesday's portions and chill Wednesday's portions promptly."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "boneless skinless chicken thighs",
+          "quantity": "360 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "Greek yoghurt",
+          "quantity": "310 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "feta",
+          "quantity": "50 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "tinned green lentils",
+          "quantity": "1 x 400 g tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "hummus",
+          "quantity": "50 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "large wholemeal wrap",
+          "quantity": "1",
+          "aisle": "grains"
+        },
+        {
+          "term": "rolled oats",
+          "quantity": "60 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "baby potatoes",
+          "quantity": "560 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgette",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "red pepper",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "red onion",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "baby spinach",
+          "quantity": "100 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "cherry tomatoes",
+          "quantity": "120 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "British berries",
+          "quantity": "120 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemon",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "5 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "pumpkin seeds",
+          "quantity": "1 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "honey",
+          "quantity": "1 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Dijon mustard",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "dried thyme",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "salt",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        },
+        {
+          "term": "black pepper",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_0f2c825b35648e1e006a84b936873c87d2b5bd931331332c31",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 5074,
+        "total_tokens": 10298,
+        "output_tokens": 5224,
+        "input_tokens_details": {
+          "cached_tokens": 5071,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 1882
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_0f2c825b35648e1e006a84b938e0a087d2a659e0fe56bc82de",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhLmKV7k35XL-H13WgTi577zEs9pnFkjmOnhRBy2ndlb2gpJAiWOZGbm8rK74XmjJ_Tr_Fl_hQT-Smnkma0xGuk3xI53tZYc-5RbLXRNLJLsyWOtk5-zZ0fUm4Dk1qGojrUjDtoQQdSxNR-Fq3qi3ieMXBOLFR9U_8NxuhPKDReaZlqBTvdzszwjrW5rp262ADXAhPkQgb1vJE0-2LG-qE2EyMM7LROH9hFUP_SgSVC8l7TPddtK4bDSXqQOHEuKjgu4RYOIJ8RwOw0mggmki_ENQfZZCU-9vnZGiKa6iz3QXuzzyEVeP_hEUm2152fVn5dX_htUSn-s4KIVhUXTcdNWSHWwzGJ1PfnfG_7xc6h-j-_f_NW_W_1S6vIipY5jTloWNCgRTp-QK5GrHId33EBAMPUIk3YyvnobhN9YJqHIEE7_hGK3GRb5w55QKrPW9FMytaEV0R-jwhPhJxiVMrI4x64-_1O1V7J-0_yUicmJvhVCiU3n1EJqkUbDiroLTtXBYQQXw6lrfE2QDeQTwjcMFGzwzCMjbalZ26YlrG8wVPeFveJnLXey0prdzxw_LAnL25oZn3RFli59tO4Q_zxZ7EK7UQQ9F5XkXwriO3XNMWLCx8pYCEM3G5_B7tnjNGUZNmaYwuqOY5jfzKRHmy1oHBpR6Sv1eGUQhQdHPx2m7C7ZpNuXdYFaz5PeNW6Amz1dh4jvc1YzkRmZsvM9vIFoNO5I9b91Rtu9K7Cf2dY_uCC04PJnv3OOKbOU_V4pcnip3PZO6aXtFnh0Up9ASaD2uEliB9GHC7St8mS2N5PQKCBZ5DOQ2afcKAx5nBx8tiVaWn8al28xSxe7QfFmHhnX8lk3_IwdTH00h-QJ2NhgkCZ2tIJKNlQIq-4JVSj8cq6vDD5WYcgy1txsQQFVBb6oAfYcW4eyfcPSFPwynO74XH_9N1RPdkAMf_Rlen3M1fbwK5oW6KklYbur4jjFqy0DJT9Re-Rd-i2Wdukaf6N2mDCol4nRIQQFte6F1UC7ut119mHj6P_3p5Y9AkMs8is2f-k3NX91urCmNN1Qvipoqd8uK8ucXwAT0Tnh4D8BWyEANnVX6TwU9-fW5SxJ1Ta2LSpQFZP3LlDewiBilsVQwc00vxhcPZnLaudKOVvpdGMPqt1S5QxT0HMDXQtKVM3tP2zlPHsBbWQtnRkMhFxuleDGE6DAc_AmChOGNy-ps-OYJT2HjtJs5jseXOhNaBYZTZLLFiPNX8XcxEUfMVaypK3x7A7qeOywb3ccUmaBup5IwwLpZHSN8vXdp03EpcOeT8Ar39mIjlYWfI4b_gXtDByd0K1tdWRjwMmGSTKAKAxDkR7timFOp5PacM6P8rBXtakQpBcXmVQEwV0Hf2hzUeOfG6VNk4EN195h6U-pIdch96NXx0rW2s7q_bPdVnA1VR2TeYdym4BhlsdpKmcS_fijHzgZaXEiu9RTPa9W0tC9OyNmdMrwsJfA4X13zLWSb2DKqRcyJl53Go0JVLrL6V2yiwExZOLUZJ7J3GOjv1AznZlv7ko67ZvGUGId0mTqozpJdclN_NJHnt4zMIx6nCjshaO7zc3xOC9leu3ElJrfU0u56RLMD0z8dQGqhJM2Mko6yyoo_5fjYaobp4ZBxWO6BeEUCjh3ryVHpEZJTY2QOftsYg8UnUt7Mi_LfY6PvlM4xFhXeX_9nL2mYODG_2Jhmu_BuPv_Mh7iwUs32ShvrhcmirkGniSyV4hVaip3bCU57D7IUGrvotX9aggCtlOGy--8XrOuH-7vbigARYqODR2nkdguTQS4oS0-lhvm5B2UR8S_I1zES0ZoxkWnigeUB_wnr6IR5XJQGY_1uOqIj1xoiaERBxqX25v6J0h1dLxPINQpTrp4Jl3nP4LBR5j7ZzArzmC3OHJMcmoRBkLL1-j055-H9p8d8-4JSUdh6JKHB-JyjqO5TLeXOhRvx2dD_8FwO2eipHjdDManQif_MEBmwSFv7yIfCuE6Cangf3AUXumph0buvpolVKEZKKKzokEfdkT-prM1lbwCmobBEO9SoMWrMi-AtWVi1gPPG_1nH4bgSaxH5kU2eZyAzppq8mkd1KbFIhVWrrqNu5cjeoAl90D0bo7eerMT47G6RWHq_ymnrFBE5-twN7suN2ARqJ-WKMsA1mw0EfaY1-1MKHkeKg1oBDRH6tkPvT9uHxXEAVoyhHYU3WblugiTt_9nMgNYlsP2vvZbvXfkLgSc1xy4MQrD2Jmi644oxQXovDORwdg_G3vflyHKtRkrFjEAdNpfYF3nywzLjSMPV9NRMXhfANWHJdAhhtxPpW1DUJScaRwbcI6BjRx3zy4z0TesOfTGjDurXo-ORri7fhY1L_2NTKfLpe453TZoJvzmGO9mGMojb54go88KPUSHsVT9I-FwqHffpFZogDTMm63zdpoh1bIv-oQsqlWDFfU8kuQtUsKQEoU70caSX-BKwJa-ihFUGI6MJDIZRDY5rbrq9la780CpIUdeawMsP_WcHZISla6Ij7ZM-2xxxkEK9DT4NK9KLdexVo4F9qOa3GEK2EMzrD1fbmXli5froYD6ePomciPAzgPOHmGkpvVhHKgdS3LEzz7aEStuqNRMyoDrKfMU3KfLCyHrM5y9Fr9efSX3_h615dkAYWAIdO_TWOkWL-_BpyZI-0Sr-FWiXTVqxmC034eTtbD2_LJNhxEyvraawMz50fCT4M3g4GCzK6TLMwWHHmiP5-1rcl3np6mTnBPzxxmIN0pjnmfcyyMWwh0bkNjxKHuHQslLlheQIgbq3IlotPTZF2wQj37S3GMRzrIAUEqzBTZ0wFsGq9UjHt8h9f7A6V4zhavvYG9_k4A2CqiuHobBYo1XkE7CzZIJiObcs0mXUnQMU0zT4qGuX18M1UoU5M_dkltw6jadJsffnn-mBXZlGiMYc4FjrE3O6cgTiVmsD_EC1PjClCsr5zHYov4hdkoCqaE-7g23KeIUWYl_i6D2qKuQ9K_oBetSzZEPSltajfb6ccggRHmv07nC9izun6ggUokmJi6SP69-CpB_nTrmKqmjhF0VIA8knJjGmB-tQri_1thCWl6HQ0_ZLvlV8-DJjg4yNjgnnRw51_CPp2EtK3Pg0kO4VKvMEfSAxkoHKoimrEh1JZZYArD_aFkd92B04ghSD4f1SECUhe_RB4y5GJc-njOCdnk9JPvpx4YpVhk5iHcglgZZRIsaOFisCKsKnXq96Y40ZoFAzYZHmq3PmGHRtu6H9vRjn6E2BpR_v-z6Lt_O49K_Ic_MfuZg-pJ8hW8IVUm69GuO6jACA517zc8gqTg3rGFEeDT6j4qXR_F0dX6x1pwEWyYQ4l_SmQroIwrSmrOaalAdWen3gmdZ22_YdFA2cGc1mimneij40QwelMQzsaRo6dYAhcD949CysmQVdKPOwgQ1-rW2yZ8hUQ4BA1OvRM4DuHCb7C6_HDJWlKcE2OpYsvTpObSSXYvStGO9MMycXoVF8Z8Vua5ZaW8Hxom1p--72q4sZPV2rk9a3Bl-oMluMp5ZNzbkZAld7S4J87N1G4O4S8LjcOCTnzCK7bn3L0cgC7WbwzNE6LfR6gaNBwPjOY8apAVMVmM0lIzK4BGv0z2ah6mhxJEjjOi76QO1hAAjsGgsfeOi0tZLXwR3pilE0V-qHJlWKlbGtss52eM-v4Y00q5kJbtO2o_stmq85xa8sLiTrG8CY9ylpUoZSSyMcU7eetI_vbwqb8DhaWZzTFw6n2gX4oZLJ3Ut7-q-oMe0Aa_hE0DHharO1NvUHF0QyJ1B6jK-l49Ck9KG_RpDHBe2M-_EI7n_htEB3mrkO6FFwq7O3UDHm3ZVfK7hbuiy7u21GA1gdSMkSNGLLmF0pGettR-EMKlnJXXwA-tSyemZYSrIegWtJMQYiDBfWotxOPn-QKU6tumCUnweh4ELQ5NFfLbq698xTi6D_pHmHSXDOWojLtm3pTJJu2b80_IoeePw2cY51fPLQB3PSn_Zvnrf4YU83RZU2YbVdeHBjjcl0CBvQYhBdbwVlA8-EEHzDubkrEpvKcZdnptPoP6WzWYVd4iGCR4s7vAtLNdfCHpk6lO8kt9bX0bl4Lhl_4CoBQ2t7H5qN2MRQ5_39nquK4MaPmu_SYPv5afUrj-DIEPqp"
+        },
+        {
+          "id": "rs_0f2c825b35648e1e006a84b943d78c87d28fbb95b7fc534e9d",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhLmK9uk2GGBzsHMRsMzrlvWVEWn9ShstYQgz4X4-y288sTLYllzk-Ko8P7W2edbYGXL1iO4DmPKuB414cTMMX4IH2tbVQRMJ2xm6usdZ9Ui7ARey471M5pZZKIsbuTQB4HNHkNvMdpxiEDVXDG1XhxFH7kK4x5YWHSV5ByXsCIv5614Ot_WFfOY1u4y1XjP2q6K6UhMl61yUX9RbtxRhh4Ne8HrHobPLAW0qsx3jlIr62N6W6qVKJ80AMT_AUYkYrVA46aAGZPR1UPG-qGhJCEUD-4RmptpFnDHmkKxCztOAumEdoHKuK_ucPJwTY90qHeJz43LaCt81QXNOTrAxwJElPgCIXWdms9SQG1BpQTOfcb_zgirI4aQGEUh8RxO15GZGVKx7EMhEI9c56akThbTl3VbHU1r_KBC-N8k6FL-Hjh4SEgeIK2eWOzUH3wWcRN_A0Ost9qSiJ9zOvAMpTjflUrRhM0fssMUJ0IMwcAIZfOCRx6qsB5r2z7L4TmdyrzIWByymuGJHL97TqgjCFHbcuUeOfzdvidaxisjQ1wlG7SZE14tWx7Sjp4VvP_RrUpWE92cIHqkLZrcC8O5k4esuyX2b0DsWaJ2i6t4xwCtIX0VjSGtf7-yhzIHqf34sivNdHLxRGlu8r3vCpJ30JR2voUnjZDqljBhd-CS6n7ecoLrHC758qM_AfkMO-Es6DBqCIA12frIm6v84w0l43ctkGiaS_ovLY0cvFQtDThYzJtfofcnP8uzs8clLV98A-Iewo4lTBpBaNQ1Q3zXv7c1w815sfOr3ml6Y3p0i0VEp1LISzYyj9MVX5WoYJS4sZxPFtaJ1Sn5Y23-mxjo3py6i4Qi5JOK9JMFO7fFNZXbZwjcTy4QRGTOL8tpQrWCFmEpxvwYyCR5mc89TZdD0PntmcR8TE4rLBF_NuZDE0t1PtMgqvyKNOUJZKisf1nbBa-db6oM3YdZA73bzXMusmTj7mL-NZcn65YYLpWpSog2a-3379-FD7bwbHOGnATU443Duzp1Xeelx1BT-L0diwSu9haAMxbp7FkT8E5ezQlid04Ve5Cvmaox4tGdaHusbHu8VduK6mb8Tb9gfeS6bYdviOfiudEhHpVs8ZxnzabaytBycfBqsCdALYSSQwHj-4KXC5Y9DaMRADsU_jflbufJp9RnVB3O7rNBJ19_r9y3W2BE3qHP-AAbdoobiYaoKgfCFJm8qGL-YaV5DmHgxzxz5DFK_Fn3aTJYshZBp5vK1mNL9_uGXF2Espq6AGumEwAz83VXiHu1wlvgLpTqcHXJgKOGZmM8eYay6PcIwtd5hI8TOqYZIJVUssJQTYZ9SfjytHdfDrQym_CSTkJHtJ6a0XWjDTKI-tAXfMvyAvhGxMMSwEl9Lo8yU3RRE3pPdPVAxhMtMGESrupZH7KhttLtSKDrbI7fV2qLuxh9lJZxkx4flC1OMIwG8Ix9bJhZqsiho1dTstFyUpk6ia9Di-LwClNNAdNVj-6g8dUGamRQtz69fJRhW6TLl_fNUHnpGHbU3A_F0PqCzNxtkwHPemC6HmKf-bgvcqp_DoS6HNiHlN5tlOYppPl7EcWxUlwliC_AQBFqjP-sP052zQUlXrQr-BrwBmhLdnxDqCFyoUHo9h773waQtFfpY_pFRx8a8pks9ArlSKelKnQ90PQ0qx0r9C6kCRn-DFUCyBSSwz0-E9eBMZMZjMtGLq0ZH1oVe7npXhHzgUEK0t_ZEOxfFCT7wy1ehQrh3V_DxyAkRQllmY7Y-IUHF24vF7goek00OLWmoEknBXCxz9ZWDKRjfsyxFUPSc94tnMyTiOA-hDKjftQR6LeZo8Ty9G-nk8Kj87_HGxkwS7Z6fDRISBfdnooMFAbp0okIFhJQgNrbvmKGi1Usqr3VHUqIWoB32ljyePIzpitE3Ke8VbwEcVOGE_SfGe8X6nsmhpYVfQL9qc7EbiAM2mwWk3KpqHxkcGzv839h5E5HPRRwjgz5vtxrnXvtQuu_IKSoVahZNNmKg4tov4b3yBOwmrcc5kkpBzqc8NcVXxYqjRkPNMgZB_GKLeVB6C3h2i7RsJcm6VOvTPZ4s8n0KSD1Xg-UOm3JkbSFktPAMw1vFFJE_ldTgvgN5LVDet14nL-6oHr6_-Hf9QZDTa8GUHZPEwfcGDiYgZQPSROmASaAPBCwEdVeKKUgaZtlfaLjw3PRdlMg8FxPqjsDGrgkkZHClb91uzdEmVYnk_1ssKhyO7Rzt5Nfs4GExUbdS-CkAUtYGB1HUX2LeiIjeU8kUP79xZEd6UWbdDfl0VfI0qXAokTjvErjlpTib-Ruauqkec9xs2v3NHXZcK2TGKBRntP6LMoODN1J0K7Is4peMzedaole4ZzoF_tFT46IVaenU5VTrnGtnVa_jKDKtqQFa3mzcL6__AQeS45CbGd4bOdyrMXFXWahDOJ_qLaQ_vmnP7g7rqtOQobPI_vTBFVA974KubXaIU-FujpVAdV8uTRVupeuIo280f98N1StLtm_ekxCs5YZbM87zl7lBoIMJXNac1w3x0sGv--WtOtWIJB5-GWihJFdfHeS6rSjYGtFwNpvPGTauHQLUD1Qvxl2U2AUfx3tQ64G5_2r1er3qm7qaXCBnEXlf5omnEJLr1HvQGpAq3xIaF-zPnogvPiMQcq06jO2z3UOvh-YUP8NCl--31zTFzK0HWjRz6h5LrvC3BlbTA7UGYHKUSoLECiJW_CNQBwRCchevfbLotOv7Ic-lG8DNy2D-i2nFOPeuugOzTAYJT_eQKnsJgG15f7h4R82ZfV-zopY0SP1kjeOgc08iEdkF3GpN6ymwXKhCaGopgjoga7VaYSzMBAB6zQaqx8cuiM8gUXOJbiRaU1YYRw2C_UniU3JV05Eoozj5PREJrwgh7-CUHyKXcl5-MoJQr4ERFglkFK4QYUCebGVD1VutZej3CN69uMFOuz34aWrXPGsJLx5iD28Er5pEPLz3-0oM_RoR8WzMXxcC4yVCycXq7iYsisSnPUXPKfS9SVPdS1te7HLdIgqVf7mw5SD5gDdzQIUt7Hz607J8kGT3mq-GKu2fCssadmxmVcSuNVn0CpHjztJItwZkI2pSG9G1tS4cIe4OGi7m3iQWmUClxCYhGuBHzb1Owj3o-6tTu2tqQJu-azkrSwjfJpWW8JzLgyZe0iX2eTZKVnC-LrAygIbajlZLHBbywJltDbMVXTUCDLbNbHK3a-c5_k05bBuTKg451Y6DK0uM5pgupy70jLj3ADAwW9X_BbBk1LLuqeSFMv1bNpEimLOLZo6beJPKq9OD_Y4NubsE1cvfNGGMPPwctFuVEx5F8mcvBYHGKAck4lwS_6Gj3LFEvX11rUB199sWNrGmcp6JHS28APKHhYQJJKZ9LxwXX9dBDks5Z3IJdAeIdJM1burUcm8k2AavSNGqR6_XoqUhZO8a8OVPHPPrLYoUgfWgPR1eQaucU17vF7Ob0xA5l-sd0vzf7ocMJqYUyyybx8Rpd1TEI5tSVzpa0ziKCWmxVr6_1g9fYMI50trbLwq4prNxdE6j7PN68F2Y4WvmqUF7Y5sn_2hjfg0RAHMR_HhR7OTIlJtZeDoBGzVoPT0k-tPtktOrGuJZqbeVtr4LDtP6mScsdiaRrQEKFFKCFqFjEHN3I0OIJJDD_8D5XSRD6HtJGz6c081j_L4GqBMKAaSPoQhpEM6DRu9bL7kP0S7V_JfFKEJWXsa8jbMKXCOr8SMT8UcNs8If22LwuICuBNzPxLc8SwAMpRJVurlZdc3XrczoHu0TlLZ2Rkk83d1mhwc3L3m9SjK1xGoRNxecChBOWZ2fOovlPhhijw5U8gtV2zkiLwdLRz4lTuOxUZ62ZhEDUfulP0zUS5zx-KOdMUtlb9lbCh58ThkmRFpTyDPP-iSBlNgwrl1DaJ8tOQ2ILAGEE2rJ0dChJuPj-WsoIO8_OZk5F7Ru5pvjwdRjsUD-FZ9Gv4slLgeiLzQdysfR_E1cqEZ1GjTKln9t0gnKQ4CmNIRdLKHGi4bk3CwrtqA-Dw5cW6Ouf_kghP1vDuKDEoPKWwLdm8mz47DkqMSF5P7RSSMAsUXF"
+        },
+        {
+          "id": "rs_0f2c825b35648e1e006a84b951d00487d29d9e5022bbe1faf0",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhLmKSYKHWVDayFmkJmXIKGm-Jgfmqv2ikgYBzpaWx1ehj_K4tRzyTjwlCe8cl0096-jedpatwQpjA5JGcLhnMjVc93bnpReZqcqQ5yKbNxdAJ70U6hE-hJs5Gcoh66pHG5FKu2khiIh698BEbbCg614RYvoJghOMWjIgZl_LcH5eyVOaolBwuO1J2TmS7kLeLMlAx6OVpqT50Ra7J7EIY7LZiMvMZzOZGj5mcQz5XHzywKiAJmzu0rt76bOdrSzg4wXjySrZslpjv0X7f2r4mJhNNaAQwmYbnH55qt3z2eepv7voISHG7xJCystgd2x0lCMq4TPBTvojivb98f2ZD0vCuBIka1lcFxETdRVPvD21tH0C9ZuWXh89bgRVDT2kIXVYo_euk7Kd7kf5hGiZ_Ej8lcsIfulMyE8SDK8qQjv5lWfBVFjVKxNXnAguEJo2FbMhgRx4qIvfKkkzQE3hrusKoOCs3dc7YQ4dTbMb4_PaJov_t1NzDI5xnCvxlNzLeEj3-Cm3UF1nrS9C9asbn06n-gksKLUs5LeNg6M80SxRqs6Y2nfvO__7tOe8wnk51x0OgDaGswTGj33sGCDJMT0Q1lB42XMJ8ficoZamW7CkajLccPllzi-gsfFZ9CdwpnsmYDMs09jXhhI-eN5b8GXYopsYT6IqORTr0-q-uS9GexiizZWpEAE__Wbeg2NtdS0q5aGdc8pSmvNrKWRp1D05HMEG1sdZdI6eQNMd9qaodgMUOXHPo9YkuQrTj-FQRPlDgLzrUPf8JWXL24aKy5u1xCuGYk7WXb59Lm1MRu19nTwnrNB0l7Dzv02A5DFFwQkaxO-mKhy2wCF3gFF8yQU7oS2qaYgGwSDHCSH5o05n89erEcYi4UAJyeXJwA5jemt49SyE5mlOXUCzEUyGvPc57I-cwVa0SiyDuPc-bOdsY_8gSBVA-XLe_DdGGT2VVQFcHs0NhS6YgQ6M8YuNzFj2UagzD35FxPCCal0_gcbSrFNWOnqdUnIc3_ErF1_ssy2VatoHLKfD_UN1IocWkozOI0lJhjaJbgWiEnyBIWr2ZEA8nmF7QDKnSft9Pb-fcrOjx76WW38xPCWihkbcAQZH7pI-mDbXcCfRwGVLV7la48EXUaFe-0kh5NeS1nJ944qTmVglrk3FTxvtkD68p0sRrfaAxNQ9qf8ir9dMuZ82hva7K9U6Z3IIvl2Xn8aALr3wod2DHnI1ME7S43jiKB2QTKT0Py1KC27M0UI0qlY_Ksh4vuQvbjVrxNFPW0oj1husxJYTrpomxWMzsYZc1CJQLzDER6r7AsQQrA1BOmw76Nh4RXAY272OF1cePpaS4ROxDbFaqxF1o-Gglwq5o-zC4mXNDt9G6r81vB67gDD3MR2J_4zZnNquB854qOssJKDp4-RF9-jxyYbSJjI4hm8Ny8byb01i9CulX5HFe_kauRdegdyAGRGN4D0dhgnP5DuWpMZr4A6uPfa9bW11Y1SZovdX2KMVFyua8ZSuVdI7dDF7AAFh4wRb2pPO6mzrDQv4eLihDoK_2KEk-RJN4Bz8xxMnXLF0jToEONFdryKnwWhTXcQc_hTbIfkq5wCTbdWO1lsD9oFPpIEzrPGHceX0FP52X8VP8GnOW_9TueawxV2D94epEBeeSEZ-WqrdNL8fFH6BfgCgKXbJO1fwHzJBWTfnQF59cvpC-xjKwfLEk_I_1fF04bYLrvuRDaI-fvzZhMZfm4KHxj8tYnrkZ12hNGDIZv9_BE18FZyJq2GKwC-yQIzgR9WWJCebeWYZqkVmDGNRRde0Bn5J8oD6E2KxCSuNDekYeWJdqXm5v8EskHlCodyCTEYuCK_P45sp8NJTm2gjozZjuhA7y_RK24yLwFRgBLBAdYmJtNvz7WHP0BbAGJx8gz3oOsbEkQDM08s8awExhKzHjZ0lMXA3y1LcLhDiU-6e7J6wBcIDKTqo6UfR1LqM5Yji3UEUK3V-jn8WeKZR1OGiwOspg4FkhpIBuw3_ZCSuNrQMVcI4o6m8e1bRI_gSuZAeDz1SxfQDEzhcMkDW6e6c5A_9OPtmV8bDnCtpGVf7FDlnVcxEsGu3V5hwWVn48v25UGGFFtBQ76PHxZPgyjTXhE5v1ilubVKTl0Q5Bj_GbGwYdnkodj0jIupXak1Kk6LYssRbDZNd4ClLbqkEXxUqRg_k087fCileC6j1SXyD8Veb-0JVkxWADB5l06kt_qhzYlB05YnTL-QLkH9qVKW2m3m3l_upnGfEkamQOimWBvb5sV0WA7cb6x_qlfdKXW8R13mk18RUVboAb8P4RlVJ8edw94dXDCW70hsXBt1qMYeb_a6C3-MS70YMAfoU9Lbvv915KaTH26jAz0QDyInJxu1jWT7Nv0mfehTAAiVWUSPja4AajAP9lgWbxVbNfQiC2_WZ2qShkI3480eK-PBbooNjw3Yw3nZ1JWe1wRX6bbszXeWi7a_JaS9EpRYbHcUT7I9EezUzClyXaEvBUR5Ae4rvcHTSd0uUzH5ieRPeMGta1xqb-X2lzRa3BqGAbdgEj5leb51utoXylJ9NnX_S29JAZ-GiNEeYYgd6YMzkbyEWGYGMGK2C9s7acNODjRaJ74wotqZ_QHYxCm1NX-wg84ds_Lv1ubhClOvD2HJdUhz-8qWlDOEMbEH8b5jgbu1Crzlu0y-_Z771ag0pT2iLuaRA-LIiA-KzU91piBCC8bw5PgJ7fBzLnF_BTx0QFjfrX1MsDsL6VnG94VxfCd9XZWY8z0ZuDenFg6Oe5EO0K6eLOAK5RU0eoe9TMvFD88DS3vlLhRJhdAj4d6C9XBRXIXkfmSGF7uVdO2dRiQ68i8btCgwaxphnui8SZIBsY8MozENrJJbyGN8IT22Y9xlBwGshYEhOYIBcIN1qFGfA5FilNTwSG9_ECpN0b2NW1Lpkj4FejMfqDVVVvNjCGza2GHk439RC97mbkdj4XR-DLZs6sVp4Z3-4tb1kurxRkYuPrbbybb-BtvY0nFAjJfZf6hdlt8-Dltrelj1BdBJbezWfzkYO9zp6HiTuP2a9823pujn5UKqt2RQGO4m1k1N9mEPxZR4YSHKZinZ-APHtehc6216gPbHt38Cy72tq6tSAq8cS8PVbNZJ_KjVy_CdCMgebDCe0mMlsG9nn-f5wRap-42eWgVMNm6lc3SXzl0dB350xdyrhzUQ27lZwT0uvcqpYl7BvkrcbVbBt21QqMHqp8T8az20nQFMI-U32Fyj3mALWk0dnRO6smWqXpMhTqYezBCICID6hcvcn20i03f8MSlYVzVZyczw9hY0hFaAjRGGni7kUZMWFQCB0-wAaS35yG7jZQqPhaDWcRvYYc-SAUGoF-CFim55_vjXj3oZR4yDlRhWCAQvEJHvzTFFXXmM6KWATkycxbqa27yINTNaOA-zLyI6BG0YvewzMt9Q6iK1wqZNgZwZbhbx7NOsgPPbfGPrUjl5V6XK796H8NMhwlww1hDHhNaSu2e7ERa9mPdTDFpbpl_Px_5OZM-IHVNB_z9-4xX3DHo6jY1faE6oprvK4wD8yJy7uQBarjpyOyB7tgSGeIRI3Y8b0jnIDsyVznnQ5dAivpORV4LvarVeSL-c2DbZJJrFmd5Eg1f97AyqW3GGZJmvxaqWG2ApGR6FA-VHIYOyqgeIjBdSa7Dmau6ZJ4pU3dwk1CCKrEEBZ1Gm_9K1POBf4C0NbOTyP9RFpgW-Dm-SIbi49DUlbVlteNfWu6gY9fhRpT_82fhgUn5GQphylnujip5AFcb5WbyiuPcNk_OU9pAbgw5lUGfJWjtv0gA9chjw5dlaexavzT_gVJ9GKIQwPzxJw4L_Rp-zPVbs923jPyLzy1npZzpE1bGhHQyX32skVyqG4tmqh6JOA482hpAXtn343q-OUj617Q53KA3otSR_i1DuYxeS2K8l2_WBD6ra5ZJrcz6O_ybzRW5xf_FgJ"
+        },
+        {
+          "id": "rs_0f2c825b35648e1e006a84b95e8cd887d29279567b92500c73",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhLmKzYurtbfQMMdRkKeqYFqhGz0NnYrHmN8VdOxyv-e9Bi7VN-laOOcoea7y2807h6iVEi_aArAg9YczYx_tDesoAOBD45kmznGtmTwQZd22VxRh0QtFs8mFQwmbeNCeIxPhSojZkAF9YXrgcxDayfHtSy4xZhxF1gFXeDUd5Zi-1T6KO3ZLy1qCxXXkHP4jYgSNu2Clkoa3eiNtpPBp-lD1lEzLP3Us_VMGunJMTdAV3EjWsZSwMDJ7EuU8wudoaYwriNB6gO-TLdeEUFV5_cb-smjDYS-Y3MV5uimQGmMoB3zH6blbfST2bDydWkk66escm8FfIQNSdbleztaEPIe2sQfUJ0hoDrZpMYyvVdkx_OzOi5-aadRA8UiXVDUK574HAwar_ixqK9e-VG11MNXJLe7fuT5k51etwP9U1RvOMSXdtRjQt3SEffxTaM5MQ4zygnRG6m6wYD5SZwcIgCRCvRePAXftiBrZbnAEMIejyJ34nKaJGUvbv5CD2mM8pnHPkGoFC_USO8u8Zdv2XAxN7uYeDImSyO9eTjEWtX-cCXai-9ZmuzAYzmLwtYwrE2Ze19ufLN-BqZ0jw7ZTbKOYHlB5LyRq5x_lM87NNbf5nf4coJeeofH6mLmNRD8hKWo-tXngOnoLK_wf5iesHco4p6dfdHRbzQsvyWqmGuLcmhA1cxkm4Bz1rzIjsrntu6QQ_ISqJVn0Zs41Gq3uupBPbwh8IO0ibbuKzZolDtzMtsAr5eNe26l3XQmCBiXSaM6Et-ORY5lx5OgyC76fuL-e70X4NnHF66KJqgLa1PRcVDB7mwwn1lEps0-npLR1MR8rfxx2K0X_DUYnP4Xb0kR77nohFk7ym22fvumw3O3FpTyUjl5qWfABtJfeVYg5cDQDEusSKy16C-9ePAKCWXbxMOsnJ1zt9mErHDcfDFRwlaSiUHUVTrsjo4qXFmqfHFIvNVqi6tjwX4VcONVNA9V2TEjhKgTF73BOAW2ucPDnrOu8bteT7Z2HLBzbVh0F0BZcoYL3i--Xg-O1sNuyvNRw2HTjKiEkG6zLUegOChy6hJhy0lMR1zFisxgLJASUFE-grqxl5jbU30UBwU-p72x8_xqWf1JMgRpg9c50sxGQ2ix0lNL4rMSHpgq6uam5HKkST_9m5HH4X958boAiwI3yXgx7UsCUenAdM1fo8-8l7v8OtFnrZPOkzg4R1SIDHqfRs38RzMObLaVOIA_-HvKGVrUw1SPfxM1Pp2cX1ArQ5pYsUY9o9i1dJ3gNzUmAJbHGIWsmnKP-OSCeD58nqVA_mHvBPUiLdOGMilOmb_PhMTO0i9rScLJnmaWuXhjBibB-6c-6gE6Fe3YZEGoCQTjVEsGxPnEYnU2yVNTeOTH63eFR00hXoi_RxMPLl7syWUmx5PCnBclENQbUziCEAG0DNVlqTZZOBRq-IIuepn4uQ40Q6t7GJgMdiYwjfI8VHpKB3Bh18DNuhawJlNMK_hiNA7tWPfkRVpJqGCQ_sZoBDVh_K_gqCLkBdySlPBXPR3zlSsVEk-KcGKD-f2XM7-G0eVB0WTvDC1BJhRZPomeAWku1AdRerSBNR69khyBORSw-jJdHm0PljlFefka4vU7Tr0olBRkGKzXTUJrqxP6x2Hxs3GL-nkRYWSJsv-QA1P1hz3vWeXYdIjBIsq_vOuIB3JEbsC_xkDBY5XgI3pb30jLBV4d-pnFhaPHuKBbmcg3bA5MHDhf0DFzpE7gq2jFR2VrVviK1MltAcObo-2mmK6FA7qojpwxrxInuycvbZXbD2cv_hB0gvIOit4H-gsaW5zavu4GNksIPkvFQIWVPl9KJ0a_i3deyx8vpAce1jG-L0fDdDGPxP4leKFZZhcA7dT-yn_mMe_cWmqGT84QhXL9sAHyaCsHUsaYHiXS35vJb0owzlhz5LH0sc0my4edYVJeIIaOMevvgtt2Z6PZ6PZ1_lD-3i4xensqzWr5YO7D1c24Cv_Dx4-VvOryNFyymYW9rGVhKbKwLtmqqLrwdeJgOmdHCqSqqBSUWbQMruJAckRW_dMntcdIs7IbWj2ptY_zIojYy4PHQhsI0k5uHgDFc7-T7jL7nXcnDArJOskhgf3sDrBLXbdU4ZqeOciasWJflHljdf5gA0lw3ed2oJcuftj9qE2BBty0Vxz_3GVUt1EWkg8Dp8ZOP5epVWiIA81bSf2M5FLpi1odA-8VTCE-Ulrq5QSChZNeJh2pPE-2UAkTcz2dxRuc5QAvBTD1WO92enOPV_-W7QDFUKcLxd-XHAE1r-gT2wEfdxfAvVlBh-SgXEyNeVDcFKAoeD8TrtHagnrsD5k4Vw2ett-hkr5tPJv2SwDEuvzzMBF-cezvny69QlshfJMA8_U06KMUuCRiOHiwuageK73sXh9HN7TmlgGSARbDZnPEJKeDHnjLMLfi5SPdRExqAF-vsIs3OU5oEq56F7Vjd2ysu-D5L0quRmNd9MRSfFHE50KEJJpD0y3jxEEwntX56nZfDfAl543t_UG8RxvF3WWzt0sM4v4dMu_HbSQuyhqhT-vG62QNNF9iWBs6RPm5r9fuA_an-Fkx-lvdQy3V4hy0n1XAnY3CAt-CYmI4ZhEzV9AzvcaqS-vQkYLBoO0g0YFuLjbyGMWcopezoZbC_wo0blYZLJdSgp6RvGYbxHVNerE_yS-3cf7FqQayY7xf4LXl5a-_2IDarc9LnxLywt3gX6DUz1AeWHJ88rH-Gs5sDJjabRDsHs1lgAkVQ6uWsx2UWgyT6V4yS1nakdc7e49FFDQzdgyuRSIHQMGeuG2q1n8-pRmWx_OiOrIF__e02BK0jHcEBeGdxvVYpd3y_2Tz4FUgqYTK_HGnoWtmlPcmV9m0SqYG-DuoitA56Bh2I6VHv9pTyG2eAdYQKRi0PoA0mXqwymYy_eTg4NEKKw99E-bpEYOE4pFPNmXAgdGbAln_zMZq4Sa-fDZtW74_BsDag3k1kr_E5JX_6h2Hh5xYp9mPM-zLQ-JywUs7Jr3ZpejkhGS-PHkhGVbfOtd99edJL3hNzkJKkKlmiZ_4mXhrit1898FJFM7hruGo4U-Jebyo94uzVU7Hqi0widzMxaI-42ZyYCaJjI-BxzwYHc-cjdl8Q3S2h_-hvt7O0LsSxywoC05rwX0gLLML-D11uMwhya6aHijsL4eqfnU2bZTvjB44CTVZj"
+        },
+        {
+          "id": "msg_0f2c825b35648e1e006a84b965fbd887d2a6f9976d13bef6d7",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Golden summer chicken roast\",\n      \"title\": \"Roast chicken, potatoes and summer vegetables\",\n      \"slot\": \"dinner\",\n      \"day\": \"tue\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Dijon mustard\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Plate one hot serving each of the roast chicken, potatoes and summer vegetables. Mix the yoghurt with the mustard and juice from the lemon half, then spoon it alongside.\",\n      \"why\": \"This gives the student the proper roast they requested while using bright summer vegetables and a generous serving of potatoes.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_roast_chicken\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roast_potatoes\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_summer_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Berry crunch yoghurt bowl\",\n      \"title\": \"Greek yoghurt, oats, berries and pumpkin seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"British berries\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"pumpkin seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon the yoghurt into a bowl, add the oats and berries, then finish with the pumpkin seeds and honey.\",\n      \"why\": \"A substantial yoghurt-based breakfast is quick before an office day and requires no extra cooking session.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Herby chicken crunch wrap\",\n      \"title\": \"Roast chicken wrap with hummus, spinach and tomatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"large wholemeal wrap\",\n          \"quantity\": \"1 large wrap\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"hummus\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"baby spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cherry tomatoes\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice one cold serving of roast chicken. Spread the wrap with hummus, add the spinach, halved tomatoes and chicken, then roll tightly.\",\n      \"why\": \"The roast chicken becomes a fresh, portable lunch rather than repeating Tuesday's roast dinner.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_roast_chicken\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Lemony lentil roast salad\",\n      \"title\": \"Lentils, roast potatoes, summer vegetables and feta\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned green lentils, drained\",\n          \"quantity\": \"240 g\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"baby spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"feta\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"extra virgin olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Combine the drained lentils and spinach with one cold serving each of the roast potatoes and summer vegetables. Crumble over the feta, squeeze over the lemon half, add the olive oil and season with black pepper.\",\n      \"why\": \"Lentils provide a full protein anchor while the leftover roast sides become a generous summer salad with no further cooking.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_roast_potatoes\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_summer_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 7\n      },\n      \"honours_belief_keys\": []\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_roast_chicken\",\n      \"title\": \"Herb-roasted chicken thighs\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"boneless skinless chicken thighs\",\n          \"quantity\": \"360 g\",\n          \"amount\": 360,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"dried thyme\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Coat the chicken with the olive oil, thyme, salt and pepper. Arrange on a lined roasting tray and roast at 220°C, or 200°C fan, for about 25 minutes until browned and cooked through. Serve one portion immediately and chill the other promptly for Wednesday.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"tue\"\n    },\n    {\n      \"id\": \"prep_roast_potatoes\",\n      \"title\": \"Crisp roast baby potatoes\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"baby potatoes\",\n          \"quantity\": \"560 g\",\n          \"amount\": 560,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Halve the baby potatoes, coat them with the olive oil, salt and pepper, and arrange cut-side down on a large roasting tray. Roast at 220°C, or 200°C fan, for 35 minutes until crisp and tender. Serve half immediately and chill the remainder promptly.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 35,\n      \"cook_on\": \"tue\"\n    },\n    {\n      \"id\": \"prep_summer_vegetables\",\n      \"title\": \"Roast summer vegetables\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"courgette\",\n          \"quantity\": \"1 courgette\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red pepper\",\n          \"quantity\": \"1 red pepper\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 red onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Cut the courgette, pepper and onion into bite-sized pieces. Toss with the olive oil, salt and pepper, spread on a roasting tray and roast at 220°C, or 200°C fan, for 25 minutes. Serve half immediately and chill the remainder promptly.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"tue\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"tue\",\n      \"preparation_ids\": [\n        \"prep_roast_potatoes\",\n        \"prep_roast_chicken\",\n        \"prep_summer_vegetables\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"Heat the oven to 220°C, or 200°C fan. Halve and season the potatoes first, then put them in the oven. While they start roasting, season the chicken and chop the vegetables. After 10 minutes, add the chicken and vegetables on separate lined trays or separate sections of a large tray. Roast everything together for the remaining 25 minutes, then plate Tuesday's portions and chill Wednesday's portions promptly.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"boneless skinless chicken thighs\",\n      \"quantity\": \"360 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Greek yoghurt\",\n      \"quantity\": \"310 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"feta\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"tinned green lentils\",\n      \"quantity\": \"1 x 400 g tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"hummus\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"large wholemeal wrap\",\n      \"quantity\": \"1\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"60 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"baby potatoes\",\n      \"quantity\": \"560 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgette\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red pepper\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onion\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"baby spinach\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cherry tomatoes\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"British berries\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"5 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"pumpkin seeds\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Dijon mustard\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"dried thyme\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"salt\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"black pepper\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-meal-v1.composition_retry",
+        "user_id": "08050000-0000-4000-8000-000000000022",
+        "request_id": "556c5037-35d4-4525-8121-ae5b9fbae4af"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787083062,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787083146,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T19:56:29.185959+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T19:57:42.324939+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T19:57:42.352755+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T19:59:06.848992+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

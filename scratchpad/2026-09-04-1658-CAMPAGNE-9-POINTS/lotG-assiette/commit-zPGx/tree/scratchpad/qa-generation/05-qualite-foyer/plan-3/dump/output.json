@@ -1,0 +1,908 @@
+{
+  "request_id": "5a000003-0000-4000-8000-0000000000r3",
+  "resolved_by": "--request-id",
+  "user_id": "5a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T03:58:10.659Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "cff6926a-06c4-4289-84a3-d92c6fb65906",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T03:55:55.504797+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16129,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16129,
+    "user_message_chars": 19078,
+    "user_message_truncated": false,
+    "user_message_written_chars": 19078,
+    "independent_counters": {
+      "system_prompt_chars": 16129,
+      "prompt_chars": 19078
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "0188ac6e-4fd1-4137-8a30-c7e93cdb1bc9",
+    "created_at": "2026-08-19T03:58:10.033859+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 2,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Golden Sweet Potato Dahl\",\n      \"title\": \"Red lentil and sweet potato dahl with basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat a portion of the dahl and a portion of the rice together until piping hot.\",\n      \"why\": \"A warm, comforting vegan meal that is naturally free from one of the foods on your medical list.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_zoe\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_zoe\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Chicken and Pepper Rice\",\n      \"title\": \"Pan-seared chicken and peppers with basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chicken, peppers and rice. Squeeze the lemon juice over the top before serving.\",\n      \"why\": \"A protein-rich dish for Roxane that respects her need for a separate plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_roxane\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Creamy Coconut Dahl Bowl\",\n      \"title\": \"Red lentil and sweet potato dahl with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat a portion of the dahl and rice in a pan or microwave until steaming.\",\n      \"why\": \"Warm and filling for a late Wednesday evening without using an oven.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_lubna\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_lubna\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Savoury Chicken and Rice Bowl\",\n      \"title\": \"Pan-seared chicken and peppers with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and pepper mix with the rice. Serve with the vegetables first as requested.\",\n      \"why\": \"A warm, comforting dinner for Roxane that follows her specific serving order.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_roxane\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Post-Gym Chicken Power Bowl\",\n      \"title\": \"Pan-seared chicken and peppers with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and rice. Serve the protein and starch first to support the post-workout recovery.\",\n      \"why\": \"A hearty meal for Ivar after his Wednesday lifting session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ivar\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ivar\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"August Harvest Lentil Dahl\",\n      \"title\": \"Red lentil and sweet potato dahl with basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the remaining dahl and rice portions together.\",\n      \"why\": \"A simple, reheatable lunch that stays fresh in the fridge for the next day.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_zoe\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_zoe\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Ginger Chicken and Pepper Stir-fry\",\n      \"title\": \"Pan-seared chicken and peppers with basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and pepper mix with rice until hot throughout.\",\n      \"why\": \"A quick and reliable lunch for Roxane that avoids cross-contamination with the vegan dahl.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_roxane\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Hearty Sweet Potato Dahl\",\n      \"title\": \"Red lentil and sweet potato dahl with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the dahl and rice until hot. The sweet potatoes will be extra tender today.\",\n      \"why\": \"A warm, comforting end to the stretch for the shared table.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_lubna\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_lubna\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Warm Chicken and Pepper Rice\",\n      \"title\": \"Pan-seared chicken and peppers with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the final portion of chicken and peppers with rice.\",\n      \"why\": \"A consistent, warm dinner for Roxane that meets her dietary requirements.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_roxane\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Late Night Chicken and Rice\",\n      \"title\": \"Pan-seared chicken and peppers with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and rice portions. Ensure the chicken is piping hot.\",\n      \"why\": \"A simple, high-protein dinner for Ivar that reheats perfectly.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ivar\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ivar\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_dahl\",\n      \"title\": \"Sweet Potato and Red Lentil Dahl\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"red lentils\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sweet potatoes, cubed\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"coconut milk\",\n          \"quantity\": \"400 ml\",\n          \"amount\": 400,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion, diced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves, minced\",\n          \"quantity\": \"3 unit\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"turmeric\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cumin\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"vegetable oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté the onion and garlic in oil until soft. Add the sweet potatoes, lentils, spices, and coconut milk with 500ml water. Simmer for 25 minutes until lentils are soft and sweet potatoes are tender. Stir in the spinach at the end until wilted.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_dahl_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_dahl_lubna\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_dahl_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_dahl_ivar\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chicken_peppers\",\n      \"title\": \"Pan-Seared Chicken and Peppers\",\n      \"servings_made\": 6,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs, sliced\",\n          \"quantity\": \"900 g\",\n          \"amount\": 900,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell peppers, sliced\",\n          \"quantity\": \"3 unit\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion, sliced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves, minced\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"vegetable oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Heat oil in a large pan. Brown the chicken thighs until cooked through. Add the onions, garlic, and bell peppers, sautéing until the vegetables are tender but still bright.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_ivar\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Basmati Rice\",\n      \"servings_made\": 14,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"1000 g\",\n          \"amount\": 1000,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice until the water runs clear. Add to a large pot with 1.5 litres of water. Bring to a boil, then reduce heat to low, cover, and simmer for 12-15 minutes until water is absorbed. Fluff with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_lubna\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_ivar\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_rice\",\n        \"prep_dahl\",\n        \"prep_chicken_peppers\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice in a large pot. While it simmers, begin the dahl in another large pot by sautéing onions and adding lentils and sweet potatoes. While both pots simmer, sear the chicken and peppers in a large pan. Once the rice is done, fluff and box it. Stir spinach into the dahl and box. Finally, box the chicken and pepper mixture.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"red lentils\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sweet potatoes\",\n      \"quantity\": \"2 large\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"chicken thighs\",\n      \"quantity\": \"900 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"3 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"coconut milk\",\n      \"quantity\": \"400 ml tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"turmeric\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"cumin\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"portion_note\": \"Serve the bell peppers and onions first, followed by the chicken, and the rice last.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"note\": \"one portion of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\",\n      \"portion_note\": \"Serve the dahl and rice together in one bowl.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"note\": \"one portion of dahl\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"86129e3c-2f50-480f-a359-077165b6232b\",\n      \"portion_note\": \"Serve the dahl and rice together in one bowl, ensuring no cross-contamination with other preparations.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"note\": \"one portion of dahl\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"portion_note\": \"Serve the chicken and rice first, with the peppers and onions on the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"note\": \"one portion of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Golden Sweet Potato Dahl",
+          "title": "Red lentil and sweet potato dahl with basmati rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Reheat a portion of the dahl and a portion of the rice together until piping hot.",
+          "why": "A warm, comforting vegan meal that is naturally free from one of the foods on your medical list.",
+          "uses": [
+            {
+              "preparation_id": "prep_dahl",
+              "servings": 1,
+              "box_id": "box_dahl_zoe"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_zoe"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Zesty Chicken and Pepper Rice",
+          "title": "Pan-seared chicken and peppers with basmati rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the chicken, peppers and rice. Squeeze the lemon juice over the top before serving.",
+          "why": "A protein-rich dish for Roxane that respects her need for a separate plate.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "servings": 1,
+              "box_id": "box_chicken_roxane"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Creamy Coconut Dahl Bowl",
+          "title": "Red lentil and sweet potato dahl with basmati rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Reheat a portion of the dahl and rice in a pan or microwave until steaming.",
+          "why": "Warm and filling for a late Wednesday evening without using an oven.",
+          "uses": [
+            {
+              "preparation_id": "prep_dahl",
+              "servings": 1,
+              "box_id": "box_dahl_lubna"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Savoury Chicken and Rice Bowl",
+          "title": "Pan-seared chicken and peppers with basmati rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Reheat the chicken and pepper mix with the rice. Serve with the vegetables first as requested.",
+          "why": "A warm, comforting dinner for Roxane that follows her specific serving order.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "servings": 1,
+              "box_id": "box_chicken_roxane"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Post-Gym Chicken Power Bowl",
+          "title": "Pan-seared chicken and peppers with basmati rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Reheat the chicken and rice. Serve the protein and starch first to support the post-workout recovery.",
+          "why": "A hearty meal for Ivar after his Wednesday lifting session.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "servings": 1,
+              "box_id": "box_chicken_ivar"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_ivar"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "for_member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "August Harvest Lentil Dahl",
+          "title": "Red lentil and sweet potato dahl with basmati rice",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [],
+          "method": "Reheat the remaining dahl and rice portions together.",
+          "why": "A simple, reheatable lunch that stays fresh in the fridge for the next day.",
+          "uses": [
+            {
+              "preparation_id": "prep_dahl",
+              "servings": 1,
+              "box_id": "box_dahl_zoe"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_zoe"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Ginger Chicken and Pepper Stir-fry",
+          "title": "Pan-seared chicken and peppers with basmati rice",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [],
+          "method": "Reheat the chicken and pepper mix with rice until hot throughout.",
+          "why": "A quick and reliable lunch for Roxane that avoids cross-contamination with the vegan dahl.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "servings": 1,
+              "box_id": "box_chicken_roxane"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Hearty Sweet Potato Dahl",
+          "title": "Red lentil and sweet potato dahl with basmati rice",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [],
+          "method": "Reheat the dahl and rice until hot. The sweet potatoes will be extra tender today.",
+          "why": "A warm, comforting end to the stretch for the shared table.",
+          "uses": [
+            {
+              "preparation_id": "prep_dahl",
+              "servings": 1,
+              "box_id": "box_dahl_lubna"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Warm Chicken and Pepper Rice",
+          "title": "Pan-seared chicken and peppers with basmati rice",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [],
+          "method": "Reheat the final portion of chicken and peppers with rice.",
+          "why": "A consistent, warm dinner for Roxane that meets her dietary requirements.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "servings": 1,
+              "box_id": "box_chicken_roxane"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Late Night Chicken and Rice",
+          "title": "Pan-seared chicken and peppers with basmati rice",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [],
+          "method": "Reheat the chicken and rice portions. Ensure the chicken is piping hot.",
+          "why": "A simple, high-protein dinner for Ivar that reheats perfectly.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "servings": 1,
+              "box_id": "box_chicken_ivar"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_ivar"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "for_member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_dahl",
+          "title": "Sweet Potato and Red Lentil Dahl",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "red lentils",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "sweet potatoes, cubed",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "coconut milk",
+              "quantity": "400 ml",
+              "amount": 400,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "spinach",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onion, diced",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic cloves, minced",
+              "quantity": "3 unit",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "turmeric",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "cumin",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "vegetable oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Sauté the onion and garlic in oil until soft. Add the sweet potatoes, lentils, spices, and coconut milk with 500ml water. Simmer for 25 minutes until lentils are soft and sweet potatoes are tender. Stir in the spinach at the end until wilted.",
+          "active_minutes": 15,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_dahl_zoe",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_dahl_lubna",
+              "member_ids": [
+                "86129e3c-2f50-480f-a359-077165b6232b"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_dahl_roxane",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_dahl_ivar",
+              "member_ids": [
+                "12362957-32c9-43a5-82ef-66b8d5732171"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_chicken_peppers",
+          "title": "Pan-Seared Chicken and Peppers",
+          "servings_made": 6,
+          "ingredients": [
+            {
+              "term": "chicken thighs, sliced",
+              "quantity": "900 g",
+              "amount": 900,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "bell peppers, sliced",
+              "quantity": "3 unit",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "onion, sliced",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic cloves, minced",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "vegetable oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Heat oil in a large pan. Brown the chicken thighs until cooked through. Add the onions, garlic, and bell peppers, sautéing until the vegetables are tender but still bright.",
+          "active_minutes": 15,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_roxane",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_chicken_ivar",
+              "member_ids": [
+                "12362957-32c9-43a5-82ef-66b8d5732171"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_chicken_zoe",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 200
+            }
+          ]
+        },
+        {
+          "id": "prep_rice",
+          "title": "Steamed Basmati Rice",
+          "servings_made": 14,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "1000 g",
+              "amount": 1000,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse the rice until the water runs clear. Add to a large pot with 1.5 litres of water. Bring to a boil, then reduce heat to low, cover, and simmer for 12-15 minutes until water is absorbed. Fluff with a fork.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_zoe",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_lubna",
+              "member_ids": [
+                "86129e3c-2f50-480f-a359-077165b6232b"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_roxane",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_ivar",
+              "member_ids": [
+                "12362957-32c9-43a5-82ef-66b8d5732171"
+              ],
+              "grams": 180
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_rice",
+            "prep_dahl",
+            "prep_chicken_peppers"
+          ],
+          "total_minutes": 50,
+          "run_through": "Start the rice in a large pot. While it simmers, begin the dahl in another large pot by sautéing onions and adding lentils and sweet potatoes. While both pots simmer, sear the chicken and peppers in a large pan. Once the rice is done, fluff and box it. Stir spinach into the dahl and box. Finally, box the chicken and pepper mixture."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "red lentils",
+          "quantity": "500 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "basmati rice",
+          "quantity": "1 kg",
+          "aisle": "grains"
+        },
+        {
+          "term": "sweet potatoes",
+          "quantity": "2 large",
+          "aisle": "produce"
+        },
+        {
+          "term": "spinach",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "chicken thighs",
+          "quantity": "900 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "bell peppers",
+          "quantity": "3 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "onions",
+          "quantity": "2 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "coconut milk",
+          "quantity": "400 ml tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "lemon",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "turmeric",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "cumin",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "portion_note": "Serve the bell peppers and onions first, followed by the chicken, and the rice last.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "note": "one portion of chicken and peppers"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one portion of rice"
+            }
+          ]
+        },
+        {
+          "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+          "portion_note": "Serve the dahl and rice together in one bowl.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_dahl",
+              "note": "one portion of dahl"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one portion of rice"
+            }
+          ]
+        },
+        {
+          "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+          "portion_note": "Serve the dahl and rice together in one bowl, ensuring no cross-contamination with other preparations.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_dahl",
+              "note": "one portion of dahl"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one portion of rice"
+            }
+          ]
+        },
+        {
+          "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "portion_note": "Serve the chicken and rice first, with the peppers and onions on the side.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "note": "one portion of chicken and peppers"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one portion of rice"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Golden Sweet Potato Dahl\",\n      \"title\": \"Red lentil and sweet potato dahl with basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat a portion of the dahl and a portion of the rice together until piping hot.\",\n      \"why\": \"A warm, comforting vegan meal that is naturally free from one of the foods on your medical list.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_zoe\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_zoe\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Chicken and Pepper Rice\",\n      \"title\": \"Pan-seared chicken and peppers with basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chicken, peppers and rice. Squeeze the lemon juice over the top before serving.\",\n      \"why\": \"A protein-rich dish for Roxane that respects her need for a separate plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_roxane\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Creamy Coconut Dahl Bowl\",\n      \"title\": \"Red lentil and sweet potato dahl with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat a portion of the dahl and rice in a pan or microwave until steaming.\",\n      \"why\": \"Warm and filling for a late Wednesday evening without using an oven.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_lubna\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_lubna\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Savoury Chicken and Rice Bowl\",\n      \"title\": \"Pan-seared chicken and peppers with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and pepper mix with the rice. Serve with the vegetables first as requested.\",\n      \"why\": \"A warm, comforting dinner for Roxane that follows her specific serving order.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_roxane\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Post-Gym Chicken Power Bowl\",\n      \"title\": \"Pan-seared chicken and peppers with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and rice. Serve the protein and starch first to support the post-workout recovery.\",\n      \"why\": \"A hearty meal for Ivar after his Wednesday lifting session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ivar\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ivar\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"August Harvest Lentil Dahl\",\n      \"title\": \"Red lentil and sweet potato dahl with basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the remaining dahl and rice portions together.\",\n      \"why\": \"A simple, reheatable lunch that stays fresh in the fridge for the next day.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_zoe\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_zoe\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Ginger Chicken and Pepper Stir-fry\",\n      \"title\": \"Pan-seared chicken and peppers with basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and pepper mix with rice until hot throughout.\",\n      \"why\": \"A quick and reliable lunch for Roxane that avoids cross-contamination with the vegan dahl.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_roxane\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Hearty Sweet Potato Dahl\",\n      \"title\": \"Red lentil and sweet potato dahl with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the dahl and rice until hot. The sweet potatoes will be extra tender today.\",\n      \"why\": \"A warm, comforting end to the stretch for the shared table.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"servings\": 1,\n          \"box_id\": \"box_dahl_lubna\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_lubna\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Warm Chicken and Pepper Rice\",\n      \"title\": \"Pan-seared chicken and peppers with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the final portion of chicken and peppers with rice.\",\n      \"why\": \"A consistent, warm dinner for Roxane that meets her dietary requirements.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_roxane\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Late Night Chicken and Rice\",\n      \"title\": \"Pan-seared chicken and peppers with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and rice portions. Ensure the chicken is piping hot.\",\n      \"why\": \"A simple, high-protein dinner for Ivar that reheats perfectly.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ivar\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ivar\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_dahl\",\n      \"title\": \"Sweet Potato and Red Lentil Dahl\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"red lentils\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sweet potatoes, cubed\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"coconut milk\",\n          \"quantity\": \"400 ml\",\n          \"amount\": 400,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion, diced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves, minced\",\n          \"quantity\": \"3 unit\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"turmeric\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cumin\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"vegetable oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté the onion and garlic in oil until soft. Add the sweet potatoes, lentils, spices, and coconut milk with 500ml water. Simmer for 25 minutes until lentils are soft and sweet potatoes are tender. Stir in the spinach at the end until wilted.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_dahl_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_dahl_lubna\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_dahl_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_dahl_ivar\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chicken_peppers\",\n      \"title\": \"Pan-Seared Chicken and Peppers\",\n      \"servings_made\": 6,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs, sliced\",\n          \"quantity\": \"900 g\",\n          \"amount\": 900,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell peppers, sliced\",\n          \"quantity\": \"3 unit\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion, sliced\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves, minced\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"vegetable oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Heat oil in a large pan. Brown the chicken thighs until cooked through. Add the onions, garlic, and bell peppers, sautéing until the vegetables are tender but still bright.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_ivar\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Basmati Rice\",\n      \"servings_made\": 14,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"1000 g\",\n          \"amount\": 1000,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice until the water runs clear. Add to a large pot with 1.5 litres of water. Bring to a boil, then reduce heat to low, cover, and simmer for 12-15 minutes until water is absorbed. Fluff with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_lubna\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_ivar\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_rice\",\n        \"prep_dahl\",\n        \"prep_chicken_peppers\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice in a large pot. While it simmers, begin the dahl in another large pot by sautéing onions and adding lentils and sweet potatoes. While both pots simmer, sear the chicken and peppers in a large pan. Once the rice is done, fluff and box it. Stir spinach into the dahl and box. Finally, box the chicken and pepper mixture.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"red lentils\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sweet potatoes\",\n      \"quantity\": \"2 large\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"chicken thighs\",\n      \"quantity\": \"900 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"3 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"coconut milk\",\n      \"quantity\": \"400 ml tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"turmeric\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"cumin\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"portion_note\": \"Serve the bell peppers and onions first, followed by the chicken, and the rice last.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"note\": \"one portion of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\",\n      \"portion_note\": \"Serve the dahl and rice together in one bowl.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"note\": \"one portion of dahl\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"86129e3c-2f50-480f-a359-077165b6232b\",\n      \"portion_note\": \"Serve the dahl and rice together in one bowl, ensuring no cross-contamination with other preparations.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dahl\",\n          \"note\": \"one portion of dahl\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"portion_note\": \"Serve the chicken and rice first, with the peppers and onions on the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"note\": \"one portion of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one portion of rice\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "mCmFavK1C42mnsEPl_i5sAw",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 21766,
+        "promptTokenCount": 9131,
+        "thoughtsTokenCount": 6561,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 9131
+          }
+        ],
+        "candidatesTokenCount": 6074
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T03:55:55.504797+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T03:55:56.373148+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:56:00.849137+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:56:00.857004+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:56:00.861799+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:57:00.870835+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:57:00.876378+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:57:01.480558+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:57:06.973714+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:57:07.457923+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:57:11.997373+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:57:12.007222+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:57:12.015726+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:58:10.033859+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

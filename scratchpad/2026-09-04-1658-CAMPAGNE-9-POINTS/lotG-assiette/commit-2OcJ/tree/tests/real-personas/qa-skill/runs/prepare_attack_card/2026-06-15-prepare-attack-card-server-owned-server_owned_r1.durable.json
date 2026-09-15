@@ -1,0 +1,134 @@
+{
+  "turn": 8,
+  "request_id": "qa-prepare-attack-server-owned-server_owned_r1-t08",
+  "attack_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_state": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "user_id": "0cbec82b-3493-4215-8f11-7feca5a353e9",
+        "temp_memory": {
+          "__momentum_state_v2": {
+            "posture": {
+              "confidence": "high",
+              "recommended_posture": "simplify"
+            },
+            "version": 2,
+            "blockers": {
+              "blocker_kind": null,
+              "blocker_repeat_score": 0
+            },
+            "_internal": {
+              "sources": {
+                "router_updated_at": "2026-06-15T20:09:34.112Z",
+                "last_classified_by": "router"
+              },
+              "stability": {
+                "stable_since_at": "2026-06-15T20:09:34.112Z"
+              },
+              "signal_log": {
+                "consent_events": [],
+                "emotional_turns": [],
+                "response_quality_events": [
+                  {
+                    "at": "2026-06-15T20:09:34.112Z",
+                    "quality": "substantive"
+                  }
+                ]
+              },
+              "metrics_cache": {
+                "last_user_turn_at": "2026-06-15T20:09:34.112Z",
+                "last_user_turn_quality": "substantive",
+                "days_since_last_user_message": 0
+              }
+            },
+            "assessment": {
+              "top_risk": null,
+              "confidence": "low",
+              "top_blocker": null
+            },
+            "dimensions": {
+              "consent": {
+                "level": "open",
+                "reason": "no_decline_detected"
+              },
+              "plan_fit": {
+                "level": "uncertain"
+              },
+              "engagement": {
+                "level": "high",
+                "reason": "substantive_recent_reply"
+              },
+              "load_balance": {
+                "level": "balanced"
+              },
+              "emotional_load": {
+                "level": "low",
+                "reason": "no_emotional_marker"
+              },
+              "execution_traction": {
+                "level": "unknown"
+              }
+            },
+            "updated_at": "2026-06-15T20:09:34.112Z",
+            "active_load": {
+              "needs_reduce": false,
+              "needs_consolidate": false,
+              "current_load_score": 0,
+              "mission_slots_used": 0,
+              "support_slots_used": 0,
+              "habit_building_slots_used": 0
+            },
+            "memory_links": {
+              "last_useful_support_ids": [],
+              "last_failed_technique_ids": []
+            },
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "current_state": "friction_legere"
+          },
+          "__conversation_risk_last": {
+            "at": "2026-06-15T20:09:34.111Z",
+            "score": 0,
+            "threshold": 8,
+            "reason_codes": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__memory_payload_state_v2": {
+            "items": [],
+            "budget": {
+              "max_items": 12,
+              "max_entities": 5,
+              "tokens_target": 1800
+            },
+            "modules": {},
+            "version": 2,
+            "entities": [],
+            "last_turn_id": "b320df2f-5c19-498f-81e6-6819d8e5683e",
+            "active_topic_id": null
+          },
+          "companion_question_rhythm": {
+            "preference": "normal",
+            "recent_turns": [
+              1
+            ],
+            "last_updated_at": "2026-06-15T20:09:34.095Z",
+            "last_turn_had_question": true,
+            "turns_since_last_question": 0
+          },
+          "__conversation_risk_history": [
+            0,
+            0
+          ],
+          "__coaching_intervention_history": []
+        },
+        "updated_at": "2026-06-15T20:09:34.114372+00:00"
+      }
+    ]
+  }
+}

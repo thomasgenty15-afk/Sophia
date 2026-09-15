@@ -1,0 +1,167 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-no-handoff-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Fais une carte de défense pour démarrer le sas, le problème c'est surtout que j'ai pas envie de m'y mettre.",
+    "assistant": "C'est noté pour le sas de déchargement. Pour contrer ce manque d'envie, quelle approche préfères-tu ?\n\n1. Le texte magique (un texte à relire pour arrêter de négocier)\n2. Mot de bascule (un mot simple à m'envoyer pour déclencher l'action)\n3. Préparer le terrain (une micro-action pour faciliter le démarrage)",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "structured_ai_missing_technique",
+        "status": "missing",
+        "question": "C'est noté pour le sas de déchargement. Pour contrer ce manque d'envie, quelle approche préfères-tu ?\n\n1. Le texte magique (un texte à relire pour arrêter de négocier)\n2. Mot de bascule (un mot simple à m'envoyer pour déclencher l'action)\n3. Préparer le terrain (une micro-action pour faciliter le démarrage)",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "intake_state": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "démarrer le sas"
+              ],
+              "confidence": "high",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "blocker": {
+              "type": "avoidance",
+              "evidence": [
+                "pas envie de m'y mettre"
+              ],
+              "confidence": 0.9
+            },
+            "skill_id": "prepare_attack_card",
+            "technique": {
+              "value": null,
+              "status": "ambiguous",
+              "options": [
+                {
+                  "title": "Le texte magique",
+                  "reason": "Idéal pour calmer le dialogue intérieur quand tu n'as 'pas envie'.",
+                  "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ce sas.",
+                  "description": "Un texte court à relire ou recopier quand la résistance monte.",
+                  "recommended": true,
+                  "technique_key": "texte_recadrage"
+                },
+                {
+                  "title": "Mot de bascule",
+                  "reason": "Efficace pour court-circuiter la flemme en m'envoyant juste un mot.",
+                  "example": "M'envoyer un mot court dès que tu sens que tu vas esquiver.",
+                  "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+                  "recommended": false,
+                  "technique_key": "pre_engagement"
+                },
+                {
+                  "title": "Préparer le terrain",
+                  "reason": "Pour réduire la friction au moment de démarrer.",
+                  "example": "Poser le carnet ouvert avec le stylo déjà dessus.",
+                  "description": "Un micro-setup qui rend le bon geste plus facile.",
+                  "recommended": false,
+                  "technique_key": "preparer_terrain"
+                }
+              ],
+              "evidence": [
+                "pas envie de m'y mettre"
+              ],
+              "confidence": "medium",
+              "fit_warning": null,
+              "explicitly_requested": false
+            },
+            "confidence": "high",
+            "constraints": [],
+            "current_step": "technique_selection",
+            "missing_slots": [
+              "technique"
+            ],
+            "activation_keyword": {
+              "value": null,
+              "status": "not_applicable",
+              "options": [],
+              "evidence": [],
+              "confidence": "low",
+              "rejected_value": null
+            },
+            "generated_user_message": "C'est noté pour le sas de déchargement. Pour contrer ce manque d'envie, quelle approche préfères-tu ?\n\n1. Le texte magique (un texte à relire pour arrêter de négocier)\n2. Mot de bascule (un mot simple à m'envoyer pour déclencher l'action)\n3. Préparer le terrain (une micro-action pour faciliter le démarrage)"
+          },
+          "technique_options": [
+            {
+              "title": "Le texte magique",
+              "reason": "Idéal pour calmer le dialogue intérieur quand tu n'as 'pas envie'.",
+              "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ce sas.",
+              "description": "Un texte court à relire ou recopier quand la résistance monte.",
+              "recommended": true,
+              "technique_key": "texte_recadrage"
+            },
+            {
+              "title": "Mot de bascule",
+              "reason": "Efficace pour court-circuiter la flemme en m'envoyant juste un mot.",
+              "example": "M'envoyer un mot court dès que tu sens que tu vas esquiver.",
+              "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+              "recommended": false,
+              "technique_key": "pre_engagement"
+            },
+            {
+              "title": "Préparer le terrain",
+              "reason": "Pour réduire la friction au moment de démarrer.",
+              "example": "Poser le carnet ouvert avec le stylo déjà dessus.",
+              "description": "Un micro-setup qui rend le bon geste plus facile.",
+              "recommended": false,
+              "technique_key": "preparer_terrain"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Le texte magique",
+            "reason": "Idéal pour calmer le dialogue intérieur quand tu n'as 'pas envie'.",
+            "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ce sas.",
+            "description": "Un texte court à relire ou recopier quand la résistance monte.",
+            "recommended": true,
+            "technique_key": "texte_recadrage"
+          },
+          {
+            "title": "Mot de bascule",
+            "reason": "Efficace pour court-circuiter la flemme en m'envoyant juste un mot.",
+            "example": "M'envoyer un mot court dès que tu sens que tu vas esquiver.",
+            "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+            "recommended": false,
+            "technique_key": "pre_engagement"
+          },
+          {
+            "title": "Préparer le terrain",
+            "reason": "Pour réduire la friction au moment de démarrer.",
+            "example": "Poser le carnet ouvert avec le stylo déjà dessus.",
+            "description": "Un micro-setup qui rend le bon geste plus facile.",
+            "recommended": false,
+            "technique_key": "preparer_terrain"
+          }
+        ],
+        "activation_keyword_options": []
+      },
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

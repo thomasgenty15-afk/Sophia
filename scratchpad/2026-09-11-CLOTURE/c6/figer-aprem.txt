@@ -1,0 +1,10 @@
+── DEMANDE FIGÉE ─────────────────────────────────────────────
+   tir            null · banc ② · PERTE · appétit average · horloge injectée 2026-09-11T15:07:00+02:00
+   requête        9d401035-9bd7-42f1-abb4-b0e4b7f2ceee
+   bouches        1
+     · Paul   1b542e44-6724-4cb4-92fe-dd3d91f5a484 · 178 cm · 88 kg · male · appétit average · objectif fat_loss · léger [] · apports []
+   jours          ["fri","sat","sun"]
+   cases attendues 7 ({"1b542e44-6724-4cb4-92fe-dd3d91f5a484":7}) · FIGÉE AVANT L'APPEL
+   étapes         premier jet oui · réparations 1 · prompt oui · journal 78 ligne(s)
+
+   écrit : /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-CLOTURE/fixtures/perte-c6aprem-2026-09-11T13-07-01-717Z-c0.json

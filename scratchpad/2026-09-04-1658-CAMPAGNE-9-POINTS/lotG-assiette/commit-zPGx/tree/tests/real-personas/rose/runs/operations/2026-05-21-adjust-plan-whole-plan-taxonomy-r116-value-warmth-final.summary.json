@@ -1,0 +1,173 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r116-value-warmth-final-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je viens de relire le plan et il me met un peu dans une logique de performance. J'ai l'impression que je vais surtout cocher des actions, alors que ce que je veux maintenant c'est retrouver plus de chaleur et de fiabilité dans la relation.",
+    "assistant": "Je comprends ce que tu ressens. Pour que je puisse t'aider à transformer ça, quelles actions spécifiques du plan te donnent le plus cette impression de \"cocher des cases\" ? Et comment imagines-tu qu'elles pourraient être transformées pour mieux incarner la chaleur et la fiabilité que tu recherches ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "whole_plan.adjustment_type",
+        "whole_plan.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer des actions sans comprendre leur rôle dans la nouvelle orientation.",
+          "Proposer des solutions techniques sans lien avec le ressenti exprimé.",
+          "Minimiser l'importance de la 'logique de performance' perçue par le user."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global d'amélioration de la relation.",
+          "Les fondations de désescalade et d'observation (signal de pause, cartographie des déclencheurs) qui sont des prérequis à une relation saine, mais dont l'approche pourrait être réévaluée pour leur 'ton'."
+        ],
+        "warnings": [
+          "Éviter de proposer des ajustements purement quantitatifs (fréquence, durée) sans adresser la dimension qualitative du ressenti.",
+          "Ne pas invalider la perception du user en défendant la logique actuelle du plan.",
+          "Ne pas interpréter cette demande comme une annulation ou un rejet du plan, mais comme une demande d'ajustement profond de son essence."
+        ],
+        "readiness": "diagnose",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "whole_plan: trajectoire, coherence globale, prerequis, ordre des phases, objectif et questionnaire preserves."
+        ],
+        "observation": "Le user exprime un décalage entre la perception actuelle du plan (logique de performance, cocher des actions) et son aspiration profonde (retrouver chaleur et fiabilité dans la relation). Il s'agit d'un conflit de valeur et d'une demande de réorientation qualitative de la trajectoire.",
+        "change_family": "value_preference_conflict",
+        "recommendation": "Explorer comment le plan peut être réorienté pour incarner les valeurs de chaleur et de fiabilité, en allant au-delà de la simple exécution d'actions pour se concentrer sur la qualité de l'interaction et du ressenti. Le sous-skill doit aider le user à articuler ce que 'chaleur et fiabilité' signifient concrètement pour les actions du plan.",
+        "next_best_question": "Quelles actions spécifiques te donnent le plus cette impression de 'cocher des cases' ? Comment imagines-tu que ces actions pourraient être transformées pour mieux incarner la 'chaleur' et la 'fiabilité' que tu recherches ?",
+        "options_to_discuss": [
+          "Réévaluer la formulation des actions pour les rendre plus orientées vers l'intention relationnelle que la tâche.",
+          "Introduire des actions explicitement axées sur la connexion émotionnelle, la vulnérabilité partagée ou des moments de qualité non 'performants'.",
+          "Modifier les critères de succès pour inclure des indicateurs de 'chaleur' ou de 'fiabilité' ressentie plutôt que de simple complétion.",
+          "Examiner si des phases entières du plan pourraient être repensées sous cet angle de 'chaleur et fiabilité'."
+        ],
+        "candidate_operation": "change_emphasis",
+        "questions_to_clarify": [
+          "Quelles actions spécifiques te donnent le plus cette impression de 'cocher des cases' ? Peux-tu me donner un exemple ?",
+          "Comment imagines-tu que les actions pourraient être transformées pour mieux incarner la 'chaleur' et la 'fiabilité' que tu recherches ? À quoi cela ressemblerait-il concrètement ?"
+        ],
+        "trajectory_hypothesis": "Le plan actuel est perçu comme trop axé sur la performance et la complétion de tâches. La trajectoire souhaitée est un plan qui favorise activement la chaleur et la fiabilité relationnelle, en se concentrant sur la qualité du lien plutôt que sur la quantité d'actions cochées.",
+        "must_not_execute_reason": "La demande est une expression de sentiment et de préférence, pas une instruction d'ajustement concrète. Une phase de diagnostic est nécessaire pour traduire ces valeurs en modifications du plan."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer des actions sans comprendre leur rôle dans la nouvelle orientation.",
+        "Proposer des solutions techniques sans lien avec le ressenti exprimé.",
+        "Minimiser l'importance de la 'logique de performance' perçue par le user."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global d'amélioration de la relation.",
+        "Les fondations de désescalade et d'observation (signal de pause, cartographie des déclencheurs) qui sont des prérequis à une relation saine, mais dont l'approche pourrait être réévaluée pour leur 'ton'."
+      ],
+      "warnings": [
+        "Éviter de proposer des ajustements purement quantitatifs (fréquence, durée) sans adresser la dimension qualitative du ressenti.",
+        "Ne pas invalider la perception du user en défendant la logique actuelle du plan.",
+        "Ne pas interpréter cette demande comme une annulation ou un rejet du plan, mais comme une demande d'ajustement profond de son essence."
+      ],
+      "readiness": "diagnose",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "whole_plan: trajectoire, coherence globale, prerequis, ordre des phases, objectif et questionnaire preserves."
+      ],
+      "observation": "Le user exprime un décalage entre la perception actuelle du plan (logique de performance, cocher des actions) et son aspiration profonde (retrouver chaleur et fiabilité dans la relation). Il s'agit d'un conflit de valeur et d'une demande de réorientation qualitative de la trajectoire.",
+      "change_family": "value_preference_conflict",
+      "recommendation": "Explorer comment le plan peut être réorienté pour incarner les valeurs de chaleur et de fiabilité, en allant au-delà de la simple exécution d'actions pour se concentrer sur la qualité de l'interaction et du ressenti. Le sous-skill doit aider le user à articuler ce que 'chaleur et fiabilité' signifient concrètement pour les actions du plan.",
+      "next_best_question": "Quelles actions spécifiques te donnent le plus cette impression de 'cocher des cases' ? Comment imagines-tu que ces actions pourraient être transformées pour mieux incarner la 'chaleur' et la 'fiabilité' que tu recherches ?",
+      "options_to_discuss": [
+        "Réévaluer la formulation des actions pour les rendre plus orientées vers l'intention relationnelle que la tâche.",
+        "Introduire des actions explicitement axées sur la connexion émotionnelle, la vulnérabilité partagée ou des moments de qualité non 'performants'.",
+        "Modifier les critères de succès pour inclure des indicateurs de 'chaleur' ou de 'fiabilité' ressentie plutôt que de simple complétion.",
+        "Examiner si des phases entières du plan pourraient être repensées sous cet angle de 'chaleur et fiabilité'."
+      ],
+      "candidate_operation": "change_emphasis",
+      "questions_to_clarify": [
+        "Quelles actions spécifiques te donnent le plus cette impression de 'cocher des cases' ? Peux-tu me donner un exemple ?",
+        "Comment imagines-tu que les actions pourraient être transformées pour mieux incarner la 'chaleur' et la 'fiabilité' que tu recherches ? À quoi cela ressemblerait-il concrètement ?"
+      ],
+      "trajectory_hypothesis": "Le plan actuel est perçu comme trop axé sur la performance et la complétion de tâches. La trajectoire souhaitée est un plan qui favorise activement la chaleur et la fiabilité relationnelle, en se concentrant sur la qualité du lien plutôt que sur la quantité d'actions cochées.",
+      "must_not_execute_reason": "La demande est une expression de sentiment et de préférence, pas une instruction d'ajustement concrète. Une phase de diagnostic est nécessaire pour traduire ces valeurs en modifications du plan."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "maintenant"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r116-value-warmth-final-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r116-value-warmth-final-t02",
+    "status": 502,
+    "ok": null,
+    "user": "Ce sont surtout le signal de pause et le point positif : je veux qu'ils servent la présence fiable, pas la performance. Concrètement, le cap devient : prévenir quand je suis indisponible, garder un petit moment positif même en semaine tendue, et réparer vite après une maladresse. Je ne veux pas ajouter d'actions, juste changer l'esprit du plan.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r116-value-warmth-final-t02",
+    "trace_error": null
+  }
+]

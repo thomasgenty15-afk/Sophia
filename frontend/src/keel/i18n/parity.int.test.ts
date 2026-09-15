@@ -449,6 +449,18 @@ describe("pack français de la vitrine", () => {
       // `eating_rhythm`): si l'une d'elles y arrivait un jour, ce serait une
       // clé oubliée, pas une coïncidence.
       "known.field.budget_amount",
+      // ── ⟳ 2026-09-12 · ÉTAPE C5 · LES TROIS GABARITS DU BLOC D'ÉCARTS ────
+      // « {day}, {slot} », « ({term}) » et « {control} — {count} » n'ont AUCUN
+      // mot: une virgule, une paire de parenthèses, un tiret cadratin. Tout le
+      // texte qu'ils affichent vient d'une AUTRE clé, celle-là traduite
+      // (`plan.validation.cause.*`, `plan.validation.control.*`, `day.long.*`,
+      // `slot.*`). Les rendre différents d'une langue à l'autre serait le bug.
+      // ⚠️ Si l'un d'eux gagne un mot un jour (« au », « at »), il sort de
+      // cette liste le même jour — et ses onze voisins de `plan.validation.*`,
+      // eux, ne sont PAS ici: ils portent des phrases, et elles diffèrent.
+      "plan.validation.at",
+      "plan.validation.term",
+      "plan.validation.control_line",
     ]);
     const copied = (Object.keys(fr) as Array<keyof typeof fr>)
       .filter((key) => !legitimatelyIdentical.has(key))

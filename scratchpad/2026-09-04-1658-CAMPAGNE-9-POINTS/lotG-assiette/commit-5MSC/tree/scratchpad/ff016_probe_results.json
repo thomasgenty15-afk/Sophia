@@ -1,0 +1,106 @@
+{
+  "P1-coach-view-eggs": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Yes. Marlow builds with eggs, and he puts them at breakfast as the protein first thing.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 27368,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "0849d84c-f420-4517-9a5b-0e22e3bb59be"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Marlow builds with eggs. He reaches for them first, and he likes them at breakfast.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 27368,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "dd1da0ce-2379-4359-b966-e557f1c4a479"
+    }
+  ],
+  "P2-shopping": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "83f2b0ec-e05a-4910-8c74-cb2f10c578f8"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "escalated": true,
+      "escalationReason": "dislikes_food",
+      "fullChars": null,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "821d8f8b-2125-4b52-a5e5-911178fd443a"
+    }
+  ],
+  "P3-general-foods": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Your coach builds meals around a protein anchor. He reaches for eggs, leafy greens, and lean protein first.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 24796,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "0c2e229f-30b8-4d82-bc30-776b498d9014"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Your coach builds meals around a protein anchor.\n\nHe reaches for eggs, leafy greens, and lean protein first. He steers away from refined grain, and he does not build with fried food.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 24796,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "2f5ba78c-d01d-422d-b5e8-c6f16039f249"
+    }
+  ],
+  "P4-fried": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Marlow doesn’t build with fried_food at all. If you want the same kind of meal, he’d steer you toward lean protein with eggs or another protein anchor, plus leafy greens.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 24796,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "609cc206-ce01-415a-9e45-e0fea4764cbc"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Marlow doesn’t build with fried_food at all. Fried chicken sits in that bucket, so he steers away from it and uses lean_protein instead.",
+      "escalated": false,
+      "escalationReason": null,
+      "fullChars": 24796,
+      "protocolBlockChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "11aa715d-a5b5-44e7-83c3-21146186304f"
+    }
+  ]
+}

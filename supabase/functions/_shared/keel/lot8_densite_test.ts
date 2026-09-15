@@ -265,21 +265,68 @@ Deno.test("DENSITÉ — quand la borne basse est redondante, c'est le PLAFOND qu
     [lunch.minPer100G, lunch.maxPer100G, lunch.preferredPer100G],
     [91, 122, 100],
   );
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · ÉTAPE C4 — CE TEST A CHANGÉ DE VERDICT, ET C'EST LE
+  //                CORRECTIF QU'IL ÉPINGLE
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ IL ASSERTAIT `redundantMin === true` ET LE RENDU « up to 122 » — c'est-
+  // à-dire une consigne qui TAISAIT le 91 pendant que le bloc de recette
+  // promettait « a normal dish carries at least 100 ». Le modèle lisait 100,
+  // la garde acceptait 91. C'est exactement le défaut de contrat que l'étape
+  // C0 a nommé, et la campagne du 2026-09-11 l'a payé en fausses violations:
+  // les petits-déjeuners du tir n° 3 à 94 et 99 kcal/100 g ont été comptés
+  // comme deux manquements alors que leur minimum réel valait 91.
+  //
+  // ⛔ ET LE PLAN INTERDIT L'AUTRE CORRECTIF: « ne pas réparer ces recettes sur
+  // la base du faux seuil de 100 ». Le contrat ne remonte donc pas; c'est la
+  // consigne qui dit la bande vraie.
   assertEquals(
     lunch.redundantMin,
-    true,
-    "91 n'ajoute rien au plancher commun de 100",
+    false,
+    "91 est SOUS le plancher commun de 100: il n'est pas redondant, il corrige",
   );
-  assertEquals(gros.counters.floor_min_kept, 1);
+  assertEquals(gros.counters.floor_min_kept, 0);
+  assertEquals(gros.counters.below_floor, 1, "le moment sous plancher est COMPTÉ");
+  assertEquals(gros.counters.above_floor, 3, "les trois autres restent au-dessus");
 
   assertEquals(
     densityFragment([lunch]),
-    " — dishes served here: up to 122 kcal per 100 g at lunch (aim 100)",
+    " — dishes served here: 91 to 122 kcal per 100 g at lunch (aim 100)",
   );
-  // ⚠️ ET LA VISÉE EST DITE. « Au plus 122 » sans visée fait partir le modèle
-  // vers le bas — l'erreur miroir de « au moins N », mesurée au tir SPLICE3
-  // (un bouillon à 57,8).
+  // ⚠️ ET LA VISÉE EST DITE. Une bande sans visée fait partir le modèle vers un
+  // bord — mesuré dans les deux sens (tir SPLICE3, un bouillon à 57,8).
   assert(densityFragment([lunch]).includes("aim 100"));
+});
+
+Deno.test("DENSITÉ — un minimum ÉGAL au plancher reste redondant: le PLAFOND seul voyage", () => {
+  // ⛔ LE CAS QUI PASSE, en face de celui qui mord juste au-dessus. L'étape C4
+  // resserre `redundantMin` sur l'ÉGALITÉ; elle ne la supprime pas. Un moment
+  // qui demande exactement ce que le bloc promet déjà n'a aucune raison de le
+  // répéter en face d'un nom — « un brief qui répète cesse d'être lu » — et
+  // c'est son PLAFOND, que rien d'autre ne porte, qui doit voyager.
+  //
+  // ⚠️ LE DÉCOR EST UN LITTÉRAL, et c'est volontaire: faire tomber un contrat
+  // réel sur `min === plancher` à l'unité près demanderait d'accorder quatre
+  // nombres, et le test mesurerait alors l'accordage, pas la règle.
+  const egal = {
+    slot: "snack_pm",
+    days: ["mon"],
+    kcalPer100G: 100,
+    minPer100G: 100,
+    maxPer100G: 135,
+    preferredPer100G: 112,
+    neededMinPer100G: 100,
+    incompatible: null,
+    redundantMin: true,
+    targetAnchoredPer100G: null,
+    occurrences: 1,
+    light: false,
+  };
+  assertEquals(
+    densityFragment([egal]),
+    " — dishes served here: up to 135 kcal per 100 g at snack_pm (aim 112)",
+  );
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

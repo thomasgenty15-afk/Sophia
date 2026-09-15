@@ -1,0 +1,1878 @@
+{
+ "run": "one_dish/run-1",
+ "request_id": "3a010001-0000-4000-8000-000000000001",
+ "cooking_shape_asked": "one_dish",
+ "http_ok": true,
+ "error": null,
+ "lock": null,
+ "cooking_archive": {
+  "asked": "one_dish",
+  "capped": true,
+  "served": "one_dish",
+  "unused": false,
+  "computed": "one_session",
+  "diverging": [
+   "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+  ],
+  "dish_bearing": []
+ },
+ "model": [
+  "generate-household-meal-v1 | gemini-3-flash-preview | success | - | - | 2026-08-19 01:52:41.697975+00"
+ ],
+ "counts": {
+  "dishes_total": 2,
+  "dishes_of_the_table": 2,
+  "dishes_with_a_bearer": 0,
+  "preparations": 3,
+  "member_portions": 4,
+  "boxes_shared_by_several": 0,
+  "mouths_in_roster": 4
+ },
+ "table_dishes": [
+  {
+   "cell": "wed/lunch",
+   "title": "Smoky black beans with rice, avocado and lime"
+  },
+  {
+   "cell": "wed/dinner",
+   "title": "Smoky black beans in tortillas with crunchy red cabbage"
+  }
+ ],
+ "by_mouth": {
+  "Aurele": {
+   "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "goal": "fat_loss",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 92.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Aurele",
+    "display_name_empty": false,
+    "portion_note_chars": 237,
+    "portion_note": "Arrange the bell peppers and red cabbage on the plate first, followed by the smoky beans, and finally the rice or tortillas. — Slow-simmered smoky beans (Lunch) 291 g · Slow-simmered smoky beans (Dinner) 291 g · Fluffy basmati rice 175 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Slow-simmered smoky beans (Lunch)",
+     "g": 291,
+     "shared_with": 1
+    },
+    {
+     "prep": "Slow-simmered smoky beans (Dinner)",
+     "g": 291,
+     "shared_with": 1
+    },
+    {
+     "prep": "Fluffy basmati rice",
+     "g": 175,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Marceline": {
+   "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 74.0,
+   "allergies": [],
+   "dislikes": [
+    "fennel"
+   ],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Marceline",
+    "display_name_empty": false,
+    "portion_note_chars": 213,
+    "portion_note": "Plate the smoky beans and rice or tortillas first, then add the peppers and red cabbage to the side. — Slow-simmered smoky beans (Lunch) 292 g · Slow-simmered smoky beans (Dinner) 292 g · Fluffy basmati rice 175 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Slow-simmered smoky beans (Lunch)",
+     "g": 292,
+     "shared_with": 1
+    },
+    {
+     "prep": "Slow-simmered smoky beans (Dinner)",
+     "g": 292,
+     "shared_with": 1
+    },
+    {
+     "prep": "Fluffy basmati rice",
+     "g": 175,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Solveig": {
+   "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 55.0,
+   "allergies": [
+    "sesame"
+   ],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Solveig",
+    "display_name_empty": false,
+    "portion_note_chars": 213,
+    "portion_note": "Plate the smoky beans and rice or tortillas first, then add the peppers and red cabbage to the side. — Slow-simmered smoky beans (Lunch) 313 g · Slow-simmered smoky beans (Dinner) 313 g · Fluffy basmati rice 188 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Slow-simmered smoky beans (Lunch)",
+     "g": 313,
+     "shared_with": 1
+    },
+    {
+     "prep": "Slow-simmered smoky beans (Dinner)",
+     "g": 313,
+     "shared_with": 1
+    },
+    {
+     "prep": "Fluffy basmati rice",
+     "g": 188,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Theodule": {
+   "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+   "goal": null,
+   "diet": "vegan",
+   "age_state": "minor",
+   "body_kg": 29.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Theodule",
+    "display_name_empty": false,
+    "portion_note_chars": 210,
+    "portion_note": "Serve all components together on the plate, mixing the beans with the rice or cabbage as desired. — Slow-simmered smoky beans (Lunch) 248 g · Slow-simmered smoky beans (Dinner) 248 g · Fluffy basmati rice 149 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Slow-simmered smoky beans (Lunch)",
+     "g": 248,
+     "shared_with": 1
+    },
+    {
+     "prep": "Slow-simmered smoky beans (Dinner)",
+     "g": 248,
+     "shared_with": 1
+    },
+    {
+     "prep": "Fluffy basmati rice",
+     "g": 149,
+     "shared_with": 1
+    }
+   ]
+  }
+ },
+ "portions_without_a_roster_line": [],
+ "allergen_and_dislike": {
+  "sesame": {
+   "occurrences": 5,
+   "where": [
+    {
+     "path": "/dishes[1]/ingredients[0]/term",
+     "text": "flour tortillas (sesame-free)"
+    },
+    {
+     "path": "/preparations[0]/ingredients[7]/term",
+     "text": "chipotle paste (sesame-free)"
+    },
+    {
+     "path": "/preparations[1]/ingredients[7]/term",
+     "text": "chipotle paste (sesame-free)"
+    },
+    {
+     "path": "/shopping_list[11]/term",
+     "text": "flour tortillas (check for sesame-free)"
+    },
+    {
+     "path": "/shopping_list[12]/term",
+     "text": "chipotle paste (check for sesame-free)"
+    }
+   ]
+  },
+  "fennel": {
+   "occurrences": 0,
+   "where": []
+  }
+ }
+}
+{
+ "run": "one_dish/run-2",
+ "request_id": "3a010001-0000-4000-8000-000000020001",
+ "cooking_shape_asked": "one_dish",
+ "http_ok": true,
+ "error": null,
+ "lock": null,
+ "cooking_archive": {
+  "asked": "one_dish",
+  "capped": true,
+  "served": "one_dish",
+  "unused": false,
+  "computed": "one_session",
+  "diverging": [
+   "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+  ],
+  "dish_bearing": []
+ },
+ "model": [
+  "generate-household-meal-v1 | gemini-3-flash-preview | success | - | - | 2026-08-19 01:57:48.200575+00"
+ ],
+ "counts": {
+  "dishes_total": 2,
+  "dishes_of_the_table": 2,
+  "dishes_with_a_bearer": 0,
+  "preparations": 3,
+  "member_portions": 4,
+  "boxes_shared_by_several": 0,
+  "mouths_in_roster": 4
+ },
+ "table_dishes": [
+  {
+   "cell": "wed/lunch",
+   "title": "Smoky black beans, roasted sweet potato and brown rice"
+  },
+  {
+   "cell": "wed/dinner",
+   "title": "Smoky black beans, charred corn and corn tortillas"
+  }
+ ],
+ "by_mouth": {
+  "Aurele": {
+   "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "goal": "fat_loss",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 92.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Aurele",
+    "display_name_empty": false,
+    "portion_note_chars": 275,
+    "portion_note": "Place the vegetables (avocado, cabbage, or charred corn) on the plate first, followed by the smoky bean stew, then the rice or tortillas. — Smoky Sweet Potato and Black Bean Stew (Lunch) 339 g · Smoky Sweet Potato and Black Bean Stew (Dinner) 339 g · Steamed Brown Rice 175 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Sweet Potato and Black Bean Stew (Lunch)",
+     "g": 339,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Sweet Potato and Black Bean Stew (Dinner)",
+     "g": 339,
+     "shared_with": 1
+    },
+    {
+     "prep": "Steamed Brown Rice",
+     "g": 175,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Marceline": {
+   "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 74.0,
+   "allergies": [],
+   "dislikes": [
+    "fennel"
+   ],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Marceline",
+    "display_name_empty": false,
+    "portion_note_chars": 258,
+    "portion_note": "Serve the smoky bean stew and rice or tortillas first, then top with the vegetables (avocado, cabbage, or charred corn). — Smoky Sweet Potato and Black Bean Stew (Lunch) 340 g · Smoky Sweet Potato and Black Bean Stew (Dinner) 340 g · Steamed Brown Rice 175 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Sweet Potato and Black Bean Stew (Lunch)",
+     "g": 340,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Sweet Potato and Black Bean Stew (Dinner)",
+     "g": 340,
+     "shared_with": 1
+    },
+    {
+     "prep": "Steamed Brown Rice",
+     "g": 175,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Solveig": {
+   "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 55.0,
+   "allergies": [
+    "sesame"
+   ],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Solveig",
+    "display_name_empty": false,
+    "portion_note_chars": 258,
+    "portion_note": "Serve the smoky bean stew and rice or tortillas first, then top with the vegetables (avocado, cabbage, or charred corn). — Smoky Sweet Potato and Black Bean Stew (Lunch) 365 g · Smoky Sweet Potato and Black Bean Stew (Dinner) 365 g · Steamed Brown Rice 188 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Sweet Potato and Black Bean Stew (Lunch)",
+     "g": 365,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Sweet Potato and Black Bean Stew (Dinner)",
+     "g": 365,
+     "shared_with": 1
+    },
+    {
+     "prep": "Steamed Brown Rice",
+     "g": 188,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Theodule": {
+   "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+   "goal": null,
+   "diet": "vegan",
+   "age_state": "minor",
+   "body_kg": 29.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Theodule",
+    "display_name_empty": false,
+    "portion_note_chars": 231,
+    "portion_note": "Serve the smoky bean stew, rice or tortillas, and all vegetables mixed together on the plate. — Smoky Sweet Potato and Black Bean Stew (Lunch) 289 g · Smoky Sweet Potato and Black Bean Stew (Dinner) 289 g · Steamed Brown Rice 149 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Sweet Potato and Black Bean Stew (Lunch)",
+     "g": 289,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Sweet Potato and Black Bean Stew (Dinner)",
+     "g": 289,
+     "shared_with": 1
+    },
+    {
+     "prep": "Steamed Brown Rice",
+     "g": 149,
+     "shared_with": 1
+    }
+   ]
+  }
+ },
+ "portions_without_a_roster_line": [],
+ "allergen_and_dislike": {
+  "sesame": {
+   "occurrences": 4,
+   "where": [
+    {
+     "path": "/dishes[0]/why",
+     "text": "This dish provides a hearty, protein-rich vegan lunch using smoky flavours that the household requested, while staying entirely sesame-free."
+    },
+    {
+     "path": "/preparations[0]/ingredients[4]/term",
+     "text": "sesame-free chipotle paste"
+    },
+    {
+     "path": "/preparations[1]/ingredients[4]/term",
+     "text": "sesame-free chipotle paste"
+    },
+    {
+     "path": "/shopping_list[6]/term",
+     "text": "sesame-free chipotle paste"
+    }
+   ]
+  },
+  "fennel": {
+   "occurrences": 0,
+   "where": []
+  }
+ }
+}
+{
+ "run": "one_dish/run-3",
+ "request_id": "3a010001-0000-4000-8000-000000030001",
+ "cooking_shape_asked": "one_dish",
+ "http_ok": true,
+ "error": null,
+ "lock": null,
+ "cooking_archive": {
+  "asked": "one_dish",
+  "capped": true,
+  "served": "one_dish",
+  "unused": false,
+  "computed": "one_session",
+  "diverging": [
+   "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+  ],
+  "dish_bearing": []
+ },
+ "model": [
+  "generate-household-meal-v1 | gemini-3-flash-preview | timeout_or_abort | - | - | 2026-08-19 02:03:35.325643+00",
+  "generate-household-meal-v1 | gemini-3-flash-preview | timeout_or_abort | - | - | 2026-08-19 02:04:46.424623+00",
+  "generate-household-meal-v1 | gemini-3-flash-preview | timeout_or_abort | - | - | 2026-08-19 02:06:01.335714+00",
+  "generate-household-meal-v1 | gemini-3-flash-preview | success | - | - | 2026-08-19 02:07:21.111085+00"
+ ],
+ "counts": {
+  "dishes_total": 2,
+  "dishes_of_the_table": 2,
+  "dishes_with_a_bearer": 0,
+  "preparations": 4,
+  "member_portions": 4,
+  "boxes_shared_by_several": 0,
+  "mouths_in_roster": 4
+ },
+ "table_dishes": [
+  {
+   "cell": "wed/lunch",
+   "title": "Smoky black bean and sweet potato chilli with brown rice"
+  },
+  {
+   "cell": "wed/dinner",
+   "title": "Smoky black bean chilli with roasted courgettes and peppers"
+  }
+ ],
+ "by_mouth": {
+  "Aurele": {
+   "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "goal": "fat_loss",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 92.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Aurele",
+    "display_name_empty": false,
+    "portion_note_chars": 284,
+    "portion_note": "Serve the roasted vegetables first, then the smoky black bean chilli, and finally the brown rice. — Smoky Black Bean & Sweet Potato Chilli (Lunch Batch) 388 g · Smoky Black Bean & Sweet Potato Chilli (Dinner Batch) 388 g · Steamed Brown Rice 242 g · Charred Courgettes & Peppers 170 g",
+    "shares": 4
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Black Bean & Sweet Potato Chilli (Lunch Batch)",
+     "g": 388,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Black Bean & Sweet Potato Chilli (Dinner Batch)",
+     "g": 388,
+     "shared_with": 1
+    },
+    {
+     "prep": "Steamed Brown Rice",
+     "g": 242,
+     "shared_with": 1
+    },
+    {
+     "prep": "Charred Courgettes & Peppers",
+     "g": 170,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Marceline": {
+   "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 74.0,
+   "allergies": [],
+   "dislikes": [
+    "fennel"
+   ],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Marceline",
+    "display_name_empty": false,
+    "portion_note_chars": 288,
+    "portion_note": "Place the smoky black bean chilli and brown rice on the plate first, then add the roasted vegetables. — Smoky Black Bean & Sweet Potato Chilli (Lunch Batch) 389 g · Smoky Black Bean & Sweet Potato Chilli (Dinner Batch) 389 g · Steamed Brown Rice 243 g · Charred Courgettes & Peppers 170 g",
+    "shares": 4
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Black Bean & Sweet Potato Chilli (Lunch Batch)",
+     "g": 389,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Black Bean & Sweet Potato Chilli (Dinner Batch)",
+     "g": 389,
+     "shared_with": 1
+    },
+    {
+     "prep": "Steamed Brown Rice",
+     "g": 243,
+     "shared_with": 1
+    },
+    {
+     "prep": "Charred Courgettes & Peppers",
+     "g": 170,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Solveig": {
+   "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 55.0,
+   "allergies": [
+    "sesame"
+   ],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Solveig",
+    "display_name_empty": false,
+    "portion_note_chars": 282,
+    "portion_note": "Arrange the smoky black bean chilli and brown rice first, then top with the roasted vegetables. — Smoky Black Bean & Sweet Potato Chilli (Lunch Batch) 417 g · Smoky Black Bean & Sweet Potato Chilli (Dinner Batch) 417 g · Steamed Brown Rice 261 g · Charred Courgettes & Peppers 183 g",
+    "shares": 4
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Black Bean & Sweet Potato Chilli (Lunch Batch)",
+     "g": 417,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Black Bean & Sweet Potato Chilli (Dinner Batch)",
+     "g": 417,
+     "shared_with": 1
+    },
+    {
+     "prep": "Steamed Brown Rice",
+     "g": 261,
+     "shared_with": 1
+    },
+    {
+     "prep": "Charred Courgettes & Peppers",
+     "g": 183,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Theodule": {
+   "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+   "goal": null,
+   "diet": "vegan",
+   "age_state": "minor",
+   "body_kg": 29.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Theodule",
+    "display_name_empty": false,
+    "portion_note_chars": 290,
+    "portion_note": "Serve all components together, mixing the smoky black bean chilli with the rice and roasted vegetables. — Smoky Black Bean & Sweet Potato Chilli (Lunch Batch) 331 g · Smoky Black Bean & Sweet Potato Chilli (Dinner Batch) 331 g · Steamed Brown Rice 207 g · Charred Courgettes & Peppers 145 g",
+    "shares": 4
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Black Bean & Sweet Potato Chilli (Lunch Batch)",
+     "g": 331,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Black Bean & Sweet Potato Chilli (Dinner Batch)",
+     "g": 331,
+     "shared_with": 1
+    },
+    {
+     "prep": "Steamed Brown Rice",
+     "g": 207,
+     "shared_with": 1
+    },
+    {
+     "prep": "Charred Courgettes & Peppers",
+     "g": 145,
+     "shared_with": 1
+    }
+   ]
+  }
+ },
+ "portions_without_a_roster_line": [],
+ "allergen_and_dislike": {
+  "sesame": {
+   "occurrences": 0,
+   "where": []
+  },
+  "fennel": {
+   "occurrences": 0,
+   "where": []
+  }
+ }
+}
+{
+ "run": "one_dish/run-D1",
+ "request_id": "3a010001-0000-4000-8000-000000F00001",
+ "cooking_shape_asked": "one_dish",
+ "http_ok": true,
+ "error": null,
+ "lock": null,
+ "cooking_archive": {
+  "asked": "one_dish",
+  "capped": true,
+  "served": "one_dish",
+  "unused": false,
+  "computed": "one_session",
+  "diverging": [
+   "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+  ],
+  "dish_bearing": []
+ },
+ "model": [
+  "generate-household-meal-v1 | gemini-3-flash-preview | timeout_or_abort | - | - | 2026-08-19 02:20:49.175116+00",
+  "generate-household-meal-v1 | gemini-3-flash-preview | timeout_or_abort | - | - | 2026-08-19 02:22:00.598197+00",
+  "generate-household-meal-v1 | gemini-3-flash-preview | success | - | - | 2026-08-19 02:23:03.695632+00"
+ ],
+ "counts": {
+  "dishes_total": 2,
+  "dishes_of_the_table": 2,
+  "dishes_with_a_bearer": 0,
+  "preparations": 5,
+  "member_portions": 4,
+  "boxes_shared_by_several": 0,
+  "mouths_in_roster": 4
+ },
+ "table_dishes": [
+  {
+   "cell": "wed/lunch",
+   "title": "Smoky black beans and charred peppers in corn tortillas"
+  },
+  {
+   "cell": "wed/dinner",
+   "title": "Smoky bean stew with roasted summer vegetables and brown rice"
+  }
+ ],
+ "by_mouth": {
+  "Aurele": {
+   "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "goal": "fat_loss",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 92.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Aurele",
+    "display_name_empty": false,
+    "portion_note_chars": 324,
+    "portion_note": "Serve the roasted vegetables first, followed by the smoky beans, and then the corn tortillas or rice. — Smoky Three-Bean Batch (Lunch Portion) 194 g · Smoky Three-Bean Batch (Dinner Portion) 194 g · Roasted Summer Vegetables (Lunch Portion) 145 g · Roasted Summer Vegetables (Dinner Portion) 145 g · Steamed Brown Rice 175 g",
+    "shares": 2
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Three-Bean Batch (Lunch Portion)",
+     "g": 194,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Three-Bean Batch (Dinner Portion)",
+     "g": 194,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Summer Vegetables (Lunch Portion)",
+     "g": 145,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Summer Vegetables (Dinner Portion)",
+     "g": 145,
+     "shared_with": 1
+    },
+    {
+     "prep": "Steamed Brown Rice",
+     "g": 175,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Marceline": {
+   "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 74.0,
+   "allergies": [],
+   "dislikes": [
+    "sweet potato"
+   ],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Marceline",
+    "display_name_empty": false,
+    "portion_note_chars": 324,
+    "portion_note": "Serve the smoky beans and corn tortillas or rice first, then add the roasted vegetables to the plate. — Smoky Three-Bean Batch (Lunch Portion) 194 g · Smoky Three-Bean Batch (Dinner Portion) 194 g · Roasted Summer Vegetables (Lunch Portion) 146 g · Roasted Summer Vegetables (Dinner Portion) 146 g · Steamed Brown Rice 175 g",
+    "shares": 2
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Three-Bean Batch (Lunch Portion)",
+     "g": 194,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Three-Bean Batch (Dinner Portion)",
+     "g": 194,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Summer Vegetables (Lunch Portion)",
+     "g": 146,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Summer Vegetables (Dinner Portion)",
+     "g": 146,
+     "shared_with": 1
+    },
+    {
+     "prep": "Steamed Brown Rice",
+     "g": 175,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Solveig": {
+   "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 55.0,
+   "allergies": [
+    "sesame"
+   ],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Solveig",
+    "display_name_empty": false,
+    "portion_note_chars": 311,
+    "portion_note": "Serve the smoky beans and corn tortillas or rice first, then add the roasted vegetables. — Smoky Three-Bean Batch (Lunch Portion) 209 g · Smoky Three-Bean Batch (Dinner Portion) 209 g · Roasted Summer Vegetables (Lunch Portion) 157 g · Roasted Summer Vegetables (Dinner Portion) 157 g · Steamed Brown Rice 188 g",
+    "shares": 2
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Three-Bean Batch (Lunch Portion)",
+     "g": 209,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Three-Bean Batch (Dinner Portion)",
+     "g": 209,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Summer Vegetables (Lunch Portion)",
+     "g": 157,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Summer Vegetables (Dinner Portion)",
+     "g": 157,
+     "shared_with": 1
+    },
+    {
+     "prep": "Steamed Brown Rice",
+     "g": 188,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Theodule": {
+   "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+   "goal": null,
+   "diet": "vegan",
+   "age_state": "minor",
+   "body_kg": 29.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Theodule",
+    "display_name_empty": false,
+    "portion_note_chars": 316,
+    "portion_note": "Serve all components together on the plate, ensuring the beans and vegetables are well mixed. — Smoky Three-Bean Batch (Lunch Portion) 165 g · Smoky Three-Bean Batch (Dinner Portion) 165 g · Roasted Summer Vegetables (Lunch Portion) 124 g · Roasted Summer Vegetables (Dinner Portion) 124 g · Steamed Brown Rice 149 g",
+    "shares": 2
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Three-Bean Batch (Lunch Portion)",
+     "g": 165,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Three-Bean Batch (Dinner Portion)",
+     "g": 165,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Summer Vegetables (Lunch Portion)",
+     "g": 124,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Summer Vegetables (Dinner Portion)",
+     "g": 124,
+     "shared_with": 1
+    },
+    {
+     "prep": "Steamed Brown Rice",
+     "g": 149,
+     "shared_with": 1
+    }
+   ]
+  }
+ },
+ "portions_without_a_roster_line": [],
+ "allergen_and_dislike": {
+  "sesame": {
+   "occurrences": 3,
+   "where": [
+    {
+     "path": "/preparations[0]/ingredients[4]/term",
+     "text": "sesame-free chipotle paste"
+    },
+    {
+     "path": "/preparations[1]/ingredients[4]/term",
+     "text": "sesame-free chipotle paste"
+    },
+    {
+     "path": "/shopping_list[9]/term",
+     "text": "sesame-free chipotle paste"
+    }
+   ]
+  },
+  "fennel": {
+   "occurrences": 0,
+   "where": []
+  }
+ }
+}
+{
+ "run": "one_session/run-1",
+ "request_id": "3a020001-0000-4000-8000-000000000002",
+ "cooking_shape_asked": "one_session",
+ "http_ok": true,
+ "error": null,
+ "lock": null,
+ "cooking_archive": {
+  "asked": "one_session",
+  "capped": false,
+  "served": "one_session",
+  "unused": false,
+  "computed": "one_session",
+  "diverging": [
+   "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+  ],
+  "dish_bearing": [
+   "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+  ]
+ },
+ "model": [
+  "generate-household-meal-v1 | gemini-3-flash-preview | success | - | - | 2026-08-19 01:51:26.918443+00"
+ ],
+ "counts": {
+  "dishes_total": 4,
+  "dishes_of_the_table": 1,
+  "dishes_with_a_bearer": 3,
+  "preparations": 3,
+  "member_portions": 4,
+  "boxes_shared_by_several": 0,
+  "mouths_in_roster": 4
+ },
+ "table_dishes": [
+  {
+   "cell": "wed/dinner",
+   "title": "Smoky bean chili with roasted sweet potatoes"
+  }
+ ],
+ "by_mouth": {
+  "Aurele": {
+   "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "goal": "fat_loss",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 92.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Aurele",
+    "display_name_empty": false,
+    "portion_note_chars": 204,
+    "portion_note": "Arrange the sweet potatoes and smoky bean chili on the plate first, then place the beef on top. — Smoky Three-Bean and Pepper Base 242 g · Slow-Simmered Smoky Beef 109 g · Roasted Sweet Potato Cubes 145 g",
+    "shares": 3
+   },
+   "own_dishes": [
+    {
+     "cell": "wed/dinner",
+     "title": "Smoky beef and bean chili with roasted sweet potatoes"
+    }
+   ],
+   "own_dish_count": 1,
+   "boxes": [
+    {
+     "prep": "Smoky Three-Bean and Pepper Base",
+     "g": 242,
+     "shared_with": 1
+    },
+    {
+     "prep": "Slow-Simmered Smoky Beef",
+     "g": 109,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Sweet Potato Cubes",
+     "g": 145,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Marceline": {
+   "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 74.0,
+   "allergies": [],
+   "dislikes": [
+    "fennel"
+   ],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Marceline",
+    "display_name_empty": false,
+    "portion_note_chars": 204,
+    "portion_note": "Place the beef and roasted sweet potatoes on the plate first, followed by the smoky bean chili. — Smoky Three-Bean and Pepper Base 243 g · Slow-Simmered Smoky Beef 109 g · Roasted Sweet Potato Cubes 146 g",
+    "shares": 3
+   },
+   "own_dishes": [
+    {
+     "cell": "wed/dinner",
+     "title": "Smoky beef and bean chili with roasted sweet potatoes"
+    }
+   ],
+   "own_dish_count": 1,
+   "boxes": [
+    {
+     "prep": "Smoky Three-Bean and Pepper Base",
+     "g": 243,
+     "shared_with": 1
+    },
+    {
+     "prep": "Slow-Simmered Smoky Beef",
+     "g": 109,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Sweet Potato Cubes",
+     "g": 146,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Solveig": {
+   "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 55.0,
+   "allergies": [
+    "sesame"
+   ],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Solveig",
+    "display_name_empty": false,
+    "portion_note_chars": 200,
+    "portion_note": "Serve the beef and roasted sweet potatoes first, then add the smoky bean chili to the side. — Smoky Three-Bean and Pepper Base 261 g · Slow-Simmered Smoky Beef 117 g · Roasted Sweet Potato Cubes 157 g",
+    "shares": 3
+   },
+   "own_dishes": [
+    {
+     "cell": "wed/dinner",
+     "title": "Smoky beef and bean chili with roasted sweet potatoes"
+    }
+   ],
+   "own_dish_count": 1,
+   "boxes": [
+    {
+     "prep": "Smoky Three-Bean and Pepper Base",
+     "g": 261,
+     "shared_with": 1
+    },
+    {
+     "prep": "Slow-Simmered Smoky Beef",
+     "g": 117,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Sweet Potato Cubes",
+     "g": 157,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Theodule": {
+   "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+   "goal": null,
+   "diet": "vegan",
+   "age_state": "minor",
+   "body_kg": 29.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Theodule",
+    "display_name_empty": false,
+    "portion_note_chars": 184,
+    "portion_note": "Serve the roasted sweet potatoes and smoky bean chili together on the plate. — Smoky Three-Bean and Pepper Base 207 g · Slow-Simmered Smoky Beef 93 g · Roasted Sweet Potato Cubes 124 g",
+    "shares": 2
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Three-Bean and Pepper Base",
+     "g": 207,
+     "shared_with": 1
+    },
+    {
+     "prep": "Slow-Simmered Smoky Beef",
+     "g": 93,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Sweet Potato Cubes",
+     "g": 124,
+     "shared_with": 1
+    }
+   ]
+  }
+ },
+ "portions_without_a_roster_line": [],
+ "allergen_and_dislike": {
+  "sesame": {
+   "occurrences": 1,
+   "where": [
+    {
+     "path": "/dishes[3]/why",
+     "text": "A safe, smoky meal for Solveig that avoids sesame entirely while delivering the requested slow-cooked depth."
+    }
+   ]
+  },
+  "fennel": {
+   "occurrences": 1,
+   "where": [
+    {
+     "path": "/issues[0]",
+     "text": "house_rule_commented:Smoky beef and bean chili with roasted sweet potatoes:fennel"
+    }
+   ]
+  }
+ }
+}
+{
+ "run": "one_session/run-D1",
+ "request_id": "3a020001-0000-4000-8000-000000F00001",
+ "cooking_shape_asked": "one_session",
+ "http_ok": true,
+ "error": null,
+ "lock": null,
+ "cooking_archive": {
+  "asked": "one_session",
+  "capped": false,
+  "served": "one_session",
+  "unused": false,
+  "computed": "one_session",
+  "diverging": [
+   "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+  ],
+  "dish_bearing": [
+   "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+  ]
+ },
+ "model": [
+  "generate-household-meal-v1 | gemini-3-flash-preview | timeout_or_abort | - | - | 2026-08-19 02:24:11.063328+00",
+  "generate-household-meal-v1 | gemini-3-flash-preview | success | - | - | 2026-08-19 02:25:12.817274+00"
+ ],
+ "counts": {
+  "dishes_total": 4,
+  "dishes_of_the_table": 2,
+  "dishes_with_a_bearer": 2,
+  "preparations": 5,
+  "member_portions": 4,
+  "boxes_shared_by_several": 0,
+  "mouths_in_roster": 4
+ },
+ "table_dishes": [
+  {
+   "cell": "wed/lunch",
+   "title": "Smoky black bean stew with crusty bread"
+  },
+  {
+   "cell": "wed/dinner",
+   "title": "Smoky roasted cauliflower and chickpeas with quinoa"
+  }
+ ],
+ "by_mouth": {
+  "Aurele": {
+   "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "goal": "fat_loss",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 92.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Aurele",
+    "display_name_empty": false,
+    "portion_note_chars": 244,
+    "portion_note": "Serve vegetables first on the plate, then the protein, then the starch. — Rich Smoky Beef Stew 242 g · Smoky Black Bean Stew 242 g · Smoky Roast Chicken & Cauliflower 291 g · Smoky Roast Chickpeas & Cauliflower 242 g · Basic Cooked Quinoa 145 g",
+    "shares": 3
+   },
+   "own_dishes": [
+    {
+     "cell": "wed/lunch",
+     "title": "Smoky beef and tomato stew with crusty bread"
+    },
+    {
+     "cell": "wed/dinner",
+     "title": "Roasted smoky chicken thighs with cauliflower and quinoa"
+    }
+   ],
+   "own_dish_count": 2,
+   "boxes": [
+    {
+     "prep": "Rich Smoky Beef Stew",
+     "g": 242,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Black Bean Stew",
+     "g": 242,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Roast Chicken & Cauliflower",
+     "g": 291,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Roast Chickpeas & Cauliflower",
+     "g": 242,
+     "shared_with": 1
+    },
+    {
+     "prep": "Basic Cooked Quinoa",
+     "g": 145,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Marceline": {
+   "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 74.0,
+   "allergies": [],
+   "dislikes": [
+    "sweet potato"
+   ],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Marceline",
+    "display_name_empty": false,
+    "portion_note_chars": 238,
+    "portion_note": "Serve protein and starch first on the plate, then the vegetables. — Rich Smoky Beef Stew 243 g · Smoky Black Bean Stew 243 g · Smoky Roast Chicken & Cauliflower 292 g · Smoky Roast Chickpeas & Cauliflower 243 g · Basic Cooked Quinoa 146 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Rich Smoky Beef Stew",
+     "g": 243,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Black Bean Stew",
+     "g": 243,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Roast Chicken & Cauliflower",
+     "g": 292,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Roast Chickpeas & Cauliflower",
+     "g": 243,
+     "shared_with": 1
+    },
+    {
+     "prep": "Basic Cooked Quinoa",
+     "g": 146,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Solveig": {
+   "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 55.0,
+   "allergies": [
+    "sesame"
+   ],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Solveig",
+    "display_name_empty": false,
+    "portion_note_chars": 238,
+    "portion_note": "Serve protein and starch first on the plate, then the vegetables. — Rich Smoky Beef Stew 261 g · Smoky Black Bean Stew 261 g · Smoky Roast Chicken & Cauliflower 313 g · Smoky Roast Chickpeas & Cauliflower 261 g · Basic Cooked Quinoa 157 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Rich Smoky Beef Stew",
+     "g": 261,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Black Bean Stew",
+     "g": 261,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Roast Chicken & Cauliflower",
+     "g": 313,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Roast Chickpeas & Cauliflower",
+     "g": 261,
+     "shared_with": 1
+    },
+    {
+     "prep": "Basic Cooked Quinoa",
+     "g": 157,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Theodule": {
+   "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+   "goal": null,
+   "diet": "vegan",
+   "age_state": "minor",
+   "body_kg": 29.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Theodule",
+    "display_name_empty": false,
+    "portion_note_chars": 216,
+    "portion_note": "Serve all components together on the plate. — Rich Smoky Beef Stew 207 g · Smoky Black Bean Stew 207 g · Smoky Roast Chicken & Cauliflower 248 g · Smoky Roast Chickpeas & Cauliflower 207 g · Basic Cooked Quinoa 124 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Rich Smoky Beef Stew",
+     "g": 207,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Black Bean Stew",
+     "g": 207,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Roast Chicken & Cauliflower",
+     "g": 248,
+     "shared_with": 1
+    },
+    {
+     "prep": "Smoky Roast Chickpeas & Cauliflower",
+     "g": 207,
+     "shared_with": 1
+    },
+    {
+     "prep": "Basic Cooked Quinoa",
+     "g": 124,
+     "shared_with": 1
+    }
+   ]
+  }
+ },
+ "portions_without_a_roster_line": [],
+ "allergen_and_dislike": {
+  "sesame": {
+   "occurrences": 0,
+   "where": []
+  },
+  "fennel": {
+   "occurrences": 0,
+   "where": []
+  }
+ }
+}
+{
+ "run": "separate_sessions/run-1",
+ "request_id": "3a030001-0000-4000-8000-000000000001",
+ "cooking_shape_asked": "separate_sessions",
+ "http_ok": true,
+ "error": null,
+ "lock": null,
+ "cooking_archive": {
+  "asked": "separate_sessions",
+  "capped": false,
+  "served": "one_session",
+  "unused": true,
+  "computed": "one_session",
+  "diverging": [
+   "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+  ],
+  "dish_bearing": [
+   "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+  ]
+ },
+ "model": [
+  "generate-household-meal-v1 | gemini-3-flash-preview | success | - | - | 2026-08-19 01:53:50.357732+00"
+ ],
+ "counts": {
+  "dishes_total": 4,
+  "dishes_of_the_table": 2,
+  "dishes_with_a_bearer": 2,
+  "preparations": 3,
+  "member_portions": 4,
+  "boxes_shared_by_several": 0,
+  "mouths_in_roster": 4
+ },
+ "table_dishes": [
+  {
+   "cell": "wed/lunch",
+   "title": "Smoky bean stew with roasted tofu and charred broccoli"
+  },
+  {
+   "cell": "wed/dinner",
+   "title": "Reheated smoky bean stew with tofu and broccoli"
+  }
+ ],
+ "by_mouth": {
+  "Aurele": {
+   "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "goal": "fat_loss",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 92.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Aurele",
+    "display_name_empty": false,
+    "portion_note_chars": 209,
+    "portion_note": "Serve the smoky broccoli first, then the roasted chicken, and finish with the bean stew. — Smoky Three-Bean and Tomato Base 485 g · Charred Smoked Paprika Broccoli 145 g · Roasted Chicken and Smoked Tofu 126 g",
+    "shares": 3
+   },
+   "own_dishes": [
+    {
+     "cell": "wed/lunch",
+     "title": "Smoky bean stew with roasted chicken and broccoli"
+    },
+    {
+     "cell": "wed/dinner",
+     "title": "Reheated smoky chicken and bean stew with broccoli"
+    }
+   ],
+   "own_dish_count": 2,
+   "boxes": [
+    {
+     "prep": "Smoky Three-Bean and Tomato Base",
+     "g": 485,
+     "shared_with": 1
+    },
+    {
+     "prep": "Charred Smoked Paprika Broccoli",
+     "g": 145,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Chicken and Smoked Tofu",
+     "g": 126,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Marceline": {
+   "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 74.0,
+   "allergies": [],
+   "dislikes": [
+    "fennel"
+   ],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Marceline",
+    "display_name_empty": false,
+    "portion_note_chars": 215,
+    "portion_note": "Place the roasted chicken and bean stew on the plate first, then add the broccoli on the side. — Smoky Three-Bean and Tomato Base 486 g · Charred Smoked Paprika Broccoli 146 g · Roasted Chicken and Smoked Tofu 126 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Three-Bean and Tomato Base",
+     "g": 486,
+     "shared_with": 1
+    },
+    {
+     "prep": "Charred Smoked Paprika Broccoli",
+     "g": 146,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Chicken and Smoked Tofu",
+     "g": 126,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Solveig": {
+   "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 55.0,
+   "allergies": [
+    "sesame"
+   ],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Solveig",
+    "display_name_empty": false,
+    "portion_note_chars": 200,
+    "portion_note": "Start with the roasted chicken and bean stew, adding the broccoli florets last. — Smoky Three-Bean and Tomato Base 522 g · Charred Smoked Paprika Broccoli 157 g · Roasted Chicken and Smoked Tofu 136 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Three-Bean and Tomato Base",
+     "g": 522,
+     "shared_with": 1
+    },
+    {
+     "prep": "Charred Smoked Paprika Broccoli",
+     "g": 157,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Chicken and Smoked Tofu",
+     "g": 136,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Theodule": {
+   "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+   "goal": null,
+   "diet": "vegan",
+   "age_state": "minor",
+   "body_kg": 29.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Theodule",
+    "display_name_empty": false,
+    "portion_note_chars": 189,
+    "portion_note": "Combine the bean stew, smoked tofu, and broccoli together in a bowl. — Smoky Three-Bean and Tomato Base 413 g · Charred Smoked Paprika Broccoli 124 g · Roasted Chicken and Smoked Tofu 107 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Three-Bean and Tomato Base",
+     "g": 413,
+     "shared_with": 1
+    },
+    {
+     "prep": "Charred Smoked Paprika Broccoli",
+     "g": 124,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Chicken and Smoked Tofu",
+     "g": 107,
+     "shared_with": 1
+    }
+   ]
+  }
+ },
+ "portions_without_a_roster_line": [],
+ "allergen_and_dislike": {
+  "sesame": {
+   "occurrences": 0,
+   "where": []
+  },
+  "fennel": {
+   "occurrences": 0,
+   "where": []
+  }
+ }
+}
+{
+ "run": "separate_sessions/run-2",
+ "request_id": "3a030001-0000-4000-8000-000000020001",
+ "cooking_shape_asked": "separate_sessions",
+ "http_ok": true,
+ "error": null,
+ "lock": null,
+ "cooking_archive": {
+  "asked": "separate_sessions",
+  "capped": false,
+  "served": "one_session",
+  "unused": true,
+  "computed": "one_session",
+  "diverging": [
+   "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+  ],
+  "dish_bearing": [
+   "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+  ]
+ },
+ "model": [
+  "generate-household-meal-v1 | gemini-3-flash-preview | success | - | - | 2026-08-19 02:02:27.614821+00"
+ ],
+ "counts": {
+  "dishes_total": 4,
+  "dishes_of_the_table": 2,
+  "dishes_with_a_bearer": 2,
+  "preparations": 4,
+  "member_portions": 4,
+  "boxes_shared_by_several": 0,
+  "mouths_in_roster": 4
+ },
+ "table_dishes": [
+  {
+   "cell": "wed/lunch",
+   "title": "Slow-cooked smoky black beans with roasted sweet potatoes"
+  },
+  {
+   "cell": "wed/dinner",
+   "title": "Smoky black beans with peppers and sautéed kale"
+  }
+ ],
+ "by_mouth": {
+  "Aurele": {
+   "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+   "goal": "fat_loss",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 92.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Aurele",
+    "display_name_empty": false,
+    "portion_note_chars": 252,
+    "portion_note": "Serve the vegetables first on the plate, followed by the smoky chicken, and then the sweet potatoes. — Smoky Roasted Chicken Thighs 194 g · Slow-Simmered Smoky Black Beans 194 g · Roasted Sweet Potatoes and Peppers 194 g · Sautéed Kale with Garlic 97 g",
+    "shares": 3
+   },
+   "own_dishes": [
+    {
+     "cell": "wed/lunch",
+     "title": "Smoky roasted chicken thighs with sweet potatoes"
+    },
+    {
+     "cell": "wed/dinner",
+     "title": "Roasted smoky chicken with peppers and kale"
+    }
+   ],
+   "own_dish_count": 2,
+   "boxes": [
+    {
+     "prep": "Smoky Roasted Chicken Thighs",
+     "g": 194,
+     "shared_with": 1
+    },
+    {
+     "prep": "Slow-Simmered Smoky Black Beans",
+     "g": 194,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Sweet Potatoes and Peppers",
+     "g": 194,
+     "shared_with": 1
+    },
+    {
+     "prep": "Sautéed Kale with Garlic",
+     "g": 97,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Marceline": {
+   "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 74.0,
+   "allergies": [],
+   "dislikes": [
+    "fennel"
+   ],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Marceline",
+    "display_name_empty": false,
+    "portion_note_chars": 247,
+    "portion_note": "Serve the chicken and sweet potatoes first on the plate, then add the roasted peppers and kale. — Smoky Roasted Chicken Thighs 194 g · Slow-Simmered Smoky Black Beans 194 g · Roasted Sweet Potatoes and Peppers 194 g · Sautéed Kale with Garlic 97 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Roasted Chicken Thighs",
+     "g": 194,
+     "shared_with": 1
+    },
+    {
+     "prep": "Slow-Simmered Smoky Black Beans",
+     "g": 194,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Sweet Potatoes and Peppers",
+     "g": 194,
+     "shared_with": 1
+    },
+    {
+     "prep": "Sautéed Kale with Garlic",
+     "g": 97,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Solveig": {
+   "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+   "goal": "muscle_gain",
+   "diet": "omnivore",
+   "age_state": "adult",
+   "body_kg": 55.0,
+   "allergies": [
+    "sesame"
+   ],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Solveig",
+    "display_name_empty": false,
+    "portion_note_chars": 253,
+    "portion_note": "Serve the chicken and sweet potatoes first, followed by the vegetables. Ensure no sesame is present. — Smoky Roasted Chicken Thighs 209 g · Slow-Simmered Smoky Black Beans 209 g · Roasted Sweet Potatoes and Peppers 209 g · Sautéed Kale with Garlic 104 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Roasted Chicken Thighs",
+     "g": 209,
+     "shared_with": 1
+    },
+    {
+     "prep": "Slow-Simmered Smoky Black Beans",
+     "g": 209,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Sweet Potatoes and Peppers",
+     "g": 209,
+     "shared_with": 1
+    },
+    {
+     "prep": "Sautéed Kale with Garlic",
+     "g": 104,
+     "shared_with": 1
+    }
+   ]
+  },
+  "Theodule": {
+   "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+   "goal": null,
+   "diet": "vegan",
+   "age_state": "minor",
+   "body_kg": 29.0,
+   "allergies": [],
+   "dislikes": [],
+   "named_in_member_portions": true,
+   "portion": {
+    "display_name": "Theodule",
+    "display_name_empty": false,
+    "portion_note_chars": 220,
+    "portion_note": "Combine all components together on the plate as a hearty smoky stew. — Smoky Roasted Chicken Thighs 165 g · Slow-Simmered Smoky Black Beans 165 g · Roasted Sweet Potatoes and Peppers 165 g · Sautéed Kale with Garlic 83 g",
+    "shares": 3
+   },
+   "own_dishes": [],
+   "own_dish_count": 0,
+   "boxes": [
+    {
+     "prep": "Smoky Roasted Chicken Thighs",
+     "g": 165,
+     "shared_with": 1
+    },
+    {
+     "prep": "Slow-Simmered Smoky Black Beans",
+     "g": 165,
+     "shared_with": 1
+    },
+    {
+     "prep": "Roasted Sweet Potatoes and Peppers",
+     "g": 165,
+     "shared_with": 1
+    },
+    {
+     "prep": "Sautéed Kale with Garlic",
+     "g": 83,
+     "shared_with": 1
+    }
+   ]
+  }
+ },
+ "portions_without_a_roster_line": [],
+ "allergen_and_dislike": {
+  "sesame": {
+   "occurrences": 1,
+   "where": [
+    {
+     "path": "/member_portions[2]/portion_note",
+     "text": "Serve the chicken and sweet potatoes first, followed by the vegetables. Ensure no sesame is present. — Smoky Roasted Chicken Thighs 209 g · Slow-Simmered Smoky Black Beans 209 g · Roasted Sweet Potatoes and Peppers 209 g"
+    }
+   ]
+  },
+  "fennel": {
+   "occurrences": 0,
+   "where": []
+  }
+ }
+}

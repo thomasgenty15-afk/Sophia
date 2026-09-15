@@ -1,0 +1,70 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-rose-2026-05-18-adjust-plan-horizon-r26-action-final-green-t01",
+    "user": "Je veux rester ciblée: ne touche pas au niveau complet. Prépare seulement un brouillon pour ajuster l'action Partager un point positif: 2 fois cette semaine, sans créneau fixe, avec une phrase simple même imparfaite. N'applique rien pour l'instant, parce que 3 fois me met trop la pression et je commence à éviter l'action.",
+    "status": 200,
+    "sophia": "Je te propose d'ajuster l'action 'Partager un point positif' pour la rendre plus légère et t'aider à la reprendre. Actuellement prévue 3 fois par semaine, je te suggère de la passer à 2 fois cette semaine. L'objectif sera de partager une phrase simple, même imparfaite, sans créneau fixe, juste pour relancer la dynamique.\nRien d'autre ne changera dans ton plan : les autres actions comme 'Convenir d'un signal de pause' ou 'Faire le point sur le signal de pause' resteront telles quelles. L'intention de reprendre la version complète de 'Partager un point positif' après cette version mini est aussi préservée.\nQu'en penses-tu ? Rien n'est appliqué tant que tu n'as pas validé.",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "qa-rose-2026-05-18-adjust-plan-horizon-r26-action-final-green-t02",
+    "user": "Avant validation, modifie juste le brouillon: phrase neutre plutôt que phrase simple. Toujours 2 fois, sans créneau fixe, et n'applique pas encore.",
+    "status": 200,
+    "sophia": "C'est corrigé dans le brouillon: on garde 2 fois par semaine, sans créneau fixe, avec une phrase neutre. Je n'applique rien tant que tu ne me le confirmes pas clairement.",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "qa-rose-2026-05-18-adjust-plan-horizon-r26-action-final-green-t03",
+    "user": "Oui, applique maintenant ce brouillon corrigé.",
+    "status": 200,
+    "sophia": "C'est fait ! J'ai ajusté l'action 'Partager un point positif' pour cette semaine.\nAu lieu de 3 fois par semaine, tu la verras désormais proposée 2 fois. L'idée est de te permettre de partager une phrase neutre, à n'importe quel moment de la journée, pour alléger la pression et te reconnecter avec l'action.\nLe reste de ton plan reste inchangé, et cette version allégée est un pont pour t'aider à reprendre l'action plus facilement. L'intention de revenir à la version complète de 'Partager un point positif' est bien conservée pour plus tard.",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "success",
+      "executed_tools": [
+        "adjust_plan_item"
+      ]
+    }
+  }
+]

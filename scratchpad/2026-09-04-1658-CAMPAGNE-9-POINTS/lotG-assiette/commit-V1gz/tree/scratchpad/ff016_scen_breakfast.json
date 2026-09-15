@@ -1,0 +1,5 @@
+[
+  { "id": "M2-en-breakfast", "level": "medium", "student": "a", "message": "What should I eat for breakfast?", "runs": 3, "fresh": true },
+  { "id": "M3-fr-breakfast", "level": "medium", "student": "a", "message": "Je mange quoi au petit-dej ?", "runs": 3, "fresh": true },
+  { "id": "M4-en-shopping", "level": "medium", "student": "a", "message": "I'm heading to the supermarket. What kind of food should I stock up on?", "runs": 3, "fresh": true }
+]

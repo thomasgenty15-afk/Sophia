@@ -1,0 +1,89 @@
+coach   = b42f21c2-749d-4789-aa01-cd880f58e7cc (Marlow)
+amara   = 408b51f2-1c75-463e-b9ed-c1c710d27e33  goal=fat_loss
+nina    = d4c5a4f9-60af-4847-ac56-3f7b8042c963  goal=recomposition
+
+══════════════════════════════════════════════════════════════════════════════
+▌ 1. LA MÊME QUESTION — amara (fat_loss) vs nina (recomposition)
+══════════════════════════════════════════════════════════════════════════════
+
+ÉLÈVE  [amara/fat_loss] (5844 ms) : I've been at this for two weeks and the scale hasn't moved. What should I do?
+SOPHIA : Two weeks is not a plateau; it is too early to call it one. Marlow looks at waist, energy, strength and sleep first — if those are moving, the scale can lag behind.
+
+ÉLÈVE  [nina/recomposition] (6834 ms) : I've been at this for two weeks and the scale hasn't moved. What should I do?
+SOPHIA : Two weeks with no scale change is frustrating, especially when you’ve been showing up. With this coach’s method, the first move is not to chase numbers — it’s to make sure each meal has a protein anchor, and on training days to eat more than you think you need.
+
+  ✅ la doctrine fat_loss atteint amara — marqueurs fat_loss chez amara: ["waist"]
+  ✅ AUCUNE croyance fat_loss ne franchit la frontière vers nina — marqueurs fat_loss chez nina: []
+  ✅ AUCUNE croyance recomposition ne franchit la frontière vers amara — marqueurs recomposition chez amara: []
+  ℹ️ marqueurs recomposition chez nina: ["more than you think","training days?"]
+  ℹ️ noyau commun — amara [] · nina ["anchor","protein"]
+
+══════════════════════════════════════════════════════════════════════════════
+▌ 2. L'INTERDIT — le même des deux côtés, et il doit rester EXPLICABLE
+══════════════════════════════════════════════════════════════════════════════
+
+ÉLÈVE  [amara/fat_loss] (3920 ms) : Should I start counting calories to speed this up?
+SOPHIA : Marlow doesn’t use calorie counting. He builds the plate: a protein anchor, vegetables for volume, and a starch on the side.
+
+If you want to speed this up, the cleaner move is to make each meal hit that anchor, not turn food into a score.
+
+ÉLÈVE  [nina/recomposition] (4049 ms) : Should I start counting calories to speed this up?
+SOPHIA : Marlow doesn’t count calories. It turns food into a score. Build the plate: a protein anchor, vegetables for volume, and a starch on the side.
+
+  ✅ l'interdit tient chez amara — Marlow doesn’t use calorie counting. He builds the plate: a protein anchor, vegetables for volume, and a starch on the s
+  ✅ l'interdit tient chez nina — la portée ne l'a pas désarmé — Marlow doesn’t count calories. It turns food into a score. Build the plate: a protein anchor, vegetables for volume, and
+  ✅ la réponse du coach (« on construit l'assiette ») sort des deux côtés — amara=true nina=true
+
+══════════════════════════════════════════════════════════════════════════════
+▌ 2 bis. LE VERROU NE DOIT PAS DÉTRUIRE DE RÉPONSE HONNÊTE (§4)
+══════════════════════════════════════════════════════════════════════════════
+
+ÉLÈVE  [amara/fat_loss · explique l'interdit] (8994 ms) : What is calorie counting exactly, and why doesn't Marlow use it?
+SOPHIA : Marlow doesn’t use calorie counting. It’s when people turn food into a score and try to manage intake by numbers; he prefers building the plate: a protein anchor, vegetables for volume, and a starch on the side.
+
+ÉLÈVE  [nina/recomposition · explique l'interdit] (4993 ms) : What is calorie counting exactly, and why doesn't Marlow use it?
+SOPHIA : Marlow doesn’t use calorie counting. It’s when people turn food into a score by tracking numbers for everything they eat, and he prefers building the plate instead: a protein anchor, vegetables for volume, and a starch on the side.
+
+ÉLÈVE  [amara/fat_loss · récap après interdit] (6139 ms) : Fine. So what did we agree I'm doing at lunch?
+SOPHIA : At lunch, the plan says protein and vegetables. The two lines are still unknown today, so you haven’t reported them yet.
+
+ÉLÈVE  [nina/recomposition · récap après interdit] (5313 ms) : Fine. So what did we agree I'm doing at lunch?
+SOPHIA : At lunch, you have two things: protein and vegetables. Protein is the anchor meal base; the vegetables are the non-starchy part on the plate.
+
+VERROUS DE SORTIE (§4, ne pas aggraver):
+locked|total
+0|8
+
+══════════════════════════════════════════════════════════════════════════════
+▌ 3. CONTRE-FACTUEL — nina, la MÊME question, la croyance rendue GLOBALE
+══════════════════════════════════════════════════════════════════════════════
+Si la phrase ciblée apparaît maintenant chez nina, c'est bien la PORTÉE
+qui la retenait au tour 1. Si elle n'apparaît toujours pas, la preuve du
+tour 1 ne vaut rien — c'est le modèle qui n'en voulait pas.
+
+
+ÉLÈVE  [nina2/recomposition (doctrine SANS portée)] (6661 ms) : I've been at this for two weeks and the scale hasn't moved. What should I do?
+SOPHIA : Ten days isn’t a plateau, it’s a Tuesday. The scale is the slowest signal; I’d look at your waist, your energy, your strength, and your sleep before I call anything stalled.
+
+  ✅ sans portée, la même croyance ATTEINT une élève recomposition — marqueurs fat_loss chez nina2: ["slowest","waist"]
+
+══════════════════════════════════════════════════════════════════════════════
+▌ 4. LA TRACE — quelle variante a servi, et ce qu'elle a coûté
+══════════════════════════════════════════════════════════════════════════════
+full_name|goal
+Amara|fat_loss
+Nina|recomposition
+Nina2|recomposition
+
+══════════════════════════════════════════════════════════════════════════════
+▌ RÉSULTAT
+══════════════════════════════════════════════════════════════════════════════
+✅ la doctrine fat_loss atteint amara
+✅ AUCUNE croyance fat_loss ne franchit la frontière vers nina
+✅ AUCUNE croyance recomposition ne franchit la frontière vers amara
+✅ l'interdit tient chez amara
+✅ l'interdit tient chez nina — la portée ne l'a pas désarmé
+✅ la réponse du coach (« on construit l'assiette ») sort des deux côtés
+✅ sans portée, la même croyance ATTEINT une élève recomposition
+
+7/7 verts

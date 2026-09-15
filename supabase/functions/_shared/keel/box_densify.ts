@@ -154,8 +154,29 @@ export interface DensifyResult {
   };
 }
 
-function floorOf(original: number, group: FoodGroupRef | null): number {
+/**
+ * LE PLANCHER D'UN ITEM, EN GRAMMES — ce qu'on ne lui prend jamais.
+ *
+ * ⟳ 2026-09-14 · BÊTA 1C ⑦ — EXPORTÉE. `portion_boundary.ts` rabotait jusqu'à
+ * `MIN_ITEM_GRAMS = 1` en prenant d'abord au PLUS GROS item, c'est-à-dire au
+ * féculent: la clôture du 2026-09-14 a mesuré **1 g de couscous** dans un plat
+ * qui s'appelle « poulet rôti, couscous complet et courgette ». Les deux
+ * modules partagent désormais LA MÊME règle de plancher — un second barème
+ * aurait laissé l'un défaire l'identité que l'autre protège.
+ *
+ * ⚠️ ET ELLE N'EST PAS LA MÊME POUR TOUT LE MONDE, c'est tout son intérêt:
+ * un légume garde 70 % de sa masse, le reste 50 %. Le plan de bêta l'exige —
+ * « ne pas imposer le même minimum à l'huile, au sel et au féculent ».
+ */
+export function itemFloorGrams(
+  original: number,
+  group: FoodGroupRef | null,
+): number {
   return Math.ceil(original * (group !== null && VEG_GROUPS.has(group) ? VEG_FLOOR_RATIO : DEFAULT_FLOOR_RATIO));
+}
+
+function floorOf(original: number, group: FoodGroupRef | null): number {
+  return itemFloorGrams(original, group);
 }
 function ceilingOf(original: number, group: FoodGroupRef | null): number {
   const ratio = group !== null && PROTEIN_GROUPS.has(group) ? PROTEIN_CEILING_RATIO : DEFAULT_CEILING_RATIO;

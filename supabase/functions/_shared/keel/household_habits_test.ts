@@ -366,6 +366,7 @@ const MERE: PortionMember = {
   habits: [],
   habitNote: null,
   requiredDensity: null,
+  proteinBrief: null,
 };
 
 const FILS: PortionMember = {
@@ -379,6 +380,7 @@ const FILS: PortionMember = {
   habits: [],
   habitNote: null,
   requiredDensity: null,
+  proteinBrief: null,
 };
 
 Deno.test("SANS HABITUDE, LE BRIEF EST CELUI D'AVANT LE LOT G, À L'OCTET PRÈS", () => {

@@ -1,0 +1,173 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-state-potion-20260518_subskills_r1-t01",
+    "http_status": 200,
+    "ok": true,
+    "user": "Sophia, je crois que j’ai besoin d’une potion, mais je ne sais pas laquelle. Je suis tendu, je repousse un appel important depuis ce matin et je sens que je vais encore l’éviter.",
+    "assistant": "Je comprends. Entre la tension et cet appel que tu repousses, qu'est-ce qui pèse le plus ? On peut partir sur une potion de courage pour t'aider à y aller, ou une potion d'apaisement pour faire redescendre la pression. 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "logged_message_id": null,
+    "latest_message_id": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "tool_skill_intent_start",
+    "safety": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "trace_id": "qa-state-potion-20260518_subskills_r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-state-potion-20260518_subskills_r1-t02",
+    "http_status": 200,
+    "ok": true,
+    "user": "Oui, plutôt courage. J’ai peur que la personne me juge et je voudrais juste réussir à lancer l’appel sans tourner autour pendant une heure.",
+    "assistant": "C'est noté pour la potion de courage. On va se concentrer sur cet appel et cette peur du jugement. Est-ce qu'il y a un autre point qui te fait hésiter, ou on part là-dessus ? 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "logged_message_id": null,
+    "latest_message_id": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "active_tool_skill_continue",
+    "safety": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "trace_id": "qa-state-potion-20260518_subskills_r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-state-potion-20260518_subskills_r1-t03",
+    "http_status": 500,
+    "ok": null,
+    "user": "On part là-dessus. L’hésitation principale c’est vraiment le regard de l’autre, et la première marche ce serait juste d’appuyer sur appeler puis dire la première phrase.",
+    "assistant": "",
+    "empty_response": true,
+    "aborted": false,
+    "abort_reason": null,
+    "logged_message_id": null,
+    "latest_message_id": null,
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason": null,
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": null,
+    "trace_id": null,
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-state-potion-20260518_subskills_r1-t04",
+    "http_status": 200,
+    "ok": true,
+    "user": "On reprend là-dessus : l’hésitation principale c’est le regard de l’autre, et la première marche ce serait d’appuyer sur appeler puis dire la première phrase.",
+    "assistant": "Je t'ai préparé une potion de courage pour t'aider à lancer cet appel malgré l'appréhension. On part là-dessus ? 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "logged_message_id": null,
+    "latest_message_id": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "active_tool_skill_continue",
+    "safety": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "trace_id": "qa-state-potion-20260518_subskills_r1-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-state-potion-20260518_subskills_r1-t05",
+    "http_status": 200,
+    "ok": true,
+    "user": "Oui, vas-y, active cette potion de courage.",
+    "assistant": "C'est normal de sentir cette appréhension. Le but n'est pas de ne plus avoir peur, mais de faire ce premier pas avec elle. Tu n'as pas besoin d'être parfait, juste d'appuyer sur appeler et de dire cette première phrase. 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "logged_message_id": null,
+    "latest_message_id": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "tool_skill_intent_start",
+    "safety": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "select_state_potion"
+      }
+    ],
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [
+      "select_state_potion"
+    ],
+    "trace_id": "qa-state-potion-20260518_subskills_r1-t05",
+    "trace_error": null
+  }
+]

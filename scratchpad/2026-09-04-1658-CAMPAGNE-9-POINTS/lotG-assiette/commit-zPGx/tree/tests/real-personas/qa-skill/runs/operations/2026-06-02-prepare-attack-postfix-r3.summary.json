@@ -1,0 +1,23 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-attack-card-postfix-r3-t01",
+    "http_status": 200,
+    "ok": true,
+    "user": "Prépare-moi une carte d’attaque pour envoyer mon dossier administratif avant 16h. Je bloque parce que je veux que ce soit parfait avant d’appuyer sur envoyer. Ne la crée pas, je veux seulement le brouillon.",
+    "assistant": "Je n'arrive pas à préparer cette carte proprement là. On peut reprendre dans un instant. 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "tool_skill_intent_start",
+    "safety": null,
+    "direct_effects": null,
+    "response_tool_execution": "failed",
+    "response_executed_tools": [],
+    "operation_status": null,
+    "platform_handoff": null,
+    "pending_confirmation": null,
+    "committed_effects": null,
+    "memory_plan": null,
+    "trace_id": "qa-attack-card-postfix-r3-t01"
+  }
+]

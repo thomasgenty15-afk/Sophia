@@ -1,0 +1,27 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r3d-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux une carte de défense, je suis en vrac.",
+    "assistant": "Je comprends, on va regarder ça ensemble. Pour commencer à préparer ta carte, est-ce que l'expression « quand tu te sens 'en vrac' » te semble juste pour répondre à la question : Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_selected_handler": "prepare_defense_card",
+    "route_reason_code": "explicit_prepare_defense_card_intent_uses_local_dispatcher",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r3d-t01",
+    "trace_error": null
+  }
+]

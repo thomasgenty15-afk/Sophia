@@ -1,0 +1,659 @@
+{
+  "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+  "scope": "qa-adjust-plan-nina-2026-05-15-test3-global-level-confirmation-r24",
+  "plan_patches": {
+    "ok": false,
+    "status": 404,
+    "body": {
+      "code": "PGRST205",
+      "details": null,
+      "hint": "Perhaps you meant the table 'public.user_plan_item_entries'",
+      "message": "Could not find the table 'public.plan_patches' in the schema cache"
+    }
+  },
+  "plan_items": {
+    "ok": false,
+    "status": 404,
+    "body": {
+      "code": "PGRST205",
+      "details": null,
+      "hint": "Perhaps you meant the table 'public.user_plan_items'",
+      "message": "Could not find the table 'public.plan_items' in the schema cache"
+    }
+  },
+  "user_chat_state": {
+    "ok": true,
+    "status": 200,
+    "body": [
+      {
+        "temp_memory": {
+          "__conversation_risk_last": {
+            "at": "2026-05-15T18:44:51.080Z",
+            "score": 0,
+            "threshold": 8,
+            "reason_codes": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__last_resolved_plan_item": {
+            "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+            "kind": "task",
+            "title": "Nettoyer ton environnement direct",
+            "source": "user_message",
+            "status": "pending",
+            "dimension": "missions",
+            "updated_at": "2026-05-15T18:43:57.548Z",
+            "week_scope": {
+              "week_end": "2026-05-10",
+              "week_order": 1,
+              "week_start": "2026-05-06",
+              "week_title": "Nettoyer le terrain",
+              "level_order": 1,
+              "level_title": "Reprendre le contrôle sur le grignotage",
+              "week_status": "completed",
+              "weekly_reps": null,
+              "mission_days": [
+                "jeudi"
+              ],
+              "weekly_cadence_label": null,
+              "weekly_description_override": null
+            },
+            "item_nature": "one_shot_mission",
+            "target_reps": null,
+            "cadence_label": "Action ponctuelle à réaliser une seule fois pour assainir l'espace.",
+            "availability_status": "available_past_week",
+            "available_this_week": false
+          },
+          "__conversation_risk_history": [
+            0.6,
+            0,
+            0,
+            0.1,
+            0
+          ],
+          "__last_adjust_plan_execution": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "confidence": "medium",
+                  "scope_kind": "current_level",
+                  "constraints": [
+                    "no_pressure",
+                    "minimal_patch",
+                    "preserve_plan_intent",
+                    "no_schedule_day_change",
+                    "ask_confirmation_before_write",
+                    "est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?",
+                    "option brute décidée pendant la préparation du dimanche",
+                    "Préparer tes alternatives d'avance ne bouge pas",
+                    "Nettoyer ton environnement direct ne bouge pas",
+                    "pas de modification du plan global",
+                    "montrer le brouillon final sans l'appliquer",
+                    "affected_item:Faire le choix du brut",
+                    "affected_item:Décoder ton envie de grignoter"
+                  ],
+                  "reason_type": "context_changed",
+                  "change_target": "global_load",
+                  "reason_change": "context_changed",
+                  "load_adjustment": "same",
+                  "level_adjustment": "rebalance"
+                },
+                "title": "Ajustement - Reprendre le contrôle sur le grignotage",
+                "confidence": "medium",
+                "ack_summary": {
+                  "changed": [
+                    "niveau actuel: charge ajustée vers \"same\"",
+                    "cible de changement: global_load"
+                  ],
+                  "unchanged": [
+                    "le cœur du niveau reste préservé",
+                    "chaque action n'est pas réécrite automatiquement"
+                  ],
+                  "confidence": "medium",
+                  "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+                  "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+                },
+                "scope_label": "Reprendre le contrôle sur le grignotage",
+                "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+                "decision_basis": {
+                  "evidence": [
+                    "Garde explicitement Préparer tes alternatives d'avance et Nettoyer ton environnement direct dans ce qui ne bouge pas, puis montre-moi le brouillon final sans l'appliquer.",
+                    "le bloc grignotage",
+                    "le niveau en entier",
+                    "rebalance",
+                    "trop de petits choix à faire",
+                    "ça me donne envie de laisser tomber",
+                    "enlever les décisions du soir"
+                  ],
+                  "confidence": "medium",
+                  "uncertainty": [
+                    "actions exactes du niveau a choisir pour une modification fine"
+                  ],
+                  "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                  "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                  "must_preserve": [
+                    "coeur du niveau"
+                  ]
+                },
+                "adjustment_type": "rebalance",
+                "proposed_change": "reequilibrer le niveau actuel",
+                "change_rationale": {
+                  "why_this_change": "Alléger global_load répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+                  "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+                  "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+                },
+                "adjust_plan_result": {
+                  "scope": "level",
+                  "rationale": {
+                    "confidence": "medium",
+                    "missing_info": [],
+                    "user_problem": "Trop de petits choix à faire le soir, ce qui génère de la fatigue et l'envie d'abandonner.",
+                    "expected_effect": "Moins de friction pour maintenir les habitudes sans pression, rendant le niveau à nouveau faisable.",
+                    "why_this_change": "Simplifier les actions ciblées permet de réduire la charge mentale immédiate tout en gardant le cœur du niveau."
+                  },
+                  "boundaries": {
+                    "explanation": "L'ajustement se concentre sur la simplification des actions quotidiennes du niveau sans modifier la stratégie ou les objectifs à long terme.",
+                    "affected_scope": "niveau actuel uniquement",
+                    "global_plan_impact": "none",
+                    "explicitly_not_affected": [
+                      "objectif global",
+                      "structure complète du plan",
+                      "autres niveaux"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Rééquilibrage du niveau pour réduire la fatigue décisionnelle en simplifiant les choix du soir.",
+                    "changed_items": [
+                      {
+                        "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                        "kind": "action",
+                        "after": "option brute décidée pendant la préparation du dimanche",
+                        "title": "Faire le choix du brut",
+                        "before": "Limiter le choix à une seule option brute prédéfinie (ex: toujours une pomme) pour éliminer la fatigue décisionnelle.",
+                        "reason": "Supprimer la micro-décision du soir pour éviter de craquer par fatigue mentale.",
+                        "capability": "modify_existing_action"
+                      },
+                      {
+                        "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                        "kind": "action",
+                        "after": "est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?",
+                        "title": "Décoder ton envie de grignoter",
+                        "before": "Question unique : 'Est-ce de la faim ou une émotion ?'",
+                        "reason": "Utiliser une question plus précise pour identifier immédiatement le déclencheur émotionnel ou physique.",
+                        "capability": "modify_existing_action"
+                      }
+                    ],
+                    "preserved_items": [
+                      {
+                        "id": "23f34398-87ae-4388-80b4-786989faac97",
+                        "kind": "action",
+                        "title": "Préparer tes alternatives d'avance",
+                        "reason": "La préparation du dimanche est conservée pour garantir la disponibilité des options saines."
+                      },
+                      {
+                        "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+                        "kind": "action",
+                        "title": "Nettoyer ton environnement direct",
+                        "reason": "Le maintien d'un environnement sans tentation reste un pilier inchangé du niveau."
+                      }
+                    ]
+                  },
+                  "user_message_brief": "J'ai préparé un brouillon pour simplifier ton niveau actuel en supprimant les décisions du soir, tout en gardant tes habitudes de préparation intactes.",
+                  "user_message_detailed": "Pour t'aider à reprendre le contrôle sans te sentir submergé, je propose de rééquilibrer ton niveau actuel. L'idée est de supprimer les micro-décisions qui pèsent le soir.\n\n- **Faire le choix du brut** (id: eb9df535-b6e9-40d9-af57-effafdc2f662) : Avant, tu devais choisir une option brute. Désormais, on utilise l'**option brute décidée pendant la préparation du dimanche**. Cela aide car tu n'as plus de choix à faire au moment où tu es le plus fatigué.\n- **Décoder ton envie de grignoter** (id: 7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf) : La question devient '**est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?**'. Cela aide à identifier précisément le besoin derrière l'envie pour mieux y répondre.\n\nCe qui ne change pas : tes actions de préparation le dimanche et le nettoyage de ton environnement restent identiques. Le plan global n'est pas impacté. C'est un ajustement ciblé pour rendre le quotidien plus fluide et moins stressant."
+                },
+                "execution_strategy": "level_adjustment",
+                "allowed_patch_fields": [
+                  "scope_kind",
+                  "level_adjustment",
+                  "load_adjustment",
+                  "focus_adjustment",
+                  "reason_type",
+                  "reason_change",
+                  "change_target",
+                  "confidence",
+                  "constraints"
+                ]
+              },
+              "output_schema": "plan_adjustment_draft_v1",
+              "operation_type": "adjust_plan_item",
+              "execution_message": "J'ai mis à jour ton niveau pour supprimer les décisions du soir et réduire la pression quotidienne.\n\nConcrètement :\n- L'action 'Faire le choix du brut' s'appuie maintenant sur l'**option brute décidée pendant la préparation du dimanche**.\n- L'action 'Décoder ton envie de grignoter' utilise désormais la question : '**est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?**'.\n\nCes changements permettent de garder l'intention de ton parcours tout en rendant les soirées plus simples. Tes habitudes de préparation et de rangement restent identiques. Je pense que cette version plus fluide sera plus facile à maintenir sur la durée.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Voici une proposition pour rééquilibrer ton niveau actuel sans modifier la direction de ton plan. Rien n'est encore appliqué, c'est une proposition avant validation.\n\nPour limiter la fatigue décisionnelle qui te pèse le soir, je suggère de simplifier deux actions :\n1. Pour 'Faire le choix du brut', on utiliserait l'**option brute décidée pendant la préparation du dimanche** pour supprimer le choix immédiat.\n2. Pour 'Décoder ton envie de grignoter', la question deviendrait : '**est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?**' pour mieux cibler ton besoin.\n\nTes actions 'Préparer tes alternatives d'avance' et 'Nettoyer ton environnement direct' ne seront pas touchées. Est-ce que ce brouillon te convient ?"
+            },
+            "created_at": "2026-05-15T18:44:55.976Z",
+            "operation_id": "f5da1965-8ddc-4957-ad0a-2ab01c0bd7be",
+            "plan_patch_id": "624ea002-300f-422a-8129-93649595b029",
+            "operation_input": {
+              "scope": {
+                "kind": "current_level",
+                "title": "Reprendre le contrôle sur le grignotage",
+                "plan_item_id": null,
+                "current_summary": "Reprendre le contrôle sur le grignotage"
+              },
+              "payload": {
+                "reason": {
+                  "status": "missing",
+                  "evidence": []
+                },
+                "scope_kind": "current_level",
+                "constraints": {
+                  "status": "identified",
+                  "values": [
+                    "exact_text:« est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ? »",
+                    "option brute décidée pendant la préparation du dimanche",
+                    "Préparer tes alternatives d'avance ne bouge pas",
+                    "Nettoyer ton environnement direct ne bouge pas",
+                    "pas de modification du plan global",
+                    "montrer le brouillon final sans l'appliquer"
+                  ],
+                  "evidence": [
+                    "Garde explicitement Préparer tes alternatives d'avance et Nettoyer ton environnement direct dans ce qui ne bouge pas",
+                    "montre-moi le brouillon final sans l'appliquer",
+                    "ça ne modifie pas le plan global"
+                  ]
+                },
+                "change_target": {
+                  "value": "global_load",
+                  "status": "identified",
+                  "evidence": [
+                    "enlever les décisions du soir"
+                  ]
+                },
+                "reason_change": {
+                  "value": "context_changed",
+                  "status": "identified",
+                  "evidence": [
+                    "trop de petits choix à faire",
+                    "ça me donne envie de laisser tomber"
+                  ]
+                },
+                "affected_items": {
+                  "status": "identified",
+                  "values": [
+                    "Faire le choix du brut",
+                    "Décoder ton envie de grignoter"
+                  ],
+                  "evidence": [
+                    "Les deux endroits qui me pèsent le plus sont Faire le choix du brut et Décoder ton envie de grignoter"
+                  ]
+                },
+                "adjustment_type": {
+                  "value": "rebalance",
+                  "status": "identified",
+                  "evidence": [
+                    "rebalance"
+                  ]
+                }
+              },
+              "intake_state": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Reprendre le contrôle sur le grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "le bloc grignotage",
+                    "le niveau en entier"
+                  ]
+                },
+                "payload": {
+                  "reason": {
+                    "status": "missing",
+                    "evidence": []
+                  },
+                  "scope_kind": "current_level",
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "exact_text:« est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ? »",
+                      "option brute décidée pendant la préparation du dimanche",
+                      "Préparer tes alternatives d'avance ne bouge pas",
+                      "Nettoyer ton environnement direct ne bouge pas",
+                      "pas de modification du plan global",
+                      "montrer le brouillon final sans l'appliquer"
+                    ],
+                    "evidence": [
+                      "Garde explicitement Préparer tes alternatives d'avance et Nettoyer ton environnement direct dans ce qui ne bouge pas",
+                      "montre-moi le brouillon final sans l'appliquer",
+                      "ça ne modifie pas le plan global"
+                    ]
+                  },
+                  "change_target": {
+                    "value": "global_load",
+                    "status": "identified",
+                    "evidence": [
+                      "enlever les décisions du soir"
+                    ]
+                  },
+                  "reason_change": {
+                    "value": "context_changed",
+                    "status": "identified",
+                    "evidence": [
+                      "trop de petits choix à faire",
+                      "ça me donne envie de laisser tomber"
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      "Faire le choix du brut",
+                      "Décoder ton envie de grignoter"
+                    ],
+                    "evidence": [
+                      "Les deux endroits qui me pèsent le plus sont Faire le choix du brut et Décoder ton envie de grignoter"
+                    ]
+                  },
+                  "adjustment_type": {
+                    "value": "rebalance",
+                    "status": "identified",
+                    "evidence": [
+                      "rebalance"
+                    ]
+                  }
+                },
+                "selected_sub_skill": "level_intake",
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "le bloc grignotage",
+                    "le niveau en entier"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": []
+                }
+              },
+              "change_target": {
+                "value": "global_load",
+                "evidence": [
+                  "enlever les décisions du soir"
+                ]
+              },
+              "reason_change": {
+                "type": "context_changed",
+                "evidence": [
+                  "trop de petits choix à faire",
+                  "ça me donne envie de laisser tomber"
+                ]
+              },
+              "decision_basis": {
+                "evidence": [
+                  "Garde explicitement Préparer tes alternatives d'avance et Nettoyer ton environnement direct dans ce qui ne bouge pas, puis montre-moi le brouillon final sans l'appliquer.",
+                  "le bloc grignotage",
+                  "le niveau en entier",
+                  "rebalance",
+                  "trop de petits choix à faire",
+                  "ça me donne envie de laisser tomber",
+                  "enlever les décisions du soir"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "actions exactes du niveau a choisir pour une modification fine"
+                ],
+                "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                "must_preserve": [
+                  "coeur du niveau"
+                ]
+              },
+              "previous_draft": {
+                "draft": {
+                  "patch": {
+                    "confidence": "medium",
+                    "scope_kind": "current_level",
+                    "constraints": [
+                      "no_pressure",
+                      "minimal_patch",
+                      "preserve_plan_intent",
+                      "no_schedule_day_change",
+                      "ask_confirmation_before_write",
+                      "est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?",
+                      "option brute décidée pendant la préparation du dimanche",
+                      "Préparer tes alternatives d'avance ne bouge pas",
+                      "Nettoyer ton environnement direct ne bouge pas",
+                      "pas de modification du plan global",
+                      "affected_item:Faire le choix du brut",
+                      "affected_item:Décoder ton envie de grignoter"
+                    ],
+                    "reason_type": "context_changed",
+                    "change_target": "global_load",
+                    "reason_change": "context_changed",
+                    "load_adjustment": "same",
+                    "level_adjustment": "rebalance"
+                  },
+                  "title": "Ajustement - Reprendre le contrôle sur le grignotage",
+                  "confidence": "medium",
+                  "ack_summary": {
+                    "changed": [
+                      "niveau actuel: charge ajustée vers \"same\"",
+                      "cible de changement: global_load"
+                    ],
+                    "unchanged": [
+                      "le cœur du niveau reste préservé",
+                      "chaque action n'est pas réécrite automatiquement"
+                    ],
+                    "confidence": "medium",
+                    "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+                    "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+                  },
+                  "scope_label": "Reprendre le contrôle sur le grignotage",
+                  "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+                  "decision_basis": {
+                    "evidence": [
+                      "Ok. Confirme-moi aussi que Préparer tes alternatives d'avance ne bouge pas, que Nettoyer ton environnement direct ne bouge pas, et que ça ne modifie pas le plan global.",
+                      "le bloc grignotage",
+                      "le niveau en entier",
+                      "enlever les décisions du soir",
+                      "garder le niveau et les actions",
+                      "trop de petits choix à faire",
+                      "ça me donne envie de laisser tomber",
+                      "enlever les décisions du soir"
+                    ],
+                    "confidence": "medium",
+                    "uncertainty": [
+                      "actions exactes du niveau a choisir pour une modification fine"
+                    ],
+                    "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                    "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                    "must_preserve": [
+                      "coeur du niveau"
+                    ]
+                  },
+                  "adjustment_type": "rebalance",
+                  "proposed_change": "reequilibrer le niveau actuel",
+                  "change_rationale": {
+                    "why_this_change": "Alléger global_load répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+                    "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+                    "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+                  },
+                  "adjust_plan_result": {
+                    "scope": "level",
+                    "rationale": {
+                      "confidence": "medium",
+                      "missing_info": [
+                        "actions exactes du niveau à choisir pour une modification fine"
+                      ],
+                      "user_problem": "Le niveau actuel génère trop de petits choix le soir, ce qui crée une fatigue décisionnelle et une envie d'abandonner.",
+                      "expected_effect": "Une meilleure adhésion au niveau car les actions demandent moins d'effort de volonté immédiat.",
+                      "why_this_change": "En automatisant le choix de l'aliment et en précisant la question de réflexion, on diminue la charge mentale nécessaire pour réussir l'action."
+                    },
+                    "boundaries": {
+                      "explanation": "L'ajustement se concentre sur la réduction de la friction au sein du niveau actuel sans modifier la direction long terme du plan.",
+                      "affected_scope": "niveau actuel uniquement",
+                      "global_plan_impact": "none",
+                      "explicitly_not_affected": [
+                        "objectif global",
+                        "structure complète du plan",
+                        "autres niveaux"
+                      ]
+                    },
+                    "applied_change": {
+                      "summary": "Simplification des actions du soir pour réduire la fatigue décisionnelle et préserver l'énergie de l'utilisateur.",
+                      "changed_items": [
+                        {
+                          "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                          "kind": "action",
+                          "after": "Utiliser l'option brute décidée pendant la préparation du dimanche.",
+                          "title": "Faire le choix du brut",
+                          "before": "Limiter le choix à une seule option brute prédéfinie (ex: toujours une pomme) pour éliminer la fatigue décisionnelle.",
+                          "reason": "Supprime le besoin de prendre une décision le soir en se reposant sur ce qui a été prévu à l'avance.",
+                          "capability": "modify_existing_action"
+                        },
+                        {
+                          "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                          "kind": "action",
+                          "after": "Se demander : est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?",
+                          "title": "Décoder ton envie de grignoter",
+                          "before": "Question unique : 'Est-ce de la faim ou une émotion ?'",
+                          "reason": "Remplace une question générique par une interrogation plus ciblée sur le contexte de fatigue exprimé par l'utilisateur.",
+                          "capability": "modify_existing_action"
+                        }
+                      ],
+                      "preserved_items": []
+                    },
+                    "user_message_brief": "J'ai simplifié deux actions de ton niveau pour supprimer les choix difficiles le soir.",
+                    "user_message_detailed": "Pour t'aider à reprendre le contrôle sans pression, j'ai préparé deux ajustements précis dans ton niveau actuel :\n1. Faire le choix du brut : Avant, tu devais limiter ton choix. Maintenant, tu appliques simplement l'option brute décidée pendant la préparation du dimanche. Cela élimine la fatigue de devoir choisir le soir.\n2. Décoder ton envie de grignoter : Avant, la question était générique. Maintenant, on utilise : 'est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?'. C'est plus parlant pour toi.\nLe reste, comme la préparation du dimanche ou le nettoyage de ton environnement, reste identique. Je suis assez sûre que cela va t'aider. Le plan global n'est pas impacté."
+                  },
+                  "execution_strategy": "level_adjustment",
+                  "allowed_patch_fields": [
+                    "scope_kind",
+                    "level_adjustment",
+                    "load_adjustment",
+                    "focus_adjustment",
+                    "reason_type",
+                    "reason_change",
+                    "change_target",
+                    "confidence",
+                    "constraints"
+                  ]
+                },
+                "output_schema": "plan_adjustment_draft_v1",
+                "operation_type": "adjust_plan_item",
+                "execution_message": "C'est fait, j'ai allégé ton niveau actuel pour supprimer les décisions difficiles en fin de journée. J'ai mis à jour 'Faire le choix du brut' pour n'utiliser que l'option brute décidée pendant la préparation du dimanche, et 'Décoder ton envie de grignoter' intègre maintenant ta question sur le stress et la fatigue. Tes habitudes de préparation et de nettoyage de l'environnement ne bougent pas. Cela devrait rendre tes soirées plus simples et réduire l'envie d'abandonner. Je suis assez sûre que cette simplification va t'aider à garder le cap.",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je te propose d'ajuster ton niveau actuel pour réduire la fatigue décisionnelle le soir, sans toucher au reste de ton plan. Rien n'est encore appliqué. Voici ce que je suggère : pour l'action 'Faire le choix du brut', on se baserait uniquement sur l'option brute décidée pendant la préparation du dimanche pour éviter de choisir le soir même. Pour 'Décoder ton envie de grignoter', on utiliserait ta question précise : 'est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?'. Les actions 'Préparer tes alternatives d'avance' et 'Nettoyer ton environnement direct' resteront inchangées. Est-ce que cela te convient ?"
+              },
+              "adjustment_type": "rebalance",
+              "revision_request": "Garde explicitement Préparer tes alternatives d'avance et Nettoyer ton environnement direct dans ce qui ne bouge pas, puis montre-moi le brouillon final sans l'appliquer.",
+              "target_granularity": {
+                "value": "current_level",
+                "status": "identified",
+                "evidence": [
+                  "le bloc grignotage",
+                  "le niveau en entier"
+                ],
+                "confidence": "high",
+                "negative_evidence": []
+              },
+              "adjust_plan_sub_skills": [
+                {
+                  "id": "scope_router",
+                  "role": "Determine if the user targets one action, the current level, or the whole plan.",
+                  "minimum_ready_slots": [
+                    "scope.status=identified",
+                    "scope.kind"
+                  ]
+                },
+                {
+                  "id": "action_intake",
+                  "role": "Fill the action-specific adjustment payload once scope is a specific plan item.",
+                  "minimum_ready_slots": [
+                    "scope.plan_item_id",
+                    "adjustment_type",
+                    "reason",
+                    "constraints"
+                  ]
+                },
+                {
+                  "id": "level_intake",
+                  "role": "Fill the current-level adjustment payload and protect whole-plan boundaries.",
+                  "minimum_ready_slots": [
+                    "reason_change",
+                    "change_target",
+                    "constraints",
+                    "affected_items_before_execution"
+                  ]
+                },
+                {
+                  "id": "whole_plan_intake",
+                  "role": "Fill the whole-plan adjustment payload and preserve the global objective when requested.",
+                  "minimum_ready_slots": [
+                    "reason_change",
+                    "global_change_target",
+                    "preserved_intent",
+                    "impact_examples_before_confirmation"
+                  ]
+                },
+                {
+                  "id": "draft_validation",
+                  "role": "Validate the generated draft and require concrete examples before confirmation.",
+                  "minimum_ready_slots": [
+                    "user_ready_review_message",
+                    "changed_examples",
+                    "boundaries",
+                    "no_pre_confirmation_execution_claim"
+                  ]
+                }
+              ],
+              "latest_turn_operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Reprendre le contrôle sur le grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "le bloc grignotage",
+                    "le niveau en entier"
+                  ]
+                },
+                "payload": {
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "ne pas appliquer tout de suite",
+                      "garder le niveau et les actions"
+                    ],
+                    "evidence": [
+                      "ne l'applique pas",
+                      "Je veux garder le niveau et les actions"
+                    ]
+                  },
+                  "change_target": {
+                    "status": "identified",
+                    "evidence": [
+                      "enlever les décisions du soir"
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      "Faire le choix du brut",
+                      "Décoder ton envie de grignoter"
+                    ],
+                    "evidence": [
+                      "Les deux endroits qui me pèsent le plus sont Faire le choix du brut et Décoder ton envie de grignoter"
+                    ]
+                  }
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "Je veux garder le niveau et les actions"
+                  ],
+                  "confidence": "high"
+                }
+              }
+            }
+          },
+          "__coaching_intervention_history": []
+        },
+        "updated_at": "2026-05-15T18:44:55.978557+00:00"
+      }
+    ]
+  }
+}

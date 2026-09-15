@@ -1,0 +1,929 @@
+{
+  "request_id": "7ce40002-0000-4000-8000-000000000002",
+  "resolved_by": "--request-id",
+  "user_id": "3a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T03:23:08.128Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "92c61cf7-bc2a-4a10-89f0-97dfc799561e",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T03:17:02.454263+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 16114,
+    "user_message_truncated": false,
+    "user_message_written_chars": 16114,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 16114
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "97c0ea78-95d5-4e56-a0b3-b707678550a1",
+    "created_at": "2026-08-19T03:23:07.550016+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 5,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Bean Harvest Bowls\",\n      \"title\": \"Smoky three-bean chilli with brown rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a handful\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Assemble your bowl by taking a portion of the warm beans and rice directly from the pots. Garnish with a handful of fresh coriander.\",\n      \"why\": \"This dish uses smoky chipotle and slow-simmered beans to meet the house request for deep flavours while remaining vegan and sesame-safe.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_brown_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Chipotle Pepper Pots\",\n      \"title\": \"Reheated smoky beans with charred sweetcorn and lime\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned sweetcorn\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.5 unit\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the beans and rice in a pan with a splash of water until piping hot. Stir in the sweetcorn to warm through and finish with a fresh squeeze of lime.\",\n      \"why\": \"The citrus and corn provide a fresh contrast to the slow-cooked base, ensuring dinner feels distinct from lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_brown_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_smoky_beans\",\n      \"title\": \"Smoky Three-Bean Chilli\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"red onions\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"3 unit\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves\",\n          \"quantity\": \"4 unit\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned black beans\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned kidney beans\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"2 tsp\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"chipotle flakes\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Finely chop the onions and peppers. Sauté in olive oil until softened. Add minced garlic and spices, stirring for one minute. Pour in the tomatoes and beans (with their liquid). Simmer on low heat for 30 minutes until thick and smoky.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chilli_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 550\n        },\n        {\n          \"id\": \"box_chilli_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 550\n        },\n        {\n          \"id\": \"box_chilli_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 550\n        },\n        {\n          \"id\": \"box_chilli_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 550\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_brown_rice\",\n      \"title\": \"Steamed Brown Rice\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"brown rice\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice and place in a pot with double the volume of water. Bring to a boil, then cover and simmer on low for 25-30 minutes until tender. Let it stand covered for 5 minutes before fluffing.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 375\n        },\n        {\n          \"id\": \"box_rice_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 375\n        },\n        {\n          \"id\": \"box_rice_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 375\n        },\n        {\n          \"id\": \"box_rice_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 375\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_smoky_beans\",\n        \"prep_brown_rice\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice on the hob first as it takes the longest to simmer. While it cooks, chop your onions and peppers for the chilli. Sauté the vegetables and get the chilli simmering in a second pot. Once both are finished, portion them out into the named boxes for the day's meals.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"red onions\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"3\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic bulb\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"limes\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tinned black beans\",\n      \"quantity\": \"2 x 400g cans\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned kidney beans\",\n      \"quantity\": \"2 x 400g cans\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"brown rice\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"tinned chopped tomatoes\",\n      \"quantity\": \"2 x 400g cans\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned sweetcorn\",\n      \"quantity\": \"1 x 340g can\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cumin\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chipotle flakes\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Serve the peppers and onions first, then the smoky beans, with the brown rice on the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        },\n        {\n          \"preparation_id\": \"prep_brown_rice\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Serve the smoky beans and brown rice first, then top with the peppers and onions.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        },\n        {\n          \"preparation_id\": \"prep_brown_rice\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve the smoky beans and brown rice first, then top with the peppers and onions.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        },\n        {\n          \"preparation_id\": \"prep_brown_rice\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Mix the smoky beans, rice, and vegetables all together in the bowl.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        },\n        {\n          \"preparation_id\": \"prep_brown_rice\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Smoky Bean Harvest Bowls",
+          "title": "Smoky three-bean chilli with brown rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "fresh coriander",
+              "quantity": "a handful",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Assemble your bowl by taking a portion of the warm beans and rice directly from the pots. Garnish with a handful of fresh coriander.",
+          "why": "This dish uses smoky chipotle and slow-simmered beans to meet the house request for deep flavours while remaining vegan and sesame-safe.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_chilli_aurele"
+            },
+            {
+              "preparation_id": "prep_brown_rice",
+              "servings": 1,
+              "box_id": "box_rice_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Zesty Chipotle Pepper Pots",
+          "title": "Reheated smoky beans with charred sweetcorn and lime",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "tinned sweetcorn",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "lime",
+              "quantity": "0.5 unit",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the beans and rice in a pan with a splash of water until piping hot. Stir in the sweetcorn to warm through and finish with a fresh squeeze of lime.",
+          "why": "The citrus and corn provide a fresh contrast to the slow-cooked base, ensuring dinner feels distinct from lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_chilli_aurele"
+            },
+            {
+              "preparation_id": "prep_brown_rice",
+              "servings": 1,
+              "box_id": "box_rice_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_smoky_beans",
+          "title": "Smoky Three-Bean Chilli",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "red onions",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "bell peppers",
+              "quantity": "3 unit",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic cloves",
+              "quantity": "4 unit",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "tinned black beans",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned kidney beans",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned chopped tomatoes",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "ground cumin",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "chipotle flakes",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Finely chop the onions and peppers. Sauté in olive oil until softened. Add minced garlic and spices, stirring for one minute. Pour in the tomatoes and beans (with their liquid). Simmer on low heat for 30 minutes until thick and smoky.",
+          "active_minutes": 15,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chilli_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 550
+            },
+            {
+              "id": "box_chilli_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 550
+            },
+            {
+              "id": "box_chilli_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 550
+            },
+            {
+              "id": "box_chilli_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 550
+            }
+          ]
+        },
+        {
+          "id": "prep_brown_rice",
+          "title": "Steamed Brown Rice",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "brown rice",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse the rice and place in a pot with double the volume of water. Bring to a boil, then cover and simmer on low for 25-30 minutes until tender. Let it stand covered for 5 minutes before fluffing.",
+          "active_minutes": 5,
+          "total_minutes": 35,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 375
+            },
+            {
+              "id": "box_rice_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 375
+            },
+            {
+              "id": "box_rice_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 375
+            },
+            {
+              "id": "box_rice_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 375
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_smoky_beans",
+            "prep_brown_rice"
+          ],
+          "total_minutes": 50,
+          "run_through": "Start the rice on the hob first as it takes the longest to simmer. While it cooks, chop your onions and peppers for the chilli. Sauté the vegetables and get the chilli simmering in a second pot. Once both are finished, portion them out into the named boxes for the day's meals."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "red onions",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "bell peppers",
+          "quantity": "3",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic bulb",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh coriander",
+          "quantity": "1 bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "limes",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "tinned black beans",
+          "quantity": "2 x 400g cans",
+          "aisle": "protein"
+        },
+        {
+          "term": "tinned kidney beans",
+          "quantity": "2 x 400g cans",
+          "aisle": "protein"
+        },
+        {
+          "term": "brown rice",
+          "quantity": "600 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "tinned chopped tomatoes",
+          "quantity": "2 x 400g cans",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned sweetcorn",
+          "quantity": "1 x 340g can",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "ground cumin",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chipotle flakes",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "portion_note": "Serve the peppers and onions first, then the smoky beans, with the brown rice on the side.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "note": "one portion for lunch and one for dinner"
+            },
+            {
+              "preparation_id": "prep_brown_rice",
+              "note": "one portion for lunch and one for dinner"
+            }
+          ]
+        },
+        {
+          "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "portion_note": "Serve the smoky beans and brown rice first, then top with the peppers and onions.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "note": "one portion for lunch and one for dinner"
+            },
+            {
+              "preparation_id": "prep_brown_rice",
+              "note": "one portion for lunch and one for dinner"
+            }
+          ]
+        },
+        {
+          "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "portion_note": "Serve the smoky beans and brown rice first, then top with the peppers and onions.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "note": "one portion for lunch and one for dinner"
+            },
+            {
+              "preparation_id": "prep_brown_rice",
+              "note": "one portion for lunch and one for dinner"
+            }
+          ]
+        },
+        {
+          "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+          "portion_note": "Mix the smoky beans, rice, and vegetables all together in the bowl.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "note": "one portion for lunch and one for dinner"
+            },
+            {
+              "preparation_id": "prep_brown_rice",
+              "note": "one portion for lunch and one for dinner"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Bean Harvest Bowls\",\n      \"title\": \"Smoky three-bean chilli with brown rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a handful\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Assemble your bowl by taking a portion of the warm beans and rice directly from the pots. Garnish with a handful of fresh coriander.\",\n      \"why\": \"This dish uses smoky chipotle and slow-simmered beans to meet the house request for deep flavours while remaining vegan and sesame-safe.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_brown_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Chipotle Pepper Pots\",\n      \"title\": \"Reheated smoky beans with charred sweetcorn and lime\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned sweetcorn\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.5 unit\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the beans and rice in a pan with a splash of water until piping hot. Stir in the sweetcorn to warm through and finish with a fresh squeeze of lime.\",\n      \"why\": \"The citrus and corn provide a fresh contrast to the slow-cooked base, ensuring dinner feels distinct from lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_brown_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_smoky_beans\",\n      \"title\": \"Smoky Three-Bean Chilli\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"red onions\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"3 unit\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves\",\n          \"quantity\": \"4 unit\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned black beans\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned kidney beans\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"2 tsp\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"chipotle flakes\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Finely chop the onions and peppers. Sauté in olive oil until softened. Add minced garlic and spices, stirring for one minute. Pour in the tomatoes and beans (with their liquid). Simmer on low heat for 30 minutes until thick and smoky.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chilli_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 550\n        },\n        {\n          \"id\": \"box_chilli_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 550\n        },\n        {\n          \"id\": \"box_chilli_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 550\n        },\n        {\n          \"id\": \"box_chilli_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 550\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_brown_rice\",\n      \"title\": \"Steamed Brown Rice\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"brown rice\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice and place in a pot with double the volume of water. Bring to a boil, then cover and simmer on low for 25-30 minutes until tender. Let it stand covered for 5 minutes before fluffing.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 375\n        },\n        {\n          \"id\": \"box_rice_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 375\n        },\n        {\n          \"id\": \"box_rice_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 375\n        },\n        {\n          \"id\": \"box_rice_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 375\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_smoky_beans\",\n        \"prep_brown_rice\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice on the hob first as it takes the longest to simmer. While it cooks, chop your onions and peppers for the chilli. Sauté the vegetables and get the chilli simmering in a second pot. Once both are finished, portion them out into the named boxes for the day's meals.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"red onions\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"3\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic bulb\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"limes\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tinned black beans\",\n      \"quantity\": \"2 x 400g cans\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned kidney beans\",\n      \"quantity\": \"2 x 400g cans\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"brown rice\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"tinned chopped tomatoes\",\n      \"quantity\": \"2 x 400g cans\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned sweetcorn\",\n      \"quantity\": \"1 x 340g can\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cumin\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chipotle flakes\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Serve the peppers and onions first, then the smoky beans, with the brown rice on the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        },\n        {\n          \"preparation_id\": \"prep_brown_rice\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Serve the smoky beans and brown rice first, then top with the peppers and onions.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        },\n        {\n          \"preparation_id\": \"prep_brown_rice\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve the smoky beans and brown rice first, then top with the peppers and onions.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        },\n        {\n          \"preparation_id\": \"prep_brown_rice\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Mix the smoky beans, rice, and vegetables all together in the bowl.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        },\n        {\n          \"preparation_id\": \"prep_brown_rice\",\n          \"note\": \"one portion for lunch and one for dinner\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "biGFasStN9HmnsEP547mmAk",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 17853,
+        "promptTokenCount": 8110,
+        "thoughtsTokenCount": 6249,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8110
+          }
+        ],
+        "candidatesTokenCount": 3494
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T03:17:02.454263+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T03:17:03.733241+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:17:06.891078+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:17:06.89947+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:17:06.907423+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:18:06.925477+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:18:06.939816+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:18:07.450275+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:18:12.149391+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:18:12.856815+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:18:17.194635+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:18:17.207304+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:18:17.215491+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:19:17.235895+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:19:17.249755+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:19:17.665557+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:19:23.750552+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:19:24.345709+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:19:29.997835+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:19:30.010298+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:19:30.017688+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:20:30.049858+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:20:30.067345+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 3,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:20:30.660183+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 3,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:20:39.612863+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 4,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:20:40.27278+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 4,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:20:49.396942+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:20:49.420702+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:20:49.439481+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:21:49.479652+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:21:49.502748+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 4,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:21:50.211777+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 4,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:22:06.774702+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 5,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:22:07.317795+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 5,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:22:22.639127+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 5,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:22:22.65566+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 5,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:22:22.664681+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 5,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T03:23:07.550016+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 5,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

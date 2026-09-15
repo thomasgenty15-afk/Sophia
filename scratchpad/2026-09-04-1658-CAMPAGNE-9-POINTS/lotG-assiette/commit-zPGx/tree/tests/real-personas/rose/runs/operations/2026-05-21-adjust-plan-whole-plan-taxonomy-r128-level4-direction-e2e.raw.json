@@ -1,0 +1,2017 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t01",
+    "user": "J'ai relu la dernière partie du plan et je ne suis pas convaincue. La suite me semble trop centrée sur analyser les tensions, alors que je pense qu'on devrait plutôt apprendre à relancer un moment de lien après une dispute. Tu peux m'aider à ajuster la direction globale ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui, carrément. Et je te suis : si la suite devient “analyser/analyser”, tu risques de rester coincée dans le mental, alors que toi tu veux du vivant: relancer du lien après un accroc. 💛\n\nOn peut ajuster la direction globale vers quelque chose de plus action-oriented, par exemple :\n1) Passer de “comprendre la tension” à “réparer le lien”\n- Objectif: revenir au contact, pas décortiquer.\n- Indicateur: est-ce qu’après la dispute vous reprenez une dynamique de connexion, même petite ?\n\n2) Construire un mini-protocole de relance (court, répétable)\n- Ce que tu dis en 10-20 secondes (sans blâme).\n- Le geste / ton / rythme qui signalent “on se remet ensemble”.\n- Une question simple qui ouvre plutôt qu’elle juge.\n\n3) Garder l’analyse… mais en mode optionnel et post-coup\n- Après coup, quand c’est redescendu: 5 minutes max pour repérer “ce qui a manqué”.\n- Ensuite, retour à l’action: “la prochaine fois, je fais X pour relancer”.\n\n4) Mettre la priorité sur la pratique\n- La semaine suivante: on s’entraîne à relancer 1-2 fois, même version “bête et petite”, plutôt que chercher la phrase parfaite.\n\nPour que je te propose un ajustement propre: quand tu dis “relancer après une dispute”, tu penses plutôt à quel type de moment ?\nA) après un froid / silence\nB) après une dispute avec tension verbale encore présente\nC) après qu’un des deux s’est emporté et que vous devez désamorcer  \nRéponds juste A/B/C (ou mix). 😊",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "bae8ba8e-5b8d-4967-b6d8-1fea790c4d76",
+        "ts": "2026-05-21T15:41:50.258+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 12747,
+          "latency_ms": 6529,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 763,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "structure du plan et direction globale",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et direction globale",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "relancer le lien après une dispute",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "structure du plan et direction globale",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et direction globale",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "relancer le lien après une dispute",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "bae8ba8e-5b8d-4967-b6d8-1fea790c4d76",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "direction globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "direction globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "ajuster la direction globale"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "ajuster la direction globale",
+                    "dernière partie du plan",
+                    "la suite me semble trop centrée sur"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "reason_code": "tool_skill_intent_start",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 9399,
+        "created_at": "2026-05-21T15:41:50.260236+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t02",
+    "user": "Plutôt C, quand l'un de nous s'est emporté. Je veux que le plan aide à revenir au contact sans faire semblant que rien ne s'est passé.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux l’orienter, mais il me manque le type d’ajustement : tu veux surtout changer l’accent du plan pour qu’il parle de retour au contact, ou ajouter une étape explicite pour reconnaître ce qui s’est passé avant de reparler ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "6c875fdb-848a-4587-bde6-3d4e7576adf8",
+        "ts": "2026-05-21T15:42:33.989+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13101,
+          "latency_ms": 8091,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 764,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "contexte du niveau actuel sur les tensions",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "contexte du niveau actuel sur les tensions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "gestion des disputes et reconnexion",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "contexte du niveau actuel sur les tensions",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "contexte du niveau actuel sur les tensions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "gestion des disputes et reconnexion",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "6c875fdb-848a-4587-bde6-3d4e7576adf8",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "direction globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "direction globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "direction globale"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "ajuster la direction globale",
+                    "Je veux que le plan aide à revenir au contact"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "whole_plan.adjustment_type"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas proposer un plan qui prétend rétablir la normalité instantanément.",
+              "Ne pas reformuler le conflit en simple maladresse sans enjeu émotionnel.",
+              "Ne pas diluer la demande dans une simple amélioration de communication générale.",
+              "Ne pas ajouter une étape de réparation lourde, morale ou thérapeutique sans demande explicite.",
+              "Ne pas faire porter à une seule action le travail de réconciliation complète."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "La logique de sécurité et de désamorçage déjà installée.",
+              "Le signal de pause comme outil de protection du lien.",
+              "La sobriété des actions, pour rester praticables en situation réelle.",
+              "L'idée qu'on revient au contact sans effacer ce qui s'est passé.",
+              "Le périmètre global du plan, sauf si le user demande explicitement une nouvelle phase."
+            ],
+            "warnings": [
+              "Éviter de présenter le plan comme si le conflit n'avait pas eu lieu : cela casserait la cohérence émotionnelle de la demande.",
+              "Éviter de proposer une réparation trop ambitieuse ou cérémonielle si le user demande seulement un retour au contact.",
+              "Éviter de remplacer les actions existantes par un travail d'explication ou de justification à chaud.",
+              "Éviter de traiter cela comme un simple problème de cadence ou de charge : le cœur est relationnel et symbolique."
+            ],
+            "readiness": "diagnose",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter l'action comme un pont entre tension et reconnexion, pas comme une solution d'oubli.",
+              "Préserver la fonction de sécurité avant tout, puis expliciter sa fonction de retour au lien.",
+              "Maintenir une langue simple, concrète et non culpabilisante.",
+              "Si une nouvelle action est proposée, elle doit rester courte, à froid, et centrée sur la reprise de contact.",
+              "Ne pas changer la nature du plan sans demande explicite de réorganisation complète.",
+              "Distinguer clairement ce qui est émotionnellement juste de ce qui est techniquement ajoutable au plan."
+            ],
+            "observation": "La demande ne vise pas à corriger une séquence ou une charge, mais à réorienter la manière dont le plan encadre le conflit : le besoin central est de permettre un retour au contact après un emportement, sans effacer l'incident ni faire comme si de rien n'était. Humainement, il s'agit de préserver la vérité relationnelle tout en évitant que le plan reste enfermé dans la seule désescalade technique.",
+            "change_family": "style_or_method_mismatch",
+            "recommendation": "Orienter la prochaine proposition vers un changement d'accent plutôt que vers une refonte structurelle : garder les outils de désamorçage, mais leur donner une fonction explicite de réparation et de reconnexion après tension. Le plan doit faire le pont entre sécurité et reprise de lien, sans basculer vers une fausse réconciliation ni ajouter une nouvelle phase de résolution complète si le besoin n'a pas été formulé ainsi.",
+            "next_best_question": "Souhaites-tu que le plan mette surtout l'accent sur une reprise de contact légère après tension, ou qu'il ajoute une étape explicite pour reconnaître ce qui s'est passé avant de se reparler ?",
+            "options_to_discuss": [
+              "Conserver le signal de pause, mais préciser qu'il sert aussi à permettre une reprise de contact plus propre après montée de tension.",
+              "Transformer le point positif en geste de reconnexion léger, à condition qu'il ne sonne pas faux après un conflit.",
+              "Ajouter une étape de reprise à froid très courte après l'incident, centrée sur le lien et non sur l'analyse.",
+              "Introduire une formulation qui assume explicitement le conflit avant de revenir à une interaction normale.",
+              "Garder le plan actuel mais changer sa promesse implicite : moins 'éviter l'escalade', plus 'retrouver le contact sans nier la rupture'."
+            ],
+            "candidate_operation": "change_emphasis",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "Le plan part d'une logique de désescalade et peut évoluer vers une logique de désamorçage suivi de reconnexion assumée, sans nier l'incident ni ajouter une réparation lourde.",
+            "must_not_execute_reason": "La demande exprime un cadrage relationnel à ajuster, mais pas encore un format opérationnel précis à appliquer ; il faut d'abord confirmer comment intégrer la reconnexion sans trahir le vécu du conflit."
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 27780,
+        "created_at": "2026-05-21T15:42:33.989736+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t03",
+    "user": "Je préfère ajouter une étape explicite, mais pas un truc lourd : reconnaître brièvement ce qui s'est passé, puis proposer un petit geste de retour au contact.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère un niveau intermédiaire, avec un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "f90abf6d-cfb9-4d62-b63b-3eae370b0943",
+        "ts": "2026-05-21T15:43:05.947+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 16825,
+          "latency_ms": 4446,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 758,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "réparation lien après dispute",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "réparation lien après dispute",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "f90abf6d-cfb9-4d62-b63b-3eae370b0943",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "direction globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "direction globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "direction globale"
+                  ]
+                },
+                "payload": {
+                  "constraints": [
+                    "pas un truc lourd",
+                    "reconnaître brièvement ce qui s'est passé",
+                    "proposer un petit geste de retour au contact"
+                  ],
+                  "adjustment_type": "add_step"
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "direction globale",
+                    "Je préfère ajouter une étape explicite"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "revenir au contact sans faire semblant que rien ne s'est passé",
+                  "pas un truc lourd",
+                  "reconnaître brièvement ce qui s'est passé",
+                  "proposer un petit geste de retour au contact",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "whole_plan_directional_draft_ready",
+                  "preserve_plan_intent",
+                  "coach_observation:La demande ne cherche pas à réparer un manque de logique ou de rythme, mais à rendre le plan humainement plus juste après un emportement : il faut pouvoir reconnaître brièvement ce qui s’est passé, puis rouvrir un contact sans faire comme si rien n’avait eu lieu. Le besoin profond est un pont relationnel court, pas une réparation lourde.",
+                  "coach_recommendation:Aller vers une insertion très légère ou un changement d’accent centré sur la reconnexion : garder les outils de sécurité déjà présents, mais expliciter qu’ils servent aussi à revenir au contact après tension. La prochaine proposition doit préserver la vérité du conflit tout en restant praticable à froid.",
+                  "coach_warning:Éviter de présenter cela comme un retour à la normale immédiat : ce serait émotionnellement faux.",
+                  "coach_warning:Éviter d’ajouter une étape de réparation longue, morale ou thérapeutique sans demande explicite.",
+                  "coach_warning:Éviter de transformer le plan en simple communication générale : le sujet est la reprise de lien après rupture de ton.",
+                  "coach_warning:Éviter de faire porter à une seule micro-action toute la réconciliation.",
+                  "coach_warning:Éviter de suggérer qu’il faut oublier ou minimiser ce qui s’est passé.",
+                  "coach_preserve:La logique de désamorçage et de sécurité déjà installée.",
+                  "coach_preserve:Le caractère simple, court et praticable des actions.",
+                  "coach_preserve:Le signal de pause comme protection du lien.",
+                  "coach_preserve:L’idée de revenir au contact sans effacer l’incident.",
+                  "coach_preserve:Le périmètre global du plan, sauf demande explicite de réorganisation plus large.",
+                  "coach_avoid:Proposer un plan qui fait comme si le conflit n’avait pas existé.",
+                  "coach_avoid:Aller vers une réparation cérémonielle ou trop ambitieuse.",
+                  "coach_avoid:Remplacer les actions existantes par de l’explication à chaud.",
+                  "coach_avoid:Sur-vendre une amélioration relationnelle instantanée.",
+                  "coach_avoid:Basculer vers une refonte complète sans demande claire.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:Traiter la demande comme un ajustement de trajectoire relationnelle, pas comme un simple patch opérationnel.",
+                  "coach_guideline:Préserver la fonction de sécurité avant la fonction de reconnexion.",
+                  "coach_guideline:Si une nouvelle étape est proposée, elle doit rester courte, à froid et centrée sur la reprise de contact.",
+                  "coach_guideline:Distinguer clairement ce qui est émotionnellement juste de ce qui est techniquement ajoutable au plan.",
+                  "coach_guideline:Ne pas changer la nature du plan sans demande explicite de restructuration.",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "coach_trajectory_hypothesis:Le plan reste fondé sur la sécurité et peut évoluer vers un enchaînement sécurité puis reconnexion assumée, avec une étape très légère qui reconnaît l’incident avant de rouvrir le lien.",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Partager un point positif"
+                ],
+                "reason_type": "context_changed",
+                "change_target": "global_load",
+                "reason_change": "context_changed"
+              },
+              "title": "Ajuster la trajectoire du plan",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite."
+                ],
+                "unchanged": [
+                  "Objectif global du plan",
+                  "Actions de soutien existantes sauf changement explicitement validé"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+              "decision_basis": {
+                "evidence": [
+                  "Je préfère ajouter une étape explicite, mais pas un truc lourd : reconnaître brièvement ce qui s'est passé, puis proposer un petit geste de retour au contact.",
+                  "direction globale",
+                  "ajouter une étape explicite",
+                  "deterministic whole-plan structural/family signal",
+                  "Préférer une étape explicite plutôt qu'un simple maintien du cadre actuel.",
+                  "le plan aide à revenir au contact",
+                  "sans faire semblant que rien ne s'est passé",
+                  "revenir au contact",
+                  "reconnaître brièvement ce qui s'est passé"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "j'insère un niveau intermédiaire: Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+              "change_rationale": {
+                "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                "success_condition": "Le plan garde son objectif, mais ajoute un niveau intermédiaire avant de monter d'un cran.",
+                "expected_mechanism": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "Le plan passait trop directement d'un bloc au suivant.",
+                  "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+                  "why_this_change": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste."
+                },
+                "boundaries": {
+                  "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                  "affected_scope": "trajectoire globale du plan",
+                  "global_plan_impact": "requires_review",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "identité du plan",
+                    "demande de ne pas transformer cela en simple ajustement d'action"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "j'insère un niveau intermédiaire: Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "after": "À replacer dans une trajectoire plus progressive: Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+                      "title": "Partager un point positif",
+                      "before": "écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif",
+                      "reason": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "title": "Faire le point sur le signal de pause",
+                      "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                    }
+                  ],
+                  "trajectory_change": {
+                    "after": "Le plan garde son objectif, mais ajoute un niveau intermédiaire avant de monter d'un cran.",
+                    "before": "Le plan passait trop directement d'un bloc au suivant.",
+                    "inserted_step": "Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+                    "coaching_reason": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                    "reordered_steps": [
+                      "Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+                      "Reprendre ensuite la progression avec un prérequis consolidé"
+                    ],
+                    "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+                  }
+                },
+                "user_message_brief": "j'insère un niveau intermédiaire: Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+                "user_message_detailed": "j'insère un niveau intermédiaire: Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde son objectif, mais ajoute un niveau intermédiaire avant de monter d'un cran.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère un niveau intermédiaire, avec un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+          },
+          "status": "draft_review",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "3c82b66c-44d9-439d-aa8c-a0705af937f7",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer un plan qui fait comme si le conflit n’avait pas existé.",
+              "Aller vers une réparation cérémonielle ou trop ambitieuse.",
+              "Remplacer les actions existantes par de l’explication à chaud.",
+              "Sur-vendre une amélioration relationnelle instantanée.",
+              "Basculer vers une refonte complète sans demande claire."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "La logique de désamorçage et de sécurité déjà installée.",
+              "Le caractère simple, court et praticable des actions.",
+              "Le signal de pause comme protection du lien.",
+              "L’idée de revenir au contact sans effacer l’incident.",
+              "Le périmètre global du plan, sauf demande explicite de réorganisation plus large."
+            ],
+            "warnings": [
+              "Éviter de présenter cela comme un retour à la normale immédiat : ce serait émotionnellement faux.",
+              "Éviter d’ajouter une étape de réparation longue, morale ou thérapeutique sans demande explicite.",
+              "Éviter de transformer le plan en simple communication générale : le sujet est la reprise de lien après rupture de ton.",
+              "Éviter de faire porter à une seule micro-action toute la réconciliation.",
+              "Éviter de suggérer qu’il faut oublier ou minimiser ce qui s’est passé."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter la demande comme un ajustement de trajectoire relationnelle, pas comme un simple patch opérationnel.",
+              "Préserver la fonction de sécurité avant la fonction de reconnexion.",
+              "Si une nouvelle étape est proposée, elle doit rester courte, à froid et centrée sur la reprise de contact.",
+              "Distinguer clairement ce qui est émotionnellement juste de ce qui est techniquement ajoutable au plan.",
+              "Ne pas changer la nature du plan sans demande explicite de restructuration."
+            ],
+            "observation": "La demande ne cherche pas à réparer un manque de logique ou de rythme, mais à rendre le plan humainement plus juste après un emportement : il faut pouvoir reconnaître brièvement ce qui s’est passé, puis rouvrir un contact sans faire comme si rien n’avait eu lieu. Le besoin profond est un pont relationnel court, pas une réparation lourde.",
+            "change_family": "missing_bridge_or_level",
+            "recommendation": "Aller vers une insertion très légère ou un changement d’accent centré sur la reconnexion : garder les outils de sécurité déjà présents, mais expliciter qu’ils servent aussi à revenir au contact après tension. La prochaine proposition doit préserver la vérité du conflit tout en restant praticable à froid.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Conserver le signal de pause, mais préciser qu’il prépare aussi une reprise de contact plus propre.",
+              "Ajouter une mini-étape de reconnaissance à froid avant le retour au dialogue.",
+              "Transformer le geste de reprise en action très courte et concrète, sans analyse à chaud.",
+              "Modifier la promesse implicite du plan : moins 'éviter l’escalade', plus 'retrouver le contact sans nier la rupture'.",
+              "Faire de la reconnexion un petit pont entre sécurité et reprise, plutôt qu’une nouvelle phase complète."
+            ],
+            "candidate_operation": "insert_phase",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "Le plan reste fondé sur la sécurité et peut évoluer vers un enchaînement sécurité puis reconnexion assumée, avec une étape très légère qui reconnaît l’incident avant de rouvrir le lien.",
+            "must_not_execute_reason": null
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 23650,
+        "created_at": "2026-05-21T15:43:05.949688+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t04",
+    "user": "Là c'est trop générique. Dans le brouillon, je veux que l'étape dise clairement : d'abord reconnaître la tension, ensuite faire un petit geste de retour au contact. Pas juste 'niveau intermédiaire'.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t04",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère un niveau intermédiaire, avec un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t04",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "d26ec45d-04a4-4d74-8c3b-3e42f3bc34f3",
+        "ts": "2026-05-21T15:43:32.262+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13664,
+          "latency_ms": 4494,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 885,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "réparer le lien après dispute",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Là c'est trop générique. Dans le brouillon, je veux que l'étape dise clairement : d'abord reconnaître la tension, ensuite faire un petit geste de retour au cont",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t04",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "réparer le lien après dispute",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Là c'est trop générique. Dans le brouillon, je veux que l'étape dise clairement : d'abord reconnaître la tension, ensuite faire un petit geste de retour au cont",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1.6,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,0,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "d26ec45d-04a4-4d74-8c3b-3e42f3bc34f3",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "direction globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "direction globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "direction globale du plan"
+                  ]
+                },
+                "constraints": "reconnaître la tension, ensuite faire un petit geste de retour au contact",
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "Dans le brouillon, je veux que l'étape dise clairement",
+                    "Pas juste 'niveau intermédiaire'"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "whole_plan_directional_draft_ready",
+                  "preserve_plan_intent",
+                  "avoid_repetitive_clarification_when_user_gives_solution",
+                  "coach_observation:Le besoin n’est plus de décider si une étape intermédiaire existe, mais de lui donner une forme concrète et humainement lisible. Ce qui compte ici, c’est la séquence relationnelle: reconnaître brièvement la tension, puis faire un petit geste de retour au contact. Le flou actuel risque de diluer la fonction de pont et de rendre la progression trop abstraite.",
+                  "coach_recommendation:Renforcer le brouillon en nommant explicitement la micro-séquence de passage: 1) reconnaître ce qui s’est tendu, sans analyse lourde ni justification, 2) poser un petit geste de réouverture du lien. Garder l’intention de sécurité et de simplicité, mais remplacer la formule générique de “niveau intermédiaire” par une étape qui décrit clairement son rôle.",
+                  "coach_warning:Éviter une formulation trop conceptuelle du type 'niveau intermédiaire' sans contenu comportemental.",
+                  "coach_warning:Éviter d’alourdir la reconnaissance avec des explications, des bilans ou une réparation complète.",
+                  "coach_warning:Éviter de présenter le geste de retour au contact comme une reprise normale immédiate ou comme un effacement du conflit.",
+                  "coach_warning:Éviter de transformer cette étape en nouvelle phase autonome si elle est juste un pont court.",
+                  "coach_warning:Éviter de changer l’objectif relationnel vers de l’analyse alors que la demande porte sur la reconnexion.",
+                  "coach_preserve:L’objectif global du plan: revenir à une sécurité relationnelle utilisable.",
+                  "coach_preserve:Le caractère bref, simple et praticable de l’étape.",
+                  "coach_preserve:La logique de protection du lien déjà installée par le signal de pause.",
+                  "coach_preserve:Le fait de ne pas faire semblant que rien ne s’est passé.",
+                  "coach_preserve:La structure globale du plan, sauf si le user demande une restructuration plus large.",
+                  "coach_avoid:Ne pas proposer un brouillon vague ou purement structurel.",
+                  "coach_avoid:Ne pas surcharger l’étape de langage thérapeutique ou moral.",
+                  "coach_avoid:Ne pas suggérer une réparation exhaustive.",
+                  "coach_avoid:Ne pas présenter le changement comme un simple embellissement rédactionnel.",
+                  "coach_avoid:Ne pas effacer la séquence demandée par le user: reconnaissance d’abord, geste ensuite.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:Décrire la fonction de l’étape en termes concrets et relationnels, pas seulement en termes d’architecture.",
+                  "coach_guideline:Garder la mini-séquence explicite dans l’ordre demandé: reconnaître la tension, puis faire un petit geste de retour au contact.",
+                  "coach_guideline:Préserver le ton: court, sobre, non lourd, non dramatique.",
+                  "coach_guideline:Si une reformulation est proposée, elle doit montrer le passage entre sécurité et reconnexion sans ambiguïté.",
+                  "coach_guideline:Distinguer la précision humaine utile du jargon de trajectoire: ici, la clarté du geste prime sur la sophistication du terme.",
+                  "coach_guideline:Ne pas changer la nature du plan; seulement rendre la transition intelligible et praticable.",
+                  "coach_guideline:Si besoin, utiliser une formulation de pont, mais elle doit rester immédiatement compréhensible par le user.",
+                  "coach_guideline:Éviter toute proposition qui ferait croire qu’il faut d’abord tout comprendre avant de réparer le lien.",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:needs_confirmation",
+                  "coach_must_not_execute:Le brouillon existe déjà mais il reste trop générique; il faut d’abord le préciser en validant la micro-séquence voulue avant toute régénération définitive.",
+                  "coach_trajectory_hypothesis:Le plan conserve sa trajectoire de sécurité puis s’enrichit d’un pont explicite: reconnaître la tension, puis poser un geste court de retour au contact.",
+                  "coach_next_best_question:Veux-tu que j’écrive cette étape en une seule phrase très concrète, avec la séquence exacte 'reconnaître la tension puis faire un petit geste de retour au contact' ?",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Faire le point sur le signal de pause"
+                ],
+                "reason_type": "bad_fit",
+                "change_target": "global_load",
+                "reason_change": "context_changed"
+              },
+              "title": "Ajuster la trajectoire du plan",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite."
+                ],
+                "unchanged": [
+                  "Objectif global du plan",
+                  "Actions de soutien existantes sauf changement explicitement validé"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+              "decision_basis": {
+                "evidence": [
+                  "Là c'est trop générique. Dans le brouillon, je veux que l'étape dise clairement : d'abord reconnaître la tension, ensuite faire un petit geste de retour au contact. Pas juste 'niveau intermédiaire'.",
+                  "direction globale",
+                  "ajouter une étape explicite",
+                  "rebalance",
+                  "deterministic whole-plan fit/complexity signal",
+                  "le plan aide à revenir au contact",
+                  "sans faire semblant que rien ne s'est passé",
+                  "revenir au contact",
+                  "reconnaître brièvement ce qui s'est passé"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "j'insère un niveau intermédiaire: Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+              "change_rationale": {
+                "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                "success_condition": "Le plan garde son objectif, mais ajoute un niveau intermédiaire avant de monter d'un cran.",
+                "expected_mechanism": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "Le plan passait trop directement d'un bloc au suivant.",
+                  "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+                  "why_this_change": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste."
+                },
+                "boundaries": {
+                  "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                  "affected_scope": "trajectoire globale du plan",
+                  "global_plan_impact": "requires_review",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "identité du plan",
+                    "demande de ne pas transformer cela en simple ajustement d'action"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "j'insère un niveau intermédiaire: Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                      "reason": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "title": "Partager un point positif",
+                      "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                    }
+                  ],
+                  "trajectory_change": {
+                    "after": "Le plan garde son objectif, mais ajoute un niveau intermédiaire avant de monter d'un cran.",
+                    "before": "Le plan passait trop directement d'un bloc au suivant.",
+                    "inserted_step": "Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+                    "coaching_reason": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                    "reordered_steps": [
+                      "Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+                      "Reprendre ensuite la progression avec un prérequis consolidé"
+                    ],
+                    "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+                  }
+                },
+                "user_message_brief": "j'insère un niveau intermédiaire: Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+                "user_message_detailed": "j'insère un niveau intermédiaire: Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde son objectif, mais ajoute un niveau intermédiaire avant de monter d'un cran.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère un niveau intermédiaire, avec un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+          },
+          "status": "draft_review_updated",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "c5d6519e-64c2-4725-8ad5-303cfcf21608",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas proposer un brouillon vague ou purement structurel.",
+              "Ne pas surcharger l’étape de langage thérapeutique ou moral.",
+              "Ne pas suggérer une réparation exhaustive.",
+              "Ne pas présenter le changement comme un simple embellissement rédactionnel.",
+              "Ne pas effacer la séquence demandée par le user: reconnaissance d’abord, geste ensuite."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L’objectif global du plan: revenir à une sécurité relationnelle utilisable.",
+              "Le caractère bref, simple et praticable de l’étape.",
+              "La logique de protection du lien déjà installée par le signal de pause.",
+              "Le fait de ne pas faire semblant que rien ne s’est passé.",
+              "La structure globale du plan, sauf si le user demande une restructuration plus large."
+            ],
+            "warnings": [
+              "Éviter une formulation trop conceptuelle du type 'niveau intermédiaire' sans contenu comportemental.",
+              "Éviter d’alourdir la reconnaissance avec des explications, des bilans ou une réparation complète.",
+              "Éviter de présenter le geste de retour au contact comme une reprise normale immédiate ou comme un effacement du conflit.",
+              "Éviter de transformer cette étape en nouvelle phase autonome si elle est juste un pont court.",
+              "Éviter de changer l’objectif relationnel vers de l’analyse alors que la demande porte sur la reconnexion."
+            ],
+            "readiness": "needs_confirmation",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Décrire la fonction de l’étape en termes concrets et relationnels, pas seulement en termes d’architecture.",
+              "Garder la mini-séquence explicite dans l’ordre demandé: reconnaître la tension, puis faire un petit geste de retour au contact.",
+              "Préserver le ton: court, sobre, non lourd, non dramatique.",
+              "Si une reformulation est proposée, elle doit montrer le passage entre sécurité et reconnexion sans ambiguïté.",
+              "Distinguer la précision humaine utile du jargon de trajectoire: ici, la clarté du geste prime sur la sophistication du terme.",
+              "Ne pas changer la nature du plan; seulement rendre la transition intelligible et praticable.",
+              "Si besoin, utiliser une formulation de pont, mais elle doit rester immédiatement compréhensible par le user.",
+              "Éviter toute proposition qui ferait croire qu’il faut d’abord tout comprendre avant de réparer le lien."
+            ],
+            "observation": "Le besoin n’est plus de décider si une étape intermédiaire existe, mais de lui donner une forme concrète et humainement lisible. Ce qui compte ici, c’est la séquence relationnelle: reconnaître brièvement la tension, puis faire un petit geste de retour au contact. Le flou actuel risque de diluer la fonction de pont et de rendre la progression trop abstraite.",
+            "change_family": "missing_bridge_or_level",
+            "recommendation": "Renforcer le brouillon en nommant explicitement la micro-séquence de passage: 1) reconnaître ce qui s’est tendu, sans analyse lourde ni justification, 2) poser un petit geste de réouverture du lien. Garder l’intention de sécurité et de simplicité, mais remplacer la formule générique de “niveau intermédiaire” par une étape qui décrit clairement son rôle.",
+            "next_best_question": "Veux-tu que j’écrive cette étape en une seule phrase très concrète, avec la séquence exacte 'reconnaître la tension puis faire un petit geste de retour au contact' ?",
+            "options_to_discuss": [
+              "Nommer la phase comme un mini-pont en deux temps: reconnaître puis rouvrir le contact.",
+              "Formuler l’étape comme un script très bref, utilisable à froid après l’emportement.",
+              "Rattacher cette étape au signal de pause comme suite naturelle: pause, puis reconnaissance, puis geste de reprise.",
+              "Faire de cette étape un sas de réparation légère plutôt qu’une sous-phase théorique.",
+              "Conserver le plan existant, mais préciser le critère de sortie: on passe quand la tension a été reconnue et qu’un geste de contact a été tenté."
+            ],
+            "candidate_operation": "insert_phase",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "Le plan conserve sa trajectoire de sécurité puis s’enrichit d’un pont explicite: reconnaître la tension, puis poser un geste court de retour au contact.",
+            "must_not_execute_reason": "Le brouillon existe déjà mais il reste trop générique; il faut d’abord le préciser en validant la micro-séquence voulue avant toute régénération définitive."
+          },
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "pre_validation_concrete_constraint_requires_revision"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "previous_operation_id": "3c82b66c-44d9-439d-aa8c-a0705af937f7",
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 16571,
+        "created_at": "2026-05-21T15:43:32.264835+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t05",
+    "user": "Je ne valide pas tant que ce n'est pas repris explicitement. Est-ce que le brouillon contient bien les deux temps : reconnaître la tension, puis proposer un geste de retour au contact ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t05",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui. Le brouillon prévoit bien: Le plan garde son objectif, mais ajoute un niveau intermédiaire avant de monter d'un cran.\n\nJe n'applique rien tant que tu ne me le confirmes pas clairement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t05",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "c542d354-8102-4636-98d2-e8daf98838be",
+        "ts": "2026-05-21T15:43:46.691+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13853,
+          "latency_ms": 4750,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 666,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et direction globale",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "réparer le lien après dispute",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r128-level4-direction-e2e-t05",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et direction globale",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "réparer le lien après dispute",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1.9,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,0,1,1.6;decay=0.55;recovery=0",
+                "contribution": 0.9
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              0,
+              1,
+              1.6
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "c542d354-8102-4636-98d2-e8daf98838be",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "draft_review_details",
+          "reason_code": "skill_entry_signal",
+          "operation_id": "c5d6519e-64c2-4725-8ad5-303cfcf21608",
+          "selected_handler": "adjust_plan_item",
+          "draft_review_decision": {
+            "decision": "explain",
+            "evidence": [
+              "pre_validation_detail_request_deterministic_answer"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 4808,
+        "created_at": "2026-05-21T15:43:46.69271+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

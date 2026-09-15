@@ -1,0 +1,1302 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t01",
+    "user": "fais moi un truc d'attaque pour le machin du soir avec le carnet, j'ai pas d'idée de technique et j'ai pas envie d'un pavé",
+    "status": 200,
+    "response": {
+      "content": "C'est noté pour le sas de déchargement. Pour rester sur du très court, je te propose ces 3 options :\n\n1. Mantra de force\n2. Mot de bascule\n3. Ancre visuelle\n\nLaquelle te tente ?",
+      "mode": "companion",
+      "tool_execution": "blocked",
+      "executed_tools": []
+    },
+    "trace": {
+      "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "source_message_id": "abd75fb6-7f7a-473b-95af-1c5af5e4f76f",
+      "ts": "2026-05-14T17:30:31.4+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 4921,
+        "latency_ms": 3331,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 610,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.execution",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "sas de déchargement carnet",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "whatsapp",
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t01",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.execution",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "sas de déchargement carnet",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {},
+          "lifecycle": {}
+        },
+        "direct_effects": [],
+        "conversation_risk": {
+          "score": 0,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [],
+          "context_summary": null,
+          "previous_scores": [],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "abd75fb6-7f7a-473b-95af-1c5af5e4f76f",
+        "tool_skill_intents": [
+          {
+            "ambiguity": "none",
+            "target_hint": "machin du soir avec le carnet",
+            "user_intent": "create",
+            "explicitness": "explicit",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "high",
+            "operation_input": {
+              "constraints": {
+                "value": "pas un pavé",
+                "status": "identified",
+                "confidence": "high"
+              },
+              "target_item": {
+                "value": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+                "status": "identified",
+                "evidence": [
+                  "machin du soir avec le carnet",
+                  "Faire le sas de déchargement"
+                ],
+                "confidence": "high"
+              }
+            }
+          }
+        ],
+        "confirmation_response": null,
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "tool_skill_intent_start",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_attack_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [],
+      "skill_run": null,
+      "operation_flow_run": {
+        "status": "ask_question",
+        "slot_state": {
+          "slot": "technique",
+          "needed": true,
+          "reason": "structured_ai_missing_technique",
+          "status": "missing",
+          "question": "C'est noté pour le sas de déchargement. Pour rester sur du très court, je te propose ces 3 options :\n\n1. Mantra de force\n2. Mot de bascule\n3. Ancre visuelle\n\nLaquelle te tente ?",
+          "known_slots": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "intake_state": {
+              "target": {
+                "kind": "plan_item",
+                "title": "Faire le sas de déchargement",
+                "status": "identified",
+                "evidence": [
+                  "le machin du soir avec le carnet"
+                ],
+                "confidence": "high",
+                "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+              },
+              "blocker": {
+                "type": "friction",
+                "evidence": [
+                  "pas envie d'un pavé",
+                  "truc d'attaque"
+                ],
+                "confidence": 0.7
+              },
+              "skill_id": "prepare_attack_card",
+              "technique": {
+                "value": null,
+                "status": "ambiguous",
+                "options": [
+                  {
+                    "title": "Mantra de force",
+                    "reason": "Format très court, idéal pour éviter les pavés.",
+                    "example": "Une phrase courte qui te remet dans ton axe.",
+                    "description": "Installer plus de force interieure face a l'action, avant le moment difficile.",
+                    "recommended": true,
+                    "technique_key": "mantra_force"
+                  },
+                  {
+                    "title": "Mot de bascule",
+                    "reason": "L'option la plus minimaliste : un seul mot à m'envoyer.",
+                    "example": "Envoyer BASCULE quand tu sens que tu vas esquiver.",
+                    "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                    "recommended": true,
+                    "technique_key": "pre_engagement"
+                  },
+                  {
+                    "title": "Ancre visuelle",
+                    "reason": "Utilise ton carnet physique comme déclencheur visuel.",
+                    "example": "Un carnet visible avec une phrase de depart.",
+                    "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                    "recommended": false,
+                    "technique_key": "ancre_visuelle"
+                  }
+                ],
+                "evidence": [
+                  "pas d'idée de technique",
+                  "pas envie d'un pavé"
+                ],
+                "confidence": "medium",
+                "fit_warning": null,
+                "explicitly_requested": false
+              },
+              "confidence": "high",
+              "constraints": [
+                "format court",
+                "pas de pavé"
+              ],
+              "current_step": "technique_selection",
+              "missing_slots": [
+                "technique"
+              ],
+              "activation_keyword": {
+                "value": null,
+                "status": "missing",
+                "options": [],
+                "evidence": [],
+                "confidence": "low",
+                "rejected_value": null
+              },
+              "generated_user_message": "C'est noté pour le sas de déchargement. Pour rester sur du très court, je te propose ces 3 options :\n\n1. Mantra de force\n2. Mot de bascule\n3. Ancre visuelle\n\nLaquelle te tente ?"
+            },
+            "technique_options": [
+              {
+                "title": "Mantra de force",
+                "reason": "Format très court, idéal pour éviter les pavés.",
+                "example": "Une phrase courte qui te remet dans ton axe.",
+                "description": "Installer plus de force interieure face a l'action, avant le moment difficile.",
+                "recommended": true,
+                "technique_key": "mantra_force"
+              },
+              {
+                "title": "Mot de bascule",
+                "reason": "L'option la plus minimaliste : un seul mot à m'envoyer.",
+                "example": "Envoyer BASCULE quand tu sens que tu vas esquiver.",
+                "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                "recommended": true,
+                "technique_key": "pre_engagement"
+              },
+              {
+                "title": "Ancre visuelle",
+                "reason": "Utilise ton carnet physique comme déclencheur visuel.",
+                "example": "Un carnet visible avec une phrase de depart.",
+                "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                "recommended": false,
+                "technique_key": "ancre_visuelle"
+              }
+            ]
+          },
+          "technique_options": [
+            {
+              "title": "Mantra de force",
+              "reason": "Format très court, idéal pour éviter les pavés.",
+              "example": "Une phrase courte qui te remet dans ton axe.",
+              "description": "Installer plus de force interieure face a l'action, avant le moment difficile.",
+              "recommended": true,
+              "technique_key": "mantra_force"
+            },
+            {
+              "title": "Mot de bascule",
+              "reason": "L'option la plus minimaliste : un seul mot à m'envoyer.",
+              "example": "Envoyer BASCULE quand tu sens que tu vas esquiver.",
+              "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "recommended": true,
+              "technique_key": "pre_engagement"
+            },
+            {
+              "title": "Ancre visuelle",
+              "reason": "Utilise ton carnet physique comme déclencheur visuel.",
+              "example": "Un carnet visible avec une phrase de depart.",
+              "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+              "recommended": false,
+              "technique_key": "ancre_visuelle"
+            }
+          ],
+          "activation_keyword_options": []
+        },
+        "reason_code": "tool_skill_intent_start",
+        "missing_slots": [
+          "technique"
+        ],
+        "selected_handler": "prepare_attack_card"
+      },
+      "recommendation_tool_run": null,
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "tool_skill",
+      "total_latency_ms": 16035,
+      "created_at": "2026-05-14T17:30:31.405011+00:00"
+    },
+    "error": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t02",
+    "user": "mot de bascule. propose un mot mais pas un truc nul",
+    "status": 200,
+    "response": {
+      "content": "Ça marche pour le Mot de bascule. Pour ton sas de déchargement, je te propose : OFF, VIDE ou LÂCHE. Lequel te parle le plus ?",
+      "mode": "companion",
+      "tool_execution": "blocked",
+      "executed_tools": []
+    },
+    "trace": {
+      "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t02",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "source_message_id": "e7090bd2-5ec8-4835-83bc-75fbb4d69e0f",
+      "ts": "2026-05-14T17:30:57.377+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 7193,
+        "latency_ms": 3259,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 566,
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "whatsapp",
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t02",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {
+            "emotional_repair": {
+              "reason": "self_attack_or_shame",
+              "detected": true,
+              "confidence_band": "high"
+            }
+          },
+          "lifecycle": {}
+        },
+        "direct_effects": [],
+        "conversation_risk": {
+          "score": 1,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": true,
+              "evidence": "active_skill_or_operation_state",
+              "contribution": 1
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": "0;decay=0.55;recovery=0",
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "e7090bd2-5ec8-4835-83bc-75fbb4d69e0f",
+        "tool_skill_intents": [
+          {
+            "ambiguity": "none",
+            "target_hint": "Faire le sas de déchargement",
+            "user_intent": "create",
+            "explicitness": "explicit",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "high",
+            "operation_input": {
+              "technique": {
+                "value": "pre_engagement",
+                "status": "identified",
+                "evidence": [
+                  "mot de bascule"
+                ],
+                "confidence": "high"
+              }
+            }
+          }
+        ],
+        "confirmation_response": null,
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "active_tool_skill_continue",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_attack_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [],
+      "skill_run": null,
+      "operation_flow_run": {
+        "status": "ask_question",
+        "slot_state": {
+          "slot": "activation_keyword",
+          "needed": true,
+          "reason": "structured_ai_missing_activation_keyword",
+          "status": "missing",
+          "question": "Ça marche pour le Mot de bascule. Pour ton sas de déchargement, je te propose : OFF, VIDE ou LÂCHE. Lequel te parle le plus ?",
+          "known_slots": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "technique": "pre_engagement",
+            "intake_state": {
+              "target": {
+                "kind": "plan_item",
+                "title": "Faire le sas de déchargement",
+                "status": "identified",
+                "evidence": [
+                  "structured_operation_input"
+                ],
+                "confidence": "high",
+                "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+              },
+              "blocker": {
+                "type": "friction",
+                "evidence": [
+                  "pas envie d'un pavé",
+                  "truc d'attaque"
+                ],
+                "confidence": 0.7
+              },
+              "skill_id": "prepare_attack_card",
+              "technique": {
+                "value": "pre_engagement",
+                "status": "identified",
+                "options": [],
+                "evidence": [
+                  "mot de bascule"
+                ],
+                "confidence": "high",
+                "fit_warning": null,
+                "explicitly_requested": true
+              },
+              "confidence": "high",
+              "constraints": [
+                "format court",
+                "pas de pavé"
+              ],
+              "current_step": "keyword_intake",
+              "missing_slots": [
+                "activation_keyword"
+              ],
+              "activation_keyword": {
+                "value": null,
+                "status": "missing",
+                "options": [
+                  "OFF",
+                  "VIDE",
+                  "LÂCHE"
+                ],
+                "evidence": [],
+                "confidence": "low",
+                "rejected_value": null
+              },
+              "generated_user_message": "Ça marche pour le Mot de bascule. Pour ton sas de déchargement, je te propose : OFF, VIDE ou LÂCHE. Lequel te parle le plus ?"
+            },
+            "activation_keyword_options": [
+              "OFF",
+              "VIDE",
+              "LÂCHE"
+            ]
+          },
+          "technique_options": [],
+          "activation_keyword_options": [
+            "OFF",
+            "VIDE",
+            "LÂCHE"
+          ]
+        },
+        "reason_code": "active_tool_skill_continue",
+        "missing_slots": [
+          "activation_keyword"
+        ],
+        "selected_handler": "prepare_attack_card"
+      },
+      "recommendation_tool_run": null,
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "tool_skill",
+      "total_latency_ms": 12402,
+      "created_at": "2026-05-14T17:30:57.381468+00:00"
+    },
+    "error": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t03",
+    "user": "lâche",
+    "status": 200,
+    "response": {
+      "content": "Titre : Sas de déchargement\nTechnique : Mot de bascule\nContenu : LÂCHE\nMode d'emploi : Envoie ce mot ici dès que tu hésites à démarrer ton sas.\nOn valide et je crée la carte ?",
+      "mode": "companion",
+      "tool_execution": "blocked",
+      "executed_tools": []
+    },
+    "trace": {
+      "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t03",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "source_message_id": "f81c32d5-f712-4d9b-8323-80dd23acdac4",
+      "ts": "2026-05-14T17:31:27.762+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 6142,
+        "latency_ms": 6471,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 562,
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "whatsapp",
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t03",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {},
+          "lifecycle": {
+            "state": "collecting_slots",
+            "active_skill_id": "prepare_attack_card"
+          }
+        },
+        "direct_effects": [],
+        "conversation_risk": {
+          "score": 1.6,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": true,
+              "evidence": "active_skill_or_operation_state",
+              "contribution": 1
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": true,
+              "evidence": "0,1;decay=0.55;recovery=0",
+              "contribution": 0.6
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure",
+            "previous_risk"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0,
+            1
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "f81c32d5-f712-4d9b-8323-80dd23acdac4",
+        "tool_skill_intents": [
+          {
+            "ambiguity": "none",
+            "target_hint": "Faire le sas de déchargement",
+            "user_intent": "create",
+            "explicitness": "explicit",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "high",
+            "operation_input": {
+              "activation_keyword": {
+                "value": "LÂCHE",
+                "status": "identified",
+                "evidence": [
+                  "lâche"
+                ],
+                "confidence": "high"
+              }
+            }
+          }
+        ],
+        "confirmation_response": null,
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "active_tool_skill_continue",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_attack_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [],
+      "skill_run": null,
+      "operation_flow_run": {
+        "draft": {
+          "draft": {
+            "title": "Sas de déchargement",
+            "technique": "pre_engagement",
+            "instruction": "Envoie ce mot dès que tu sens la résistance monter pour ton sas de déchargement.",
+            "mode_emploi": "Envoie 'LÂCHE' ici dès que tu hésites à faire ton sas de déchargement.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Ce mot agit comme un interrupteur pour stopper l'évitement et passer à l'action.",
+            "generated_asset": "LÂCHE",
+            "technique_title": "Mot de bascule",
+            "supporting_points": [
+              "Coupe court aux négociations mentales",
+              "Déclenche l'action immédiate"
+            ],
+            "activation_keyword": "LÂCHE"
+          },
+          "output_schema": "attack_card_draft_v1",
+          "operation_type": "prepare_attack_card",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Titre : Sas de déchargement\nTechnique : Mot de bascule\nContenu : LÂCHE\nMode d'emploi : Envoie ce mot ici dès que tu hésites à démarrer ton sas.\nOn valide et je crée la carte ?"
+        },
+        "status": "pending_confirmation",
+        "reason_code": "active_tool_skill_continue",
+        "operation_id": "1edb8bae-3f59-4882-8a71-d9dcfc14c88e",
+        "selected_handler": "prepare_attack_card"
+      },
+      "recommendation_tool_run": null,
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "tool_skill",
+      "total_latency_ms": 18446,
+      "created_at": "2026-05-14T17:31:27.768197+00:00"
+    },
+    "error": null,
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t04",
+    "user": "ok go",
+    "status": 200,
+    "response": {
+      "content": "C'est fait. J'ai créé cette carte d'attaque :\n\nSas de déchargement\nTechnique : Mot de bascule\nLÂCHE\n\nMode d'emploi : Envoie 'LÂCHE' ici dès que tu hésites à faire ton sas de déchargement.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.",
+      "mode": "companion",
+      "tool_execution": "success",
+      "executed_tools": [
+        "prepare_attack_card"
+      ]
+    },
+    "trace": {
+      "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t04",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "source_message_id": "34e1981a-85f5-4801-ad38-2d0dd3c738af",
+      "ts": "2026-05-14T17:31:42.475+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 5655,
+        "latency_ms": 2365,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 492,
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "whatsapp",
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t04",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {},
+          "lifecycle": {}
+        },
+        "direct_effects": [],
+        "conversation_risk": {
+          "score": 1,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": true,
+              "evidence": "active_skill_or_operation_state",
+              "contribution": 1
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": "0,1,1.6;decay=0.55;recovery=1.5",
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0,
+            1,
+            1.6
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "34e1981a-85f5-4801-ad38-2d0dd3c738af",
+        "tool_skill_intents": [],
+        "confirmation_response": {
+          "kind": "yes",
+          "raw_intent": "confirm_operation",
+          "confidence_band": "high",
+          "correction_payload": null
+        },
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "confirmation_yes",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "pending_confirmation",
+        "memory_use_kind": "none",
+        "selected_handler": "execute_confirmed",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [
+        {
+          "outcome": "success",
+          "tool_id": "prepare_attack_card"
+        }
+      ],
+      "skill_run": null,
+      "operation_flow_run": {
+        "status": "executed",
+        "reason_code": "confirmation_yes",
+        "operation_id": "1edb8bae-3f59-4882-8a71-d9dcfc14c88e",
+        "attack_card_id": "0812856d-0806-4d0a-9d53-52b318b0fdce",
+        "selected_handler": "prepare_attack_card"
+      },
+      "recommendation_tool_run": null,
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "pending_confirmation",
+      "total_latency_ms": 2666,
+      "created_at": "2026-05-14T17:31:42.479577+00:00"
+    },
+    "error": null,
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t05",
+    "user": "LÂCHE",
+    "status": 200,
+    "response": {
+      "content": "Parfait — là, on tient le cap : fais le sas de déchargement en mode ultra simple, maintenant. 5 minutes, sans négocier. Tu démarres par un seul geste (ouvrir/poser/commencer la première étape) puis tu continues juste à la cadence. 💪",
+      "mode": "companion",
+      "tool_execution": "success",
+      "executed_tools": [
+        "track_progress_plan_item"
+      ]
+    },
+    "trace": {
+      "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t05",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "source_message_id": "aa5b9654-ad3b-4c32-93f1-ffe1a3d762b6",
+      "ts": "2026-05-14T17:32:07.31+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 5242,
+        "latency_ms": 2726,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 575,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "sas_de_dechargement",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "carte d'attaque mot de bascule lâche",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "whatsapp",
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r9-t05",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "sas_de_dechargement",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "carte d'attaque mot de bascule lâche",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {},
+          "lifecycle": {}
+        },
+        "direct_effects": [],
+        "conversation_risk": {
+          "score": 0.6,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": true,
+              "evidence": "0,1,1.6,1;decay=0.55;recovery=0",
+              "contribution": 0.6
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "previous_risk"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0,
+            1,
+            1.6,
+            1
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "aa5b9654-ad3b-4c32-93f1-ffe1a3d762b6",
+        "tool_skill_intents": [],
+        "confirmation_response": null,
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "normal_reply_default",
+        "blocked_paths": [
+          {
+            "path": "direct_effects.track_progress_plan_item",
+            "reason_code": "attack_keyword_trigger_is_not_completion"
+          }
+        ],
+        "route_version": "v1",
+        "response_owner": "normal_reply",
+        "memory_use_kind": "none",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [
+        {
+          "outcome": "success",
+          "tool_id": "track_progress_plan_item"
+        }
+      ],
+      "skill_run": null,
+      "operation_flow_run": null,
+      "recommendation_tool_run": null,
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "normal_reply",
+      "total_latency_ms": 4779,
+      "created_at": "2026-05-14T17:32:07.314924+00:00"
+    },
+    "error": null,
+    "trace_error": null
+  }
+]

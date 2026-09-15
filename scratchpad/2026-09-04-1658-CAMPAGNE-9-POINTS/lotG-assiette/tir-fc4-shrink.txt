@@ -1,0 +1,57 @@
+74f5054e les courses comptées (œufs, pommes, cuillères) suivent aussi la demande : deux classes par terme, la ligne choisit la sienne
+═══════ FC4 — 16:50:53
+   retenu: [{"at":"2026-09-06","item":"","kind":"food.exclude","text":"poulet","quote":null,"scope":"durable","value":null,"source":"written","subject":"household","confidence":null},{"at":"2026-09-06","item":"","kind":"food.exclude","text":"saumon","quote":null,"scope":"durable","value":null,"source":"written","subject":"household","confidence":null},{"at":"2026-09-06","item":"","kind":"food.exclude","text":"thon","quote":null,"scope":"durable","value":null,"source":"written","subject":"household","confidence":null}] 
+   items en base: 3
+      empreinte AVANT=5cb490e37155 · llm_usage AVANT=11297 · début 14:50:54Z
+      ⚠️ WORKER_LIMIT à l'essai 1 (400.525902 s) · llm_usage=11302 — worker saturé, j'attends
+      http=200 · 348.487278 s · essais=2 · llm_usage delta=10
+      empreinte APRÈS=5cb490e37155 (inchangée ✓)
+      → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/plan-FC4-20260906-165053.json (69097 octets) · journal 42 lignes
+      ⤺ fixture restaurée ✓
+── énergie par bouche
+   ════ plan-FC4-20260906-165053.json · quatre
+   ── cibles (production)
+   Paul    entretien 2700  cible 2200  déjeuner 880 kcal ≈ 652 g composés
+   Claire  entretien 1986  cible 1986  déjeuner 794 kcal ≈ 588 g composés
+   Leo     entretien 2459  cible 2459  déjeuner 984 kcal ≈ 729 g composés
+   Nora    entretien 1926  cible 1926  déjeuner 770 kcal ≈ 570 g composés
+   TABLE   cible/jour 8571 kcal · déjeuner 3428 kcal ≈ 2540 g composés
+   ── livré dans les boîtes (bac divisé par ses mangeurs)
+   Claire         12     815         796             17             0
+   Leo            12     815         796             17             0
+   Nora           12     805         786             16             0
+   Paul           12     907         895             18             0
+   MASSE NON RÉSOLUE (plats en boîtes, ingrédients en g) : 0 / 11038 g = 0 %
+   jour    kcal   protéine   termes non résolus
+   MOYENNE  3471      129 g
+   ── compteurs
+     anchor: {"anchored": 2, "day_incomplete": 0, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 5, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 21}
+     unmet: {"none": 2, "factor_clamped": 5, "pot_ceiling": 0, "both": 0, "not_anchored": 0, "tub_estimate": 21}
+     unmet_band: {"lt_200": 4, "gte_200": 21}
+     densify: moved 87 g · closed 50 kcal · remaining_gte_200 0 · stopped {"closed": 1, "floor": 0, "ceiling": 1, "pot_exhausted": 0, "no_dense_target": 2, "no_box": 0, "no_density": 0}
+     meals_delivered: missing 4 · retry_attempts 2 · merged 4
+     regime_belt: bites 7 separated 7 refused 0 citation_repaired 0 item_repaired 0
+     boîtes à un nom: 7 · g moyens 724 · min 563 · max 880
+   ── explication IA: {"lines": ["La base commune reste végétale, tandis que quelques repas ajoutent une protéine distincte afin de garder des assiettes adaptées à chacun sans préparer deux plats complets.", "Les fruits et légumes de fin d'été en France ont été privilégiés pour des repas frais et faciles à cuisiner."], "refusal": null}
+   ── plats: 37 · titres distincts 31 · jours composés 7 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 7}) · sessions 3 · issues 112
+── ceinture d'exclusion (journal)
+   {'terms': 3, 'terms_unallocated': 15, 'mouths': 4, 'checked': 4, 'kept': 1, 'refused': 3, 'bites': 4, 'separated': 1, 'not_separated': 3, 'box_scoped': 4, 'bites_before': 1, 'bites_after': 0, 'retried': True}
+   retained_items: {'composition': 3, 'served': None, 'unrouted': 0, 'refused': 0, 'other_subjects': 0, 'craving': 0}
+   {"tag":"keel.household_meal.composition","user_id":"2b252884-e267-4d2f-8394-9edaaef85ee2","household_id":"e2f70120-2795-4ad4-ab80-50e6ebf20b93","mode":"per_portion","deltas":0,"family_service":true,"residual_gaps_count":0,"residual_gaps_max_band":"none"}
+── fuites : terme exclu dans les ITEMS d'une boîte de la bouche exclue (ou une casserole citée) — heuristique de banc
+   boîtes vérifiées 57 · fuites 0
+FIN FC4 17:04:57
+══════ ARCHIVE plan-FC4-20260906-165053.json
+   pot_growth: {"scaled": 5, "capped": 0, "shopping": 11, "unrewritable": 2, "regrammed": 29, "passes": 2, "short_after": 0}
+   pot_shrink: {"pots": 1, "removed": 3, "kept": 5, "unboxed_use": 0, "unreadable": 0, "sessions_emptied": 0, "lines_scaled": 11, "lines_dropped": 7, "lines_unattributed": 2, "lines_unrewritable": 2}
+   capped_by_pot: 0
+   unmet: {"none": 2, "factor_clamped": 5, "pot_ceiling": 0, "both": 0, "not_anchored": 0, "tub_estimate": 21}
+   unmet_band: {"lt_200": 4, "gte_200": 21}
+   lost_by_line: {"mouth_days": 0, "slots": 0, "kcal": 0, "kcal_unknown": 0}
+   anchor_cap: {"none": 23, "density": 1, "density_floor": 4, "assumed_density": 0, "factor_bound": 0}
+   meals_delivered: {'missing': 4, 'retry_attempts': 2, 'retry_merged_cells': 4}
+   préparations: [('prep_quinoa_veg', 8), ('prep_chickpeas', 6), ('prep_lentil_stew', 8), ('prep_ratatouille', 8), ('prep_tofu_curry', 8), ('prep_roasted_veg', 6)]
+   sessions: [('sun', 2), ('tue', 1), ('thu', 3)]
+   courses: 27 lignes · []
+   issues casseroles: ['preparations: 3 batch(es) no box draws on any more -- not cooked, not bought (prep_chicken, prep_salmon, prep_chicken_thu)', 'preparations[3]: the meals that take from "Ragoût de lentilles" hold 4200 g but it makes about 2840 g ready -- the boxes cannot all be filled', 'preparations[7]: the meals that take from "Riz et légumes rôtis" hold 3300 g but it makes about 2430 g ready -- the boxes cannot all be filled']
+fini 17:04:57

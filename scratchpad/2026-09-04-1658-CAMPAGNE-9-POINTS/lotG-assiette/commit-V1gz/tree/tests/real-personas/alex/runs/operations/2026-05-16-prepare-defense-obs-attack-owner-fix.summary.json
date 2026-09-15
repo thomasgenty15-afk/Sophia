@@ -1,0 +1,379 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-16-obs-attack-owner-fix-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je vais refaire la zone de déchargement ce soir, mais je sens que je vais minimiser le geste et repousser.",
+    "assistant": "Ah… je vois le piège classique : “ce soir je le fais”, puis ton cerveau négocie à la baisse et tu repousses. 😅\n\nOn va empêcher ça avec un micro-geste non négociable :\n1) minuteur 5 minutes max\n2) tu fais seulement “ouvrir + vider ce qui traîne”\n3) tu t’arrêtes quand le minuteur sonne, même si c’est pas “fini”\n\nJe te propose aussi la Carte d'attaque (surface Carte d'attaque) pour te donner la phrase exacte quand tu sens que tu minimises—tu veux que je te la prépare ? 🙌",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-05-16-obs-attack-owner-fix-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-16-obs-attack-owner-fix-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prépare une carte d’attaque pour l’action du plan “Préparer ta zone de déchargement”. Je veux une technique qui coupe la négociation.",
+    "assistant": "C'est noté pour l'action \"Préparer ta zone de déchargement\". Pour couper court à la négociation, je te propose ces deux options. Laquelle préfères-tu ?\n\n- Le texte magique : un texte court à relire quand tu commences à négocier pour calmer le débat intérieur.\n- Mot de bascule : un mot-clé à m'envoyer dès que tu sens que tu vas esquiver pour passer direct à l'acte.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+    "operation_flow_run": {
+      "source": "recommendation_tool",
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "structured_ai_missing_technique",
+        "status": "missing",
+        "question": "C'est noté pour l'action \"Préparer ta zone de déchargement\". Pour couper court à la négociation, je te propose ces deux options. Laquelle préfères-tu ?\n\n- Le texte magique : un texte court à relire quand tu commences à négocier pour calmer le débat intérieur.\n- Mot de bascule : un mot-clé à m'envoyer dès que tu sens que tu vas esquiver pour passer direct à l'acte.",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Préparer ta zone de déchargement",
+            "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+          },
+          "intake_state": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Préparer ta zone de déchargement",
+              "status": "identified",
+              "evidence": [
+                "L'utilisateur a explicitement nommé l'action du plan : 'Préparer ta zone de déchargement'."
+              ],
+              "confidence": "high",
+              "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+            },
+            "blocker": {
+              "type": "avoidance",
+              "evidence": [
+                "La mention de 'couper la négociation' indique une tendance à l'évitement ou au débat intérieur avant l'action."
+              ],
+              "confidence": 0.8
+            },
+            "skill_id": "prepare_attack_card",
+            "technique": {
+              "value": null,
+              "status": "ambiguous",
+              "options": [
+                {
+                  "title": "Le texte magique",
+                  "reason": "C'est la technique idéale pour faire baisser le combat intérieur et stopper la négociation avec soi-même.",
+                  "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ça et calme le débat.",
+                  "description": "Un texte court à relire ou recopier quand la résistance monte.",
+                  "recommended": true,
+                  "technique_key": "texte_recadrage"
+                },
+                {
+                  "title": "Mot de bascule",
+                  "reason": "Permet de couper court à l'hésitation en envoyant un simple mot pour déclencher l'action.",
+                  "example": "M'envoyer un mot court dès que tu sens que tu vas esquiver l'action.",
+                  "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+                  "recommended": false,
+                  "technique_key": "pre_engagement"
+                }
+              ],
+              "evidence": [
+                "L'utilisateur demande une technique qui 'coupe la négociation', ce qui correspond parfaitement au texte de recadrage ou au mot de bascule."
+              ],
+              "confidence": "medium",
+              "fit_warning": null,
+              "explicitly_requested": false
+            },
+            "confidence": "high",
+            "constraints": [],
+            "current_step": "technique_selection",
+            "missing_slots": [
+              "technique"
+            ],
+            "activation_keyword": {
+              "value": null,
+              "status": "not_applicable",
+              "options": [],
+              "evidence": [],
+              "confidence": "low",
+              "rejected_value": null
+            },
+            "generated_user_message": "C'est noté pour l'action \"Préparer ta zone de déchargement\". Pour couper court à la négociation, je te propose ces deux options. Laquelle préfères-tu ?\n\n- Le texte magique : un texte court à relire quand tu commences à négocier pour calmer le débat intérieur.\n- Mot de bascule : un mot-clé à m'envoyer dès que tu sens que tu vas esquiver pour passer direct à l'acte."
+          },
+          "technique_options": [
+            {
+              "title": "Le texte magique",
+              "reason": "C'est la technique idéale pour faire baisser le combat intérieur et stopper la négociation avec soi-même.",
+              "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ça et calme le débat.",
+              "description": "Un texte court à relire ou recopier quand la résistance monte.",
+              "recommended": true,
+              "technique_key": "texte_recadrage"
+            },
+            {
+              "title": "Mot de bascule",
+              "reason": "Permet de couper court à l'hésitation en envoyant un simple mot pour déclencher l'action.",
+              "example": "M'envoyer un mot court dès que tu sens que tu vas esquiver l'action.",
+              "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+              "recommended": false,
+              "technique_key": "pre_engagement"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Le texte magique",
+            "reason": "C'est la technique idéale pour faire baisser le combat intérieur et stopper la négociation avec soi-même.",
+            "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ça et calme le débat.",
+            "description": "Un texte court à relire ou recopier quand la résistance monte.",
+            "recommended": true,
+            "technique_key": "texte_recadrage"
+          },
+          {
+            "title": "Mot de bascule",
+            "reason": "Permet de couper court à l'hésitation en envoyant un simple mot pour déclencher l'action.",
+            "example": "M'envoyer un mot court dès que tu sens que tu vas esquiver l'action.",
+            "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+            "recommended": false,
+            "technique_key": "pre_engagement"
+          }
+        ],
+        "activation_keyword_options": []
+      },
+      "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-05-16-obs-attack-owner-fix-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-16-obs-attack-owner-fix-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Le texte magique. Fais-le très court : je pose le carnet, je note une ligne, et je décide après.",
+    "assistant": "Titre : Zone de déchargement\nTechnique : Le texte magique\nTexte : Je pose le carnet, je note une ligne, et je décide après.\nMode d'emploi : Lis ou recopie ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\nOn valide ce brouillon ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Zone de déchargement",
+          "technique": "texte_recadrage",
+          "instruction": "Recopie ou relis ce texte quand tu sens la résistance monter.",
+          "mode_emploi": "Lis ou recopie ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+          "target_label": "Préparer ta zone de déchargement",
+          "why_it_helps": "Cela permet de contourner le blocage en se concentrant uniquement sur un micro-geste sans enjeu.",
+          "generated_asset": "Je pose le carnet, je note une ligne, et je décide après.",
+          "technique_title": "Le texte magique",
+          "supporting_points": [
+            "Réduit la pression immédiate",
+            "Permet de démarrer sans s'engager sur la durée",
+            "Casse la négociation mentale"
+          ],
+          "activation_keyword": null
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Titre : Zone de déchargement\nTechnique : Le texte magique\nTexte : Je pose le carnet, je note une ligne, et je décide après.\nMode d'emploi : Lis ou recopie ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\nOn valide ce brouillon ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "f59876db-a731-4165-bfad-d00b8e56863b",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-05-16-obs-attack-owner-fix-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-16-obs-attack-owner-fix-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Change juste “résistance monter” en “quand je commence à négocier”. Le reste est bon.",
+    "assistant": "Voici ton texte magique pour ta zone de déchargement :\n« Quand je commence à négocier, je pose juste mon carnet et je note une ligne. Je déciderai de la suite après. »\nMode d'emploi : Lis ce texte dès que tu négocies, pose ton carnet, note une ligne, puis décide.\nÇa te convient ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "active_conversation_skill_continue",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Zone de déchargement",
+          "technique": "texte_recadrage",
+          "instruction": "Lis ce texte quand tu commences à négocier.",
+          "mode_emploi": "Lis ce texte dès que tu négocies, pose ton carnet, note une ligne, puis décide.",
+          "target_label": "Préparer ta zone de déchargement",
+          "why_it_helps": "Cela court-circuite la négociation mentale en se focalisant sur un geste minuscule et sans engagement.",
+          "generated_asset": "Quand je commence à négocier, je pose juste mon carnet et je note une ligne. Je déciderai de la suite après.",
+          "technique_title": "Le texte magique",
+          "supporting_points": [
+            "Réduire la pression immédiate",
+            "Se concentrer sur le micro-geste",
+            "Garder le pouvoir de décision"
+          ],
+          "activation_keyword": null
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ton texte magique pour ta zone de déchargement :\n« Quand je commence à négocier, je pose juste mon carnet et je note une ligne. Je déciderai de la suite après. »\nMode d'emploi : Lis ce texte dès que tu négocies, pose ton carnet, note une ligne, puis décide.\nÇa te convient ?"
+      },
+      "status": "pending_confirmation_updated",
+      "reason_code": "active_conversation_skill_continue",
+      "operation_id": "f29b5b0f-74fa-4b40-8dbd-e836523c38b5",
+      "selected_handler": "prepare_attack_card",
+      "draft_review_decision": null,
+      "previous_operation_id": "f59876db-a731-4165-bfad-d00b8e56863b"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-05-16-obs-attack-owner-fix-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-16-obs-attack-owner-fix-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, crée cette carte.",
+    "assistant": "C'est fait. J'ai créé cette carte d'attaque :\n\nZone de déchargement\nTechnique : Le texte magique\nQuand je commence à négocier, je pose juste mon carnet et je note une ligne. Je déciderai de la suite après.\n\nMode d'emploi : Lis ce texte dès que tu négocies, pose ton carnet, note une ligne, puis décide.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_attack_card"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_selected_handler": "prepare_attack_card",
+    "route_reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+      "operation_id": "f29b5b0f-74fa-4b40-8dbd-e836523c38b5",
+      "attack_card_id": "f7359b1c-572d-4aa8-9164-fa722372b4c2",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "prepare_attack_card"
+      }
+    ],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-05-16-obs-attack-owner-fix-t05",
+    "trace_error": null
+  }
+]

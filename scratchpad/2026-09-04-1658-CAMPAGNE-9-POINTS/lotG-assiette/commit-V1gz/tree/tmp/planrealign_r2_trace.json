@@ -1,0 +1,226 @@
+{
+  "ok": true,
+  "source": "local",
+  "user_id": "e5a1d169-03b8-41e6-95b6-7e1fd05f2ef4",
+  "scope": "web",
+  "since": null,
+  "until": null,
+  "request_ids": [
+    "planrealign-r2-t1",
+    "planrealign-r2-t2",
+    "planrealign-r2-t3",
+    "planrealign-r2-t4",
+    "planrealign-r2-t5"
+  ],
+  "counts": {
+    "chat_messages": 10,
+    "conversation_eval_events": 0,
+    "system_error_logs": 0,
+    "llm_usage_events": 1
+  },
+  "chat_messages": [
+    {
+      "id": "ae0200c0-6d46-4b34-b63a-2e0f7902f0ff",
+      "user_id": "e5a1d169-03b8-41e6-95b6-7e1fd05f2ef4",
+      "role": "user",
+      "content": "J’ai complètement perdu le rythme de mon plan cette semaine. Je suis en retard partout et je ne sais pas quoi dire à Sophia pour repartir proprement.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r2-t1",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:25:20.523677+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "b0c441cb-c69c-4d73-a0f8-701f5724b77e",
+      "user_id": "e5a1d169-03b8-41e6-95b6-7e1fd05f2ef4",
+      "role": "assistant",
+      "content": "Tu n’as pas besoin de tout expliquer parfaitement : l’important, c’est de dire franchement ce qui n’a pas tenu et pourquoi. Va dans Dashboard > Plan > Ajuster mon plan, puis écris par exemple :\n- j’ai perdu le rythme cette semaine\n- je suis en retard sur plusieurs actions\n- cette semaine est trop lourde / j’ai moins d’énergie / mon contexte a changé\n- je veux un rythme plus tenable\n\nSi tu veux, je peux aussi t’aider à formuler un texte très court à copier.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r2-t1",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 5819,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 4530,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:25:30.975736+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "48f6fa60-cdb5-4966-be9d-2bb0694952fd",
+      "user_id": "e5a1d169-03b8-41e6-95b6-7e1fd05f2ef4",
+      "role": "user",
+      "content": "Tu peux le faire toi ici ? Genre ajuster mon plan automatiquement depuis ce chat.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r2-t2",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:25:52.114426+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "4069aaf2-5929-43de-a9b5-cca9f0cfb1dc",
+      "user_id": "e5a1d169-03b8-41e6-95b6-7e1fd05f2ef4",
+      "role": "assistant",
+      "content": "Non, je ne peux pas le faire ici. Le réalignement se fait dans Dashboard > Plan > Ajuster mon plan.\n\nTu peux y écrire simplement :\n- ce qui n’a pas tenu cette semaine\n- pourquoi tu as perdu le rythme\n- ce qui est devenu trop lourd ou irréaliste\n- ce que tu veux garder comme priorité\n- le niveau de retard\n- le rythme que tu peux tenir maintenant\n\nSi tu veux, je peux t’aider à formuler ce texte en 3 lignes.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r2-t2",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 6131,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:25:58.280157+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "24d613e6-579b-4d0f-b064-4278abf8b38a",
+      "user_id": "e5a1d169-03b8-41e6-95b6-7e1fd05f2ef4",
+      "role": "user",
+      "content": "Ok mais je dois écrire quoi exactement ? Je veux pas faire un roman ni me justifier pendant vingt lignes.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r2-t3",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:26:22.822471+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "d94afa0c-bf6d-4183-ace6-77696ef09feb",
+      "user_id": "e5a1d169-03b8-41e6-95b6-7e1fd05f2ef4",
+      "role": "assistant",
+      "content": "Oui — écris juste 3 à 5 lignes simples dans Dashboard > Plan > Ajuster mon plan :\n- ce qui n’a pas tenu cette semaine\n- pourquoi ça a dérapé\n- ce qui est devenu trop lourd ou irréaliste\n- le rythme que tu peux tenir maintenant\n\nExemple : “Cette semaine, j’ai perdu le rythme et je suis en retard sur plusieurs actions. Mon agenda et mon énergie n’ont pas tenu. Le plan est trop chargé pour le moment. J’ai besoin d’un rythme plus simple et tenable.”",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r2-t3",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 6275,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:26:29.141879+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "984f9680-136f-4588-ac3c-1338c58e20b7",
+      "user_id": "e5a1d169-03b8-41e6-95b6-7e1fd05f2ef4",
+      "role": "user",
+      "content": "Et je le trouve où ce cadre Ajuster mon plan ? Je suis un peu perdu dans Sophia.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r2-t4",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:26:48.489711+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "ffa03c16-1d79-43bb-9239-2ebcf3cb70fe",
+      "user_id": "e5a1d169-03b8-41e6-95b6-7e1fd05f2ef4",
+      "role": "assistant",
+      "content": "Ouvre Sophia, puis va dans Dashboard > Plan > Ajuster mon plan.\n\nTu peux y écrire simplement, par exemple :\n- j’ai perdu le rythme cette semaine\n- je suis en retard sur plusieurs actions\n- mon contexte a changé / j’ai eu moins de temps\n- j’ai besoin d’un rythme plus tenable\n- je veux garder surtout les priorités importantes\n\nPas besoin d’un long texte.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r2-t4",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 5075,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:26:53.5888+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "a0d600c2-92b6-46ef-ba4e-1b55dc1272a3",
+      "user_id": "e5a1d169-03b8-41e6-95b6-7e1fd05f2ef4",
+      "role": "user",
+      "content": "Ok fais-moi juste une version courte que je peux mettre dans ce cadre, sans que tu changes le plan ici.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r2-t5",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:27:15.095564+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "91a51185-c526-4ba5-854f-3daa7c6c1d5c",
+      "user_id": "e5a1d169-03b8-41e6-95b6-7e1fd05f2ef4",
+      "role": "assistant",
+      "content": "Va dans Dashboard > Plan > Ajuster mon plan, puis colle simplement ça :\n\n« Cette semaine, j’ai perdu le rythme et je suis en retard sur plusieurs actions. Mon contexte a changé et le plan est trop lourd pour le moment. J’ai besoin d’un rythme plus tenable et de prioriser l’essentiel. »\n\nSi tu veux, je peux aussi te faire une version encore plus courte.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r2-t5",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 5387,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:27:20.523793+00:00",
+      "scope": "web"
+    }
+  ],
+  "conversation_eval_events": [],
+  "system_error_logs": [],
+  "llm_usage_events": [
+    {
+      "id": "35b7a912-55aa-46e8-b249-a092531cbd8c",
+      "created_at": "2026-06-30T20:25:25.121596+00:00",
+      "request_id": "planrealign-r2-t1",
+      "source": "dispatcher-v2-llm",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "kind": "generate",
+      "prompt_tokens": 5668,
+      "output_tokens": 363,
+      "total_tokens": 6031,
+      "cost_usd": 0.0058845,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "openai_api": "responses",
+        "toolChoice": "auto",
+        "openai_response_id": "resp_097b49671c5d0a7b006a442631dc788191ae7f38c59b008b62",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "e5a1d169-03b8-41e6-95b6-7e1fd05f2ef4",
+      "operation_family": "dispatcher",
+      "operation_name": "dispatcher-v2-llm",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 4504,
+      "provider_request_id": null,
+      "pricing_version": "openai_2026_06_12_standard",
+      "input_price_per_1k_tokens_usd": 0.00075,
+      "output_price_per_1k_tokens_usd": 0.0045,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    }
+  ]
+}

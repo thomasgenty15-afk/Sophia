@@ -1,0 +1,306 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "b8b32076-1b42-4cc5-8536-c1d6643e5003",
+      "user_id": "586bcfb3-3f52-4a09-a45f-c98b34271246",
+      "event_context": "one_shot_reminder:relire_une_fois_garder_le_brouillon_sortir_trois_puces_telle",
+      "draft_message": null,
+      "scheduled_for": "2026-05-22T06:30:00+00:00",
+      "status": "pending",
+      "created_at": "2026-05-21T09:08:41.354227+00:00",
+      "processed_at": null,
+      "message_mode": "dynamic",
+      "message_payload": {
+        "source": "companion_one_shot_reminder_tool",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de relire une fois, garder le brouillon, sortir trois puces telles quelles.",
+        "parse_source": "strict_absolute",
+        "request_text": "Decision/action. Fait. Programme-moi un rappel demain a 8h30: relire une fois, garder le brouillon, sortir trois puces telles quelles.",
+        "parse_details": {
+          "now_utc": "2026-05-21T09:08:41.326Z",
+          "timezone": "Europe/Paris",
+          "algorithm": "strict_absolute_hard_path_pure_calendar_v2",
+          "day_offset": 1,
+          "local_time_hhmm": "08:30",
+          "scheduled_for_utc": "2026-05-22T06:30:00.000Z"
+        },
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: relire une fois, garder le brouillon, sortir trois puces telles quelles.",
+        "reminder_instruction": "relire une fois, garder le brouillon, sortir trois puces telles quelles"
+      },
+      "origin": "rendez_vous",
+      "delivery_attempt_count": 0,
+      "delivery_last_error": null,
+      "delivery_last_error_at": null,
+      "delivery_last_request_id": null,
+      "recurring_reminder_id": null
+    }
+  ],
+  "user_attack_cards": [
+    {
+      "id": "aa478fe1-e5e2-486d-b479-bcb20e4db12d",
+      "user_id": "586bcfb3-3f52-4a09-a45f-c98b34271246",
+      "cycle_id": "40664ab5-0630-4664-91d4-dba6d3115334",
+      "transformation_id": null,
+      "phase_id": null,
+      "source": "system",
+      "status": "active",
+      "content": {
+        "summary": "Carte d'attaque pour relire la note et sortir trois puces imparfaites.",
+        "techniques": [
+          {
+            "title": "Le texte magique",
+            "pour_quoi": "Cela court-circuite le besoin de perfection pour te remettre immédiatement dans le mouvement.",
+            "questions": [],
+            "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis ouvre ton doc immédiatement.",
+            "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+            "technique_key": "texte_recadrage",
+            "generated_result": {
+              "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis ouvre ton doc immédiatement.",
+              "generated_at": "2026-05-21T09:07:56.943Z",
+              "output_title": "Le Texte Magique : 3 Puces",
+              "generated_asset": "J'ouvre le doc maintenant. Je sors 3 puces, même moches, même fausses. L'important c'est qu'elles existent, pas qu'elles soient parfaites.",
+              "keyword_trigger": null,
+              "supporting_points": [
+                "Baisse la pression du résultat",
+                "Focus sur le volume (3 puces)",
+                "Démarre sans négocier"
+              ]
+            }
+          }
+        ],
+        "operation_draft": {
+          "title": "Le Texte Magique : 3 Puces",
+          "technique": "texte_recadrage",
+          "instruction": "Lis ce texte dès que tu hésites à ouvrir le document.",
+          "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis ouvre ton doc immédiatement.",
+          "target_label": "relire la note et sortir trois puces imparfaites",
+          "why_it_helps": "Cela court-circuite le besoin de perfection pour te remettre immédiatement dans le mouvement.",
+          "generated_asset": "J'ouvre le doc maintenant. Je sors 3 puces, même moches, même fausses. L'important c'est qu'elles existent, pas qu'elles soient parfaites.",
+          "technique_title": "Le texte magique",
+          "supporting_points": [
+            "Baisse la pression du résultat",
+            "Focus sur le volume (3 puces)",
+            "Démarre sans négocier"
+          ],
+          "activation_keyword": null
+        }
+      },
+      "metadata": {
+        "draft": {
+          "draft": {
+            "title": "Le Texte Magique : 3 Puces",
+            "technique": "texte_recadrage",
+            "instruction": "Lis ce texte dès que tu hésites à ouvrir le document.",
+            "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis ouvre ton doc immédiatement.",
+            "target_label": "relire la note et sortir trois puces imparfaites",
+            "why_it_helps": "Cela court-circuite le besoin de perfection pour te remettre immédiatement dans le mouvement.",
+            "generated_asset": "J'ouvre le doc maintenant. Je sors 3 puces, même moches, même fausses. L'important c'est qu'elles existent, pas qu'elles soient parfaites.",
+            "technique_title": "Le texte magique",
+            "supporting_points": [
+              "Baisse la pression du résultat",
+              "Focus sur le volume (3 puces)",
+              "Démarre sans négocier"
+            ],
+            "activation_keyword": null
+          },
+          "output_schema": "attack_card_draft_v1",
+          "operation_type": "prepare_attack_card",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Voici ton brouillon pour relire la note et sortir trois puces imparfaites :\n*Le Texte Magique : 3 Puces* (Le texte magique)\n« J'ouvre le doc maintenant. Je sors 3 puces, même moches, même fausses. L'important c'est qu'elles existent, pas qu'elles soient parfaites. »\nLis ce texte dès que tu sens la résistance monter, puis ouvre ton doc.\nEst-ce que je crée cette carte ?"
+        },
+        "source": "sophia_brain_tool_skill",
+        "target": {
+          "kind": "personal_action",
+          "title": "relire la note et sortir trois puces imparfaites",
+          "plan_item_id": null
+        },
+        "request_id": "global15_20260521_r8-t04",
+        "operation_id": "1543bd8f-fbc8-4707-b873-8159c5170504",
+        "operation_type": "prepare_attack_card",
+        "source_message_id": "81d2fd32-c870-4973-bda7-72511381de50"
+      },
+      "generated_at": "2026-05-21T09:07:56.943+00:00",
+      "last_updated_at": "2026-05-21T09:07:56.943+00:00",
+      "scope_kind": "out_of_plan",
+      "plan_item_id": null
+    }
+  ],
+  "user_profile_facts": [
+    {
+      "user_id": "586bcfb3-3f52-4a09-a45f-c98b34271246",
+      "scope": "global",
+      "key": "coach.tone",
+      "value": {
+        "label": "Bienveillant ferme",
+        "value": "warm_direct"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:06:34.031952+00:00",
+      "updated_at": "2026-05-21T09:06:34.031952+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "586bcfb3-3f52-4a09-a45f-c98b34271246",
+      "scope": "global",
+      "key": "coach.challenge_level",
+      "value": {
+        "label": "Équilibré",
+        "value": "balanced"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:06:34.031952+00:00",
+      "updated_at": "2026-05-21T09:06:34.031952+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "586bcfb3-3f52-4a09-a45f-c98b34271246",
+      "scope": "global",
+      "key": "coach.feedback_style",
+      "value": {
+        "label": "Positif puis amélioration",
+        "value": "positive_then_fix"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:06:34.031952+00:00",
+      "updated_at": "2026-05-21T09:06:34.031952+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "586bcfb3-3f52-4a09-a45f-c98b34271246",
+      "scope": "global",
+      "key": "coach.talk_propensity",
+      "value": {
+        "label": "Équilibrée",
+        "value": "balanced"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:06:34.031952+00:00",
+      "updated_at": "2026-05-21T09:06:34.031952+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "586bcfb3-3f52-4a09-a45f-c98b34271246",
+      "scope": "global",
+      "key": "coach.message_length",
+      "value": {
+        "label": "Courte",
+        "value": "short"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:06:34.031952+00:00",
+      "updated_at": "2026-05-21T09:06:34.031952+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "586bcfb3-3f52-4a09-a45f-c98b34271246",
+      "scope": "global",
+      "key": "coach.message_format",
+      "value": {
+        "label": "Mix adaptatif",
+        "value": "adaptive"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:06:34.031952+00:00",
+      "updated_at": "2026-05-21T09:06:34.031952+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "586bcfb3-3f52-4a09-a45f-c98b34271246",
+      "scope": "global",
+      "key": "coach.primary_focus",
+      "value": {
+        "label": "Discipline / action",
+        "value": "discipline"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:06:34.031952+00:00",
+      "updated_at": "2026-05-21T09:06:34.031952+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "586bcfb3-3f52-4a09-a45f-c98b34271246",
+      "scope": "global",
+      "key": "coach.emotional_personalization",
+      "value": {
+        "label": "Chaleureux",
+        "value": "warm"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:06:34.031952+00:00",
+      "updated_at": "2026-05-21T09:06:34.031952+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "586bcfb3-3f52-4a09-a45f-c98b34271246",
+      "scope": "global",
+      "key": "coach.question_tendency",
+      "value": {
+        "label": "Normale",
+        "value": "normal"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-21T09:06:34.031952+00:00",
+      "updated_at": "2026-05-21T09:06:34.031952+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    }
+  ],
+  "trace_count": null
+}

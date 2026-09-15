@@ -1,0 +1,359 @@
+{
+  "before_rows": [
+    {
+      "key": "coach.challenge_level",
+      "value": {
+        "label": "Équilibré",
+        "value": "balanced"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.emotional_personalization",
+      "value": {
+        "label": "Chaleureux",
+        "value": "warm"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.feedback_style",
+      "value": {
+        "label": "Positif puis amélioration",
+        "value": "positive_then_fix"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.message_format",
+      "value": {
+        "label": "Mix adaptatif",
+        "value": "adaptive"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.message_length",
+      "value": {
+        "label": "Courte",
+        "value": "short"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.primary_focus",
+      "value": {
+        "label": "Discipline / action",
+        "value": "discipline"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.question_tendency",
+      "value": {
+        "label": "Normale",
+        "value": "normal"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.talk_propensity",
+      "value": {
+        "label": "Équilibrée",
+        "value": "balanced"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.tone",
+      "value": {
+        "label": "Bienveillant ferme",
+        "value": "warm_direct"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    }
+  ],
+  "after_rows": [
+    {
+      "key": "coach.challenge_level",
+      "value": {
+        "label": "Élevé",
+        "value": "high"
+      },
+      "status": "active",
+      "source_type": "explicit_user",
+      "last_source_message_id": "4e3f9c22-f688-485c-a558-f78d0d58cd36",
+      "reason": "Le user souhaite augmenter le niveau de challenge et réduire la fréquence des questions pour les prochaines fois.",
+      "updated_at": "2026-06-15T20:04:27.633+00:00",
+      "last_confirmed_at": "2026-06-15T20:04:27.633+00:00"
+    },
+    {
+      "key": "coach.emotional_personalization",
+      "value": {
+        "label": "Chaleureux",
+        "value": "warm"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.feedback_style",
+      "value": {
+        "label": "Positif puis amélioration",
+        "value": "positive_then_fix"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.message_format",
+      "value": {
+        "label": "Mix adaptatif",
+        "value": "adaptive"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.message_length",
+      "value": {
+        "label": "Courte",
+        "value": "short"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.primary_focus",
+      "value": {
+        "label": "Discipline / action",
+        "value": "discipline"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.question_tendency",
+      "value": {
+        "label": "Peu de questions",
+        "value": "low"
+      },
+      "status": "active",
+      "source_type": "explicit_user",
+      "last_source_message_id": "52873b42-cf47-4bc3-ab5e-c299e30a5aa6",
+      "reason": "Le user confirme 'Peu de questions' et demande un ton 'Direct' durablement, abandonnant la contrainte de format non supportée.",
+      "updated_at": "2026-06-15T20:06:17.281+00:00",
+      "last_confirmed_at": "2026-06-15T20:06:17.281+00:00"
+    },
+    {
+      "key": "coach.talk_propensity",
+      "value": {
+        "label": "Équilibrée",
+        "value": "balanced"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.tone",
+      "value": {
+        "label": "Très direct",
+        "value": "direct"
+      },
+      "status": "active",
+      "source_type": "explicit_user",
+      "last_source_message_id": "52873b42-cf47-4bc3-ab5e-c299e30a5aa6",
+      "reason": "Le user confirme 'Peu de questions' et demande un ton 'Direct' durablement, abandonnant la contrainte de format non supportée.",
+      "updated_at": "2026-06-15T20:06:17.281+00:00",
+      "last_confirmed_at": "2026-06-15T20:06:17.281+00:00"
+    }
+  ],
+  "final_turn_db": [
+    {
+      "key": "coach.challenge_level",
+      "value": {
+        "label": "Élevé",
+        "value": "high"
+      },
+      "status": "active",
+      "source_type": "explicit_user",
+      "last_source_message_id": "4e3f9c22-f688-485c-a558-f78d0d58cd36",
+      "reason": "Le user souhaite augmenter le niveau de challenge et réduire la fréquence des questions pour les prochaines fois.",
+      "updated_at": "2026-06-15T20:04:27.633+00:00",
+      "last_confirmed_at": "2026-06-15T20:04:27.633+00:00"
+    },
+    {
+      "key": "coach.emotional_personalization",
+      "value": {
+        "label": "Chaleureux",
+        "value": "warm"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.feedback_style",
+      "value": {
+        "label": "Positif puis amélioration",
+        "value": "positive_then_fix"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.message_format",
+      "value": {
+        "label": "Mix adaptatif",
+        "value": "adaptive"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.message_length",
+      "value": {
+        "label": "Courte",
+        "value": "short"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.primary_focus",
+      "value": {
+        "label": "Discipline / action",
+        "value": "discipline"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.question_tendency",
+      "value": {
+        "label": "Peu de questions",
+        "value": "low"
+      },
+      "status": "active",
+      "source_type": "explicit_user",
+      "last_source_message_id": "52873b42-cf47-4bc3-ab5e-c299e30a5aa6",
+      "reason": "Le user confirme 'Peu de questions' et demande un ton 'Direct' durablement, abandonnant la contrainte de format non supportée.",
+      "updated_at": "2026-06-15T20:06:17.281+00:00",
+      "last_confirmed_at": "2026-06-15T20:06:17.281+00:00"
+    },
+    {
+      "key": "coach.talk_propensity",
+      "value": {
+        "label": "Équilibrée",
+        "value": "balanced"
+      },
+      "status": "active",
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-15T20:03:58.640713+00:00",
+      "last_confirmed_at": null
+    },
+    {
+      "key": "coach.tone",
+      "value": {
+        "label": "Très direct",
+        "value": "direct"
+      },
+      "status": "active",
+      "source_type": "explicit_user",
+      "last_source_message_id": "52873b42-cf47-4bc3-ab5e-c299e30a5aa6",
+      "reason": "Le user confirme 'Peu de questions' et demande un ton 'Direct' durablement, abandonnant la contrainte de format non supportée.",
+      "updated_at": "2026-06-15T20:06:17.281+00:00",
+      "last_confirmed_at": "2026-06-15T20:06:17.281+00:00"
+    }
+  ]
+}

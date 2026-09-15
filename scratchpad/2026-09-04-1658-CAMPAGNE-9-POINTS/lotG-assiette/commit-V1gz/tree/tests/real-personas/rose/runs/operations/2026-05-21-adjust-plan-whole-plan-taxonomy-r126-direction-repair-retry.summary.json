@@ -1,0 +1,29 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r126-direction-repair-retry-t01",
+    "status": 502,
+    "ok": null,
+    "user": "Je crois que le plan global part trop vers 'faire les exercices'. Je veux qu'il garde la même ambition, mais qu'il soit davantage orienté réparation concrète après tension et présence fiable au quotidien, sans rajouter de nouvelle étape.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r126-direction-repair-retry-t01",
+    "trace_error": null
+  }
+]

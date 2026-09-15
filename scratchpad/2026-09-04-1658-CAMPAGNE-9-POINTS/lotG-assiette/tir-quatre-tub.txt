@@ -1,0 +1,40 @@
+kong 900 s
+e112c1e0 la ligne la plus stricte gouverne la base de chaque repas, petits-déjeuners et goûters compris ; et une case sans boîte demande un plat à elle
+   http=200 · 248.228513 s · essais=1 · llm_usage delta=4
+   empreinte APRÈS=4e539d6cb079 (inchangée ✓)
+   → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/plan-C03-20260906-135333.json (70613 octets) · journal 26 lignes
+   ⤺ fixture restaurée ✓
+════ plan-C03-20260906-135333.json · quatre
+TABLE   cible/jour 8571 kcal · déjeuner 3428 kcal ≈ 2540 g composés
+Claire          9     603         488             73           157
+Leo            10     621         540             75           157
+Nora            9     523         517             63           155
+Paul            9     721         584             87           188
+⚠️ termes non résolus (1): orge perle
+MASSE NON RÉSOLUE (plats en boîtes, ingrédients en g) : 0 / 14297 g = 0 %
+MOYENNE  4416      299 g
+  anchor: {"anchored": 11, "day_incomplete": 0, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 2, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 11}
+  unmet: {"none": 1, "factor_clamped": 2, "pot_ceiling": 10, "both": 0, "not_anchored": 0, "tub_estimate": 11}
+  unmet_band: {"lt_200": 4, "gte_200": 17}
+  densify: moved 0 g · closed 0 kcal · remaining_gte_200 0 · stopped {"closed": 0, "floor": 0, "ceiling": 0, "pot_exhausted": 0, "no_dense_target": 0, "no_box": 0, "no_density": 0}
+  meals_delivered: missing 0 · retry_attempts 1 · merged 10
+  regime_belt: bites 9 separated 0 refused 9 citation_repaired 0 item_repaired 0
+  boîtes à un nom: 19 · g moyens 399 · min 108 · max 541
+── explication IA: {"lines": ["J'ai gardé des petits-déjeuners et collations sans cuisson pour réserver les trois sessions aux principaux repas.", "Les plats principaux changent de forme au fil de la semaine tout en réutilisant les batches dans leur délai de conservation."], "refusal": null}
+── plats: 39 · titres distincts 28 · jours composés 7 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 7}) · sessions 3 · issues 59
+  anchor: {"anchored": 11, "day_incomplete": 0, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 2, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 11}
+  anchor_cap: {"none": 22, "density": 1, "density_floor": 0, "assumed_density": 0, "factor_bound": 1}
+  unmet: {"none": 1, "factor_clamped": 2, "pot_ceiling": 10, "both": 0, "not_anchored": 0, "tub_estimate": 11}
+  unmet_band: {"lt_200": 4, "gte_200": 17}
+  pot_attribution: {"drawnGrams": 14812, "attributedGrams": 15511, "ratio": 0.95, "potsUnreadable": 0}
+=== BACS COMMUNS ===
+  sun/dinner    2 bouches ·   601 g · kcal ? (dish_incomplete) · items: orge et légumes rôtis 339 g [prep_sun_barley_veg], poulet rôti 262 g [prep_sun_chicken__r]
+  mon/lunch     2 bouches ·   686 g · kcal ? (dish_incomplete) · items: orge et légumes rôtis 387 g [prep_sun_barley_veg], poulet rôti 299 g [prep_sun_chicken__r]
+  mon/dinner    2 bouches ·   601 g · kcal ? (dish_incomplete) · items: orge et légumes rôtis 339 g [prep_sun_barley_veg], poulet rôti 262 g [prep_sun_chicken__r]
+  tue/dinner    2 bouches ·   903 g · 1320 kcal · 1.46 kcal/g · 660 kcal/bouche · items: quinoa et courgettes 632 g [prep_tue_quinoa_zucchini], saumon rôti 271 g [prep_tue_salmon__r]
+  thu/dinner    2 bouches ·   841 g · 859 kcal · 1.02 kcal/g · 429 kcal/bouche · items: haricots, riz et légumes 485 g [prep_thu_beans_rice_veg], dinde mijotée 356 g [prep_thu_turkey__r]
+  fri/lunch     2 bouches ·   961 g · 982 kcal · 1.02 kcal/g · 491 kcal/bouche · items: haricots, riz et légumes 554 g [prep_thu_beans_rice_veg], dinde mijotée 407 g [prep_thu_turkey__r]
+  fri/dinner    2 bouches ·   841 g · 859 kcal · 1.02 kcal/g · 429 kcal/bouche · items: haricots, riz et légumes 485 g [prep_thu_beans_rice_veg], dinde mijotée 356 g [prep_thu_turkey__r]
+  sat/lunch     2 bouches ·   961 g · 982 kcal · 1.02 kcal/g · 491 kcal/bouche · items: haricots, riz et légumes 554 g [prep_thu_beans_rice_veg], dinde mijotée 407 g [prep_thu_turkey__r]
+  sat/dinner    2 bouches ·   841 g · 859 kcal · 1.02 kcal/g · 429 kcal/bouche · items: haricots, riz et légumes 485 g [prep_thu_beans_rice_veg], dinde mijotée 356 g [prep_thu_turkey__r]
+fini 13:57:46

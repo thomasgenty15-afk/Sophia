@@ -755,23 +755,48 @@ export function detectOffPlanMarker(userMessage: unknown): OffPlanMarkerHit | nu
   return null;
 }
 
+/** Ce qui a ouvert la porte, isolé pour les lecteurs qui n'écrivent rien. */
+export type MealDeclarationGate = MealDeclarationHit["gate"];
+
+export interface MealDeclarationGateHit {
+  gate: MealDeclarationGate;
+  /** Le marqueur de hors-plan, s'il y en a un. Voir `detectOffPlanMarker`. */
+  offPlan: OffPlanMarkerHit | null;
+}
+
 /**
- * Le plancher. Rend `null` dès qu'il n'est pas SÛR — jamais une approximation.
+ * LA PORTE SEULE — désarmes comprises, LEXIQUE EXCLU.
  *
- * @param userMessage le message BRUT de l'élève.
- * @param slotNamed le créneau que `slotKeyNamedIn` a déjà lu, s'il y en a un.
+ * ⟳ EXTRAIT DE `detectDeclaredMeal` LE 2026-09-13, ET C'EST UN DÉPLACEMENT,
+ * PAS UNE SECONDE RÈGLE. La fonction d'en dessous l'appelle: il n'existe
+ * toujours qu'une liste de désarmes et qu'un jeu de portes.
+ *
+ * ── POURQUOI QUELQU'UN VOUDRAIT LA PORTE SANS LE LEXIQUE ─────────────────
+ * Le lexique fermé existe pour ÉCRIRE: « seul ce que le message nomme
+ * explicitement devient un fait » (R2). Un lecteur qui n'écrit rien n'a donc
+ * pas à le subir — et il le paierait cher. Mesuré le 2026-09-13:
+ *
+ *     « j'ai mangé une pizza »  ⇒  detectDeclaredMeal === null
+ *
+ * parce que « pizza » n'est dans aucune entrée du lexique. La porte, elle,
+ * s'ouvre franchement: le passé composé est là, aucun désarme ne mord. C'est
+ * très exactement « quelqu'un vient de dire qu'il a mangé », et c'est tout ce
+ * qu'il faut savoir pour lui rendre la main (`meal_text_redirect.ts`).
+ *
+ * ⛔ ELLE N'AUTORISE AUCUNE ÉCRITURE. Un appelant qui écrirait un
+ * `food_group_ref` sur cette seule base inventerait un aliment — la faute que
+ * R2 nomme et que le lexique fermé existe pour rendre impossible. Cette
+ * fonction dit qu'on a PARLÉ d'un repas, jamais duquel.
  */
-export function detectDeclaredMeal(
+export function mealDeclarationGateOf(
   userMessage: unknown,
   slotNamed: string | null = null,
-): MealDeclarationHit | null {
+): MealDeclarationGateHit | null {
   const raw = String(userMessage ?? "").trim();
   if (!raw) return null;
   // Un copier-coller n'est pas une déclaration de repas.
   if (raw.length > 600) return null;
   const text = ` ${normalize(raw)} `;
-  // La lecture QUI GARDE LES ACCENTS, pour les seules gardes d'ambiguïté.
-  const accented = ` ${normalizeKeepingAccents(raw)} `;
   if (!text.trim()) return null;
 
   for (const disarm of DISARM) {
@@ -799,6 +824,35 @@ export function detectDeclaredMeal(
   const hasSlot = slotNamed !== null || SLOT_MARKERS.some((re) => re.test(text));
 
   if (!pastTense && !hasSlot && !offPlanOpensTheDoor) return null;
+
+  return {
+    gate: offPlanOpensTheDoor && !pastTense && !hasSlot
+      ? "off_plan_marker"
+      : pastTense
+      ? "past_tense_verb"
+      : "noun_phrase_with_slot",
+    offPlan,
+  };
+}
+
+/**
+ * Le plancher. Rend `null` dès qu'il n'est pas SÛR — jamais une approximation.
+ *
+ * @param userMessage le message BRUT de l'élève.
+ * @param slotNamed le créneau que `slotKeyNamedIn` a déjà lu, s'il y en a un.
+ */
+export function detectDeclaredMeal(
+  userMessage: unknown,
+  slotNamed: string | null = null,
+): MealDeclarationHit | null {
+  const opened = mealDeclarationGateOf(userMessage, slotNamed);
+  if (!opened) return null;
+  const offPlan = opened.offPlan;
+
+  const raw = String(userMessage ?? "").trim();
+  const text = ` ${normalize(raw)} `;
+  // La lecture QUI GARDE LES ACCENTS, pour les seules gardes d'ambiguïté.
+  const accented = ` ${normalizeKeepingAccents(raw)} `;
 
   // Les aliments, terme le plus long d'abord, sans chevauchement: une fois
   // « brown rice » consommé, « rice » ne peut plus mordre sur les mêmes
@@ -829,11 +883,7 @@ export function detectDeclaredMeal(
   return {
     components,
     studentNote: raw.slice(0, 2000),
-    gate: offPlanOpensTheDoor && !pastTense && !hasSlot
-      ? "off_plan_marker"
-      : pastTense
-      ? "past_tense_verb"
-      : "noun_phrase_with_slot",
+    gate: opened.gate,
     // R3: un hors-plan sans détail n'invente AUCUN `food_group_ref`. La
     // relation au plan est la SEULE chose que le marqueur ajoute.
     planRelation: offPlan === null ? null : "off_plan",

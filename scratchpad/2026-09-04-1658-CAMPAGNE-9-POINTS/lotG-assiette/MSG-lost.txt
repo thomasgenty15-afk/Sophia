@@ -1,0 +1,17 @@
+le moment qu'une bouche perd pendant que la table le sert est compté, pas effacé : `lostSlotEnergy` et l'histogramme `lost_slots`
+
+Banc « un retour et les calories » (0f, 2026-09-06, FB3) : « Nora n'aime pas le yaourt de
+soja » → le modèle obéit, Nora n'a plus de collation, et sa cible suit ses moments restants
+(`ownSlots`) : 44 % de son besoin (témoin 61 %) sans qu'aucun compteur ne la distingue. La
+réduction de la cible aux moments couverts est juste pour un plat que personne ne met en
+boîte ; elle est un silence quand la table sert ce moment aux autres et pas à elle.
+
+`lostSlotEnergy` (pot_demand.ts, pure) : les moments où la table sert un contenant à
+quelqu'un ce jour-là et que cette bouche n'a pas, valorisés sur sa cible PLEINE
+(`mouthTargetKcal` sans direction, `slotPlanTargets`). L'index foyer en fait l'histogramme
+`lost_slots {mouth_days, slots, kcal_lt_200, kcal_gte_200, kcal_unknown}` dans `box_sizing`
+(journal et archive), sur les bouches qui ont au moins un contenant ce jour-là — une bouche
+sans rien est déjà `meals_delivered.missing`. Aucun dimensionnement ne change : grossir les
+autres boîtes ou relancer se décidera sur ce compteur (recommandation 3 du rapport), pas avant.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

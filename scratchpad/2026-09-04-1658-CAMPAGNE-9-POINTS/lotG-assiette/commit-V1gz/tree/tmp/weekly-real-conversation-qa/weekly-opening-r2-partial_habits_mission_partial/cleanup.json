@@ -1,0 +1,113 @@
+{
+  "prefix": "qa-weekly-deep-weekly-opening-r2-",
+  "users": [
+    {
+      "id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "email": "qa-weekly-deep-weekly-opening-r2-partial_habits_mission_partial@example.com"
+    }
+  ],
+  "actions": [
+    {
+      "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "table": "user_plan_item_entries",
+      "query": "user_id=eq.689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "ok": true,
+      "status": 200,
+      "count": 6
+    },
+    {
+      "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "table": "user_habit_week_occurrences",
+      "query": "user_id=eq.689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "ok": true,
+      "status": 200,
+      "count": 6
+    },
+    {
+      "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "table": "user_habit_week_plans",
+      "query": "user_id=eq.689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "ok": true,
+      "status": 200,
+      "count": 3
+    },
+    {
+      "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "table": "user_plan_items",
+      "query": "user_id=eq.689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "ok": true,
+      "status": 200,
+      "count": 4
+    },
+    {
+      "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "table": "user_plans_v2",
+      "query": "user_id=eq.689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "ok": true,
+      "status": 200,
+      "count": 1
+    },
+    {
+      "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "table": "scheduled_checkins",
+      "query": "user_id=eq.689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "ok": true,
+      "status": 200,
+      "count": 1
+    },
+    {
+      "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "table": "chat_messages",
+      "query": "user_id=eq.689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "ok": true,
+      "status": 200,
+      "count": 7
+    },
+    {
+      "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "table": "user_chat_states",
+      "query": "user_id=eq.689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "ok": true,
+      "status": 200,
+      "count": 1
+    },
+    {
+      "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "table": "user_cycles",
+      "query": "id=in.(69eb69f5-f6a2-436d-b35f-e9f34b4cdeef)",
+      "ok": true,
+      "status": 200,
+      "count": 1
+    },
+    {
+      "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "table": "user_transformations",
+      "query": "cycle_id=in.(69eb69f5-f6a2-436d-b35f-e9f34b4cdeef)",
+      "ok": true,
+      "status": 200,
+      "count": 1
+    },
+    {
+      "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "table": "user_cycles",
+      "query": "user_id=eq.689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "ok": true,
+      "status": 200,
+      "count": 1
+    },
+    {
+      "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "table": "profiles",
+      "query": "id=eq.689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "ok": true,
+      "status": 200,
+      "count": 1
+    },
+    {
+      "user_id": "689ec66b-1cd1-4ee3-bc34-0cbead4ca848",
+      "table": "auth.users",
+      "ok": true,
+      "status": 200
+    }
+  ]
+}

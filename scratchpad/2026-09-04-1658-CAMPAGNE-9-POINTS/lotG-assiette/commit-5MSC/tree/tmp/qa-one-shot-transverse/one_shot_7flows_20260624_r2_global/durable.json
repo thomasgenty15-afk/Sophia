@@ -1,0 +1,65 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "a0e6fdaa-95b7-4c4a-890d-57cf8b1ed173",
+      "status": "pending",
+      "scheduled_for": "2026-06-24T20:03:36.372+00:00",
+      "event_context": "one_shot_reminder:relire_les_trois_lignes_du_brouillon",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: relire les trois lignes du brouillon.",
+        "local_label": "dans 21 minutes",
+        "parse_source": "payload_utc_time",
+        "request_text": "Rappelle-moi dans 21 minutes de relire les trois lignes du brouillon.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: relire les trois lignes du brouillon.",
+        "source_message_id": "23d32a92-78db-40dc-b9f9-35e06a041e57",
+        "reminder_instruction": "relire les trois lignes du brouillon"
+      },
+      "created_at": "2026-06-24T19:42:38.439838+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Rappelle-moi dans 21 minutes de relire les trois lignes du brouillon.",
+      "created_at": "2026-06-24T19:42:36.351553+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260624_r2_global-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C’est noté pour dans 21 minutes : relire les trois lignes du brouillon 🙂",
+      "created_at": "2026-06-24T19:42:39.708738+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260624_r2_global-t01",
+        "route_owner": "normal_reply",
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "836a0dd2-b000-4521-b83b-93d1bf0d6f70",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "companion_question_rhythm": {
+        "preference": "normal",
+        "recent_turns": [
+          0
+        ],
+        "last_updated_at": "2026-06-24T19:42:39.691Z",
+        "last_turn_had_question": false,
+        "turns_since_last_question": 1
+      }
+    },
+    "updated_at": "2026-06-24T19:42:39.706275+00:00"
+  }
+}

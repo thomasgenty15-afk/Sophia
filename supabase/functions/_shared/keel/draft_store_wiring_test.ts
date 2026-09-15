@@ -46,7 +46,10 @@ Deno.test("BROUILLON ① — la ligne s'ouvre AVANT l'appel modèle", () => {
   // 80 ms d'écart lanceraient deux appels facturés, dont un dont personne
   // n'attend plus la réponse.
   const ouverture = SRC.indexOf("const opened = await openDraft(admin, {");
-  const modele = SRC.indexOf("result = await generateWithGemini(");
+  // ⟳ 2026-09-14 · BÊTA 2B — L'ANCRE A CHANGÉ, PAS LA POSITION. L'appel est
+// enveloppé par `appelModele(…)` depuis que les pannes du fournisseur ont un
+// jeton au lieu d'une chaîne anglaise. Le site est le même.
+  const modele = SRC.indexOf('result = await appelModele("composition", () =>');
   assert(ouverture > 0, "l'ouverture existe");
   assert(modele > 0, "l'appel modèle existe");
   assert(ouverture < modele, "et l'ouverture le précède");
@@ -62,7 +65,7 @@ Deno.test("BROUILLON ② — un conflit REFUSE, il ne double pas l'appel modèle
   assert(SRC.includes("}, { status: 409 });"), "en 409");
   // ⛔ AVANT L'APPEL MODÈLE. Un refus rendu après aurait déjà payé l'appel.
   const refus = SRC.indexOf('error: "draft_in_flight"');
-  assert(refus < SRC.indexOf("result = await generateWithGemini("));
+  assert(refus < SRC.indexOf('result = await appelModele("composition", () =>'));
 });
 
 Deno.test("⛔ BROUILLON ③ — ce qu'on RANGE est ce qu'on REND, et le payload est l'EXACT", () => {
@@ -72,13 +75,13 @@ Deno.test("⛔ BROUILLON ③ — ce qu'on RANGE est ce qu'on REND, et le payload
   // VOISINE du corps rendu recréerait exactement ce défaut, en silence.
   assert(SRC.includes("const draftBody = {"), "le corps rendu est nommé");
   assert(SRC.includes("return jsonResponse(req, draftBody);"), "et c'est LUI qu'on rend");
-  const i = SRC.indexOf("const stored = await completeDraft(admin, draftId, {");
+  const i = SRC.indexOf('await admin.rpc("keel_household_complete_draft_generation", {');
   assert(i > 0, "la ligne est complétée");
-  const bloc = SRC.slice(i, i + 400);
-  assert(bloc.includes("response: draftBody,"), "on range le corps rendu, pas une copie");
+  const bloc = SRC.slice(i, i + 1_300);
+  assert(bloc.includes("p_response: draftBody,"), "on range le corps rendu, pas une copie");
   // ⛔ `writePayload` EST LE `p_payload` DE `write_student_meal_plan`, la même
   // variable que l'écriture — pas une reconstruction.
-  assert(bloc.includes("writePayload,"), "et le payload d'écriture exact");
+  assert(bloc.includes("p_write_payload: writePayload,"), "et le payload d'écriture exact");
   const rpc = SRC.indexOf("p_payload: writePayload,");
   assert(rpc > 0, "et c'est bien la variable que la RPC reçoit");
 });
@@ -103,14 +106,12 @@ Deno.test("⛔ BROUILLON ⑤ — une panne marque `failed`, elle ne laisse pas `
   assertEquals(SRC.split("let draftId: string | null = null;").length - 1, 1);
 });
 
-Deno.test("BROUILLON ⑥ — le rangement ne peut pas refuser la composition", () => {
-  // ⚠️ LE MAGASIN SERT L'APERÇU. Une panne de rangement doit coûter le CHIFFRE,
-  // pas le plan: quelqu'un qui attend son brouillon depuis quarante secondes ne
-  // doit pas le perdre parce qu'une ligne n'a pas pu s'écrire.
+Deno.test("BROUILLON ⑥ — une panne du journal refuse AVANT l'appel payé", () => {
   const i = SRC.indexOf("const opened = await openDraft(admin, {");
   const bloc = SRC.slice(SRC.lastIndexOf("try {", i), SRC.indexOf("if (draftConflict !== null)", i));
   assert(bloc.includes("console.warn(`[${FN_NAME}] draft store open failed`"), bloc.slice(0, 200));
-  assert(!bloc.includes("return jsonResponse"), "aucun refus dans le catch d'ouverture");
+  assert(bloc.includes('error: "draft_store_unavailable"'));
+  assert(bloc.includes("return jsonResponse"));
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -194,12 +195,12 @@ Deno.test("⛔ BROUILLON ⑪ — les DEUX lanes rangent leur aperçu", () => {
     assert(src.includes(`lane: ${lane},`), `${nom}: sa lane est ${lane}`);
     assert(src.includes(`planKind: ${kind},`), `${nom}: sa nature est ${kind}`);
     assert(src.includes("await markRunning(admin, draftId);"), `${nom}: elle passe en cours`);
-    assert(src.includes("await completeDraft(admin, draftId, {"), `${nom}: elle se complète`);
+    assert(src.includes('"keel_household_complete_draft_generation"'), `${nom}: elle se complète`);
     assert(src.includes("draft_id: draftId,"), `${nom}: la réponse porte l'identifiant`);
     assert(src.includes("const draftBody = {"), `${nom}: le corps rendu est nommé`);
     assert(src.includes("return jsonResponse(req, draftBody);"), `${nom}: et c'est lui qu'on rend`);
-    assert(src.includes("response: draftBody,"), `${nom}: on range le corps rendu`);
-    assert(src.includes("writePayload,"), `${nom}: et le payload d'écriture EXACT`);
+    assert(src.includes("p_response: draftBody,"), `${nom}: on range le corps rendu`);
+    assert(src.includes("p_write_payload: writePayload,"), `${nom}: et le payload d'écriture EXACT`);
     assert(src.includes("await failDraft(adminClient(), draftId, {"), `${nom}: une panne marque failed`);
     assert(src.includes('error: "draft_in_flight"'), `${nom}: un conflit refuse`);
   }
@@ -210,7 +211,7 @@ Deno.test("⛔ BROUILLON ⑫ — sur les DEUX lanes, l'ouverture précède l'app
   // décoratif, et deux taps à 80 ms d'écart paieraient deux appels.
   for (const { nom, src } of LANES) {
     const ouverture = src.indexOf("const opened = await openDraft(admin, {");
-    const modele = src.indexOf("result = await generateWithGemini(");
+        const modele = src.indexOf('result = await appelModele("composition", () =>');
     assert(ouverture > 0 && modele > 0, `${nom}: les deux points existent`);
     assert(ouverture < modele, `${nom}: l'ouverture précède le modèle`);
     // Et le refus de conflit aussi — sinon il se paierait au prix d'un appel.

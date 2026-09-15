@@ -1,0 +1,4 @@
+Error: No pending generated for checkin c0270c36-14e7-4cb1-b313-9e78c7201d4a
+    at createDailyOpening (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_coaching_bridge_20260619.mjs:309:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async main (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_coaching_bridge_20260619.mjs:660:19)

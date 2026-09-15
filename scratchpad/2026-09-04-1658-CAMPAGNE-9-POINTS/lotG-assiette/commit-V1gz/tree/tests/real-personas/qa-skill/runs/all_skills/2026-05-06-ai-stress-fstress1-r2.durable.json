@@ -1,0 +1,53 @@
+{
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "5225a7e9-fb5e-4ff5-a917-72ca592015e7",
+        "user_id": "b98e0e76-9c86-42b9-95f8-3e343f6ad514",
+        "event_context": "one_shot_reminder:relire_le_brouillon_et_de_l_envoyer_si_ca_tient_encore",
+        "draft_message": null,
+        "scheduled_for": "2026-05-07T07:00:00+00:00",
+        "status": "pending",
+        "created_at": "2026-05-06T13:30:49.288908+00:00",
+        "processed_at": null,
+        "message_mode": "dynamic",
+        "message_payload": {
+          "source": "companion_one_shot_reminder_tool",
+          "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de relire le brouillon et de l'envoyer si ça tient encore.",
+          "parse_source": "strict_absolute",
+          "request_text": "Je vais garder 3 phrases max. Rappelle-moi demain à 9h de relire le brouillon et de l'envoyer si ça tient encore.",
+          "parse_details": {
+            "now_utc": "2026-05-06T13:30:49.282Z",
+            "timezone": "Europe/Paris",
+            "algorithm": "strict_absolute_hard_path_pure_calendar_v2",
+            "day_offset": 1,
+            "local_time_hhmm": "09:00",
+            "scheduled_for_utc": "2026-05-07T07:00:00.000Z"
+          },
+          "reminder_kind": "one_shot",
+          "user_timezone": "Europe/Paris",
+          "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: relire le brouillon et de l'envoyer si ça tient encore.",
+          "reminder_instruction": "relire le brouillon et de l'envoyer si ça tient encore"
+        },
+        "origin": "rendez_vous",
+        "delivery_attempt_count": 0,
+        "delivery_last_error": null,
+        "delivery_last_error_at": null,
+        "delivery_last_request_id": null,
+        "recurring_reminder_id": null
+      }
+    ]
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

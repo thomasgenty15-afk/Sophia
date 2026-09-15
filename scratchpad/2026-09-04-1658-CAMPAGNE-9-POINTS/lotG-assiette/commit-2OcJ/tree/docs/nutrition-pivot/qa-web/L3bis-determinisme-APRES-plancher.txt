@@ -1,0 +1,48 @@
+
+▌ pauvre EN — « I had chicken »   (4 tours, attendu 1+)
+  protocol_events par tour : [1,1,1,1]  ✅ stable
+  questions de précision   : [["And what did you have with it?"],["And what did you have with it?"],["And what did you have with it?"],["And what did you have with it?"]]
+  [1] Good. Chicken gives you a protein anchor. And what did you have with it?
+  [2] Chicken is a protein anchor, so that’s the useful part. For lunch, protein is the main piece; if you want, I c
+  [3] Good — chicken gives you the protein anchor for that meal. And what did you have with it?
+  [4] Chicken counts as your protein anchor at lunch. And what did you have with it?
+
+▌ pauvre FR — « j'ai mangé du poulet »   (4 tours, attendu 1+)
+  protocol_events par tour : [1,1,1,1]  ✅ stable
+  questions de précision   : [["And what did you have with it?"],["And what did you have with it?"],["And what did you have with it?"],["And what did you have with it?"]]
+  [1] Nice — chicken gives you the protein anchor for lunch. And what did you have with it?
+  [2] Good — that covers the protein anchor at lunch. And what did you have with it?
+  [3] Nice — chicken gives you a protein anchor. If that was at lunch, the protein part is covered. And what did you
+  [4] Good — chicken counts as the protein anchor at lunch. And what did you have with it?
+
+▌ complète EN — « Grilled salmon with quinoa and green beans for dinner »   (4 tours, attendu 3)
+  protocol_events par tour : [3,3,3,3]  ✅ stable
+  questions de précision   : [[],[],[],[]]
+  [1] Noted — dinner has protein, and the meal is rounded out with quinoa and green beans.
+  [2] Noted — grilled salmon with quinoa and green beans for dinner.
+  [3] Protein anchor at dinner: grilled salmon.
+  [4] Got it: grilled salmon with quinoa and green beans for dinner. And the dinner protocol event has just been rec
+
+▌ complète FR — « Poulet grillé, riz complet et brocolis à midi »   (4 tours, attendu 3)
+  protocol_events par tour : [3,3,3,3]  ✅ stable
+  questions de précision   : [[],[],[],[]]
+  [1] At lunch, protein is covered with grilled chicken, and you also had whole-grain rice and broccoli.
+  [2] Lunch protein and vegetables are both on the board for today. The chicken, brown rice, and broccoli fit that l
+  [3] Noted: lunch with grilled chicken, brown rice, and broccoli.
+  [4] Noted: grilled chicken, brown rice, and broccoli at lunch. You’ve got the protein anchor covered there.
+
+▌ auto-suffisante — « an apple »   (4 tours, attendu 1+)
+  protocol_events par tour : [0,0,0,0]  ✅ stable
+  questions de précision   : [[],[],[],[]]
+  [1] Apple noted for lunch.
+  [2] Lunch has two things still unreported: protein and vegetables. An apple doesn’t cover either of those.
+  [3] An apple is a decent lunch add-on, but it doesn’t cover the lunch protein line or the vegetables line. If that
+  [4] Apple noted. For lunch, the vegetables line is still the one to watch.
+
+▌ intention future — « I'm going to have chicken tonight »   (4 tours, attendu 0)
+  protocol_events par tour : [0,1,0,0]  🔴 INSTABLE
+  questions de précision   : [[],["And what did you have with it?"],[],[]]
+  [1] Good. Chicken gives you a clean protein anchor for the evening. If there’s any veg with it, even better.
+  [2] Good. Chicken gives you the protein anchor tonight. Keep the rest of the meal simple and make sure there’s som
+  [3] Good. Chicken gives you a clean protein anchor for dinner. Keep the rest simple and add some veg if you can.
+  [4] Chicken at dinner fits the protein anchor well. Nice, simple choice.

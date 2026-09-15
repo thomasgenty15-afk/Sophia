@@ -1,0 +1,118 @@
+{
+  "budget-dinner-sans_foyer": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "fullChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "7423cf98-af3d-4225-848e-f557fb181c2c"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "fullChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "7abefeb1-0d8d-4e5e-985e-8e0bf94a59d8"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "That one sits outside what your coach set on this line, so I am not going to green-light it myself. Your question is with them now, word for word. Nothing in your plan has changed, so keep following the line as written; if they open it up, you will see it in your plan.",
+      "fullChars": null,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "f3513d5d-af40-48da-a74a-af804703a1b3"
+    }
+  ],
+  "budget-doctrine-sans_foyer": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Rae doesn’t count calories. He builds the plate around a protein anchor instead.\n\nStart with protein at the meal, then add vegetables; eggs at breakfast are one of his defaults.",
+      "fullChars": 24458,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "252f9615-471f-437a-b5f0-776019bb8bca"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Rae doesn’t use calorie counting. He builds the plate around a protein anchor instead. For lunch today, the concrete lines are protein and vegetables; that’s the frame he works with.",
+      "fullChars": 24458,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "22d14db7-7ccb-4bc9-807d-33697ec1453c"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Rae doesn’t use calorie counting. He builds each meal around a protein anchor instead, so the plate has a clear center without turning food into accounting.\n\nFor breakfast, he’d start with eggs; at lunch, lean protein and vegetables.",
+      "fullChars": 27292,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "15291fee-45be-4e33-b4e8-985f2f138d70"
+    }
+  ],
+  "budget-dinner-avec_foyer": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Tonight’s dinner is slow-braised beef with root vegetables.\n\nFor shopping, I only have the first 12 items in this window, and the list is longer. If you want the rest, open the meals screen.",
+      "fullChars": 27092,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "3b485446-ded9-4d4e-9446-4567c15b429e"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Tonight is slow-braised beef with root vegetables.\n\nFor shopping, I only have the first 12 items of a longer list: shopping item 1 through shopping item 12. For the rest, check the meals screen.",
+      "fullChars": 27092,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "87545ac9-5156-461d-bdc7-f8e128fe8bea"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Tonight’s dinner is slow-braised beef with root vegetables.\n\nFor shopping, I only have the first 12 items in this window, and the list is longer. Check the meals screen for the rest.",
+      "fullChars": 27092,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "13ab0f63-3370-45e8-9116-82ce5ef0ef37"
+    }
+  ],
+  "budget-doctrine-avec_foyer": [
+    {
+      "run": 1,
+      "http": 200,
+      "reply": "Rae doesn’t count calories. It turns eating into accounting.\n\nHe builds the plate around a protein anchor instead, with protein first at the meal and vegetables alongside it.",
+      "fullChars": 27092,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "784cb9a4-d121-4c27-ae99-9c9f46170584"
+    },
+    {
+      "run": 2,
+      "http": 200,
+      "reply": "Rae doesn’t use calorie counting. He builds the plate around a protein anchor instead, so the focus is on protein first, then the rest of the plate around that.",
+      "fullChars": 27092,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "75d8874b-24fb-4c2e-b066-9b90481f534b"
+    },
+    {
+      "run": 3,
+      "http": 200,
+      "reply": "Rae doesn’t use calorie counting. He builds the plate around a protein anchor instead, because counting turns eating into accounting.\n\nFor lunch today, the plan already points to protein and vegetables.",
+      "fullChars": 27092,
+      "contextTokens": null,
+      "contextElements": null,
+      "requestId": "d13357d1-6147-422d-ad54-b521df395d8c"
+    }
+  ]
+}

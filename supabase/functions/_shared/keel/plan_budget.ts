@@ -116,6 +116,10 @@ export const PLAN_REPAIR_RESERVED_AFTER: Readonly<Record<string, number>> =
   Object
     .freeze({
       // lane du foyer, dans l'ordre d'exécution
+      // ⟳ 2026-09-12 · ÉTAPE C4 — `0`: RIEN NE LE SUIT. Ce site s'exécute
+      // APRÈS la garde finale, sur le payload exact qui partirait en base; il
+      // n'y a plus un seul rattrapage derrière lui à qui garder un slot.
+      final_repair: 0,
       protein_anchor_retry: 2, // exclusion + densité le suivent
       exclusion_retry: 1, // la densité le suit
       swap_retry: 2, // qualité : il cède à la densité comme à la sécurité
@@ -179,6 +183,24 @@ export function planRepairReservedAfter(
    */
   pending?: ReadonlySet<string>,
 ): number {
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · LOT 2 — LA SÉCURITÉ NE FAIT JAMAIS LA QUEUE
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ C'EST UNE EXIGENCE LITTÉRALE DU LOT: « une exclusion ou une ligne
+  // médicale détectée tôt doit pouvoir partir tout de suite. Ne la mets pas en
+  // file d'attente derrière une mesure de densité. »
+  //
+  // ⛔ ET SANS CETTE LIGNE, LA TABLE LA MET EN FILE. `exclusion_retry` y valait
+  // `1` — « la densité le suit » —, ce qui la faisait REFUSER dès qu'un
+  // rattrapage l'avait précédée. Ça ne se voyait pas parce que, dans l'ordre
+  // ACTUEL du fichier, l'exclusion s'exécute avant la densité: la garde était
+  // correcte par accident d'ordre, et déplacer un bloc l'aurait cassée en
+  // silence — très exactement le défaut que la table porte déjà écrit.
+  //
+  // ⚠️ CE N'EST PAS UN SLOT SUPPLÉMENTAIRE. `used >= allowed` mord avant, dans
+  // `verdict()`: la sécurité ne double pas le budget, elle ne le cède pas.
+  if (repairKindOf(label) === "safety") return 0;
   if (pending) {
     const mine = REPAIR_DEFECT_KINDS.indexOf(repairKindOf(label));
     let n = 0;

@@ -1,0 +1,1071 @@
+{
+  "scheduled_checkins": {
+    "status": 200,
+    "rows": [
+      {
+        "id": "dffae1f0-7551-4d01-90d5-fd74c981359b",
+        "user_id": "3cc23b63-8bfa-43a4-b05b-488b9d5973a0",
+        "event_context": "one_shot_reminder:reprendre_ce_dossier_client_par_trois_puces_moches_pas_plus",
+        "draft_message": null,
+        "scheduled_for": "2026-05-21T06:30:00+00:00",
+        "status": "pending",
+        "created_at": "2026-05-20T13:05:00.749555+00:00",
+        "processed_at": null,
+        "message_mode": "dynamic",
+        "message_payload": {
+          "source": "companion_one_shot_reminder_tool",
+          "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de reprendre ce dossier client par trois puces moches, pas plus.",
+          "parse_source": "strict_absolute",
+          "request_text": "Fait. Ça m'a débloqué un peu. Peux-tu me rappeler demain à 8h30 de reprendre ce dossier client par trois puces moches, pas plus ?",
+          "parse_details": {
+            "now_utc": "2026-05-20T13:05:00.743Z",
+            "timezone": "Europe/Paris",
+            "algorithm": "strict_absolute_hard_path_pure_calendar_v2",
+            "day_offset": 1,
+            "local_time_hhmm": "08:30",
+            "scheduled_for_utc": "2026-05-21T06:30:00.000Z"
+          },
+          "reminder_kind": "one_shot",
+          "user_timezone": "Europe/Paris",
+          "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: reprendre ce dossier client par trois puces moches, pas plus.",
+          "reminder_instruction": "reprendre ce dossier client par trois puces moches, pas plus"
+        },
+        "origin": "rendez_vous",
+        "delivery_attempt_count": 0,
+        "delivery_last_error": null,
+        "delivery_last_error_at": null,
+        "delivery_last_request_id": null,
+        "recurring_reminder_id": null
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "rows": []
+  },
+  "user_topic_memories": {
+    "status": 200,
+    "rows": []
+  },
+  "user_chat_states": {
+    "status": 200,
+    "rows": [
+      {
+        "user_id": "3cc23b63-8bfa-43a4-b05b-488b9d5973a0",
+        "current_mode": "companion",
+        "risk_level": 2,
+        "investigation_state": null,
+        "short_term_context": "",
+        "last_interaction_at": "2026-05-20T13:07:31.601+00:00",
+        "updated_at": "2026-05-20T13:07:31.603007+00:00",
+        "unprocessed_msg_count": 15,
+        "last_processed_at": "2026-05-20T13:01:51.528+00:00",
+        "scope": "qa-global-normal-conversation-15t-20260520-r1",
+        "temp_memory": {
+          "__momentum_state_v2": {
+            "posture": {
+              "confidence": "medium",
+              "recommended_posture": "hold"
+            },
+            "version": 2,
+            "blockers": {
+              "blocker_kind": null,
+              "blocker_repeat_score": 0
+            },
+            "_internal": {
+              "sources": {
+                "router_updated_at": "2026-05-20T13:07:31.601Z",
+                "last_classified_by": "router",
+                "last_state_change_at": "2026-05-20T13:07:31.601Z"
+              },
+              "stability": {
+                "stable_since_at": "2026-05-20T13:07:31.601Z"
+              },
+              "signal_log": {
+                "consent_events": [
+                  {
+                    "at": "2026-05-20T13:02:26.620Z",
+                    "kind": "accept"
+                  },
+                  {
+                    "at": "2026-05-20T13:02:48.031Z",
+                    "kind": "accept"
+                  },
+                  {
+                    "at": "2026-05-20T13:03:30.354Z",
+                    "kind": "accept"
+                  },
+                  {
+                    "at": "2026-05-20T13:04:41.644Z",
+                    "kind": "accept"
+                  },
+                  {
+                    "at": "2026-05-20T13:07:04.495Z",
+                    "kind": "accept"
+                  },
+                  {
+                    "at": "2026-05-20T13:07:31.601Z",
+                    "kind": "explicit_stop"
+                  }
+                ],
+                "emotional_turns": [],
+                "response_quality_events": [
+                  {
+                    "at": "2026-05-20T13:02:01.652Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:02:26.620Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:02:48.031Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:03:13.287Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:03:30.354Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:03:59.954Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:04:23.042Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:04:41.644Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:05:00.756Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:05:17.318Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:05:36.011Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:05:52.525Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:06:44.508Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:07:04.495Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-05-20T13:07:31.601Z",
+                    "quality": "substantive"
+                  }
+                ]
+              },
+              "metrics_cache": {
+                "last_user_turn_at": "2026-05-20T13:07:31.601Z",
+                "last_user_turn_quality": "substantive",
+                "days_since_last_user_message": 0
+              }
+            },
+            "assessment": {
+              "top_risk": "consent",
+              "confidence": "low",
+              "top_blocker": null
+            },
+            "dimensions": {
+              "consent": {
+                "level": "closed",
+                "reason": "dispatcher_explicit_stop"
+              },
+              "plan_fit": {
+                "level": "uncertain"
+              },
+              "engagement": {
+                "level": "high",
+                "reason": "substantive_recent_reply"
+              },
+              "load_balance": {
+                "level": "balanced"
+              },
+              "emotional_load": {
+                "level": "low",
+                "reason": "no_emotional_marker"
+              },
+              "execution_traction": {
+                "level": "unknown"
+              }
+            },
+            "updated_at": "2026-05-20T13:07:31.601Z",
+            "active_load": {
+              "needs_reduce": false,
+              "needs_consolidate": false,
+              "current_load_score": 0,
+              "mission_slots_used": 0,
+              "support_slots_used": 0,
+              "habit_building_slots_used": 0
+            },
+            "memory_links": {
+              "last_useful_support_ids": [],
+              "last_failed_technique_ids": []
+            },
+            "state_reason": "consent_closed",
+            "current_state": "pause_consentie"
+          },
+          "__suspended_flow_v1": {
+            "owner": "conversation_skill",
+            "turn_ttl": 1,
+            "created_at": "2026-05-20T13:03:30.354Z",
+            "suspended_by": "conversation_handler",
+            "resume_policy": "auto_after_answer",
+            "state_snapshot": {
+              "skill_id": "execution_breakdown",
+              "turn_count": 1,
+              "updated_at": "2026-05-20T13:03:13.287Z",
+              "previous_skill_id": null
+            }
+          },
+          "__active_topic_state_v2": {
+            "version": 2,
+            "confidence": 0.6,
+            "updated_at": "2026-05-20T13:04:39.526Z",
+            "last_decision": "create_candidate",
+            "router_version": "memory_v2_router_mvp_1",
+            "active_topic_id": null,
+            "lifecycle_stage": null,
+            "last_switched_at": null,
+            "active_topic_slug": null,
+            "previous_topic_id": null,
+            "candidate_topic_ids": [],
+            "last_decision_reason": "no_active_topic"
+          },
+          "__conversation_risk_last": {
+            "at": "2026-05-20T13:07:31.601Z",
+            "score": 3.3,
+            "threshold": 8,
+            "reason_codes": [
+              "explicit_stop_or_abandon",
+              "previous_risk"
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__memory_payload_state_v2": {
+            "items": [],
+            "budget": {
+              "max_items": 12,
+              "max_entities": 5,
+              "tokens_target": 1800
+            },
+            "modules": {},
+            "version": 2,
+            "entities": [],
+            "last_turn_id": "9c895cc2-f213-4366-9ad4-cf610628389c",
+            "active_topic_id": null
+          },
+          "companion_question_rhythm": {
+            "preference": "normal",
+            "recent_turns": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "last_updated_at": "2026-05-20T13:07:31.594Z",
+            "last_turn_had_question": true,
+            "turns_since_last_question": 0
+          },
+          "__conversation_risk_history": [
+            0.5,
+            0.3,
+            2.7,
+            0,
+            3.3
+          ]
+        }
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "rows": [
+      {
+        "id": "7999d1f9-d39a-4a3b-9043-1c704ad125da",
+        "role": "user",
+        "content": "Salut Sophia, j'ai une journée assez banale mais chargée: un dossier client à avancer et zéro envie de m'y mettre. Je veux juste démarrer sans me faire un grand plan.",
+        "created_at": "2026-05-20T13:01:51.520582+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "11d97fbb-1164-4354-8548-5799bdb59f78",
+        "role": "assistant",
+        "content": "Je vois tout à fait, c'est souvent le démarrage qui coûte le plus cher en énergie. Pour te lancer sans faire de grand plan, je peux te préparer une Carte d'attaque. Ça permet de viser un micro-objectif immédiat pour briser la glace. Tu veux qu'on tente ça ? 🚀",
+        "created_at": "2026-05-20T13:02:01.66908+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gemini-3-flash-preview",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "standard",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_standard",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "6eb147c0-0b20-49fd-9710-58df74ac6af4",
+        "role": "user",
+        "content": "Oui, tente, mais en version ultra légère. Le dossier c'est relire deux pages de notes client; mon blocage c'est que je veux tout comprendre avant d'écrire la moindre ligne.",
+        "created_at": "2026-05-20T13:02:16.709798+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "9258fd1d-5b85-4556-a0ba-7da447c316c6",
+        "role": "assistant",
+        "content": "C'est le piège classique du perfectionnisme qui paralyse le mouvement. On va casser ça tout de suite avec un objectif minuscule : lis ces deux pages comme si c'était un simple article de blog, sans chercher à mémoriser ou structurer quoi que ce soit pour l'instant.\n\nJe te prépare une Carte d'attaque basée sur cette approche pour que tu puisses juste déclencher l'action sans pression. Tu es prêt à ce que je la génère ? ⚡️",
+        "created_at": "2026-05-20T13:02:26.63472+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gemini-3-flash-preview",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "standard",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_standard",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 1,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "cdc785f6-5822-4efa-9986-223360aa7edb",
+        "role": "user",
+        "content": "Oui, génère-la. Et garde en tête que mon piège récurrent c'est l'envie de comprendre parfaitement avant de produire quoi que ce soit.",
+        "created_at": "2026-05-20T13:02:37.691451+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "891cc289-22e3-417c-a620-b1f1bf2d3af4",
+        "role": "assistant",
+        "content": "Ok, on y va. 🧠✍️\n\nCarte d’attaque ultra légère (dossier: relire 2 pages)\n\n1) 2 minutes de “lecture sans jugement”\nTu lis les 2 pages, point. Sans surligner, sans ré-écrire, sans “comprendre parfaitement”. Objectif: te familiariser.\n\n2) 5 minutes: uniquement de la restitution brute\nTu écris 3 puces maximum sur ce que tu as retenu (même si c’est incomplet). Style: notes “brouillon”, pas un texte final.\n\n3) Micro-frein à court-circuiter\nDès que tu sens “je dois tout comprendre avant d’écrire”, tu te dis: “Je peux comprendre en écrivant.” Et tu continues les 3 puces.\n\nRègle d’or: tu n’évalues pas la qualité, tu n’évalues que le fait d’avoir produit ces 3 puces.\n\nTu préfères commencer par lire (2 min) tout de suite, ou te caler 30 secondes de “préparation mentale” d’abord ? 🙂",
+        "created_at": "2026-05-20T13:02:48.068783+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "294aef7d-0d89-4da9-9caf-b4abfc504542",
+        "role": "user",
+        "content": "Je vais lire directement. Je mets un minuteur deux minutes, mais j'ai déjà la petite voix qui dit que ça ne sert à rien si je ne comprends pas tout.",
+        "created_at": "2026-05-20T13:03:06.75359+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "d883bce6-bf06-4cff-8d18-598f6623a72d",
+        "role": "assistant",
+        "content": "Parfait. Là, ton cerveau essaie juste de te protéger… mais il te bloque. 😅\n\nMini-contre (pendant les 2 minutes) :\n1) Tu acceptes “pas tout comprendre” comme règle du jeu (juste “me familiariser”).\n2) Si la voix revient, tu notes mentalement “plus tard” et tu continues la lecture.\n3) À la fin, tu ne relis pas: tu passes direct à la restitution brute.\n\nTu veux que je te donne une phrase “anti-voix” à te répéter exactement ? 😊",
+        "created_at": "2026-05-20T13:03:13.296871+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0.3,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "c8f26a86-f5f6-4d00-a316-1a0d3f027d05",
+        "role": "user",
+        "content": "Oui, une phrase courte. Pas un mantra trop joli, juste un truc crédible que je peux me dire sans lever les yeux au ciel.",
+        "created_at": "2026-05-20T13:03:24.482124+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "f2e940d0-7e57-4a0a-9067-9fa0f5ef8752",
+        "role": "assistant",
+        "content": "Ok. Dis-toi: “L’objectif, c’est d’avancer, pas de tout comprendre.” 🙂",
+        "created_at": "2026-05-20T13:03:30.368877+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 1,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "5df2becf-2c9e-4e99-bfaf-86b7ff150f00",
+        "role": "user",
+        "content": "Ok, j'ai lu les deux pages. J'ai compris 60%, pas plus, et j'ai envie de repartir dans la lecture au lieu d'écrire les trois puces.",
+        "created_at": "2026-05-20T13:03:51.152864+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "e32a62eb-a74f-422c-945d-6d3626095819",
+        "role": "assistant",
+        "content": "Ah parfait, t’as déjà fait la partie “sans pression” ✅ (même si ça te laisse sur ta faim). 😄\n\nLà, on applique la règle anti-perfectionnisme: tu ne reviens pas en arrière tout de suite.\nFais juste ça, maintenant: écris 3 puces ultra moches, en mode “ce que je me souviens” même si c’est incomplet (pas plus de 2 minutes), puis seulement après tu reliras si tu as encore besoin.\n\nTu préfères A: 3 puces “idées principales”, ou B: 3 puces “questions / zones floues” ?",
+        "created_at": "2026-05-20T13:03:59.971137+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 1,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "31d93866-8411-47b7-8cd9-8911221a800a",
+        "role": "user",
+        "content": "Je prends A, mais je sens monter un truc nul: j'ai honte de galérer sur une tâche aussi simple. On peut rester deux secondes là-dessus avant que je continue ?",
+        "created_at": "2026-05-20T13:04:15.133678+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t07",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "d10e20f9-31ec-4c2a-83fa-3ae69040c252",
+        "role": "assistant",
+        "content": "Oui. Stop deux secondes là-dessus. 😕\n\nCe que tu décris ressemble à une auto-attaque, pas à “un vrai fait”. Tu galères, donc ton cerveau traduit ça en “je suis nul / je suis une honte” pour te juger plus vite… et ça te vole l’élan.\n\nLà, on retire la conclusion identitaire et on garde le signal utile : tu es sur une tâche simple, mais ton système est en mode blocage (parce que “tout comprendre avant d’écrire” te met une barrière). Ça veut dire que ton objectif doit être plus petit, pas que tu es nul.\n\nPose juste une main sur ton ventre ou ta poitrine 5 secondes, et dis-toi une phrase neutre : “Je bloque, c’est passager. Je peux faire le tout petit début.” 🙏\n\nTu veux que je te propose le tout premier micro-mouvement (encore plus léger que “relire”) pour casser la honte, oui ou non ?",
+        "created_at": "2026-05-20T13:04:23.056803+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t07",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0.6,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "9215061a-6ee3-4c10-976c-eb0f67b9f54f",
+        "role": "user",
+        "content": "Oui. Pas de morale, juste un micro-mouvement qui me remet devant le fichier.",
+        "created_at": "2026-05-20T13:04:35.079939+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t08",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "cd228ce8-f206-4dd9-9c21-47cedb92a5a2",
+        "role": "assistant",
+        "content": "OK, micro-mouvement, pas de morale. 😌\n\nFais juste ça maintenant:\n1) Ouvre le fichier\n2) Mets-toi sur la première ligne\n3) Lis 10 secondes, puis stop (même si c’est frustrant)\n4) Retourne sur la même ligne 2 secondes plus tard (juste pour “rester accroché”)\n\nQuand tu l’auras fait, tu fais quoi: tu me dis “fait” ou tu me dis où ça coince ?",
+        "created_at": "2026-05-20T13:04:41.661081+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t08",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 1,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "4d825a9c-48ea-4935-b240-0065aeab14fc",
+        "role": "user",
+        "content": "Fait. Ça m'a débloqué un peu. Peux-tu me rappeler demain à 8h30 de reprendre ce dossier client par trois puces moches, pas plus ?",
+        "created_at": "2026-05-20T13:04:56.470549+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t09",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "dcff9e87-2f6f-4a6b-a29d-b7c42c6ee51a",
+        "role": "assistant",
+        "content": "C’est programmé pour jeudi 21 mai à 08:30 : reprendre ce dossier client par trois puces moches, pas plus. 🙂",
+        "created_at": "2026-05-20T13:05:00.769032+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t09",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gemini-3-flash-preview",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "standard",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_standard",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 1.6,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "ac440251-eba3-4ebc-9b04-9c590c4bdd92",
+        "role": "user",
+        "content": "Cool. Au passage, dans l'app je retrouve ce rappel où ? Je ne sais jamais si c'est dans le dashboard ou ailleurs.",
+        "created_at": "2026-05-20T13:05:12.753002+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t10",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "77d26db7-821e-4f85-b09a-852ac51fc65e",
+        "role": "assistant",
+        "content": "Dans l’app, tu le retrouves selon le type de rappel : souvent dans le coin “Rappels / Notifications” (ou “Rendez-vous” si c’est un truc planifié), et sinon dans “Dashboard” si c’est rangé côté suivi. 😊\n\nLà, comme tu parles d’un rappel spécifique “où je retrouve ce rappel”, dis-moi juste : c’est un rappel ponctuel (une date/heure) ou une habitude récurrente ? (A/B)",
+        "created_at": "2026-05-20T13:05:17.339979+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t10",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0.9,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "8d40fc0f-65d6-4a1b-92e9-071f7f224731",
+        "role": "user",
+        "content": "Ponctuel, celui que tu viens de programmer pour demain matin.",
+        "created_at": "2026-05-20T13:05:30.810736+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t11",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "b92034c7-3ae5-42b0-be2c-70952e033246",
+        "role": "assistant",
+        "content": "Yes ✅ Je te confirme juste le point pratique : pour demain matin, c’est bien un rappel ponctuel (pas un rendez-vous récurrent). ⏰\n\nDis-moi juste l’heure exacte demain matin (ex: 8h15), et dans quel format tu veux le message : court ou “motivations + action” ? 🙂",
+        "created_at": "2026-05-20T13:05:36.03228+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t11",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0.5,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "7a9dd48c-d208-48c6-ad08-379a960949a2",
+        "role": "user",
+        "content": "Non, tu l'as déjà mis à 8h30. Je demande juste où je peux le voir ou le modifier dans le produit.",
+        "created_at": "2026-05-20T13:05:47.210697+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t12",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "15c28ac7-b397-4bbc-ab9b-9e192e310bdd",
+        "role": "assistant",
+        "content": "OK, je vois ce que tu veux : savoir où consulter ou ajuster. 👌\n\nDans le produit, tu peux voir et ouvrir la vue Plan via Dashboard > Plan. Tu y retrouves le niveau actif, les semaines, missions/habitudes/clarifications et les éléments à venir.\n\nPar contre, pour ajouter librement une action ou pour saisir les bilans hebdos, ça ne se fait pas dans le Plan : les bilans se font par message WhatsApp le dimanche. Et il n’existe pas d’endroit “ajout libre” d’action dans le dashboard. 🙂\n\nTu parles de quoi exactement : un rappel ponctuel ou une habitude/missions dans le Plan ?",
+        "created_at": "2026-05-20T13:05:52.536368+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t12",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0.3,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "91cc1c06-a726-47b6-adc2-2eb2dbc59132",
+        "role": "user",
+        "content": "Laisse tomber pour l'interface. Tu te souviens du piège que je t'ai demandé de garder en tête tout à l'heure ?",
+        "created_at": "2026-05-20T13:06:38.813481+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t13-retry1",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "45744ac2-baba-45c2-97b2-f7dafb4e62d8",
+        "role": "assistant",
+        "content": "Ouais je vois le piège que tu m’as demandé de garder en tête tout à l’heure 😄\n\nC’était celui du “tout comprendre avant d’écrire” : ton cerveau veut te mettre la barre trop haut, et dès que tu bloques, il transforme ça en jugement identitaire du style “je suis nul / j’ai honte”, ce qui te fait perdre l’élan.\n\nLe contre-mouvement, c’est : avançer avec des 3 puces moches, pas pour être “juste”, mais pour rester au contact du fichier.\n\nTu veux que je te reformule le piège en une phrase ultra-courte pour que tu l’aies sous les yeux ? 👌",
+        "created_at": "2026-05-20T13:06:44.5198+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t13-retry1",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 2.7,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "cc6badbb-5d54-4af8-8e45-8d31e39962e1",
+        "role": "user",
+        "content": "Oui. Et pour la suite, préfère me poser une seule question courte à la fois. Les listes longues me font décrocher quand je suis déjà bloqué.",
+        "created_at": "2026-05-20T13:06:56.93925+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t14",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "d0baff40-cd23-464f-9cf5-72250fb28fde",
+        "role": "assistant",
+        "content": "Bien noté 🙂 Une seule question courte à la fois, promis.  \n\nPour qu’on avance quand tu es bloqué: je te proposerai des micro-actions ultra petites en priorité, et je ne te demanderai une question que si c’est vraiment nécessaire. Quand tu veux, on reprend sur la suite du dossier client : tu préfères que je te fasse une prochaine micro-étape “à faire maintenant” ou une micro-étape “pour demain 8h30” ?",
+        "created_at": "2026-05-20T13:07:04.514598+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t14",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "9c895cc2-f213-4366-9ad4-cf610628389c",
+        "role": "user",
+        "content": "On s'arrête là. Fais-moi un récap très sobre: ce que j'ai fait, ce qui est prévu demain, et le piège à surveiller.",
+        "created_at": "2026-05-20T13:07:15.521218+00:00",
+        "metadata": {
+          "request_id": "qa-global15-20260520-r1-t15",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "75e08767-ddc2-400e-8189-20d44284dcba",
+        "role": "assistant",
+        "content": "Ok, on stop là. 🙂 Voici le récap sobre, mais je n’ai pas assez de contenu dans ce chat pour dire précisément “ce que tu as fait” et “ce qui est prévu demain”.\n\n1) Ce que tu as fait : je n’ai pas les étapes/résultats sous les yeux ici.\n2) Ce qui est prévu demain : je n’ai pas les tâches/heure exacte dans ce chat.\n3) Piège à surveiller : je peux te proposer un piège générique, mais je préfère que tu me dises le contexte (projet/sujet) pour viser juste.\n\nTu veux me répondre juste en 3 lignes (fait / demain / piège), ou tu me dis le sujet et je te formule le piège le plus probable ?\n\nConcrètement, je parle d'une Preferences coach, à préparer seulement si tu confirmes.",
+        "created_at": "2026-05-20T13:07:31.624488+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-global15-20260520-r1-t15",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": true,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "EXPLICIT_STOP",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 3.3,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,83 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r10-t01-aa6a1c0f-3c4f-4559-ac28-b000fb2874e7",
+    "status": 200,
+    "ok": true,
+    "user": "Je crois que le bloc grignotage me bloque surtout le soir. Ce n’est pas une action en particulier, c’est le niveau entier qui me donne l’impression d’avoir trop de petites décisions quand je suis déjà crevée.",
+    "assistant": "Je comprends, la fatigue du soir rend chaque petite décision beaucoup plus lourde. Pour alléger ce bloc 'Grignotage', est-ce que tu préfères qu'on automatise certains choix (comme fixer ton alternative à l'avance), qu'on déplace la réflexion à un moment où tu as plus d'énergie, ou qu'on simplifie radicalement les actions de cette semaine ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "turn_frame_tool_skill_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "bloc grignotage",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high",
+        "operation_input": {
+          "scope": {
+            "kind": "current_level",
+            "label": "Reprendre le contrôle sur le grignotage",
+            "status": "identified",
+            "evidence": [
+              "bloc grignotage",
+              "niveau entier"
+            ]
+          },
+          "target_granularity": {
+            "value": "current_level",
+            "status": "identified",
+            "evidence": [
+              "Ce n’est pas une action en particulier, c’est le niveau entier"
+            ],
+            "confidence": "high",
+            "negative_evidence": []
+          }
+        },
+        "adjust_plan_scope": "current_level"
+      }
+    ],
+    "trace_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r10-t01-aa6a1c0f-3c4f-4559-ac28-b000fb2874e7",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r10-t02-6fb14124-b310-4679-80d3-740ac7be6e0f",
+    "status": 500,
+    "ok": null,
+    "user": "Plutôt automatiser et déplacer la réflexion avant. Je veux garder le niveau, mais enlever la partie décision du soir : le choix du brut doit être décidé avant, et le décodage doit rester une seule question simple.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "tool_skill_run": null,
+    "pending_tool_skill_confirmation": null,
+    "turn_frame_tool_skill_intents": null,
+    "trace_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r10-t02-6fb14124-b310-4679-80d3-740ac7be6e0f",
+    "trace_error": null
+  }
+]

@@ -1,0 +1,805 @@
+{
+  "request_id": "b2000003-0000-4000-8000-000000000003",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000012",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T00:09:08.763Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "73348e52-32ae-46c4-87ed-498de946804b",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T00:08:03.398719+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16134,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16134,
+    "user_message_chars": 15334,
+    "user_message_truncated": false,
+    "user_message_written_chars": 15334,
+    "independent_counters": {
+      "system_prompt_chars": 16134,
+      "prompt_chars": 15334
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "81c89be0-98a8-4534-8cfa-1ebaacc99620",
+    "created_at": "2026-08-19T00:09:08.202062+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Simple Scrambled Eggs on Toast\",\n      \"title\": \"Scrambled eggs on buttered toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"eggs\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"wholemeal bread\", \"quantity\": \"2 slices\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Whisk the eggs with a pinch of salt. Melt a small knob of butter in a pan over medium heat and scramble the eggs until just set. Serve on toasted bread.\",\n      \"why\": \"A simple, warm start for Marceau that avoids the oven entirely.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Sunflower Seed Butter on Toast\",\n      \"title\": \"Sunflower seed butter on crisp toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        { \"term\": \"sunflower seed butter\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": null },\n        { \"term\": \"wholemeal bread\", \"quantity\": \"3 slices\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Toast the bread until golden and spread generously with sunflower seed butter while still warm.\",\n      \"why\": \"Substituted sunflower seed butter for the requested pistachio butter to protect the medical tree nut allergy constraint.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Spinach and Scrambled Egg Bowl\",\n      \"title\": \"Scrambled eggs with wilted spinach\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        { \"term\": \"eggs\", \"quantity\": \"3 units\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"fresh spinach\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Sauté the spinach in oil until wilted, then pour in the whisked eggs and scramble until firm. Serve in a bowl without starch.\",\n      \"why\": \"A high-protein, starch-free breakfast for Ysoline that avoids her fennel restriction.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Seared Chicken and Potato Plate\",\n      \"title\": \"Pan-seared chicken with new potatoes and green beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Place the chicken, potatoes, and beans in a wide frying pan with a splash of water. Cover and heat for 8 minutes until steaming hot.\",\n      \"why\": \"Uses the hob-cooked batch to provide a warm, balanced lunch without needing the broken oven.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_marceau\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_marceau\" },\n        { \"preparation_id\": \"prep_beans\", \"servings\": 1, \"box_id\": \"box_beans_marceau\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\", \"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Hearty Chicken and Potato Plate\",\n      \"title\": \"Large portion of seared chicken and potatoes with beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken, potatoes, and beans in a pan over medium heat. Ensure the chicken is piping hot throughout.\",\n      \"why\": \"Delivers the larger protein and starch shares Bertille needs for muscle gain.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_bertille\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_bertille\" },\n        { \"preparation_id\": \"prep_beans\", \"servings\": 1, \"box_id\": \"box_beans_bertille\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Chicken and Garlic Bean Plate\",\n      \"title\": \"Seared chicken with extra green beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and beans in a pan. Add only half the potato portion from the box to the plate.\",\n      \"why\": \"Prioritises vegetables and protein for Ysoline while keeping the starch portion small.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_ysoline\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_ysoline\" },\n        { \"preparation_id\": \"prep_beans\", \"servings\": 1, \"box_id\": \"box_beans_ysoline\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Lemon Chicken and Smashed Potatoes\",\n      \"title\": \"Warm chicken and smashed potatoes with lemon\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"lemon\", \"quantity\": \"0.5 unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": null }\n      ],\n      \"method\": \"Reheat the chicken and potatoes in a pan. Once hot, lightly crush the potatoes with a fork and squeeze over fresh lemon juice.\",\n      \"why\": \"A warm, comforting dinner that uses the same prep in a new texture.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_marceau\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_marceau\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 12 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Large Lemon Chicken and Potato Smash\",\n      \"title\": \"Double portion of chicken and smashed potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        { \"term\": \"lemon\", \"quantity\": \"0.5 unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": null }\n      ],\n      \"method\": \"Reheat the full box of chicken and potatoes. Smash the potatoes and finish with lemon and a pinch of salt.\",\n      \"why\": \"Fueling muscle gain with a warm, high-starch dinner for Bertille.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_bertille\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_bertille\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 12 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Warm Lemon Chicken and Beans\",\n      \"title\": \"Seared chicken and green beans with lemon\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        { \"term\": \"lemon\", \"quantity\": \"0.5 unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": null }\n      ],\n      \"method\": \"Reheat chicken and green beans in a pan. Serve with a squeeze of lemon and no potatoes.\",\n      \"why\": \"A warm, fennel-free dinner for Ysoline focusing on protein and the loud vegetable.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_ysoline\" },\n        { \"preparation_id\": \"prep_beans\", \"servings\": 1, \"box_id\": \"box_beans_ysoline\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Pan-Seared Chicken Thighs\",\n      \"servings_made\": 6,\n      \"ingredients\": [\n        { \"term\": \"chicken thighs, boneless\", \"quantity\": \"1.2 kg\", \"amount\": 1200, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Season the chicken. Heat oil in a large pan over medium-high heat. Sear chicken for 6-8 minutes per side until cooked through and golden. Let rest before boxing.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_bertille\", \"member_ids\": [\"8917f344-51d8-4177-8c54-ff4460ef9122\"], \"grams\": 300 },\n        { \"id\": \"box_chicken_marceau\", \"member_ids\": [\"2a937736-693a-45f1-97a6-110f535ae004\"], \"grams\": 300 },\n        { \"id\": \"box_chicken_ysoline\", \"member_ids\": [\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"], \"grams\": 300 }\n      ]\n    },\n    {\n      \"id\": \"prep_potatoes\",\n      \"title\": \"Steamed New Potatoes\",\n      \"servings_made\": 6,\n      \"ingredients\": [\n        { \"term\": \"new potatoes\", \"quantity\": \"1.2 kg\", \"amount\": 1200, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Halve any large potatoes. Boil in salted water for 15-20 minutes until tender. Drain and allow to steam dry before boxing.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_potatoes_bertille\", \"member_ids\": [\"8917f344-51d8-4177-8c54-ff4460ef9122\"], \"grams\": 350 },\n        { \"id\": \"box_potatoes_marceau\", \"member_ids\": [\"2a937736-693a-45f1-97a6-110f535ae004\"], \"grams\": 350 },\n        { \"id\": \"box_potatoes_ysoline\", \"member_ids\": [\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"], \"grams\": 350 }\n      ]\n    },\n    {\n      \"id\": \"prep_beans\",\n      \"title\": \"Garlicky Green Beans\",\n      \"servings_made\": 6,\n      \"ingredients\": [\n        { \"term\": \"green beans\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"garlic\", \"quantity\": \"3 cloves\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Trim the beans. Sauté in oil with minced garlic for 5-7 minutes until bright green and tender-crisp.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_beans_bertille\", \"member_ids\": [\"8917f344-51d8-4177-8c54-ff4460ef9122\"], \"grams\": 150 },\n        { \"id\": \"box_beans_marceau\", \"member_ids\": [\"2a937736-693a-45f1-97a6-110f535ae004\"], \"grams\": 150 },\n        { \"id\": \"box_beans_ysoline\", \"member_ids\": [\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"], \"grams\": 150 }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\"prep_chicken\", \"prep_potatoes\", \"prep_beans\"],\n      \"total_minutes\": 45,\n      \"run_through\": \"Start the potatoes boiling first. While they cook, sear the chicken thighs in a large pan. Once the potatoes are draining, use a separate pan to sauté the garlicky green beans. Box everything into the named containers once cooled.\"\n    }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"chicken thighs, boneless\", \"quantity\": \"1.2 kg\", \"aisle\": \"protein\" },\n    { \"term\": \"eggs\", \"quantity\": \"6 units\", \"aisle\": \"dairy\" },\n    { \"term\": \"new potatoes\", \"quantity\": \"1.2 kg\", \"aisle\": \"produce\" },\n    { \"term\": \"green beans\", \"quantity\": \"600 g\", \"aisle\": \"produce\" },\n    { \"term\": \"fresh spinach\", \"quantity\": \"100 g\", \"aisle\": \"produce\" },\n    { \"term\": \"garlic\", \"quantity\": \"1 bulb\", \"aisle\": \"produce\" },\n    { \"term\": \"lemons\", \"quantity\": \"2 units\", \"aisle\": \"produce\" },\n    { \"term\": \"wholemeal bread\", \"quantity\": \"1 loaf\", \"aisle\": \"grains\" },\n    { \"term\": \"sunflower seed butter\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"olive oil\", \"quantity\": \"1 bottle\", \"aisle\": \"pantry\" },\n    { \"term\": \"butter\", \"quantity\": \"250 g\", \"aisle\": \"dairy\" }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"Serve the full box of chicken and potatoes for lunch and dinner; add extra toast at breakfast.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken\", \"note\": \"Full portion for protein target.\" },\n        { \"preparation_id\": \"prep_potatoes\", \"note\": \"Full portion for muscle gain fuel.\" }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"Serve half of the contents of each box for a child-sized plate.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken\", \"note\": \"Half portion.\" },\n        { \"preparation_id\": \"prep_potatoes\", \"note\": \"Half portion.\" }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Serve the full box of chicken and beans; omit or limit potatoes to a few pieces.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_beans\", \"note\": \"Generous vegetable share.\" },\n        { \"preparation_id\": \"prep_potatoes\", \"note\": \"Smallest share of the table.\" }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Simple Scrambled Eggs on Toast",
+          "title": "Scrambled eggs on buttered toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Whisk the eggs with a pinch of salt. Melt a small knob of butter in a pan over medium heat and scramble the eggs until just set. Serve on toasted bread.",
+          "why": "A simple, warm start for Marceau that avoids the oven entirely.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Sunflower Seed Butter on Toast",
+          "title": "Sunflower seed butter on crisp toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "sunflower seed butter",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "3 slices",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the bread until golden and spread generously with sunflower seed butter while still warm.",
+          "why": "Substituted sunflower seed butter for the requested pistachio butter to protect the medical tree nut allergy constraint.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Spinach and Scrambled Egg Bowl",
+          "title": "Scrambled eggs with wilted spinach",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "3 units",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "fresh spinach",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Sauté the spinach in oil until wilted, then pour in the whisked eggs and scramble until firm. Serve in a bowl without starch.",
+          "why": "A high-protein, starch-free breakfast for Ysoline that avoids her fennel restriction.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Seared Chicken and Potato Plate",
+          "title": "Pan-seared chicken with new potatoes and green beans",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Place the chicken, potatoes, and beans in a wide frying pan with a splash of water. Cover and heat for 8 minutes until steaming hot.",
+          "why": "Uses the hob-cooked batch to provide a warm, balanced lunch without needing the broken oven.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_marceau"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_marceau"
+            },
+            {
+              "preparation_id": "prep_beans",
+              "servings": 1,
+              "box_id": "box_beans_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Hearty Chicken and Potato Plate",
+          "title": "Large portion of seared chicken and potatoes with beans",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [],
+          "method": "Reheat the chicken, potatoes, and beans in a pan over medium heat. Ensure the chicken is piping hot throughout.",
+          "why": "Delivers the larger protein and starch shares Bertille needs for muscle gain.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_bertille"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_bertille"
+            },
+            {
+              "preparation_id": "prep_beans",
+              "servings": 1,
+              "box_id": "box_beans_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Chicken and Garlic Bean Plate",
+          "title": "Seared chicken with extra green beans",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [],
+          "method": "Reheat the chicken and beans in a pan. Add only half the potato portion from the box to the plate.",
+          "why": "Prioritises vegetables and protein for Ysoline while keeping the starch portion small.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_ysoline"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_ysoline"
+            },
+            {
+              "preparation_id": "prep_beans",
+              "servings": 1,
+              "box_id": "box_beans_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Lemon Chicken and Smashed Potatoes",
+          "title": "Warm chicken and smashed potatoes with lemon",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "0.5 unit",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the chicken and potatoes in a pan. Once hot, lightly crush the potatoes with a fork and squeeze over fresh lemon juice.",
+          "why": "A warm, comforting dinner that uses the same prep in a new texture.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_marceau"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Large Lemon Chicken and Potato Smash",
+          "title": "Double portion of chicken and smashed potatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "0.5 unit",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the full box of chicken and potatoes. Smash the potatoes and finish with lemon and a pinch of salt.",
+          "why": "Fueling muscle gain with a warm, high-starch dinner for Bertille.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_bertille"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Warm Lemon Chicken and Beans",
+          "title": "Seared chicken and green beans with lemon",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "0.5 unit",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat chicken and green beans in a pan. Serve with a squeeze of lemon and no potatoes.",
+          "why": "A warm, fennel-free dinner for Ysoline focusing on protein and the loud vegetable.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_ysoline"
+            },
+            {
+              "preparation_id": "prep_beans",
+              "servings": 1,
+              "box_id": "box_beans_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken",
+          "title": "Pan-Seared Chicken Thighs",
+          "servings_made": 6,
+          "ingredients": [
+            {
+              "term": "chicken thighs, boneless",
+              "quantity": "1.2 kg",
+              "amount": 1200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Season the chicken. Heat oil in a large pan over medium-high heat. Sear chicken for 6-8 minutes per side until cooked through and golden. Let rest before boxing.",
+          "active_minutes": 15,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_chicken_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_chicken_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_potatoes",
+          "title": "Steamed New Potatoes",
+          "servings_made": 6,
+          "ingredients": [
+            {
+              "term": "new potatoes",
+              "quantity": "1.2 kg",
+              "amount": 1200,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Halve any large potatoes. Boil in salted water for 15-20 minutes until tender. Drain and allow to steam dry before boxing.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_potatoes_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 350
+            },
+            {
+              "id": "box_potatoes_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 350
+            },
+            {
+              "id": "box_potatoes_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 350
+            }
+          ]
+        },
+        {
+          "id": "prep_beans",
+          "title": "Garlicky Green Beans",
+          "servings_made": 6,
+          "ingredients": [
+            {
+              "term": "green beans",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "3 cloves",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Trim the beans. Sauté in oil with minced garlic for 5-7 minutes until bright green and tender-crisp.",
+          "active_minutes": 10,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beans_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_beans_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_beans_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 150
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken",
+            "prep_potatoes",
+            "prep_beans"
+          ],
+          "total_minutes": 45,
+          "run_through": "Start the potatoes boiling first. While they cook, sear the chicken thighs in a large pan. Once the potatoes are draining, use a separate pan to sauté the garlicky green beans. Box everything into the named containers once cooled."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "chicken thighs, boneless",
+          "quantity": "1.2 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "eggs",
+          "quantity": "6 units",
+          "aisle": "dairy"
+        },
+        {
+          "term": "new potatoes",
+          "quantity": "1.2 kg",
+          "aisle": "produce"
+        },
+        {
+          "term": "green beans",
+          "quantity": "600 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh spinach",
+          "quantity": "100 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemons",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "wholemeal bread",
+          "quantity": "1 loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "sunflower seed butter",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "butter",
+          "quantity": "250 g",
+          "aisle": "dairy"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "portion_note": "Serve the full box of chicken and potatoes for lunch and dinner; add extra toast at breakfast.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "Full portion for protein target."
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "Full portion for muscle gain fuel."
+            }
+          ]
+        },
+        {
+          "member_id": "2a937736-693a-45f1-97a6-110f535ae004",
+          "portion_note": "Serve half of the contents of each box for a child-sized plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "Half portion."
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "Half portion."
+            }
+          ]
+        },
+        {
+          "member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "portion_note": "Serve the full box of chicken and beans; omit or limit potatoes to a few pieces.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beans",
+              "note": "Generous vegetable share."
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "Smallest share of the table."
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Simple Scrambled Eggs on Toast\",\n      \"title\": \"Scrambled eggs on buttered toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"eggs\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"wholemeal bread\", \"quantity\": \"2 slices\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Whisk the eggs with a pinch of salt. Melt a small knob of butter in a pan over medium heat and scramble the eggs until just set. Serve on toasted bread.\",\n      \"why\": \"A simple, warm start for Marceau that avoids the oven entirely.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Sunflower Seed Butter on Toast\",\n      \"title\": \"Sunflower seed butter on crisp toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        { \"term\": \"sunflower seed butter\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": null },\n        { \"term\": \"wholemeal bread\", \"quantity\": \"3 slices\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Toast the bread until golden and spread generously with sunflower seed butter while still warm.\",\n      \"why\": \"Substituted sunflower seed butter for the requested pistachio butter to protect the medical tree nut allergy constraint.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Spinach and Scrambled Egg Bowl\",\n      \"title\": \"Scrambled eggs with wilted spinach\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        { \"term\": \"eggs\", \"quantity\": \"3 units\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"fresh spinach\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Sauté the spinach in oil until wilted, then pour in the whisked eggs and scramble until firm. Serve in a bowl without starch.\",\n      \"why\": \"A high-protein, starch-free breakfast for Ysoline that avoids her fennel restriction.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Seared Chicken and Potato Plate\",\n      \"title\": \"Pan-seared chicken with new potatoes and green beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Place the chicken, potatoes, and beans in a wide frying pan with a splash of water. Cover and heat for 8 minutes until steaming hot.\",\n      \"why\": \"Uses the hob-cooked batch to provide a warm, balanced lunch without needing the broken oven.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_marceau\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_marceau\" },\n        { \"preparation_id\": \"prep_beans\", \"servings\": 1, \"box_id\": \"box_beans_marceau\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\", \"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Hearty Chicken and Potato Plate\",\n      \"title\": \"Large portion of seared chicken and potatoes with beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken, potatoes, and beans in a pan over medium heat. Ensure the chicken is piping hot throughout.\",\n      \"why\": \"Delivers the larger protein and starch shares Bertille needs for muscle gain.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_bertille\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_bertille\" },\n        { \"preparation_id\": \"prep_beans\", \"servings\": 1, \"box_id\": \"box_beans_bertille\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Chicken and Garlic Bean Plate\",\n      \"title\": \"Seared chicken with extra green beans\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and beans in a pan. Add only half the potato portion from the box to the plate.\",\n      \"why\": \"Prioritises vegetables and protein for Ysoline while keeping the starch portion small.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_ysoline\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_ysoline\" },\n        { \"preparation_id\": \"prep_beans\", \"servings\": 1, \"box_id\": \"box_beans_ysoline\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Lemon Chicken and Smashed Potatoes\",\n      \"title\": \"Warm chicken and smashed potatoes with lemon\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"lemon\", \"quantity\": \"0.5 unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": null }\n      ],\n      \"method\": \"Reheat the chicken and potatoes in a pan. Once hot, lightly crush the potatoes with a fork and squeeze over fresh lemon juice.\",\n      \"why\": \"A warm, comforting dinner that uses the same prep in a new texture.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_marceau\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_marceau\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 12 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Large Lemon Chicken and Potato Smash\",\n      \"title\": \"Double portion of chicken and smashed potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        { \"term\": \"lemon\", \"quantity\": \"0.5 unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": null }\n      ],\n      \"method\": \"Reheat the full box of chicken and potatoes. Smash the potatoes and finish with lemon and a pinch of salt.\",\n      \"why\": \"Fueling muscle gain with a warm, high-starch dinner for Bertille.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_bertille\" },\n        { \"preparation_id\": \"prep_potatoes\", \"servings\": 1, \"box_id\": \"box_potatoes_bertille\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 12 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Warm Lemon Chicken and Beans\",\n      \"title\": \"Seared chicken and green beans with lemon\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        { \"term\": \"lemon\", \"quantity\": \"0.5 unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": null }\n      ],\n      \"method\": \"Reheat chicken and green beans in a pan. Serve with a squeeze of lemon and no potatoes.\",\n      \"why\": \"A warm, fennel-free dinner for Ysoline focusing on protein and the loud vegetable.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_ysoline\" },\n        { \"preparation_id\": \"prep_beans\", \"servings\": 1, \"box_id\": \"box_beans_ysoline\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Pan-Seared Chicken Thighs\",\n      \"servings_made\": 6,\n      \"ingredients\": [\n        { \"term\": \"chicken thighs, boneless\", \"quantity\": \"1.2 kg\", \"amount\": 1200, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Season the chicken. Heat oil in a large pan over medium-high heat. Sear chicken for 6-8 minutes per side until cooked through and golden. Let rest before boxing.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_bertille\", \"member_ids\": [\"8917f344-51d8-4177-8c54-ff4460ef9122\"], \"grams\": 300 },\n        { \"id\": \"box_chicken_marceau\", \"member_ids\": [\"2a937736-693a-45f1-97a6-110f535ae004\"], \"grams\": 300 },\n        { \"id\": \"box_chicken_ysoline\", \"member_ids\": [\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"], \"grams\": 300 }\n      ]\n    },\n    {\n      \"id\": \"prep_potatoes\",\n      \"title\": \"Steamed New Potatoes\",\n      \"servings_made\": 6,\n      \"ingredients\": [\n        { \"term\": \"new potatoes\", \"quantity\": \"1.2 kg\", \"amount\": 1200, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Halve any large potatoes. Boil in salted water for 15-20 minutes until tender. Drain and allow to steam dry before boxing.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_potatoes_bertille\", \"member_ids\": [\"8917f344-51d8-4177-8c54-ff4460ef9122\"], \"grams\": 350 },\n        { \"id\": \"box_potatoes_marceau\", \"member_ids\": [\"2a937736-693a-45f1-97a6-110f535ae004\"], \"grams\": 350 },\n        { \"id\": \"box_potatoes_ysoline\", \"member_ids\": [\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"], \"grams\": 350 }\n      ]\n    },\n    {\n      \"id\": \"prep_beans\",\n      \"title\": \"Garlicky Green Beans\",\n      \"servings_made\": 6,\n      \"ingredients\": [\n        { \"term\": \"green beans\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"garlic\", \"quantity\": \"3 cloves\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": null }\n      ],\n      \"method\": \"Trim the beans. Sauté in oil with minced garlic for 5-7 minutes until bright green and tender-crisp.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_beans_bertille\", \"member_ids\": [\"8917f344-51d8-4177-8c54-ff4460ef9122\"], \"grams\": 150 },\n        { \"id\": \"box_beans_marceau\", \"member_ids\": [\"2a937736-693a-45f1-97a6-110f535ae004\"], \"grams\": 150 },\n        { \"id\": \"box_beans_ysoline\", \"member_ids\": [\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"], \"grams\": 150 }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\"prep_chicken\", \"prep_potatoes\", \"prep_beans\"],\n      \"total_minutes\": 45,\n      \"run_through\": \"Start the potatoes boiling first. While they cook, sear the chicken thighs in a large pan. Once the potatoes are draining, use a separate pan to sauté the garlicky green beans. Box everything into the named containers once cooled.\"\n    }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"chicken thighs, boneless\", \"quantity\": \"1.2 kg\", \"aisle\": \"protein\" },\n    { \"term\": \"eggs\", \"quantity\": \"6 units\", \"aisle\": \"dairy\" },\n    { \"term\": \"new potatoes\", \"quantity\": \"1.2 kg\", \"aisle\": \"produce\" },\n    { \"term\": \"green beans\", \"quantity\": \"600 g\", \"aisle\": \"produce\" },\n    { \"term\": \"fresh spinach\", \"quantity\": \"100 g\", \"aisle\": \"produce\" },\n    { \"term\": \"garlic\", \"quantity\": \"1 bulb\", \"aisle\": \"produce\" },\n    { \"term\": \"lemons\", \"quantity\": \"2 units\", \"aisle\": \"produce\" },\n    { \"term\": \"wholemeal bread\", \"quantity\": \"1 loaf\", \"aisle\": \"grains\" },\n    { \"term\": \"sunflower seed butter\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"olive oil\", \"quantity\": \"1 bottle\", \"aisle\": \"pantry\" },\n    { \"term\": \"butter\", \"quantity\": \"250 g\", \"aisle\": \"dairy\" }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"Serve the full box of chicken and potatoes for lunch and dinner; add extra toast at breakfast.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken\", \"note\": \"Full portion for protein target.\" },\n        { \"preparation_id\": \"prep_potatoes\", \"note\": \"Full portion for muscle gain fuel.\" }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"Serve half of the contents of each box for a child-sized plate.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken\", \"note\": \"Half portion.\" },\n        { \"preparation_id\": \"prep_potatoes\", \"note\": \"Half portion.\" }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Serve the full box of chicken and beans; omit or limit potatoes to a few pieces.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_beans\", \"note\": \"Generous vegetable share.\" },\n        { \"preparation_id\": \"prep_potatoes\", \"note\": \"Smallest share of the table.\" }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "-_OEarXCJK_4xN8PnLwr",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 16667,
+        "promptTokenCount": 8156,
+        "thoughtsTokenCount": 3824,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8156
+          }
+        ],
+        "candidatesTokenCount": 4687
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T00:08:03.398719+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:08:04.335735+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:08:07.540807+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:08:07.552562+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:08:07.557412+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:08:23.135737+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:08:24.110091+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:08:27.252092+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:08:27.264681+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:08:27.27065+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:09:08.202062+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

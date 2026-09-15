@@ -1,0 +1,20 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r76-whole-plan-level4-vague-t01",
+    "user": "J'ai lu le niveau 4 du plan et franchement j'ai l'impression qu'il ne fait pas trop de sens pour moi. Je ne sais pas exactement quoi changer, mais la suite me parait bizarre.",
+    "status": 500,
+    "body": {
+      "error": "supabaseUrl is required.",
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r76-whole-plan-level4-vague-t01",
+      "qa_diagnostic": {
+        "source": "test-send-message",
+        "category": "router_or_app",
+        "reason": "unknown",
+        "provider": "unknown",
+        "retryable": false,
+        "note": "Unhandled application/router failure while running QA endpoint."
+      }
+    }
+  }
+]

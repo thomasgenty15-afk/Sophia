@@ -1,0 +1,47 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r11-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Hier j'ai fait le sas, mais j'ai tourné autour du carnet au lieu de commencer tout de suite. Ce soir je veux couper ce moment d'hésitation.",
+    "assistant": "Ah merde, je vois exactement le piège : tu veux faire, mais tu “prépares” au lieu de démarrer. Ce soir, l’objectif c’est juste de casser l’élan d’hésitation et d’entrer direct dans le sas. 😄\n\nOn peut faire ça en mode ultra simple : tu te donnes un seul signal de départ, puis tu lances le sas sans ouvrir le carnet avant d’avoir fini le sas.\n\nTu veux qu’on utilise la Carte d’attaque “Carte d’attaque” pour te donner le démarrage tout prêt (avec le sas comme objectif immédiat) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "track_progress_plan_item"
+    ],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "Ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "track_progress_plan_item"
+      }
+    ],
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

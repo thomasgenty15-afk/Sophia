@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240"
+     role="img" aria-labelledby="fm-t fm-d" font-family="var(--font-sans, ui-sans-serif, system-ui, sans-serif)">
+  <title id="fm-t">A worked example for a gym with 250 members</title>
+  <desc id="fm-d">Four lines of arithmetic. Thirty-seven members at 25 &#8364; each is 925 &#8364; in; seven euros each to Sophia is 259 &#8364; out; 666 &#8364; stays with the gym every month.</desc>
+  <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig, #632C4C)" stroke-width="2" stroke-linecap="round"/>
+  <text x="44" y="26" font-size="11" font-weight="600" letter-spacing="1.2" fill="var(--ill-ink-soft, #6A5A64)">AN EXAMPLE &#8212; A GYM WITH 250 MEMBERS</text>
+  <rect x="24" y="48" width="432" height="176" rx="12" fill="var(--ill-paper, #FBF8FA)" stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1"/>
+  <text x="44" y="80" font-size="11" fill="var(--ill-ink, #23191F)">On the nutrition tier</text>
+  <text x="436" y="80" font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)">37 members</text>
+  <text x="44" y="134" font-size="11" fill="var(--ill-ink, #23191F)">They pay you 25&#160;&#8364; each</text>
+  <text x="436" y="134" font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)">925&#160;&#8364;</text>
+  <text x="44" y="162" font-size="11" fill="var(--ill-ink, #23191F)">You pay Sophia 7&#160;&#8364; each</text>
+  <text x="436" y="162" font-size="13" text-anchor="end" fill="var(--ill-ink, #23191F)">&#8722; 259&#160;&#8364;</text>
+  <text x="44" y="200" font-size="13" fill="var(--ill-ink, #23191F)">You keep, every month</text>
+  <text x="436" y="200" font-size="13" text-anchor="end" fill="var(--ill-fig, #632C4C)">666&#160;&#8364;</text>
+  <g font-size="9" fill="var(--ill-ink-soft, #6A5A64)">
+    <text x="44" y="96">15% take it up, rounded down to whole people</text>
+    <text x="44" y="216">about 8,000 &#8364; a year</text>
+  </g>
+  <g stroke="var(--ill-ink-soft, #6A5A64)" stroke-width="1">
+    <path d="M 44 110 L 436 110"/>
+    <path d="M 44 176 L 436 176"/>
+  </g>
+</svg>

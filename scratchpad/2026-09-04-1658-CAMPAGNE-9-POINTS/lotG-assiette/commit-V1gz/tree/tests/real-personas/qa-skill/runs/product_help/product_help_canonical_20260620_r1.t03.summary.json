@@ -1,0 +1,93 @@
+{
+  "run_id": "product_help_canonical_20260620_r1",
+  "turn": 3,
+  "user_message": "Question produit : est-ce qu'une carte d'attaque peut être modifiée après coup ? Et rappelle-moi demain à 9h de vérifier ça.",
+  "http_status": 200,
+  "ok": true,
+  "reply_content": "Oui, une carte d’attaque peut être modifiée après coup si elle existe encore et que tu veux l’ajuster.\n\nPour le rappel de demain à 9h : je ne peux pas le poser ici de façon fiable dans ce chat, donc pense à le programmer dans la plateforme si tu veux qu’il t’attende vraiment ⏰",
+  "response_owner": "normal_reply",
+  "reason_code": "coaching_recommendation_exit_to_global",
+  "direct_effects": [],
+  "skill_run": {
+    "selected_skill_id": "coaching_recommendation",
+    "reason_code": "active_coaching_recommendation",
+    "status": "exit",
+    "latency_ms": 14053,
+    "exit_target": "global",
+    "exit_note_information": {
+      "source_flow_id": "coaching_recommendation",
+      "handoff_reason": "topic_change",
+      "target_dispatcher": "global",
+      "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"Le user pose une question produit sur la modification d'une carte d'attaque après coup, et demande aussi un rappel ponctuel demain à 9h.\",\"active_flow_summary\":\"coaching_recommendation helps choose a Sophia feature and never executes tools.\",\"collected_state\":{\"user_need_summary\":\"Le user veut se débloquer maintenant sans toucher au plan; il demande quel levier choisir.\",\"candidate_features\":[],\"current_recommendation\":null,\"parent_context\":null,\"dispatcher_signal_context\":{\"reason\":\"The user wants a coaching lever now, but the action vs state framing is not explicit.\",\"confidence\":0.84,\"coaching_type\":\"ambiguous\",\"action_context\":{\"source\":\"ambiguous\",\"plan_id\":null,\"plan_title\":null,\"action_type\":\"other\",\"action_title\":null,\"plan_item_id\":null},\"activation_checks\":{\"is_coaching_need\":true,\"is_about_plan_action\":false,\"needs_type_confirmation\":true,\"has_concrete_plan_action\":false,\"is_about_emotional_state\":false,\"is_about_non_plan_action\":false},\"emotional_state_context\":{\"intensity\":\"medium\",\"state_hint\":null}}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"constraints\":[\"coaching_recommendation_never_executes_tools\",\"recommendation_only\"],\"evidence\":[\"Question produit sur une carte d'attaque.\",\"Demande explicite de rappel demain à 9h.\"]}",
+      "user_words": [
+        "Question produit : est-ce qu'une carte d'attaque peut être modifiée après coup ? Et rappelle-moi demain à 9h de vérifier ça.",
+        "Question produit sur une carte d'attaque.",
+        "Demande explicite de rappel demain à 9h."
+      ],
+      "structured_context": {
+        "user_message_summary": "Le user pose une question produit sur la modification d'une carte d'attaque après coup, et demande aussi un rappel ponctuel demain à 9h.",
+        "active_flow_summary": "coaching_recommendation helps choose a Sophia feature and never executes tools.",
+        "collected_state": {
+          "user_need_summary": "Le user veut se débloquer maintenant sans toucher au plan; il demande quel levier choisir.",
+          "candidate_features": [],
+          "current_recommendation": null,
+          "parent_context": null,
+          "dispatcher_signal_context": {
+            "reason": "The user wants a coaching lever now, but the action vs state framing is not explicit.",
+            "confidence": 0.84,
+            "coaching_type": "ambiguous",
+            "action_context": {
+              "source": "ambiguous",
+              "plan_id": null,
+              "plan_title": null,
+              "action_type": "other",
+              "action_title": null,
+              "plan_item_id": null
+            },
+            "activation_checks": {
+              "is_coaching_need": true,
+              "is_about_plan_action": false,
+              "needs_type_confirmation": true,
+              "has_concrete_plan_action": false,
+              "is_about_emotional_state": false,
+              "is_about_non_plan_action": false
+            },
+            "emotional_state_context": {
+              "intensity": "medium",
+              "state_hint": null
+            }
+          }
+        },
+        "unresolved_questions": [],
+        "recommended_next_focus": "global",
+        "constraints": [
+          "coaching_recommendation_never_executes_tools",
+          "recommendation_only"
+        ],
+        "evidence": [
+          "Question produit sur une carte d'attaque.",
+          "Demande explicite de rappel demain à 9h."
+        ]
+      },
+      "confidence": "high"
+    }
+  },
+  "effect_ledger": {
+    "turn_id": "acccbc2f-e293-44eb-adee-41dfa21f7a6a",
+    "counts": {
+      "requested": 0,
+      "allowed": 0,
+      "blocked": 0,
+      "committed": 0,
+      "failed": 0,
+      "proposed": 0,
+      "delivered": 0,
+      "cancelled": 0,
+      "superseded": 0,
+      "asked": 0,
+      "resolved": 0,
+      "topic_change": 0
+    },
+    "entries": []
+  }
+}

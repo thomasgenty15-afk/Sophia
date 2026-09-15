@@ -1,0 +1,1621 @@
+{
+  "request_id": "ebeb0828-ab1c-47d0-be82-775367df47ed",
+  "resolved_by": "--request-id",
+  "user_id": "8494a2e4-c31c-52e7-7f71-7bf9f3506f95",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-18T21:38:49.610Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "a6c9345a-23c9-4b3b-9085-0b134dd8ada5",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T21:37:46.094418+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 14160,
+    "user_message_truncated": false,
+    "user_message_written_chars": 14160,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 14160
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "70099fb6-b925-47fa-a7c7-a74ba42ec360",
+    "created_at": "2026-08-18T21:38:37.895539+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\"member_portions\":[{\"member_id\":\"5e61b4af-f14f-494e-8555-9d25778b7b56\",\"portion_note\":\"At breakfast: 2 boiled eggs and black coffee only; at lunch and dinner: 180 g of the shared fish, 120 g of vegetables, and 60 g of starch at lunch or 80 g at dinner.\",\"preparation_shares\":[{\"preparation_id\":\"prep_rice\",\"note\":\"Use the student box for 60 g cooked rice at lunch and 80 g cooked rice at dinner.\"},{\"preparation_id\":\"prep_tray_bake\",\"note\":\"Use the student box for the fish and vegetables at lunch and dinner.\"}]},{\"member_id\":\"b9415944-06b0-4246-b1f4-76c93b6afbc7\",\"portion_note\":\"At lunch and dinner: 220 g of the shared fish, 120 g of vegetables, and 90 g of starch at lunch or 70 g at dinner; at the afternoon snack: her own bowl of skyr with walnuts only.\",\"preparation_shares\":[{\"preparation_id\":\"prep_rice\",\"note\":\"Use the Livia box for 90 g cooked rice at lunch and 70 g cooked rice at dinner.\"},{\"preparation_id\":\"prep_tray_bake\",\"note\":\"Use the Livia box for the fish and vegetables at lunch and dinner.\"}]},{\"member_id\":\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\",\"portion_note\":\"At breakfast, lunch, snack_pm and dinner: child-size portions from the shared dish, with vegetables kept separate from each other on the plate; at breakfast use a simple own plate, and at dinner on Saturday there is no serving.\",\"preparation_shares\":[{\"preparation_id\":\"prep_rice\",\"note\":\"Use the Tino box for 40 g cooked rice at lunch and 40 g cooked rice at dinner.\"},{\"preparation_id\":\"prep_tray_bake\",\"note\":\"Use the Tino box for the fish and vegetables at lunch and dinner.\"}]}],\"preparations\":[{\"id\":\"prep_eggs\",\"title\":\"Boiled eggs for breakfasts\",\"servings_made\":6,\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"6 eggs\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"water\",\"quantity\":\"enough to cover\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Boil the eggs, cool them, and chill them ready for breakfasts on Tue and Wed.\",\"active_minutes\":10,\"total_minutes\":20,\"cook_on\":\"mon\",\"boxes\":[{\"id\":\"box_prep_eggs_student\",\"member_ids\":[\"5e61b4af-f14f-494e-8555-9d25778b7b56\"],\"grams\":100},{\"id\":\"box_prep_eggs_livia\",\"member_ids\":[\"b9415944-06b0-4246-b1f4-76c93b6afbc7\"],\"grams\":100},{\"id\":\"box_prep_eggs_tino\",\"member_ids\":[\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\"],\"grams\":100}]},{\"id\":\"prep_rice\",\"title\":\"Plain rice for bowls\",\"servings_made\":18,\"ingredients\":[{\"term\":\"basmati rice\",\"quantity\":\"600 g\",\"amount\":600,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"water\",\"quantity\":\"1.1 litres\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null}],\"method\":\"Rinse the rice, simmer it until tender, then cool it quickly and portion it into boxes for same-day and next-day use only.\",\"active_minutes\":10,\"total_minutes\":25,\"cook_on\":\"mon\",\"boxes\":[{\"id\":\"box_prep_rice_student\",\"member_ids\":[\"5e61b4af-f14f-494e-8555-9d25778b7b56\"],\"grams\":140},{\"id\":\"box_prep_rice_livia\",\"member_ids\":[\"b9415944-06b0-4246-b1f4-76c93b6afbc7\"],\"grams\":160},{\"id\":\"box_prep_rice_tino\",\"member_ids\":[\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\"],\"grams\":80}]},{\"id\":\"prep_tray_bake\",\"title\":\"Tray-baked fish with aubergine and peppers\",\"servings_made\":9,\"ingredients\":[{\"term\":\"white fish fillets\",\"quantity\":\"1.5 kg\",\"amount\":1500,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"aubergines\",\"quantity\":\"2 medium aubergines\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"red peppers\",\"quantity\":\"3\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"3\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"red onions\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"lemon\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"3 tbsp\",\"amount\":3,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":null},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":null},{\"term\":\"salt\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null}],\"method\":\"Roast the aubergine, peppers, courgettes and onions with oil and seasoning, then add the fish for the last part so it stays tender. Finish with lemon and box the cooked pieces for lunch and dinner across Tue to Mon.\",\"active_minutes\":20,\"total_minutes\":40,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_tray_bake_student\",\"member_ids\":[\"5e61b4af-f14f-494e-8555-9d25778b7b56\"],\"grams\":300},{\"id\":\"box_prep_tray_bake_livia\",\"member_ids\":[\"b9415944-06b0-4246-b1f4-76c93b6afbc7\"],\"grams\":340},{\"id\":\"box_prep_tray_bake_tino\",\"member_ids\":[\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\"],\"grams\":200}]},{\"id\":\"prep_shakshuka\",\"title\":\"Tomato and pepper eggs\",\"servings_made\":6,\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"6 eggs\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"tinned chopped tomatoes\",\"quantity\":\"800 g\",\"amount\":800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"red peppers\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"onion\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"ground cumin\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":null},{\"term\":\"paprika\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":null},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null}],\"method\":\"Cook the onion and peppers, add tomatoes and spices, simmer until thick, then crack in the eggs and cook until just set. Portion for Thu breakfast and Sat breakfast.\",\"active_minutes\":20,\"total_minutes\":35,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_shakshuka_student\",\"member_ids\":[\"5e61b4af-f14f-494e-8555-9d25778b7b56\"],\"grams\":250},{\"id\":\"box_prep_shakshuka_livia\",\"member_ids\":[\"b9415944-06b0-4246-b1f4-76c93b6afbc7\"],\"grams\":250},{\"id\":\"box_prep_shakshuka_tino\",\"member_ids\":[\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\"],\"grams\":250}]},{\"id\":\"prep_beans\",\"title\":\"Lentils and greens base\",\"servings_made\":6,\"ingredients\":[{\"term\":\"green lentils\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"carrots\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"celery\",\"quantity\":\"2 sticks\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"onion\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"3 cloves\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"spinach\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"bay leaf\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":null},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null}],\"method\":\"Simmer the lentils with the vegetables and seasoning until soft, stir in spinach at the end, and cool into boxes for lunch bowls and a salad supper.\",\"active_minutes\":15,\"total_minutes\":40,\"cook_on\":\"sat\",\"boxes\":[{\"id\":\"box_prep_beans_student\",\"member_ids\":[\"5e61b4af-f14f-494e-8555-9d25778b7b56\"],\"grams\":320},{\"id\":\"box_prep_beans_livia\",\"member_ids\":[\"b9415944-06b0-4246-b1f4-76c93b6afbc7\"],\"grams\":360},{\"id\":\"box_prep_beans_tino\",\"member_ids\":[\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\"],\"grams\":220}]},{\"id\":\"prep_roasted_cauliflower\",\"title\":\"Roasted cauliflower and chickpeas\",\"servings_made\":6,\"ingredients\":[{\"term\":\"cauliflower\",\"quantity\":\"1 large\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"tinned chickpeas\",\"quantity\":\"2 tins, drained\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"red onion\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"ground cumin\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":null},{\"term\":\"smoked paprika\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null}],\"method\":\"Roast the cauliflower with chickpeas and onion until browned and sweet, then box for a lunch bowl and a dinner side.\",\"active_minutes\":15,\"total_minutes\":35,\"cook_on\":\"sat\",\"boxes\":[{\"id\":\"box_prep_roasted_cauliflower_student\",\"member_ids\":[\"5e61b4af-f14f-494e-8555-9d25778b7b56\"],\"grams\":260},{\"id\":\"box_prep_roasted_cauliflower_livia\",\"member_ids\":[\"b9415944-06b0-4246-b1f4-76c93b6afbc7\"],\"grams\":300},{\"id\":\"box_prep_roasted_cauliflower_tino\",\"member_ids\":[\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\"],\"grams\":180}]}],\"cooking_sessions\":[{\"day\":\"mon\",\"preparation_ids\":[\"prep_eggs\",\"prep_rice\"],\"total_minutes\":35,\"run_through\":\"Put the eggs on first, rinse and start the rice while they boil, cool both, then box the rice and peel the eggs.\"},{\"day\":\"wed\",\"preparation_ids\":[\"prep_tray_bake\",\"prep_shakshuka\"],\"total_minutes\":60,\"run_through\":\"Heat the oven for the tray bake, get the peppers and onions going for shakshuka while the vegetables roast, then add the fish, finish the pan of eggs, and box both preparations.\"},{\"day\":\"sat\",\"preparation_ids\":[\"prep_beans\",\"prep_roasted_cauliflower\"],\"total_minutes\":50,\"run_through\":\"Start the lentils and greens base on the hob, spread the cauliflower and chickpeas onto trays for the oven, then box the two batches once both are cooked and cooled.\"}],\"dishes\":[{\"name\":\"Quick eggs and coffee\",\"title\":\"Black coffee and 2 boiled eggs\",\"slot\":\"breakfast\",\"day\":\"tue\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"2 boiled eggs\",\"quantity\":\"2 eggs\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"}],\"method\":\"Make the coffee and eat the boiled eggs straight away.\",\"why\":\"You keep breakfast in the plan and keep it simple on a rushed morning.\",\"same_day\":{\"kind\":\"none\",\"minutes\":3},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Fish rice bowl\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"lunch\",\"day\":\"tue\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables from the tray bake, warm the rice, and finish with lemon.\",\"why\":\"It gives you a built plate with a proper lunch after a busy morning.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Fish and rice plate\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"dinner\",\"day\":\"tue\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and serve with lemon.\",\"why\":\"It keeps the day anchored with dinner before the late shift rhythm starts to bite.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Shakshuka breakfast\",\"title\":\"Black coffee and tomato, pepper and egg skillet\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Heat the shakshuka portion gently in a pan and serve with coffee.\",\"why\":\"A cooked breakfast keeps the morning meal in place without making it heavy.\",\"uses\":[{\"preparation_id\":\"prep_shakshuka\",\"servings\":1,\"box_id\":\"box_prep_shakshuka_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Fish lunch bowl\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and finish with lemon.\",\"why\":\"You still get a proper lunch on the day with the late evening away from home.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_livia\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_livia\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Fish dinner bowl\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and finish with lemon.\",\"why\":\"It gives you an evening plate that does not depend on anybody getting home before nine.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_livia\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_livia\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Eggs and tomatoes\",\"title\":\"Black coffee and tomato, pepper and egg skillet\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the shakshuka gently in a pan and serve with coffee.\",\"why\":\"It keeps breakfast real even when the week gets busy.\",\"uses\":[{\"preparation_id\":\"prep_shakshuka\",\"servings\":1,\"box_id\":\"box_prep_shakshuka_livia\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Lentil lunch bowl\",\"title\":\"Green lentils with carrots, celery, spinach and rice\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the lentil base, warm the rice, and finish with olive oil and lemon if you like.\",\"why\":\"It is a fast lunch built from one pot and a box, so the day stays on track.\",\"uses\":[{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Fish dinner with greens\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and serve with lemon.\",\"why\":\"You get a proper dinner without cooking from scratch again.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Shakshuka to start\",\"title\":\"Black coffee and tomato, pepper and egg skillet\",\"slot\":\"breakfast\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the shakshuka in a pan and have it with coffee.\",\"why\":\"A small breakfast still counts, and it keeps the day steady.\",\"uses\":[{\"preparation_id\":\"prep_shakshuka\",\"servings\":1,\"box_id\":\"box_prep_shakshuka_tino\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Lentil lunch box\",\"title\":\"Green lentils with carrots, celery, spinach and rice\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Reheat the lentils, warm the rice, and drizzle with oil if needed.\",\"why\":\"It is a straightforward lunch that uses the batch and keeps lunch covered.\",\"uses\":[{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_livia\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_livia\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Beans with rice dinner\",\"title\":\"Green lentils with carrots, celery, spinach and rice\",\"slot\":\"dinner\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Reheat the lentils and rice together and serve hot.\",\"why\":\"It gives you a quick evening meal from the same batch without repeating a cook-from-scratch dish.\",\"uses\":[{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_livia\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_livia\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Saturday eggs\",\"title\":\"Black coffee and tomato, pepper and egg skillet\",\"slot\":\"breakfast\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the shakshuka gently in a pan and serve with coffee.\",\"why\":\"It keeps Saturday breakfast easy so the cooking session can happen later.\",\"uses\":[{\"preparation_id\":\"prep_shakshuka\",\"servings\":1,\"box_id\":\"box_prep_shakshuka_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Cauliflower lentil lunch\",\"title\":\"Roasted cauliflower and chickpeas with green lentils, carrots, celery, spinach and rice\",\"slot\":\"lunch\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the cauliflower, chickpeas and lentils, warm the rice, and finish with lemon.\",\"why\":\"It uses the Saturday batch and keeps lunch substantial without another cooking job.\",\"uses\":[{\"preparation_id\":\"prep_roasted_cauliflower\",\"servings\":1,\"box_id\":\"box_prep_roasted_cauliflower_student\"},{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":12},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Aubergine dinner bowl\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"dinner\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and serve with lemon.\",\"why\":\"The Saturday dinner keeps the house request for aubergine in the plan.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_livia\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_livia\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Sunday lentil breakfast\",\"title\":\"Black coffee and green lentils with carrots, celery, spinach and rice\",\"slot\":\"breakfast\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat a small portion of the lentil base and serve with coffee.\",\"why\":\"It keeps breakfast in place with no fresh cooking first thing.\",\"uses\":[{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_tino\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Sunday fish lunch\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"lunch\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and finish with lemon.\",\"why\":\"You get a proper Sunday lunch from the batches already in the fridge.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_tino\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_tino\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Sunday dinner with beans\",\"title\":\"Green lentils with carrots, celery, spinach and rice\",\"slot\":\"dinner\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Reheat the lentils and rice together for a simple evening plate.\",\"why\":\"It finishes the stretch with another built plate and no extra fuss.\",\"uses\":[{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_tino\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_tino\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Monday eggs and coffee\",\"title\":\"Black coffee and 2 boiled eggs\",\"slot\":\"breakfast\",\"day\":\"mon\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"2 boiled eggs\",\"quantity\":\"2 eggs\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"}],\"method\":\"Make the coffee and eat the boiled eggs straight from the fridge or gently warmed.\",\"why\":\"It starts the new week with the breakfast you already trust.\",\"same_day\":{\"kind\":\"none\",\"minutes\":3},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Monday lentil lunch\",\"title\":\"Roasted cauliflower and chickpeas with green lentils, carrots, celery, spinach and rice\",\"slot\":\"lunch\",\"day\":\"mon\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the cauliflower, chickpeas and lentils, warm the rice, and add lemon if you want it brighter.\",\"why\":\"It uses the last of the batch so Monday lunch is still sorted.\",\"uses\":[{\"preparation_id\":\"prep_roasted_cauliflower\",\"servings\":1,\"box_id\":\"box_prep_roasted_cauliflower_student\"},{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":12},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Monday fish dinner\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"dinner\",\"day\":\"mon\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and finish with lemon.\",\"why\":\"It closes the stretch with a proper dinner rather than a scramble.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]}],\"shopping_list\":[{\"term\":\"eggs\",\"quantity\":\"12\",\"aisle\":\"protein\"},{\"term\":\"black coffee\",\"quantity\":\"1 pack\",\"aisle\":\"pantry\"},{\"term\":\"white fish fillets\",\"quantity\":\"1.5 kg\",\"aisle\":\"protein\"},{\"term\":\"basmati rice\",\"quantity\":\"600 g\",\"aisle\":\"grains\"},{\"term\":\"aubergines\",\"quantity\":\"2 medium\",\"aisle\":\"produce\"},{\"term\":\"red peppers\",\"quantity\":\"5\",\"aisle\":\"produce\"},{\"term\":\"courgettes\",\"quantity\":\"3\",\"aisle\":\"produce\"},{\"term\":\"red onions\",\"quantity\":\"3\",\"aisle\":\"produce\"},{\"term\":\"onion\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"lemon\",\"quantity\":\"4\",\"aisle\":\"produce\"},{\"term\":\"tinned chopped tomatoes\",\"quantity\":\"800 g\",\"aisle\":\"pantry\"},{\"term\":\"green lentils\",\"quantity\":\"300 g\",\"aisle\":\"grains\"},{\"term\":\"carrots\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"celery\",\"quantity\":\"2 sticks\",\"aisle\":\"produce\"},{\"term\":\"spinach\",\"quantity\":\"200 g\",\"aisle\":\"produce\"},{\"term\":\"cauliflower\",\"quantity\":\"1 large\",\"aisle\":\"produce\"},{\"term\":\"tinned chickpeas\",\"quantity\":\"2 tins\",\"aisle\":\"pantry\"},{\"term\":\"skyr\",\"quantity\":\"for one bowl\",\"aisle\":\"dairy\"},{\"term\":\"walnuts\",\"quantity\":\"for one bowl\",\"aisle\":\"pantry\"},{\"term\":\"olive oil\",\"quantity\":\"at least 7 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"smoked paprika\",\"quantity\":\"3 tsp\",\"aisle\":\"pantry\"},{\"term\":\"paprika\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"ground cumin\",\"quantity\":\"4 tsp\",\"aisle\":\"pantry\"},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"bay leaf\",\"quantity\":\"1\",\"aisle\":\"pantry\"},{\"term\":\"salt\",\"quantity\":\"1 small pack\",\"aisle\":\"pantry\"},{\"term\":\"black pepper\",\"quantity\":\"1 small pack\",\"aisle\":\"pantry\"}]}",
+    "output_text_json": {
+      "member_portions": [
+        {
+          "member_id": "5e61b4af-f14f-494e-8555-9d25778b7b56",
+          "portion_note": "At breakfast: 2 boiled eggs and black coffee only; at lunch and dinner: 180 g of the shared fish, 120 g of vegetables, and 60 g of starch at lunch or 80 g at dinner.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_rice",
+              "note": "Use the student box for 60 g cooked rice at lunch and 80 g cooked rice at dinner."
+            },
+            {
+              "preparation_id": "prep_tray_bake",
+              "note": "Use the student box for the fish and vegetables at lunch and dinner."
+            }
+          ]
+        },
+        {
+          "member_id": "b9415944-06b0-4246-b1f4-76c93b6afbc7",
+          "portion_note": "At lunch and dinner: 220 g of the shared fish, 120 g of vegetables, and 90 g of starch at lunch or 70 g at dinner; at the afternoon snack: her own bowl of skyr with walnuts only.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_rice",
+              "note": "Use the Livia box for 90 g cooked rice at lunch and 70 g cooked rice at dinner."
+            },
+            {
+              "preparation_id": "prep_tray_bake",
+              "note": "Use the Livia box for the fish and vegetables at lunch and dinner."
+            }
+          ]
+        },
+        {
+          "member_id": "0c3e9590-ff9d-46bd-bca2-d056c211f61a",
+          "portion_note": "At breakfast, lunch, snack_pm and dinner: child-size portions from the shared dish, with vegetables kept separate from each other on the plate; at breakfast use a simple own plate, and at dinner on Saturday there is no serving.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_rice",
+              "note": "Use the Tino box for 40 g cooked rice at lunch and 40 g cooked rice at dinner."
+            },
+            {
+              "preparation_id": "prep_tray_bake",
+              "note": "Use the Tino box for the fish and vegetables at lunch and dinner."
+            }
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_eggs",
+          "title": "Boiled eggs for breakfasts",
+          "servings_made": 6,
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "6 eggs",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "enough to cover",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Boil the eggs, cool them, and chill them ready for breakfasts on Tue and Wed.",
+          "active_minutes": 10,
+          "total_minutes": 20,
+          "cook_on": "mon",
+          "boxes": [
+            {
+              "id": "box_prep_eggs_student",
+              "member_ids": [
+                "5e61b4af-f14f-494e-8555-9d25778b7b56"
+              ],
+              "grams": 100
+            },
+            {
+              "id": "box_prep_eggs_livia",
+              "member_ids": [
+                "b9415944-06b0-4246-b1f4-76c93b6afbc7"
+              ],
+              "grams": 100
+            },
+            {
+              "id": "box_prep_eggs_tino",
+              "member_ids": [
+                "0c3e9590-ff9d-46bd-bca2-d056c211f61a"
+              ],
+              "grams": 100
+            }
+          ]
+        },
+        {
+          "id": "prep_rice",
+          "title": "Plain rice for bowls",
+          "servings_made": 18,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "1.1 litres",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Rinse the rice, simmer it until tender, then cool it quickly and portion it into boxes for same-day and next-day use only.",
+          "active_minutes": 10,
+          "total_minutes": 25,
+          "cook_on": "mon",
+          "boxes": [
+            {
+              "id": "box_prep_rice_student",
+              "member_ids": [
+                "5e61b4af-f14f-494e-8555-9d25778b7b56"
+              ],
+              "grams": 140
+            },
+            {
+              "id": "box_prep_rice_livia",
+              "member_ids": [
+                "b9415944-06b0-4246-b1f4-76c93b6afbc7"
+              ],
+              "grams": 160
+            },
+            {
+              "id": "box_prep_rice_tino",
+              "member_ids": [
+                "0c3e9590-ff9d-46bd-bca2-d056c211f61a"
+              ],
+              "grams": 80
+            }
+          ]
+        },
+        {
+          "id": "prep_tray_bake",
+          "title": "Tray-baked fish with aubergine and peppers",
+          "servings_made": 9,
+          "ingredients": [
+            {
+              "term": "white fish fillets",
+              "quantity": "1.5 kg",
+              "amount": 1500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "aubergines",
+              "quantity": "2 medium aubergines",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "3",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "3",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red onions",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "3 tbsp",
+              "amount": 3,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "dried oregano",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Roast the aubergine, peppers, courgettes and onions with oil and seasoning, then add the fish for the last part so it stays tender. Finish with lemon and box the cooked pieces for lunch and dinner across Tue to Mon.",
+          "active_minutes": 20,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_tray_bake_student",
+              "member_ids": [
+                "5e61b4af-f14f-494e-8555-9d25778b7b56"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_prep_tray_bake_livia",
+              "member_ids": [
+                "b9415944-06b0-4246-b1f4-76c93b6afbc7"
+              ],
+              "grams": 340
+            },
+            {
+              "id": "box_prep_tray_bake_tino",
+              "member_ids": [
+                "0c3e9590-ff9d-46bd-bca2-d056c211f61a"
+              ],
+              "grams": 200
+            }
+          ]
+        },
+        {
+          "id": "prep_shakshuka",
+          "title": "Tomato and pepper eggs",
+          "servings_made": 6,
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "6 eggs",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "tinned chopped tomatoes",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "ground cumin",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "paprika",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Cook the onion and peppers, add tomatoes and spices, simmer until thick, then crack in the eggs and cook until just set. Portion for Thu breakfast and Sat breakfast.",
+          "active_minutes": 20,
+          "total_minutes": 35,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_shakshuka_student",
+              "member_ids": [
+                "5e61b4af-f14f-494e-8555-9d25778b7b56"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_prep_shakshuka_livia",
+              "member_ids": [
+                "b9415944-06b0-4246-b1f4-76c93b6afbc7"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_prep_shakshuka_tino",
+              "member_ids": [
+                "0c3e9590-ff9d-46bd-bca2-d056c211f61a"
+              ],
+              "grams": 250
+            }
+          ]
+        },
+        {
+          "id": "prep_beans",
+          "title": "Lentils and greens base",
+          "servings_made": 6,
+          "ingredients": [
+            {
+              "term": "green lentils",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "carrots",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "celery",
+              "quantity": "2 sticks",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "onion",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "3 cloves",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "spinach",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "bay leaf",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Simmer the lentils with the vegetables and seasoning until soft, stir in spinach at the end, and cool into boxes for lunch bowls and a salad supper.",
+          "active_minutes": 15,
+          "total_minutes": 40,
+          "cook_on": "sat",
+          "boxes": [
+            {
+              "id": "box_prep_beans_student",
+              "member_ids": [
+                "5e61b4af-f14f-494e-8555-9d25778b7b56"
+              ],
+              "grams": 320
+            },
+            {
+              "id": "box_prep_beans_livia",
+              "member_ids": [
+                "b9415944-06b0-4246-b1f4-76c93b6afbc7"
+              ],
+              "grams": 360
+            },
+            {
+              "id": "box_prep_beans_tino",
+              "member_ids": [
+                "0c3e9590-ff9d-46bd-bca2-d056c211f61a"
+              ],
+              "grams": 220
+            }
+          ]
+        },
+        {
+          "id": "prep_roasted_cauliflower",
+          "title": "Roasted cauliflower and chickpeas",
+          "servings_made": 6,
+          "ingredients": [
+            {
+              "term": "cauliflower",
+              "quantity": "1 large",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "tinned chickpeas",
+              "quantity": "2 tins, drained",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red onion",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "ground cumin",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Roast the cauliflower with chickpeas and onion until browned and sweet, then box for a lunch bowl and a dinner side.",
+          "active_minutes": 15,
+          "total_minutes": 35,
+          "cook_on": "sat",
+          "boxes": [
+            {
+              "id": "box_prep_roasted_cauliflower_student",
+              "member_ids": [
+                "5e61b4af-f14f-494e-8555-9d25778b7b56"
+              ],
+              "grams": 260
+            },
+            {
+              "id": "box_prep_roasted_cauliflower_livia",
+              "member_ids": [
+                "b9415944-06b0-4246-b1f4-76c93b6afbc7"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_prep_roasted_cauliflower_tino",
+              "member_ids": [
+                "0c3e9590-ff9d-46bd-bca2-d056c211f61a"
+              ],
+              "grams": 180
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "mon",
+          "preparation_ids": [
+            "prep_eggs",
+            "prep_rice"
+          ],
+          "total_minutes": 35,
+          "run_through": "Put the eggs on first, rinse and start the rice while they boil, cool both, then box the rice and peel the eggs."
+        },
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_tray_bake",
+            "prep_shakshuka"
+          ],
+          "total_minutes": 60,
+          "run_through": "Heat the oven for the tray bake, get the peppers and onions going for shakshuka while the vegetables roast, then add the fish, finish the pan of eggs, and box both preparations."
+        },
+        {
+          "day": "sat",
+          "preparation_ids": [
+            "prep_beans",
+            "prep_roasted_cauliflower"
+          ],
+          "total_minutes": 50,
+          "run_through": "Start the lentils and greens base on the hob, spread the cauliflower and chickpeas onto trays for the oven, then box the two batches once both are cooked and cooled."
+        }
+      ],
+      "dishes": [
+        {
+          "name": "Quick eggs and coffee",
+          "title": "Black coffee and 2 boiled eggs",
+          "slot": "breakfast",
+          "day": "tue",
+          "ingredients": [
+            {
+              "term": "black coffee",
+              "quantity": "1 mug",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "2 boiled eggs",
+              "quantity": "2 eggs",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked"
+            }
+          ],
+          "method": "Make the coffee and eat the boiled eggs straight away.",
+          "why": "You keep breakfast in the plan and keep it simple on a rushed morning.",
+          "same_day": {
+            "kind": "none",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        },
+        {
+          "name": "Fish rice bowl",
+          "title": "White fish with roasted aubergine, peppers, courgettes and rice",
+          "slot": "lunch",
+          "day": "tue",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the fish and vegetables from the tray bake, warm the rice, and finish with lemon.",
+          "why": "It gives you a built plate with a proper lunch after a busy morning.",
+          "uses": [
+            {
+              "preparation_id": "prep_tray_bake",
+              "servings": 1,
+              "box_id": "box_prep_tray_bake_student"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_student"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Fish and rice plate",
+          "title": "White fish with roasted aubergine, peppers, courgettes and rice",
+          "slot": "dinner",
+          "day": "tue",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the fish and vegetables, warm the rice, and serve with lemon.",
+          "why": "It keeps the day anchored with dinner before the late shift rhythm starts to bite.",
+          "uses": [
+            {
+              "preparation_id": "prep_tray_bake",
+              "servings": 1,
+              "box_id": "box_prep_tray_bake_student"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_student"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        },
+        {
+          "name": "Shakshuka breakfast",
+          "title": "Black coffee and tomato, pepper and egg skillet",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "black coffee",
+              "quantity": "1 mug",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Heat the shakshuka portion gently in a pan and serve with coffee.",
+          "why": "A cooked breakfast keeps the morning meal in place without making it heavy.",
+          "uses": [
+            {
+              "preparation_id": "prep_shakshuka",
+              "servings": 1,
+              "box_id": "box_prep_shakshuka_student"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        },
+        {
+          "name": "Fish lunch bowl",
+          "title": "White fish with roasted aubergine, peppers, courgettes and rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the fish and vegetables, warm the rice, and finish with lemon.",
+          "why": "You still get a proper lunch on the day with the late evening away from home.",
+          "uses": [
+            {
+              "preparation_id": "prep_tray_bake",
+              "servings": 1,
+              "box_id": "box_prep_tray_bake_livia"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_livia"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Fish dinner bowl",
+          "title": "White fish with roasted aubergine, peppers, courgettes and rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the fish and vegetables, warm the rice, and finish with lemon.",
+          "why": "It gives you an evening plate that does not depend on anybody getting home before nine.",
+          "uses": [
+            {
+              "preparation_id": "prep_tray_bake",
+              "servings": 1,
+              "box_id": "box_prep_tray_bake_livia"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_livia"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        },
+        {
+          "name": "Eggs and tomatoes",
+          "title": "Black coffee and tomato, pepper and egg skillet",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "black coffee",
+              "quantity": "1 mug",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the shakshuka gently in a pan and serve with coffee.",
+          "why": "It keeps breakfast real even when the week gets busy.",
+          "uses": [
+            {
+              "preparation_id": "prep_shakshuka",
+              "servings": 1,
+              "box_id": "box_prep_shakshuka_livia"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        },
+        {
+          "name": "Lentil lunch bowl",
+          "title": "Green lentils with carrots, celery, spinach and rice",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "olive oil",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the lentil base, warm the rice, and finish with olive oil and lemon if you like.",
+          "why": "It is a fast lunch built from one pot and a box, so the day stays on track.",
+          "uses": [
+            {
+              "preparation_id": "prep_beans",
+              "servings": 1,
+              "box_id": "box_prep_beans_student"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_student"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Fish dinner with greens",
+          "title": "White fish with roasted aubergine, peppers, courgettes and rice",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the fish and vegetables, warm the rice, and serve with lemon.",
+          "why": "You get a proper dinner without cooking from scratch again.",
+          "uses": [
+            {
+              "preparation_id": "prep_tray_bake",
+              "servings": 1,
+              "box_id": "box_prep_tray_bake_student"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_student"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        },
+        {
+          "name": "Shakshuka to start",
+          "title": "Black coffee and tomato, pepper and egg skillet",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "black coffee",
+              "quantity": "1 mug",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the shakshuka in a pan and have it with coffee.",
+          "why": "A small breakfast still counts, and it keeps the day steady.",
+          "uses": [
+            {
+              "preparation_id": "prep_shakshuka",
+              "servings": 1,
+              "box_id": "box_prep_shakshuka_tino"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        },
+        {
+          "name": "Lentil lunch box",
+          "title": "Green lentils with carrots, celery, spinach and rice",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "olive oil",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the lentils, warm the rice, and drizzle with oil if needed.",
+          "why": "It is a straightforward lunch that uses the batch and keeps lunch covered.",
+          "uses": [
+            {
+              "preparation_id": "prep_beans",
+              "servings": 1,
+              "box_id": "box_prep_beans_livia"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_livia"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Beans with rice dinner",
+          "title": "Green lentils with carrots, celery, spinach and rice",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "olive oil",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the lentils and rice together and serve hot.",
+          "why": "It gives you a quick evening meal from the same batch without repeating a cook-from-scratch dish.",
+          "uses": [
+            {
+              "preparation_id": "prep_beans",
+              "servings": 1,
+              "box_id": "box_prep_beans_livia"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_livia"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        },
+        {
+          "name": "Saturday eggs",
+          "title": "Black coffee and tomato, pepper and egg skillet",
+          "slot": "breakfast",
+          "day": "sat",
+          "ingredients": [
+            {
+              "term": "black coffee",
+              "quantity": "1 mug",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the shakshuka gently in a pan and serve with coffee.",
+          "why": "It keeps Saturday breakfast easy so the cooking session can happen later.",
+          "uses": [
+            {
+              "preparation_id": "prep_shakshuka",
+              "servings": 1,
+              "box_id": "box_prep_shakshuka_student"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        },
+        {
+          "name": "Cauliflower lentil lunch",
+          "title": "Roasted cauliflower and chickpeas with green lentils, carrots, celery, spinach and rice",
+          "slot": "lunch",
+          "day": "sat",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the cauliflower, chickpeas and lentils, warm the rice, and finish with lemon.",
+          "why": "It uses the Saturday batch and keeps lunch substantial without another cooking job.",
+          "uses": [
+            {
+              "preparation_id": "prep_roasted_cauliflower",
+              "servings": 1,
+              "box_id": "box_prep_roasted_cauliflower_student"
+            },
+            {
+              "preparation_id": "prep_beans",
+              "servings": 1,
+              "box_id": "box_prep_beans_student"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_student"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Aubergine dinner bowl",
+          "title": "White fish with roasted aubergine, peppers, courgettes and rice",
+          "slot": "dinner",
+          "day": "sat",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the fish and vegetables, warm the rice, and serve with lemon.",
+          "why": "The Saturday dinner keeps the house request for aubergine in the plan.",
+          "uses": [
+            {
+              "preparation_id": "prep_tray_bake",
+              "servings": 1,
+              "box_id": "box_prep_tray_bake_livia"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_livia"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        },
+        {
+          "name": "Sunday lentil breakfast",
+          "title": "Black coffee and green lentils with carrots, celery, spinach and rice",
+          "slot": "breakfast",
+          "day": "sun",
+          "ingredients": [
+            {
+              "term": "black coffee",
+              "quantity": "1 mug",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat a small portion of the lentil base and serve with coffee.",
+          "why": "It keeps breakfast in place with no fresh cooking first thing.",
+          "uses": [
+            {
+              "preparation_id": "prep_beans",
+              "servings": 1,
+              "box_id": "box_prep_beans_tino"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        },
+        {
+          "name": "Sunday fish lunch",
+          "title": "White fish with roasted aubergine, peppers, courgettes and rice",
+          "slot": "lunch",
+          "day": "sun",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the fish and vegetables, warm the rice, and finish with lemon.",
+          "why": "You get a proper Sunday lunch from the batches already in the fridge.",
+          "uses": [
+            {
+              "preparation_id": "prep_tray_bake",
+              "servings": 1,
+              "box_id": "box_prep_tray_bake_tino"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_tino"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Sunday dinner with beans",
+          "title": "Green lentils with carrots, celery, spinach and rice",
+          "slot": "dinner",
+          "day": "sun",
+          "ingredients": [
+            {
+              "term": "olive oil",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the lentils and rice together for a simple evening plate.",
+          "why": "It finishes the stretch with another built plate and no extra fuss.",
+          "uses": [
+            {
+              "preparation_id": "prep_beans",
+              "servings": 1,
+              "box_id": "box_prep_beans_tino"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_tino"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        },
+        {
+          "name": "Monday eggs and coffee",
+          "title": "Black coffee and 2 boiled eggs",
+          "slot": "breakfast",
+          "day": "mon",
+          "ingredients": [
+            {
+              "term": "black coffee",
+              "quantity": "1 mug",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "2 boiled eggs",
+              "quantity": "2 eggs",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked"
+            }
+          ],
+          "method": "Make the coffee and eat the boiled eggs straight from the fridge or gently warmed.",
+          "why": "It starts the new week with the breakfast you already trust.",
+          "same_day": {
+            "kind": "none",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        },
+        {
+          "name": "Monday lentil lunch",
+          "title": "Roasted cauliflower and chickpeas with green lentils, carrots, celery, spinach and rice",
+          "slot": "lunch",
+          "day": "mon",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the cauliflower, chickpeas and lentils, warm the rice, and add lemon if you want it brighter.",
+          "why": "It uses the last of the batch so Monday lunch is still sorted.",
+          "uses": [
+            {
+              "preparation_id": "prep_roasted_cauliflower",
+              "servings": 1,
+              "box_id": "box_prep_roasted_cauliflower_student"
+            },
+            {
+              "preparation_id": "prep_beans",
+              "servings": 1,
+              "box_id": "box_prep_beans_student"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_student"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Monday fish dinner",
+          "title": "White fish with roasted aubergine, peppers, courgettes and rice",
+          "slot": "dinner",
+          "day": "mon",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the fish and vegetables, warm the rice, and finish with lemon.",
+          "why": "It closes the stretch with a proper dinner rather than a scramble.",
+          "uses": [
+            {
+              "preparation_id": "prep_tray_bake",
+              "servings": 1,
+              "box_id": "box_prep_tray_bake_student"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_student"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day"
+          ]
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "eggs",
+          "quantity": "12",
+          "aisle": "protein"
+        },
+        {
+          "term": "black coffee",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        },
+        {
+          "term": "white fish fillets",
+          "quantity": "1.5 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "basmati rice",
+          "quantity": "600 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "aubergines",
+          "quantity": "2 medium",
+          "aisle": "produce"
+        },
+        {
+          "term": "red peppers",
+          "quantity": "5",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "3",
+          "aisle": "produce"
+        },
+        {
+          "term": "red onions",
+          "quantity": "3",
+          "aisle": "produce"
+        },
+        {
+          "term": "onion",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemon",
+          "quantity": "4",
+          "aisle": "produce"
+        },
+        {
+          "term": "tinned chopped tomatoes",
+          "quantity": "800 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "green lentils",
+          "quantity": "300 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "carrots",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "celery",
+          "quantity": "2 sticks",
+          "aisle": "produce"
+        },
+        {
+          "term": "spinach",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "cauliflower",
+          "quantity": "1 large",
+          "aisle": "produce"
+        },
+        {
+          "term": "tinned chickpeas",
+          "quantity": "2 tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "skyr",
+          "quantity": "for one bowl",
+          "aisle": "dairy"
+        },
+        {
+          "term": "walnuts",
+          "quantity": "for one bowl",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "at least 7 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "3 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "paprika",
+          "quantity": "2 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "ground cumin",
+          "quantity": "4 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "dried oregano",
+          "quantity": "2 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "bay leaf",
+          "quantity": "1",
+          "aisle": "pantry"
+        },
+        {
+          "term": "salt",
+          "quantity": "1 small pack",
+          "aisle": "pantry"
+        },
+        {
+          "term": "black pepper",
+          "quantity": "1 small pack",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_06b0d438d1042177006a84d0aa52d887d2949f99f96b1841d0",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.4-mini-2026-03-17",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 7279,
+        "total_tokens": 14169,
+        "output_tokens": 6890,
+        "input_tokens_details": {
+          "cached_tokens": 2816,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "msg_06b0d438d1042177006a84d0ab3a1887d2974c20aa70286a3d",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\"member_portions\":[{\"member_id\":\"5e61b4af-f14f-494e-8555-9d25778b7b56\",\"portion_note\":\"At breakfast: 2 boiled eggs and black coffee only; at lunch and dinner: 180 g of the shared fish, 120 g of vegetables, and 60 g of starch at lunch or 80 g at dinner.\",\"preparation_shares\":[{\"preparation_id\":\"prep_rice\",\"note\":\"Use the student box for 60 g cooked rice at lunch and 80 g cooked rice at dinner.\"},{\"preparation_id\":\"prep_tray_bake\",\"note\":\"Use the student box for the fish and vegetables at lunch and dinner.\"}]},{\"member_id\":\"b9415944-06b0-4246-b1f4-76c93b6afbc7\",\"portion_note\":\"At lunch and dinner: 220 g of the shared fish, 120 g of vegetables, and 90 g of starch at lunch or 70 g at dinner; at the afternoon snack: her own bowl of skyr with walnuts only.\",\"preparation_shares\":[{\"preparation_id\":\"prep_rice\",\"note\":\"Use the Livia box for 90 g cooked rice at lunch and 70 g cooked rice at dinner.\"},{\"preparation_id\":\"prep_tray_bake\",\"note\":\"Use the Livia box for the fish and vegetables at lunch and dinner.\"}]},{\"member_id\":\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\",\"portion_note\":\"At breakfast, lunch, snack_pm and dinner: child-size portions from the shared dish, with vegetables kept separate from each other on the plate; at breakfast use a simple own plate, and at dinner on Saturday there is no serving.\",\"preparation_shares\":[{\"preparation_id\":\"prep_rice\",\"note\":\"Use the Tino box for 40 g cooked rice at lunch and 40 g cooked rice at dinner.\"},{\"preparation_id\":\"prep_tray_bake\",\"note\":\"Use the Tino box for the fish and vegetables at lunch and dinner.\"}]}],\"preparations\":[{\"id\":\"prep_eggs\",\"title\":\"Boiled eggs for breakfasts\",\"servings_made\":6,\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"6 eggs\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"water\",\"quantity\":\"enough to cover\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Boil the eggs, cool them, and chill them ready for breakfasts on Tue and Wed.\",\"active_minutes\":10,\"total_minutes\":20,\"cook_on\":\"mon\",\"boxes\":[{\"id\":\"box_prep_eggs_student\",\"member_ids\":[\"5e61b4af-f14f-494e-8555-9d25778b7b56\"],\"grams\":100},{\"id\":\"box_prep_eggs_livia\",\"member_ids\":[\"b9415944-06b0-4246-b1f4-76c93b6afbc7\"],\"grams\":100},{\"id\":\"box_prep_eggs_tino\",\"member_ids\":[\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\"],\"grams\":100}]},{\"id\":\"prep_rice\",\"title\":\"Plain rice for bowls\",\"servings_made\":18,\"ingredients\":[{\"term\":\"basmati rice\",\"quantity\":\"600 g\",\"amount\":600,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"water\",\"quantity\":\"1.1 litres\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null}],\"method\":\"Rinse the rice, simmer it until tender, then cool it quickly and portion it into boxes for same-day and next-day use only.\",\"active_minutes\":10,\"total_minutes\":25,\"cook_on\":\"mon\",\"boxes\":[{\"id\":\"box_prep_rice_student\",\"member_ids\":[\"5e61b4af-f14f-494e-8555-9d25778b7b56\"],\"grams\":140},{\"id\":\"box_prep_rice_livia\",\"member_ids\":[\"b9415944-06b0-4246-b1f4-76c93b6afbc7\"],\"grams\":160},{\"id\":\"box_prep_rice_tino\",\"member_ids\":[\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\"],\"grams\":80}]},{\"id\":\"prep_tray_bake\",\"title\":\"Tray-baked fish with aubergine and peppers\",\"servings_made\":9,\"ingredients\":[{\"term\":\"white fish fillets\",\"quantity\":\"1.5 kg\",\"amount\":1500,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"aubergines\",\"quantity\":\"2 medium aubergines\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"red peppers\",\"quantity\":\"3\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"3\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"red onions\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"lemon\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"3 tbsp\",\"amount\":3,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":null},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":null},{\"term\":\"salt\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null}],\"method\":\"Roast the aubergine, peppers, courgettes and onions with oil and seasoning, then add the fish for the last part so it stays tender. Finish with lemon and box the cooked pieces for lunch and dinner across Tue to Mon.\",\"active_minutes\":20,\"total_minutes\":40,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_tray_bake_student\",\"member_ids\":[\"5e61b4af-f14f-494e-8555-9d25778b7b56\"],\"grams\":300},{\"id\":\"box_prep_tray_bake_livia\",\"member_ids\":[\"b9415944-06b0-4246-b1f4-76c93b6afbc7\"],\"grams\":340},{\"id\":\"box_prep_tray_bake_tino\",\"member_ids\":[\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\"],\"grams\":200}]},{\"id\":\"prep_shakshuka\",\"title\":\"Tomato and pepper eggs\",\"servings_made\":6,\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"6 eggs\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"tinned chopped tomatoes\",\"quantity\":\"800 g\",\"amount\":800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"red peppers\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"onion\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"ground cumin\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":null},{\"term\":\"paprika\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":null},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null}],\"method\":\"Cook the onion and peppers, add tomatoes and spices, simmer until thick, then crack in the eggs and cook until just set. Portion for Thu breakfast and Sat breakfast.\",\"active_minutes\":20,\"total_minutes\":35,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_shakshuka_student\",\"member_ids\":[\"5e61b4af-f14f-494e-8555-9d25778b7b56\"],\"grams\":250},{\"id\":\"box_prep_shakshuka_livia\",\"member_ids\":[\"b9415944-06b0-4246-b1f4-76c93b6afbc7\"],\"grams\":250},{\"id\":\"box_prep_shakshuka_tino\",\"member_ids\":[\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\"],\"grams\":250}]},{\"id\":\"prep_beans\",\"title\":\"Lentils and greens base\",\"servings_made\":6,\"ingredients\":[{\"term\":\"green lentils\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"carrots\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"celery\",\"quantity\":\"2 sticks\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"onion\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"3 cloves\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"spinach\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"bay leaf\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":null},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null}],\"method\":\"Simmer the lentils with the vegetables and seasoning until soft, stir in spinach at the end, and cool into boxes for lunch bowls and a salad supper.\",\"active_minutes\":15,\"total_minutes\":40,\"cook_on\":\"sat\",\"boxes\":[{\"id\":\"box_prep_beans_student\",\"member_ids\":[\"5e61b4af-f14f-494e-8555-9d25778b7b56\"],\"grams\":320},{\"id\":\"box_prep_beans_livia\",\"member_ids\":[\"b9415944-06b0-4246-b1f4-76c93b6afbc7\"],\"grams\":360},{\"id\":\"box_prep_beans_tino\",\"member_ids\":[\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\"],\"grams\":220}]},{\"id\":\"prep_roasted_cauliflower\",\"title\":\"Roasted cauliflower and chickpeas\",\"servings_made\":6,\"ingredients\":[{\"term\":\"cauliflower\",\"quantity\":\"1 large\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"tinned chickpeas\",\"quantity\":\"2 tins, drained\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"red onion\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"ground cumin\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":null},{\"term\":\"smoked paprika\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":null}],\"method\":\"Roast the cauliflower with chickpeas and onion until browned and sweet, then box for a lunch bowl and a dinner side.\",\"active_minutes\":15,\"total_minutes\":35,\"cook_on\":\"sat\",\"boxes\":[{\"id\":\"box_prep_roasted_cauliflower_student\",\"member_ids\":[\"5e61b4af-f14f-494e-8555-9d25778b7b56\"],\"grams\":260},{\"id\":\"box_prep_roasted_cauliflower_livia\",\"member_ids\":[\"b9415944-06b0-4246-b1f4-76c93b6afbc7\"],\"grams\":300},{\"id\":\"box_prep_roasted_cauliflower_tino\",\"member_ids\":[\"0c3e9590-ff9d-46bd-bca2-d056c211f61a\"],\"grams\":180}]}],\"cooking_sessions\":[{\"day\":\"mon\",\"preparation_ids\":[\"prep_eggs\",\"prep_rice\"],\"total_minutes\":35,\"run_through\":\"Put the eggs on first, rinse and start the rice while they boil, cool both, then box the rice and peel the eggs.\"},{\"day\":\"wed\",\"preparation_ids\":[\"prep_tray_bake\",\"prep_shakshuka\"],\"total_minutes\":60,\"run_through\":\"Heat the oven for the tray bake, get the peppers and onions going for shakshuka while the vegetables roast, then add the fish, finish the pan of eggs, and box both preparations.\"},{\"day\":\"sat\",\"preparation_ids\":[\"prep_beans\",\"prep_roasted_cauliflower\"],\"total_minutes\":50,\"run_through\":\"Start the lentils and greens base on the hob, spread the cauliflower and chickpeas onto trays for the oven, then box the two batches once both are cooked and cooled.\"}],\"dishes\":[{\"name\":\"Quick eggs and coffee\",\"title\":\"Black coffee and 2 boiled eggs\",\"slot\":\"breakfast\",\"day\":\"tue\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"2 boiled eggs\",\"quantity\":\"2 eggs\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"}],\"method\":\"Make the coffee and eat the boiled eggs straight away.\",\"why\":\"You keep breakfast in the plan and keep it simple on a rushed morning.\",\"same_day\":{\"kind\":\"none\",\"minutes\":3},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Fish rice bowl\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"lunch\",\"day\":\"tue\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables from the tray bake, warm the rice, and finish with lemon.\",\"why\":\"It gives you a built plate with a proper lunch after a busy morning.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Fish and rice plate\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"dinner\",\"day\":\"tue\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and serve with lemon.\",\"why\":\"It keeps the day anchored with dinner before the late shift rhythm starts to bite.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Shakshuka breakfast\",\"title\":\"Black coffee and tomato, pepper and egg skillet\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Heat the shakshuka portion gently in a pan and serve with coffee.\",\"why\":\"A cooked breakfast keeps the morning meal in place without making it heavy.\",\"uses\":[{\"preparation_id\":\"prep_shakshuka\",\"servings\":1,\"box_id\":\"box_prep_shakshuka_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Fish lunch bowl\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and finish with lemon.\",\"why\":\"You still get a proper lunch on the day with the late evening away from home.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_livia\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_livia\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Fish dinner bowl\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and finish with lemon.\",\"why\":\"It gives you an evening plate that does not depend on anybody getting home before nine.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_livia\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_livia\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Eggs and tomatoes\",\"title\":\"Black coffee and tomato, pepper and egg skillet\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the shakshuka gently in a pan and serve with coffee.\",\"why\":\"It keeps breakfast real even when the week gets busy.\",\"uses\":[{\"preparation_id\":\"prep_shakshuka\",\"servings\":1,\"box_id\":\"box_prep_shakshuka_livia\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Lentil lunch bowl\",\"title\":\"Green lentils with carrots, celery, spinach and rice\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the lentil base, warm the rice, and finish with olive oil and lemon if you like.\",\"why\":\"It is a fast lunch built from one pot and a box, so the day stays on track.\",\"uses\":[{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Fish dinner with greens\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and serve with lemon.\",\"why\":\"You get a proper dinner without cooking from scratch again.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Shakshuka to start\",\"title\":\"Black coffee and tomato, pepper and egg skillet\",\"slot\":\"breakfast\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the shakshuka in a pan and have it with coffee.\",\"why\":\"A small breakfast still counts, and it keeps the day steady.\",\"uses\":[{\"preparation_id\":\"prep_shakshuka\",\"servings\":1,\"box_id\":\"box_prep_shakshuka_tino\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Lentil lunch box\",\"title\":\"Green lentils with carrots, celery, spinach and rice\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Reheat the lentils, warm the rice, and drizzle with oil if needed.\",\"why\":\"It is a straightforward lunch that uses the batch and keeps lunch covered.\",\"uses\":[{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_livia\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_livia\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Beans with rice dinner\",\"title\":\"Green lentils with carrots, celery, spinach and rice\",\"slot\":\"dinner\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Reheat the lentils and rice together and serve hot.\",\"why\":\"It gives you a quick evening meal from the same batch without repeating a cook-from-scratch dish.\",\"uses\":[{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_livia\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_livia\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Saturday eggs\",\"title\":\"Black coffee and tomato, pepper and egg skillet\",\"slot\":\"breakfast\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the shakshuka gently in a pan and serve with coffee.\",\"why\":\"It keeps Saturday breakfast easy so the cooking session can happen later.\",\"uses\":[{\"preparation_id\":\"prep_shakshuka\",\"servings\":1,\"box_id\":\"box_prep_shakshuka_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Cauliflower lentil lunch\",\"title\":\"Roasted cauliflower and chickpeas with green lentils, carrots, celery, spinach and rice\",\"slot\":\"lunch\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the cauliflower, chickpeas and lentils, warm the rice, and finish with lemon.\",\"why\":\"It uses the Saturday batch and keeps lunch substantial without another cooking job.\",\"uses\":[{\"preparation_id\":\"prep_roasted_cauliflower\",\"servings\":1,\"box_id\":\"box_prep_roasted_cauliflower_student\"},{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":12},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Aubergine dinner bowl\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"dinner\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and serve with lemon.\",\"why\":\"The Saturday dinner keeps the house request for aubergine in the plan.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_livia\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_livia\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Sunday lentil breakfast\",\"title\":\"Black coffee and green lentils with carrots, celery, spinach and rice\",\"slot\":\"breakfast\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat a small portion of the lentil base and serve with coffee.\",\"why\":\"It keeps breakfast in place with no fresh cooking first thing.\",\"uses\":[{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_tino\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Sunday fish lunch\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"lunch\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and finish with lemon.\",\"why\":\"You get a proper Sunday lunch from the batches already in the fridge.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_tino\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_tino\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Sunday dinner with beans\",\"title\":\"Green lentils with carrots, celery, spinach and rice\",\"slot\":\"dinner\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Reheat the lentils and rice together for a simple evening plate.\",\"why\":\"It finishes the stretch with another built plate and no extra fuss.\",\"uses\":[{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_tino\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_tino\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Monday eggs and coffee\",\"title\":\"Black coffee and 2 boiled eggs\",\"slot\":\"breakfast\",\"day\":\"mon\",\"ingredients\":[{\"term\":\"black coffee\",\"quantity\":\"1 mug\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"2 boiled eggs\",\"quantity\":\"2 eggs\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"}],\"method\":\"Make the coffee and eat the boiled eggs straight from the fridge or gently warmed.\",\"why\":\"It starts the new week with the breakfast you already trust.\",\"same_day\":{\"kind\":\"none\",\"minutes\":3},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]},{\"name\":\"Monday lentil lunch\",\"title\":\"Roasted cauliflower and chickpeas with green lentils, carrots, celery, spinach and rice\",\"slot\":\"lunch\",\"day\":\"mon\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the cauliflower, chickpeas and lentils, warm the rice, and add lemon if you want it brighter.\",\"why\":\"It uses the last of the batch so Monday lunch is still sorted.\",\"uses\":[{\"preparation_id\":\"prep_roasted_cauliflower\",\"servings\":1,\"box_id\":\"box_prep_roasted_cauliflower_student\"},{\"preparation_id\":\"prep_beans\",\"servings\":1,\"box_id\":\"box_prep_beans_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":12},\"honours_belief_keys\":[\"protein_and_something_that_grew\"]},{\"name\":\"Monday fish dinner\",\"title\":\"White fish with roasted aubergine, peppers, courgettes and rice\",\"slot\":\"dinner\",\"day\":\"mon\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the fish and vegetables, warm the rice, and finish with lemon.\",\"why\":\"It closes the stretch with a proper dinner rather than a scramble.\",\"uses\":[{\"preparation_id\":\"prep_tray_bake\",\"servings\":1,\"box_id\":\"box_prep_tray_bake_student\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_student\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"three_real_meals_anchor_the_day\"]}],\"shopping_list\":[{\"term\":\"eggs\",\"quantity\":\"12\",\"aisle\":\"protein\"},{\"term\":\"black coffee\",\"quantity\":\"1 pack\",\"aisle\":\"pantry\"},{\"term\":\"white fish fillets\",\"quantity\":\"1.5 kg\",\"aisle\":\"protein\"},{\"term\":\"basmati rice\",\"quantity\":\"600 g\",\"aisle\":\"grains\"},{\"term\":\"aubergines\",\"quantity\":\"2 medium\",\"aisle\":\"produce\"},{\"term\":\"red peppers\",\"quantity\":\"5\",\"aisle\":\"produce\"},{\"term\":\"courgettes\",\"quantity\":\"3\",\"aisle\":\"produce\"},{\"term\":\"red onions\",\"quantity\":\"3\",\"aisle\":\"produce\"},{\"term\":\"onion\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"lemon\",\"quantity\":\"4\",\"aisle\":\"produce\"},{\"term\":\"tinned chopped tomatoes\",\"quantity\":\"800 g\",\"aisle\":\"pantry\"},{\"term\":\"green lentils\",\"quantity\":\"300 g\",\"aisle\":\"grains\"},{\"term\":\"carrots\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"celery\",\"quantity\":\"2 sticks\",\"aisle\":\"produce\"},{\"term\":\"spinach\",\"quantity\":\"200 g\",\"aisle\":\"produce\"},{\"term\":\"cauliflower\",\"quantity\":\"1 large\",\"aisle\":\"produce\"},{\"term\":\"tinned chickpeas\",\"quantity\":\"2 tins\",\"aisle\":\"pantry\"},{\"term\":\"skyr\",\"quantity\":\"for one bowl\",\"aisle\":\"dairy\"},{\"term\":\"walnuts\",\"quantity\":\"for one bowl\",\"aisle\":\"pantry\"},{\"term\":\"olive oil\",\"quantity\":\"at least 7 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"smoked paprika\",\"quantity\":\"3 tsp\",\"aisle\":\"pantry\"},{\"term\":\"paprika\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"ground cumin\",\"quantity\":\"4 tsp\",\"aisle\":\"pantry\"},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"bay leaf\",\"quantity\":\"1\",\"aisle\":\"pantry\"},{\"term\":\"salt\",\"quantity\":\"1 small pack\",\"aisle\":\"pantry\"},{\"term\":\"black pepper\",\"quantity\":\"1 small pack\",\"aisle\":\"pantry\"}]}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-household-meal-v1",
+        "user_id": "8494a2e4-c31c-52e7-7f71-7bf9f3506f95",
+        "request_id": "ebeb0828-ab1c-47d0-be82-775367df47ed"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "none",
+        "context": "current_turn",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787089066,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787089117,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.\n\n== ADDITIONAL OUTPUT FIELD (household) ==\nAdd ONE more top-level key to the JSON you return:\n  \"member_portions\": [\n    { \"member_id\": \"<exact id given above>\",\n      \"portion_note\": \"how much of what goes on this plate\",\n      \"preparation_shares\": [{ \"preparation_id\": \"prep_x\", \"note\": \"...\" }] }\n  ]\nOne entry per person listed, using their EXACT member_id. Serving\ninstructions only — never a reason, a goal, a calorie count, or anything\nabout a person's body.\n\n== BOXES, ON EVERY PREPARATION (household) ==\nEach preparation carries one more key: \"boxes\".\n  \"boxes\": [{ \"id\": \"box_<preparation>_<name>\",\n              \"member_ids\": [\"<exact ids from the list above>\"],\n              \"grams\": <whole grams of READY food in that box> }]\nIds are lowercase ASCII, invented by you, and each one is used once in the\nwhole plan. The grams are what goes IN the box once cooked, not the raw\nweight of the shopping.\nA dish that eats from a box says so: each entry of its \"uses\" then carries\n\"box_id\", set to that exact box id. A box can only be cited by a meal on or\nafter the day its preparation is cooked.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T21:37:46.094418+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T21:38:37.895539+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

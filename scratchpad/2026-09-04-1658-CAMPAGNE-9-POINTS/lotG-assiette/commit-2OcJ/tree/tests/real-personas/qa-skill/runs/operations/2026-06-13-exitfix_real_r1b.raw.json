@@ -1,0 +1,3258 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t01",
+    "auth_method": "refresh_token",
+    "user": "Depuis ce matin je sens que l’envie est tombée d’un coup. Je sais que le dossier compte, mais dès que j’y pense j’ai l’impression que tout devient lourd et que je vais encore lâcher.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t01",
+      "user_id": "3d0bff00-d2cb-472c-929e-557a3feca26e",
+      "channel": "web",
+      "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C’est épuisant quand l’élan se coupe net et que la peur de lâcher refait surface. Pour mieux comprendre ce qui se joue, est-ce que cette lourdeur vient de la complexité du dossier lui-même ou plutôt de l'appréhension de ne pas réussir à aller au bout ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t01",
+            "source_message_id": "9f87bb72-1789-4db3-b847-d96e78a071a5",
+            "user_id": "3d0bff00-d2cb-472c-929e-557a3feca26e",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": {
+              "opportunity_id": "demotivation_repair.loss_of_desire",
+              "target_kind": "skill",
+              "target_flow": "demotivation_repair",
+              "confidence": "high",
+              "score": 0.9,
+              "priority": 80,
+              "reason": "L'utilisateur exprime une chute d'envie soudaine, un sentiment de lourdeur et une peur de l'échec/abandon sur un dossier important.",
+              "evidence": [
+                "l’envie est tombée d’un coup",
+                "tout devient lourd",
+                "je vais encore lâcher"
+              ],
+              "seed_context": {
+                "target_hint": "dossier qui compte",
+                "surface": "chat"
+              }
+            },
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "bridge",
+              "target_dispatcher": "demotivation_repair",
+              "handoff_context_for_next_dispatcher": "User reports a sudden drop in motivation and a feeling of heaviness regarding a specific task ('dossier'). Focus on emotional validation and identifying the source of the blockage before proposing action.",
+              "user_words": [
+                "l’envie est tombée d’un coup",
+                "tout devient lourd",
+                "je vais encore lâcher"
+              ],
+              "structured_context": {
+                "primary_signal_path": "flow_opportunity",
+                "target_kind": "skill",
+                "target_flow": "demotivation_repair",
+                "confidence_band": "high",
+                "evidence": [
+                  "envie tombée d'un coup",
+                  "impression que tout devient lourd"
+                ],
+                "recommended_next_focus": "Start demotivation repair flow to address the immediate emotional state and the fear of repeating past failures."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {
+                "demotivation_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "score": 0.85,
+                  "reason": "Signal clair de perte d'élan et de découragement face à une action perçue comme lourde."
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.motivation",
+                  "query_hint": "patterns de découragement ou de 'lâcher' passés",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "topic",
+                  "key": "dossier",
+                  "query_hint": "contexte du dossier mentionné",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.2,
+            "normal_reply_fit_evidence": [
+              "Le message exprime une démotivation profonde et un sentiment de lourdeur face à une tâche importante, nécessitant une intervention structurée plutôt qu'une simple conversation."
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "demotivation_repair",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "skill_entry_signal",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "skill_run": {
+            "selected_skill_id": "demotivation_repair",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "demotivation_repair",
+              "status": "continue",
+              "response_intent": "diagnose",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "C’est épuisant quand l’élan se coupe net et que la peur de lâcher refait surface. Pour mieux comprendre ce qui se joue, est-ce que cette lourdeur vient de la complexité du dossier lui-même ou plutôt de l'appréhension de ne pas réussir à aller au bout ?",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "ask_gentle_clarification",
+                "visible_task": "ask_gentle_clarification",
+                "potion_bridge_status": "candidate",
+                "selected_potion": null,
+                "reason_code": "demotivation_repair_local_continue",
+                "evidence": [
+                  "Le user utilise des termes de charge émotionnelle et physique ('lourd', 'envie tombée') liés à une tâche spécifique ('dossier').",
+                  "Mention d'un pattern de décrochage ('encore lâcher') qui nécessite une approche prudente."
+                ],
+                "note_information": null
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_chat_mutation",
+                  "do_not_moralize",
+                  "one_question_max",
+                  "short_reply"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "demotivation_repair_local_state": {
+                  "skill_id": "demotivation_repair",
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "repair_state": {
+                    "intent": "overwhelm",
+                    "phase": "diagnose",
+                    "motivation_state": "overwhelm",
+                    "action_readiness": "none",
+                    "summary": "Le user signale une chute d'envie soudaine et une sensation de lourdeur face à un dossier, avec une crainte de répétition d'un échec passé.",
+                    "user_words": [
+                      "l’envie est tombée d’un coup",
+                      "tout devient lourd",
+                      "je vais encore lâcher"
+                    ],
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": false
+                  },
+                  "last_visible_task": "ask_gentle_clarification",
+                  "last_potion_bridge_offer": null,
+                  "previous_repair_summary": "Le user signale une chute d'envie soudaine et une sensation de lourdeur face à un dossier, avec une crainte de répétition d'un échec passé.",
+                  "turn_count": 1,
+                  "max_turns": 6,
+                  "created_at": "2026-06-13T13:13:15.565Z",
+                  "updated_at": "2026-06-13T13:13:15.565Z"
+                },
+                "demotivation_repair_visible_task": {
+                  "kind": "ask_gentle_clarification",
+                  "conversation_context": {
+                    "state_summary": "Le user signale une chute d'envie soudaine et une sensation de lourdeur face à un dossier, avec une crainte de répétition d'un échec passé.",
+                    "user_words": [
+                      "l’envie est tombée d’un coup",
+                      "tout devient lourd",
+                      "je vais encore lâcher"
+                    ],
+                    "field_or_stage": "ask_gentle_clarification",
+                    "known_values": {
+                      "intent": "overwhelm",
+                      "phase": "diagnose",
+                      "motivation_state": "overwhelm",
+                      "action_readiness": "none",
+                      "identity_freeze_risk": false,
+                      "motivation_source_diagnosed": false
+                    },
+                    "missing_or_weak_values": [
+                      "nature exacte de la lourdeur",
+                      "validation du besoin de soutien"
+                    ],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": null,
+                      "durable_need_summary": null
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null,
+                      "no_chat_mutation": true
+                    },
+                    "tone_constraints": [
+                      "energy_preserving",
+                      "do_not_moralize",
+                      "one_question_max",
+                      "short_reply"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne traite jamais la demotivation comme de la paresse.",
+                      "Ne dis jamais Potion rappel.",
+                      "Ne propose pas de potion dans ce message."
+                    ],
+                    "context_summary": "Le user signale une chute d'envie soudaine et une sensation de lourdeur face à un dossier, avec une crainte de répétition d'un échec passé.",
+                    "evidence_used": [
+                      "Le user utilise des termes de charge émotionnelle et physique ('lourd', 'envie tombée') liés à une tâche spécifique ('dossier').",
+                      "Mention d'un pattern de décrochage ('encore lâcher') qui nécessite une approche prudente."
+                    ],
+                    "db_context_summary": null,
+                    "memory_context_summary": null,
+                    "max_questions": 1
+                  }
+                },
+                "demotivation_repair_inline_note": null,
+                "demotivation_repair_potion_handoff": null,
+                "summary": "Le user signale une chute d'envie soudaine et une sensation de lourdeur face à un dossier, avec une crainte de répétition d'un échec passé."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t01",
+          "source_message_id": "9f87bb72-1789-4db3-b847-d96e78a071a5",
+          "user_id": "3d0bff00-d2cb-472c-929e-557a3feca26e",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": {
+            "opportunity_id": "demotivation_repair.loss_of_desire",
+            "target_kind": "skill",
+            "target_flow": "demotivation_repair",
+            "confidence": "high",
+            "score": 0.9,
+            "priority": 80,
+            "reason": "L'utilisateur exprime une chute d'envie soudaine, un sentiment de lourdeur et une peur de l'échec/abandon sur un dossier important.",
+            "evidence": [
+              "l’envie est tombée d’un coup",
+              "tout devient lourd",
+              "je vais encore lâcher"
+            ],
+            "seed_context": {
+              "target_hint": "dossier qui compte",
+              "surface": "chat"
+            }
+          },
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "bridge",
+            "target_dispatcher": "demotivation_repair",
+            "handoff_context_for_next_dispatcher": "User reports a sudden drop in motivation and a feeling of heaviness regarding a specific task ('dossier'). Focus on emotional validation and identifying the source of the blockage before proposing action.",
+            "user_words": [
+              "l’envie est tombée d’un coup",
+              "tout devient lourd",
+              "je vais encore lâcher"
+            ],
+            "structured_context": {
+              "primary_signal_path": "flow_opportunity",
+              "target_kind": "skill",
+              "target_flow": "demotivation_repair",
+              "confidence_band": "high",
+              "evidence": [
+                "envie tombée d'un coup",
+                "impression que tout devient lourd"
+              ],
+              "recommended_next_focus": "Start demotivation repair flow to address the immediate emotional state and the fear of repeating past failures."
+            },
+            "confidence": "high"
+          },
+          "skill_signals": {
+            "entry": {
+              "demotivation_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "score": 0.85,
+                "reason": "Signal clair de perte d'élan et de découragement face à une action perçue comme lourde."
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.motivation",
+                "query_hint": "patterns de découragement ou de 'lâcher' passés",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              },
+              {
+                "type": "topic",
+                "key": "dossier",
+                "query_hint": "contexte du dossier mentionné",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "normal_reply_fit_score": 0.2,
+          "normal_reply_fit_evidence": [
+            "Le message exprime une démotivation profonde et un sentiment de lourdeur face à une tâche importante, nécessitant une intervention structurée plutôt qu'une simple conversation."
+          ],
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "skill_entry_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "demotivation_repair",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 0,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "skill_entry_signal",
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          }
+        },
+        "skill_run": {
+          "selected_skill_id": "demotivation_repair",
+          "reason_code": "skill_entry_signal",
+          "output": {
+            "skill_id": "demotivation_repair",
+            "status": "continue",
+            "response_intent": "diagnose",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "C’est épuisant quand l’élan se coupe net et que la peur de lâcher refait surface. Pour mieux comprendre ce qui se joue, est-ce que cette lourdeur vient de la complexité du dossier lui-même ou plutôt de l'appréhension de ne pas réussir à aller au bout ?",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "ask_gentle_clarification",
+              "visible_task": "ask_gentle_clarification",
+              "potion_bridge_status": "candidate",
+              "selected_potion": null,
+              "reason_code": "demotivation_repair_local_continue",
+              "evidence": [
+                "Le user utilise des termes de charge émotionnelle et physique ('lourd', 'envie tombée') liés à une tâche spécifique ('dossier').",
+                "Mention d'un pattern de décrochage ('encore lâcher') qui nécessite une approche prudente."
+              ],
+              "note_information": null
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_chat_mutation",
+                "do_not_moralize",
+                "one_question_max",
+                "short_reply"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "demotivation_repair_local_state": {
+                "skill_id": "demotivation_repair",
+                "mode": "local_repair_flow",
+                "status": "active",
+                "repair_state": {
+                  "intent": "overwhelm",
+                  "phase": "diagnose",
+                  "motivation_state": "overwhelm",
+                  "action_readiness": "none",
+                  "summary": "Le user signale une chute d'envie soudaine et une sensation de lourdeur face à un dossier, avec une crainte de répétition d'un échec passé.",
+                  "user_words": [
+                    "l’envie est tombée d’un coup",
+                    "tout devient lourd",
+                    "je vais encore lâcher"
+                  ],
+                  "identity_freeze_risk": false,
+                  "motivation_source_diagnosed": false
+                },
+                "last_visible_task": "ask_gentle_clarification",
+                "last_potion_bridge_offer": null,
+                "previous_repair_summary": "Le user signale une chute d'envie soudaine et une sensation de lourdeur face à un dossier, avec une crainte de répétition d'un échec passé.",
+                "turn_count": 1,
+                "max_turns": 6,
+                "created_at": "2026-06-13T13:13:15.565Z",
+                "updated_at": "2026-06-13T13:13:15.565Z"
+              },
+              "demotivation_repair_visible_task": {
+                "kind": "ask_gentle_clarification",
+                "conversation_context": {
+                  "state_summary": "Le user signale une chute d'envie soudaine et une sensation de lourdeur face à un dossier, avec une crainte de répétition d'un échec passé.",
+                  "user_words": [
+                    "l’envie est tombée d’un coup",
+                    "tout devient lourd",
+                    "je vais encore lâcher"
+                  ],
+                  "field_or_stage": "ask_gentle_clarification",
+                  "known_values": {
+                    "intent": "overwhelm",
+                    "phase": "diagnose",
+                    "motivation_state": "overwhelm",
+                    "action_readiness": "none",
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": false
+                  },
+                  "missing_or_weak_values": [
+                    "nature exacte de la lourdeur",
+                    "validation du besoin de soutien"
+                  ],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": null,
+                    "durable_need_summary": null
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null,
+                    "no_chat_mutation": true
+                  },
+                  "tone_constraints": [
+                    "energy_preserving",
+                    "do_not_moralize",
+                    "one_question_max",
+                    "short_reply"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne traite jamais la demotivation comme de la paresse.",
+                    "Ne dis jamais Potion rappel.",
+                    "Ne propose pas de potion dans ce message."
+                  ],
+                  "context_summary": "Le user signale une chute d'envie soudaine et une sensation de lourdeur face à un dossier, avec une crainte de répétition d'un échec passé.",
+                  "evidence_used": [
+                    "Le user utilise des termes de charge émotionnelle et physique ('lourd', 'envie tombée') liés à une tâche spécifique ('dossier').",
+                    "Mention d'un pattern de décrochage ('encore lâcher') qui nécessite une approche prudente."
+                  ],
+                  "db_context_summary": null,
+                  "memory_context_summary": null,
+                  "max_questions": 1
+                }
+              },
+              "demotivation_repair_inline_note": null,
+              "demotivation_repair_potion_handoff": null,
+              "summary": "Le user signale une chute d'envie soudaine et une sensation de lourdeur face à un dossier, avec une crainte de répétition d'un échec passé."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t02",
+    "auth_method": "refresh_token",
+    "user": "C’est plutôt l’appréhension. J’ai déjà eu deux moments où j’ai tenté de relancer et où je me suis retrouvé bloqué, du coup maintenant mon corps anticipe l’échec avant même que je commence.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t02",
+      "user_id": "3d0bff00-d2cb-472c-929e-557a3feca26e",
+      "channel": "web",
+      "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est une réaction de protection tout à fait normale : ton corps se souvient des blocages passés et cherche à t'éviter une nouvelle frustration. Pour l'instant, l'idée n'est pas de réussir ou de produire, mais juste de désamorcer cette alerte. Est-ce que tu pourrais simplement ouvrir ton espace de travail ou ton document, juste pour une minute, sans aucune obligation d'y toucher ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t02",
+            "source_message_id": "6d8c6186-06d7-4f2f-ad94-e5cbcc534748",
+            "user_id": "3d0bff00-d2cb-472c-929e-557a3feca26e",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "skill_signals": {
+              "lifecycle": {
+                "demotivation_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "active_local_conversation_skill_owns_turn"
+                }
+              }
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "selected_handler": "demotivation_repair",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_local_conversation_skill_owns_turn"
+              },
+              {
+                "path": "global_router",
+                "reason_code": "active_local_conversation_skill_owns_turn"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_demotivation_repair_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "conversation_skill",
+              "selected_owner": "conversation_skill",
+              "resume_policy": "none",
+              "reason_code": "active_local_conversation_skill_owns_turn"
+            },
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "demotivation_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "demotivation_repair_inline_note",
+                        "demotivation_repair_local_state",
+                        "demotivation_repair_potion_handoff",
+                        "demotivation_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-13T13:13:21.285Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "demotivation_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "demotivation_repair_inline_note",
+                        "demotivation_repair_local_state",
+                        "demotivation_repair_potion_handoff",
+                        "demotivation_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-13T13:13:21.285Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "demotivation_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "demotivation_repair_inline_note",
+                        "demotivation_repair_local_state",
+                        "demotivation_repair_potion_handoff",
+                        "demotivation_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-13T13:13:21.285Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:21.285Z"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "demotivation_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "demotivation_repair_inline_note",
+                        "demotivation_repair_local_state",
+                        "demotivation_repair_potion_handoff",
+                        "demotivation_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-13T13:13:21.285Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:21.285Z"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "active_local_conversation_skill_owns_turn",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "demotivation_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "demotivation_repair_inline_note",
+                        "demotivation_repair_local_state",
+                        "demotivation_repair_potion_handoff",
+                        "demotivation_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-13T13:13:21.285Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:21.285Z"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "active_demotivation_repair_local_dispatcher",
+                  "route_active_flow_reason_code": "active_local_conversation_skill_owns_turn"
+                }
+              ]
+            }
+          },
+          "skill_run": {
+            "selected_skill_id": "demotivation_repair",
+            "reason_code": "active_demotivation_repair_local_dispatcher",
+            "output": {
+              "skill_id": "demotivation_repair",
+              "status": "continue",
+              "response_intent": "reduce_friction",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "C'est une réaction de protection tout à fait normale : ton corps se souvient des blocages passés et cherche à t'éviter une nouvelle frustration. Pour l'instant, l'idée n'est pas de réussir ou de produire, mais juste de désamorcer cette alerte. Est-ce que tu pourrais simplement ouvrir ton espace de travail ou ton document, juste pour une minute, sans aucune obligation d'y toucher ?",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "reduce_friction",
+                "visible_task": "reduce_friction",
+                "potion_bridge_status": "candidate",
+                "selected_potion": null,
+                "reason_code": "demotivation_repair_local_continue",
+                "evidence": [
+                  "Le user nomme explicitement l'appréhension et l'anticipation corporelle de l'échec comme source du blocage."
+                ],
+                "note_information": null
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_chat_mutation",
+                  "do_not_moralize",
+                  "one_question_max",
+                  "prefer_smallest_action",
+                  "short_reply"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "demotivation_repair_local_state": {
+                  "skill_id": "demotivation_repair",
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "repair_state": {
+                    "intent": "avoidance_loop",
+                    "phase": "reduce_friction",
+                    "motivation_state": "avoidance",
+                    "action_readiness": "none",
+                    "summary": "Le user identifie une boucle d'évitement liée à l'appréhension de l'échec après deux blocages passés. Son corps anticipe l'échec avant de commencer.",
+                    "user_words": [
+                      "appréhension",
+                      "corps anticipe l’échec",
+                      "déjà eu deux moments où j’ai tenté de relancer et où je me suis retrouvé bloqué"
+                    ],
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": true
+                  },
+                  "last_visible_task": "reduce_friction",
+                  "last_potion_bridge_offer": null,
+                  "previous_repair_summary": "Le user identifie une boucle d'évitement liée à l'appréhension de l'échec après deux blocages passés. Son corps anticipe l'échec avant de commencer.",
+                  "turn_count": 2,
+                  "max_turns": 6,
+                  "created_at": "2026-06-13T13:13:15.565Z",
+                  "updated_at": "2026-06-13T13:13:39.828Z"
+                },
+                "demotivation_repair_visible_task": {
+                  "kind": "reduce_friction",
+                  "conversation_context": {
+                    "state_summary": "Le user identifie une boucle d'évitement liée à l'appréhension de l'échec après deux blocages passés. Son corps anticipe l'échec avant de commencer.",
+                    "user_words": [
+                      "appréhension",
+                      "corps anticipe l’échec",
+                      "déjà eu deux moments où j’ai tenté de relancer et où je me suis retrouvé bloqué"
+                    ],
+                    "field_or_stage": "reduce_friction",
+                    "known_values": {
+                      "intent": "avoidance_loop",
+                      "phase": "reduce_friction",
+                      "motivation_state": "avoidance",
+                      "action_readiness": "none",
+                      "identity_freeze_risk": false,
+                      "motivation_source_diagnosed": true
+                    },
+                    "missing_or_weak_values": [
+                      "consentement à l'offre de potion"
+                    ],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": "courage_through_avoidance",
+                      "durable_need_summary": "Besoin de dépasser l'anticipation somatique de l'échec pour relancer l'action."
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null,
+                      "no_chat_mutation": true
+                    },
+                    "tone_constraints": [
+                      "energy_preserving",
+                      "do_not_moralize",
+                      "one_question_max",
+                      "prefer_smallest_action",
+                      "short_reply"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne traite jamais la demotivation comme de la paresse.",
+                      "Ne dis jamais Potion rappel.",
+                      "Ne propose pas de potion dans ce message."
+                    ],
+                    "context_summary": "Le user identifie une boucle d'évitement liée à l'appréhension de l'échec après deux blocages passés. Son corps anticipe l'échec avant de commencer.",
+                    "evidence_used": [
+                      "Le user nomme explicitement l'appréhension et l'anticipation corporelle de l'échec comme source du blocage."
+                    ],
+                    "db_context_summary": null,
+                    "memory_context_summary": null,
+                    "max_questions": 1
+                  }
+                },
+                "demotivation_repair_inline_note": null,
+                "demotivation_repair_potion_handoff": null,
+                "summary": "Le user identifie une boucle d'évitement liée à l'appréhension de l'échec après deux blocages passés. Son corps anticipe l'échec avant de commencer."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t02",
+          "source_message_id": "6d8c6186-06d7-4f2f-ad94-e5cbcc534748",
+          "user_id": "3d0bff00-d2cb-472c-929e-557a3feca26e",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "skill_signals": {
+            "lifecycle": {
+              "demotivation_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "active_local_conversation_skill_owns_turn"
+              }
+            }
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "selected_handler": "demotivation_repair",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_local_conversation_skill_owns_turn"
+            },
+            {
+              "path": "global_router",
+              "reason_code": "active_local_conversation_skill_owns_turn"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_demotivation_repair_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "active_owner": "conversation_skill",
+            "selected_owner": "conversation_skill",
+            "resume_policy": "none",
+            "reason_code": "active_local_conversation_skill_owns_turn"
+          },
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:21.285Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:21.285Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:21.285Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": true,
+                  "skill_id": "demotivation_repair",
+                  "status": "active",
+                  "mode": null,
+                  "has_working_state": true,
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "working_state_keys": [
+                    "demotivation_repair_inline_note",
+                    "demotivation_repair_local_state",
+                    "demotivation_repair_potion_handoff",
+                    "demotivation_repair_visible_task",
+                    "summary"
+                  ],
+                  "updated_at": "2026-06-13T13:13:21.285Z"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:21.285Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": true,
+                  "skill_id": "demotivation_repair",
+                  "status": "active",
+                  "mode": null,
+                  "has_working_state": true,
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "working_state_keys": [
+                    "demotivation_repair_inline_note",
+                    "demotivation_repair_local_state",
+                    "demotivation_repair_potion_handoff",
+                    "demotivation_repair_visible_task",
+                    "summary"
+                  ],
+                  "updated_at": "2026-06-13T13:13:21.285Z"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "active_local_conversation_skill_owns_turn",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:21.285Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": true,
+                  "skill_id": "demotivation_repair",
+                  "status": "active",
+                  "mode": null,
+                  "has_working_state": true,
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "working_state_keys": [
+                    "demotivation_repair_inline_note",
+                    "demotivation_repair_local_state",
+                    "demotivation_repair_potion_handoff",
+                    "demotivation_repair_visible_task",
+                    "summary"
+                  ],
+                  "updated_at": "2026-06-13T13:13:21.285Z"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "active_demotivation_repair_local_dispatcher",
+                "route_active_flow_reason_code": "active_local_conversation_skill_owns_turn"
+              }
+            ]
+          }
+        },
+        "skill_run": {
+          "selected_skill_id": "demotivation_repair",
+          "reason_code": "active_demotivation_repair_local_dispatcher",
+          "output": {
+            "skill_id": "demotivation_repair",
+            "status": "continue",
+            "response_intent": "reduce_friction",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "C'est une réaction de protection tout à fait normale : ton corps se souvient des blocages passés et cherche à t'éviter une nouvelle frustration. Pour l'instant, l'idée n'est pas de réussir ou de produire, mais juste de désamorcer cette alerte. Est-ce que tu pourrais simplement ouvrir ton espace de travail ou ton document, juste pour une minute, sans aucune obligation d'y toucher ?",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "reduce_friction",
+              "visible_task": "reduce_friction",
+              "potion_bridge_status": "candidate",
+              "selected_potion": null,
+              "reason_code": "demotivation_repair_local_continue",
+              "evidence": [
+                "Le user nomme explicitement l'appréhension et l'anticipation corporelle de l'échec comme source du blocage."
+              ],
+              "note_information": null
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_chat_mutation",
+                "do_not_moralize",
+                "one_question_max",
+                "prefer_smallest_action",
+                "short_reply"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "demotivation_repair_local_state": {
+                "skill_id": "demotivation_repair",
+                "mode": "local_repair_flow",
+                "status": "active",
+                "repair_state": {
+                  "intent": "avoidance_loop",
+                  "phase": "reduce_friction",
+                  "motivation_state": "avoidance",
+                  "action_readiness": "none",
+                  "summary": "Le user identifie une boucle d'évitement liée à l'appréhension de l'échec après deux blocages passés. Son corps anticipe l'échec avant de commencer.",
+                  "user_words": [
+                    "appréhension",
+                    "corps anticipe l’échec",
+                    "déjà eu deux moments où j’ai tenté de relancer et où je me suis retrouvé bloqué"
+                  ],
+                  "identity_freeze_risk": false,
+                  "motivation_source_diagnosed": true
+                },
+                "last_visible_task": "reduce_friction",
+                "last_potion_bridge_offer": null,
+                "previous_repair_summary": "Le user identifie une boucle d'évitement liée à l'appréhension de l'échec après deux blocages passés. Son corps anticipe l'échec avant de commencer.",
+                "turn_count": 2,
+                "max_turns": 6,
+                "created_at": "2026-06-13T13:13:15.565Z",
+                "updated_at": "2026-06-13T13:13:39.828Z"
+              },
+              "demotivation_repair_visible_task": {
+                "kind": "reduce_friction",
+                "conversation_context": {
+                  "state_summary": "Le user identifie une boucle d'évitement liée à l'appréhension de l'échec après deux blocages passés. Son corps anticipe l'échec avant de commencer.",
+                  "user_words": [
+                    "appréhension",
+                    "corps anticipe l’échec",
+                    "déjà eu deux moments où j’ai tenté de relancer et où je me suis retrouvé bloqué"
+                  ],
+                  "field_or_stage": "reduce_friction",
+                  "known_values": {
+                    "intent": "avoidance_loop",
+                    "phase": "reduce_friction",
+                    "motivation_state": "avoidance",
+                    "action_readiness": "none",
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": true
+                  },
+                  "missing_or_weak_values": [
+                    "consentement à l'offre de potion"
+                  ],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": "courage_through_avoidance",
+                    "durable_need_summary": "Besoin de dépasser l'anticipation somatique de l'échec pour relancer l'action."
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null,
+                    "no_chat_mutation": true
+                  },
+                  "tone_constraints": [
+                    "energy_preserving",
+                    "do_not_moralize",
+                    "one_question_max",
+                    "prefer_smallest_action",
+                    "short_reply"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne traite jamais la demotivation comme de la paresse.",
+                    "Ne dis jamais Potion rappel.",
+                    "Ne propose pas de potion dans ce message."
+                  ],
+                  "context_summary": "Le user identifie une boucle d'évitement liée à l'appréhension de l'échec après deux blocages passés. Son corps anticipe l'échec avant de commencer.",
+                  "evidence_used": [
+                    "Le user nomme explicitement l'appréhension et l'anticipation corporelle de l'échec comme source du blocage."
+                  ],
+                  "db_context_summary": null,
+                  "memory_context_summary": null,
+                  "max_questions": 1
+                }
+              },
+              "demotivation_repair_inline_note": null,
+              "demotivation_repair_potion_handoff": null,
+              "summary": "Le user identifie une boucle d'évitement liée à l'appréhension de l'échec après deux blocages passés. Son corps anticipe l'échec avant de commencer."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t03",
+    "auth_method": "refresh_token",
+    "user": "Non, pas de carte et pas de micro-action maintenant. Je veux rester sur ce qui se passe dedans : comprendre pourquoi l’envie s’éteint aussi vite et pourquoi ça me coupe avant même d’essayer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t03",
+      "user_id": "3d0bff00-d2cb-472c-929e-557a3feca26e",
+      "channel": "web",
+      "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ton corps cherche simplement à te protéger. Cette appréhension que tu ressens est une réaction réflexe pour t'éviter de revivre la frustration de tes précédents blocages. Il n'y a aucune pression pour agir tout de suite, on peut juste laisser cette tension redescendre doucement.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t03",
+            "source_message_id": "3e927d74-0385-455e-b363-bb02fb7652b8",
+            "user_id": "3d0bff00-d2cb-472c-929e-557a3feca26e",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "skill_signals": {
+              "lifecycle": {
+                "demotivation_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "active_local_conversation_skill_owns_turn"
+                }
+              }
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "selected_handler": "demotivation_repair",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_local_conversation_skill_owns_turn"
+              },
+              {
+                "path": "global_router",
+                "reason_code": "active_local_conversation_skill_owns_turn"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_demotivation_repair_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "conversation_skill",
+              "selected_owner": "conversation_skill",
+              "resume_policy": "none",
+              "reason_code": "active_local_conversation_skill_owns_turn"
+            },
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "demotivation_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "demotivation_repair_inline_note",
+                        "demotivation_repair_local_state",
+                        "demotivation_repair_potion_handoff",
+                        "demotivation_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-13T13:13:43.675Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "demotivation_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "demotivation_repair_inline_note",
+                        "demotivation_repair_local_state",
+                        "demotivation_repair_potion_handoff",
+                        "demotivation_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-13T13:13:43.675Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "demotivation_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "demotivation_repair_inline_note",
+                        "demotivation_repair_local_state",
+                        "demotivation_repair_potion_handoff",
+                        "demotivation_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-13T13:13:43.675Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:43.675Z"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "demotivation_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "demotivation_repair_inline_note",
+                        "demotivation_repair_local_state",
+                        "demotivation_repair_potion_handoff",
+                        "demotivation_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-13T13:13:43.675Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:43.675Z"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "active_local_conversation_skill_owns_turn",
+                  "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "demotivation_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "demotivation_repair_inline_note",
+                        "demotivation_repair_local_state",
+                        "demotivation_repair_potion_handoff",
+                        "demotivation_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-13T13:13:43.675Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:43.675Z"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "active_demotivation_repair_local_dispatcher",
+                  "route_active_flow_reason_code": "active_local_conversation_skill_owns_turn"
+                }
+              ]
+            }
+          },
+          "skill_run": {
+            "selected_skill_id": "demotivation_repair",
+            "reason_code": "active_demotivation_repair_local_dispatcher",
+            "output": {
+              "skill_id": "demotivation_repair",
+              "status": "continue",
+              "response_intent": "reduce_friction",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "Ton corps cherche simplement à te protéger. Cette appréhension que tu ressens est une réaction réflexe pour t'éviter de revivre la frustration de tes précédents blocages. Il n'y a aucune pression pour agir tout de suite, on peut juste laisser cette tension redescendre doucement.",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "reduce_friction",
+                "visible_task": "reduce_friction",
+                "potion_bridge_status": "not_applicable",
+                "selected_potion": null,
+                "reason_code": "demotivation_repair_local_continue",
+                "evidence": [
+                  "Le user refuse carte, micro-action et potion",
+                  "Le user demande à rester sur l’exploration interne",
+                  "L’appréhension et l’anticipation d’échec sont déjà diagnostiquées"
+                ],
+                "note_information": null
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_chat_mutation",
+                  "short_reply",
+                  "do_not_moralize"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "demotivation_repair_local_state": {
+                  "skill_id": "demotivation_repair",
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "repair_state": {
+                    "intent": "avoidance_loop",
+                    "phase": "reduce_friction",
+                    "motivation_state": "avoidance",
+                    "action_readiness": "none",
+                    "summary": "Boucle d’évitement déjà diagnostiquée : après des blocages passés, l’anticipation d’échec coupe l’élan avant même l’essai.",
+                    "user_words": [
+                      "l’appréhension",
+                      "mon corps anticipe l’échec avant même que je commence",
+                      "deux moments où j’ai tenté de relancer et où je me suis retrouvé bloqué"
+                    ],
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": true
+                  },
+                  "last_visible_task": "reduce_friction",
+                  "last_potion_bridge_offer": null,
+                  "previous_repair_summary": "Boucle d’évitement déjà diagnostiquée : après des blocages passés, l’anticipation d’échec coupe l’élan avant même l’essai.",
+                  "turn_count": 3,
+                  "max_turns": 6,
+                  "created_at": "2026-06-13T13:13:15.565Z",
+                  "updated_at": "2026-06-13T13:14:52.294Z"
+                },
+                "demotivation_repair_visible_task": {
+                  "kind": "reduce_friction",
+                  "conversation_context": {
+                    "state_summary": "Boucle d’évitement déjà diagnostiquée : après des blocages passés, l’anticipation d’échec coupe l’élan avant même l’essai.",
+                    "user_words": [
+                      "l’appréhension",
+                      "mon corps anticipe l’échec avant même que je commence",
+                      "deux moments où j’ai tenté de relancer et où je me suis retrouvé bloqué"
+                    ],
+                    "field_or_stage": "reduce_friction",
+                    "known_values": {
+                      "intent": "avoidance_loop",
+                      "phase": "reduce_friction",
+                      "motivation_state": "avoidance",
+                      "action_readiness": "none",
+                      "identity_freeze_risk": false,
+                      "motivation_source_diagnosed": true
+                    },
+                    "missing_or_weak_values": [
+                      "none"
+                    ],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": null,
+                      "durable_need_summary": null
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null,
+                      "no_chat_mutation": true
+                    },
+                    "tone_constraints": [
+                      "energy_preserving",
+                      "short_reply",
+                      "do_not_moralize"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne traite jamais la demotivation comme de la paresse.",
+                      "Ne dis jamais Potion rappel.",
+                      "Ne propose pas de potion dans ce message."
+                    ],
+                    "context_summary": "Boucle d’évitement déjà diagnostiquée : après des blocages passés, l’anticipation d’échec coupe l’élan avant même l’essai.",
+                    "evidence_used": [
+                      "Le user refuse carte, micro-action et potion",
+                      "Le user demande à rester sur l’exploration interne",
+                      "L’appréhension et l’anticipation d’échec sont déjà diagnostiquées"
+                    ],
+                    "db_context_summary": null,
+                    "memory_context_summary": null,
+                    "max_questions": 0
+                  }
+                },
+                "demotivation_repair_inline_note": null,
+                "demotivation_repair_potion_handoff": null,
+                "summary": "Boucle d’évitement déjà diagnostiquée : après des blocages passés, l’anticipation d’échec coupe l’élan avant même l’essai."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t03",
+          "source_message_id": "3e927d74-0385-455e-b363-bb02fb7652b8",
+          "user_id": "3d0bff00-d2cb-472c-929e-557a3feca26e",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "skill_signals": {
+            "lifecycle": {
+              "demotivation_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "active_local_conversation_skill_owns_turn"
+              }
+            }
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "selected_handler": "demotivation_repair",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_local_conversation_skill_owns_turn"
+            },
+            {
+              "path": "global_router",
+              "reason_code": "active_local_conversation_skill_owns_turn"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_demotivation_repair_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "active_owner": "conversation_skill",
+            "selected_owner": "conversation_skill",
+            "resume_policy": "none",
+            "reason_code": "active_local_conversation_skill_owns_turn"
+          },
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:43.675Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:43.675Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:43.675Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": true,
+                  "skill_id": "demotivation_repair",
+                  "status": "active",
+                  "mode": null,
+                  "has_working_state": true,
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "working_state_keys": [
+                    "demotivation_repair_inline_note",
+                    "demotivation_repair_local_state",
+                    "demotivation_repair_potion_handoff",
+                    "demotivation_repair_visible_task",
+                    "summary"
+                  ],
+                  "updated_at": "2026-06-13T13:13:43.675Z"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:43.675Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": true,
+                  "skill_id": "demotivation_repair",
+                  "status": "active",
+                  "mode": null,
+                  "has_working_state": true,
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "working_state_keys": [
+                    "demotivation_repair_inline_note",
+                    "demotivation_repair_local_state",
+                    "demotivation_repair_potion_handoff",
+                    "demotivation_repair_visible_task",
+                    "summary"
+                  ],
+                  "updated_at": "2026-06-13T13:13:43.675Z"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "active_local_conversation_skill_owns_turn",
+                "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "demotivation_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "demotivation_repair_inline_note",
+                      "demotivation_repair_local_state",
+                      "demotivation_repair_potion_handoff",
+                      "demotivation_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-13T13:13:43.675Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": true,
+                  "skill_id": "demotivation_repair",
+                  "status": "active",
+                  "mode": null,
+                  "has_working_state": true,
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "working_state_keys": [
+                    "demotivation_repair_inline_note",
+                    "demotivation_repair_local_state",
+                    "demotivation_repair_potion_handoff",
+                    "demotivation_repair_visible_task",
+                    "summary"
+                  ],
+                  "updated_at": "2026-06-13T13:13:43.675Z"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "active_demotivation_repair_local_dispatcher",
+                "route_active_flow_reason_code": "active_local_conversation_skill_owns_turn"
+              }
+            ]
+          }
+        },
+        "skill_run": {
+          "selected_skill_id": "demotivation_repair",
+          "reason_code": "active_demotivation_repair_local_dispatcher",
+          "output": {
+            "skill_id": "demotivation_repair",
+            "status": "continue",
+            "response_intent": "reduce_friction",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "Ton corps cherche simplement à te protéger. Cette appréhension que tu ressens est une réaction réflexe pour t'éviter de revivre la frustration de tes précédents blocages. Il n'y a aucune pression pour agir tout de suite, on peut juste laisser cette tension redescendre doucement.",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "reduce_friction",
+              "visible_task": "reduce_friction",
+              "potion_bridge_status": "not_applicable",
+              "selected_potion": null,
+              "reason_code": "demotivation_repair_local_continue",
+              "evidence": [
+                "Le user refuse carte, micro-action et potion",
+                "Le user demande à rester sur l’exploration interne",
+                "L’appréhension et l’anticipation d’échec sont déjà diagnostiquées"
+              ],
+              "note_information": null
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_chat_mutation",
+                "short_reply",
+                "do_not_moralize"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "demotivation_repair_local_state": {
+                "skill_id": "demotivation_repair",
+                "mode": "local_repair_flow",
+                "status": "active",
+                "repair_state": {
+                  "intent": "avoidance_loop",
+                  "phase": "reduce_friction",
+                  "motivation_state": "avoidance",
+                  "action_readiness": "none",
+                  "summary": "Boucle d’évitement déjà diagnostiquée : après des blocages passés, l’anticipation d’échec coupe l’élan avant même l’essai.",
+                  "user_words": [
+                    "l’appréhension",
+                    "mon corps anticipe l’échec avant même que je commence",
+                    "deux moments où j’ai tenté de relancer et où je me suis retrouvé bloqué"
+                  ],
+                  "identity_freeze_risk": false,
+                  "motivation_source_diagnosed": true
+                },
+                "last_visible_task": "reduce_friction",
+                "last_potion_bridge_offer": null,
+                "previous_repair_summary": "Boucle d’évitement déjà diagnostiquée : après des blocages passés, l’anticipation d’échec coupe l’élan avant même l’essai.",
+                "turn_count": 3,
+                "max_turns": 6,
+                "created_at": "2026-06-13T13:13:15.565Z",
+                "updated_at": "2026-06-13T13:14:52.294Z"
+              },
+              "demotivation_repair_visible_task": {
+                "kind": "reduce_friction",
+                "conversation_context": {
+                  "state_summary": "Boucle d’évitement déjà diagnostiquée : après des blocages passés, l’anticipation d’échec coupe l’élan avant même l’essai.",
+                  "user_words": [
+                    "l’appréhension",
+                    "mon corps anticipe l’échec avant même que je commence",
+                    "deux moments où j’ai tenté de relancer et où je me suis retrouvé bloqué"
+                  ],
+                  "field_or_stage": "reduce_friction",
+                  "known_values": {
+                    "intent": "avoidance_loop",
+                    "phase": "reduce_friction",
+                    "motivation_state": "avoidance",
+                    "action_readiness": "none",
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": true
+                  },
+                  "missing_or_weak_values": [
+                    "none"
+                  ],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": null,
+                    "durable_need_summary": null
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null,
+                    "no_chat_mutation": true
+                  },
+                  "tone_constraints": [
+                    "energy_preserving",
+                    "short_reply",
+                    "do_not_moralize"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne traite jamais la demotivation comme de la paresse.",
+                    "Ne dis jamais Potion rappel.",
+                    "Ne propose pas de potion dans ce message."
+                  ],
+                  "context_summary": "Boucle d’évitement déjà diagnostiquée : après des blocages passés, l’anticipation d’échec coupe l’élan avant même l’essai.",
+                  "evidence_used": [
+                    "Le user refuse carte, micro-action et potion",
+                    "Le user demande à rester sur l’exploration interne",
+                    "L’appréhension et l’anticipation d’échec sont déjà diagnostiquées"
+                  ],
+                  "db_context_summary": null,
+                  "memory_context_summary": null,
+                  "max_questions": 0
+                }
+              },
+              "demotivation_repair_inline_note": null,
+              "demotivation_repair_potion_handoff": null,
+              "summary": "Boucle d’évitement déjà diagnostiquée : après des blocages passés, l’anticipation d’échec coupe l’élan avant même l’essai."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  }
+]

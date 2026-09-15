@@ -1,0 +1,1191 @@
+{
+  "status": 200,
+  "ms": 23011,
+  "json": {
+    "ok": true,
+    "meal": {
+      "id": "2ab8a495-51cc-41d8-9780-f83fc5b42677"
+    },
+    "window": {
+      "starts_on": "2026-08-17",
+      "duration_days": 3
+    },
+    "household": {
+      "id": "4123e479-f62a-4a3c-912e-5c7cb5c1f15a",
+      "member_count": 4
+    },
+    "dishes": [
+      {
+        "title": "Yogurt, oats and plum breakfast bowls",
+        "slot": "breakfast",
+        "day": "mon",
+        "ingredients": [
+          {
+            "term": "plain Greek yogurt",
+            "quantity": "750 g",
+            "in_pantry": false,
+            "amount": 750,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 750
+          },
+          {
+            "term": "rolled oats",
+            "quantity": "180 g",
+            "in_pantry": false,
+            "amount": 180,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 180
+          },
+          {
+            "term": "plums",
+            "quantity": "6",
+            "in_pantry": false,
+            "amount": 6,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "almonds",
+            "quantity": "60 g",
+            "in_pantry": false,
+            "amount": 60,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 60
+          },
+          {
+            "term": "honey",
+            "quantity": "3 tbsp",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 45
+          }
+        ],
+        "method": "Spoon the yogurt into bowls, top with oats, sliced plums and almonds, then drizzle with honey.",
+        "why": "It is fast, seasonal for August in France, and starts the week with a protein anchor.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": []
+      },
+      {
+        "title": "Chicken, tomato and cucumber couscous bowls",
+        "slot": "lunch",
+        "day": "mon",
+        "ingredients": [
+          {
+            "term": "couscous",
+            "quantity": "240 g",
+            "in_pantry": false,
+            "amount": 240,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 240
+          },
+          {
+            "term": "cherry tomatoes",
+            "quantity": "300 g",
+            "in_pantry": false,
+            "amount": 300,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "cucumbers",
+            "quantity": "2",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "feta",
+            "quantity": "180 g",
+            "in_pantry": false,
+            "amount": 180,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 180
+          },
+          {
+            "term": "lemon",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          },
+          {
+            "term": "olive oil",
+            "quantity": "3 tbsp",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 45
+          }
+        ],
+        "method": "Reheat a portion of the chicken and a portion of roasted vegetables, make the couscous with hot water, then toss with tomatoes, cucumber, feta, lemon and olive oil.",
+        "why": "It uses one batch for several lunches while keeping the meal light enough for summer.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 3
+          },
+          {
+            "preparation_id": "prep_roast_veg",
+            "servings": 3
+          },
+          {
+            "preparation_id": "prep_couscous",
+            "servings": 3
+          }
+        ]
+      },
+      {
+        "title": "Chicken with roast vegetables and green salad",
+        "slot": "dinner",
+        "day": "mon",
+        "ingredients": [
+          {
+            "term": "mixed salad leaves",
+            "quantity": "150 g",
+            "in_pantry": false,
+            "amount": 150,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 150
+          },
+          {
+            "term": "olive oil",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          },
+          {
+            "term": "vinegar",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          }
+        ],
+        "method": "Reheat chicken and roasted vegetables, then serve with salad leaves dressed with olive oil and vinegar.",
+        "why": "It turns the same cooking session into a different dinner without repeating the exact plate.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 3
+          },
+          {
+            "preparation_id": "prep_roast_veg",
+            "servings": 3
+          }
+        ]
+      },
+      {
+        "title": "Egg and avocado toast",
+        "slot": "breakfast",
+        "day": "tue",
+        "ingredients": [
+          {
+            "term": "eggs",
+            "quantity": "6",
+            "in_pantry": false,
+            "amount": 6,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 330
+          },
+          {
+            "term": "wholegrain bread",
+            "quantity": "6 slices",
+            "in_pantry": false,
+            "amount": 6,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 240
+          },
+          {
+            "term": "avocados",
+            "quantity": "2",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 200
+          },
+          {
+            "term": "tomatoes",
+            "quantity": "2",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 200
+          }
+        ],
+        "method": "Soft-boil or fry the eggs, toast the bread, then top with sliced avocado and tomato and serve the eggs alongside.",
+        "why": "It is a simple household breakfast with a clear protein anchor and no extra prep burden.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": []
+      },
+      {
+        "title": "Lentil and roasted vegetable grain bowls",
+        "slot": "lunch",
+        "day": "tue",
+        "ingredients": [
+          {
+            "term": "cooked lentils",
+            "quantity": "450 g",
+            "in_pantry": false,
+            "amount": 450,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 450
+          },
+          {
+            "term": "cooked rice",
+            "quantity": "420 g",
+            "in_pantry": false,
+            "amount": 420,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 420
+          },
+          {
+            "term": "mixed salad leaves",
+            "quantity": "120 g",
+            "in_pantry": false,
+            "amount": 120,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 120
+          },
+          {
+            "term": "lemon",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          }
+        ],
+        "method": "Reheat the lentils and rice, then serve over salad leaves with lemon and olive oil.",
+        "why": "It gives a different lunch built from the same session while staying practical for a work-from-home day.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_lentils",
+            "servings": 3
+          },
+          {
+            "preparation_id": "prep_rice",
+            "servings": 3
+          },
+          {
+            "preparation_id": "prep_roast_veg",
+            "servings": 3
+          }
+        ]
+      },
+      {
+        "title": "Tuna and tomato pasta salad",
+        "slot": "dinner",
+        "day": "tue",
+        "ingredients": [
+          {
+            "term": "short pasta",
+            "quantity": "240 g",
+            "in_pantry": false,
+            "amount": 240,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "tinned tuna",
+            "quantity": "3 cans",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "cooked",
+            "grams_raw": null
+          },
+          {
+            "term": "cherry tomatoes",
+            "quantity": "250 g",
+            "in_pantry": false,
+            "amount": 250,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 250
+          },
+          {
+            "term": "green beans",
+            "quantity": "300 g",
+            "in_pantry": false,
+            "amount": 300,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "lemon",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          }
+        ],
+        "method": "Cook the pasta and green beans, cool briefly, then toss with tuna, tomatoes, olive oil and lemon.",
+        "why": "It stays fresh-tasting in warm weather and keeps dinner from repeating Monday’s plate.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": []
+      },
+      {
+        "title": "Skyr with peaches and walnuts",
+        "slot": "breakfast",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "plain skyr",
+            "quantity": "750 g",
+            "in_pantry": false,
+            "amount": 750,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 750
+          },
+          {
+            "term": "peaches",
+            "quantity": "6",
+            "in_pantry": false,
+            "amount": 6,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 780
+          },
+          {
+            "term": "walnuts",
+            "quantity": "60 g",
+            "in_pantry": false,
+            "amount": 60,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 60
+          },
+          {
+            "term": "pumpkin seeds",
+            "quantity": "30 g",
+            "in_pantry": false,
+            "amount": 30,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 30
+          }
+        ],
+        "method": "Divide the skyr into bowls and top with sliced peaches, walnuts and pumpkin seeds.",
+        "why": "It is another no-fuss breakfast that still centers the meal on a protein-carrying dairy.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": []
+      },
+      {
+        "title": "Chicken rice bowls with crunchy salad",
+        "slot": "lunch",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "cucumber",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "carrots",
+            "quantity": "3",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 210
+          },
+          {
+            "term": "spring onions",
+            "quantity": "3",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 45
+          },
+          {
+            "term": "soy sauce",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "sesame oil",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          }
+        ],
+        "method": "Reheat the last chicken portion with rice, then add a crunchy salad of cucumber, carrots and spring onions with soy sauce and sesame oil.",
+        "why": "It finishes the chicken batch within the safe window and changes the texture for the last use.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 3
+          },
+          {
+            "preparation_id": "prep_rice",
+            "servings": 3
+          }
+        ]
+      },
+      {
+        "title": "Salmon, potatoes and beans",
+        "slot": "dinner",
+        "day": "wed",
+        "ingredients": [
+          {
+            "term": "salmon fillets",
+            "quantity": "3",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "new potatoes",
+            "quantity": "900 g",
+            "in_pantry": false,
+            "amount": 900,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 900
+          },
+          {
+            "term": "green beans",
+            "quantity": "450 g",
+            "in_pantry": false,
+            "amount": 450,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 450
+          },
+          {
+            "term": "lemon",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 60
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          }
+        ],
+        "method": "Roast or pan-sear the salmon, boil the potatoes, steam the beans, then finish with lemon and olive oil.",
+        "why": "It gives the week a different fish dinner and makes use of late-summer produce.",
+        "honours_belief_keys": [
+          "protein_anchor"
+        ],
+        "uses": []
+      }
+    ],
+    "preparations": [
+      {
+        "id": "prep_chicken",
+        "title": "Roast chicken thighs",
+        "servings_made": 9,
+        "ingredients": [
+          {
+            "term": "chicken thighs",
+            "quantity": "1.8 kg",
+            "in_pantry": false,
+            "amount": 1800,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 1800
+          },
+          {
+            "term": "olive oil",
+            "quantity": "2 tbsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 30
+          },
+          {
+            "term": "garlic",
+            "quantity": "4 cloves",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "smoked paprika",
+            "quantity": "2 tsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 10
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          },
+          {
+            "term": "black pepper",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Heat the oven to 210 C. Toss the chicken thighs with olive oil, garlic, paprika, salt and pepper, spread on two trays, and roast until cooked through and browned.",
+        "active_minutes": 15,
+        "total_minutes": 40,
+        "cook_on": "mon"
+      },
+      {
+        "id": "prep_roast_veg",
+        "title": "Tray of roast summer vegetables",
+        "servings_made": 9,
+        "ingredients": [
+          {
+            "term": "courgettes",
+            "quantity": "4",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "aubergines",
+            "quantity": "2",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "red peppers",
+            "quantity": "4",
+            "in_pantry": false,
+            "amount": 4,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "red onions",
+            "quantity": "3",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "olive oil",
+            "quantity": "3 tbsp",
+            "in_pantry": false,
+            "amount": 3,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 45
+          },
+          {
+            "term": "thyme",
+            "quantity": "2 tsp",
+            "in_pantry": false,
+            "amount": 2,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 10
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Chop the vegetables into large pieces, toss with oil, thyme and salt, and roast until browned and tender.",
+        "active_minutes": 20,
+        "total_minutes": 35,
+        "cook_on": "mon"
+      },
+      {
+        "id": "prep_couscous",
+        "title": "Plain couscous",
+        "servings_made": 3,
+        "ingredients": [
+          {
+            "term": "couscous",
+            "quantity": "240 g",
+            "in_pantry": false,
+            "amount": 240,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 240
+          },
+          {
+            "term": "water",
+            "quantity": "300 ml",
+            "in_pantry": false,
+            "amount": 300,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "olive oil",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Put the couscous in a bowl, pour over boiling salted water and olive oil, cover, wait five minutes, then fluff with a fork.",
+        "active_minutes": 5,
+        "total_minutes": 10,
+        "cook_on": "mon"
+      },
+      {
+        "id": "prep_lentils",
+        "title": "Tomato lentils",
+        "servings_made": 3,
+        "ingredients": [
+          {
+            "term": "green lentils",
+            "quantity": "240 g",
+            "in_pantry": false,
+            "amount": 240,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 240
+          },
+          {
+            "term": "onion",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 110
+          },
+          {
+            "term": "carrot",
+            "quantity": "1",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 70
+          },
+          {
+            "term": "garlic",
+            "quantity": "2 cloves",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": "raw",
+            "grams_raw": null
+          },
+          {
+            "term": "tinned chopped tomatoes",
+            "quantity": "400 g",
+            "in_pantry": false,
+            "amount": 400,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 400
+          },
+          {
+            "term": "water",
+            "quantity": "500 ml",
+            "in_pantry": false,
+            "amount": 500,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 500
+          },
+          {
+            "term": "olive oil",
+            "quantity": "1 tbsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Soften the onion, carrot and garlic in oil, add lentils, tomatoes, water and salt, then simmer until tender and saucy.",
+        "active_minutes": 15,
+        "total_minutes": 40,
+        "cook_on": "tue"
+      },
+      {
+        "id": "prep_rice",
+        "title": "Cooked rice",
+        "servings_made": 6,
+        "ingredients": [
+          {
+            "term": "basmati rice",
+            "quantity": "300 g",
+            "in_pantry": false,
+            "amount": 300,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 300
+          },
+          {
+            "term": "water",
+            "quantity": "600 ml",
+            "in_pantry": false,
+            "amount": 600,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 600
+          },
+          {
+            "term": "salt",
+            "quantity": "1 tsp",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5
+          }
+        ],
+        "method": "Rinse the rice, simmer with salted water until tender, then spread out briefly to cool before boxing.",
+        "active_minutes": 5,
+        "total_minutes": 25,
+        "cook_on": "tue"
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "mon",
+        "preparation_ids": [
+          "prep_chicken",
+          "prep_roast_veg",
+          "prep_couscous"
+        ],
+        "run_through": "Start the oven for the chicken and vegetables. While they roast, make the couscous. Box three lunch portions of chicken, vegetables and couscous, and box the rest of the chicken and vegetables for Tuesday lunch and Monday dinner.",
+        "total_minutes": 55
+      },
+      {
+        "day": "tue",
+        "preparation_ids": [
+          "prep_lentils",
+          "prep_rice"
+        ],
+        "run_through": "Put the rice on first, then simmer the lentils while the rice cooks. Cool the rice quickly, portion both preparations, and keep the rice for Tuesday lunch and Wednesday lunch only.",
+        "total_minutes": 45
+      }
+    ],
+    "shopping_list": [
+      {
+        "term": "plain Greek yogurt",
+        "quantity": "750 g",
+        "aisle": "dairy"
+      },
+      {
+        "term": "rolled oats",
+        "quantity": "180 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "plums",
+        "quantity": "6",
+        "aisle": "produce"
+      },
+      {
+        "term": "almonds",
+        "quantity": "60 g",
+        "aisle": "pantry"
+      },
+      {
+        "term": "honey",
+        "quantity": "3 tbsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "cherry tomatoes",
+        "quantity": "550 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "cucumbers",
+        "quantity": "3",
+        "aisle": "produce"
+      },
+      {
+        "term": "feta",
+        "quantity": "180 g",
+        "aisle": "dairy"
+      },
+      {
+        "term": "lemon",
+        "quantity": "4",
+        "aisle": "produce"
+      },
+      {
+        "term": "mixed salad leaves",
+        "quantity": "270 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "eggs",
+        "quantity": "6",
+        "aisle": "protein"
+      },
+      {
+        "term": "wholegrain bread",
+        "quantity": "6 slices",
+        "aisle": "grains"
+      },
+      {
+        "term": "avocados",
+        "quantity": "2",
+        "aisle": "produce"
+      },
+      {
+        "term": "tomatoes",
+        "quantity": "2",
+        "aisle": "produce"
+      },
+      {
+        "term": "short pasta",
+        "quantity": "240 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "tinned tuna",
+        "quantity": "3 cans",
+        "aisle": "protein"
+      },
+      {
+        "term": "green beans",
+        "quantity": "750 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "plain skyr",
+        "quantity": "750 g",
+        "aisle": "dairy"
+      },
+      {
+        "term": "peaches",
+        "quantity": "6",
+        "aisle": "produce"
+      },
+      {
+        "term": "walnuts",
+        "quantity": "60 g",
+        "aisle": "pantry"
+      },
+      {
+        "term": "pumpkin seeds",
+        "quantity": "30 g",
+        "aisle": "pantry"
+      },
+      {
+        "term": "carrots",
+        "quantity": "6",
+        "aisle": "produce"
+      },
+      {
+        "term": "spring onions",
+        "quantity": "3",
+        "aisle": "produce"
+      },
+      {
+        "term": "soy sauce",
+        "quantity": "2 tbsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "sesame oil",
+        "quantity": "1 tbsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "salmon fillets",
+        "quantity": "3",
+        "aisle": "protein"
+      },
+      {
+        "term": "new potatoes",
+        "quantity": "900 g",
+        "aisle": "produce"
+      },
+      {
+        "term": "chicken thighs",
+        "quantity": "1.8 kg",
+        "aisle": "protein"
+      },
+      {
+        "term": "courgettes",
+        "quantity": "4",
+        "aisle": "produce"
+      },
+      {
+        "term": "aubergines",
+        "quantity": "2",
+        "aisle": "produce"
+      },
+      {
+        "term": "red peppers",
+        "quantity": "4",
+        "aisle": "produce"
+      },
+      {
+        "term": "red onions",
+        "quantity": "3",
+        "aisle": "produce"
+      },
+      {
+        "term": "thyme",
+        "quantity": "2 tsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "smoked paprika",
+        "quantity": "2 tsp",
+        "aisle": "pantry"
+      },
+      {
+        "term": "green lentils",
+        "quantity": "240 g",
+        "aisle": "grains"
+      },
+      {
+        "term": "onion",
+        "quantity": "1",
+        "aisle": "produce"
+      },
+      {
+        "term": "carrot",
+        "quantity": "1",
+        "aisle": "produce"
+      },
+      {
+        "term": "garlic",
+        "quantity": "6 cloves",
+        "aisle": "produce"
+      },
+      {
+        "term": "tinned chopped tomatoes",
+        "quantity": "400 g",
+        "aisle": "pantry"
+      },
+      {
+        "term": "olive oil",
+        "quantity": "as needed for cooking",
+        "aisle": "pantry"
+      },
+      {
+        "term": "salt",
+        "quantity": "as needed for cooking",
+        "aisle": "pantry"
+      },
+      {
+        "term": "black pepper",
+        "quantity": "as needed for cooking",
+        "aisle": "pantry"
+      },
+      {
+        "term": "water",
+        "quantity": "as needed for cooking",
+        "aisle": "other"
+      }
+    ],
+    "member_portions": [
+      {
+        "member_id": "30730edf-846c-4ea4-901d-39c9caaf7fee",
+        "display_name": "Paul",
+        "portion_note": "Balanced share: one full portion of the protein, a standard scoop of starch, and an even helping of vegetables.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_chicken",
+            "note": "Take one adult serving of chicken and vegetables."
+          },
+          {
+            "preparation_id": "prep_roast_veg",
+            "note": "Add a full side portion of vegetables."
+          },
+          {
+            "preparation_id": "prep_lentils",
+            "note": "Take one adult serving with rice."
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "Add a standard scoop of rice."
+          }
+        ]
+      },
+      {
+        "member_id": "e62e2bbd-b675-4fe2-be7d-9dd98510ee98",
+        "display_name": "Lea",
+        "portion_note": "Child-size share: a smaller scoop of the main dish with a little of each side.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_chicken",
+            "note": "Serve a smaller piece of chicken with some vegetables."
+          },
+          {
+            "preparation_id": "prep_roast_veg",
+            "note": "Add a small side of vegetables."
+          },
+          {
+            "preparation_id": "prep_lentils",
+            "note": "Serve a small bowl with some rice."
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "Add a small scoop of rice."
+          }
+        ]
+      },
+      {
+        "member_id": "e3d77550-6f51-411e-9d0c-8bd36c3d07a2",
+        "display_name": "Nina",
+        "portion_note": "Generous vegetables, with balanced protein and starch on the plate.",
+        "preparation_shares": [
+          {
+            "preparation_id": "prep_chicken",
+            "note": "Serve a full protein portion."
+          },
+          {
+            "preparation_id": "prep_roast_veg",
+            "note": "Pile on extra vegetables."
+          },
+          {
+            "preparation_id": "prep_lentils",
+            "note": "Serve a balanced bowl with plenty of vegetables alongside."
+          },
+          {
+            "preparation_id": "prep_rice",
+            "note": "Keep the rice portion standard."
+          }
+        ]
+      }
+    ],
+    "member_deltas": [],
+    "issues": [
+      "member_away_all_window:8183690c-96c2-4ded-a818-f1edc36862c0"
+    ],
+    "request_id": "63656d6a-474d-4de1-8426-5d83f7f966f4"
+  }
+}

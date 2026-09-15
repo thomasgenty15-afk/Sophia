@@ -1,0 +1,399 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r6-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Là je décroche un peu avec les grignotages. Je vois ce qui est prévu et ça me paraît trop lourd pour cette semaine.",
+    "assistant": "Ah je vois le truc… Si tout te tombe dessus d’un coup, forcément le “décrochage” arrive par les grignotages 😅🍪\n\nOn va alléger sans te lâcher :\n1) On garde le cap, mais on réduit la charge de cette semaine (version mini).\n2) On se protège au moment où ça grignote : tu remplaces pas forcément “par rien”, tu remplaces par un truc prévu.\n\nChoisis juste une option A ou B :\nA) Tu veux réduire le plan (moins d’items cette semaine)\nB) Tu veux garder le plan mais alléger le timing (moins strict sur l’ordre/les moments) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "demotivation_repair",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "target_multiple",
+        "target_hint": "grignotages",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": {
+      "output": {
+        "reply": "On ne va pas modifier ton plan juste parce que tu as un moment de decrochage. D'abord, je veux comprendre ce qui bloque: energie trop basse, premiere etape floue, ou peur de refaire le meme schema ?",
+        "status": "continue",
+        "skill_id": "demotivation_repair",
+        "diagnosis": {
+          "motivation_state": "unclear"
+        },
+        "state_patch": {
+          "summary": "Demotivation diagnosis: unclear."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "motivation_diagnosis",
+        "recommendation_need": {
+          "type": "motivation_repair",
+          "needed": true,
+          "urgency": "medium",
+          "constraints": [
+            "no_moralizing",
+            "prefer_attack_card_over_plan_edit",
+            "understand_before_solution"
+          ]
+        },
+        "operation_suggestions": [
+          {
+            "reason": "demotivation_state_regulation_before_action",
+            "urgency": "medium",
+            "operation_type": "select_state_potion",
+            "confidence_band": "medium",
+            "source_skill_id": "demotivation_repair",
+            "operation_input_hint": {
+              "state": "fear_avoidance",
+              "potion_type": "courage"
+            },
+            "requires_user_consent": true
+          }
+        ],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "scope_hint": "session",
+            "content_text": "Là je décroche un peu avec les grignotages. Je vois ce qui est prévu et ça me paraît trop lourd pour cette semaine.",
+            "confidence_band": "medium",
+            "sensitivity_level": 2,
+            "evidence_source_ids": [
+              "ad7e7a81-bc2b-4480-81a9-af32cb399769"
+            ],
+            "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true
+          }
+        ]
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "demotivation_repair"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r6-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r6-t02",
+    "status": 200,
+    "ok": true,
+    "user": "A, mais pas juste une mini-action isolée. C'est surtout cette partie de la semaine qui me fatigue : trop de petits trucs à gérer autour des grignotages.",
+    "assistant": "Ok, je vois : c’est pas “une mini tâche”, c’est le côté micro-gestion en continu autour des grignotages qui t’épuise 😅🍪\n\nDu coup on ne réduit pas en volume seulement, on réduit surtout le nombre d’occasions où ton cerveau doit “se rappeler / décider”. Concrètement, pour cette partie de semaine, on fait une version “tout est déjà prévu” :\n1) Tu gardes 1 seul moment dédié aux grignotages (ex: après le déjeuner ou au goûter), et le reste du temps c’est non-décision.\n2) À l’intérieur de ce moment, tu as 2 choix max, pas une liste infinie.\n3) Tout le “petit rangement/gestion” autour, tu le repousses sur un seul créneau de maintenance (même cadence, moins de transitions).\n\nTu veux qu’on parte sur quel format pour le moment grignotages : A “un seul créneau fixe” ou B “deux créneaux max” pour toute la période ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "grignotages",
+        "user_intent": "reduce",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r6-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r6-t03",
+    "status": 200,
+    "ok": true,
+    "user": "A. Et garde le reste du programme tranquille : je veux juste que ce bloc de la semaine soit moins morcelé, pas refaire toute la trajectoire.",
+    "assistant": "Yes, parfait. Donc on garde le reste tranquille, et sur cette partie “grignotages” on enlève le morcelé: moins de micro-décisions, moins d’items qui reviennent en boucle. 🍪\n\nConcrètement, pour ton bloc de cette semaine :\n1) On définit 1 seul “moment grignotages” (un seul créneau), et le reste = tu n’y touches pas.\n2) Tout ce qui gravitait autour (les petits rappels/gestes) devient un seul protocole “si ça arrive -> je fais X”, sans recommencer 10 fois.\n3) Le plan global reste identique pour le reste de la semaine.\n\nTu veux que le moment unique soit plutôt après le déjeuner, ou plutôt après le goûter (ou autre horaire) ? 😊",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+        "status": "continue",
+        "skill_id": "execution_breakdown",
+        "diagnosis": {
+          "stage": "diagnosis",
+          "blocker_candidates": [
+            "flou",
+            "energie",
+            "friction_demarrage"
+          ]
+        },
+        "state_patch": {
+          "summary": "Execution blocker diagnosis in progress."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "diagnose_blocker",
+        "recommendation_need": {
+          "type": "execution_repair",
+          "needed": true,
+          "urgency": "medium",
+          "constraints": [
+            "understand_before_solution"
+          ]
+        },
+        "operation_suggestions": [
+          {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "urgency": "medium",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "medium",
+            "source_skill_id": "execution_breakdown",
+            "operation_input_hint": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "requires_user_consent": true
+          }
+        ],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "scope_hint": "session",
+            "content_text": "A. Et garde le reste du programme tranquille : je veux juste que ce bloc de la semaine soit moins morcelé, pas refaire toute la trajectoire.",
+            "confidence_band": "medium",
+            "sensitivity_level": 1,
+            "evidence_source_ids": [
+              "3134996b-1529-4e51-9f96-bf73951fcb7d"
+            ],
+            "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true
+          }
+        ]
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "execution_breakdown"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": {
+      "stats": null,
+      "recommendation": {
+        "reason": "cooldown_or_contraindications_exhausted_surfaces",
+        "timing": "later",
+        "decision": "defer",
+        "cta_style": "none",
+        "confidence": 0.7,
+        "alternatives": [],
+        "do_not_recommend": [],
+        "requires_consent": false,
+        "recommendation_id": "rec_qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r6-t03_1778677569614",
+        "presentation_level": 0
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r6-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r6-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Après le goûter. Applique ce recalage du bloc, parce que sinon je vais continuer à zapper avec toutes les petites décisions.",
+    "assistant": "Avant de modifier ce niveau, qu'est-ce qui le rend trop lourd concretement, et quoi faut-il changer en premier: nombre d'actions, intensite, timing, ou priorite ? Je vois notamment dans le plan: Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "bloc grignotages",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "operation_intent_start",
+      "plan_item_id": null,
+      "target_title": "niveau actuel",
+      "missing_slots": [
+        "current_level.adjustment_type",
+        "current_level.reason",
+        "current_level.change_target"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r6-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r6-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Le problème c'est le nombre d'actions et le timing : trop de petites décisions dans la journée. Change d'abord ça, avec un seul créneau après le goûter.",
+    "assistant": "Je n'ai pas une cible assez claire pour ajuster le plan depuis le chat. Tu peux le faire dans ton espace sur sophia-coach.ai.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "regrouper les actions de grignotage en un seul créneau après le goûter",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "fallback_dashboard",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0",
+      "target_title": "Nettoyer ton environnement direct",
+      "missing_slots": [
+        "current_level.reason_change"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r6-t05",
+    "trace_error": null
+  }
+]

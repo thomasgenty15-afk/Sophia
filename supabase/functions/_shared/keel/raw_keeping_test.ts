@@ -329,7 +329,7 @@ Deno.test("le millésime du TRONC est celui d'aujourd'hui — épinglé ici auss
   // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
   // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
   // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v32_the_recipe_says_what_holds_it");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v33_the_recipe_writes_the_shopping_list");
 });
 
 // ---------------------------------------------------------------------------
@@ -344,8 +344,8 @@ Deno.test("LE CAS RAPPORTÉ, DE BOUT EN BOUT — le poulet n'est plus daté du l
     runs: null,
     freezer: false,
     shoppingList: [
-      { term: "chicken thighs", aisle: "protein", food_group: "poultry" },
-      { term: "rice", aisle: "grains", food_group: "refined_grain" },
+      { term: "chicken thighs", aisle: "protein", food_group: "poultry", ref: null },
+      { term: "rice", aisle: "grains", food_group: "refined_grain", ref: null },
     ],
     preparations: [
       { id: "p", cookOn: "sat", ingredientTerms: ["chicken thighs", "rice"] },
@@ -365,7 +365,7 @@ Deno.test("une ligne qu'aucune préparation ne consomme garde le premier jour", 
     durationDays: 7,
     runs: null,
     freezer: false,
-    shoppingList: [{ term: "olive oil", aisle: "other", food_group: "olive_oil" }],
+    shoppingList: [{ term: "olive oil", aisle: "other", food_group: "olive_oil", ref: null }],
     preparations: [],
   });
   assertEquals(dates, ["2026-09-07"]);
@@ -377,7 +377,7 @@ Deno.test("sans fenêtre lisible, aucune date n'est inventée", () => {
     durationDays: 7,
     runs: null,
     freezer: false,
-    shoppingList: [{ term: "x", aisle: "protein", food_group: "poultry" }],
+    shoppingList: [{ term: "x", aisle: "protein", food_group: "poultry", ref: null }],
     preparations: [],
   });
   assertEquals(dates, [null]);
@@ -413,7 +413,12 @@ for (
     const src = await Deno.readTextFile(new URL(rel, import.meta.url));
     assertStringIncludes(src, "const rawKeeping = rawKeepingBreaches({");
     assertStringIncludes(src, "raw_keeping_needs_later_shop:");
-    assertStringIncludes(src, "shopLaterDays: shopLaterDays as never,");
+    // ⟳ 2026-09-12 · FERMETURE LOT 2 — LE FAIT PASSE PAR UNE FERMETURE, parce
+    // que l'explication se RECOMPOSE quand la reconstruction des achats change
+    // un jour de courses. Ce qui est épinglé reste le même: la phrase
+    // « s'achète au plus près » lit les VAGUES ÉCRITES, pas les brèches.
+    assertStringIncludes(src, "shopLaterDays: courses.later as never,");
+    assertStringIncludes(src, "later: shopLaterDays,");
   });
 }
 
@@ -479,9 +484,9 @@ Deno.test("REJEU — LE DÉFAUT RAPPORTÉ, PRIS PAR LA DATE D'ACHAT", () => {
   // fait: un frais fragile daté du PREMIER jour du plan pour une cuisson
   // lointaine. Avec la cuisson au lundi, il est daté de la veille.
   const shoppingList = [
-    { term: "cod fillets", aisle: "protein", food_group: "white_fish" },
-    { term: "tinned tuna", aisle: "pantry", food_group: "white_fish" },
-    { term: "potatoes", aisle: "produce", food_group: "starchy_veg" },
+    { term: "cod fillets", aisle: "protein", food_group: "white_fish", ref: null },
+    { term: "tinned tuna", aisle: "pantry", food_group: "white_fish", ref: null },
+    { term: "potatoes", aisle: "produce", food_group: "starchy_veg", ref: null },
   ];
   const preparations = [
     { id: "p", cookOn: "mon", ingredientTerms: ["cod fillets", "potatoes"] },
@@ -522,8 +527,8 @@ Deno.test("REJEU — LE DÉFAUT RAPPORTÉ, PRIS PAR LA DATE D'ACHAT", () => {
 Deno.test("⛔ LOT C — `mealShoppingPayload` rend `freeze_on_purchase`, TOUJOURS", () => {
   const payload = mealShoppingPayload({
     shopping_list: [
-      { term: "poisson", quantity: "400 g", aisle: "protein", food_group: "white_fish", buy_on: "2026-09-05", freeze_on_purchase: true },
-      { term: "lentilles", quantity: "500 g", aisle: "pantry", food_group: "legumes", buy_on: "2026-09-05" },
+      { term: "poisson", quantity: "400 g", aisle: "protein", food_group: "white_fish", ref: null, buy_on: "2026-09-05", freeze_on_purchase: true },
+      { term: "lentilles", quantity: "500 g", aisle: "pantry", food_group: "legumes", ref: null, buy_on: "2026-09-05" },
     ],
     // deno-lint-ignore no-explicit-any
   } as any);
@@ -636,7 +641,8 @@ for (
     // La phrase « s'achète au plus près » lit les VAGUES, plus les brèches.
     assertStringIncludes(src, "const writtenWaves = describeWrittenWaves({");
     assertStringIncludes(src, "const shopLaterDays = writtenWaves.laterShopDays;");
-    assertStringIncludes(src, "frozenAtPurchase: writtenWaves.frozenAtPurchase as never,");
+    assertStringIncludes(src, "frozenAtPurchase: courses.frozen as never,");
+    assertStringIncludes(src, "frozen: writtenWaves.frozenAtPurchase,");
     // Et la consigne du congélateur se COMPTE, avec son dénominateur.
     assertStringIncludes(src, "sessions_fed_from_freezer:");
   });
@@ -665,9 +671,9 @@ Deno.test("buyDatesByIndex — la ligne qui fait SURVIVRE une vague est marquée
     runs: 1,
     freezer: true,
     shoppingList: [
-      { term: "dinde hachée", aisle: "protein", food_group: "poultry" },
-      { term: "persil", aisle: "produce", food_group: "leafy_greens" },
-      { term: "lentilles", aisle: "pantry", food_group: "legumes" },
+      { term: "dinde hachée", aisle: "protein", food_group: "poultry", ref: null },
+      { term: "persil", aisle: "produce", food_group: "leafy_greens", ref: null },
+      { term: "lentilles", aisle: "pantry", food_group: "legumes", ref: null },
     ],
     preparations: [
       { id: "p", cookOn: "sun", ingredientTerms: ["dinde hachée", "persil"] },

@@ -1,0 +1,104 @@
+
+══════════════════════════════════════════════════════════════════════════════
+▌ M2 — corpus documentaire du coach, conditions réelles
+══════════════════════════════════════════════════════════════════════════════
+  coach A 5b8bd13f-bcd5-4b25-8fda-2a18589d8a9f (auth 7a239cac-269a-4de8-bf19-9a109721dbe9)
+  coach B 92c52f58-02ea-4905-958c-904c14fd616f
+
+
+══════════════════════════════════════════════════════════════════════════════
+▌ E1/E2 — un PDF texte: corpus écrit, citations ancrées, brouillon propre
+══════════════════════════════════════════════════════════════════════════════
+  ✅ E1 la fonction répond 200 — status 200
+  ✅ E1 le document est enregistré et son texte extrait — id=380e787b-212e-467e-80db-28ef9219dc02 status=extracted chunks=3
+  ✅ E1 un chunk par page de texte — 3 chunks pour 3 pages
+  ✅ E2 le brouillon rendu au coach ne porte AUCUNE citation — aucune clé `quote`
+  ✅ E2 le brouillon a bien les sections de doctrine — sections: beliefs, forbidden, vocabulary, arbitrations, foods, qa, voice
+  ✅ E1 le document a produit des citations — 6 citation(s)
+  ✅ E1 les citations sont ANCRÉES à une page du document — 6/6 retrouvées dans le texte du document
+     (taux d'ancrage: 6/6)
+  ✅ E1 la page d'une citation est celle de SON chunk — aucune citation ne pointe une page qui n'est pas la sienne
+
+══════════════════════════════════════════════════════════════════════════════
+▌ E9 — RGPD: le fichier est déposé sous l'id AUTH du coach
+══════════════════════════════════════════════════════════════════════════════
+  ✅ E9 le chemin commence par l'id auth du coach (pas coaches.id) — 7a239cac-269a-4de8-bf19-9a109721dbe9/doctrine/380e787b-212e-467e-80db-28ef9219dc02.pdf
+  ✅ E9 l'objet existe vraiment dans le bucket — 1635 octets
+
+══════════════════════════════════════════════════════════════════════════════
+▌ E3/E4 — re-dépôt du même fichier, puis d'un second
+══════════════════════════════════════════════════════════════════════════════
+  ✅ E3 le re-dépôt répond 200 (le coach a le droit) — status 200
+  ✅ E3 aucun document, chunk ni citation en double — docs 1→1, chunks 3→3, citations 6→6
+  ✅ E3 la réponse rend le MÊME document_id — 380e787b-212e-467e-80db-28ef9219dc02 vs 380e787b-212e-467e-80db-28ef9219dc02
+  ✅ E4 un second document coexiste avec le premier — status 200 → 2 documents
+
+══════════════════════════════════════════════════════════════════════════════
+▌ E5 — un PDF sans couche texte n'est pas une panne
+══════════════════════════════════════════════════════════════════════════════
+  ✅ E5 le coach obtient quand même sa réponse — status 200
+  ✅ E5 l'état est `no_text_layer`, pas `extraction_failed` — no_text_layer
+  ✅ E5 aucun chunk, et la ligne document existe quand même — chunks=0 id=26a1e420-f520-46ea-ba9e-2e00a719bdd9
+
+══════════════════════════════════════════════════════════════════════════════
+▌ E5b — une citation non ancrable s'écrit, non ancrée (coquille d'I/O)
+══════════════════════════════════════════════════════════════════════════════
+  ✅ E5b le corpus est écrit malgré l'absence de texte — reason=persisted status=no_text_layer warnings=[]
+  ✅ E5b les deux citations sont enregistrées — 2 citation(s)
+  ✅ E5b aucune n'est comptée comme introuvable — il n'y avait rien à chercher — unlocated=0 (une accusation ici serait fausse)
+  ✅ E5b elles sont en base, sans ancre et sans page — 2
+
+══════════════════════════════════════════════════════════════════════════════
+▌ E6/E7 — un tour refusé n'écrit RIEN
+══════════════════════════════════════════════════════════════════════════════
+  ✅ E6 sans document: `document_required`, 400 — 400 document_required
+  ✅ E6 pas un PDF: `document_must_be_pdf`, 400 — 400 document_must_be_pdf
+  ✅ E6 PDF illisible: `document_unreadable`, 400 — 400 document_unreadable
+  ✅ E7 121 pages: `document_too_long`, 413 — 413 document_too_long page_count=121
+  ✅ E6/E7 aucun de ces quatre refus n'a créé de document — 3 avant, 3 après
+
+══════════════════════════════════════════════════════════════════════════════
+▌ E8 — le corpus d'un coach est invisible aux autres
+══════════════════════════════════════════════════════════════════════════════
+  ✅ E8 le coach B ne lit AUCUN chunk du coach A — 0 ligne(s) visibles (le coach A en a 4)
+  ✅ E8 le coach B ne lit que SES citations (celles de E5b) — 2 citation(s)
+
+══════════════════════════════════════════════════════════════════════════════
+▌ E10 — l'interview n'écrit aucun document
+══════════════════════════════════════════════════════════════════════════════
+  ✅ E10 `compile` répond sans toucher au corpus — status 200, documents 1 → 1
+  ✅ E10 le brouillon d'interview ne porte pas de citation non plus — aucune clé `quote` (l'interview n'a pas de document à citer)
+
+══════════════════════════════════════════════════════════════════════════════
+▌ E11 — sans id auth, le texte survit et le fichier est perdu, à voix haute
+══════════════════════════════════════════════════════════════════════════════
+  ✅ E11 le document et ses chunks sont écrits — reason=persisted chunks=1
+  ✅ E11 le fichier n'est PAS déposé, et c'est dit — warnings=[no coach user id: source file not stored (RGPD path convention)]
+
+══════════════════════════════════════════════════════════════════════════════
+▌ E12 — une page longue, accentuée, se découpe en gardant SA page
+══════════════════════════════════════════════════════════════════════════════
+  ✅ E12 la page longue produit plusieurs chunks — 4 chunks — 1|3 / 2|1
+  ✅ E12 aucun chunk n'invente une page — toutes les pages sont 1 ou 2
+  ✅ E12 la citation accentuée s'ancre quand même — écrites=1 introuvables=0
+
+══════════════════════════════════════════════════════════════════════════════
+▌ E13 — double dépôt SIMULTANÉ du même fichier (le double-clic)
+══════════════════════════════════════════════════════════════════════════════
+  ✅ E13 les deux appels réussissent — A=persisted B=already_known
+  ✅ E13 ils désignent LE MÊME document — 041c9eec-ba8c-46d8-a576-10402e7a463d vs 041c9eec-ba8c-46d8-a576-10402e7a463d
+  ✅ E13 le texte n'est pas écrit deux fois — 1 chunk(s) pour 1 page
+
+══════════════════════════════════════════════════════════════════════════════
+▌ E14 — MESURE: ce que pèse le corpus d'un ebook au plafond (120 pages)
+══════════════════════════════════════════════════════════════════════════════
+  ✅ E14 un ebook de 120 pages s'écrit entièrement — 360 chunks, 327,240 caractères, 621 ms
+     → à titre de comparaison, le bloc de méthode compilé d'un tel coach
+       pèse ~10 000 tokens (M1). Le corpus, lui, en fait ~82k — c'est
+       exactement pourquoi on RÉCUPÈRE dedans au lieu de l'injecter.
+
+══════════════════════════════════════════════════════════════════════════════
+▌ BILAN
+══════════════════════════════════════════════════════════════════════════════
+  39/39 vert
+

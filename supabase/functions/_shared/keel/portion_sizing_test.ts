@@ -44,7 +44,15 @@ import {
   MISSING_PREPARATION_GAP,
   standardPortionOf,
   UNMEASURABLE_PORTION_FACTOR,
+  // ⟳ 2026-09-13 · LOT 1 — la part de recette et son vocabulaire de motifs.
+  RECIPE_SHARE_REASONS,
+  recipeShareReasonFor,
+  // ⟳ 2026-09-13 · LOT 2 — la même part, sur le chemin d'UNE bouche.
+  type SizingRowForApply,
 } from "./portion_sizing.ts";
+// ⟳ 2026-09-13 · LOT 2 § 2.1 — L'AFFICHAGE PROTÉGÉ SE VÉRIFIE SUR LA PORTE
+// ELLE-MÊME, pas sur une relecture du payload: c'est elle qui décide.
+import { decideBoxEnergy } from "./box_energy_decision.ts";
 import {
   // ⟳ 2026-09-11 · LOT B — `requiredDensityFor` A DÉMÉNAGÉ dans le module du
   // contrat, avec un paramètre de plus: `rhythmSlots`, le rythme alimentaire
@@ -55,6 +63,7 @@ import {
 import { weighedReadyGrams } from "./box_densify.ts";
 import {
   type AnchorMouth,
+  ANCHOR_REASONS,
   goalGapKcalOf,
   LIGHT_SLOT_WEIGHT,
   maintenanceKcalOf,
@@ -837,8 +846,8 @@ Deno.test("appliquer: le frais est multiplié, la casserole aussi, les portions 
     memberId: "m-solo",
     meal: p,
     rows: [
-      { dishIndex: 0, factor: 2, sized: true },
-      { dishIndex: 1, factor: 1, sized: true },
+      { dishIndex: 0, factor: 2, sized: true, recipeShare: null },
+      { dishIndex: 1, factor: 1, sized: true, recipeShare: null },
     ],
   });
   // Frais: 10 g d'huile × 2 au déjeuner, × 1 au dîner.
@@ -860,8 +869,8 @@ Deno.test("appliquer: la boîte est une PRESCRIPTION — un seul nom, des items"
     memberId: "m-solo",
     meal: plan(),
     rows: [
-      { dishIndex: 0, factor: 1, sized: true },
-      { dishIndex: 1, factor: 1, sized: true },
+      { dishIndex: 0, factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 1, factor: 1, sized: true, recipeShare: null },
     ],
   });
   const box = out.dishes[0].boxes[0];
@@ -887,8 +896,8 @@ Deno.test("appliquer: la boîte suit le facteur, et la somme des parts fait la c
     memberId: "m-solo",
     meal: plan(),
     rows: [
-      { dishIndex: 0, factor: 2, sized: true },
-      { dishIndex: 1, factor: 1, sized: true },
+      { dishIndex: 0, factor: 2, sized: true, recipeShare: null },
+      { dishIndex: 1, factor: 1, sized: true, recipeShare: null },
     ],
   });
   const part = (n: number) =>
@@ -914,8 +923,8 @@ Deno.test("⛔ AUCUN TERME NEUF NE SORT — l'invariant du chantier", () => {
     memberId: "m-solo",
     meal: p,
     rows: [
-      { dishIndex: 0, factor: 1.4, sized: true },
-      { dishIndex: 1, factor: 0.6, sized: true },
+      { dishIndex: 0, factor: 1.4, sized: true, recipeShare: null },
+      { dishIndex: 1, factor: 0.6, sized: true, recipeShare: null },
     ],
   });
   for (const d of out.dishes) {
@@ -941,8 +950,8 @@ Deno.test("un plat NON MESURÉ garde sa recette, ne reçoit pas de boîte, et co
     memberId: "m-solo",
     meal: plan(),
     rows: [
-      { dishIndex: 0, factor: 2, sized: true },
-      { dishIndex: 1, factor: 1, sized: false },
+      { dishIndex: 0, factor: 2, sized: true, recipeShare: null },
+      { dishIndex: 1, factor: 1, sized: false, recipeShare: null },
     ],
   });
   assertEquals(out.dishes[1].ingredients[0].amount, 10, "la recette part telle quelle");
@@ -973,7 +982,7 @@ Deno.test("un ingrédient dont la quantité n'est qu'en PROSE n'est ni multipli�
     index: INDEX,
     memberId: "m-solo",
     meal: p,
-    rows: [{ dishIndex: 0, factor: 2, sized: true }, { dishIndex: 1, factor: 1, sized: true }],
+    rows: [{ dishIndex: 0, factor: 2, sized: true, recipeShare: null }, { dishIndex: 1, factor: 1, sized: true, recipeShare: null }],
   });
   // ⛔ « 1 pincée » NE SE MULTIPLIE PAS. Deux pincées ne sont pas une quantité.
   assertEquals(out.dishes[0].ingredients[1].amount, null);
@@ -992,7 +1001,7 @@ Deno.test("appliquer ne MUTE pas son entrée — le module reste pur", () => {
     index: INDEX,
     memberId: "m-solo",
     meal: p,
-    rows: [{ dishIndex: 0, factor: 3, sized: true }, { dishIndex: 1, factor: 3, sized: true }],
+    rows: [{ dishIndex: 0, factor: 3, sized: true, recipeShare: null }, { dishIndex: 1, factor: 3, sized: true, recipeShare: null }],
   });
   assertEquals(JSON.stringify(p), avant, "le plan d'entrée est intact");
 });
@@ -1663,6 +1672,8 @@ Deno.test("DENSITÉ — chaque moment exige ce que son plafond d'assiette impose
   assertEquals(r.counters, {
     slots: 4,
     above_floor: 4,
+    // ⟳ 2026-09-12 · ÉTAPE C4 — aucun des quatre n'est SOUS son plancher.
+    below_floor: 0,
     days_varied: 0,
     capped: 0,
     fixed_covered: 0,
@@ -1892,6 +1903,7 @@ Deno.test("DENSITÉ — sans cible, le motif sort quand même", () => {
   assertEquals(r.counters, {
     slots: 0,
     above_floor: 0,
+    below_floor: 0,
     days_varied: 0,
     capped: 0,
     fixed_covered: 0,
@@ -2162,7 +2174,18 @@ Deno.test("⛔ DÉDIÉ — l'instruction ne porte NI PRÉNOM, NI KCAL DE JOURNÉ
   assertEquals(texte.match(/\d+\s*kcal(?!\s*per\s*100\s*g)/), null, "aucun kcal nu");
   assert(texte.includes('for_member_id "m-sonia-42"'));
   assert(texte.includes("nuts, cheese, oil, bread"), "les aliments sont NOMMÉS");
-  assert(texte.includes("Do not touch any other dish"));
+  // ⟳ 2026-09-13 · LOT 1 — LES DEUX LIGNES DE QUEUE ONT ÉTÉ RETIRÉES, et elles
+  // sont archivées dans la requête `perte-h4n4` du 2026-09-11 :
+  //
+  //   · « Do not touch any other dish… » — FAUX dès que le périmètre du même
+  //     appel ouvre sept repas et quatre créations ;
+  //   · « Return the full plan JSON… » — un SECOND schéma de sortie à côté de
+  //     `{"repair":{…}}`.
+  assert(!texte.includes("Do not touch any other dish"), texte);
+  assert(!texte.includes("Return the full plan JSON"), texte);
+  // ⚠️ ET CE QUI RESTE EST LOCAL: les casseroles partagées ne bougent pas,
+  // parce que d'autres bouches en mangent.
+  assert(texte.includes("The pots are eaten"), texte);
   assertEquals(dedicatedDishInstruction([]), null);
 });
 
@@ -2243,9 +2266,9 @@ Deno.test("LOT 12 — une boîte par objectif, un bac pour les autres", () => {
   const out = applySizingForEaters({
     meal: planForEaters(),
     rows: [
-      { dishIndex: 0, memberId: "paul", factor: 1.5, sized: true },
-      { dishIndex: 0, memberId: "claire", factor: 1, sized: true },
-      { dishIndex: 0, memberId: "leo", factor: 0.5, sized: true },
+      { dishIndex: 0, memberId: "paul", factor: 1.5, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "claire", factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "leo", factor: 0.5, sized: true, recipeShare: null },
     ],
     weighed: new Set(["paul"]),
     index: INDEX,
@@ -2270,16 +2293,16 @@ Deno.test("LOT 12 — une boîte par objectif, un bac pour les autres", () => {
 Deno.test("LOT 12 — le FRAIS du plat est multiplié par la SOMME de ses mangeurs", () => {
   const un = applySizingForEaters({
     meal: planForEaters(),
-    rows: [{ dishIndex: 0, memberId: "a", factor: 1, sized: true }],
+    rows: [{ dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null }],
     weighed: new Set(),
     index: INDEX,
   });
   const trois = applySizingForEaters({
     meal: planForEaters(),
     rows: [
-      { dishIndex: 0, memberId: "a", factor: 1, sized: true },
-      { dishIndex: 0, memberId: "b", factor: 1, sized: true },
-      { dishIndex: 0, memberId: "c", factor: 1, sized: true },
+      { dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "b", factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "c", factor: 1, sized: true, recipeShare: null },
     ],
     weighed: new Set(),
     index: INDEX,
@@ -2293,7 +2316,7 @@ Deno.test("LOT 12 — le FRAIS du plat est multiplié par la SOMME de ses mangeu
 Deno.test("LOT 12 — la CASSEROLE somme les mangeurs, pas seulement les tirages", () => {
   const un = applySizingForEaters({
     meal: planForEaters(),
-    rows: [{ dishIndex: 0, memberId: "a", factor: 1, sized: true }],
+    rows: [{ dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null }],
     weighed: new Set(),
     index: INDEX,
   });
@@ -2304,6 +2327,7 @@ Deno.test("LOT 12 — la CASSEROLE somme les mangeurs, pas seulement les tirages
       memberId,
       factor: 1,
       sized: true,
+      recipeShare: null,
     })),
     weighed: new Set(),
     index: INDEX,
@@ -2320,8 +2344,8 @@ Deno.test("LOT 12 — un mangeur seul au bac reçoit une BOÎTE, jamais un bac d
   const out = applySizingForEaters({
     meal: planForEaters(),
     rows: [
-      { dishIndex: 0, memberId: "paul", factor: 1.5, sized: true },
-      { dishIndex: 0, memberId: "claire", factor: 1, sized: true },
+      { dishIndex: 0, memberId: "paul", factor: 1.5, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "claire", factor: 1, sized: true, recipeShare: null },
     ],
     weighed: new Set(["paul"]),
     index: INDEX,
@@ -2335,8 +2359,8 @@ Deno.test("LOT 12 — aucun terme neuf, et les ids de couvercle sont uniques", (
   const out = applySizingForEaters({
     meal: planForEaters(),
     rows: [
-      { dishIndex: 0, memberId: "a", factor: 1, sized: true },
-      { dishIndex: 0, memberId: "b", factor: 1, sized: true },
+      { dishIndex: 0, memberId: "a", factor: 1, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "b", factor: 1, sized: true, recipeShare: null },
     ],
     weighed: new Set(["a", "b"]),
     index: INDEX,
@@ -2357,7 +2381,7 @@ Deno.test("LOT 12 — aucun terme neuf, et les ids de couvercle sont uniques", (
 Deno.test("LOT 12 — un plat qu'aucun mangeur ne dimensionne n'est pas touché", () => {
   const out = applySizingForEaters({
     meal: planForEaters(),
-    rows: [{ dishIndex: 0, memberId: "a", factor: 1, sized: false }],
+    rows: [{ dishIndex: 0, memberId: "a", factor: 1, sized: false, recipeShare: null }],
     weighed: new Set(),
     index: INDEX,
   });
@@ -2735,4 +2759,516 @@ Deno.test("absorbIndexInto — copie les entrées NEUVES en place, n'écrase rie
   assertEquals(target.bySlug.get("b"), b);
   assertEquals(target.byAlias.get("bb"), "b");
   assertEquals(target.byAlias.has("zz"), false);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-13 · LOT 1 — NOURRIR CHACUN SANS CONTOURNER LES PROTECTIONS
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// LE DÉFAUT REPRODUIT, PUIS FERMÉ. Foyer de quatre, une bouche sans date de
+// naissance: `dayTargetFor` s'abstient, sa cible de moment vaut `null`,
+// `sizeDishForMouth` rend `unmeasurable`, et `applySizingForEaters` la RETIRAIT
+// du couvercle. Aucun contenant ne portait son nom, `mouth_unfed:not_named`
+// tombait sur ses six cases et emportait LE PLAN DES QUATRE BOUCHES (tir
+// `perte-l1age` du 2026-09-13, 422, `lids.own_expected: 24` contre
+// `apply.own_authored: 18`).
+//
+// LES MUTATIONS QUE CES ÉPREUVES DOIVENT FAIRE ROUGIR
+//   R1 — `applySizingForEaters` refiltre sur `r.sized` seul: la bouche sans
+//        cible ressort du couvercle. ROUGE (épreuve ①).
+//   R2 — la part de recette est fabriquée même quand le PLAT est illisible:
+//        un contenant apparaît là où rien n'est mesurable. ROUGE (épreuve ②).
+//   R3 — `eaters_unsized` ne compte à nouveau que les plats entièrement
+//        perdus: le mangeur retiré d'un plat debout redevient invisible.
+//        ROUGE (épreuve ③).
+//   R4 — `recipeShareReasonFor` rend un motif unique: les trois états se
+//        confondent. ROUGE (épreuve ⑤).
+
+/** Le même plat qu'au lot 12, mais lisible par le référentiel de ce fichier. */
+function planPourPartDeRecette() {
+  return {
+    dishes: [{
+      day: "mon",
+      slot: "dinner",
+      ingredients: [ing("huile", 10)],
+      uses: [{ preparationId: "p1" }],
+      boxes: [],
+    }],
+    preparations: [{
+      id: "p1",
+      title: "Riz au poulet",
+      servingsMade: 9,
+      ingredients: [ing("riz", 100), ing("poulet", 200)],
+    }],
+  };
+}
+
+Deno.test("LOT 1 ① — la bouche sans cible est NOMMÉE sur un contenant", () => {
+  const out = applySizingForEaters({
+    meal: planPourPartDeRecette(),
+    rows: [
+      { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "nils", factor: 1.5, sized: true, recipeShare: null },
+      // ⛔ LA BOUCHE DU DÉFAUT: pas de cible, donc pas de facteur — mais un plat
+      // mesurable et une place à table.
+      {
+        dishIndex: 0,
+        memberId: "iris",
+        factor: UNMEASURABLE_PORTION_FACTOR,
+        sized: false,
+        recipeShare: "age_unknown",
+      },
+    ],
+    weighed: new Set(["paul", "nils", "iris"]),
+    index: INDEX,
+  });
+  const noms = new Set(
+    (out.dishes[0].boxes as { memberIds: string[] }[]).flatMap((b) => b.memberIds),
+  );
+  assertEquals([...noms].sort(), ["iris", "nils", "paul"]);
+  assertEquals(out.counts.own_authored, 3);
+  assertEquals(out.counts.eaters_unsized, 0, "personne n'est perdu");
+  assertEquals(out.counts.recipe_shares, 1);
+  assertEquals(out.counts.recipe_shares_by, { age_unknown: 1 });
+});
+
+Deno.test("LOT 1 ① bis — sa part EST la recette, et rien n'est cuisiné en plus", () => {
+  // ⛔ LA CONTRE-ÉPREUVE DU DOUBLE COMPTAGE. `dishSum` comptait DÉJÀ cette
+  // ligne à `UNMEASURABLE_PORTION_FACTOR`: le frais et la casserole ne bougent
+  // pas d'un gramme entre « elle est retirée du couvercle » et « elle reçoit sa
+  // part ». Avant ce lot, la différence partait à la poubelle.
+  const rows = [
+    { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null },
+    {
+      dishIndex: 0,
+      memberId: "iris",
+      factor: UNMEASURABLE_PORTION_FACTOR,
+      sized: false,
+      recipeShare: "age_unknown" as const,
+    },
+  ];
+  const servie = applySizingForEaters({
+    meal: planPourPartDeRecette(),
+    rows,
+    weighed: new Set(["paul", "iris"]),
+    index: INDEX,
+  });
+  const retiree = applySizingForEaters({
+    meal: planPourPartDeRecette(),
+    rows: rows.map((r) => ({ ...r, recipeShare: null })),
+    weighed: new Set(["paul", "iris"]),
+    index: INDEX,
+  });
+  const huile = (o: { dishes: { ingredients: { term: string; amount: number }[] }[] }) =>
+    o.dishes[0].ingredients.find((x) => x.term === "huile")!.amount;
+  const riz = (o: { preparations: { ingredients: { term: string; amount: number }[] }[] }) =>
+    o.preparations[0].ingredients.find((x) => x.term === "riz")!.amount;
+  assertEquals(huile(servie), huile(retiree), "le frais cuisiné ne bouge pas");
+  assertEquals(riz(servie), riz(retiree), "la casserole ne bouge pas");
+  assertEquals(huile(servie), 15, "10 g × (0,5 + 1)");
+
+  // ⛔ ET LA PART D'IRIS EST CELLE DE LA RECETTE, pas celle de son voisin.
+  const g = (id: string) =>
+    (servie.dishes[0].boxes as { memberIds: string[]; items: { grams: number }[] }[])
+      .find((b) => b.memberIds[0] === id)!.items.reduce((a, i) => a + i.grams, 0);
+  assertEquals(
+    Math.round((g("iris") / g("paul")) * 100) / 100,
+    2,
+    "facteur 1 contre facteur 0,5",
+  );
+  // ⛔ ET LE PLAT EST ENTIÈREMENT DISTRIBUÉ: avant ce lot, la moitié cuisinée
+  // pour Iris n'était dans aucun contenant.
+  const dansLesBoites = (servie.dishes[0].boxes as { items: { grams: number }[] }[])
+    .reduce((a, b) => a + b.items.reduce((x, i) => x + i.grams, 0), 0);
+  const dansLesBoitesAvant = (retiree.dishes[0].boxes as { items: { grams: number }[] }[])
+    .reduce((a, b) => a + b.items.reduce((x, i) => x + i.grams, 0), 0);
+  assert(
+    dansLesBoites > dansLesBoitesAvant,
+    "le plan d'avant distribuait moins que ce qu'il cuisinait",
+  );
+});
+
+Deno.test("LOT 1 ② — un plat ILLISIBLE ne fabrique aucune part", () => {
+  // ⛔ LES DEUX SILENCES NE SE CONFONDENT PAS. `recipeShare: null` sur une
+  // ligne non dimensionnée dit « le plat lui-même est illisible »: il n'y a
+  // rien à mettre dans un contenant, et le refus reste légitime. C'est le cas
+  // du tir `perte-l1nop2` (422 `cell_without_portion` sur les quatre bouches).
+  const out = applySizingForEaters({
+    meal: planPourPartDeRecette(),
+    rows: [
+      { dishIndex: 0, memberId: "paul", factor: 1, sized: false, recipeShare: null },
+      { dishIndex: 0, memberId: "iris", factor: 1, sized: false, recipeShare: null },
+    ],
+    weighed: new Set(["paul"]),
+    index: INDEX,
+  });
+  assertEquals(out.dishes[0].boxes, []);
+  assertEquals(out.counts.dishes_unsized, 1);
+  assertEquals(out.counts.eaters_unsized, 2);
+  assertEquals(out.counts.recipe_shares, 0);
+  assertEquals(out.counts.recipe_shares_by, {});
+});
+
+Deno.test("LOT 1 ③ — le mangeur perdu se compte même quand le plat tient debout", () => {
+  // ⛔ LE COMPTEUR ÉTAIT AVEUGLE, ET C'EST CE QUI A LAISSÉ LE DÉFAUT VIVRE.
+  // `eaters_unsized` ne bougeait QUE si le plat entier tombait: sur le tir du
+  // défaut il valait `0` pendant que six cases partaient sans contenant.
+  const out = applySizingForEaters({
+    meal: planPourPartDeRecette(),
+    rows: [
+      { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "iris", factor: 1, sized: false, recipeShare: null },
+    ],
+    weighed: new Set(["paul", "iris"]),
+    index: INDEX,
+  });
+  assertEquals(out.counts.eaters_unsized, 1);
+  assertEquals(
+    (out.dishes[0].boxes as { memberIds: string[] }[]).flatMap((b) => b.memberIds),
+    ["paul"],
+  );
+});
+
+Deno.test("LOT 1 ④ — la part de recette entre AUSSI dans un bac partagé", () => {
+  // ⚠️ LE COUVERCLE SUIT L'OBJECTIF, PAS LA CIBLE. Une bouche sans objectif de
+  // poids partage le bac; sans cible ET sans objectif elle partage quand même,
+  // et ses grammes sont dans la SOMME du bac.
+  const out = applySizingForEaters({
+    meal: planPourPartDeRecette(),
+    rows: [
+      { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "lea", factor: 0.5, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "iris", factor: 1, sized: false, recipeShare: "no_body" },
+    ],
+    weighed: new Set(["paul"]),
+    index: INDEX,
+  });
+  const boxes = out.dishes[0].boxes as { memberIds: string[]; items: { grams: number }[] }[];
+  const bac = boxes.find((b) => b.memberIds.length > 1)!;
+  assertEquals(bac.memberIds, ["iris", "lea"]);
+  assertEquals(out.counts.tubs_authored, 1);
+  assertEquals(out.counts.recipe_shares_by, { no_body: 1 });
+  const propre = boxes.find((b) => b.memberIds.length === 1)!;
+  const g = (b: { items: { grams: number }[] }) => b.items.reduce((a, i) => a + i.grams, 0);
+  // Le bac porte 0,5 + 1 = 1,5 contre la boîte de Paul à 0,5: trois fois.
+  assertEquals(Math.round((g(bac) / g(propre)) * 100) / 100, 3);
+});
+
+Deno.test("LOT 1 ⑤ — TROIS ÉTATS, TROIS MOTIFS, ET DEUX D'ENTRE EUX GARDENT LEUR CIBLE", () => {
+  // ⛔ TESTER L'UN NE PROUVE PAS LES AUTRES. Chaque ligne ci-dessous est un
+  // état distinct du produit, et la colonne de droite dit s'il ouvre une part
+  // de recette OU s'il garde une cible calculée.
+  const corpsMineur = { ...CORPS, ageYears: 10, weightKg: 34, heightCm: 140 };
+
+  // ① ÂGE INCONNU — « je ne sais pas » n'est pas « c'est un adulte ».
+  const inconnu = bouche({ ageState: "unknown", direction: "up", paceKgPerWeek: 0.25 });
+  const tInconnu = dayTargetFor(inconnu, "no_position");
+  assertEquals(tInconnu.kcal, null);
+  assertEquals(tInconnu.reason, "age_unknown");
+  assertEquals(
+    recipeShareReasonFor({ dayKcal: tInconnu.kcal, dayReason: tInconnu.reason }),
+    "age_unknown",
+  );
+
+  // ② CEINTURE ILLISIBLE — une ignorance, pas une décision. Fail-closed NOMMÉ.
+  const illisible = bouche({ restriction: "unreadable" });
+  const tIllisible = dayTargetFor(illisible, "no_position");
+  assertEquals(tIllisible.kcal, null);
+  assertEquals(tIllisible.reason, "restriction_unknown");
+  assertEquals(
+    recipeShareReasonFor({ dayKcal: tIllisible.kcal, dayReason: tIllisible.reason }),
+    "restriction_unknown",
+  );
+
+  // ③ AUCUN CORPS — pas d'entretien, donc pas de cible.
+  const sansCorps = bouche({ body: null });
+  const tSansCorps = dayTargetFor(sansCorps, "no_position");
+  assertEquals(tSansCorps.kcal, null);
+  assertEquals(tSansCorps.reason, "no_body");
+  assertEquals(
+    recipeShareReasonFor({ dayKcal: tSansCorps.kcal, dayReason: tSansCorps.reason }),
+    "no_body",
+  );
+
+  // ⛔ ④ MINEUR CONNU — IL N'EST **PAS** LE CAS `age_unknown`. Il garde une
+  // cible (son équation pédiatrique) et n'ouvre AUCUNE part de recette; ce
+  // qu'il n'a pas, c'est un écart d'objectif. Généraliser `age_unknown` au
+  // mineur lui retirerait sa cible, et c'est très exactement l'erreur que ce
+  // lot ne doit pas commettre.
+  const mineur = bouche({
+    ageState: "minor",
+    body: corpsMineur,
+    direction: "down",
+    paceKgPerWeek: 0.5,
+  });
+  const tMineur = dayTargetFor(mineur, "no_position");
+  assert(tMineur.kcal !== null && tMineur.kcal > 0, "le mineur garde une cible");
+  assertEquals(tMineur.reason, "anchored");
+  assertEquals(goalGapKcalOf(mineur, "no_position").gap, 0, "aucun déficit pour un mineur");
+  assertEquals(tMineur.kcal, maintenanceKcalOf(mineur).kcal);
+
+  // ⛔ ⑤ PLANCHER TCA LEVÉ — lui non plus n'est pas `age_unknown`. Il a sa
+  // propre branche, qui DIMENSIONNE à l'entretien (`gapClosed`), et n'ouvre
+  // donc pas de part de recette.
+  assert(RESTRICTION_FLOOR_SIZES_MAINTENANCE);
+  const plancher = bouche({ restriction: "raised", direction: "down", paceKgPerWeek: 0.5 });
+  const tPlancher = dayTargetFor(plancher, "no_position");
+  assert(tPlancher.kcal !== null && tPlancher.kcal > 0);
+  assertEquals(tPlancher.gapClosed, "restriction_floor");
+
+  // ⑥ LA CIBLE DU JOUR EXISTE, CELLE DU MOMENT NON — un motif à part, parce
+  // que la personne n'est protégée par rien: c'est la répartition qui manque.
+  assertEquals(
+    recipeShareReasonFor({ dayKcal: 2000, dayReason: "anchored" }),
+    "slot_without_target",
+  );
+  // ⑦ LA BOUCHE N'EST PAS DANS LA TABLE MESURÉE — nommé, jamais deviné.
+  assertEquals(
+    recipeShareReasonFor({ dayKcal: null, dayReason: null }),
+    "mouth_unknown",
+  );
+});
+
+Deno.test("LOT 1 ⑥ — le vocabulaire des motifs est DÉRIVÉ, jamais recopié", () => {
+  // ⛔ DEUX LISTES DU MÊME SILENCE DIVERGENT À LA PREMIÈRE ABSTENTION AJOUTÉE.
+  for (const r of ANCHOR_REASONS) {
+    if (r === "anchored" || r === "clamped") {
+      assert(!RECIPE_SHARE_REASONS.includes(r as never), `${r} rend une cible`);
+      continue;
+    }
+    assert(RECIPE_SHARE_REASONS.includes(r), `${r} manque aux motifs de part`);
+  }
+  assert(RECIPE_SHARE_REASONS.includes("slot_without_target"));
+  assert(RECIPE_SHARE_REASONS.includes("mouth_unknown"));
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-13 · LOT 2 § 2.1 — LA PERSONNE **SEULE** SANS CIBLE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// LE DÉFAUT REPRODUIT, PUIS FERMÉ. Le lot 1 a raccordé la voie multi-personnes;
+// `applySizing` — le chemin d'UNE bouche — a gardé son retour anticipé
+// `if (!row || !row.sized) { dishes_unsized++; return { ...d }; }`. Un titulaire
+// sans date de naissance perdait donc sa SEULE assiette, sur un plat que la
+// casserole cuisinait pour lui.
+//
+// ⛔ CE QUI N'EST PAS DEVENU VRAI POUR AUTANT: « non dimensionné » n'est PAS
+// « part qualitative valide ». Les deux faits restent distincts, et chacun a son
+// épreuve ci-dessous.
+//
+// LES MUTATIONS QUE CES ÉPREUVES DOIVENT FAIRE ROUGIR
+//   S1 — `applySizing` refiltre sur `row.sized` seul: la seule assiette repart.
+//        ROUGE (épreuve ①).
+//   S2 — la part de recette est fabriquée même quand le PLAT est illisible:
+//        un contenant apparaît là où rien n'est mesurable. ROUGE (épreuve ③).
+//   S3 — `recipe_shares` cesse de compter à une bouche: la part est servie sans
+//        que rien ne le dise. ROUGE (épreuves ① et ⑥).
+//   S4 — un contenant de part de recette ouvre un chiffre de calories.
+//        ROUGE (épreuve ⑦).
+
+/** N=1: la seule ligne du titulaire sur le plat de `planPourPartDeRecette`. */
+const ligneSolo = (
+  over: Partial<SizingRowForApply> = {},
+): SizingRowForApply => ({
+  dishIndex: 0,
+  factor: UNMEASURABLE_PORTION_FACTOR,
+  sized: false,
+  recipeShare: "age_unknown",
+  ...over,
+});
+
+const gramsDe = (boxes: unknown): number =>
+  (boxes as { items: { grams: number }[] }[] | undefined ?? [])
+    .reduce((a, b) => a + b.items.reduce((x, i) => x + i.grams, 0), 0);
+
+Deno.test("LOT 2 ① — N=1, ÂGE INCONNU: le titulaire garde sa seule assiette", () => {
+  const out = applySizing({
+    meal: planPourPartDeRecette(),
+    memberId: "titulaire",
+    rows: [ligneSolo()],
+    index: INDEX,
+  });
+  const boxes = out.dishes[0].boxes as { memberIds: string[] }[];
+  assertEquals(boxes.length, 1, "la seule assiette du foyer est repartie sans contenant");
+  assertEquals(boxes[0].memberIds, ["titulaire"]);
+  assertEquals(out.counts.boxes_authored, 1);
+  assertEquals(out.counts.dishes_unsized, 0);
+  // ⛔ ET LA PART SE DIT. Servie sans compteur, elle serait indistinguable d'un
+  // dimensionnement réussi — c'est-à-dire d'une cible inventée.
+  assertEquals(out.counts.recipe_shares, 1);
+  assertEquals(out.counts.recipe_shares_by, { age_unknown: 1 });
+});
+
+Deno.test("LOT 2 ② — N=1, ÂGE CONNU: rien ne bouge, et aucune part n'est ouverte", () => {
+  // ⛔ LA CONTRE-ÉPREUVE. Le chemin nominal — une cible, un facteur — doit
+  // rendre EXACTEMENT ce qu'il rendait: mêmes grammes, et `recipe_shares` à 0.
+  const connu = applySizing({
+    meal: planPourPartDeRecette(),
+    memberId: "titulaire",
+    rows: [ligneSolo({ sized: true, factor: 1, recipeShare: null })],
+    index: INDEX,
+  });
+  const inconnu = applySizing({
+    meal: planPourPartDeRecette(),
+    memberId: "titulaire",
+    rows: [ligneSolo()],
+    index: INDEX,
+  });
+  assertEquals(out2Grams(connu), out2Grams(inconnu), "la part de recette EST le facteur 1");
+  assertEquals(connu.counts.recipe_shares, 0);
+  assertEquals(connu.counts.recipe_shares_by, {});
+  assertEquals(inconnu.counts.recipe_shares, 1);
+  // ⛔ ET AUCUN GRAMME DE PLUS N'EST CUISINÉ: la casserole et le frais sont les
+  // mêmes des deux côtés — `factorsByPot` comptait déjà la ligne non mesurée.
+  const riz = (o: { preparations: { ingredients: { term: string; amount: number }[] }[] }) =>
+    o.preparations[0].ingredients.find((x) => x.term === "riz")!.amount;
+  const huile = (o: { dishes: { ingredients: { term: string; amount: number }[] }[] }) =>
+    o.dishes[0].ingredients.find((x) => x.term === "huile")!.amount;
+  assertEquals(riz(connu), riz(inconnu));
+  assertEquals(huile(connu), huile(inconnu));
+});
+
+/** La somme des grammes écrits dans les contenants d'un plan appliqué. */
+// deno-lint-ignore no-explicit-any
+function out2Grams(o: { dishes: any[] }): number {
+  return o.dishes.reduce((a, d) => a + gramsDe(d.boxes), 0);
+}
+
+Deno.test("LOT 2 ③ — N=1, RECETTE NON MESURABLE: le refus reste un refus", () => {
+  // ⛔ « JE NE SAIS PAS CALCULER SA CIBLE » OUVRE UNE PART. « CETTE RECETTE EST
+  // ILLISIBLE » N'EN OUVRE AUCUNE. `recipeShare: null` sur une ligne non
+  // dimensionnée est le second fait, et il ne doit RIEN fabriquer.
+  const out = applySizing({
+    meal: planPourPartDeRecette(),
+    memberId: "titulaire",
+    rows: [ligneSolo({ recipeShare: null })],
+    index: INDEX,
+  });
+  assertEquals((out.dishes[0].boxes as unknown[]).length, 0, "un plat illisible a reçu un contenant");
+  assertEquals(out.counts.boxes_authored, 0);
+  assertEquals(out.counts.dishes_unsized, 1);
+  assertEquals(out.counts.recipe_shares, 0);
+  assertEquals(out.counts.recipe_shares_by, {});
+});
+
+Deno.test("LOT 2 ④ — N=1, PART RÉELLEMENT ABSENTE: on n'invente aucun contenant", () => {
+  // ⛔ LE TROISIÈME ÉTAT, ET IL N'EST NI L'UN NI L'AUTRE. La bouche a bien une
+  // part de recette ouverte, mais le plat ne porte RIEN que le référentiel
+  // résolve: aucun item, donc aucun contenant. On compte, on ne fabrique pas.
+  const meal = {
+    dishes: [{ day: "mon", slot: "dinner", ingredients: [ing("ectoplasme", 120)], uses: [], boxes: [] }],
+    preparations: [],
+  };
+  const out = applySizing({
+    meal,
+    memberId: "titulaire",
+    rows: [ligneSolo()],
+    index: INDEX,
+  });
+  assertEquals((out.dishes[0].boxes as unknown[]).length, 0, "un contenant vide a été écrit");
+  assertEquals(out.counts.boxes_authored, 0);
+  assertEquals(out.counts.dishes_unsized, 1);
+  assertEquals(out.counts.items_unresolved, 1);
+  // ⚠️ LA PART A ÉTÉ OUVERTE, ET C'EST VRAI: le compteur dit « on lui devait une
+  // part », le contenant dit « rien de pesable à y mettre ». Les fondre ferait
+  // lire une recette illisible comme une bouche sans cible.
+  assertEquals(out.counts.recipe_shares, 1);
+});
+
+Deno.test("LOT 2 ⑤ — N=2: la bouche sans cible est nommée, l'autre garde la sienne", () => {
+  const out = applySizingForEaters({
+    meal: planPourPartDeRecette(),
+    rows: [
+      { dishIndex: 0, memberId: "paul", factor: 0.5, sized: true, recipeShare: null },
+      {
+        dishIndex: 0,
+        memberId: "iris",
+        factor: UNMEASURABLE_PORTION_FACTOR,
+        sized: false,
+        recipeShare: "age_unknown",
+      },
+    ],
+    weighed: new Set(["paul", "iris"]),
+    index: INDEX,
+  });
+  const boxes = out.dishes[0].boxes as { memberIds: string[]; items: { grams: number }[] }[];
+  assertEquals(boxes.flatMap((b) => b.memberIds).sort(), ["iris", "paul"]);
+  assertEquals(out.counts.own_authored, 2);
+  assertEquals(out.counts.eaters_unsized, 0);
+  assertEquals(out.counts.recipe_shares, 1);
+  const g = (id: string) =>
+    boxes.find((b) => b.memberIds[0] === id)!.items.reduce((a, i) => a + i.grams, 0);
+  assertEquals(Math.round((g("iris") / g("paul")) * 100) / 100, 2, "facteur 1 contre 0,5");
+});
+
+Deno.test("LOT 2 ⑥ — N=4: trois cibles, une absence, QUATRE couvercles", () => {
+  const out = applySizingForEaters({
+    meal: planPourPartDeRecette(),
+    rows: [
+      { dishIndex: 0, memberId: "paul", factor: 0.8, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "nils", factor: 1.4, sized: true, recipeShare: null },
+      { dishIndex: 0, memberId: "lea", factor: 0.6, sized: true, recipeShare: null },
+      {
+        dishIndex: 0,
+        memberId: "iris",
+        factor: UNMEASURABLE_PORTION_FACTOR,
+        sized: false,
+        recipeShare: "no_body",
+      },
+    ],
+    weighed: new Set(["paul", "nils", "lea", "iris"]),
+    index: INDEX,
+  });
+  const boxes = out.dishes[0].boxes as { memberIds: string[]; items: { grams: number }[] }[];
+  assertEquals(boxes.flatMap((b) => b.memberIds).sort(), ["iris", "lea", "nils", "paul"]);
+  assertEquals(out.counts.own_authored, 4);
+  assertEquals(out.counts.eaters_unsized, 0);
+  assertEquals(out.counts.recipe_shares_by, { no_body: 1 });
+  // ⛔ ET LE PLAT EST ENTIÈREMENT DISTRIBUÉ: le frais est multiplié par
+  // 0,8 + 1,4 + 0,6 + 1 = 3,8, et les quatre contenants le portent.
+  const huile = out.dishes[0].ingredients.find(
+    (x: { term: string }) => x.term === "huile",
+  )!.amount;
+  assertEquals(huile, 38, "10 g × 3,8");
+});
+
+Deno.test("LOT 2 ⑦ — L'AFFICHAGE PROTÉGÉ: un contenant sans âge n'ouvre AUCUN chiffre", () => {
+  // ⛔ LE CONTENANT NEUF NE DOIT PAS DEVENIR UNE PORTE NEUVE. La bouche qui le
+  // reçoit est précisément celle dont la date de naissance manque: la chaîne de
+  // sécurité de l'énergie doit se fermer sur elle, et le motif se NOMMER.
+  const out = applySizing({
+    meal: planPourPartDeRecette(),
+    memberId: "titulaire",
+    rows: [ligneSolo()],
+    index: INDEX,
+  });
+  const box = (out.dishes[0].boxes as { id: string; memberIds: string[] }[])[0];
+  const decision = decideBoxEnergy({
+    // ⚠️ ON LUI DONNE UN KCAL NON NUL EXPRÈS. Un refus obtenu parce que le
+    // chiffre manque ne prouverait rien sur la porte.
+    perBox: [{
+      boxId: box.id,
+      day: "mon",
+      slot: "dinner",
+      memberIds: box.memberIds,
+      grams: 400,
+      kcal: 612,
+      gap: null,
+    }],
+    mouths: [{ memberId: "titulaire", userId: "u1", birthDate: null, goal: "lose_fat" }],
+    floors: new Map([["u1", false]]),
+    switches: new Map([["u1", true]]),
+    coachCounting: "no_position",
+    today: "2026-09-13",
+    viewer: "member",
+  });
+  assertEquals(decision.boxes, [], "un chiffre de calories a fui");
+  assertEquals(decision.gate.emitted, 0);
+  assertEquals(decision.gate.single, 1, "la boîte a bien été SOUMISE à la porte");
+  // ⛔ LE MOTIF, PAS UN SILENCE. Sans lui, « la porte a jeté » et « rien n'est
+  // arrivé à la porte » se relisent pareil.
+  assertEquals(
+    Object.entries(decision.gate.refused).filter(([, n]) => n > 0),
+    [["age_unknown", 1]],
+  );
 });

@@ -1,0 +1,105 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "2f454810-1808-4799-91cf-f196866192d9",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T16:05:00+00:00",
+      "event_context": "one_shot_reminder:noter_l_exemple_exact",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: noter l'exemple exact.",
+        "parse_source": "payload",
+        "request_text": "Rappelle-moi demain à 16h05 de noter l'exemple exact",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: noter l'exemple exact.",
+        "source_message_id": null,
+        "reminder_instruction": "noter l'exemple exact"
+      },
+      "created_at": "2026-06-24T13:13:37.959582+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "J'ai une idée produit : quand Sophia crée un rappel, j'aimerais voir une petite ligne dans l'historique des effets. Rappelle-moi demain à 16h05 de noter l'exemple exact.",
+      "created_at": "2026-06-24T13:13:34.984024+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r2-feature-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Ton rappel pour demain à 16h05 est bien pris en compte : noter l’exemple exact.\nPour ton idée produit, la bonne surface est initiatives. Tu peux y préciser quoi dire, avant quel moment, l’horaire et le rythme si c’est récurrent.",
+      "created_at": "2026-06-24T13:13:47.261368+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r2-feature-t01",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "e421e0cd-fc6f-41c3-b398-233b9d7366d9",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-24T13:13:47.245Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T13:13:47.245Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 1,
+            "trigger_context": "historique des effets lors de la création d'un rappel",
+            "opportunity_kind": "coach_style_feedback",
+            "user_problem_summary": "User wants a small line in the effects history when Sophia creates a reminder.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "This is product feedback about a visible effect/history surface, framed as a feature idea.",
+              "trigger_context": "historique des effets lors de la création d'un rappel",
+              "opportunity_kind": "coach_style_feedback",
+              "user_problem_summary": "User wants a small line in the effects history when Sophia creates a reminder."
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-24T13:13:47.245Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T13:13:47.245Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 1,
+            "trigger_context": "historique des effets lors de la création d'un rappel",
+            "opportunity_kind": "coach_style_feedback",
+            "user_problem_summary": "User wants a small line in the effects history when Sophia creates a reminder.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "This is product feedback about a visible effect/history surface, framed as a feature idea.",
+              "trigger_context": "historique des effets lors de la création d'un rappel",
+              "opportunity_kind": "coach_style_feedback",
+              "user_problem_summary": "User wants a small line in the effects history when Sophia creates a reminder."
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T13:13:47.254039+00:00"
+  }
+}

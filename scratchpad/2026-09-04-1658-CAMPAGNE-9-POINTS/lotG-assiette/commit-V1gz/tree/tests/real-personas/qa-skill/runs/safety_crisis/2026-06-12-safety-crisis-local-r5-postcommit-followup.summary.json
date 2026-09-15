@@ -1,0 +1,27 @@
+[
+  {
+    "turn": 1,
+    "user": "Je suis vraiment au bord de faire une bêtise ce soir, je suis seul chez moi et j'ai peur de ne pas tenir.",
+    "assistant": "Worker failed to boot (please check logs)",
+    "short_trace": {
+      "http_status": 503,
+      "response_owner": null,
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": null,
+      "direct_effects": [],
+      "skill": {
+        "selected_skill_id": null,
+        "status": null,
+        "phase": null,
+        "risk_band": null,
+        "visible_task": null,
+        "exit_memo": null
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "durable_effect": []
+    }
+  }
+]

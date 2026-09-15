@@ -1,0 +1,252 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je repousse mon dossier de relance client depuis ce matin; quel levier Sophia tu utiliserais pour m’aider à démarrer ?",
+      "created_at": "2026-06-24T21:12:02.674521+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_coaching_rule_20260624_r4-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui, je peux t’aider pour ça. Tu veux qu’on se concentre sur ton dossier de relance client, là, maintenant ?",
+      "created_at": "2026-06-24T21:12:32.387802+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_coaching_rule_20260624_r4-t01",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Je bloque surtout sur le premier email. Rappelle-moi dans 28 minutes d’ouvrir ce premier email, et donne-moi juste le levier à utiliser.",
+      "created_at": "2026-06-24T21:12:45.426764+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_coaching_rule_20260624_r4-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Je partirais sur une carte d'attaque, technique texte magique : une phrase courte pour couper l’hésitation, par exemple « j’ouvre, je lis, j’écris juste la première ligne ». C’est le plus adapté ici parce que ton blocage est surtout au moment de lancer le premier email.",
+      "created_at": "2026-06-24T21:13:01.757966+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_coaching_rule_20260624_r4-t02",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "b9613f91-a6ee-4b5a-b7b6-6c4178a14d74",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T21:12:32.368Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-24T21:13:01.744Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "recommend",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Le user bloque sur l'ouverture du premier email et demande un levier simple pour démarrer; l'action n'est pas confirmée comme une action du plan.",
+              "target_kind": "free_action",
+              "action_title": "ouvrir ce premier email",
+              "action_source": "free"
+            },
+            "turn_count": 2,
+            "coaching_type": "no_plan_action",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "Le blocage ressemble à un lancement difficile sur une action faisable et concrète; une carte d'attaque aide à préparer le démarrage sans modifier le plan."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user bloque sur l'ouverture du premier email et demande un levier simple pour démarrer; l'action n'est pas confirmée comme une action du plan.",
+            "candidate_features": [
+              {
+                "fit": "high",
+                "why": "Blocage de démarrage sur une action concrète et simple; une phrase de recadrage aide à passer le premier geste sans changer de cadre.",
+                "feature": "attack_card",
+                "destination_hint": "Dashboard > Ressources"
+              }
+            ],
+            "last_answer_summary": "Blocage de démarrage sur une action concrète et simple; une phrase de recadrage aide à passer le premier geste sans changer de cadre.",
+            "parent_return_focus": null,
+            "pending_type_change": null,
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "last_visible_decision": {
+              "lever": "free_attack_card",
+              "reason": "Blocage de démarrage sur une action concrète et simple; une phrase de recadrage aide à passer le premier geste sans changer de cadre.",
+              "variant": "texte_magique",
+              "confidence": "high",
+              "potion_type": null
+            },
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "explicit target switch to no_plan_action: ouvrir ce premier email"
+            ],
+            "current_recommendation": {
+              "fit": "high",
+              "why": "Blocage de démarrage sur une action concrète et simple; une phrase de recadrage aide à passer le premier geste sans changer de cadre.",
+              "feature": "attack_card",
+              "destination_hint": "Dashboard > Ressources"
+            },
+            "last_visible_task_kind": "no_plan_coaching",
+            "recommendation_decision": {
+              "why_primary": "Blocage de démarrage sur une action concrète et simple; une phrase de recadrage aide à passer le premier geste sans changer de cadre.",
+              "why_not_others": {},
+              "primary_feature": "attack_card",
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": "carte d'attaque libre",
+                "surface_hint": "Dashboard > Ressources",
+                "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+              },
+              "user_facing_next_step": "Utiliser une carte d'attaque pour préparer l'ouverture du premier email, puis commencer par un geste très simple."
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "explicit target switch to no_plan_action: ouvrir ce premier email",
+              "category": "free_action_coaching",
+              "confidence": 0.84,
+              "failure_mode": null,
+              "coaching_type": "no_plan_action",
+              "action_context": {
+                "source": "free",
+                "action_title": "ouvrir ce premier email",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": false,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": true
+              },
+              "priority_features": [],
+              "emotional_state_context": null
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T21:12:32.368Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-24T21:13:01.744Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "recommend",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Le user bloque sur l'ouverture du premier email et demande un levier simple pour démarrer; l'action n'est pas confirmée comme une action du plan.",
+              "target_kind": "free_action",
+              "action_title": "ouvrir ce premier email",
+              "action_source": "free"
+            },
+            "turn_count": 2,
+            "coaching_type": "no_plan_action",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "Le blocage ressemble à un lancement difficile sur une action faisable et concrète; une carte d'attaque aide à préparer le démarrage sans modifier le plan."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user bloque sur l'ouverture du premier email et demande un levier simple pour démarrer; l'action n'est pas confirmée comme une action du plan.",
+            "candidate_features": [
+              {
+                "fit": "high",
+                "why": "Blocage de démarrage sur une action concrète et simple; une phrase de recadrage aide à passer le premier geste sans changer de cadre.",
+                "feature": "attack_card",
+                "destination_hint": "Dashboard > Ressources"
+              }
+            ],
+            "last_answer_summary": "Blocage de démarrage sur une action concrète et simple; une phrase de recadrage aide à passer le premier geste sans changer de cadre.",
+            "parent_return_focus": null,
+            "pending_type_change": null,
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "last_visible_decision": {
+              "lever": "free_attack_card",
+              "reason": "Blocage de démarrage sur une action concrète et simple; une phrase de recadrage aide à passer le premier geste sans changer de cadre.",
+              "variant": "texte_magique",
+              "confidence": "high",
+              "potion_type": null
+            },
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "explicit target switch to no_plan_action: ouvrir ce premier email"
+            ],
+            "current_recommendation": {
+              "fit": "high",
+              "why": "Blocage de démarrage sur une action concrète et simple; une phrase de recadrage aide à passer le premier geste sans changer de cadre.",
+              "feature": "attack_card",
+              "destination_hint": "Dashboard > Ressources"
+            },
+            "last_visible_task_kind": "no_plan_coaching",
+            "recommendation_decision": {
+              "why_primary": "Blocage de démarrage sur une action concrète et simple; une phrase de recadrage aide à passer le premier geste sans changer de cadre.",
+              "why_not_others": {},
+              "primary_feature": "attack_card",
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": "carte d'attaque libre",
+                "surface_hint": "Dashboard > Ressources",
+                "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+              },
+              "user_facing_next_step": "Utiliser une carte d'attaque pour préparer l'ouverture du premier email, puis commencer par un geste très simple."
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "explicit target switch to no_plan_action: ouvrir ce premier email",
+              "category": "free_action_coaching",
+              "confidence": 0.84,
+              "failure_mode": null,
+              "coaching_type": "no_plan_action",
+              "action_context": {
+                "source": "free",
+                "action_title": "ouvrir ce premier email",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": false,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": true
+              },
+              "priority_features": [],
+              "emotional_state_context": null
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T21:13:01.751281+00:00"
+  }
+}

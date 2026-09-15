@@ -1,0 +1,62 @@
+{
+  "f3bd26a5-581e-4630-8550-77dd5c75387a": [
+    {
+      "event_context": "onboarding_week1_validation_prompt_v1",
+      "created_at": "2026-06-15T15:14:24.711939+00:00",
+      "scheduled_for": "2026-06-15T15:35:26.328+00:00",
+      "processed_at": "2026-06-15T15:36:04.733+00:00",
+      "status": "sent",
+      "plan_id": "8ada3200-fd15-482b-a56a-5ef3caed9183",
+      "prompt_kind": "validation_prompt"
+    },
+    {
+      "event_context": "onboarding_week1_auto_validation_v1",
+      "created_at": "2026-06-15T15:14:24.785404+00:00",
+      "scheduled_for": "2026-06-15T16:41:04.931+00:00",
+      "processed_at": "2026-06-15T16:42:05.661+00:00",
+      "status": "cancelled",
+      "plan_id": "8ada3200-fd15-482b-a56a-5ef3caed9183",
+      "prompt_kind": "auto_validation"
+    }
+  ],
+  "f40c3cb9-0acf-4afa-8ba5-76e973ffa946": [
+    {
+      "event_context": "onboarding_week1_validation_prompt_v1",
+      "created_at": "2026-06-15T16:14:01.884253+00:00",
+      "scheduled_for": "2026-06-16T07:50:51.243+00:00",
+      "processed_at": "2026-06-16T07:51:05.81+00:00",
+      "status": "sent",
+      "plan_id": "f46e7ce4-2ffb-43b7-b35a-34a724b59fb0",
+      "prompt_kind": "validation_prompt"
+    },
+    {
+      "event_context": "onboarding_week1_auto_validation_v1",
+      "created_at": "2026-06-15T16:14:01.940848+00:00",
+      "scheduled_for": "2026-06-16T08:50:51.243+00:00",
+      "processed_at": "2026-06-16T08:12:06.196+00:00",
+      "status": "sent",
+      "plan_id": "f46e7ce4-2ffb-43b7-b35a-34a724b59fb0",
+      "prompt_kind": "auto_validation"
+    }
+  ],
+  "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9": [
+    {
+      "event_context": "onboarding_week1_validation_prompt_v1",
+      "created_at": "2026-06-15T16:14:21.73898+00:00",
+      "scheduled_for": "2026-06-14T14:57:32.226+00:00",
+      "processed_at": "2026-06-15T16:15:21.387+00:00",
+      "status": "sent",
+      "plan_id": "a31d8112-22c1-4ae6-8f00-83af149fdf17",
+      "prompt_kind": "validation_prompt"
+    },
+    {
+      "event_context": "onboarding_week1_auto_validation_v1",
+      "created_at": "2026-06-15T16:14:22.097916+00:00",
+      "scheduled_for": "2026-06-15T16:35:14.394+00:00",
+      "processed_at": "2026-06-15T16:36:06.769+00:00",
+      "status": "sent",
+      "plan_id": "a31d8112-22c1-4ae6-8f00-83af149fdf17",
+      "prompt_kind": "auto_validation"
+    }
+  ]
+}

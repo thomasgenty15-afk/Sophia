@@ -1,0 +1,90 @@
+═══════════════════════════════════════════════════════════════════════════
+L17 — PREUVE PAR MUTATION · 2026-08-22, 13:24-13:31 CEST
+═══════════════════════════════════════════════════════════════════════════
+
+Copie HORS DÉPÔT: <scratchpad de session>/L17-mut/functions/
+  rsync -a --exclude node_modules supabase/functions/ …/L17-mut/functions/
+  ⚠️ `node_modules` EXCLU et vérifié absent (`find … -name node_modules` ⇒ vide)
+  taille 19 Mo (contre 103 Mo avec node_modules)
+
+Commande de chaque ligne, depuis …/L17-mut/functions/_shared/keel/ :
+  deno test --quiet --allow-read \
+    plan_energy_group_bounds_test.ts plan_energy_test.ts mouth_energy_test.ts
+
+⛔ LA COPIE NON MUTÉE EST VÉRIFIÉE D'ABORD. Six gardes de cette campagne
+   passaient vertes sur leur propre cas; aucune n'a été trouvée par relecture,
+   toutes par mutation. Une copie qu'on ne vérifie pas d'abord peut être verte
+   parce qu'elle ne tourne pas.
+
+───────────────────────────────────────────────────────────────────────────
+⓪ COPIE NON MUTÉE                          rc=0 · 64 passed | 0 failed
+   md5(plan_energy.ts) = c364d783c0ed0755948ba3eff7152df5
+
+① le seuil de production tombe à 0         rc=1 · 55 passed | 9 failed
+     2 g d'un inconnu SANS groupe déclaré ne tuent plus le plat
+     le MÊME 10 g passe quand le modèle a déclaré son groupe
+     la clé est `group`, JAMAIS `food_group_ref` ni `food_group`
+     un groupe SANS bande retombe sur le plafond absolu
+     la CONSTANTE de production est celle qui arme
+     `boundedKcal` est dans `kcal`, et il remonte à la journée
+     `boundedKcal` se divise par `servings`
+     `planEnergyAtTolerance(…, 0)` rend l'état d'AVANT le lot
+     deux appels rendent le même résultat, deux index ne se mélangent pas
+
+② le seuil de production monte à 0,25      rc=1 · 58 passed | 6 failed
+     10 g du MÊME inconnu éteignent le plat: la borne ne pardonne pas
+     la clé est `group`, JAMAIS `food_group_ref` ni `food_group`
+     un groupe SANS bande retombe sur le plafond absolu
+     la CONSTANTE de production est celle qui arme
+     deux appels rendent le même résultat, deux index ne se mélangent pas
+     FF-059 — un ingrédient HORS TABLE: pas de chiffre sur ce plat
+     ⚠️ le dernier rouge est une épreuve PRÉEXISTANTE: relâcher le seuil
+        casse une propriété écrite avant ce lot. C'est la preuve que la
+        tolérance ne peut pas être montée en douce.
+
+③ la borne ignore le groupe déclaré        rc=1 · 61 passed | 3 failed
+   (`band ? MAX : MAX`)
+     le MÊME 10 g passe quand le modèle a déclaré son groupe
+     la clé est `group`, JAMAIS `food_group_ref` ni `food_group`
+     deux appels rendent le même résultat, deux index ne se mélangent pas
+
+④ un inbornable est IGNORÉ au lieu         rc=1 · 62 passed | 2 failed
+   d'éteindre le plat (`return` → `continue`)
+     un inconnu SANS quantité lisible reste fatal, groupe déclaré ou non
+     UN SEUL inbornable éteint le plat, même entouré de bornables
+
+⑤ `boundedKcal` ne se divise plus          rc=1 · 63 passed | 1 failed
+   par `servings`
+     `boundedKcal` se divise par `servings`, comme le total qui le porte
+
+⑥ les grammes de la borne cessent          rc=1 · 63 passed | 1 failed
+   de prendre le MAXIMUM sur les classes
+     un `state` absent ou `cooked` prend la conversion la PLUS LOURDE
+
+⑦ on compte la borne HAUTE au lieu         rc=1 · 58 passed | 6 failed
+   du MILIEU de la bande
+     2 g d'un inconnu SANS groupe déclaré ne tuent plus le plat
+     le MÊME 10 g passe quand le modèle a déclaré son groupe
+     un groupe SANS bande retombe sur le plafond absolu
+     à tolérance 0, le plat RETOMBE exactement sur l'abstention d'avant
+     `boundedKcal` est dans `kcal`, et il remonte à la journée
+     `boundedKcal` se divise par `servings`
+
+⓪ COPIE RESTAURÉE                          rc=0 · 64 passed | 0 failed
+   md5(plan_energy.ts) = c364d783c0ed0755948ba3eff7152df5
+   `diff` contre le fichier du dépôt: VIDE
+
+───────────────────────────────────────────────────────────────────────────
+LA MUTATION DU SEUIL, À L'ÉCHELLE DU CORPUS — et pourquoi elle est dans le
+même processus que la mesure:
+
+  bash scripts/keel_l17_bornes_20260822.sh
+  ⇒ rend `0 %` et `5 %` dans la MÊME passe, sur le MÊME instantané.
+
+⛔ CE N'EST PAS DU CONFORT. Deux lancements à cinq minutes d'écart, à CODE
+   IDENTIQUE, ont rendu +1 journée et +2 plats: la migration 20260822133000
+   (lot `L-C`) venait de réécrire 114 lignes de `food_composition_refs`.
+   Sur un instantané GELÉ, le seuil muté reproduit l'état d'avant au plat
+   près — 750/750 sur 1 885 plats pliés, contre la règle d'avant recopiée
+   depuis HEAD (`diff.ts`, 0 divergence).
+═══════════════════════════════════════════════════════════════════════════

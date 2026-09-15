@@ -1,0 +1,498 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Ok, je suis prête pour faire mon point weekly.",
+    "assistant": "C'est parti pour ton bilan de la semaine. Globalement, comment as-tu vécu ces derniers jours ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "ask_week_experience",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Mitigé. Il y a eu des moments où j'étais contente de tenir, mais aussi pas mal de fatigue. Le rangement du matériel, je l'ai fait lundi, mardi et mercredi, puis j'ai relâché. Le joint réflexe, j'ai réussi à le voir venir une ou deux fois, mais c'était flou. Et le sas de décompression, vendredi je n'ai pas réussi.",
+    "assistant": "C'est compris pour le rangement en début de semaine et le sas de décompression mis de côté à cause de la fatigue. Pour le joint réflexe, qui est aussi resté partiel cette semaine, qu'est-ce qui a fait obstacle ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "review_action_gaps",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Pour le joint réflexe, le souci c'est surtout après le boulot. Je rentre un peu vidée, je me dis que je vais juste me poser, et là je repars en pilote automatique. Quand j'ai réussi à le voir venir, c'est parce que j'avais posé mes clés ailleurs et ça m'a fait un mini stop.",
+    "assistant": "Malgré la fatigue et le pilote automatique qui ont repris le dessus en fin de semaine, as-tu le sentiment d'avoir fait un pas de plus vers ton objectif global ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "ask_global_progress_feeling",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, un petit pas, mais pas un grand. Je vois mieux le moment où je décroche, donc je me sens moins complètement nulle. Par contre je suis frustrée parce que j'ai encore l'impression que l'objectif global reste loin.",
+    "assistant": "C'est tout à fait compréhensible de ressentir cette frustration : quand on avance par petits pas, l'objectif final peut sembler encore très loin, surtout avec la fatigue accumulée. Selon toi, qu'est-ce qui pèse le plus dans ce sentiment de distance aujourd'hui ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "deepen_global_progress",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Ce qui pèse le plus, c'est le retour du boulot. C'est là que tout se joue. Je ne sais pas s'il faut alléger le plan ou juste prévoir un truc très concret pour ce moment-là. J'ai peur que si c'est trop ambitieux je lâche encore.",
+    "assistant": "C'est un arbitrage important entre simplifier tes objectifs pour réduire la pression ou utiliser un outil spécifique pour sécuriser ce moment critique du retour du travail. Quelle approche te semble la plus efficace pour ne pas lâcher ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "qualify_solution_fit",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Je pense que le plus utile serait de sécuriser le retour du travail. Pas forcément changer tout le plan maintenant. Il me faudrait plutôt une défense simple pour ne pas partir direct vers le joint quand je passe la porte.",
+    "assistant": "C’est une super idée d’utiliser un mini-stop comme le déplacement des clés pour casser ce pilote automatique en rentrant du travail. Pour que ce soit vraiment efficace, qu’est-ce que tu aimerais faire ou te dire juste après ce geste pour ne pas basculer vers le joint ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_defense_card",
+      "route_reason_code": "weekly_adaptive_review_v1_handoff_to_prepare_defense_card",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "prepare_defense_card",
+        "status": "collecting",
+        "reason_code": "prepare_defense_card_local_collecting",
+        "flow_action": null,
+        "visible_task": null,
+        "toolExecution": null,
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t07",
+    "status": 200,
+    "ok": true,
+    "user": "Juste après le geste, je veux poser mes clés dans la salle de bain et lancer une douche de cinq minutes. La phrase pourrait être : je passe d'abord par l'eau, après je déciderai.",
+    "assistant": "On a bien avancé sur ta stratégie pour casser ce réflexe en rentrant. Pour finaliser ta carte, rends-toi dans l'action concernée du Plan, section Cartes de défense. Comme je ne peux pas la créer à ta place depuis ici, tu n'auras qu'à recopier cette phrase dans le champ : Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? \n\nVoici la formulation : Le moment où je passe la porte après le boulot, quand je suis vidée et que le pilote automatique me pousse vers le joint réflexe.",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_defense_card",
+      "route_reason_code": "active_prepare_defense_card_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "prepare_defense_card",
+        "status": "handoff_delivered",
+        "reason_code": "platform_handoff_delivered",
+        "flow_action": null,
+        "visible_task": null,
+        "toolExecution": null,
+        "executedTools": [],
+        "platform_handoff": {
+          "operation_type": "prepare_defense_card",
+          "status": "delivered",
+          "surface_id": "defense_cards",
+          "reason_code": "platform_handoff_delivered",
+          "no_chat_mutation": true,
+          "draft": {
+            "operation_type": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "target_summary": "Cibler le joint réflexe",
+            "risk_summary": "Retour du travail / passage de la porte",
+            "platform_flow": {
+              "route_kind": "plan_item_card",
+              "route_label": "Carte de défense liée à une mission ou habitude du plan",
+              "questionnaire_answers": [
+                {
+                  "field_id": "support_need",
+                  "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                  "value": "Le moment où je passe la porte après le boulot, quand je suis vidée et que le pilote automatique me pousse vers le joint réflexe.",
+                  "status": "locked"
+                }
+              ]
+            },
+            "platform_fields": {
+              "route_kind": "plan_item_card",
+              "status": "complete",
+              "missing_field_ids": [],
+              "fields": [
+                {
+                  "field_id": "support_need",
+                  "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                  "required": true,
+                  "status": "locked",
+                  "proposed_value": null,
+                  "locked_value": "Le moment où je passe la porte après le boulot, quand je suis vidée et que le pilote automatique me pousse vers le joint réflexe.",
+                  "user_evidence": [
+                    "Le moment où je passe la porte après le boulot, quand je suis vidée et que le pilote automatique me pousse vers le joint réflexe."
+                  ],
+                  "needs_user_confirmation": false,
+                  "evidence": [
+                    "prepare_defense_card_local_reducer"
+                  ]
+                }
+              ]
+            },
+            "recommendation": {
+              "platform_destination": "dans l'action concernée du Plan, section Cartes de défense",
+              "platform_steps": [
+                "ouvre l'action concernée dans le Plan",
+                "va dans sa section Cartes de défense",
+                "reprends les champs préparés par Sophia"
+              ]
+            },
+            "missing_decisions": []
+          }
+        },
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 8,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t08",
+    "status": 200,
+    "ok": true,
+    "user": "Oui mais garde aussi l'idée importante : clés dans la salle de bain, douche cinq minutes, et la phrase 'je passe d'abord par l'eau, après je déciderai'. Après ça on peut revenir au weekly.",
+    "assistant": "C'est noté pour les étapes de ta carte : les clés dans la salle de bain, la douche de 5 minutes et ta phrase rituelle. J'ai préparé ces points pour que tu puisses les saisir dans ton Plan, au sein de l'action concernée (section Cartes de défense). On reprend maintenant le fil du bilan pour terminer la synthèse de ta semaine ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_gate_order_requires_return_from_child_flow",
+        "flow_action": "confirm_weekly_diagnostic",
+        "visible_task": "return_from_child_flow",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": [
+          {
+            "type": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_gate_order_requires_return_from_child_flow"
+          }
+        ]
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 9,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t09",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, faisons la synthèse.",
+    "assistant": "C'est entendu. Les éléments de ta carte de défense — les clés dans la salle de bain, la douche et ta phrase rituelle — sont préparés pour que tu puisses les saisir dans ton Plan sur la plateforme. On peut maintenant passer à la synthèse de ta semaine : malgré la fatigue et un rythme plus difficile sur la fin, l'effort a été bien présent les premiers jours. On termine avec le bilan global ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_gate_order_requires_return_from_child_flow",
+        "flow_action": "recap_weekly",
+        "visible_task": "return_from_child_flow",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": [
+          {
+            "type": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_gate_order_requires_return_from_child_flow"
+          }
+        ]
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 10,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t10",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, termine avec le bilan global et la clôture du weekly.",
+    "assistant": "Cette semaine a été marquée par une fatigue persistante, ce qui explique ton sentiment de frustration malgré une légère avancée globale. Côté actions, tu as réussi à ranger ton matériel jusqu'à mercredi avant de relâcher, et le ciblage du joint réflexe est resté partiel. Le sas de décompression a été mis de côté en fin de semaine. Pour la suite, j'ai préparé les étapes d'une carte de défense (clés dans la salle de bain, douche de 5 minutes et phrase clé) pour que tu puisses les saisir dans ton Plan, section Cartes de défense. Est-ce que ce bilan te convient pour terminer ce point hebdomadaire ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_confirm_weekly_diagnostic",
+        "flow_action": "confirm_weekly_diagnostic",
+        "visible_task": "weekly_synthesis",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 11,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r9-rose-t11",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, ça me convient. On peut clôturer le weekly.",
+    "assistant": "Le point hebdomadaire est terminé. Les détails de ta carte de défense pour le retour du travail sont prêts pour que tu les saisisses dans ton Plan. Prends le temps de souffler pour récupérer de la fatigue. Bonne continuation dans tes avancées.",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "closed",
+        "reason_code": "weekly_review_local_complete_flow",
+        "flow_action": "complete_flow",
+        "visible_task": "weekly_closure",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  }
+]

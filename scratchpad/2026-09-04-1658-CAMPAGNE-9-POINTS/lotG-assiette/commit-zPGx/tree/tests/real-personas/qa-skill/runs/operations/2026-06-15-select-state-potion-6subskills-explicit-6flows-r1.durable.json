@@ -1,0 +1,92 @@
+[
+  {
+    "potion": "rappel",
+    "user_id": "b03c5b0f-9061-49fe-970e-df56e89c3e3c",
+    "connection_name": "state_potion_6subskills_state_potion_explicit_6flows_20260615_r1_rappel",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "courage",
+    "user_id": "b4df5de8-f811-4b36-a087-9a8fd6ca3531",
+    "connection_name": "state_potion_6subskills_state_potion_explicit_6flows_20260615_r1_courage",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "guerison",
+    "user_id": "b589ad4c-cc7d-41fd-9079-77f05856d791",
+    "connection_name": "state_potion_6subskills_state_potion_explicit_6flows_20260615_r1_guerison",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "clarte",
+    "user_id": "ba35ba9f-618a-4825-b2a4-a885bf61c95e",
+    "connection_name": "state_potion_6subskills_state_potion_explicit_6flows_20260615_r1_clarte",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "amour",
+    "user_id": "2dc41c5b-1b37-46fd-810b-60b782c88670",
+    "connection_name": "state_potion_6subskills_state_potion_explicit_6flows_20260615_r1_amour",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "apaisement",
+    "user_id": "4ae18a86-ac24-4a19-8f47-61e56b18ba77",
+    "connection_name": "state_potion_6subskills_state_potion_explicit_6flows_20260615_r1_apaisement",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  }
+]
